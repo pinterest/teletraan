@@ -20,6 +20,6 @@ Check out [Integrate with Teletraan](https://github.com/pinterest/teletraan2/wik
 
 [Quick start guide!](https://github.com/pinterest/teletraan2/wiki/Quickstart-Guide)
 
-### Documentations
+### Documentation
 
 [Check out our wiki!](https://github.com/pinterest/teletraan2/wiki)
