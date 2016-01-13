@@ -1,0 +1,2 @@
+com.pinterest.teletraan.config.SMTPFactory
+com.pinterest.teletraan.config.DefaultEmailFactory

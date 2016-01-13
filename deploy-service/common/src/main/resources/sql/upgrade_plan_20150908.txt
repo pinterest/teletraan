@@ -1,0 +1,7 @@
+Update
+===========================
+ALTER TABLE groups ADD COLUMN assign_public_ip TINYINT(1) NOT NULL DEFAULT 0;
+
+Rollback
+===========================
+ALTER TABLE groups DROP COLUMN assign_public_ip;

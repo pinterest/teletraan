@@ -1,0 +1,62 @@
+Update
+ ============================== 
+DROP TABLE IF EXISTS api_tokens;
+DROP TABLE IF EXISTS script_tokens;
+DROP TABLE IF EXISTS users_and_roles;
+DROP TABLE IF EXISTS groups_and_roles;
+create table users_and_roles (
+    user_name     VARCHAR(64)     NOT NULL,
+    resource_id   VARCHAR(64)     NOT NULL,
+    resource_type VARCHAR(16)     NOT NULL,
+    role          VARCHAR(22)     NOT NULL,
+    PRIMARY KEY (resource_id, resource_type, user_name)
+);
+
+create table tokens_and_roles (
+    script_name   VARCHAR(64)   NOT NULL,
+    resource_id   VARCHAR(64)   NOT NULL,
+    resource_type VARCHAR(16)   NOT NULL,
+    token         VARCHAR(22)   NOT NULL,
+    role          VARCHAR(22)   NOT NULL,
+    expire_date BIGINT          NOT NULL,
+    PRIMARY KEY (resource_id, resource_type, script_name)
+);
+CREATE INDEX tokens_and_roles_token_idx ON tokens_and_roles (token);
+
+Rollback
+ ============================= 
+DROP TABLE IF EXISTS users_and_roles;
+DROP TABLE IF EXISTS groups_and_roles;
+DROP TABLE IF EXISTS tokens;
+
+create table users_and_roles (
+    user_role_id VARCHAR(22)    NOT NULL,
+    env_id       VARCHAR(22)    NOT NULL,
+    user_name    VARCHAR(64)     NOT NULL,
+    role         VARCHAR(22)     NOT NULL,
+    PRIMARY KEY  (user_role_id)
+);
+
+create table groups_and_roles (
+    group_role_id VARCHAR(22)    NOT NULL,
+    env_id        VARCHAR(22)    NOT NULL,
+    group_id      VARCHAR(64)     NOT NULL,
+    role          VARCHAR(22)     NOT NULL,
+    PRIMARY KEY   (group_role_id)
+);
+
+create table api_tokens (
+  token       VARCHAR(22)   NOT NULL,
+  user_name   VARCHAR(22)   NOT NULL,
+  start_date   BIGINT        NOT NULL,
+  PRIMARY KEY (token)
+);
+
+create table script_tokens (
+  token         VARCHAR(22)   NOT NULL,
+  role          VARCHAR(22)   NOT NULL,
+  script_name   VARCHAR(22)   NOT NULL,
+  env_id        VARCHAR(22)   NOT NULL,
+  start_date     BIGINT        NOT NULL,
+  PRIMARY KEY (token)
+);

@@ -1,0 +1,13 @@
+Update
+ ============================== 
+ALTER TABLE groups ADD COLUMN notify_authors tinyint(1);
+ALTER TABLE groups ADD COLUMN chatroom varchar(64);
+ALTER TABLE groups ADD COLUMN watch_recipients varchar(1024);
+ALTER TABLE groups ADD COLUMN email_recipients varchar(1024);
+
+Rollback
+ ============================= 
+ALTER TABLE groups DROP COLUMN notify_authors;
+ALTER TABLE groups DROP COLUMN chatroom;
+ALTER TABLE groups DROP COLUMN watch_recipients;
+ALTER TABLE groups DROP COLUMN email_recipients;

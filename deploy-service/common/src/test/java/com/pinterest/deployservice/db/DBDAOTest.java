@@ -1,0 +1,1290 @@
+/**
+ * Copyright 2016 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *  
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *    
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.pinterest.deployservice.db;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import com.pinterest.arcee.bean.AsgAlarmBean;
+import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.arcee.bean.HealthCheckBean;
+import com.pinterest.arcee.bean.HealthCheckErrorBean;
+import com.pinterest.arcee.bean.HealthCheckState;
+import com.pinterest.arcee.bean.HealthCheckStatus;
+import com.pinterest.arcee.bean.HealthCheckType;
+import com.pinterest.arcee.bean.ImageBean;
+import com.pinterest.arcee.bean.MetricBean;
+import com.pinterest.arcee.bean.NewInstanceReportBean;
+import com.pinterest.arcee.common.AutoScalingConstants;
+import com.pinterest.arcee.dao.AlarmDAO;
+import com.pinterest.arcee.dao.GroupInfoDAO;
+import com.pinterest.arcee.dao.HealthCheckDAO;
+import com.pinterest.arcee.dao.HealthCheckErrorDAO;
+import com.pinterest.arcee.dao.ImageDAO;
+import com.pinterest.arcee.dao.NewInstanceReportDAO;
+import com.pinterest.arcee.db.DBAlarmDAOImpl;
+import com.pinterest.arcee.db.DBGroupInfoDAOImpl;
+import com.pinterest.arcee.db.DBHealthCheckDAOImpl;
+import com.pinterest.arcee.db.DBHealthCheckErrorDAOImpl;
+import com.pinterest.arcee.db.DBImageDAOImpl;
+import com.pinterest.arcee.db.DBNewInstanceReportDAOImpl;
+import com.pinterest.deployservice.bean.ASGStatus;
+import com.pinterest.deployservice.bean.AcceptanceStatus;
+import com.pinterest.deployservice.bean.AcceptanceType;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentErrorBean;
+import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.AgentStatus;
+import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.ConfigHistoryBean;
+import com.pinterest.deployservice.bean.DataBean;
+import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployFilterBean;
+import com.pinterest.deployservice.bean.DeployPriority;
+import com.pinterest.deployservice.bean.DeployQueryResultBean;
+import com.pinterest.deployservice.bean.DeployStage;
+import com.pinterest.deployservice.bean.DeployState;
+import com.pinterest.deployservice.bean.DeployType;
+import com.pinterest.deployservice.bean.EnvState;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.GroupRolesBean;
+import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.bean.PromoteBean;
+import com.pinterest.deployservice.bean.PromoteType;
+import com.pinterest.deployservice.bean.RatingBean;
+import com.pinterest.deployservice.bean.Resource;
+import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.bean.TokenRolesBean;
+import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.common.Constants;
+import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.AgentErrorDAO;
+import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.dao.ConfigHistoryDAO;
+import com.pinterest.deployservice.dao.DataDAO;
+import com.pinterest.deployservice.dao.DeployDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.GroupDAO;
+import com.pinterest.deployservice.dao.GroupRolesDAO;
+import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.dao.RatingDAO;
+import com.pinterest.deployservice.dao.TokenRolesDAO;
+import com.pinterest.deployservice.dao.UserRolesDAO;
+
+import com.ibatis.common.jdbc.ScriptRunner;
+import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
+
+import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+
+public class DBDAOTest {
+    private final static String DEFAULT_BASE_DIR = "/tmp/deploy-unit-test";
+    private final static String DEFAULT_DB_NAME = "deploy";
+    private final static int DEFAULT_PORT = 3303;
+
+    private static BuildDAO buildDAO;
+    private static AgentDAO agentDAO;
+    private static AgentErrorDAO agentErrorDAO;
+    private static DataDAO dataDAO;
+    private static DeployDAO deployDAO;
+    private static EnvironDAO environDAO;
+    private static PromoteDAO promoteDAO;
+    private static HostDAO hostDAO;
+    private static GroupDAO groupDAO;
+    private static GroupInfoDAO groupInfoDAO;
+    private static RatingDAO ratingDAO;
+    private static AlarmDAO alarmDAO;
+    private static UserRolesDAO userRolesDAO;
+    private static TokenRolesDAO tokenRolesDAO;
+    private static GroupRolesDAO groupRolesDAO;
+    private static ImageDAO imageDAO;
+    private static HealthCheckDAO healthCheckDAO;
+    private static HealthCheckErrorDAO healthCheckErrorDAO;
+    private static ConfigHistoryDAO configHistoryDAO;
+    private static NewInstanceReportDAO newInstanceReportDAO;
+
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+        try {
+            // making sure we do not have anything running
+            ServerLauncherSocketFactory.shutdown(new File(DEFAULT_BASE_DIR), null);
+        } catch (Exception e) {
+            // ignore
+        }
+        BasicDataSource DATASOURCE = DatabaseUtil.createMXJDataSource(DEFAULT_DB_NAME,
+            DEFAULT_BASE_DIR, DEFAULT_PORT);
+        Connection conn = DATASOURCE.getConnection();
+        ScriptRunner runner = new ScriptRunner(conn, false, true);
+        runner.runScript(new BufferedReader(new InputStreamReader(
+            DBDAOTest.class.getResourceAsStream("/sql/cleanup.sql"))));
+        runner.runScript(new BufferedReader(new InputStreamReader(
+            DBDAOTest.class.getResourceAsStream("/sql/deploy.sql"))));
+        buildDAO = new DBBuildDAOImpl(DATASOURCE);
+        agentDAO = new DBAgentDAOImpl(DATASOURCE);
+        agentErrorDAO = new DBAgentErrorDAOImpl(DATASOURCE);
+        dataDAO = new DBDataDAOImpl(DATASOURCE);
+        deployDAO = new DBDeployDAOImpl(DATASOURCE);
+        environDAO = new DBEnvironDAOImpl(DATASOURCE);
+        promoteDAO = new DBPromoteDAOImpl(DATASOURCE);
+        hostDAO = new DBHostDAOImpl(DATASOURCE);
+        groupDAO = new DBGroupDAOImpl(DATASOURCE);
+        ratingDAO = new DBRatingsDAOImpl(DATASOURCE);
+        groupInfoDAO = new DBGroupInfoDAOImpl(DATASOURCE);
+        alarmDAO = new DBAlarmDAOImpl(DATASOURCE);
+        userRolesDAO = new DBUserRolesDAOImpl(DATASOURCE);
+        groupRolesDAO = new DBGroupRolesDAOImpl(DATASOURCE);
+        tokenRolesDAO = new DBTokenRolesDAOImpl(DATASOURCE);
+        imageDAO = new DBImageDAOImpl(DATASOURCE);
+        healthCheckDAO = new DBHealthCheckDAOImpl(DATASOURCE);
+        healthCheckErrorDAO = new DBHealthCheckErrorDAOImpl(DATASOURCE);
+        configHistoryDAO = new DBConfigHistoryDAOImpl(DATASOURCE);
+        newInstanceReportDAO = new DBNewInstanceReportDAOImpl(DATASOURCE);
+    }
+
+    @AfterClass
+    public static void tearDownClass() throws Exception {
+        ServerLauncherSocketFactory.shutdown(new File(DEFAULT_BASE_DIR), null);
+    }
+
+    @Test
+    public void testDeploymentQueries() throws Exception {
+        long now = System.currentTimeMillis();
+
+        BuildBean buildBean1 =
+            genDefaultBuildInfoBean("bbb-1", "s-1", "ccc-1", "r-1", now);
+        BuildBean buildBean2 =
+            genDefaultBuildInfoBean("bbb-2", "s-1", "ccc-1", "r-1", now + 1000);
+        BuildBean buildBean3 =
+            genDefaultBuildInfoBean("bbb-3", "s-1", "ccc-1", "r-1", now + 2000);
+        BuildBean buildBean4 =
+            genDefaultBuildInfoBean("bbb-4", "s-2", "ccc-2", "r-1", now + 3000);
+
+        buildDAO.insert(buildBean1);
+        buildDAO.insert(buildBean2);
+        buildDAO.insert(buildBean3);
+        buildDAO.insert(buildBean4);
+
+        DeployBean deployBean1 =
+            genDefaultDeployBean("d-1", "env-1", "bbb-1", now, DeployState.SUCCEEDED);
+        DeployBean deployBean2 =
+            genDefaultDeployBean("d-2", "env-1", "bbb-1", now + 1000, DeployState.SUCCEEDED);
+        DeployBean deployBean3 =
+            genDefaultDeployBean("d-3", "env-1", "bbb-1", now + 2000, DeployState.RUNNING);
+        DeployBean deployBean4 =
+            genDefaultDeployBean("d-4", "env-2", "bbb-2", now, DeployState.FAILING);
+        // just so we have the build
+        BuildBean buildBeanx =
+            genDefaultBuildInfoBean("d-x", "s-1", "ccc-x", "r-1", now);
+        buildDAO.insert(buildBeanx);
+        DeployBean deployBean5 =
+            genDefaultDeployBean("d-5", "env-3", "bcc-x", now, DeployState.SUCCEEDING);
+        DeployBean deployBean6 =
+            genDefaultDeployBean("d-6", "env-2", "bbb-4", now, DeployState.SUCCEEDED);
+
+        deployDAO.insert(deployBean1);
+        deployDAO.insert(deployBean2);
+        deployDAO.insert(deployBean3);
+        deployDAO.insert(deployBean4);
+        deployDAO.insert(deployBean5);
+        deployDAO.insert(deployBean6);
+
+        deployBean1.setOperator("bar");
+        DeployBean updateBean = new DeployBean();
+        updateBean.setOperator("bar");
+        deployDAO.update("d-1", updateBean);
+        assertTrue(EqualsBuilder.reflectionEquals(deployBean1, deployDAO.getById("d-1")));
+
+        DeployQueryResultBean queryResult;
+        DeployFilterBean buildFilter = new DeployFilterBean();
+        buildFilter.setCommit("ccc-1");
+        buildFilter.setRepo("repo-1");
+        buildFilter.setBranch("branch-1");
+        buildFilter.setCommitDate(now);
+        buildFilter.setOldestFirst(true);
+        buildFilter.setPageIndex(1);
+        buildFilter.setPageSize(10);
+        DeployQueryFilter buildFilterBean = new DeployQueryFilter(buildFilter);
+        queryResult = deployDAO.getAllDeploys(buildFilterBean);
+        assertEquals(queryResult.getTotal().longValue(), 5L);
+        assertFalse(queryResult.isTruncated());
+        assertEquals(queryResult.getDeploys().size(), 5);
+
+        buildFilter.setCommit("ccc-2");
+        buildFilter.setCommitDate(now + 3000);
+        buildFilterBean = new DeployQueryFilter(buildFilter);
+        queryResult = deployDAO.getAllDeploys(buildFilterBean);
+        assertEquals(queryResult.getTotal().longValue(), 1);
+        assertFalse(queryResult.isTruncated());
+        assertEquals(queryResult.getDeploys().size(), 1);
+        DeployBean deployBean = queryResult.getDeploys().get(0);
+        assertEquals("d-6", deployBean.getDeploy_id());
+        assertEquals("bbb-4", deployBean.getBuild_id());
+
+        DeployFilterBean envFilter = new DeployFilterBean();
+        envFilter.setEnvIds(Arrays.asList("env-1"));
+        buildFilter.setCommitDate(now);
+        envFilter.setBefore(now + 2000);
+        envFilter.setAfter(now);
+        envFilter.setPageIndex(1);
+        envFilter.setPageSize(2);
+        DeployQueryFilter envFilterBean1 = new DeployQueryFilter(envFilter);
+        queryResult = deployDAO.getAllDeploys(envFilterBean1);
+        assertEquals(queryResult.getTotal().longValue(), 3);
+        assertTrue(queryResult.isTruncated());
+        assertEquals(queryResult.getDeploys().size(), 2);
+
+        envFilter.setPageIndex(2);
+        envFilter.setPageSize(2);
+        DeployQueryFilter envFilterBean2 = new DeployQueryFilter(envFilter);
+        queryResult = deployDAO.getAllDeploys(envFilterBean2);
+        assertEquals(queryResult.getTotal().longValue(), 3);
+        assertFalse(queryResult.isTruncated());
+        assertEquals(queryResult.getDeploys().size(), 1);
+        assertTrue(EqualsBuilder.reflectionEquals(queryResult.getDeploys().get(0), deployBean1));
+
+        envFilter.setPageIndex(3);
+        envFilter.setPageSize(2);
+        DeployQueryFilter envFilterBean3 = new DeployQueryFilter(envFilter);
+        queryResult = deployDAO.getAllDeploys(envFilterBean3);
+        assertEquals(queryResult.getTotal().longValue(), 3);
+        assertFalse(queryResult.isTruncated());
+        assertEquals(queryResult.getDeploys().size(), 0);
+
+        DeployFilterBean envFilter2 = new DeployFilterBean();
+        envFilter2.setEnvIds(Arrays.asList("env-1"));
+        envFilter2.setBefore(now + 1000);
+        envFilter2.setAfter(now);
+        envFilter2.setPageIndex(1);
+        envFilter2.setPageSize(10);
+        DeployQueryFilter envFilterBean4 = new DeployQueryFilter(envFilter2);
+        queryResult = deployDAO.getAllDeploys(envFilterBean4);
+        assertEquals(queryResult.getTotal().longValue(), 2);
+        assertFalse(queryResult.isTruncated());
+        assertEquals(queryResult.getDeploys().size(), 2);
+
+        DeployFilterBean filter = new DeployFilterBean();
+        filter.setAfter(now - 1000);
+        filter.setPageIndex(2);
+        filter.setPageSize(2);
+        DeployQueryFilter filterBean = new DeployQueryFilter(filter);
+        DeployQueryResultBean resultBean = deployDAO.getAllDeploys(filterBean);
+        assertEquals(resultBean.getDeploys().size(), 2);
+        assertEquals(resultBean.getTotal().longValue(), 6);
+
+        EnvironBean envBean1 = genDefaultEnvBean("env-1", "s-1", "prod", "d-3");
+        EnvironBean envBean2 = genDefaultEnvBean("env-2", "s-2", "prod", "d-4");
+        EnvironBean envBean3 = genDefaultEnvBean("env-3", "s-3", "prod", "d-5");
+        environDAO.insert(envBean1);
+        environDAO.insert(envBean2);
+        environDAO.insert(envBean3);
+
+        DeployFilterBean ongoingFilter = new DeployFilterBean();
+        ongoingFilter.setDeployStates(Arrays.asList(DeployState.RUNNING, DeployState.FAILING));
+        DeployQueryFilter ongoingFilterBean = new DeployQueryFilter(ongoingFilter);
+        DeployQueryResultBean ongoingResultBean = deployDAO.getAllDeploys(ongoingFilterBean);
+        assertEquals(ongoingResultBean.getDeploys().size(), 2);
+
+        deployBean5.setAcc_status(AcceptanceStatus.ACCEPTED);
+        deployDAO.update("d-5", deployBean5);
+        List<DeployBean> beans = deployDAO.getAcceptedDeploys("env-3", 0, 100);
+        assertEquals(beans.size(), 1);
+        assertEquals(beans.get(0).getDeploy_id(), "d-5");
+
+        buildDAO.delete("bbb-1");
+        buildDAO.delete("bbb-2");
+        buildDAO.delete("bbb-3");
+
+        environDAO.delete("env-1");
+        environDAO.delete("env-2");
+        environDAO.delete("env-3");
+
+        deployDAO.delete("d-1");
+        deployDAO.delete("d-2");
+        deployDAO.delete("d-3");
+        deployDAO.delete("d-4");
+        deployDAO.delete("d-5");
+        assertEquals(deployDAO.getById("d-1"), null);
+    }
+
+    @Test
+    public void testBuildDAO() throws Exception {
+        long now = System.currentTimeMillis();
+        BuildBean buildBean1 =
+            genDefaultBuildInfoBean("b-1", "sss-1", "c-1", "r-1", now);
+        BuildBean buildBean2 =
+            genDefaultBuildInfoBean("b-2", "sss-1", "c-1", "r-1", now + 1000);
+        BuildBean buildBean22 =
+            genDefaultBuildInfoBean("b-22", "sss-2", "c-1", "r-1", now + 1000);
+        BuildBean buildBean3 =
+            genDefaultBuildInfoBean("b-3", "sss-1", "c-1", "r-1", now + 2000);
+
+        buildDAO.insert(buildBean1);
+        buildDAO.insert(buildBean2);
+        buildDAO.insert(buildBean22);
+        buildDAO.insert(buildBean3);
+
+        assertTrue(EqualsBuilder.reflectionEquals(buildBean1, buildDAO.getById("b-1")));
+        assertEquals(buildDAO.getByCommit7("c-1", 1, 10).size(), 4);
+        assertEquals(buildDAO.getBuildNames("sss-", 1, 100).size(), 2);
+
+        List<BuildBean> buildBeans = buildDAO.getAcceptedBuilds("sss-1", null, now, 100);
+        assertEquals(buildBeans.size(), 2);
+        BuildBean bean1 = buildBeans.get(0);
+        assertEquals(bean1.getBuild_id(), "b-3");
+
+        BuildBean latestBuildBean = buildDAO.getLatest("sss-1", "branch-1");
+        assertTrue(EqualsBuilder.reflectionEquals(buildBean3, latestBuildBean));
+
+        List<BuildBean> buildBeans1 = buildDAO.getByNameDate("sss-1", null, now + 2000, now);
+        assertEquals(buildBeans1.size(), 2);
+        List<BuildBean> buildBeans2 = buildDAO.getByNameDate("sss-1", "branch-1", now + 2000, now);
+        assertEquals(buildBeans2.size(), 2);
+        assertTrue(EqualsBuilder.reflectionEquals(buildBeans2.get(0), buildBean3));
+        List<BuildBean> buildBeans3 = buildDAO.getByName("sss-1", null, 3, 2);
+        assertEquals(buildBeans3.size(), 0);
+
+        List<BuildBean> buildBeans4 = buildDAO.getByName("sss-1", "branch-1", 1, 2);
+        assertEquals(buildBeans4.size(), 2);
+
+        buildDAO.delete("b-1");
+        buildDAO.delete("b-2");
+        buildDAO.delete("b-22");
+        buildDAO.delete("b-3");
+        assertEquals(buildDAO.getById("b-1"), null);
+    }
+
+    @Test
+    public void testAgentUpdate() throws Exception {
+        AgentBean agentBean1 = genDefaultAgentBean("h1", "id-1", "e-1", "d-1", DeployStage.PRE_DOWNLOAD);
+        agentDAO.insertOrUpdate(agentBean1);
+
+
+        AgentBean updateBean1 = genDefaultAgentBean("h1", "id-1", "e-1", "d-1", DeployStage.POST_DOWNLOAD);
+        updateBean1.setFirst_deploy_time(10L);
+        agentDAO.insertOrUpdate(updateBean1);
+
+
+        List<AgentBean> agentBeans = agentDAO.getByHost("h1");
+        assertEquals(agentBeans.size(), 1);
+        assertEquals(agentBeans.get(0).getFirst_deploy_time(),  new Long(10));
+
+        updateBean1.setFirst_deploy_time(1000L);
+        System.out.println(updateBean1);
+        agentDAO.insertOrUpdate(updateBean1);
+
+        agentBeans = agentDAO.getByHost("h1");
+        assertEquals(agentBeans.size(), 1);
+        System.out.println(agentBeans.get(0));
+        assertEquals(agentBeans.get(0).getFirst_deploy_time(), new Long(10));
+    }
+
+
+    @Test
+    public void testFirstDeployCount() throws Exception {
+        AgentBean agentBean1 = genDefaultAgentBean("h12", "id-123", "e-12", "d-12", DeployStage.POST_RESTART);
+        agentBean1.setFirst_deploy(true);
+        agentBean1.setStatus(AgentStatus.ABORTED_BY_SERVICE);
+
+        AgentBean agentBean2 = genDefaultAgentBean("h22", "id-124", "e-12", "d-12", DeployStage.POST_RESTART);
+        agentBean2.setFirst_deploy(true);
+
+        agentDAO.insertOrUpdate(agentBean1);
+        agentDAO.insertOrUpdate(agentBean2);
+
+        long total = agentDAO.countFirstDeployingAgent("e-12");
+        assertEquals(total, 2);
+        long total_failed = agentDAO.countFailedFirstDeployingAgent("e-12");
+        assertEquals(total_failed, 1);
+
+    }
+
+    @Test
+    public void testAgentQueries() throws Exception {
+        AgentBean agentBean1 = genDefaultAgentBean(
+            "h-1", "id-1", "e-1", "d-1", DeployStage.POST_RESTART);
+        AgentBean agentBean11 = genDefaultAgentBean(
+            "h-1", "id-1", "e-2", "d-1", DeployStage.SERVING_BUILD);
+        AgentBean agentBean2 = genDefaultAgentBean(
+            "h-2", "id-3", "e-1", "d-2", DeployStage.RESTARTING);
+        AgentBean agentBean3 = genDefaultAgentBean(
+            "h-3", "id-4", "e-1", "d-1", DeployStage.SERVING_BUILD);
+        agentBean3.setFirst_deploy_time(System.currentTimeMillis());
+
+        agentDAO.insertOrUpdate(agentBean1);
+        agentDAO.insertOrUpdate(agentBean11);
+        agentDAO.insertOrUpdate(agentBean2);
+        agentDAO.insertOrUpdate(agentBean3);
+
+        AgentBean agentBean22 = new AgentBean();
+        agentBean22.setLast_err_no(22);
+        agentBean2.setLast_err_no(22);
+        agentDAO.update("id-3", "e-1", agentBean22);
+
+        List<AgentBean> hostStatusList = agentDAO.getByHost("h-1");
+        assertEquals(hostStatusList.size(), 2);
+
+        List<AgentBean> agentBeans = agentDAO.getAllByEnv("e-1");
+        assertEquals(agentBeans.size(), 3);
+        int nServing = 0;
+        int nRestarting = 0;
+        int nPostRestart = 0;
+        int nPrestaging = 0;
+        for (AgentBean agentBean : agentBeans) {
+            if (agentBean.getDeploy_stage() == DeployStage.SERVING_BUILD) {
+                nServing++;
+            }
+            if (agentBean.getDeploy_stage() == DeployStage.POST_RESTART) {
+                nPostRestart++;
+            }
+            if (agentBean.getDeploy_stage() == DeployStage.RESTARTING) {
+                nRestarting++;
+            }
+            if (agentBean.getDeploy_stage() == DeployStage.PRE_DOWNLOAD) {
+                nPrestaging++;
+            }
+        }
+        assertEquals(nServing, 1);
+        assertEquals(nRestarting, 1);
+        assertEquals(nPostRestart, 1);
+        assertEquals(nPrestaging, 0);
+
+        assertEquals(agentDAO.countDeployingAgent("e-1"), 2);
+        assertEquals(agentDAO.countSucceededAgent("e-1", "d-1"), 1);
+        assertEquals(agentDAO.countStuckAgent("e-1", "d-1"), 0);
+        assertEquals(agentDAO.getByEnvAndFirstDeployTime("e-1", 0).size(), 1);
+        assertEquals(agentDAO.getByEnvAndFirstDeployTime("e-2", 0).size(), 0);
+
+        agentDAO.deleteAllById("id-1");
+        assertEquals(agentDAO.countAgentByEnv("e-1"), 2);
+        agentDAO.delete("id-2", "e-1");
+        agentDAO.delete("id-3", "e-2");
+        agentDAO.delete("id-4", "e-1");
+        assertEquals(agentDAO.countAgentByEnv("e-2"), 0);
+    }
+
+    @Test
+    public void testEnvDAO() throws Exception {
+
+        // Test insert
+        EnvironBean envBean = genDefaultEnvBean("env-1", "s-1", "prod", "deploy-1");
+        environDAO.insert(envBean);
+
+        // Test getById
+        EnvironBean envBean2 = environDAO.getById(envBean.getEnv_id());
+        assertTrue(EqualsBuilder.reflectionEquals(envBean, envBean2));
+
+        // Test getByStage
+        EnvironBean envBean22 = environDAO.getByStage("s-1", "prod");
+        assertTrue(EqualsBuilder.reflectionEquals(envBean, envBean22));
+
+        // Test Watcher Column
+        assertTrue(envBean2.getWatch_recipients().equals("watcher"));
+
+        // Test update
+        EnvironBean envBean3 = new EnvironBean();
+        envBean3.setAdv_config_id("config_id_2");
+        envBean2.setAdv_config_id("config_id_2");
+        environDAO.update("env-1", envBean3);
+        EnvironBean envBean4 = environDAO.getById("env-1");
+        assertTrue(EqualsBuilder.reflectionEquals(envBean2, envBean4));
+
+        // Test getByName return 2 envs after add another env
+        envBean = genDefaultEnvBean("env-2", "s-1", "whatever", "deploy-1");
+        environDAO.insert(envBean);
+        List<EnvironBean> envBeans = environDAO.getByName("s-1");
+        assertEquals(envBeans.size(), 2);
+
+        assertEquals(groupDAO.getCapacityHosts("env-1").size(), 0);
+        assertEquals(groupDAO.getCapacityGroups("env-1").size(), 0);
+        assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 0);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 0);
+
+        // Add 2 hosts capacity to env-1, host1 & host2
+        groupDAO.addHostCapacity("env-1", "host1");
+        groupDAO.addHostCapacity("env-1", "host2");
+
+        // Add 2 groups capacity to env-1, group1 & group2
+        groupDAO.addGroupCapacity("env-1", "group1");
+        groupDAO.addGroupCapacity("env-1", "group2");
+
+        // env-1 : host1, host2, group1, group2, empty groups though
+        assertEquals(groupDAO.getCapacityHosts("env-1").size(), 2);
+        assertEquals(groupDAO.getCapacityGroups("env-1").size(), 2);
+        assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 0);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 2);
+        ArrayList<String> groupNames = new ArrayList<>();
+        groupNames.add("group1");
+        assertEquals(environDAO.getEnvsByGroups(groupNames).size(), 1);
+        groupNames.add("group-lo");
+        assertEquals(environDAO.getEnvsByGroups(groupNames).size(), 1);
+
+        // Test remove Host capacity and remove host capacity
+        groupDAO.removeHostCapacity("env-1", "host2");
+        groupDAO.removeGroupCapacity("env-1", "group2");
+        // now env-1 associate with only : host1, group1
+        assertEquals(groupDAO.getCapacityHosts("env-1").size(), 1);
+        assertEquals(groupDAO.getCapacityGroups("env-1").size(), 1);
+        assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 0);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 1);
+
+        // Added 2 hosts to group1 and group2
+        Set<String> groups = new HashSet<>(Arrays.asList("group1", "group2"));
+        hostDAO.insertOrUpdate("host-1", "1.1.1.1", "id-123434", HostState.ACTIVE.toString(), groups);
+        hostDAO.insertOrUpdate("host-2", "1.1.1.2", "id-123435", HostState.ACTIVE.toString(), groups);
+
+        // Total capacity for env-1 should be 3, host1, host-1(group1), host-2(group2)
+        assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 0);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 3);
+        List<String> totalHosts = environDAO.getTotalCapacityHosts("env-1", "s-1", "prod");
+        assertEquals(totalHosts.size(), 3);
+        assertTrue(totalHosts.containsAll(Arrays.asList("host-1", "host-2", "host1")));
+
+        // Now, override host-1 with env2
+        groupDAO.addHostCapacity("env-2", "host-1");
+
+        // override hosts should be 1, host-1
+        // Total capacity for env1 should be 2, host1, host-2
+        assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 1);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 2);
+        List<String> totalHosts2 = environDAO.getTotalCapacityHosts("env-1", "s-1", "prod");
+        assertEquals(totalHosts2.size(), 2);
+        assertFalse(totalHosts2.contains("hosts-1"));
+
+        // ineffective override (noise), add host-2 override on env-1
+        // override hosts should be 1, host-1
+        // Total capacity for env1 still is 2, host1, host-2
+        groupDAO.addHostCapacity("env-1", "host-2"); // noise
+        assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 1);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 2);
+        List<String> totalHosts3 = environDAO.getTotalCapacityHosts("env-1", "s-1", "prod");
+        assertEquals(totalHosts3.size(), 2);
+        assertTrue(totalHosts3.containsAll(Arrays.asList("host-2", "host1")));
+
+        // env-1 : host1, group1
+        // env-2 : host-1,
+        List<EnvironBean> envs = environDAO.getEnvsByHost("host-1");
+        assertEquals(envs.size(), 1);
+        assertEquals(envs.get(0).getEnv_name(), "s-1");
+        assertEquals(envs.get(0).getStage_name(), "whatever");
+
+        envs = environDAO.getEnvsByGroups(groups);
+        assertEquals(envs.size(), 1);
+
+        environDAO.delete("env-1");
+        environDAO.delete("env-2");
+        envBean = environDAO.getById("env-1");
+        assertEquals(envBean, null);
+    }
+
+    @Test
+    public void testHostDAO() throws Exception {
+        Set<String> groups = new HashSet<>(Arrays.asList("group1", "group2"));
+        hostDAO.insertOrUpdate("host-1", "1.1.1.1", "id-1", HostState.ACTIVE.toString(), groups);
+        groups = new HashSet<>(Arrays.asList("group1"));
+        hostDAO.insertOrUpdate("host-2", "1.1.1.2", "id-2", HostState.ACTIVE.toString(), groups);
+        hostDAO.insertOrUpdate("host-3", "1.1.1.3", "id-3", HostState.ACTIVE.toString(), groups);
+        /*
+        host-1 : group1, group2
+        host-2 : group1
+        host-3 : group1
+         */
+        assertEquals(hostDAO.getHostNamesByGroup("group1").size(), 3);
+        hostDAO.removeHostFromGroup("id-3", "group1");
+        /*
+        host-1 : group1, group2
+        host-2 : group1
+         */
+        assertEquals(hostDAO.getHostNamesByGroup("group1").size(), 2);
+        assertEquals(hostDAO.getGroupSize("group1").intValue(), 2);
+        assertEquals(hostDAO.getGroupNamesByHost("host-1").size(), 2);
+        // test on non-existing group size
+        assertEquals(hostDAO.getGroupSize("group10").intValue(), 0);
+
+        hostDAO.deleteById("id-1");
+        /*
+        host-2 : group1
+         */
+        assertEquals(hostDAO.getHostNamesByGroup("group1").size(), 1);
+        assertEquals(hostDAO.getHostNamesByGroup("group2").size(), 0);
+
+        hostDAO.deleteById("id-2");
+
+        // test host transactional delete
+        hostDAO.insertOrUpdate("host-1", "1.1.1.1", "id-1", HostState.ACTIVE.toString(), groups);
+        AgentBean agentBean = genDefaultAgentBean(
+            "host-1", "id-1", "e-1", "d-1", DeployStage.SERVING_BUILD);
+        agentDAO.insertOrUpdate(agentBean);
+        AgentErrorBean agentErrorBean = new AgentErrorBean();
+        agentErrorBean.setHost_name("host-1");
+        agentErrorBean.setHost_id("id-1");
+        agentErrorBean.setEnv_id("env-test-host");
+        agentErrorBean.setError_msg("Yeah, it is wrong!");
+        agentErrorDAO.insert(agentErrorBean);
+
+        hostDAO.deleteAllById("id-1");
+        List<HostBean> hostBeans1 = hostDAO.getHosts("host-1");
+        assertTrue(hostBeans1.isEmpty());
+        List<AgentBean> agentBeans = agentDAO.getByHost("host-1");
+        assertTrue(agentBeans.isEmpty());
+        AgentErrorBean agentErrorBeans = agentErrorDAO.get("host-1", "env-test-host");
+        assertNull(agentErrorBeans);
+
+
+        // test hosts_and_envs
+        groupDAO.addHostCapacity("e-3", "host-3");
+        Set<String> groups2 = new HashSet<>(Arrays.asList("new_group"));
+        hostDAO.insertOrUpdate("host-3", "3.3.3.3", "id-3", HostState.TERMINATING.toString(), groups2);
+        List<HostBean> hostBeans2 = hostDAO.getStaleEnvHosts(System.currentTimeMillis() + 100);
+        assertEquals(hostBeans2.size(), 1);
+        HostBean hostBean2 = hostBeans2.get(0);
+        assertEquals(hostBean2.getGroup_name(), "new_group");
+        assertEquals(hostBean2.getHost_name(), "host-3");
+        assertEquals(hostBean2.getIp(), "3.3.3.3");
+
+        // test host insert
+        HostBean hostBean1 = new HostBean();
+        hostBean1.setHost_name("i-9");
+        hostBean1.setHost_id("i-9");
+        hostBean1.setGroup_name("test_dup");
+        Long currentTime = System.currentTimeMillis();
+        hostBean1.setCreate_date(currentTime);
+        hostBean1.setLast_update(currentTime);
+        hostBean1.setState(HostState.PROVISIONED);
+        hostDAO.insert(hostBean1);
+        hostDAO.insert(hostBean1);
+        List<HostBean> hostBeans3 = hostDAO.getHosts("i-9");
+        assertEquals(hostBeans3.size(), 1);
+        assertEquals(hostBeans3.get(0).getHost_name(), "i-9");
+
+        HashSet<String> groups9 = new HashSet<>(Arrays.asList("test_dup"));
+        hostDAO.insertOrUpdate("h-9", "9.9.9.9", "i-9", HostState.PENDING_TERMINATE.toString(), groups9);
+        List<HostBean> hostBeans4 = hostDAO.getHosts("h-9");
+        assertEquals(hostBeans4.size(), 1);
+        assertEquals(hostBeans4.get(0).getHost_name(), "h-9");
+        assertEquals(hostBeans4.get(0).getHost_id(), "i-9");
+
+        List<HostBean> hostBeans5 = hostDAO.getTerminatingHosts();
+        assertEquals(hostBeans5.size(), 2);
+    }
+
+    @Test
+    public void testDataDAO() throws Exception {
+        DataBean dataBean = genDefaultDataBean("foo1", "name1=value1,name2=value2");
+        dataDAO.insert(dataBean);
+        DataBean dataBean2 = dataDAO.getById("foo1");
+        assertTrue(EqualsBuilder.reflectionEquals(dataBean, dataBean2));
+        dataDAO.delete("foo1");
+        DataBean dataBean3 = dataDAO.getById("foo1");
+        assertEquals(dataBean3, null);
+    }
+
+    @Test
+    public void testRatingsDAO() throws Exception {
+        RatingBean ratingBean = genDefaultRatingsBean("1", "foo", System.currentTimeMillis());
+        ratingDAO.insert(ratingBean);
+        List<RatingBean> ratingBeans = ratingDAO.getRatingsByAuthor("foo");
+        assertTrue(ratingBeans.size() == 1);
+        assertTrue(EqualsBuilder.reflectionEquals(ratingBean, ratingBeans.get(0)));
+        ratingDAO.delete("1");
+        List<RatingBean> ratingBeans2 = ratingDAO.getRatingsByAuthor("foo");
+        assertTrue(ratingBeans2.size() == 0);
+    }
+
+    @Test
+    public void testAgentErrorDAO() throws Exception {
+        AgentErrorBean agentErrorBean = new AgentErrorBean();
+        agentErrorBean.setHost_name("host-1");
+        agentErrorBean.setHost_id("id-1");
+        agentErrorBean.setEnv_id("env-1");
+        agentErrorBean.setError_msg("Yeah, it is wrong!");
+        agentErrorDAO.insert(agentErrorBean);
+
+        AgentErrorBean agentErrorBean2 = new AgentErrorBean();
+        agentErrorBean2.setHost_name("host-1");
+        agentErrorBean2.setHost_id("id-1");
+        agentErrorBean2.setEnv_id("env-2");
+        agentErrorBean2.setError_msg("never mind!");
+        agentErrorDAO.insert(agentErrorBean2);
+
+        agentErrorBean.setError_msg("what, again?");
+        agentErrorDAO.update("host-1", "env-1", agentErrorBean);
+        AgentErrorBean agentErrorBean3 = agentErrorDAO.get("host-1", "env-1");
+        assertTrue(EqualsBuilder.reflectionEquals(agentErrorBean, agentErrorBean3));
+    }
+
+    @Test
+    public void testPromoteDAO() throws Exception {
+        long now = System.currentTimeMillis();
+        PromoteBean bean1 = new PromoteBean();
+        bean1.setEnv_id("env1");
+        bean1.setType(PromoteType.MANUAL);
+        bean1.setQueue_size(Constants.DEFAULT_PROMOTE_QUEUE_SIZE);
+        bean1.setDisable_policy(Constants.DEFAULT_PROMOTE_DISABLE_POLICY);
+        bean1.setFail_policy(Constants.DEFAULT_PROMOTE_FAIL_POLICY);
+        bean1.setLast_operator("system");
+        bean1.setLast_update(now);
+        bean1.setDelay(0);
+        promoteDAO.insert(bean1);
+        PromoteBean bean11 = promoteDAO.getById("env1");
+        assertTrue(EqualsBuilder.reflectionEquals(bean1, bean11));
+
+        PromoteBean bean2 = new PromoteBean();
+        bean2.setEnv_id("env1");
+        bean2.setType(PromoteType.AUTO);
+        bean2.setPred_stage("xxx");
+        bean2.setQueue_size(Constants.DEFAULT_PROMOTE_QUEUE_SIZE);
+        bean2.setDisable_policy(Constants.DEFAULT_PROMOTE_DISABLE_POLICY);
+        bean2.setFail_policy(Constants.DEFAULT_PROMOTE_FAIL_POLICY);
+        bean2.setLast_operator("system");
+        bean2.setLast_update(now);
+        bean2.setDelay(0);
+        promoteDAO.update("env1", bean2);
+
+        PromoteBean bean22 = promoteDAO.getById("env1");
+        assertTrue(EqualsBuilder.reflectionEquals(bean2, bean22));
+
+        List<String> ids = promoteDAO.getAutoPromoteEnvIds();
+        assertEquals(ids.size(), 1);
+
+        promoteDAO.delete("env1");
+        assertEquals(promoteDAO.getById("env1"), null);
+    }
+
+    @Test
+    public void testGroupDAO() throws Exception {
+        groupDAO.addGroupCapacity("env-id3", "group3");
+        groupDAO.addGroupCapacity("env-id4", "group4");
+        groupDAO.addGroupCapacity("env-id5", "group3");
+
+        List<String> envids = groupDAO.getEnvsByGroupName("group3");
+        assertEquals(envids.size(), 2);
+        HashSet<String> target_ids = new HashSet<>();
+        target_ids.addAll(envids);
+        assertTrue(target_ids.contains("env-id3"));
+        assertTrue(target_ids.contains("env-id5"));
+
+        List<String> groups = groupDAO.getAllEnvGroups();
+        assertEquals(groups.size(), 2);
+    }
+
+    @Test
+    public void testGroupInfoDAO() throws Exception {
+        // Insert test
+        GroupBean groupBean = new GroupBean();
+        groupBean.setGroup_name("deploy-test");
+        groupBean.setLaunch_config_id("abcd");
+        groupBean.setLast_update(System.currentTimeMillis());
+        groupBean.setChatroom("#lo");
+        groupBean.setEmail_recipients("lo@pinterest.com");
+        groupBean.setPager_recipients("lo@pinterest.com");
+        groupBean.setImage_id("ami-057cbb6e|golden_12.04");
+        String userData = String.format("#cloud-config\nrole: deploy-test\n");
+        groupBean.setUser_data(userData);
+        groupBean.setSubnets("subnet-a6cf71ff");
+        groupBean.setAssign_public_ip(true);
+        groupBean.setIam_role("test");
+        groupBean.setAsg_status(ASGStatus.UNKNOWN);
+        groupBean.setHealthcheck_state(true);
+        groupBean.setHealthcheck_period(10L);
+        groupInfoDAO.insertGroupInfo(groupBean);
+        GroupBean gBean = groupInfoDAO.getGroupInfo("deploy-test");
+        assertEquals(gBean.getGroup_name(), "deploy-test");
+        assertEquals(gBean.getChatroom(), "#lo");
+        assertEquals(gBean.getPager_recipients(), "lo@pinterest.com");
+        assertEquals(gBean.getLaunch_latency_th(), Integer.valueOf(AutoScalingConstants.DEFAULT_LAUNCH_LATENCY_THRESHOLD));
+        assertNull(gBean.getWatch_recipients());
+        assertNull(gBean.getSecurity_group());
+        assertNull(gBean.getInstance_type());
+        assertEquals(gBean.getIam_role(), "test");
+        assertTrue(gBean.getAssign_public_ip());
+        assertEquals(gBean.getImage_id(), "ami-057cbb6e|golden_12.04");
+        assertEquals(gBean.getUser_data(), userData);
+        assertEquals(gBean.getSubnets(), "subnet-a6cf71ff");
+        assertTrue(gBean.getHealthcheck_state());
+        List<String> groups = groupDAO.getExistingGroups(1, 10);
+        assertEquals(groups.size(), 1);
+
+        List<String> enabledHealthCheckGroup = groupInfoDAO.getEnabledHealthCheckGroupNames();
+        assertEquals(enabledHealthCheckGroup.size(), 1);
+
+        // Update test
+        groupBean.setWatch_recipients("lo");
+        groupBean.setLaunch_latency_th(300);
+        groupBean.setSecurity_group("vpc-intranet-admin-tools");
+        groupBean.setInstance_type("x3.2xlarge");
+        groupBean.setIam_role(AutoScalingConstants.DEFAULT_IAM_ROLE);
+        groupBean.setAsg_status(ASGStatus.ENABLED);
+        groupInfoDAO.updateGroupInfo("deploy-test", groupBean);
+        gBean = groupInfoDAO.getGroupInfo("deploy-test");
+        assertEquals(gBean.getWatch_recipients(), "lo");
+        assertEquals(gBean.getLaunch_latency_th(), Integer.valueOf(300));
+        assertEquals(gBean.getSecurity_group(), "vpc-intranet-admin-tools");
+        assertEquals(gBean.getInstance_type(), "x3.2xlarge");
+        assertEquals(gBean.getIam_role(), AutoScalingConstants.DEFAULT_IAM_ROLE);
+        assertEquals(gBean.getAsg_status(), ASGStatus.ENABLED);
+    }
+
+    @Test
+    public void testUserRolesDAO() throws Exception {
+        UserRolesBean bean = new UserRolesBean();
+        bean.setUser_name("test");
+        bean.setResource_id("envTest");
+        bean.setResource_type(Resource.Type.ENV);
+        bean.setRole(Role.ADMIN);
+        userRolesDAO.insert(bean);
+        UserRolesBean bean2 = userRolesDAO.getByNameAndResource("test", "envTest", Resource.Type.ENV);
+        assertEquals(bean2.getRole(), Role.ADMIN);
+    }
+
+    @Test
+    public void testGroupRolesDAO() throws Exception {
+        GroupRolesBean bean = new GroupRolesBean();
+        bean.setGroup_name("group");
+        bean.setResource_id("123");
+        bean.setResource_type(Resource.Type.ENV);
+        bean.setRole(Role.ADMIN);
+        groupRolesDAO.insert(bean);
+        GroupRolesBean bean2 = groupRolesDAO.getByNameAndResource("group", "123", Resource.Type.ENV);
+        assertEquals(bean2.getRole(), Role.ADMIN);
+    }
+
+    @Test
+    public void testTokenRolesDAO() throws Exception {
+        TokenRolesBean bean = new TokenRolesBean();
+        bean.setScript_name("test");
+        bean.setToken("token");
+        bean.setResource_id("envTest");
+        bean.setResource_type(Resource.Type.ENV);
+        bean.setRole(Role.ADMIN);
+        bean.setExpire_date(System.currentTimeMillis());
+        tokenRolesDAO.insert(bean);
+        TokenRolesBean bean2 = tokenRolesDAO.getByNameAndResource("test", "envTest", Resource.Type.ENV);
+        assertEquals(bean2.getRole(), Role.ADMIN);
+    }
+
+    @Test
+    public void testImageDAO() throws Exception {
+        ImageBean bean1 = new ImageBean();
+        bean1.setId("ami-1");
+        bean1.setApp_name("app-1");
+        bean1.setPublish_date(1L);
+        bean1.setQualified(true);
+
+        ImageBean bean2 = new ImageBean();
+        bean2.setId("ami-2");
+        bean2.setApp_name("app-2");
+        bean2.setPublish_date(2L);
+
+        ImageBean bean3 = new ImageBean();
+        bean3.setId("ami-3");
+        bean3.setApp_name("app-2");
+        bean3.setPublish_date(3L);
+
+        imageDAO.insertOrUpdate(bean1);
+        imageDAO.insertOrUpdate(bean2);
+        imageDAO.insertOrUpdate(bean3);
+
+        ImageBean resultBean1 = imageDAO.getById("ami-1");
+        assertEquals(bean1.getApp_name(), resultBean1.getApp_name());
+        assertEquals(bean1.getId(), resultBean1.getId());
+        assertEquals(bean1.getPublish_date(), resultBean1.getPublish_date());
+        assertEquals(bean1.getQualified(), resultBean1.getQualified());
+
+        List<ImageBean> imageBeans = imageDAO.getImages("app-2", 1, 10);
+        assertEquals(imageBeans.size(), 2);
+        assertEquals(imageBeans.get(0).getId(), "ami-3");
+
+        List<ImageBean> imageBeans1 = imageDAO.getImages("app-3", 1, 10);
+        assertTrue(imageBeans1.isEmpty());
+
+        imageDAO.delete("ami-2");
+        ImageBean resultBean2 = imageDAO.getById("ami-2");
+        assertNull(resultBean2);
+
+        List<String> appNames = imageDAO.getAppNames();
+        assertEquals(appNames.size(), 2);
+        assertEquals(appNames, Arrays.asList("app-1", "app-2"));
+    }
+
+    @Test
+    public void testAlarmInfoDAO() throws Exception {
+        // test insert
+        AsgAlarmBean bean1 = new AsgAlarmBean();
+        bean1.setAlarm_id("ABCDEF1");
+        bean1.setGroup_name("deploy-agent-test");
+        bean1.setAction_type("GROW");
+        bean1.setComparator("GreaterThanThreshold");
+        bean1.setEvaluation_time(1000);
+        bean1.setMetric_name("test-metric");
+        bean1.setMetric_source("https://pinadmin.com");
+        bean1.setThreshold(20L);
+        bean1.setFrom_aws_metric(true);
+
+
+        AsgAlarmBean bean2 = new AsgAlarmBean();
+        bean2.setAlarm_id("ABCDEF2");
+        bean2.setGroup_name("deploy-agent-test");
+        bean2.setAction_type("SHRINK");
+        bean2.setComparator("LessThanThreshold");
+        bean2.setEvaluation_time(1000);
+        bean2.setMetric_name("test-metric");
+        bean2.setMetric_source("https://pinadmin.com");
+        bean2.setThreshold(10L);
+        bean2.setFrom_aws_metric(true);
+
+        AsgAlarmBean bean3 = new AsgAlarmBean();
+        bean3.setAlarm_id("ABCDEF3");
+        bean3.setGroup_name("deploy-agent-test");
+        bean3.setAction_type("SHRINK");
+        bean3.setComparator("LessThanThreshold");
+        bean3.setEvaluation_time(1000);
+        bean3.setMetric_name("test-metric2");
+        bean3.setMetric_source("https://pinadmin.com2");
+        bean3.setThreshold(10L);
+        bean3.setFrom_aws_metric(false);
+
+        alarmDAO.insertAlarmInfo(bean1);
+        alarmDAO.insertAlarmInfo(bean2);
+        alarmDAO.insertAlarmInfo(bean3);
+
+        // test get
+        AsgAlarmBean resultBean = alarmDAO.getAlarmInfoById("ABCDEF1");
+        assertTrue(EqualsBuilder.reflectionEquals(resultBean, bean1));
+
+        List<AsgAlarmBean> resultList = alarmDAO.getAlarmInfosByGroup("deploy-agent-test");
+        assertEquals(resultList.size(), 3);
+
+        List<MetricBean> resultMetricList = alarmDAO.getMetrics();
+        assertEquals(resultMetricList.size(), 2);
+
+
+        // test delete
+        alarmDAO.deleteAlarmInfoById("ABCDEF3");
+        assertNull(alarmDAO.getAlarmInfoById("ABCDEF3"));
+        resultMetricList = alarmDAO.getMetrics();
+        assertEquals(resultMetricList.size(), 1);
+        MetricBean expectedBean = new MetricBean();
+        expectedBean.setMetric_name("test-metric");
+        expectedBean.setMetric_source("https://pinadmin.com");
+        expectedBean.setGroup_name("deploy-agent-test");
+        expectedBean.setFrom_aws_metric(true);
+        assertTrue(EqualsBuilder.reflectionEquals(resultMetricList.get(0), expectedBean));
+
+        // test update
+        bean2.setComparator("LessThanOrEqualToThreshold");
+        bean2.setThreshold(30L);
+
+        alarmDAO.updateAlarmInfoById
+            (bean2.getAlarm_id(), bean2);
+        AsgAlarmBean resultBean2 = alarmDAO.getAlarmInfoById(bean2.getAlarm_id());
+        assertTrue(EqualsBuilder.reflectionEquals(resultBean2, bean2));
+    }
+
+    private HealthCheckBean genDefaultHealthCheck() {
+        HealthCheckBean bean = new HealthCheckBean();
+        bean.setGroup_name("group-1");
+        bean.setEnv_id("env-1");
+        bean.setDeploy_id("deploy-1");
+        bean.setAmi_id("ami-1");
+        bean.setState(HealthCheckState.COMPLETED);
+        bean.setStatus(HealthCheckStatus.FAILED);
+        bean.setType(HealthCheckType.AMI_TRIGGERED);
+        bean.setLast_worked_on(System.currentTimeMillis());
+        bean.setStart_time(System.currentTimeMillis());
+        bean.setState_start_time(System.currentTimeMillis());
+        return bean;
+    }
+
+    @Test
+    public void testGetRecentHistory() throws Exception {
+        HealthCheckBean bean1 = genDefaultHealthCheck();
+        bean1.setId("hid-1");
+        bean1.setState(HealthCheckState.COMPLETED);
+        bean1.setStatus(HealthCheckStatus.FAILED);
+        healthCheckDAO.insertHealthCheck(bean1);
+
+        HealthCheckBean bean2 = genDefaultHealthCheck();
+        bean2.setId("hid-2");
+        bean2.setState(HealthCheckState.INIT);
+        bean2.setStatus(HealthCheckStatus.TIMEOUT);
+        healthCheckDAO.insertHealthCheck(bean2);
+
+        HealthCheckBean bean3 = genDefaultHealthCheck();
+        bean3.setId("hid-3");
+        bean3.setState(HealthCheckState.COMPLETED);
+        bean3.setStatus(HealthCheckStatus.TIMEOUT);
+        healthCheckDAO.insertHealthCheck(bean3);
+
+        Collection<String> states =  healthCheckDAO.getRecentHealthCheckStatus("group-1", 2);
+        assertEquals(states.size(), 2);
+        assertTrue(states.contains(HealthCheckStatus.FAILED.toString()));
+        assertTrue(states.contains(HealthCheckStatus.TIMEOUT.toString()));
+    }
+
+    @Test
+    public void testHealthCheckDAO() throws Exception {
+        HealthCheckBean bean1 = new HealthCheckBean();
+        bean1.setId("id-1");
+        bean1.setGroup_name("group-1");
+        bean1.setEnv_id("env-1");
+        bean1.setDeploy_id("deploy-1");
+        bean1.setAmi_id("ami-1");
+        bean1.setState(HealthCheckState.INIT);
+        bean1.setStatus(HealthCheckStatus.UNKNOWN);
+        bean1.setType(HealthCheckType.AMI_TRIGGERED);
+        bean1.setLast_worked_on(System.currentTimeMillis());
+        bean1.setStart_time(System.currentTimeMillis());
+        bean1.setState_start_time(System.currentTimeMillis());
+        healthCheckDAO.insertHealthCheck(bean1);
+
+        HealthCheckBean bean2 = new HealthCheckBean();
+        bean2.setId("id-2");
+        bean2.setGroup_name("group-1");
+        bean2.setEnv_id("env-1");
+        bean2.setDeploy_id("deploy-1");
+        bean2.setAmi_id("ami-1");
+        bean2.setState(HealthCheckState.COMPLETED);
+        bean2.setStatus(HealthCheckStatus.UNKNOWN);
+        bean2.setType(HealthCheckType.AMI_TRIGGERED);
+        bean2.setLast_worked_on(System.currentTimeMillis());
+        bean2.setStart_time(System.currentTimeMillis());
+        bean2.setState_start_time(System.currentTimeMillis());
+        healthCheckDAO.insertHealthCheck(bean2);
+
+        List<HealthCheckBean> beans = healthCheckDAO.getHealthChecksByGroup("group-1", 1, 3);
+        assertEquals(beans.size(), 2);
+
+        HealthCheckBean bean3 = healthCheckDAO.getHealthCheckById("id-1");
+        assertEquals(bean3.getId(), bean1.getId());
+        assertEquals(bean3.getGroup_name(), bean1.getGroup_name());
+        assertEquals(bean3.getEnv_id(), bean1.getEnv_id());
+        assertEquals(bean3.getDeploy_id(), bean1.getDeploy_id());
+        assertEquals(bean3.getAmi_id(), bean1.getAmi_id());
+        assertEquals(bean3.getState(), bean1.getState());
+        assertEquals(bean3.getStatus(), bean1.getStatus());
+        assertEquals(bean3.getType(), bean1.getType());
+        assertNull(bean3.getHost_id());
+        assertNull(bean3.getHost_launch_time());
+        assertNull(bean3.getDeploy_start_time());
+        assertNull(bean3.getDeploy_complete_time());
+
+        // Update
+        Long time = System.currentTimeMillis();
+        bean1.setHost_id("host-1");
+        bean1.setHost_launch_time(time);
+        bean1.setDeploy_start_time(time);
+        bean1.setState(HealthCheckState.LAUNCHING);
+        healthCheckDAO.updateHealthCheckById("id-1", bean1);
+
+        HealthCheckBean bean4 = healthCheckDAO.getHealthCheckById("id-1");
+        assertEquals(bean4.getHost_id(), bean1.getHost_id());
+        assertEquals(bean4.getState(), bean1.getState());
+        assertEquals(bean4.getHost_launch_time(), time);
+        assertEquals(bean4.getDeploy_start_time(), time);
+        assertNull(bean4.getDeploy_complete_time());
+
+        beans = healthCheckDAO.getOngoingHealthChecks();
+        assertEquals(beans.size(), 1);
+
+        healthCheckDAO.removeHealthCheckById("id-1");
+        beans = healthCheckDAO.getOngoingHealthChecks();
+        assertEquals(beans.size(), 0);
+    }
+
+    @Test
+    public void testHealthCheckErrorDAO() throws Exception {
+        HealthCheckErrorBean bean = new HealthCheckErrorBean();
+        bean.setId("id-1");
+        bean.setEnv_id("env-1");
+        bean.setDeploy_stage(DeployStage.DOWNLOADING);
+        bean.setAgent_state(AgentState.PAUSED_BY_SYSTEM);
+        bean.setAgent_status(AgentStatus.TOO_MANY_RETRY);
+        bean.setLast_err_no(22);
+        bean.setFail_count(3);
+        bean.setError_msg("Health check failed");
+        bean.setAgent_start_date(System.currentTimeMillis());
+        bean.setAgent_last_update(System.currentTimeMillis());
+        healthCheckErrorDAO.insertHealthCheckError(bean);
+
+        HealthCheckErrorBean bean1 = healthCheckErrorDAO.getHealthCheckErrorById("id-1");
+        assertEquals(bean.getDeploy_stage(), bean1.getDeploy_stage());
+        assertEquals(bean.getAgent_state(), bean1.getAgent_state());
+        assertEquals(bean.getAgent_status(), bean1.getAgent_status());
+
+        healthCheckErrorDAO.removeHealthCheckErrorById("id-1");
+        bean1 = healthCheckErrorDAO.getHealthCheckErrorById("id-1");
+        assertNull(bean1);
+    }
+
+    @Test
+    public void testConfigHistoryDAO() throws Exception {
+        ConfigHistoryBean bean = new ConfigHistoryBean();
+        bean.setChange_id("id-1");
+        bean.setConfig_id("group-1");
+        bean.setConfig_change("Test config change");
+        bean.setCreation_time(System.currentTimeMillis());
+        bean.setOperator("lo");
+        bean.setType("Host Terminate");
+        configHistoryDAO.insert(bean);
+
+        ConfigHistoryBean bean1 = configHistoryDAO.getByChangeId("id-1");
+        assertEquals(bean1.getType(), "Host Terminate");
+
+        bean.setChange_id("id-2");
+        bean.setConfig_id("group-1");
+        bean.setConfig_change("Test config change 2");
+        bean.setCreation_time(System.currentTimeMillis());
+        bean.setOperator("lo");
+        bean.setType("Host Launch");
+        configHistoryDAO.insert(bean);
+
+        List<ConfigHistoryBean> beanList = configHistoryDAO.getByConfigId("group-1", 1, 10);
+        assertEquals(beanList.size(), 2);
+    }
+
+    @Test
+    public void testNewInstanceDAO() throws Exception {
+        newInstanceReportDAO.addNewInstanceReport("h-123", 123L, Arrays.asList("e-123", "e-124"));
+        newInstanceReportDAO.addNewInstanceReport("h-124", 123L, Arrays.asList("e-123", "e-124"));
+        List<String> ids = newInstanceReportDAO.getNewInstanceIdsByEnv("e-123");
+        assertEquals(ids.size(), 2);
+        NewInstanceReportBean instanceReportBean = newInstanceReportDAO.getByIds("h-123", "e-123");
+        assertFalse(instanceReportBean.getReported());
+        newInstanceReportDAO.deleteNewInstanceReport("h-123", "e-123");
+        instanceReportBean = newInstanceReportDAO.getByIds("h-123", "e-123");
+        assertNull(instanceReportBean);
+        newInstanceReportDAO.reportNewInstances("h-124", "e-123");
+        assertTrue(newInstanceReportDAO.getByIds("h-124", "e-123").getReported());
+    }
+
+    private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {
+        EnvironBean envBean = new EnvironBean();
+        envBean.setEnv_id(envId);
+        envBean.setEnv_name(envName);
+        envBean.setStage_name(envStage);
+        envBean.setEnv_state(EnvState.NORMAL);
+        envBean.setMax_parallel(1);
+        envBean.setPriority(DeployPriority.NORMAL);
+        envBean.setStuck_th(100);
+
+        //To keep the precision, the default success_th value should be 10000 in DB.
+        envBean.setSuccess_th(10000);
+        envBean.setDescription("foo");
+        envBean.setDeploy_id(deployId);
+        envBean.setAdv_config_id("config_id_1");
+        envBean.setSc_config_id("envvar_id_1");
+        envBean.setLast_operator("bar");
+        envBean.setLast_update(System.currentTimeMillis());
+        envBean.setAccept_type(AcceptanceType.AUTO);
+        envBean.setNotify_authors(false);
+        envBean.setWatch_recipients("watcher");
+        envBean.setMax_deploy_num(5100);
+        envBean.setMax_deploy_day(366);
+        return envBean;
+    }
+
+    private DeployBean genDefaultDeployBean(String id, String envId, String buildId,
+        long startDate, DeployState state) {
+        DeployBean deployBean = new DeployBean();
+        deployBean.setDeploy_id(id);
+        deployBean.setEnv_id(envId);
+        deployBean.setBuild_id(buildId);
+        deployBean.setDeploy_type(DeployType.REGULAR);
+        deployBean.setState(state);
+        deployBean.setStart_date(startDate);
+        deployBean.setOperator("foo");
+        deployBean.setLast_update(startDate);
+        deployBean.setDescription("foo");
+        deployBean.setSuc_total(0);
+        deployBean.setFail_total(0);
+        deployBean.setTotal(0);
+        deployBean.setAcc_status(Constants.DEFAULT_ACCEPTANCE_STATUS);
+        return deployBean;
+    }
+
+    private RatingBean genDefaultRatingsBean(String id, String author, long timestamp) {
+        RatingBean ratingBean = new RatingBean();
+        ratingBean.setRating_id(id);
+        ratingBean.setRating("5");
+        ratingBean.setTimestamp(timestamp);
+        ratingBean.setFeedback("good feedback");
+        ratingBean.setAuthor(author);
+        return ratingBean;
+    }
+
+    private BuildBean genDefaultBuildInfoBean(String id, String buildName,
+        String commitId, String repoUrl, long buildDate) {
+        BuildBean buildBean = new BuildBean();
+        buildBean.setBuild_id(id);
+        buildBean.setBuild_name(buildName);
+        buildBean.setScm_repo("repo-1");
+        buildBean.setScm_branch("branch-1");
+        buildBean.setScm_commit(commitId);
+        buildBean.setScm_commit_7(commitId);
+        buildBean.setCommit_date(buildDate);
+        buildBean.setArtifact_url(repoUrl);
+        buildBean.setPublish_info("jenkins12345");
+        buildBean.setPublish_date(buildDate);
+        return buildBean;
+    }
+
+    private AgentBean genDefaultAgentBean(String hostName, String hostId, String envId, String deployId, DeployStage deployStage) {
+        AgentBean agentBean = new AgentBean();
+        agentBean.setHost_name(hostName);
+        agentBean.setHost_id(hostId);
+        agentBean.setEnv_id(envId);
+        agentBean.setDeploy_id(deployId);
+        agentBean.setDeploy_stage(deployStage);
+        agentBean.setStart_date(System.currentTimeMillis());
+        agentBean.setStatus(AgentStatus.SUCCEEDED);
+        agentBean.setState(AgentState.NORMAL);
+        agentBean.setLast_update(System.currentTimeMillis());
+        agentBean.setLast_operator("me");
+        agentBean.setFail_count(0);
+        agentBean.setFirst_deploy(false);
+        agentBean.setStage_start_date(System.currentTimeMillis());
+        return agentBean;
+    }
+
+    private DataBean genDefaultDataBean(String id, String data) {
+        DataBean dataBean = new DataBean();
+        dataBean.setData_id(id);
+        dataBean.setData_kind("script");
+        dataBean.setOperator("foo");
+        dataBean.setTimestamp(System.currentTimeMillis());
+        dataBean.setData(data);
+        return dataBean;
+    }
+}

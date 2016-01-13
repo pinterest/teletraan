@@ -1,0 +1,168 @@
+/**
+ * Copyright 2016 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *  
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *    
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.pinterest.teletraan;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.pinterest.teletraan.health.GenericHealthCheck;
+import com.pinterest.teletraan.resource.*;
+import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.jaxrs.listing.ApiListingResource;
+import io.swagger.jaxrs.listing.SwaggerSerializers;
+import io.dropwizard.Application;
+import io.dropwizard.setup.Environment;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
+
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+import java.util.EnumSet;
+
+public class TeletraanService extends Application<TeletraanServiceConfiguration> {
+    @Override
+    public String getName() {
+        return "teletraan-service";
+    }
+
+    @Override
+    public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
+        TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
+
+        // Enable CORS headers
+        final FilterRegistration.Dynamic cors =
+                environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+
+        // Configure CORS parameters
+        cors.setInitParameter("allowedOrigins", "*");
+        cors.setInitParameter("allowedHeaders", "X-Requested-With,Content-Type,Accept,Origin");
+        cors.setInitParameter("allowedMethods", "OPTIONS,GET,PUT,POST,DELETE,HEAD");
+
+        // Add URL mapping
+        cors.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+
+        environment.jersey().register(configuration.getAuthenticationFactory().create(context));
+
+        Builds builds = new Builds(context);
+        environment.jersey().register(builds);
+
+        Commits commits = new Commits(context);
+        environment.jersey().register(commits);
+
+        Deploys deploys = new Deploys(context);
+        environment.jersey().register(deploys);
+
+        Agents agents = new Agents(context);
+        environment.jersey().register(agents);
+
+        EnvAgentConfigs envAdvancedConfigs = new EnvAgentConfigs(context);
+        environment.jersey().register(envAdvancedConfigs);
+
+        EnvAgents envAgents = new EnvAgents(context);
+        environment.jersey().register(envAgents);
+
+        EnvAlarms envAlarms = new EnvAlarms(context);
+        environment.jersey().register(envAlarms);
+
+        EnvDeploys envDeploys = new EnvDeploys(context);
+        environment.jersey().register(envDeploys);
+
+        EnvCapacitys envHosts = new EnvCapacitys(context);
+        environment.jersey().register(envHosts);
+
+        Environs envs = new Environs(context);
+        environment.jersey().register(envs);
+
+        EnvStages envStages = new EnvStages(context);
+        environment.jersey().register(envStages);
+
+        EnvMetrics envMetrics = new EnvMetrics(context);
+        environment.jersey().register(envMetrics);
+
+        EnvHistory envHistory = new EnvHistory(context);
+        environment.jersey().register(envHistory);
+
+        EnvPromotes envPromotes = new EnvPromotes(context);
+        environment.jersey().register(envPromotes);
+
+        EnvScriptConfigs envScriptConfigs = new EnvScriptConfigs(context);
+        environment.jersey().register(envScriptConfigs);
+
+        EnvTokenRoles envTokenRoles = new EnvTokenRoles(context);
+        environment.jersey().register(envTokenRoles);
+
+        EnvUserRoles envUserRoles = new EnvUserRoles(context);
+        environment.jersey().register(envUserRoles);
+
+        EnvWebHooks envWebHooks = new EnvWebHooks(context);
+        environment.jersey().register(envWebHooks);
+
+        Hotfixs hotfixes = new Hotfixs(context);
+        environment.jersey().register(hotfixes);
+
+        Ratings ratings = new Ratings(context);
+        environment.jersey().register(ratings);
+
+        SystemGroupRoles systemGroups = new SystemGroupRoles(context);
+        environment.jersey().register(systemGroups);
+
+        EnvGroupRoles envGroups = new EnvGroupRoles(context);
+        environment.jersey().register(envGroups);
+
+        Hosts hosts = new Hosts(context);
+        environment.jersey().register(hosts);
+
+        Systems systems = new Systems(context);
+        environment.jersey().register(systems);
+
+        // Support pings as well
+        Pings pings = new Pings(context);
+        environment.jersey().register(pings);
+
+        // TODO Arcee specific
+        if (configuration.getAwsFactory() != null) {
+            Groups groups = new Groups(context);
+            environment.jersey().register(groups);
+
+            Images images = new Images(context);
+            environment.jersey().register(images);
+
+            AutoScalingGroups autoScalingGroups = new AutoScalingGroups(context);
+            environment.jersey().register(autoScalingGroups);
+
+            AutoScalingMetrics autoScalingMetrics = new AutoScalingMetrics(context);
+            environment.jersey().register(autoScalingMetrics);
+
+            Specs specs = new Specs(context);
+            environment.jersey().register(specs);
+        }
+
+        // Schedule workers if configured
+        ConfigHelper.scheduleWorkers(configuration, context);
+
+        environment.healthChecks().register("generic", new GenericHealthCheck(context));
+
+        // Swagger API docs generation related
+        environment.jersey().register(new ApiListingResource());
+        environment.jersey().register(new SwaggerSerializers());
+        BeanConfig config = new BeanConfig();
+        config.setTitle("Teletraan API Docs");
+        config.setVersion("1.0.0");
+        config.setResourcePackage("com.pinterest.teletraan.resource");
+        config.setScan(true);
+    }
+
+    public static void main(String[] args) throws Exception {
+        new TeletraanService().run(args);
+    }
+}

@@ -1,0 +1,7 @@
+Update
+===========================
+ALTER TABLE promotes ADD COLUMN delay INT NOT NULL DEFAULT 0;
+
+Rollback
+===========================
+ALTER TABLE promotes DROP COLUMN delay;

@@ -1,0 +1,7 @@
+Update
+ ============================== 
+ALTER TABLE asg_alarms ADD COLUMN from_aws_metric TINYINT(1) NOT NULL DEFAULT 0;
+
+Rollback
+ ============================= 
+ALTER TABLE asg_alarms DROP COLUMN from_aws_metric;

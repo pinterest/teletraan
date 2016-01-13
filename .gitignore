@@ -1,0 +1,57 @@
+# ignore install specific teletraan dir
+deploy-board/teletraan/
+deploy-service/teletraanservice/teletraan/
+
+# IntelliJ files
+.idea/
+*.iml
+
+# C extensions
+*.so
+
+# vim
+*.swp
+
+# Ignore dirs
+build_id.properties
+loadtests/local
+.DS_Store
+target/
+dist/
+docs/_build/
+
+# Vagrant
+.bundle
+.vagrant
+
+# Packages
+*.egg
+*.egg-info
+dist
+build
+eggs
+parts
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+pip-log.txt
+*.py[cod]
+
+# Unit test / coverage reports
+.coverage
+coverage.xml
+.tox
+nosetests.xml
+junit-py27.xml
+
+# Translations
+*.mo
+
+# Mr Developer
+.mr.developer.cfg
+.project
+.pydevproject
+.DS_Store

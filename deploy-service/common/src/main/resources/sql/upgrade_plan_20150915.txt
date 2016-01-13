@@ -1,0 +1,7 @@
+Update
+===========================
+ALTER TABLE hotfixes ADD COLUMN base_commit VARCHAR(64);
+
+Rollback
+===========================
+ALTER TABLE hotfixes DROP COLUMN base_commit;

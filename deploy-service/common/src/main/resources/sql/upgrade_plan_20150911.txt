@@ -1,0 +1,7 @@
+Update
+ ============================== 
+ALTER TABLE groups ADD COLUMN asg_status VARCHAR(64);
+
+Rollback
+ ============================= 
+ALTER TABLE groups DROP COLUMN asg_status;

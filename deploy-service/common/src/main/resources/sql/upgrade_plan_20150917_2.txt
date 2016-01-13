@@ -1,0 +1,7 @@
+Update
+ ============================== 
+CREATE INDEX hosts_state_idx ON hosts (state);
+
+Rollback
+ ============================= 
+DROP INDEX hosts_state_idx ON hosts;

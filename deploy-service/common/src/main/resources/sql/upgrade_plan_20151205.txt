@@ -1,0 +1,14 @@
+Update
+===========================
+create table new_instances_reports (
+   host_id              VARCHAR(64)        NOT NULL,
+   env_id               VARCHAR(64)        NOT NULL,
+   launch_time          BIGINT,
+   reported             TINYINT            NOT NULL DEFAULT 0,
+   PRIMARY KEY (host_id, env_id)
+);
+
+
+Rollback
+===========================
+drop table if exists new_instances_reports;

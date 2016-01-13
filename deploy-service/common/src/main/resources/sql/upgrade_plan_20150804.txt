@@ -1,0 +1,9 @@
+Update
+ ============================== 
+ALTER TABLE agents ADD COLUMN first_deploy_time bigint(20);
+ALTER TABLE agents ADD COLUMN stage_start_date bigint(20);
+
+Rollback
+ ============================= 
+ALTER TABLE agents DROP COLUMN first_deploy_time;
+ALTER TABLE agents DROP COLUMN stage_start_date;

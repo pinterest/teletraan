@@ -1,0 +1,7 @@
+Update
+ ============================== 
+ALTER TABLE groups ADD COLUMN iam_role VARCHAR(64);
+
+Rollback
+ ============================= 
+ALTER TABLE groups DROP COLUMN iam_role;

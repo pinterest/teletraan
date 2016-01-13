@@ -1,0 +1,22 @@
+Update
+ ============================== 
+create table users_and_roles (
+    user_role_id VARCHAR(22)    NOT NULL,
+    env_id       VARCHAR(22)    NOT NULL,
+    user_name    VARCHAR(64)     NOT NULL,
+    role         VARCHAR(22)     NOT NULL,
+    PRIMARY KEY  (user_role_id)
+);
+
+create table groups_and_roles (
+    group_role_id VARCHAR(22)    NOT NULL,
+    env_id        VARCHAR(22)    NOT NULL,
+    group_id      VARCHAR(64)     NOT NULL,
+    role          VARCHAR(22)     NOT NULL,
+    PRIMARY KEY   (group_role_id)
+);
+
+Rollback
+ ============================= 
+DROP TABLE IF EXISTS users_and_roles;
+DROP TABLE IF EXISTS groups_and_roles;

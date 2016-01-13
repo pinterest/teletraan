@@ -1,0 +1,7 @@
+Update
+===========================
+ALTER TABLE builds ADD COLUMN publisher VARCHAR(64);
+
+Rollback
+===========================
+ALTER TABLE builds DROP COLUMN publisher;
