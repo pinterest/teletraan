@@ -1,0 +1,398 @@
+<div id="webhooksConfig">
+    <form id="webhooksFormId" class="form-horizontal" method="post"
+        action="/env/{{ env.envName }}/{{ env.stageName }}/webhooks/" role="form">
+    {% csrf_token %}
+    {% load utils %}
+
+    <div id="allConfigsId">
+    {% for webhook in webhooks.preDeployHooks %}
+        <div id="panelBodyId" class="panel-default" value="">
+            <div class="panel-heading clearfix">
+                <h4 class="panel-title pull-left"></h4>
+                <div class="pull-right">
+                    <button type="button" class="deleteBtn btn btn-default">Delete</button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label for="url_pre{{ forloop.counter }}"  class="col-md-2 control-label">URL</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" name="url_pre{{ forloop.counter }}" value="{{ webhook.url }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="version_pre{{ forloop.counter }}" class="col-md-2 control-label">Version</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" name="version_pre{{ forloop.counter }}"
+                            value="{{ webhook.version }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="method_pre{{ forloop.counter }}" class="col-md-2 control-label">Method</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" name="method_pre{{ forloop.counter }}"
+                            value="{{ webhook.method }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="headers_pre{{ forloop.counter }}" class="col-md-2 control-label">Headers</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" name="headers_pre{{ forloop.counter }}"
+                            value="{{ webhook.headers }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="body_pre{{ forloop.counter }}" class="col-md-2 control-label">Body</label>
+                    <div class="col-md-10">
+                        <textarea rows="4" cols="50" class="form-control" name="body_pre{{ forloop.counter }}">{{ webhook.body }}</textarea>
+                    </div>
+                </div>
+                <div class="form-group deployRadios" align="center">
+                    <label class="radio-inline">
+                        <input type="radio" name="deploy-type_pre{{ forloop.counter }}" value="pre" checked="checked">Pre-Deploy
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="deploy-type_pre{{ forloop.counter }}" value="post">Post-Deploy
+                    </label>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% for webhook in webhooks.postDeployHooks %}
+        <div id="panelBodyId" class="panel-default" value="">
+            <div class="panel-heading clearfix">
+                <h4 class="panel-title pull-left"></h4>
+                <div class="pull-right">
+                    <button type="button" class="deleteBtn btn btn-default">Delete</button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label for="url_post{{ forloop.counter }}"  class="col-md-2 control-label">URL</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" name="url_post{{ forloop.counter }}" value="{{  webhook.url }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="version_post{{ forloop.counter }}" class="col-md-2 control-label">Version</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" name="version_post{{ forloop.counter }}"
+                            value="{{ webhook.version }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="method_post{{ forloop.counter }}" class="col-md-2 control-label">Method</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" name="method_post{{ forloop.counter }}"
+                            value="{{ webhook.method }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="headers_post{{ forloop.counter }}" class="col-md-2 control-label">Headers</label>
+                    <div class="col-md-10">
+                        <input type="text" class="form-control" name="headers_post{{ forloop.counter }}"
+                            value="{{ webhook.headers }}" placeholder="name1=value1;name2=value2">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="body_post{{ forloop.counter }}" class="col-md-2 control-label">Body</label>
+                    <div class="col-md-10">
+                        <textarea rows="4" cols="50" class="form-control" name="body_post{{ forloop.counter }}">{{ webhook.body }}</textarea>
+                    </div>
+                </div>
+                <div class="form-group deployRadios" align="center">
+                    <label class="radio-inline">
+                        <input type="radio" name="deploy-type_post{{ forloop.counter }}" value="pre">Pre-Deploy
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="deploy-type_post{{ forloop.counter }}" value="post" checked="checked">Post-Deploy
+                    </label>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+    </form>
+
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button id="resetConfigMapBtnId" class="btn btn-default"
+                    type="button" data-loading-text="Reloading...">
+                <span class="glyphicon glyphicon-refresh"></span> Reload
+            </button>
+            <button id="addConfigMapBtnId" class="btn btn-default">
+                <span class="glyphicon glyphicon-plus"></span> Add WebHook
+            </button>
+            <button id="saveConfigMapBtnId" class="btn btn-primary"
+                    type="button" data-loading-text="Saving...">
+                <span class="glyphicon glyphicon-floppy-save"></span> Save
+            </button>
+        </div>
+    </div>
+
+    <div class="modal fade" id="newEntryModalId" tabindex="-1" role="dialog"
+         aria-labelledby="newEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form id="newEntryFormId" class="form-horizontal" method="post" role="form">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span
+                                aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                        </button>
+                        <h4 class="modal-title" id="newEnvModalLabel">Add a new webhook</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="url" class="col-md-2 control-label">URL</label>
+                            <div class="input-group col-md-9">
+                                <input type="text" class="form-control" name="url" value=""
+                                        placeholder="https://example.com/?param1=value1&param2=value2">
+                                <span class="input-group-btn">
+                                    <button id="urlInfoBtnId" class="deployToolTip btn btn-default"
+                                            type="button" data-toggle="tooltip"
+                                            title="Click here for more information on building your URL">
+                                        <span class="glyphicon glyphicon-question-sign"></span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="version" class="col-md-2 control-label">Version</label>
+                            <div class="input-group col-md-9">
+                                <input type="text" class="form-control" name="version" value="1.1"
+                                       placeholder="1.1">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="method" class="col-md-2 control-label">Method</label>
+                            <div class="input-group col-md-9">
+                                <input type="text" class="form-control" name="method" value="POST"
+                                        placeholder="POST">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="headers" class="col-md-2 control-label">Headers</label>
+                            <div class="input-group col-md-9">
+                                <input type="text" class="form-control" name="headers" value=""
+                                       placeholder="name1=value1;name2=value2">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="body" class="col-md-2 control-label">Body</label>
+                            <div class="input-group col-md-9">
+                                <textarea rows="4" cols="50" class="form-control" name="body"
+                                          placeholder='{"name1":"value1","name2":"value2"}'></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-group deployRadios" align="center">
+                            <label class="radio-inline">
+                                <input type="radio" name="deploy-type" value="pre">Pre-Deploy
+                            </label>
+                            <label class="radio-inline">
+                                <input type="radio" name="deploy-type" value="post">Post-Deploy
+                            </label>
+                        </div>
+                    </div>
+
+                     <div class="form-group collapse" id="urlInfoCollapseId">
+                        <div class="col-md-1"></div>
+                        <p class="col-md-11"><b>URL format example (with optional parameters):</b><br>
+                            https://pinterestWebhookExample.com/?param1=a&amp;param2=b&amp;param3=c</p>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button id="newEntryBtnId" type="button" class="btn btn-primary">Add</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        var counter = "{{ webhooks.preHooks|length }}" + "{{ webhooks.postHooks|length }}";
+        $('#saveConfigMapBtnId').attr('disabled','disabled');
+        $('#resetConfigMapBtnId').attr('disabled','disabled');
+
+        $('#webhooksFormId input').keyup(function() {
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#webhooksFormId textarea').keyup(function() {
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#addConfigMapBtnId').click(function () {
+            $('#newEntryModalId').modal()
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled')
+        });
+
+        $('.deployRadios').click(function () {
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled')
+        });
+
+        $('#newEntryBtnId').click(function () {
+            var url = $('#newEntryModalId').find('input[name="url"]').val();
+            if (!url.trim()) {
+                alert("URL cannot be empty");
+                return;
+            }
+
+            var json = $('#newEntryModalId').find('textarea[name="body"]').val();
+            var headers = $('#newEntryModalId').find('input[name="headers"]').val();
+            var version = $('#newEntryModalId').find('input[name="version"]').val();
+            var method = $('#newEntryModalId').find('input[name="method"]').val();
+            var type =  $('#newEntryModalId').find('input[name="deploy-type"]:checked').val();
+            var radio =         '<label class="radio-inline">' +
+                                    '<input type="radio" value="pre" name="deploy-type_' + counter + '" checked="checked">Pre-Deploy' +
+                                '</label>' +
+                                '<label class="radio-inline">' +
+                                    '<input type="radio" value="post" name="deploy-type_' + counter + '">Post-Deploy' +
+                                '</label>';
+
+
+            if(type == "pre") {
+                radio =         '<label class="radio-inline">' +
+                                    '<input type="radio" name="deploy-type_' + counter + '" value="pre" checked="checked">Pre-Deploy' +
+                                '</label>' +
+                                '<label class="radio-inline">' +
+                                    '<input type="radio" name="deploy-type_' + counter + '" value="post">Post-Deploy' +
+                                '</label>';
+            }
+            else if(type == "post") {
+                radio =         '<label class="radio-inline">' +
+                                    '<input type="radio" name="deploy-type_' + counter + '" value="pre">Pre-Deploy' +
+                                '</label>' +
+                                '<label class="radio-inline">' +
+                                    '<input type="radio" name="deploy-type_' + counter + '" checked="checked" value="post">Post-Deploy' +
+                                '</label>';
+
+
+            }
+
+            var template =
+                        '<div id="panelBodyId" class="panel-default" value="">' +
+                        '    <div class="panel-heading clearfix">' +
+                        '        <h4 class="panel-title pull-left"></h4>' +
+                        '        <div class="pull-right">' +
+                        '            <button type="button" class="deleteBtn btn btn-default">Delete</button>' +
+                        '        </div>' +
+                        '    </div>' +
+                        '    <div class="panel-body">' +
+                            '<div class="form-group">' +
+                            '<label for="url_' + counter + '" class="col-md-2 control-label">URL</label>' +
+                                '<div class="col-md-10">' +
+                                    '<input type="text" class="form-control" name="url_' + counter + '"' +
+                                           'value="' + url + '">' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                                '<label for="version_' + counter + '" class="col-md-2 control-label">Version</label>' +
+                                '<div class="col-md-10">' +
+                                    '<input type="text" class="form-control" name="version_' + counter + '"' +
+                                        'value="' + version + '">' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                                '<label for="method_' + counter + '" class="col-md-2 control-label">Method</label>' +
+                                '<div class="col-md-10">' +
+                                    '<input type="text" class="form-control" name="method_' + counter + '"' +
+                                        'value="' + method + '">' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                                '<label for="headers_' + counter + '" class="col-md-2 control-label">Headers</label>' +
+                                '<div class="col-md-10">' +
+                                    '<input type="text" class="form-control" name="headers_' + counter + '"' +
+                                        'value="' + headers + '">' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group">' +
+                                '<label for="body_' + counter + '" class="col-md-2 control-label">Body</label>' +
+                                '<div class="col-md-10">' +
+                                    '<textarea rows="4" cols="50" class="form-control" name="body_' + counter + '">' +
+                                    json +
+                                    '</textarea>' +
+                                '</div>' +
+                            '</div>' +
+                            '<div class="form-group deployRadios" align="center">' +
+                                radio +
+                            '</div>' +
+                        '    </div>' +
+                        '</div>' +
+                        '</div>';
+            $('#allConfigsId').append(template);
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+            $('#newEntryModalId').modal('hide');
+            counter++;
+        });
+
+
+        $('#saveConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/webhooks/',
+                data: $('#webhooksFormId').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $('#webhooksFormId').parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/webhooks',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    btn.button('reset');
+                    $('#webhooksFormId').parent().html(data.html);
+                }
+            });
+        });
+
+        $('#webhooksFormId').on('click', '.deleteBtn', function () {
+            $(this).parent().parent().parent().remove();
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('.modal').on('hidden.bs.modal', function(){
+            $(this).find('form')[0].reset();
+        });
+
+        $("#urlInfoBtnId").click(function() {
+            $("#urlInfoCollapseId").collapse('toggle');
+        });
+    });
+</script>

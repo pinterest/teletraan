@@ -1,0 +1,27 @@
+This directory contains a list of scripts helpful to test and debug backend Teletraan service.
+
+1. You need to set environment variable TELETRAAN_SERVICE_URL to point to the right backend
+server. if not provided, it will point to http://localhost:8080
+2. You need to set environment variable TELETRAAN_TEST_TOKEN if backend has the authentication
+enabled.
+
+To pump test data into Teletraan server:
+===========================================================
+./run.sh publish_build.py
+./run.sh create_env.py
+./run.sh create_deploy.py
+
+To run agent_simulator, which simulates 100 agents run forever, will install any new deply
+successfully. You will need to create an env on the server, and add a group into env capacity,
+pass this group name when run the simulator
+===========================================================
+./run.sh agent_simulator.py -g YOUR_GROUP_NAME
+
+If you just want to simulate one specific agent ping, use pinger.py
+===========================================================
+usage: pinger.py [-h] [-i HOST] [-g GROUP] [-n ENV_NAME] [-s STAGE_NAME]
+                 [--deploy-stage DEPLOY_STAGE] [--agent-status AGENT_STATUS]
+                 [--error-code ERROR_CODE] [--error-message ERROR_MESSAGE]
+                 [--deploy-alias DEPLOY_ALIAS] [--fail-count FAIL_COUNT]
+
+./run.sh pinger.py ...

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block navbar-items %}
+<li><a href="/envs">Environments</a></li>
+<li><a href="/builds">Builds</a></li>
+{% endblock %}
+
+{% block navbar-search %}
+<form class="navbar-form navbar-left" role="search">
+    <div class="form-group has-feedback">
+        <input type="text" class="form-control" placeholder="Not Supported Yet...">
+        <span class="glyphicon glyphicon-search form-control-feedback"></span>
+    </div>
+</form>
+{% endblock %}

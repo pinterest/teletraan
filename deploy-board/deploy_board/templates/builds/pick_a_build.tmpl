@@ -1,0 +1,152 @@
+{% load utils %}
+{% load static %}
+<table id="buildPickTableId" class="table table-condensed table-striped table-hover">
+    <tr>
+        <th class="col-lg-3">Publish Date</th>
+        <th class="col-lg-3">Commit</th>
+        <th class="col-lg-2">Branch</th>
+        <th class="col-lg-2">Repo</th>
+        <th class="col-lg-1">Details</th>
+    </tr>
+    {% for build in builds %}
+    <tr>
+        <td>
+            <a class="deployToolTip pointer-cursor" data-toggle="collapse"
+               title="Click to see all deploy options"
+               data-target="#deployAction{{forloop.counter}}">
+                <span id="deployAction{{forloop.counter}}Toggler"
+                      {% if builds|length > 1 %}
+                      class="glyphicon glyphicon-chevron-right">
+                      {% else %}
+                      class="glyphicon glyphicon-chevron-down">
+                      {% endif %}
+                </span>
+                {{ build.publishDate|convertTimestamp }}
+            </a>
+            <input class="hiddenBuildId" type="hidden" value="{{ build.id }}"/>
+            <input class="hiddenCommit" type="hidden" value="{{ build.commit }}"/>
+            <input class="hiddenCommit7" type="hidden" value="{{ build.commitShort }}"/>
+            <input class="hiddenBranch" type="hidden" value="{{ build.branch }}"/>
+        </td>
+        <td><a class="deployToolTip" href="{{ build.commitInfo }}" target="_blank"
+               title="Click to see commit details in {{ build.type }}">
+                <i class="{{ build|commitIcon }}"></i> {{ build.commitShort }}
+            </a>
+            {% if not current_build or build.publishDate > current_build.publishDate %}
+            <span class="label label-info">New</span>
+            {% endif %}
+        </td>
+        <td>{{ build.branch }}</td>
+        <td>{{ build.repo }}</td>
+        <td><a href="/builds/{{ build.id }}">view</a></td>
+    </tr>
+    {% if builds|length > 1 %}
+    <tr id="deployAction{{forloop.counter}}" class="collapse out deployActionPanel">
+    {% else %}
+    <tr id="deployAction{{forloop.counter}}" class="collapse in deployActionPanel">
+    {% endif %}
+        <td colspan="6">
+            <div class="row showContent">
+            </div>
+            <div class="row">
+                <button class="deployer deployToolTip btn btn-primary"
+                        data-toggle="tooltip" title="Deploy this build">
+                    <span class="glyphicon glyphicon-check"></span> Deploy It
+                </button>
+                {% if current_build %}
+                <button class="showdiffer deployToolTip btn btn-default"
+                        data-loading-text="Loading..." data-toggle="tooltip"
+                        title="Show all the new commits since last deploy">
+                    <span class="glyphicon glyphicon-zoom-in"></span> Show New Commits
+                </button>
+                {% if current_build.type == "Github" %}
+                <button class="githuber deployToolTip btn btn-default" data-toggle="tooltip"
+                        title="Show all the new commits in Gitbhub">
+                    <i class="fa fa-github"></i> Show New Commits in Github
+                </button>
+                {% endif %}
+                {% endif %}
+            </div>
+        </td>
+    </tr>
+    {% endfor%}
+</table>
+{% if builds|length >= 10 %}
+<ul class="pager">
+    <li>
+        <button id="buildsPreviousId" type="button"
+                class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+            <span class="glyphicon glyphicon-chevron-left"></span> Previous
+        </button>
+    </li>
+    <li>
+        <button id="buildsNextId" type="button"
+                class="btn btn-default {% if disableNext %}disabled{% endif %}">
+            Next <span class="glyphicon glyphicon-chevron-right"></span>
+        </button>
+    </li>
+</ul>
+{% endif %}
+<script>
+    $(function () {
+        $('.deployToolTip').tooltip();
+
+        $('.deployActionPanel').on('hidden.bs.collapse shown.bs.collapse', function () {
+            var currentId = $(this).attr('id');
+            $('#' + currentId + 'Toggler').toggleClass('glyphicon-chevron-right glyphicon-chevron-down', 100);
+        });
+
+        $('#buildPickTableId tr .deployer').click(function () {
+            trid = $(this).closest('tr').prev();
+            buildId = trid.find(".hiddenBuildId").val();
+            commit = trid.find(".hiddenCommit").val();
+            commit7 = trid.find(".hiddenCommit7").val();
+            branch = trid.find(".hiddenBranch").val();
+            $('#confirmDeployModalId').modal();
+        });
+
+        $('#confirmDeployModalId').on('show.bs.modal', function () {
+            $('#confirmcommitInputId').val(commit);
+            $('#confirmcommit7InputId').val(commit7);
+            $('#confirmBranchInputId').val(branch);
+            $('#confirmBuildIdInputId').val(buildId);
+        });
+
+        $('#buildPickTableId tr .showdiffer').click(function () {
+            btn=$(this);
+            $(btn).button('loading');
+            $(btn).tooltip('hide');
+            trid = $(this).closest('tr');
+            startSha = trid.prev().find(".hiddenCommit").val();
+            contentId = trid.find('.showContent');
+            url = '/commits/compare_commits/?start_sha=' + startSha +
+                '&end_sha={{ current_build.commit }}&repo={{ current_build.repo }}';
+            contentId.load(url, function () {
+                $(btn).button('reset');
+            });
+        });
+
+        $('#buildPickTableId tr .githuber').click(function () {
+            btn=$(this);
+            trid = $(this).closest('tr');
+            commit = trid.prev().find(".hiddenCommit").val();
+            url = '{{ scm_url }}/{{ current_build.repo}}/compare/' +
+                '{{ current_build.commit }}...' + commit;
+            window.open(url);
+        });
+
+        $("#buildsNextId").click(function () {
+            $('#buildPickTableId').parent().load(
+                '/builds/get_all_builds/?name={{ buildName }}&branch={{ branch }}' +
+                    '&page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}' +
+                    '&current_build_id={{ current_build.id }}');
+        });
+
+        $("#buildsPreviousId").click(function () {
+            $('#buildPickTableId').parent().load(
+                '/builds/get_all_builds/?name={{ buildName }}&branch={{ branch }}' +
+                    '&page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}' +
+                    '&current_build_id={{ current_build.id }}');
+        });
+    });
+</script>

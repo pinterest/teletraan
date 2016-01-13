@@ -1,0 +1,99 @@
+<div class="panel panel-default">
+    {% include "panel_heading.tmpl" with panel_title=filter_title panel_body_id="filterId" direction="right" %}
+    <div id="filterId" class="collapse out panel-body table-responsive">
+    <form action="{{ url_prefix }}/" class="form-horizontal" role="form">
+        <div class="form-group">
+            <label for="from" class="control-label col-xs-2">From (-08:00)</label>
+            <div class="col-xs-5">
+            <div class="input-group">
+                <input class="form-control" name="from_date" type="text"
+                       value="{{ from_date|default_if_none:'' }}"
+                       placeholder="e.g. 2014-10-10"/>
+                <span class="input-group-addon" id="basic-addon2">Date</span>
+            </div>
+            </div>
+            <div class="col-xs-5">
+            <div class="input-group">
+                <input class="form-control" name="from_time" type="text"
+                       value="{{ from_time|default_if_none:'' }}"
+                       placeholder="e.g. 22:10:20"/>
+                <span class="input-group-addon" id="basic-addon2">Time (24hrs)</span>
+            </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="to" class="control-label col-xs-2">To (-08:00)</label>
+            <div class="col-xs-5">
+            <div class="input-group">
+                <input class="form-control" name="to_date" type="text"
+                       value="{{ to_date|default_if_none:'' }}"
+                       placeholder="e.g. 2014-10-20"/>
+                <span class="input-group-addon" id="basic-addon2">Date</span>
+            </div>
+            </div>
+            <div class="col-xs-5">
+            <div class="input-group">
+                <input class="form-control" name="to_time" type="text"
+                       value="{{ to_time|default_if_none:'' }}"
+                       placeholder="e.g. 22:10:20"/>
+                <span class="input-group-addon" id="basic-addon2">Time (24hrs)</span>
+            </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="commit" class="control-label col-xs-2">Commit</label>
+
+            <div class="col-xs-4">
+                <input class="form-control" name="commit" type="text"
+                       value="{{ commit|default_if_none:'' }}"
+                       placeholder="e.g. 894c14f"/>
+            </div>
+            <label for="repo" class="control-label col-xs-1">Repo</label>
+
+            <div class="col-xs-2">
+                <input class="form-control" name="repo" type="text"
+                       value="{{ repo|default_if_none:'' }}"
+                       placeholder="e.g. Pinterest/pinboard"/>
+            </div>
+            <label for="branch" class="control-label col-xs-1">Branch</label>
+
+            <div class="col-xs-2">
+                <input class="form-control" name="branch" type="text"
+                       value="{{ branch|default_if_none:'' }}"
+                       placeholder="default: master"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="operator" class="control-label col-xs-2">Operator</label>
+
+            <div class="col-xs-10">
+                <input class="form-control" name="operator" type="text"
+                       value="{{ operator|default_if_none:'' }}"
+                       placeholder="e.g. joe"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="page_size" class="control-label col-xs-2">Page Size</label>
+
+            <div class="col-xs-10">
+                <input class="form-control" name="page_size" type="text"
+                       value="{{ pageSize|default_if_none:'' }}"
+                       placeholder="default 10"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="checksort" class="control-label col-xs-2"></label>
+            <div class="col-xs-10 checkbox">
+                <label>
+                    <input type="checkbox" name="reverse_date" value="true"
+                    {% if reverse_date %}checked{% endif %} />
+                    Earliest deploy first
+                </label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <span class="glyphicon glyphicon-filter"></span> Apply
+        </button>
+    </form>
+    </div>
+</div>

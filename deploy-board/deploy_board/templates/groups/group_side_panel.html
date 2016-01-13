@@ -1,0 +1,191 @@
+{% load utils %}
+<div class="panel-heading clearfix">
+    <h4 class="panel-title pull-left">Group Config</h4>
+</div>
+<div class="row">
+    <a id="listGroupsBtnId" href="/groups/{{ group_name }}/" class="deployToolTip btn btn-default btn-block">
+        <span class="glyphicon glyphicon-asterisk"></span> Current Status
+    </a>
+</div>
+
+{% if asg_status == "UNKNOWN" %}
+<div class="row">
+    <button class="deployToolTip btn btn-default btn-block"
+                data-toggle="modal" data-target="#createAutoScalingModalId"
+                title="Enable the auto scaling group" id="createAutoScalingBtnId">
+        <span class="glyphicon glyphicon-play"></span> Create Auto Scaling
+    </button>
+</div>
+{% endif %}
+
+{% if asg_status == "DISABLED" %}
+<div class="row">
+    <button class="deployToolTip btn btn-default btn-block"
+                data-toggle="modal" data-target="#resumeAutoScalingModalId"
+                title="Enable the auto scaling group" id="createAutoScalingBtnId">
+        <span class="glyphicon glyphicon-play"></span> Enable Auto Scaling
+    </button>
+</div>
+{% elif asg_status == "ENABLED" %}
+    <div class="row">
+    <button class="deployToolTip btn btn-default btn-block"
+                data-toggle="modal" data-target="#disableAutoScalingModalId"
+                title="Disable the auto scaling group" id="createAutoScalingBtnId">
+        <span class="glyphicon glyphicon-pause"></span> Disable Auto Scaling
+    </button>
+</div>
+{% endif %}
+
+{% if asg_status != "UNKNOWN" %}
+<div class="row">
+    <button class="deployToolTip btn btn-default btn-block" data-target="#deleteAutoScalingModalId"
+            data-toggle="modal" title="Delete auto scaling group">
+        <span class="glyphicon glyphicon-remove"></span> Delete Auto Scaling
+    </button>
+</div>
+{% endif %}
+
+<div class="row">
+    <a id="listGroupsBtnId" href="/groups/{{ group_name }}/config_history/" class="deployToolTip btn btn-default btn-block">
+        <span class="glyphicon glyphicon-time"></span> Config History
+    </a>
+</div>
+
+{% if asg_status|hasScalingActivities %}
+<div class="row">
+    <a type="button" href="/groups/{{ group_name }}/scaling_activities/"
+            class="deployToolTip btn btn-default btn-block"
+        data-toggle="tooltip" title="List all scaling activities for the group in the past.">
+        <span class="glyphicon glyphicon-calendar"></span> Scaling Activities
+    </a>
+</div>
+{% endif %}
+
+{% if asg_status != "UNKNOWN" %}
+<div class="row">
+    <a type="button" href="/groups/{{ group_name }}/health_check_activities/"
+            class="deployToolTip btn btn-default btn-block"
+        data-toggle="tooltip" title="List all health checkss for the group in the past.">
+        <span class="glyphicon glyphicon-heart-empty"></span> Health Check Activities
+    </a>
+</div>
+{% endif %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Environments</h4>
+    </div>
+    <div id="EnvsId">
+    </div>
+</div>
+
+<div class="modal fade" id="disableAutoScalingModalId" tabindex="-1" role="dialog"
+     aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title">Disable Confirm</h4>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure to disable auto scaling on this group?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <a type="button" href="/groups/{{ group_name }}/disable_asg"
+           class="btn btn-primary">Disable</a>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="resumeAutoScalingModalId" tabindex="-1" role="dialog"
+     aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title">Enable Confirm</h4>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure to enable auto scaling on the group?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <a type="button" href="/groups/{{ group_name }}/resume_asg"
+           class="btn btn-primary">Enable</a>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div class="modal fade" id="deleteAutoScalingModalId" tabindex="-1" role="dialog"
+     aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+       <div class="modal-content" id="deleteASGDivId">
+           <div class="modal-header">
+             <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+             <h4 class="modal-title">Deletion Confirm</h4>
+           </div>
+           <div class="modal-body">
+               <p>Are you sure to delete auto scaling on the group?</p>
+
+               <div class="form-group">
+                 <label for="detachInstance" class="deployToolTip control-label col-xs-9">Also terminate existing instance(s) from the group&nbsp;
+                 <input type="checkbox" id="delete_instances" name="delete_instances" checked>
+                 </label>
+              </div>
+           </div>
+           <div class="modal-footer">
+             <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+             <button type="button" class="btn btn-primary" id="deleteAutoScalingBtnId">Delete</button>
+           </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<div class="modal fade" id="createAutoScalingModalId" tabindex="-1" role="dialog"
+     aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" id="createASGDivId">
+
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script>
+$(function() {
+   $("#createAutoScalingBtnId").click(function() {
+       $("#createASGDivId").load("/groups/{{ group_name }}/gen_asg_setting/");
+   });
+
+   $("#deleteAutoScalingBtnId").click(function() {
+       if ($("#deleteAutoScalingModalId #delete_instances")[0].checked) {
+           $.get('/groups/{{ group_name }}/delete_asg/?delete=1', function(response) {
+              $('#deleteASGDivId').html(response);
+           });
+       } else {
+           $.get('/groups/{{ group_name }}/delete_asg/?delete=0', function(response) {
+              $('#deleteASGDivId').html(response);
+           });
+       }
+
+        var intervalId = setInterval(function() {
+            $.ajax({
+              type: 'GET',
+              url: '/groups/{{ group_name }}/get_deleted_asg_status/',
+              success: function(data) {
+                  $('#deleteASGDivId').html(data.content);
+                  if (data.status == 0) {
+                      clearInterval(intervalId);
+                      window.location = "/groups/{{ group_name }}/config/"
+                  }
+              }
+            })}, 10000);
+   });
+
+   $('#EnvsId').load('/groups/{{ group_name }}/envs/');
+});
+</script>

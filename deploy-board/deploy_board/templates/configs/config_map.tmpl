@@ -1,0 +1,177 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title=panelTitle panel_body_id=panelBodyId direction="down" %}
+<div id="panelBodyId" class="collapse in panel-body">
+    <div class="container-fluid">
+        <form id="mapConfigFormId" class="form-horizontal" role="form">
+            <fieldset id="mapConfigFieldSetId">
+                {% for key,value in configs.items %}
+                <div class="form-group">
+                    <label for="properties" class="control-label col-xs-3">{{ key }}</label>
+                    <div class="col-xs-6">
+                        <input class="form-control" name="TELETRAAN_{{ key }}"
+                               type="text" value="{{ value|default_if_none:'' }}"/>
+                    </div>
+                    <div class="col-xs-3">
+                        <button type="button" class="delete_button btn btn-default">Delete</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </fieldset>
+            <input type="hidden" class="form-control" name="flavor" value="{{ flavor }}"/>
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="resetConfigMapBtnId" class="btn btn-default"
+                type="button" data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button id="addConfigMapBtnId" class="btn btn-default">
+            <span class="glyphicon glyphicon-plus"></span> Add
+        </button>
+        <button id="saveConfigMapBtnId" class="btn btn-primary"
+                type="button" data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
+</div>
+
+<div class="modal fade" id="newEntryModalId" tabindex="-1" role="dialog"
+     aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="newEntryFormId" class="form-horizontal" method="post" role="form">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="newEnvModalLabel">Add a new {{ panelTitle }}</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        {% if flavor == 'AC' %}
+                        <label for="newEntryName" class="col-md-2 control-label">Agent Config</label>
+
+                        <div class="col-md-10">
+                            <select class="form-control" name="newEntryName">
+                            {% get_advanced_config_names as config_names %}
+                            {% for config_name in config_names %}
+                            <option value="{{ config_name }}">{{ config_name }}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                        {% else %}
+                        <label for="newEntryName" class="col-md-2 control-label">Name</label>
+
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" name="newEntryName"
+                                   placeholder="name..." value="">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newEntryValue" class="col-md-2 control-label">Value</label>
+
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" name="newEntryValue"
+                                   placeholder="value..." value="">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button id="newEntryBtnId" type="button" class="btn btn-primary">Add</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#saveConfigMapBtnId').attr('disabled','disabled');
+        $('#resetConfigMapBtnId').attr('disabled','disabled');
+
+        $('#mapConfigFormId' + ' input').keyup(function() {
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#addConfigMapBtnId').click(function () {
+            $('#newEntryModalId').modal()
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#newEntryBtnId').click(function () {
+            {% if flavor == 'AC' %}
+            var name = $('#newEntryFormId').find('select[name="newEntryName"]').val();
+            {% else %}
+            var name = $('#newEntryFormId').find('input[name="newEntryName"]').val();
+            {% endif %}
+            var value = $('#newEntryFormId').find('input[name="newEntryValue"]').val();
+            $('#mapConfigFieldSetId').append(
+                    '<div class="form-group">' +
+                    '<label for="properties" class="control-label col-xs-3">' + name + '</label>' +
+                    '<div class="col-xs-6"><input class="form-control" name="TELETRAAN_' +
+                    name + '" type="text" value="' + value + '"/></div>' +
+                    '<div class="col-xs-3 {{ flavor }}_remover">' +
+                    '<button type="button" class="delete_button btn btn-default">Delete</button></div>' +
+                    '</div>');
+            $('#newEntryModalId').modal('hide')
+        });
+
+        $('#saveConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/map/',
+                data: $('#mapConfigFormId').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $('#panelBodyId').parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/map/?flavor={{ flavor }}',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    btn.button('reset');
+                    $('#panelBodyId').parent().html(data.html);
+                }
+            });
+        });
+
+        $('#mapConfigFieldSetId').on('click', '.delete_button', function () {
+            $(this).parent().parent().remove();
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+    });
+</script>

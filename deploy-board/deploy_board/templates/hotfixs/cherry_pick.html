@@ -1,0 +1,175 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes">Recent Hotfix</a></li>
+    <li class="active">Create New Hotfix</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Actions</h4>
+    </div>
+    <div class="row">
+        <a class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
+           data-toggle="tooltip" title="Cancel and go back to current deploy">
+            <span class="glyphicon glyphicon-flash"></span> Current Deploy
+        </a>
+    </div>
+    <div class="row">
+        <a id="cherrypickBtn" class="deployToolTip btn btn-default btn-block"
+           data-toggle="tooltip"
+           title="Create a hotfix based on the selected commits on top of base deploy">
+            <span class="glyphicon glyphicon-check"></span> Create It
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Base Deploy</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        {% include "deploys/deploy_progress_summary.tmpl" %}
+    </div>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Cherry Pick Commits</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        {% include "builds/commits.tmpl" with show_checkbox=True %}
+    </div>
+    <div class="panel-footer clearfix">
+        <div class="pull-left">
+            <button id="cherrypickBtn2" class="hotfixToolTip btn btn-primary"
+                    data-toggle="tooltips"
+                    title="Create a hotfix based on the selected commits on top of base deploy.">
+                 <span class="glyphicon glyphicon-check"></span> Create It
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmBuildModalId" tabindex="-1" role="dialog"
+     aria-labelledby="confirmBuildModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="buildConfirmFormlId" class="form-horizontal" method="post"
+                  action="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes/" role="form">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="newEnvModalLabel">Are you sure to create this
+                        hotfix?</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="baseDeployId" class="col-md-2 control-label">Base Commit</label>
+
+                        <div class="col-md-10">
+                            <ul class="list-group">
+                                <li class="list-group-item">
+        <a class="deployToolTip" data-toggle="tooltip"
+           title="Click to see the build details"
+           href="/builds/{{ build.id }}">
+           {{ build|branchAndCommit }}
+        </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmCommitsId" class="col-md-2 control-label">Commits</label>
+
+                        <div class="col-md-10">
+                            <ul id="commitsUlId" class="list-group"></ul>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="warning" class="col-md-2 control-label"></label>
+
+                        <div class="col-md-10">
+                        <div class="well">
+                            <strong>WARNING</strong>:
+                            Hotfix build will NOT run unit tests as regular builds do. Use
+                            caution when deploying hotfix.
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" class="form-control" name="baseDeployId"
+                       value="{{ deploy.id }}">
+                <input id="confirmCommitsId" type="hidden" class="form-control" name="commits" >
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="noCommitsModalId" tabindex="-1" role="dialog"
+     aria-labelledby="noCommitsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="newEnvModalLabel">You did not pick any commits!</h4>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    Make sure to pick at least one commit!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $("#cherrypickBtn, #cherrypickBtn2").click(function () {
+        // Clean up first
+        $("#commitsUlId").empty();
+        $('#confirmCommitsId').val("");
+        var commits = [];
+        $('input[class="cherryPickedCommit"]:checked').each(function() {
+            commits.push(this.value);
+            var desc = $(this).parent().next().html();
+            $("#commitsUlId").append('<li class="list-group-item">' + desc + '</li>');
+        });
+        if (commits.length <= 0) {
+            $('#noCommitsModalId').modal();
+        } else {
+            var commitsTxt = commits.join();
+            $('#confirmCommitsId').val(commitsTxt);
+            $('#confirmBuildModalId').modal();
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,41 @@
+{% load utils %}
+{% load static %}
+
+<div class="modal fade" id="feedbackModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h4 class="modal-title" id="myModalLabel">Let us know what you think!</h4>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <label for="stars">Star rating:</label>
+                    <input name="stars" id="input-3" class="rating form-control hide" data-step="1" value="-1" data-show-clear="false" data-show-caption="false">
+                </div>
+                <div>
+                    <label for="comment">Comments/Suggestions:</label>
+                    <textarea name="comment" class="form-control" rows="5" id="comment"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitFeedback()" data-dismiss="modal">Submit</button>
+            </div>
+        </div>
+    </div>
+    {% csrf_token %}
+</div>
+<script>
+
+    $("#input-3").rating();
+    function submitFeedback() {
+        $.ajax({
+            type: 'POST',
+            url: '/submit_feedback/',
+            data: $(':input').serializeArray(),
+            success: function (data) {
+                location.reload();
+            }
+        });
+    }
+</script>

@@ -1,0 +1,60 @@
+{% load utils %}
+<table id="commitsTableId" class="display table table-striped table-bordered table-condensed table-hover" cellspacing="0" width="100%">
+  <thead>
+  <tr>
+    <th>sha</th>
+    <th>author</th>
+    <th>commit timestamp</th>
+    <th>commit date</th>
+    <th>commit message</th>
+  </tr>
+  </thead>
+  {% for commit in commits %}
+  <tr>
+      <td><a href="{{ commit.info }}"
+        target="_blank">{{ commit.sha|shortenCommit }}</a></td>
+      <td>{{ commit.author }}</td>
+      <td>{{ commit.date|convertTimestamp }}</td>
+      <td>{{ commit.date|smartDate }}</td>
+      <td>
+          <div>
+          {{ commit.title }}
+          {% if commit.message and commit.message.strip %}
+          <a class="showCommitDetails btn btn-default btn-xs"
+             href="#commitDetails_{{forloop.counter}}_{{ pagination_id }}"
+             data-toggle="collapse">more</a>
+          <div class="collapse" id="commitDetails_{{forloop.counter}}_{{ pagination_id }}">
+              <pre class="commit-msg">{{ commit.message }}</pre>
+          </div>
+          {% endif %}
+          </div>
+      </td>
+  </tr>
+  {% endfor%}
+  <script>
+      $(function () {
+          $('.showCommitDetails').click(function () {
+              if ($(this).text()==="more") {
+                  $(this).text('less');
+              } else {
+                  $(this).text('more');
+              }
+          });
+      });
+  </script>
+</table>
+<script>
+  $(document).ready(function() {
+    $("#commitsTableId").DataTable({
+      // Disable ordering by sha. Sort by commit date.
+      "order": [[2, "desc"]],
+      "columnDefs": [
+        { "orderable": false, "width": "5%", "targets": 0 },
+        { "width": "5%", "targets": 1}
+      ],
+      // Tweak page length menu and default.
+      "lengthMenu":  [ [10, 100, -1], [10, 100, "All"] ],
+      "pageLength": 100,
+    });
+  });
+</script>

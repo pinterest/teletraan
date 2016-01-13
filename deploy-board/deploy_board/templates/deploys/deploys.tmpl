@@ -1,0 +1,47 @@
+{% load utils %}
+{% load static %}
+{% include "deploys/deploys_pagination_header.tmpl" with url_prefix='/envs/deploys' %}
+<table class="table table-condensed table-hover">
+    <tr>
+        <th>Environment</th>
+        <th>StartDate(-08:00)</th>
+        <th>Elapsed Time</th>
+        <th>Type</th>
+        <th>State</th>
+        <th>Success Rate</th>
+        <th>Build</th>
+        <th>Operator</th>
+    </tr>
+    {% for deploy_summary in deploy_summaries %}
+    <tr>
+        <td>
+            <a href="/deploy/{{ deploy_summary.deploy.id }}">
+               {{ deploy_summary.env.envName }}/{{deploy_summary.env.stageName }}
+            </a>
+        </td>
+        <td>{{ deploy_summary.deploy.startDate|convertTimestamp }}</td>
+        <td>{{ deploy_summary.deploy|computeElapsedTime }}</td>
+        <td>
+            <span class="glyphicon {{ deploy_summary.deploy.type|deployTypeIcon }}"></span>
+            <small>{{ deploy_summary.deploy.type }}</small>
+        </td>
+        <td>
+        <span class="deployToolTip pointer-cursor {{ deploy_summary.deploy.state|deployStateIcon }}"
+              data-toggle="tooltip" title="{{ deploy_summary.deploy.state|deployStateTip }}">
+        </span>
+            <small>{{ deploy_summary.deploy.state }}</small>
+        <td>
+            <span class="deployToolTip pointer-cursor" data-toggle="tooltip" title="{{ deploy_summary.deploy|successRateTip }}">
+            <small>{{ deploy_summary.deploy|successRate }}</small>
+            </span>
+        </td>
+        <td>
+            <a href="/builds/{{ deploy_summary.build.id }}">
+                {{ deploy_summary.build|branchAndCommit }}
+            </a>
+        </td>
+        <td>{{ deploy_summary.deploy.operator }}</td>
+    </tr>
+    {% endfor%}
+</table>
+{% include "deploys/deploys_pagination_footer.tmpl" with url_prefix='/envs/deploys' %}

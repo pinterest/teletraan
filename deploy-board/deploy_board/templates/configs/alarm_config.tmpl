@@ -1,0 +1,179 @@
+{% load utils %}
+<form id="alarmFormlId" class="form-horizontal" method="post"
+    action="/env/{{ env.envName }}/{{ env.stageName }}/config/alarm/" role="form">
+{% csrf_token %}
+
+<div id="allConfigsId">
+{% for alarm in alarms %}
+<div id="panelBodyId" class="panel-default" value="{{ alarm.name }}">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">{{ alarm.name }}</h4>
+        <div class="pull-right">
+            <button type="button" class="deleteBtn btn btn-default">Delete</button>
+        </div>
+    </div>
+    <div class="panel-body">
+        <div class="form-group">
+            <label for="alarmUrl" class="col-md-2">Alarm URL</label>
+            <div class="col-md-10">
+                <input class="form-control" name="TELETRAAN_{{ alarm.name }}"
+                       type="text" value="{{ alarm.alarmUrl|default_if_none:'' }}"/>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+</div>
+
+</form>
+
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="resetConfigMapBtnId" class="btn btn-default"
+                type="button" data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button id="addConfigMapBtnId" class="btn btn-default">
+            <span class="glyphicon glyphicon-plus"></span> Add Alarm
+        </button>
+        <button id="saveConfigMapBtnId" class="btn btn-primary"
+                type="button" data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
+</div>
+
+<div class="modal fade" id="newEntryModalId" tabindex="-1" role="dialog"
+     aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="newEntryFormId" class="form-horizontal" method="post" role="form">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="newEnvModalLabel">Add a new alarm</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="newEntryName"
+                               class="deployToolTip control-label col-md-2">Name</label>
+
+                        <div class="col-md-10">
+                            <input class="form-control" name="newName" required="true"
+                                   type="text" placeholder="Alarm name"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="alarmUrl"
+                               class="deployToolTip control-label col-md-2">Alarm URL</label>
+
+                        <div class="col-md-10">
+                            <input class="form-control" name="newAlarmUrl" required="true"
+                                   type="text" placeholder="Alarm url"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="newEntryBtnId" type="button" class="btn btn-primary">Add</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#saveConfigMapBtnId').attr('disabled','disabled');
+        $('#resetConfigMapBtnId').attr('disabled','disabled');
+
+        $('#alarmFormlId input').keyup(function() {
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#addConfigMapBtnId').click(function () {
+            $('#newEntryModalId').modal()
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#newEntryBtnId').click(function () {
+            var name = $('#newEntryFormId').find('input[name="newName"]').val();
+            var value = $('#newEntryFormId').find('input[name="newAlarmUrl"]').val();
+            var template =
+'<div id="panelBodyId" class="panel-default" value="' + name + '">' +
+'    <div class="panel-heading clearfix">' +
+'        <h4 class="panel-title pull-left">' + name + '</h4>' +
+'        <div class="pull-right">' +
+'            <button type="button" class="deleteBtn btn btn-default">Delete</button>' +
+'        </div>' +
+'    </div>' +
+'    <div class="panel-body">' +
+'        <div class="form-group">' +
+'            <label for="alarmUrl" class="col-md-2">Alarm URL</label>' +
+'            <div class="col-md-10">' +
+'                <input class="form-control" name="TELETRAAN_' + name + '"' +
+'                       type="text" value="' + value + '"/>' +
+'            </div>' +
+'        </div>' +
+'    </div>' +
+'</div>' +
+'<div id="new-entry-id"></div>';
+            $('#allConfigsId').append(template);
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+            $('#newEntryModalId').modal('hide');
+        });
+
+
+        $('#saveConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/alarm/',
+                data: $('#alarmFormlId').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $('#alarmFormlId').parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/alarm/',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    btn.button('reset');
+                    $('#alarmFormlId').parent().html(data.html);
+                }
+            });
+        });
+
+        $('#alarmFormlId').on('click', '.deleteBtn', function () {
+            $(this).parent().parent().parent().remove();
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+    });
+</script>

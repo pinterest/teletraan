@@ -1,0 +1,151 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+{% load static %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li class="active">Rollback Deploy</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Actions</h4>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
+           data-toggle="tooltip" title="Return the current deployment page">
+           <i class="fa fa-flash"></i> Current Deployment
+        </a>
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/deploys"
+           data-toggle="tooltip"
+           title="Choose different deploy to rollback to in Deploy History page">
+           <i class="glyphicon glyphicon-time"></i> Deploy History
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        {% if not to_deploy_id %}
+        <h4 class="panel-title pull-left">Pick a deploy to rollback to</h4>
+        {% else %}
+        <h4 class="panel-title pull-left">Are you sure to rollback to
+            <a href="/builds/{{ build_id }}">{{ branch }}/{{ commit }}</a>?
+        </h4>
+        {% endif %}
+    </div>
+    <div class="panel-body">
+
+<table id="deployHistoryTableId" class="table table-condensed table-striped table-hover">
+    <tr>
+        <th></th>
+        <th>Start(-08:00)</th>
+        <th>Type</th>
+        <th>Build</th>
+        <th>State</th>
+        <th>Acceptance</th>
+        <th>Success</th>
+        <th>Operator</th>
+        <th>Details</th>
+    </tr>
+    {% for deploy_summary in deploy_summaries %}
+    {% if deploy_summary.deploy.id == to_deploy_id %}
+    <tr class="rollbacker success">
+    {% else %}
+    <tr class="rollbacker">
+    {% endif %}
+        <td>
+            <input type="checkbox" value="{{ deploy_summary.deploy.id }}"
+            {% if deploy_summary.deploy.id == to_deploy_id %}
+                   checked
+            {% endif %}
+            name="chkbox_{{forloop.counter}}">
+        </td>
+        <td>
+            {{ deploy_summary.deploy.startDate|convertTimestamp }}
+        </td>
+        <td>
+            <span class="glyphicon {{ deploy_summary.deploy.type|deployTypeIcon }}"></span>
+            <small>{{ deploy_summary.deploy.type }}</small>
+        </td>
+        <td>
+            <a href="/builds/{{ deploy_summary.build.id }}">
+                {{ deploy_summary.build|branchAndCommit }}</a>
+        </td>
+        <td>
+                <span class="deployToolTip pointer-cursor {{ deploy_summary.deploy.state|deployStateIcon }}"
+                      data-toggle="tooltip"
+                      title="{{ deploy_summary.deploy.state|deployStateTip }}">
+                </span>
+            <small>{{ deploy_summary.deploy.state }}</small>
+        </td>
+        <td>
+                <span class="deployToolTip pointer-cursor {{ deploy_summary.deploy.acceptanceStatus|deployAcceptanceIcon }}"
+                      data-toggle="tooltip"
+                      title="{{ deploy_summary.deploy.acceptanceStatus|deployAcceptanceTip }}">
+                </span>
+            <small>{{ deploy_summary.deploy.acceptanceStatus }}</small>
+        </td>
+        <td>
+                <span class="deployToolTip pointer-cursor" data-toggle="tooltip"
+                      title="{{ deploy_summary.deploy|successRateTip }}">
+                <small>{{ deploy_summary.deploy|successRate }}</small>
+                </span>
+        </td>
+        <td>{{ deploy_summary.deploy.operator }}</td>
+        <td><a href="/deploy/{{ deploy_summary.deploy.id }}">Details</a></td>
+    </tr>
+    {% endfor%}
+</table>
+
+    </div>
+    <div class="panel-footer clearfix">
+        <div class="pull-left">
+        {% if to_deploy_id %}
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback_to/{{ to_deploy_id }}"
+            title="Rollback to the selected deploy"
+            type="button" class="deployToolTip btn btn-primary">
+            <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback It
+        </a>
+        {% endif %}
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
+            title="Cancel and return to previous page"
+            type="button" class="deployToolTip btn btn-default">
+            <span class="glyphicon glyphicon-remove"></span> Cancel
+        </a>
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploys"
+            title="Choose different deploy to rollback to in Deploy History page"
+            type="button" class="deployToolTip btn btn-default"> More Options...
+        </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#deployHistoryTableId tr.rollbacker input:checkbox').click(function () {
+            to_deploy_id = $(this).val();
+            window.location = "/env/{{ env.envName }}/{{ env.stageName }}/rollback/?to_deploy_id="+to_deploy_id;
+        });
+    });
+</script>
+
+{% endblock %}
+

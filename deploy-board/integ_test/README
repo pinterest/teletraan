@@ -1,0 +1,16 @@
+This directory contains a bunch of integration tests used to test Teletraan REST APIs. It will
+not test the deployboard itself.
+
+1. You need to set environment variable TELETRAAN_SERVICE_URL points to the right backend url. If
+not provided, it will point to http://localhost:8080
+2. You need to set environment variable TELETRAAN_TEST_TOKEN if you have the backend Teletraan
+service authentication enabled.
+
+To run integration test against backend Teletraan server
+===========================================================
+./run.sh agent_tests.py
+./run.sh auto_deploy_tests.py
+./run.sh build_tests.py
+./run.sh env_config_tests.py
+./run.sh env_deploy_tests.py
+./run.sh ping_tests.py

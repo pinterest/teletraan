@@ -1,0 +1,31 @@
+{% extends 'environs/env_base.html' %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">
+            <span class="glyphicon glyphicon-cog"></span> Configuration
+        </h4>
+    </div>
+    <div class="panel-body btn-group-vertical">
+        <button id="envAddStageBtnId" type="button" class="btn btn-default"
+                data-toggle="modal" data-target="#addStageModalId">
+            <span class="glyphicon glyphicon-plus"></span> Add Stage
+        </button>
+        <button id="envActiveDeployBtnId" type="button" class="btn btn-default">
+            <span class="glyphicon glyphicon-flash"></span> Delete Environment
+        </button>
+    </div>
+</div>
+
+{% include "add_stage_modal.tmpl" with envName=env.envName addStageModalId="addStageModalId" %}
+{% endblock %}
+
+{% block main %}
+<div class="well">Start to deploy by adding a stage first.
+    <button type="button" class="btn btn-default"
+            data-toggle="modal" data-target="#addStageModalId">
+        <span class="glyphicon glyphicon-plus"></span> Add a Stage
+    </button>
+</div>
+{% endblock %}

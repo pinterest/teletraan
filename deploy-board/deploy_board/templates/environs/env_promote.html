@@ -1,0 +1,123 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+{% load static %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li class="active">Promote Deploy</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Actions</h4>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
+           data-toggle="tooltip" title="Return the current deployment page">
+           <i class="fa fa-flash"></i> Current Deployment
+        </a>
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/deploys"
+           data-toggle="tooltip" title="Choose different deploy to promote in Deploy History page">
+           <i class="glyphicon glyphicon-time"></i> Deploy History
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Choose stages to promote {{ build|branchAndCommit }}</h4>
+    </div>
+    <div class="panel-body">
+        {% if deploy|needRollbackWarn %}
+        <div class="alert alert-warning" role="alert">
+            This deploy has not passed acceptance tests yet!
+        </div>
+        {% endif %}
+        <form class="form-horizontal" role="form">
+            {% csrf_token %}
+            <fieldset>
+                <div class="form-group">
+                    <label class="control-label col-xs-2">
+                        Promote To:
+                    </label>
+
+                    <div class="col-xs-10">
+
+        <div class="list-group checkbox">
+            {% for candidate in env_wrappers %}
+            {% if candidate.env.stageName != env.stageName %}
+            {% if candidate.env_promote.predStage and candidate.env_promote.predStage == env.stageName %}
+            <label class="list-group-item">
+                &nbsp;<input type="checkbox" name="to_stages" value="{{ candidate.env.stageName }}" checked>
+                {{ candidate.env.stageName }}
+            </label>
+            {% else %}
+            <label class="list-group-item">
+                &nbsp;<input type="checkbox" name="to_stages" value="{{ candidate.env.stageName }}">
+                {{ candidate.env.stageName }}
+            </label>
+            {% endif %}
+            {% endif %}
+            {% endfor %}
+        </div>
+
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <div class="form-group">
+                    <label class="control-label col-xs-2">
+                        Comments:
+                    </label>
+
+                    <div class="col-xs-10">
+                        <input id="commentId" class="form-control" name="comment" type="text"
+                               placeholder="Promote reason (optional)" value=""/>
+                    </div>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+    <div class="panel-footer clearfix">
+        <button id="promoteBtnId" class="btn btn-primary">
+            <span class="glyphicon glyphicon-transfer"></span> Promote It
+        </button>
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
+           type="button" class="btn btn-default">
+            <span class="glyphicon glyphicon-remove"></span> Cancel
+        </a>
+    </div>
+    <script>
+    $("#promoteBtnId").click(function () {
+        var toStages = [];
+        $('input[name="to_stages"]:checked').each(function() {
+            toStages.push(this.value);
+        });
+        var toStagesTxt = toStages.join();
+        $('#confirmToStagesId').val(toStagesTxt);
+        $('#confirmCommentId').val($("#commentId").val());
+        $('#toStagesDescId').text(toStagesTxt);
+        $('#promoteConfirmModelId').modal();
+    });
+    </script>
+</div>
+
+{% include "deploys/confirm_promote.tmpl" %}
+
+{% endblock %}

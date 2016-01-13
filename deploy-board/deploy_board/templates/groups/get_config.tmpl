@@ -1,0 +1,76 @@
+{% load utils %}
+<input type="hidden" name="asgStatus" value="{{ asgStatus }}" />
+{% if asgStatus == 'ENABLED' %}
+    <div class="alert alert-info" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Note:</strong> {{ groupName }} is a Auto Scaling group.  It automatically balanced the number of instances in different zones.
+    </div>
+{% elif asgStatus = 'DISABLED' %}
+    <div class="alert alert-danger" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Warning!</strong> The Auto Scaling group is disabled. Please go to  <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">group config</a> to enable it before launching new hosts.
+    </div>
+    <script>
+        document.getElementById("addMetricBtnId").disabled = true;
+    </script>
+{% else %}
+    {% if empty_config %}
+        <div class="alert alert-danger" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <strong>Warning!</strong> Please update the <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">Group Launch Configuration</a> before launching instances!
+        </div>
+    {% else %}
+        <div class="row">
+            <label for="subnet" class="deployToolTip control-label col-xs-6">
+                Choose a subnet to launch to:
+            </label>
+            <div class="deployToolTip control-label col-md-6">
+                <select class="form-control" name="subnet">
+                    {% for subnet in subnets %}
+                        {% if subnet.id in config.subnetArrays %}
+                            <option value="{{ subnet.id }}">{{ subnet | genSubnetIdZone }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+        <div class="row">
+            <label for="instanceType" class="deployToolTip control-label col-xs-6">
+                Instance Type:
+            </label>
+            <div class="deployToolTip control-label col-md-6">
+                <p>{{ config.instanceType }} </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="securityGroup" class="deployToolTip control-label col-xs-6">
+                Security Group:
+            </label>
+            <div class="deployToolTip control-label col-md-6">
+                {% for group in security_groups %}
+                    {% if config.securityGroup == group.id %}
+                        <p>{{ group.info.name }} </p>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="imsageId" class="deployToolTip control-label col-xs-6">
+                Image Id:
+            </label>
+            <div class="deployToolTip control-label col-md-6">
+                <p>{{ config.imageId }} </p>
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="userData" class="deployToolTip control-label col-xs-6">
+                User Data:
+            </label>
+            <div class="deployToolTip control-label col-md-6">
+                <p>{{ config.userData | safe}} </p>
+            </div>
+        </div>
+    {% endif %}
+{% endif %}

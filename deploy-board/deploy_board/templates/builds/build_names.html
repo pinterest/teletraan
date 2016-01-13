@@ -1,0 +1,42 @@
+{% extends 'builds/builds_base.html' %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li class="active">Builds</li>
+</ul>
+{% endblock %}
+
+{% load utils %}
+
+{% block main %}
+<div class="panel panel-default">
+    {% include "panel_heading.tmpl" with panel_title="All Builds" panel_body_id="buildsId" direction="down" %}
+    <div id="buildsId" class="collapse in panel-body table-responsive">
+        <div class="row">
+            <ul class="list-group">
+                {% for build_name in build_names %}
+                <a href="/builds/names/{{ build_name }}/builds/" class="list-group-item">
+                    {{ build_name }}
+                </a>
+                {% endfor%}
+            </ul>
+        </div>
+        <ul class="pager">
+            <li>
+                <a href='/builds/names/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
+                   class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+                    <span class="glyphicon glyphicon-chevron-left"></span> Previous
+                </a>
+            </li>
+            <li>
+                <a href='/builds/names/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
+                   class="btn btn-default {% if disableNext %}disabled{% endif %}">
+                    Next <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,93 @@
+{% load utils %}
+{% load static %}
+
+<form name="asg_config_history_list">
+    <table id="asgConfigHistoryTableId" class="table table-condensed table-striped table-hover">
+        <tr>
+            <th class="col-sm-1"></th>
+            <th class="col-lg-2">Time</th>
+            <th class="col-lg-1">Operator</th>
+            <th class="col-lg-2">Type</th>
+            <th class="col-lg-4">Configuration Change</th>
+        </tr>
+        {% for config in configs %}
+        <tr>
+            <td>
+                <input type="checkbox" value="{{ config.type }}_{{ config.replaced_config }}" name="chkbox_{{ config.changeId }}">
+            </td>
+            <td>
+                <a class="pointer-cursor" data-toggle="collapse" data-target="#historyAction{{forloop.counter}}">
+                <span id="historyAction{{forloop.counter}}Toggler" class="glyphicon glyphicon-chevron-right">
+                </span>
+                {{ config.createTime | convertTimestamp }}
+                </a>
+            </td>
+
+            <td> {{ config.operator }} </td>
+            <td> {{ config.type }}  </td>
+            <td> {{ config.configChange }} </td>
+        </tr>
+         <tr id="historyAction{{forloop.counter}}" class="collapse out historyActionPanel">
+            <td></td>
+            <td colspan="4">
+                <div class="row">
+                    {% if forloop.counter > 1 %}
+                    <a href="/groups/{{ group_name }}/config_rollback/?changeId={{ config.changeId }}"
+                       class="historyToolTip btn btn-default btn-sm" data-toggle="tooltip"
+                       title="Rollback to this configuration">
+                       <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback To
+                    </a>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+     <button type="button" id="compareConfigsBtn" class="btn btn-default">Compare configs in new tab</button>
+</form>
+
+<script>
+    $('#compareConfigsBtn').attr('disabled','disabled');
+
+    jQuery(function(){
+        var maxCheckedAllowed = 2;
+        var checkboxes = $('input[type="checkbox"]');
+            checkboxes.change(function(){
+                var numChecked = checkboxes.filter(':checked').length;
+                checkboxes.filter(':not(:checked)').prop('disabled', numChecked >= maxCheckedAllowed);
+                if(numChecked == 2) {
+                    $('#compareConfigsBtn').removeAttr('disabled');
+                } else {
+                    $('#compareConfigsBtn').attr('disabled','disabled');
+                }
+            });
+    });
+
+    $('#compareConfigsBtn').click(function () {
+        var btn = $(this);
+        $.ajax({
+            type: 'POST',
+            url: '/groups/{{ group_name }}/get_config_comparison/',
+            data: $(':input').serializeArray(),
+            success: function (data) {
+                var change1 = data['change1'];
+                var change2 = data['change2'];
+                var newUrl = "/groups/{{ group_name }}/show_config_comparison/?change1=".concat(change1);
+                newUrl = newUrl.concat("&change2=");
+                newUrl = newUrl.concat(change2);
+
+                var win = window.open(newUrl, '_blank');
+                if(win) {
+                    win.focus()
+                } else {
+                    alert("Please allow Teletraan to send you pop ups.")
+                }
+            }
+        });
+    });
+
+    $('.historyActionPanel').on('hidden.bs.collapse shown.bs.collapse', function () {
+            var currentId = $(this).attr('id');
+            $('#' + currentId + 'Toggler').toggleClass('glyphicon-chevron-right glyphicon-chevron-down', 100);
+        });
+</script>

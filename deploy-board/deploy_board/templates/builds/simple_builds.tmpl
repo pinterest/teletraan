@@ -1,0 +1,35 @@
+{% load utils %}
+{% load static %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">
+        {% if show_lock %}
+        <span id="predBuildLockId" class="deployToolTip pointer-cursor fa fa-lock fa-2"
+              data-toggle="tooltip" title="Auto deploy is enabled.">
+        </span>
+        {% endif %}
+        Builds to Deploy
+        </h4>
+    </div>
+    <div class="row">
+        <ul class="list-group">
+            {% for build in builds %}
+            <a href="/env/{{ env.envName }}/{{ env.stageName }}/build/{{ build.id }}"
+               class="list-group-item">
+                {{ build|branchAndCommit }}
+                {% if not current_publish_date or build.publishDate > current_publish_date %}
+                <span class="label label-info">New</span>
+                {% endif %}
+            </a>
+            {% endfor%}
+            <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/"
+               class="list-group-item">More builds...
+            </a>
+        </ul>
+    </div>
+</div>
+<script>
+    $(function () {
+        $('.deployToolTip').tooltip();
+    });
+</script>

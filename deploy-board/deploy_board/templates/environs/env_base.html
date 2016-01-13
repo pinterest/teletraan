@@ -1,0 +1,51 @@
+<!-- shared by env_config, env_deploy and env_history as base page-->
+
+{% extends 'environs/envs_base.html' %}
+
+{% load utils %}
+
+{% block breadcrumb-items %}
+
+{% endblock %}
+{% block side-panel %}
+
+{% block side-panel-actions %}
+{% endblock %}
+
+{% block new-pred-deploys-panel %}
+{% if env_promote|hasPredStage %}
+<div id="recentPredDeploysId">
+</div>
+<script>
+    $(function () {
+        $('#recentPredDeploysId').load('/env/{{ env.envName }}/{{ env.stageName }}/pred_deploys/?page_index=1&page_size=5');
+        var nd_startTime = new Date().getTime();
+        var nd_interval = setInterval(function() {
+            if(new Date().getTime() - nd_startTime > 3600000) {
+                clearInterval(nd_interval);
+            }
+            $('#recentPredDeploysId').load('/env/{{ env.envName }}/{{ env.stageName }}/pred_deploys/?page_index=1&page_size=5');
+        }, 30000);
+    });
+</script>
+{% endif %}
+{% endblock %}
+
+{% block new-builds-panel %}
+<div id="recentBuildsId">
+</div>
+<script>
+    $(function () {
+        $('#recentBuildsId').load('/env/{{ env.envName }}/{{ env.stageName }}/builds/?page_index=1&page_size=5');
+        var nb_startTime = new Date().getTime();
+        var nb_interval = setInterval(function() {
+            if(new Date().getTime() - nb_startTime > 3600000) {
+                clearInterval(nb_interval);
+            }
+            $('#recentBuildsId').load('/env/{{ env.envName }}/{{ env.stageName }}/builds/?page_index=1&page_size=5');
+        }, 30000);
+    });
+</script>
+{% endblock %}
+
+{% endblock %}

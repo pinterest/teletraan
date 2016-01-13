@@ -1,0 +1,87 @@
+<html>
+    <script>
+        var launch_rate_data_options = {};
+        var charts3 = {};
+    </script>
+    <script "text/javascript">
+        google.load("visualization", "1", {packages:["corechart"]});
+        google.setOnLoadCallback(drawChart3);
+
+        function drawChart3() {
+            var data = new google.visualization.DataTable();
+            data.addColumn("datetime", "Date");
+
+            var options = {
+                title: 'Launch Failure Count',
+                titleFontSize: 15,
+                height: 300,
+                min: 0,
+                max: 50,
+                curveType: 'function',
+                legend: 'top',
+                series: {
+                    0: {targetAxisIndex: 0,
+                        color: 'red',
+                        lineWidth: 3,
+                        side: 'top'},
+                    1: {targetAxisIndex: 0,
+                        color: 'purple',
+                        lineWidth: 2},
+                    2: {targetAxisIndex: 0,
+                        color: 'green',
+                        lineWidth: 2},
+                    3: {targetAxisIndex: 0,
+                        color: 'blue',
+                        lineWidth: 2},
+                    4: {targetAxisIndex: 0,
+                        color: 'yellow',
+                        lineWidth: 2},
+                    5: {targetAxisIndex: 0,
+                        color: 'gray',
+                        lineWidth: 2}
+                },
+                vAxes: {
+                    0: {title: 'Success Rate',
+                        titleTextStyle: {italic: false}}
+                },
+                interpolateNulls: true,
+            };
+            var chart3 = new google.visualization.LineChart(document.getElementById('launch_rate_id'));
+            charts3['Requests'] = chart3;
+            chart3.draw(data, options);
+            launch_rate_data_options['Requests'] = [data, options];
+        }
+
+    </script>
+
+    <script>
+        function updateLaunchRateCharts(response) {
+            var data = launch_rate_data_options['Requests'][0];
+            var options = launch_rate_data_options['Requests'][1];
+            var metric_names = response['metric_names'];
+            for (var i = 0; i < 1; ++i) {
+                var metric_name = metric_names[i];
+                data.addColumn("number", "Launch Failure Count");
+                data_list = response[metric_name];
+                for (j = 0; j < data_list.length; ++j) {
+                    var d = new Date(0);
+                    d.setMilliseconds(data_list[j][0]);
+                    data.addRow([d, data_list[j][1]]);
+                }
+            }
+            var metric_chart = charts3["Requests"];
+            metric_chart.draw(data, options);
+        }
+
+        function pollLaunchRateMetrics() {
+            $.get('/group_launch_rate/{{ group_name }}', function(response) {
+                updateLaunchRateCharts(response);
+            }).fail(function() {
+            });
+        }
+
+        $(document).ready(function() {
+            pollLaunchRateMetrics();
+        });
+</script>
+</html>

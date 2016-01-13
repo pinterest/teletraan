@@ -1,0 +1,56 @@
+{% load utils %}
+<div class="modal fade" id="promoteConfirmModelId" tabindex="-1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+        <form id="promoteConfirmFormlId" class="form-horizontal" method="post" role="form"
+              action="/env/{{ env.envName }}/{{ env.stageName }}/promote_to/{{ deploy.id }}">
+            {% csrf_token %}
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title">
+                    Are you sure to promote commit {{ build|branchAndCommit }}?
+                </h4>
+            </div>
+            <div class="modal-body">
+                <fieldset>
+                    <div class="form-group">
+                        <label class="control-label col-xs-2">
+                            Promote To:
+                        </label>
+
+                        <div class="col-xs-10">
+                            <input id="confirmToStagesId" class="form-control" name="toStages"
+                                   type="text" value="" readonly/>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <div class="form-group">
+                        <label class="control-label col-xs-2">
+                            Comments:
+                        </label>
+
+                        <div class="col-xs-10">
+                            <input id="confirmCommentId" class="form-control" name="description"
+                                   type="text" value="" readonly/>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Promote</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script>
+    $('#promoteConfirmFormlId').submit(function () {
+        $(this).find('button[type=submit]').prop('disabled', 'disabled');
+        $(this).find('button[type=submit]').text('Promoting...');
+    });
+</script>

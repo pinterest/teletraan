@@ -1,0 +1,9 @@
+#!/bin/bash
+
+export DEPLOY_ZK_ROOT=/builds2
+PYTHON=${VIRTUAL_ENV}/bin/python
+${PYTHON} ${VIRTUAL_ENV}/bin/ngapp-rollback &
+
+sleep 10
+
+${PYTHON} ${BASE_DIR}/tests/rollback_count.py &

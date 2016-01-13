@@ -1,0 +1,251 @@
+<div class="panel-heading clearfix">
+    <h4 class="panel-title pull-left">
+        {% if user_types == 'user_roles' %}
+        Manage user permissions
+        {% elif user_types == 'group_roles' %}
+        Manage group permissions
+        {% else %}
+        Manage script tokens
+        {% endif %}
+</div>
+
+<div class="panel-body">
+<form id="usersFormId" class="form-horizontal" method="post"
+    action="/env/{{ env_name }}/update_users_config/?user_types={{ user_types }}" role="form">
+{% csrf_token %}
+
+<div id="allConfigsId">
+{% for user in users %}
+    <input type="hidden" name="TELETRAAN_ORIGIN_{{ user.name }}" value="{{ user.role }}"/>
+{% endfor %}
+{% for user in users %}
+    <div class="form-group">
+        <label class="control-label col-md-4">{{ user.name }}</label>
+        <div class="col-md-4">
+            <select class="form-control" name="TELETRAAN_NEW_{{ user.name }}">
+                {% for role in roles %}
+                {% if user.role == role %}
+                <option value="{{ role }}" selected="selected">{{ role }}</option>
+                {% else %}
+                <option value="{{ role }}">{{ role }}</option>
+                {% endif %}>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="button" class="deleteBtn deployToolTip btn btn-default"
+                title="Rovoke this permission"> Revoke
+        </button>
+        {% if user_types == 'token_roles' %}
+        <button type="button" class="showTokenBtn deployToolTip btn btn-default"
+                title="Show the token in clear text">Show Token</button>
+        {% endif %}
+    </div>
+{% endfor %}
+</div>
+
+</form>
+</div>
+
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="resetConfigMapBtnId" class="deployToolTip btn btn-default"
+                title="Restore to the original settings"
+                type="button" data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button id="addConfigMapBtnId" class="deployToolTip btn btn-default"
+                title="Grant new permission to this environment">
+            <span class="glyphicon glyphicon-plus"></span> Add
+        </button>
+        <button id="saveConfigMapBtnId" class="deployToolTip btn btn-primary"
+                title="Save all the changes"
+                type="button" data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
+</div>
+
+<div class="modal fade" id="newEntryModalId" tabindex="-1" role="dialog"
+     aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="newEntryFormId" class="form-horizontal" method="post" role="form">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    {% if user_types == 'user_roles' %}
+                    <h4 class="modal-title" id="newEnvModalLabel">Add a new user permission</h4>
+                    {% elif user_types == 'group_roles' %}
+                    <h4 class="modal-title" id="newEnvModalLabel">Add a new group permission</h4>
+                    {% else %}
+                    <h4 class="modal-title" id="newEnvModalLabel">Issue a new script token</h4>
+                    {% endif %}
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="newName"
+                               class="deployToolTip control-label col-md-2">Name</label>
+
+                        <div class="col-md-10">
+                            <input class="form-control" name="newName" required="true" type="text"
+                                {% if user_types == 'user_roles' %}
+                                placeholder="User name"/>
+                                {% elif user_types == 'group_roles' %}
+                                placeholder="Group name"/>
+                                {% else %}
+                                placeholder="Script name"/>
+                                {% endif %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="newRole"
+                               class="deployToolTip control-label col-md-2">Role</label>
+
+                        <div class="col-md-10">
+                            <select class="form-control" name="newRole" required="true">
+                                {% for role in roles %}
+                                <option value="{{ role }}">{{ role }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="newEntryBtnId" type="button" class="btn btn-primary">Add</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="tokenModalId" tabindex="-1" role="dialog"
+     aria-labelledby="tokenModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="tokenFormId" class="form-horizontal" method="post" role="form">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title">Show Token</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning" role="alert">
+                        Remember to keep this token secret; treat it just like passwords!
+                    </div>
+                    <pre><div id="tokenDivId"></div></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-dismiss="modal">Got It!</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#saveConfigMapBtnId').attr('disabled','disabled');
+        $('#resetConfigMapBtnId').attr('disabled','disabled');
+
+        $('#usersFormId select').change(function() {
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#addConfigMapBtnId').click(function () {
+            $('#newEntryModalId').modal()
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#newEntryBtnId').click(function () {
+            var name = $('#newEntryFormId').find('input[name="newName"]').val();
+            var role = $('#newEntryFormId').find('select[name="newRole"]').val();
+            var optionSnippet = '';
+            var safe_roles = {{ roles|safe }}
+            var len = safe_roles.length;
+            for (var i = 0; i < len; i++) {
+                if (safe_roles[i] == role)
+                    optionSnippet += '<option value="' + safe_roles[i] + '" selected="selected">'
+                            + safe_roles[i] + '</option>';
+                else
+                    optionSnippet += '<option value="' + safe_roles[i] + '">'
+                            + safe_roles[i] + '</option>';
+            }
+            var template =
+'        <div class="form-group">' +
+'            <label class="control-label col-md-4">' + name + '</label>' +
+'            <div class="col-md-4">' +
+'            <select class="form-control" name="TELETRAAN_NEW_' + name + '">' +
+                optionSnippet +
+'            </select>' +
+'            </div>' +
+'            <button type="button" class="deleteBtn btn btn-default">Revoke</button>' +
+'        </div>';
+            $('#allConfigsId').append(template);
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+            $('#newEntryModalId').modal('hide');
+        });
+
+
+        $('#saveConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env_name }}/update_users_config/?user_types={{ user_types }}',
+                data: $('#usersFormId').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $('#usersConfigId').html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/env/{{ env_name }}/get_users/?user_types={{ user_types }}',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    btn.button('reset');
+                    $('#usersConfigId').html(data.html);
+                }
+            });
+        });
+
+        $('#usersFormId').on('click', '.deleteBtn', function () {
+            $(this).parent().remove();
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#usersFormId').on('click', '.showTokenBtn', function () {
+            var user_name = $(this).parent().find("label").text();
+            $('#tokenDivId').load('/env/{{ env_name }}/get_user_token/' +
+                user_name + '/?user_types={{ user_types }}');
+            $('#tokenModalId').modal();
+        });
+
+    });
+</script>

@@ -1,0 +1,20 @@
+{% load utils %}
+{% load static %}
+
+    <div id="feedbackAlert" class="alert alert-info" role="alert" align="center" style="{{ hidden }}">
+      <a href="#" class="close" data-dismiss="alert">&times;</a>
+      <i><b>Hey, listen!</b></i>
+        We'd really appreciate your Teletraan feedback.
+      <button type="button" class="btn btn-default btn-sm" onclick="closeBanner()" data-toggle="modal" data-target="#feedbackModal">Provide feedback here!</button>
+       - or you can
+      <button type="button" class="btn btn-default btn-sm" onclick="optout();closeBanner();"> opt out for now.</button>
+    </div>
+<script>
+    function optout(){
+        submitFeedback();
+    }
+
+    function closeBanner() {
+        document.getElementById("feedbackAlert").remove();
+    }
+</script>

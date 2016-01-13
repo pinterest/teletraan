@@ -1,0 +1,9 @@
+{% load utils %}
+{% load static %}
+<div class="row">
+<ul class="list-group">
+    {% for group in groups %}
+    <a href="/groups/{{ group }}/" class="list-group-item">{{ group }}</a>
+    {% endfor%}
+</ul>
+</div>

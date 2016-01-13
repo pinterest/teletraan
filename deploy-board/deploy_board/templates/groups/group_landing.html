@@ -1,0 +1,40 @@
+{% extends 'groups/group_base.html' %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li class="active">Groups</li>
+</ul>
+{% endblock %}
+
+{% load utils %}
+
+{% block main %}
+<div class="panel panel-default">
+    {% include "panel_heading.tmpl" with panel_title="All Groups" panel_body_id="groupsId" direction="down" %}
+    <div id="buildsId" class="collapse in panel-body table-responsive">
+        <div class="row">
+            <ul class="list-group">
+                {% for group_name in group_names %}
+                <a href="/groups/{{ group_name }}/" class="list-group-item"> {{ group_name }} </a>
+                {% endfor%}
+            </ul>
+        </div>
+        <ul class="pager">
+            <li>
+                <a href='/groups/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
+                   class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+                    <span class="glyphicon glyphicon-chevron-left"></span> Previous
+                </a>
+            </li>
+            <li>
+                <a href='/groups/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
+                   class="btn btn-default {% if disableNext %}disabled{% endif %}">
+                    Next <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

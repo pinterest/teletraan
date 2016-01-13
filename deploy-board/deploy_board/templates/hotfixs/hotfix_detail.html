@@ -1,0 +1,51 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes">Recent Hotfix</a></li>
+    <li class="active">{{ hotfix.id }}</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Actions</h4>
+    </div>
+    <div class="row">
+        <a class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
+           data-toggle="tooltip" title="Go back to the current deploy">
+            <span class="glyphicon glyphicon-flash"></span> Current Deploy
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+<div id="hotfixDetailId" class="panel panel-default">
+    {% include "hotfixs/hotfix_detail.tmpl" %}
+</div>
+<script>
+    $(function () {
+        var nb_startTime = new Date().getTime();
+        var nb_interval = setInterval(function() {
+            if(new Date().getTime() - nb_startTime > 3600000) {
+                clearInterval(nb_interval);
+            }
+            $('#hotfixDetailId').load('/hotfix/{{ hotfix.id }}/');
+        }, 10000);
+    });
+</script>
+{% endblock %}

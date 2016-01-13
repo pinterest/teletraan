@@ -1,0 +1,13 @@
+{% extends 'environs/envs_base.html'%}
+{% load static %}
+
+{% block main %}
+<div class="alert alert-info" role="alert">
+<h4>
+    Failed to authenticate with OAuth service, please contact your friendly Teletraan owners for further help!
+</h4>
+</div>
+<div class="well">
+    {{ message }}
+</div>
+{% endblock %}

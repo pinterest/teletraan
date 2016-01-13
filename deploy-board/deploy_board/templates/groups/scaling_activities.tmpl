@@ -1,0 +1,48 @@
+{% load utils %}
+<table class="table table-striped table-condensed table-hover">
+    {% for activity in activities %}
+    <tr>
+        <td class="col-lg-1">
+           <a data-toggle="collapse" data-target="#{{token}}showScalingCauseId{{forloop.counter}}">
+             <span id="{{token}}showScalingCauseId{{forloop.counter}}Toggler" class="glyphicon glyphicon-chevron-right">
+             </span>
+             {{ activity.scalingTime|convertTimestamp }}
+           </a>
+        </td>
+        <td class="col-lg-2">{{ activity.description }}</td>
+        <td class="col-lg-1">
+           {% if activity.status == "Successful" %}
+           <span class="glyphicon glyphicon-ok"></span> <p style="display:inline" class="text-success"> {{activity.status}}
+           {% else %}
+           <span class="glyphicon glyphicon-remove"></span> <p style="display:inline" class="text-danger"> {{activity.status}}
+           {% endif %}
+        </td>
+    </tr>
+    <tr id="{{token}}showScalingCauseId{{forloop.counter}}" class="collapse out deployActionPanel">
+        <td colspan="4">{{activity.cause}}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<div id="showMoreDiv{{token}}">
+<ul class="pager" id="{{token}}">
+    <li>
+        <button href='#' id="show_more{{token}}"
+           class="btn btn-default {% if disableNext %}disabled{% endif %}">
+            Show more <span class="glyphicon glyphicon-chevron-right"></span>
+        </button>
+    </li>
+</ul>
+</div>
+
+
+<script>
+$(function() {
+    $("#show_more{{token}}").click(function() {
+        $("#showMoreDiv{{token}}").addClass("hidden");
+        $.get("/groups/{{ group_name }}/more_scaling_activities/?token={{next_token}}", function(response){
+           $("#scalingInfoId").append(response.html)
+       });
+    });
+});
+</script>

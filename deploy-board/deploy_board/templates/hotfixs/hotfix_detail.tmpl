@@ -1,0 +1,101 @@
+{% load utils %}
+{% load static %}
+<div class="panel-heading clearfix">
+    <h4 class="panel-title pull-left">Hotfix {{ hotfix.id }}</h4>
+</div>
+
+<div class="panel-body table-responsive">
+<table class="table table-condensed table-striped table-hover">
+    <tr>
+        <th class="col-md-2">StartDate</th>
+        <td>{{ hotfix.startDate|convertTimestamp }}</td>
+    </tr>
+    <tr>
+        <th>Operator</th>
+        <td>{{ hotfix.operator }}</td>
+    </tr>
+    <tr>
+        <th>Base Deploy</th>
+        <td>
+            <a class="deployToolTip" data-toggle="tooltip"
+            title="Click to see the build details"
+            href="/builds/{{ build.id }}">{{ build|branchAndCommit }}
+            </a>
+            (
+            <a href="/deploy/{{ hotfix.baseDeployId }}">
+                deploy detail
+            </a>
+            )
+        </td>
+    </tr>
+    <tr>
+        <th>Commits</th>
+        <td>
+            {% for commit in commits %}
+            <a href="{{ commit.link }}" target="_blank">
+                {{ commit.id|shortenCommit }}
+            </a>
+            {% endfor %}
+        </td>
+    </tr>
+    <tr>
+        <th>State</th>
+        <td>
+        <span class="deployToolTip pointer-cursor {{ hotfix.state|hotfixStateIcon }}"
+              data-toggle="tooltip" title="{{ hotfix.state|hotfixStateTip }}">
+        </span>
+        {{ hotfix.state }}
+        </td>
+    </tr>
+    <tr>
+        <th>Build Info</th>
+        {% if jenkins_url == '' %}
+        <td>Waiting to hear from Jenkins for build status...</td>
+        {% else %}
+        <td><a href="{{ jenkins_url }}">See current Jenkins build</a></td>
+        {% endif %}
+    </tr>
+    {% if hotfix.errorMessage and hotfix.errorMessage.strip %}
+    <tr>
+        <th>Message</th>
+        <td>Failed to complete hotfix:<br/> {{ hotfix.errorMessage }}</td>
+    </tr>
+    {% endif %}
+    {% if hotfix.buildId and hotfix.buildId.strip %}
+    <tr>
+        <th>Build</th>
+        <td>
+            <a href="/builds/{{ hotfix.buildId }}">{{ hotfix.buildId }}</a>
+        </td>
+    </tr>
+    {% endif %}
+    {% if hotfix.deployId and hotfix.deployId.strip %}
+    <tr>
+        <th>Deploy</th>
+        <td>
+            <a href="/deploy/{{ hotfix.deployId }}">
+                {{ hotfix.deployId }}
+            </a>
+        </td>
+    </tr>
+    {% endif %}
+</table>
+</div>
+
+<div class="panel-footer clearfix">
+    <div class="pull-left">
+        {% if hotfix.state|hotfixCanDeploy %}
+        {% if hotfix.envName|isNgapp2Env %}
+        <a href="/ngapp2/deploy/">Deploy in ngapp2 page!</a>
+        {% else %}
+        <a href="/env/{{ hotfix.envName }}/">Deploy It!</a>
+        {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.deployToolTip').tooltip();
+    });
+</script>

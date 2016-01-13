@@ -1,0 +1,44 @@
+<table id="commitsTableId" class="table table-striped table-condensed table-hover">
+    {% include "builds/commit_rows.tmpl" %}
+</table>
+
+{% if truncated %}
+<div class="row">
+    <button id="moreCommitsBtnId" class="deployToolTip btn btn-default" type="button"
+            data-loading-text="Loading more..."
+            data-toggle="tooltip" title="There are more commits...">
+        <span class="glyphicon glyphicon-download"></span> Load more
+    </button>
+    <form id="moreCommitFormId" class="form-horizontal" role="form">
+        <input id="hiddenStartShaId" name="start_sha" type="hidden" value="{{ start_sha }}"/>
+        <input id="hiddenEndShaId" name="end_sha" type="hidden" value="{{ end_sha }}"/>
+        <input id="hiddenRepoId" name="repo" type="hidden" value="{{ repo }}"/>
+        <input name="show_checkbox" type="hidden" value="{{ show_checkbox }}"/>
+    </form>
+</div>
+<script>
+    $("#moreCommitsBtnId").click(function () {
+        btn = $(this)
+        $.ajax({
+            type: 'GET',
+            url: '/commits/get_more_commits/',
+            data: $("#moreCommitFormId").serialize(),
+            beforeSend: function () {
+                $(btn).button('loading');
+            },
+            success: function (data) {
+                $(btn).button('reset');
+                if (!data.truncated) {
+                    $(btn).hide();
+                }
+                $('#commitsTableId tr').last().after(data.rows);
+                $("#hiddenStartShaId").val(data.new_start_sha);
+            },
+            error: function(xhr) { // if error occured
+                $(btn).button('reset');
+                alert(xhr.statusText + xhr.responseText);
+            },
+        });
+    });
+</script>
+{% endif %}

@@ -1,0 +1,68 @@
+<div id="groupInfoId" class="panel panel-default">
+  <table class="table table-striped table-condensed table-hover">
+    <tr>
+        <th class="col-lg-1">Instance Type</th>
+        <th class="col-lg-1">Security Group</th>
+        <th class="col-lg-2">Fleet Size</th>
+        <th class="col-lg-2">Auto Scaling Status</th>
+    </tr>
+    <tr>
+        <td>{{ instance_type }}</td>
+        <td>{{ security_group }}</td>
+        <td>{{ fleet_size }}</td>
+        <td>{{ asg_status }}</td>
+    </tr>
+  </table>
+</div>
+
+{% if asg_hosts %}
+<div class="panel panel-default table-responsive">
+    <table class="table table-condensed table-hover">
+        <tr class="row">
+            <td class="col-lg-2">
+                <span class="deployToolTip" data-toggle="tooltip"
+                   title="New hosts being installed for the first time">
+                <small>Hosts in auto scaling group</small>
+                </span>
+            </td>
+
+            <td class="col-lg-10">
+        {% for host in asg_hosts %}
+           <a href="/host/{{host}}"
+       type="button" class="deployToolTip btn btn-xs btn-default host-btn"><small>{{ host }}</small>
+           <i class="fa fa-fw fa-check"></i></a>
+        {% endfor %}
+    <br><br>
+    </td>
+    </tr>
+    </table>
+</div>
+{% endif %}
+
+{% if other_hosts %}
+<div class="panel panel-default table-responsive">
+    <table class="table table-condensed table-hover">
+        <tr>
+            <td class="col-lg-2">
+                <span class="deployToolTip" data-toggle="tooltip"
+                   title="New hosts being installed for the first time">
+                <small>{%if asg_hosts %} Other hosts {% else %} Hosts {% endif %}in the group</small>
+                </span>
+            </td>
+            <td class="col-lg-10">
+                <small>
+                    {% for other_host in other_hosts %}
+                        <a href="/host/{{ other_host }}"
+                           type="button" class="deployToolTip btn btn-xs btn-default host-btn"
+                           title="">
+                           <small>{{ other_host }}</small>
+
+                           <i class="fa fa-fw fa-check"></i>
+                        </a>
+                    {% endfor %}
+                </small>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endif %}

@@ -1,0 +1,172 @@
+#!/bin/bash
+
+# ----------------------
+# Check for dependencies
+# ----------------------
+
+function check_dependencies() {
+	# check tmux is installed
+	if [ ! `which tmux` ]; then
+		echo "Please install tmux:"
+	    echo "brew install tmux"
+	    exit 1
+	fi
+
+	# check mysql.server is installed
+    if [[ ! `which mysql.server` ]]; then
+    	echo "Please ensure mysql.server is set in PATH (~/.bash_profile)"
+    	echo 'export PATH=$PATH:/usr/local/mysql-5.6.26-osx10.8-x86_64/support-files/'
+    	exit 1
+    fi
+
+    # check mysql.server is started
+    mysql.server status
+	if [ $? -ne 0 ]; then
+		echo "Please start mysql.server:"
+		echo "mysql.server start"	
+		exit 1
+	fi
+
+	# check for GIT_DIR or ~/code
+	if [[ -n ${GIT_DIR+1} ]]; then
+	    GIT_DIR=$GIT_DIR 
+	elif [ -d ~/code ]; then
+		GIT_DIR="${HOME}"/code
+	else
+	    echo "Please set the alias for your GIT_DIR"
+	    echo "export GIT_DIR=/path/to/pinterest/codebase"
+	    exit 1
+	fi
+
+	# check for TEL_VENV or ~/venv; the $TEL_VENV dir should contain bin/activate
+	if [[ -n ${TEL_VENV+1} ]]; then
+	    TEL_VENV=$TEL_VENV 
+	elif [ -d ~/venv ]; then
+		TEL_VENV='~/venv'
+	else
+		echo "Please set the alias for your teletraan python virtual environment (TEL_VENV should contain bin/activate)"
+	    echo "export TEL_VENV=/path/to/teletraan_virtual_env"
+	    exit 1
+	fi
+
+	# check if /tmp/deployservice exists and create it
+    if [ ! -d /tmp/deployservice ]; then
+    	mkdir /tmp/deployservice
+    fi
+	# check if /tmp/deploy_board exists and create it
+    if [ ! -d "/tmp/deploy_board" ]; then
+		mkdir /tmp/deploy_board
+	fi
+
+	export CFLAGS=-I/usr/local/include/
+
+    if [ -d "${GIT_DIR}"/devtools/deploy-mix ]; then
+		echo "found $GIT_DIR/devtools/deploy-mix"
+	fi
+}
+
+function start_tmux() {
+	# ----------------------
+	# Start TMUX
+	# ----------------------
+	tmux start-server
+
+	# Kill any old session.  Don't exit on fail since kill-session is expected to fail if there is no old session.
+	set +e
+	tmux kill-session -t teletraan 
+	set -e
+
+	if [[ -z "$TMUX" ]]; then
+	# if not in tmux, start session and load config
+	    tmux new-session -d -s teletraan #-n Instructions
+	    tmux source-file teletraan.tmux.conf
+	else
+	# else, unset $TMUX to be able to start the server, then reset it. do not load config.
+	    TMUX_TEMP=$TMUX
+	    TMUX=
+	    tmux new-session -d -s teletraan #-n Instructions
+	    TMUX=$TMUX_TEMP
+	    unset TMUX_TEMP
+	fi
+}
+
+function tmux_windows() {
+	echo "Starting Teletran Processes ... one moment please ..."
+
+	# ----------------------
+	# Teletraan Local Server
+	# ----------------------
+	tmux new-window -t teletraan -n TeleLocalServer
+	tmux send-keys -t teletraan:TeleLocalServer "cd $GIT_DIR/teletraan" C-m
+	tmux send-keys -t teletraan:TeleLocalServer " ./deployservice/src/main/scripts/run_local_server.sh" C-m
+
+	# ----------------------
+	# Start Deploy-board
+	# ----------------------
+	tmux new-window -t teletraan -n DeployBoard
+	tmux send-keys -t teletraan:DeployBoard "source $TEL_VENV/bin/activate" C-m
+	tmux send-keys -t teletraan:DeployBoard "cd $GIT_DIR/deploy-board" C-m
+	tmux send-keys -t teletraan:DeployBoard "./run_local.sh" C-m
+
+	# ----------------------
+	# Teletraan Agent
+	# ----------------------
+	tmux new-window -t teletraan -n TeleAgent
+	tmux send-keys -t teletraan:TeleAgent "source $TEL_VENV/bin/activate" C-m
+	tmux send-keys -t teletraan:TeleAgent "cd $GIT_DIR/teletraan" C-m
+	tmux send-keys -t teletraan:TeleAgent "./deployservice/src/main/scripts/run_local_agent_server.sh" C-m
+
+	# ----------------------
+	# Devtools Local Agent
+	# ----------------------
+	if [ -d "${GIT_DIR}"/devtools/deploy-mix ]; then
+		sleep 4 # wait for TeleLocalServer to startup so HTTP connections are not missed
+		tmux new-window -t teletraan -n DevtoolsAgent
+		tmux send-keys -t teletraan:DevtoolsAgent "source $TEL_VENV/bin/activate" C-m
+		tmux send-keys -t teletraan:DevtoolsAgent "cd $GIT_DIR/devtools/deploy-mix" C-m
+		tmux send-keys -t teletraan:DevtoolsAgent "./run-local.sh agent_ping2.py" C-m
+	fi
+}
+
+function load_chrome() {
+	# ----------------------
+	# Chrome load Deploy-board
+	# ----------------------
+    DEPLOY_BOARD_URL="http://127.0.0.1:8888/"
+
+	if [[ -n ${CHROME+1} ]]; then
+	    CHROME=$CHROME
+	elif [ /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome ]; then
+		CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+	else
+        echo "Set the CHROME env varriable to launch Deploy-board"
+        echo "export CHROME=/path/here"
+        return
+	fi
+    sleep 3 # give servers a chance to get online before loading deploy-board
+	"${CHROME}" "${DEPLOY_BOARD_URL}" > /dev/null 2>&1
+  
+}
+
+function attach_tmux() {
+	if [[ -z "$TMUX" ]]; then
+	# if not in tmux, attach to the server.
+	    tmux attach-session -t teletraan
+	else
+	# else links windows to current session.
+	    tmux link-window -s teletraan:TeleLocalServer
+	    tmux link-window -s teletraan:DeployBoard
+	    tmux link-window -s teletraan:TeleAgent
+	    tmux link-window -s teletraan:DevtoolsAgent
+	    tmux join-pane -s TeleLocalServer -t DeployBoard
+	    tmux join-pane -s TeleAgent -t DeployBoard
+	    tmux join-pane -s DevtoolsAgent -t DeployBoard
+	    tmux kill-session -t teletraan
+	fi
+}
+
+check_dependencies
+start_tmux
+tmux_windows
+load_chrome
+attach_tmux

@@ -1,0 +1,62 @@
+{% load utils %}
+    <table class="table table-striped table-bordered table-condensed table-hover">
+        <tr>
+            <td>Type</td>
+            <td>
+                <span class="deployToolTip pointer-cursor glyphicon {{ deploy.type|deployTypeIcon }}"
+                    data-toggle="tooltip" title="{{ deploy.type|deployTypeTip }}">
+                </span>
+                {{ deploy.type }}
+            </td>
+        </tr>
+        <tr>
+            <td>State</td>
+            <td>
+                <span class="deployToolTip pointer-cursor {{ deploy.state|deployStateIcon }}"
+                     data-toggle="tooltip" title="{{ deploy.state|deployStateTip }}">
+                </span>
+                {{ deploy.state }}
+            </td>
+        </tr>
+        <tr>
+            <td>Acceptance</td>
+            <td>
+                <span class="deployToolTip pointer-cursor {{ deploy.acceptanceStatus|deployAcceptanceIcon }}"
+                     data-toggle="tooltip" title="{{ deploy.acceptanceStatus|deployAcceptanceTip }}">
+                </span>
+                {{ deploy.acceptanceStatus }}
+            </td>
+        </tr>
+        <tr>
+            <td>Operator</td>
+            <td>{{ deploy.operator }}</td>
+        </tr>
+        <tr>
+            <td>Description</td>
+            <td>{{ deploy.description }}</td>
+        </tr>
+        <tr>
+            <td>Start</td>
+            <td>{{ deploy.startDate|convertTimestamp }}</td>
+        </tr>
+        <tr>
+            <td>Last Update</td>
+            <td>{{ deploy.lastUpdateDate|convertTimestamp}}</td>
+        </tr>
+        <tr>
+            <td>Success Rate</td>
+            <td>{{ deploy|successRate }}</td>
+        </tr>
+        <tr>
+            <td>Success Date</td>
+            <td>
+                {% if deploy.successDate > 0 %}
+                {{ deploy.successDate|convertTimestamp }}
+                {% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td>Deployment ID</td>
+            <td>{{ deploy.id }}</td>
+        </tr>
+    </table>

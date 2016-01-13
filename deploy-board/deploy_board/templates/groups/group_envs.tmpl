@@ -1,0 +1,9 @@
+{% load utils %}
+{% load static %}
+<div class="row">
+<ul class="list-group">
+    {% for env in envs %}
+        <a href="/env/{{ env.envName }}/" class="list-group-item">{{ env.envName}}</a>
+    {% endfor%}
+</ul>
+</div>

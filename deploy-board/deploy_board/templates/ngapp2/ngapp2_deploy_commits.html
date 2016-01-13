@@ -1,0 +1,58 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+{% load static %}
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Actions</h4>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/ngapp2/deploy/"
+           data-toggle="tooltip" title="Return the current deployment page">
+           <i class="fa fa-flash"></i> Current Deployment
+        </a>
+    </div>
+</div>
+<div class="well">
+    <a href="https://w.pinadmin.com/display/enKB/ngapp2+deploy+directions">
+        <span class="glyphicon glyphicon-info-sign"></span> ngapp2 deploy help
+    </a>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Commits between the two deploys</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        <div id="newCommitsDivId">
+            <ul class="fa-ul">
+                <li><i class="fa-li fa fa-spinner fa-spin"></i>Loading...</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#newCommitsDivId').load('/commits/compare_commits/?start_sha={{ startSha }}' +
+                '&end_sha={{ endSha }}&repo={{ repo }}'
+        );
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends 'environs/env_base.html' %}
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li class="active">Config</li>
+</ul>
+{% endblock %}
+
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Configuration</h4>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
+           data-toggle="tooltip" title="Return the current deployment page">
+           <i class="fa fa-flash"></i> Current Deployment
+        </a>
+    </div>
+	<div class="row">
+        <button id="envAddStageBtnId" type="button" class="deployToolTip btn btn-default btn-block"
+                data-toggle="modal" data-target="#addStageModalId"
+                title="Create a new environment stage">
+            <span class="glyphicon glyphicon-plus"></span> Add Stage
+        </button>
+    </div>
+    {% if show_remove %}
+	<div class="row">
+        <button id="envRemoveStageBtnId" type="button" class="deployToolTip btn btn-default btn-block"
+                data-toggle="modal" data-target="#removeStageModalId"
+                title="Remove this environment stage">
+            <span class="glyphicon glyphicon-minus"></span> Remove this Stage
+        </button>
+    </div>
+    {% endif %}
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/auto_deploy"
+           data-toggle="tooltip" title="Configure auto deploy">
+           <i class="fa fa-car"></i> Auto Deploy
+        </a>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity"
+           data-toggle="tooltip" title="Configure capacity">
+           <i class="fa fa-database"></i> Capacity
+        </a>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/map/?flavor=SC"
+           data-toggle="tooltip" title="Configure script variables">
+           <i class="fa fa-file-code-o"></i> Script Config
+        </a>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/map/?flavor=AC"
+           data-toggle="tooltip" title="Configure agent variables">
+           <i class="fa fa-sliders"></i> Agent Config
+        </a>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/metrics"
+           data-toggle="tooltip" title="Configure service metrics">
+           <span class="glyphicon glyphicon-stats"></span> Metrics
+        </a>
+    </div>
+    {% if pinterest %}
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/alarm"
+           data-toggle="tooltip" title="Configure service alarms">
+           <i class="fa fa-bell"></i> Alarms
+        </a>
+    </div>
+    {% endif %}
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/webhooks"
+           data-toggle="tooltip" title="Configure pre/post deploy webhooks">
+           <i class="glyphicon glyphicon-export"></i> Webhooks
+        </a>
+    </div>
+  <div class="row">
+      <a href="/env/{{ env.envName }}/{{ env.stageName }}/config_history"
+          type="button" class="deployToolTip btn btn-default btn-block"
+          data-toggle="tooltip" title="View config history.">
+          <span class="glyphicon glyphicon-time"></span> Config History
+      </a>
+  </div>
+  <div class="row">
+      <a href="/env/{{ env.envName }}/get_users_config/?user_types=user_roles"
+          type="button" class="deployToolTip btn btn-default btn-block"
+          data-toggle="tooltip" title="Manage user permissions and Script tokens.">
+          <span class="glyphicon glyphicon-user"></span> Admin Panel
+      </a>
+  </div>
+</div>
+
+{% include "environs/new_stage_modal.tmpl" with envName=env.envName %}
+{% include "environs/remove_stage_modal.tmpl" with envName=env.envName stageName=env.stageName %}
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+{% include "environs/env_tabs.tmpl" with envTabKind="config" %}
+
+<div class="panel panel-default">
+    {% include "configs/env_config.tmpl" %}
+</div>
+
+{% endblock %}

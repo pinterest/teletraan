@@ -1,0 +1,58 @@
+{% extends 'environs/env_base.html' %}
+{% load utils %}
+{% load static %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/groups/">Groups</a></li>
+    <li><a href="/groups/{{ group_name }}">{{ group_name }}</a></li>
+    <li><a href="/groups/{{ group_name }}/config_history/">Config History</a></li>
+    <li class="active">Config Comparison</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Group Config</h4>
+    </div>
+    <div class="row">
+        <a id="listGroupsBtnId" href="/groups/{{ group_name }}/config_history/" class="deployToolTip btn btn-default btn-block">
+            <span class="glyphicon glyphicon-wrench"></span> Back to Config
+        </a>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Configuration Comparison</h4>
+    </div>
+    <div class="panel-body table-responsive">
+
+    <form name="env_config_history_list">
+    <table id="envConfigHistoryTableId" class="table table-condensed table-striped table-hover">
+        <tr>
+            <th class="col-lg-1">Old Config</th>
+            <th class="col-lg-1">New Config</th>
+        </tr>
+
+        <tr>
+            <td height="100" width="50"> {{ oldChange | safe }} </td>
+            <td height="100"> {{ newChange | safe }} </td>
+        </tr>
+
+    </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,162 @@
+<style>
+.chartContainer>div {
+    width:550px;
+    height:350px;
+    display:inline-block;
+}
+</style>
+
+<script type="text/javascript">
+{% if enable_policy  %}
+    {% for alarm_info in alarm_infos %}
+        var newDiv = document.createElement("div");
+        var id = "chart" + {{ forloop.counter0 }};
+        newDiv.id = id;
+        var container = document.getElementById("container");
+        container.appendChild(newDiv);
+
+        var f = function(chartDiv) {
+            return function() {
+                var data = new google.visualization.DataTable();
+                var metric_name = "{{ alarm_info.metricSource }}";
+                data.addColumn("datetime", "Date");
+                data.addColumn("number", "Group Size");
+                {% for group_data in group_size_datum %}
+                    var time = "{{ group_data.timestamp }}";
+                    var value = parseFloat("{{ group_data.value }}");
+                    var d = new Date(0);
+                    d.setMilliseconds(time);
+                    data.addRow([d, value]);
+                {% endfor %}
+
+                var extended_data = new google.visualization.DataTable();
+                extended_data.addColumn("datetime", "Date");
+                extended_data.addColumn("number", metric_name);
+                {% if alarm_info.actionType == "GROW" %}
+                    extended_data.addColumn("number", "Scale Up Threshold");
+                {% else %}
+                    extended_data.addColumn("number", "Scale Down Threshold");
+                {% endif %}
+
+                {% if alarm_info.actionType2 != "UNKNOWN" %}
+                    {% if alarm_info.actionType2 == "GROW" %}
+                        extended_data.addColumn("number", "Scale Up Threshold");
+                    {% else %}
+                        extended_data.addColumn("number", "Scale Down Threshold");
+                    {% endif %}
+                {% endif %}
+
+                {% for metric_data in alarm_info.metric_datum %}
+                    var time = "{{ metric_data.timestamp }}";
+                    var d = new Date(0);
+                    d.setMilliseconds(time);
+                    var value = parseFloat("{{ metric_data.value }}");
+                    var threshold = parseFloat("{{ alarm_info.threshold }}");
+                    {% if alarm_info.actionType2 != "UNKNOWN" %}
+                        var threshold2 = parseFloat("{{ alarm_info.threshold2 }}");
+                        extended_data.addRow([d, value, threshold, threshold2]);
+                    {% else %}
+                        extended_data.addRow([d, value, threshold]);
+                    {% endif %}
+                {% endfor %}
+
+                {% if alarm_info.actionType2 != "UNKNOWN" %}
+                    var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2,3]);
+                {% else %}
+                    var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2]);
+                {% endif %}
+
+                var options = {
+                    title: 'Fleet Size',
+                    titleFontSize: 15,
+                    height: 300,
+                    min: 0,
+                    max: 10,
+                    curveType: 'function',
+                    legend: 'top',
+                    series: {
+                        0: {targetAxisIndex: 0,
+                            color: 'blue',
+                            lineWidth: 3,
+                            side: 'top'},
+                        1: {targetAxisIndex: 1,
+                            color: 'green',
+                            lineWidth: 2},
+                        2: {targetAxisIndex: 1,
+                            color: 'red',
+                            lineWidth: 2},
+                        3: {targetAxisIndex: 1,
+                            color: '#e0440e',
+                            lineWidth: 2},
+                    },
+                    vAxes: {
+                        0: {title: 'Group Size',
+                            titleTextStyle: {italic: false}},
+                        1: {title: metric_name,
+                            titleTextStyle: {italic: false}}
+                    },
+                    interpolateNulls: true,
+                };
+
+                var chart = new google.visualization.LineChart(chartDiv);
+                chart.draw(dt, options);
+            }
+        };
+        google.setOnLoadCallback(f(newDiv));
+    {% endfor %}
+{% else %}
+    var newDiv = document.createElement("div");
+    var id = "chart0";
+    newDiv.id = id;
+    var container = document.getElementById("container");
+    container.appendChild(newDiv);
+    var f = function(chartDiv) {
+        return function() {
+            var data = new google.visualization.DataTable();
+            var metric_name = "{{ alarm_info.metricSource }}";
+            data.addColumn("datetime", "Date");
+            data.addColumn("number", "Group Size");
+            {% for group_data in group_size_datum %}
+                var time = "{{ group_data.timestamp }}";
+                var value = parseFloat("{{ group_data.value }}");
+                var d = new Date(0);
+                d.setMilliseconds(time);
+                data.addRow([d, value]);
+            {% endfor %}
+
+            var options = {
+                title: 'Fleet Size',
+                titleFontSize: 15,
+                height: 300,
+                min: 0,
+                max: 10,
+                curveType: 'function',
+                legend: 'top',
+                series: {
+                    0: {targetAxisIndex: 0,
+                        color: 'blue',
+                        lineWidth: 3,
+                        side: 'top'},
+                    1: {targetAxisIndex: 1,
+                        color: 'green',
+                        lineWidth: 2},
+                    2: {targetAxisIndex: 1,
+                        color: 'red',
+                        lineWidth: 2},
+                },
+                vAxes: {
+                    0: {title: 'Group Size',
+                        titleTextStyle: {italic: false}},
+                    1: {title: metric_name,
+                        titleTextStyle: {italic: false}}
+                },
+                interpolateNulls: true,
+            };
+
+            var chart = new google.visualization.LineChart(chartDiv);
+            chart.draw(data, options);
+        }
+    };
+    google.setOnLoadCallback(f(newDiv));
+{% endif %}
+</script>

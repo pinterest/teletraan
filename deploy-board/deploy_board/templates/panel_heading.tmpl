@@ -1,0 +1,40 @@
+<div class="panel-heading clearfix">
+    <h4 class="panel-title pull-left pointer-cursor">
+        <a data-toggle="collapse" data-target="#{{ panel_body_id }}">
+            <span id="{{ panel_body_id }}Toggler"
+                  class="glyphicon glyphicon-chevron-{{ direction }}">
+            </span>
+            {{ panel_title }}
+        </a>
+    </h4>
+    {% if check_alarm == True %}
+    <div id="alarmsId"></div>
+    {% endif %}
+</div>
+<script>
+    $(function () {
+        $('#' + '{{ panel_body_id }}').on('hide.bs.collapse show.bs.collapse', function () {
+            $('#' + '{{ panel_body_id }}Toggler').toggleClass('glyphicon-chevron-down glyphicon-chevron-right', 100);
+        });
+    });
+
+    {% if check_alarm == True %}
+    var sh_startTime = new Date().getTime();
+    var sh_interval = setInterval(function () {
+        if (new Date().getTime() - sh_startTime > 3600000) {
+            clearInterval(sh_interval);
+        }
+        $.get('/env/{{ env.envName }}/{{ env.stageName }}/get_service_alarms/', function (dict) {
+                for (var name in dict['html']) {
+                    if(dict['html'][name]) {
+                        data = gauges[title][0];
+                        options = gauges[title][1];
+                        data.setValue(0, 1, dict['html'][title].toFixed(2));
+                        var chart = charts[title];
+                        chart.draw(data, options);
+                    }
+                }
+            });
+    }, 36000);
+    {% endif %}
+</script>

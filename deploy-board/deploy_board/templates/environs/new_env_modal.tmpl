@@ -1,0 +1,97 @@
+<div class="modal fade" id="newEnvModalId" tabindex="-1" role="dialog"
+     aria-labelledby="newEnvModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form class="form-horizontal" method="post" action="/env/create/" role="form">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="newEnvModalLabel">Create a new Environment</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="env_name" class="col-md-2 control-label">Env Name</label>
+
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" name="env_name"
+                                   required="required"
+                                   placeholder="usually the name of the service to be deployed."
+                                   data-toggle="tooltip"
+                                   data-placement="right"
+                                   data-trigger="manual"
+                                   title="Letters, numbers, underscores, and hyphens [A-Za-z0-9_-] only.">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="stage_name" class="col-md-2 control-label">Stage Name</label>
+
+                        <div class="col-md-10">
+                            <input type="text" class="form-control" name="stage_name"
+                                   required="required"
+                                   placeholder="usually beta, canary or prod etc."
+                                   data-toggle="tooltip"
+                                   data-placement="right"
+                                   data-trigger="manual"
+                                   title="Letters, numbers, underscores, and hyphens [A-Za-z0-9_-] only.">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="clone" class="col-md-2 control-label">Clone from</label>
+
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" name="clone_env_name"
+                                   placeholder="existing environ name.(optional)">
+                        </div>
+                        <div class="col-md-5">
+                            <input type="text" class="form-control" name="clone_stage_name"
+                                   placeholder="existing environ stage.(optional)">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description" class="col-md-2 control-label">Description</label>
+
+                        <div class="col-md-10">
+                            <textarea type="text" class="form-control" name="description"
+                                      row="2" placeholder="simple description (optional)"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% load static %}
+
+<script src="{% static "js/data-validation-helpers.js" %}"></script>
+
+<script>
+    $(function() {
+        $('#newEnvModalId form').submit(function (e) {
+            $('[data-toggle="tooltip"]').tooltip("destroy");
+
+            var $envNameInput = $(this[name = "env_name"]);
+            var $stageNameInput = $(this[name = "stage_name"]);
+
+            validateInput($envNameInput.val(), validName, $.noop, function () {
+                $envNameInput.tooltip("show");
+                e.preventDefault();
+            })
+
+            validateInput($stageNameInput.val(), validName, $.noop, function () {
+                $stageNameInput.tooltip("show");
+                e.preventDefault();
+            })
+        });
+
+        $('#newEnvModalId').on('hidden.bs.modal', function () {
+            $('[data-toggle="tooltip"]').tooltip("destroy");
+        })
+    });
+</script>

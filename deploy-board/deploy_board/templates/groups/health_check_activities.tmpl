@@ -1,0 +1,57 @@
+{% load utils %}
+{% load static %}
+
+<form name="health_check_activities">
+    <table id="healthCheckActivitiesId" class="table table-condensed table-striped table-hover">
+        <tr>
+            <th class="col-lg-2">Start Date</th>
+            <th class="col-lg-1">Elapsed</th>
+            <th class="col-lg-2">Type</th>
+            <th class="col-lg-1">Deploy Id</th>
+            <th class="col-lg-1">AMI Id</th>
+            <th class="col-lg-1">Launch Latency</th>
+            <th class="col-lg-1">Status</th>
+            <th class="col-lg-1">Details</th>
+        </tr>
+        {% for health_check in health_checks %}
+            <tr class="{{ health_check.status | healthCheckStatusClass }}">
+                <td>{{ health_check.start_time | convertTimestamp }}</td>
+                <td><span class="deployToolTip label label-default" data-toggle="tooltip"
+                          title="Health Check was updated on {{ health_check.last_worked_on | convertTimestamp }}">
+                    {{ health_check | computeElapsedTimeForHealthCheck }}
+                    </span>
+                </td>
+                <td>
+                    <span class="deployToolTip pointer-cursor {{ health_check.type | healthCheckTypeIcon }}"
+                          title="{{ health_check.type }} health check"></span>
+                     {{ health_check.type }}
+                </td>
+                <td><a href="/deploy/{{ health_check.deploy_id }}"> {{ health_check.deploy_id | truncateWord }} </a></td>
+                <td> {{ health_check.ami_id }} </td>
+                {% if health_check.host_launch_time and health_check.deploy_complete_time %}
+                    <td><span class="deployToolTip label label-default" data-toggle="tooltip"
+                          title="The host was launched on {{ health_check.host_launch_time | convertTimestamp }} and
+                          started to serve traffic on {{ health_check.deploy_complete_time | convertTimestamp }}">
+                    {{ health_check | computeLaunchLatencyForHealthCheck }}
+                    </span>
+                    </td>
+                {% else %}
+                    <td> N/A </td>
+                {% endif %}
+                <td>
+                    <span class="deployToolTip pointer-cursor {{ health_check.status | healthCheckStatusIcon }}"></span>
+                    {% if health_check.status == "SUCCEEDED" %}
+                        STATE SUCCEEDED
+                    {% else %}
+                        {{ health_check.status }}
+                    {% endif %}
+                </td>
+
+                <td><a href="/groups/health_check/{{ health_check.id }}">
+                    view
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</form>

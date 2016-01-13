@@ -1,0 +1,99 @@
+<html>
+    <script>
+        var data_options2 = {};
+        var charts2 = {};
+    </script>
+
+    <script type="text/javascript">
+        google.load("visualization", "1", {packages:["corechart"]});
+        google.setOnLoadCallback(drawChart2);
+
+        function drawChart2() {
+            var data = new google.visualization.DataTable();
+            data.addColumn("datetime", "Date");
+            var threshold_name = "Launch Grace Period";
+            data.addColumn("number", threshold_name);
+
+            var options = {
+                title: 'Launch/Deploy Latency',
+                titleFontSize: 15,
+                height: 300,
+                min: 0,
+                max: 50,
+                curveType: 'function',
+                legend: 'top',
+                series: {
+                    0: {targetAxisIndex: 0,
+                        color: 'red',
+                        lineWidth: 3,
+                        side: 'top'},
+                    1: {targetAxisIndex: 0,
+                        color: 'purple',
+                        lineWidth: 2},
+                    2: {targetAxisIndex: 0,
+                        color: 'green',
+                        lineWidth: 2},
+                    3: {targetAxisIndex: 0,
+                        color: 'blue',
+                        lineWidth: 2},
+                    4: {targetAxisIndex: 0,
+                        color: 'yellow',
+                        lineWidth: 2},
+                    5: {targetAxisIndex: 0,
+                        color: 'gray',
+                        lineWidth: 2}
+                },
+                vAxes: {
+                    0: {title: 'Seconds',
+                        titleTextStyle: {italic: false}}
+                },
+                interpolateNulls: true,
+            };
+            var chart2 = new google.visualization.LineChart(document.getElementById('line_latencystats'));
+            charts2['Requests'] = chart2;
+            chart2.draw(data, options);
+            data_options2['Requests'] = [data, options];
+        }
+    </script>
+
+    <script>
+        function updateCharts2(response) {
+            var data = data_options2['Requests'][0];
+            var options = data_options2['Requests'][1];
+            var stage_names = response['stage_names'];
+            var launch_latency_th = response['launch_latency_th'];
+            var launch_tmp = "launch_latency.";
+            var deploy_tmp = "deploy_latency.";
+
+            for (var i = 0; i < 1; ++i) {
+                var metric_name1 = launch_tmp + stage_names[i];
+                var metric_name2 = deploy_tmp + stage_names[i];
+
+                data.addColumn("number", metric_name1);
+                data.addColumn("number", metric_name2);
+
+                var data_list1 = response[metric_name1];
+                var data_list2 = response[metric_name2];
+                var data_len = Math.min(data_list1.length,  data_list2.length);
+                for (var j = 0; j < data_len; ++j) {
+                    var d = new Date(0);
+                    d.setMilliseconds(data_list1[j][0]);
+                    data.addRow([d, launch_latency_th, data_list1[j][1], data_list2[j][1]]);
+                }
+            }
+            var metric_chart = charts2["Requests"];
+            metric_chart.draw(data, options);
+        }
+
+        function poll_metrics2() {
+            $.get('/group_latency_stats/{{ group_name }}', function(response) {
+                updateCharts2(response);
+            }).fail(function() {
+            });
+        }
+
+        $(document).ready(function() {
+            poll_metrics2();
+        });
+    </script>
+</html>

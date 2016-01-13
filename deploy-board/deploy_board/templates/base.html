@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="jiehou">
+
+    <title>Teletraan</title>
+
+    {%load static %}
+    {% load utils %}
+
+    <link rel="shortcut icon" href="{% static "images/favicon.ico" %}"/>
+
+    <!-- Custom styles for this template -->
+    <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+    <link href="{% static "css/deploy-board.css" %}" rel="stylesheet">
+    <link href="{% static "css/fuelux.min.css" %}" rel="stylesheet">
+    <link href="{% static "font-awesome/css/font-awesome.min.css" %}" rel="stylesheet" >
+    <link href="{% static "css/typeahead.css" %}" rel="stylesheet" >
+    <link href="{% static "css/star-rating.min.css" %}" rel="stylesheet" >
+    <link href="{% static "css/bootstrap-chosen.css" %}" rel="stylesheet" >
+    <link href="{% static "datatables/css/datatables.bootstrap.min.css" %}" rel="stylesheet" >
+
+    <!-- Just for debugging purposes. Don't actually copy this line! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster (but it does not work ) -->
+<script src="{% static "js/jquery-1.11.1.min.js" %}"></script>
+<script src="{% static "js/bootstrap.min.js" %}"></script>
+<script src="{% static "js/deploy-board.js" %}"></script>
+<script src="{% static "js/fuelux.min.js" %}"></script>
+<script src="{% static "js/typeahead.bundle.min.js" %}"></script>
+<script src="{% static "js/star-rating.min.js" %}"></script>
+<script src="{% static "js/chosen.jquery.min.js" %}"></script>
+<script src="{% static "js/js.cookie-2.0.3.min.js" %}"></script>
+<script src="{% static "datatables/js/jquery.dataTables.min.js" %}"></script>
+<script src="{% static "datatables/js/datatables.bootstrap.min.js" %}"></script>
+</head>
+
+<body>
+
+<nav class="navbar navbar-fixed-top navbar-inverse" role="navigation">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navBarItemsId">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="/">
+          <img style="max-width:100px; margin-top: -7px;"
+             src="{% static "images/teletraan-logo.png" %}"> Teletraan
+      </a>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div id="navBarItemsId" class="collapse navbar-collapse navbar-right">
+        <ul class="nav navbar-nav">
+            {% block navbar-items %}
+            {% endblock %}
+        </ul>
+        {% block navbar-search %}
+        {% endblock %}
+        <ul class="nav navbar-nav">
+            <li><a href="https://github.com/pinterest/teletraan/wiki/Performing-a-deploy">Help</a></li>
+            {% if isPinterest %}
+                <li><a href="#" data-toggle="modal" data-target="#feedbackModal">Feedback</a></li>
+            {% endif %}
+            <li><a>{{request.teletraan_user_id.name }}</a></li>
+        </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+<div>
+{% block breadcrumb-items %}
+{% endblock %}
+    <div id="errorBannerId" style="display:none; text-align:center;" class="alert alert-danger alert-dismissible" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    </div>
+</div>
+{% include "feedbacks/feedback_modal.tmpl" %}
+<div class="container-fluid">
+<div class="row">
+  <div class="col-sm-2">
+    {% block side-panel %}
+    {% endblock %}
+  </div>
+
+  <div class="col-sm-10">
+    {% block main %}
+    {% endblock %}
+    {% block hidden %}
+    {% endblock %}
+  </div>
+</div>
+</div>
+
+<div id="toolTipContent"></div>
+</body>
+</html>

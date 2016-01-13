@@ -1,0 +1,12 @@
+{% if hasAlarm %}
+{% load static %}
+<div class="alert alert-danger" role="alert">
+    {% for name, alarm in alarms.items %}
+    <a class="deployToolTip"
+       href="{{ alarm.url }}"
+       data-toggle="tooltip" title="Alarm triggered, click to see details">
+       <i class="fa fa-bell fa-blink"></i> {{ name }}
+    </a>
+    {% endfor %}
+</div>
+{% endif %}

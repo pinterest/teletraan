@@ -1,0 +1,73 @@
+{% load utils %}
+{% load static %}
+{% for deployId, agents in agents_wrapper.items %}
+<div class="panel panel-default">
+  <div class="panel-heading">
+      <strong>Deploy:</strong><a href="/deploy/{{ deployId }}"> {{ deployId }}</a>
+  </div>
+  <div class="panel-body table-responsive">
+      <table class="table table-striped table-bordered table-condensed table-hover">
+          <tr>
+              <th>Host</th>
+              <th>Host Id</th>
+              <th>Stage</th>
+              <th>State</th>
+              <th>Status</th>
+              <th>StartDate(-08:00)</th>
+              <th>LastUpdate</th>
+              <th>ErrorCode</th>
+          </tr>
+          {% for agent in agents %}
+          <tr>
+              {% if agent.lastErrorCode|isUnknownHost %}
+                  <td><a href="/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+              {% else %}
+                  <td><a href="/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
+                  <td>{{ agent.hostId }}</td>
+                  <td>{{ agent.deployStage }}</td>
+                  <td>{{ agent.state }}</td>
+                  <td>{{ agent.status }}</td>
+                  <td>{{ agent.startDate|convertTimestamp }}</td>
+                  <td>{{ agent.lastUpdateDate|convertTimestamp }}</td>
+                  <td>{{ agent.lastErrorCode }}</td>
+              {% endif %}
+          </tr>
+          {% endfor %}
+      </table>
+  </div>
+    {% if is_retryable %}
+    <div class="panel-footer clearfix">
+        <div class="pull-left">
+            <button id="reset_{{ deployId }}"
+                    class="deployToolTip btn btn-primary" data-toggle="tooltip"
+                    title="Retry the current deploy step on this host.">
+                Retry deploy on all hosts
+            </button>
+        </div>
+    </div>
+    {% endif %}
+<script>
+    $(function () {
+        $('.deployToolTip').tooltip();
+        $('#reset_{{ deployId }}').click(function () {
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/reset_failed_hosts/{{ deployId }}/',
+                data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+                datatype: 'json',
+                success: function (data) {
+                    window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+                }
+            });
+
+        });
+    });
+</script>
+</div>
+{% endfor %}

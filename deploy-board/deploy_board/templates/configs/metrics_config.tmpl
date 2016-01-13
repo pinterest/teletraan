@@ -1,0 +1,352 @@
+{% for metric in metrics %}
+<div id="panelBodyId" class="panel-default" value="{{ metric.title|slugify }}">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left pointer-cursor">
+            <a data-toggle="collapse" style="line-height:2.0;" data-target="panelBodyId_{{ metric.title|slugify }}">
+                {{ metric.title }}
+            </a>
+        </h4>
+        <div>
+            <button type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
+        </div>
+    </div>
+
+    <div id="panelBodyId_{{ metric.title|slugify }}" class="collapse in panel-body">
+        <div class="col-md-12">
+            <form class="mapConfigFormId form-horizontal" role="form">
+                <fieldset class="{{ 'mapConfigFieldSetId' }}">
+                        <label for="properties" class="col-sm-1" style="margin-top:7px">URL</label>
+                        <div class="col-md-11">
+                            <input class="form-control" name="TELETRAAN_{{ metric.title }}"
+                                   type="text" value="{{ metric.url|default_if_none:'' }}"/>
+                        </div>
+                </fieldset>
+            </form>
+        </div>
+        {% csrf_token %}
+
+        <div id="newMetricSpot_{{ metric.title|slugify }}" class="panel-default"></div>
+        <div class="col-md-12" style="margin-top:14px">
+            <div class="col-md-2" style="margin-top:14px"><b>Gauge Specs:</b></div>
+        </div>
+        {% for spec in metric.specs %}
+            <div class="col-md-12">
+                <label for="min_{{ metric.title|slugify }}" class="col-md-1" style="margin-top:14px; padding-top:5px">Min</label>
+                <div class="col-md-2 form-change" style="margin-top:14px"><input id="min_{{ metric.title|slugify }}" type="text" class="form-control" name="min_{{ metric.title|slugify }}" value="{{ spec.min }}"></div>
+                <label for="max_{{ metric.title|slugify }}" class="col-md-1" style="margin-top:14px; padding-top:5px">Max</label>
+                <div class="col-md-2 form-change" style="margin-top:14px"><input id="max_{{ metric.title|slugify }}" type="text" class="form-control" name="max_{{ metric.title|slugify }}" value="{{ spec.max }}"></div>
+                <div class="col-md-3 form-change">
+                    <select class="form-control form-change" style="margin-top:14px" id="color-selection" name="color-selection_{{ metric.title|slugify }}" value="{{ spec.color }}">
+                        {% if spec.color == "Red" %}
+                            <option value="Red" selected>Red</option>
+                        {% elif spec.color == "Yellow" %}
+                            <option value="Yellow" selected>Yellow</option>
+                        {% elif spec.color == "Green" %}
+                            <option value="Green" selected>Green</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
+
+<div id="new-entry-id"></div>
+
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="{{ 'resetConfigMapBtnId' }}" class="btn btn-default"
+                type="button" data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button id="{{ 'addConfigMapBtnId' }}" class="btn btn-default">
+            <span class="glyphicon glyphicon-plus"></span> Add Metric
+        </button>
+        <button id="{{ 'saveConfigMapBtnId' }}" class="btn btn-primary"
+                type="button" data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
+</div>
+
+<div class="modal fade" id="{{ 'newEntryModalId' }}" tabindex="-1" role="dialog"
+     aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="{{ 'newEntryFormId' }}" class="form-horizontal" method="post" role="form">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="newEnvModalLabel">Add a new metric gauge</h4>
+                </div>
+                <div class="modal-body" id="newMetricModal">
+
+                    <div class="form-group">
+                        <label for="newEntryName" class="deployToolTip control-label col-xs-1">
+                            Label
+                        </label>
+                        <div class ="col-md-11">
+                            <div class="input-group col-md-12">
+                                <input class="form-control" name="newEntryName" required="false"
+                                       type="text" placeholder="Pick a label for your metric..." value="">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="newEntryValue" class="deployToolTip control-label col-xs-1">
+                            URL
+                        </label>
+                        <div class ="col-md-11">
+                            <div class="input-group">
+                                <input class="form-control" name="newEntryValue" required="false"
+                                       type="text"/>
+                                <span class="input-group-btn">
+                                    <button id="newEntryValueInfoBtn" class="deployToolTip btn btn-default"
+                                            type="button" data-toggle="tooltip"
+                                            title="Click here for more information on building your URL">
+                                        <span class="glyphicon glyphicon-question-sign"></span>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group collapse" id="newEntryValueCollapseId">
+                        <div class="col-xs-1"></div>
+                        <p class="col-xs-11"><a href="https://github.com/pinterest/teletraan/wiki/Setting-up-service-metrics">
+                            Wiki: Setting up service metrics
+                        </a></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div style="visibility: hidden;" id="labelMessage">
+                        <center color="red">Label already in use! Please specify a different label.</center>
+                    </div>
+                    <div style="visibility: hidden;" id="urlMessage">
+                        <center color="red">Unable to get data from specified URL. Please modify and try again.</center>
+                    </div>
+                    <button id="{{ 'newEntryBtnId' }}" type="button" class="btn btn-primary" onclick="newEntry()">Add</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var validUrl = false;
+    var newEntry;
+    $(function () {
+        $('#saveConfigMapBtnId').attr('disabled','disabled');
+        $('#resetConfigMapBtnId').attr('disabled','disabled');
+
+        $('.mapConfigFormId' + ' input').keyup(function() {
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('#modalCloseBtnId').click(function () {
+            document.getElementById("labelMessage").style.visibility="hidden";
+            document.getElementById("urlMessage").style.visibility="hidden";
+        });
+
+        $('#addConfigMapBtnId').click(function () {
+            $('#newEntryModalId').modal()
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('.form-change').click(function () {
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        function slugify (text) {
+          return text.toString().toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w\-]+/g, '')
+            .replace(/\-\-+/g, '-')
+            .replace(/^-+/, '')
+            .replace(/-+$/, '');
+        }
+
+        function urlValidated () {
+            validUrl = true;
+        }
+
+        function validateUrl (url) {
+            $.ajax({
+                type: 'POST',
+                url: '/validate_metrics_url/',
+                async: false,
+                data: $('#newEntryFormId').serialize(),
+                success: function (data) {
+                    if(data['result']) {
+                        urlValidated();
+                    }
+                }
+            });
+        }
+
+        newEntry = function () {
+            document.getElementById("labelMessage").style.visibility="hidden";
+            document.getElementById("urlMessage").style.visibility="hidden";
+            var name = $('#newEntryFormId').find('input[name="newEntryName"]').val();
+            var value = $('#newEntryFormId').find('input[name="newEntryValue"]').val();
+            var existingMetric = document.getElementById("panelBodyId_" + slugify(name));
+
+            // Check for duplicate metric names names
+            if(existingMetric) {
+                document.getElementById("labelMessage").style.visibility="visible";
+                return;
+            }
+
+            document.getElementById("labelMessage").style.visibility="hidden";
+            validateUrl(value);
+            if(!validUrl) {
+                document.getElementById("urlMessage").style.visibility="visible";
+                return;
+            }
+            validUrl = false;
+            document.getElementById("urlMessage").style.visibility="hidden";
+
+            var slugifiedName = slugify(name);
+            var template =
+            $('<div><div class="panel-default"><div class="panel-heading clearfix" id="panelBodyId_' + slugify(name) + '" value="' + value + '">' +
+                '<h4 class="panel-title pull-left pointer-cursor">' +
+                    '<a data-toggle="collapse" style="line-height:2.0;" data-target="#metricsConfigBody_' + slugifiedName + '">' +
+                        name +
+                    '</a>' +
+                '</h4>' +
+                '<div>'+
+                    '<button type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>' +
+                '</div>' +
+            '</div>' +
+            '<div id="{{ panelBodyId }}_' + slugifiedName + '"' + ' "class="collapse in panel-body">' +
+                '<div class="collapse in panel-body">' +
+                    '<div class="col-md-12">' +
+                        '<form class="mapConfigFormId form-horizontal" role="form">' +
+                            '<fieldset>' +
+                                '<label for="properties" class="col-sm-1" style="margin-top:7px">URL</label>' +
+                                '<div class="col-md-11">' +
+                                    '<input class="form-control" name="TELETRAAN_' + name + '"' +
+                                        ' type="text" value="' + value + '"/>' +
+                                '</div>' +
+                            '</fieldset>' +
+                        '</form>' +
+                    '</div>' +
+                    '<div id="newMetricSpot_' + slugifiedName + '" class="panel-default"></div>' +
+
+                    '<div class="col-md-12" style="margin-top:14px">' +
+                        '<div class="col-md-2" style="margin-top:14px"><b>Gauge Specs:</b></div>' +
+                    '</div>' +
+                    '<div class="col-md-12">' +
+                        '<label for="min_' + slugify(name) + '" class="col-md-1" style="margin-top:14px; padding-top:5px">Min</label>' +
+                        '<div class="col-md-2 form-change" style="margin-top:14px"><input id="min_' + slugify(name) + '" type="text" class="form-control" name="min_' + slugify(name) + '" value="0"></div>' +
+                        '<label for="max_' + slugify(name) + '" class="col-md-1" style="margin-top:14px; padding-top:5px">Max</label>' +
+                        '<div class="col-md-2 form-change" style="margin-top:14px"><input id="max_' + slugify(name) + '" type="text" class="form-control" name="max_' + slugify(name) + '" value="100"></div>' +
+                        '<div class="col-md-3 form-change">' +
+                            '<select class="form-control form-change" style="margin-top:14px" id="color-selection" name="color-selection_' + slugify(name) + '" value="Red">' +
+                                    '<option value="Red" selected>Red</option>' +
+                            '</select>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-md-12">' +
+                        '<label for="min_' + slugify(name) + '" class="col-md-1" style="margin-top:14px; padding-top:5px">Min</label>' +
+                        '<div class="col-md-2 form-change" style="margin-top:14px"><input id="min_' + slugify(name) + '" type="text" class="form-control" name="min_' + slugify(name) + '" value="0"></div>' +
+                        '<label for="max_' + slugify(name) + '" class="col-md-1" style="margin-top:14px; padding-top:5px">Max</label>' +
+                        '<div class="col-md-2 form-change" style="margin-top:14px"><input id="max_' + slugify(name) + '" type="text" class="form-control" name="max_' + slugify(name) + '" value="100"></div>' +
+                        '<div class="col-md-3 form-change">' +
+                            '<select class="form-control form-change" style="margin-top:14px" id="color-selection" name="color-selection_' + slugify(name) + '" value="Yellow">' +
+                                    '<option value="Yellow" selected>Yellow</option>' +
+                            '</select>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="col-md-12">' +
+                        '<label for="min_' + slugify(name) + '" class="col-md-1" style="margin-top:14px; padding-top:5px">Min</label>' +
+                        '<div class="col-md-2 form-change" style="margin-top:14px"><input id="min_' + slugify(name) + '" type="text" class="form-control" name="min_' + slugify(name) + '" value="0"></div>' +
+                        '<label for="max_' + slugify(name) + '" class="col-md-1" style="margin-top:14px; padding-top:5px">Max</label>' +
+                        '<div class="col-md-2 form-change" style="margin-top:14px"><input id="max_' + slugify(name) + '" type="text" class="form-control" name="max_' + slugify(name) + '" value="100"></div>' +
+                        '<div class="col-md-3 form-change">' +
+                            '<select class="form-control form-change" style="margin-top:14px" id="color-selection" name="color-selection_' + slugify(name) + '" value="Green">' +
+                                    '<option value="Green" selected>Green</option>' +
+                            '</select>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '</div></div>').html();
+            $('#new-entry-id').append(template);
+            $('.metricDeleteBtn').click(function () {
+                $(this).parent().parent().parent().remove();
+                $('#saveConfigMapBtnId').removeAttr('disabled');
+                $('#resetConfigMapBtnId').removeAttr('disabled');
+            });
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+            $('#newEntryModalId').modal('hide');
+        }
+
+
+        $('#saveConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/metrics/',
+                data: $(':input').serializeArray(),
+                dataType: 'json',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $('#new-entry-id').parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetConfigMapBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/metrics/',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    btn.button('reset');
+                    $('#new-entry-id').parent().html(data.html);
+                }
+            });
+        });
+
+        $('.{{ "mapConfigFieldSetId" }}').on('click', '.delete_button', function () {
+            $(this).parent().parent().parent().parent().parent().parent().parent().remove();
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $('.metricDeleteBtn').click(function () {
+            $(this).parent().parent().parent().remove();
+            $('#saveConfigMapBtnId').removeAttr('disabled');
+            $('#resetConfigMapBtnId').removeAttr('disabled');
+        });
+
+        $("#newEntryValueInfoBtn").click(function() {
+            $("#newEntryValueCollapseId").collapse('toggle');
+        });
+    });
+</script>

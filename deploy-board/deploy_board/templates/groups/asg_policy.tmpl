@@ -1,0 +1,171 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title="Scaling Policy" panel_body_id="autoscalingPolicyId" direction="down" %}
+<div id="autoscalingPolicyId" class="collapse in panel-body">
+    <div class="container-fluid">
+        <form id="autoscalingPolicyConfigFormId" class="form-horizontal" role="form">
+            <fieldset id="envConfigFieldSetId">
+                <div class="form-group">
+                    <label for="scaleUpSize" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="minimum number of hosts in one autoscaling group">
+                        Scaleup by:
+                    </label>
+
+                    <div class="col-xs-3">
+                    <div class="input-group">
+                    {% if policy.enabled %}
+                        <input class="form-control" name="scaleupSize" required="true"
+                               type="text" value="{{ policy.scaleUpSize }}"/>
+                    {% else %}
+                        <input class="form-control" name="scaleupSize" required="true"
+                               type="text" value=""/>
+                    {% endif %}
+                    <span class="input-group-addon">instances</span>
+                    </div>
+                    </div>
+                    <label for="maxSize" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="maximum number of hosts in one autoscaling group">
+                        and then wait for:
+                    </label>
+
+                    <div class="col-xs-2">
+                    <div class="input-group">
+                    {% if policy.enabled %}
+                        <input class="form-control" name="scaleupCooldownTime" required="true"
+                               type="text" value="{{ policy.scaleUpCoolDownTime }}"/>
+                    {% else %}
+                        <input class="form-control" name="scaleupCooldownTime" required="true"
+                               type="text" value=""/>
+                    {% endif %}
+                    <span class="input-group-addon">minutes</span>
+                    </div>
+                    </div>
+                     <label for="maxSize" class="deployToolTip control-label col-xs-3"
+                        style="font-weight: normal !important">
+                        before allowing another activity
+                    </label>
+
+                </div>
+                <div class="form-group">
+                    <label for="minSize" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="minimum number of hosts in one autoscaling group">
+                        Scaledown by:
+                    </label>
+
+                    <div class="col-xs-3">
+                    <div class="input-group">
+                    {% if policy.enabled %}
+                        <input class="form-control" name="scaledownSize" required="true"
+                               type="text" value="{{ policy.scaleDownSize }}"/>
+                    {% else %}
+                        <input class="form-control" name="scaledownSize" required="true"
+                               type="text" value=""/>
+                    {% endif %}
+                    <span class="input-group-addon">instances</span>
+                    </div>
+                    </div>
+                    <label for="maxSize"  class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip">
+                         and then wait for:
+                    </label>
+
+                    <div class="col-xs-2">
+                    <div class="input-group">
+                    {% if policy.enabled %}
+                        <input class="form-control" name="scaleDownCooldownTime" required="true"
+                               type="text" value="{{ policy.scaleDownCoolDownTime }}"/>
+                    {% else %}
+                        <input class="form-control" name="scaleDownCooldownTime" required="true"
+                               type="text" value=""/>
+                    {% endif %}
+                    <span class="input-group-addon">minutes</span>
+                    </div>
+
+                    </div>
+
+                     <label for="maxSize" style="font-weight: normal !important" class="control-label col-xs-3">
+                        before allowing another activity
+                    </label>
+                </div>
+            </fieldset>
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="resetAsgPolicyBtnId" class="btn btn-default"
+                data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button id="saveAsgPolicyBtnId" class="btn btn-primary"
+                data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
+</div>
+<script>
+    $(function () {
+        $('#saveAsgPolicyBtnId').attr('disabled','disabled');
+        $('#resetAsgPolicyBtnId').attr('disabled','disabled');
+
+        $('#autoscalingPolicyId input').keyup(function() {
+            $('#saveAsgPolicyBtnId').removeAttr('disabled');
+            $('#resetAsgPolicyBtnId').removeAttr('disabled');
+        });
+
+        $('#autoscalingPolicyId select').change(function() {
+            $('#saveAsgPolicyBtnId').removeAttr('disabled');
+            $('#resetAsgPolicyBtnId').removeAttr('disabled');
+        });
+
+        $('#autoscalingPolicyId input').change(function() {
+            $('#saveAsgPolicyBtnId').removeAttr('disabled');
+            $('#resetAsgPolicyBtnId').removeAttr('disabled');
+        });
+
+        $('#saveAsgPolicyBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/groups/{{ group_name }}/autoscaling/update_policy/',
+                data: $("#autoscalingPolicyConfigFormId").serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $("#autoscalingPolicyId").parent().html(data);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetAsgPolicyBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/groups/{{ group_name }}/autoscaling/get_asg_policy/',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    btn.button('reset');
+                    $("#autoscalingPolicyId").parent().html(data);
+                }
+            });
+        });
+    });
+</script>

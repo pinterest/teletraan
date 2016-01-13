@@ -1,0 +1,18 @@
+{%load utils %}
+<select class="form-control chosen-select" name="subnets" required multiple>
+    {% for subnet in subnets %}
+        {% if subnet.id in currSubnetArrays %}
+            <option value="{{ subnet.id }}" selected>{{ subnet|genSubnetInfo }}</option>
+        {% else %}
+            <option value="{{ subnet.id }}">{{ subnet|genSubnetInfo }}</option>
+        {% endif %}
+    {% endfor %}
+</select>
+<script>
+
+    $(".chosen-select").chosen({"width": "100%"});
+    $('#launchConfigIdFormId select').change(function() {
+        $('#saveGroupConfigBtnId').removeAttr('disabled');
+        $('#resetGroupConfigBtnId').removeAttr('disabled');
+    });
+</script>

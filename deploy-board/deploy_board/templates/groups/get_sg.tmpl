@@ -1,0 +1,19 @@
+{%load utils %}
+ <select class="form-control" name="securityGroup">
+ {% if curr_sg == "" %}
+     <option value="" selected="selected"></option>
+ {% endif %}
+ {% for group in security_groups %}
+     {% if curr_sg == group.id %}
+         <option value={{ group.id }} selected="selected">{{ group.info.name }}</option>
+     {% else %}
+         <option value={{ group.id }}>{{ group.info.name }}</option>
+     {% endif %}
+ {% endfor %}
+ </select>
+<script>
+    $('#launchConfigIdFormId select').change(function() {
+        $('#saveGroupConfigBtnId').removeAttr('disabled');
+        $('#resetGroupConfigBtnId').removeAttr('disabled');
+    });
+</script>

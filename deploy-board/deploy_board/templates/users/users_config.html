@@ -1,0 +1,53 @@
+{% extends 'environs/env_base.html'%}
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env_name }}">{{ env_name }}</a></li>
+    <li class="active">Users</li>
+</ul>
+{% endblock %}
+{% load static %}
+{% load utils %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Manage Users & Tokens</h4>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env_name }}/get_users_config/?user_types=user_roles"
+           data-toggle="tooltip" title="Manage user permissions">
+           <i class="glyphicon glyphicon-user"></i> Users
+        </a>
+    </div>
+    {% if pinterest %}
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env_name }}/get_users_config/?user_types=group_roles"
+           data-toggle="tooltip" title="Manage LDAP group permissions">
+           <i class="glyphicon glyphicon-tag"></i> LDAP Groups
+        </a>
+    </div>
+    {% endif %}
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env_name }}/get_users_config/?user_types=token_roles"
+           data-toggle="tooltip" title="Manage script tokens">
+           <i class="fa fa-key"></i> Script Tokens
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+<div id="usersConfigId" class="panel panel-default">
+{% include "users/users_config.tmpl" %}
+</div>
+{% endblock %}

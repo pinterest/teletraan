@@ -1,0 +1,66 @@
+<div class="panel panel-default">
+    {% include "panel_heading.tmpl" with panel_title=filter_title panel_body_id="filterId" direction="right" %}
+    <div id="filterId" class="collapse out panel-body table-responsive">
+    <form action="{{ url_prefix }}/" class="form-horizontal" role="form">
+        <div class="form-group">
+            <label for="from" class="control-label col-xs-2">From (-08:00)</label>
+            <div class="col-xs-5">
+            <div class="input-group">
+                <input class="form-control" name="from_date" type="text"
+                       value="{{ from_date|default_if_none:'' }}"
+                       placeholder="e.g. 2014-10-10"/>
+                <span class="input-group-addon" id="basic-addon2">Date</span>
+            </div>
+            </div>
+            <div class="col-xs-5">
+            <div class="input-group">
+                <input class="form-control" name="from_time" type="text"
+                       value="{{ from_time|default_if_none:'' }}"
+                       placeholder="e.g. 22:10:20"/>
+                <span class="input-group-addon" id="basic-addon2">Time (24hrs)</span>
+            </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="to" class="control-label col-xs-2">To (-08:00)</label>
+            <div class="col-xs-5">
+            <div class="input-group">
+                <input class="form-control" name="to_date" type="text"
+                       value="{{ to_date|default_if_none:'' }}"
+                       placeholder="e.g. 2014-10-20"/>
+                <span class="input-group-addon" id="basic-addon2">Date</span>
+            </div>
+            </div>
+            <div class="col-xs-5">
+            <div class="input-group">
+                <input class="form-control" name="to_time" type="text"
+                       value="{{ to_time|default_if_none:'' }}"
+                       placeholder="e.g. 22:10:20"/>
+                <span class="input-group-addon" id="basic-addon2">Time (24hrs)</span>
+            </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="changed_by" class="control-label col-xs-2">Changed by</label>
+
+            <div class="col-xs-10">
+                <input class="form-control" name="changed_by" type="text"
+                       value="{{ changed_by|default_if_none:'' }}"
+                       placeholder="e.g. joe"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="page_size" class="control-label col-xs-2">Limit (# records)</label>
+
+            <div class="col-xs-10">
+                <input class="form-control" name="page_size" type="text"
+                       value="{{ page_size|default_if_none:'' }}"
+                       placeholder="default 10"/>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            <span class="glyphicon glyphicon-filter"></span> Apply
+        </button>
+    </form>
+    </div>
+</div>

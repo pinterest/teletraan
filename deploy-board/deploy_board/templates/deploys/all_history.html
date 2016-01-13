@@ -1,0 +1,23 @@
+{% extends 'environs/envs_base.html' %}
+
+{% load utils %}
+{% load static %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li class="active">Deployments</li>
+</ul>
+{% endblock %}
+
+{% block main %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Deployment History</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        {% include "deploys/deploys.tmpl" %}
+    </div>
+</div>
+{% endblock %}

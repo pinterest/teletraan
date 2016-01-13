@@ -1,0 +1,47 @@
+{% load utils %}
+{% load static %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">
+        {% if show_lock %}
+        <span id="predDeployLockId" class="deployToolTip pointer-cursor fa fa-lock fa-2"
+              data-toggle="tooltip" title="Auto deploy is disabled">
+        </span>
+        {% endif %}
+        Deploys to Promote
+        </h4>
+    </div>
+<div class="row">
+<ul class="list-group">
+    {% for deploy_wrapper in deploy_wrappers %}
+    <a href="/env/{{ envName }}/{{ stageName }}/promote/{{ deploy_wrapper.deploy.id }}"
+       class="list-group-item">
+        <p class="list-group-item-text">
+            <span class="deployToolTip pointer-cursor glyphicon {{ deploy_wrapper.deploy.type|deployTypeIcon }}"
+                  data-toggle="tooltip" title="{{ deploy_wrapper.deploy.type|deployTypeTip }}">
+            </span>
+            <span class="deployToolTip pointer-cursor {{ deploy_wrapper.deploy.state|deployStateIcon }}"
+                data-toggle="tooltip" title="{{ deploy_wrapper.deploy.state|deployStateTip }}">
+            </span>
+            <span class="deployToolTip pointer-cursor {{ deploy_wrapper.deploy.acceptanceStatus|deployAcceptanceIcon }}"
+                 data-toggle="tooltip" title="{{ deploy_wrapper.deploy.acceptanceStatus|deployAcceptanceTip }}">
+            </span>
+            <small>
+                {{ deploy_wrapper.deploy.startDate|smartDate }} by {{ deploy_wrapper.deploy.operator }},
+                {{ deploy_wrapper.build|branchAndCommit }}
+            </small>
+            <span class="label label-info">New</span>
+        </p>
+    </a>
+    {% endfor%}
+    <a href="/env/{{ envName }}/{{ stageName }}/deploys"
+       class="list-group-item">More deploys in {{ stageName }}...
+    </a>
+</ul>
+</div>
+</div>
+<script>
+    $(function () {
+        $('.deployToolTip').tooltip();
+    });
+</script>

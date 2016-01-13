@@ -1,0 +1,44 @@
+{% load utils %}
+<div id="groupInfoId" class="panel panel-default table-responsive">
+    <table class="table table-striped table-condensed table-hover">
+        <tr>
+            <th class="col-lg-1">Time</th>
+            <th class="col-lg-2">Description</th>
+            <th class="col-lg-1">Status</th>
+        </tr>
+        {% for activity in activities %}
+        <tr>
+            <td class="col-lg-1">
+               <a data-toggle="collapse" data-target="#showScalingCauseId{{forloop.counter}}">
+                 <span id="showScalingCauseId{{forloop.counter}}Toggler" class="glyphicon glyphicon-chevron-right">
+                 </span>
+                 {{ activity.scalingTime|convertTimestamp }}
+               </a>
+            </td>
+            <td class="col-lg-2">{{ activity.description }}</td>
+            <td class="col-lg-1">
+               {% if activity.status == "Successful" %}
+               <span class="glyphicon glyphicon-ok"></span> <p style="display:inline" class="text-success"> {{activity.status}}
+               {% else %}
+               <span class="glyphicon glyphicon-remove"></span> <p style="display:inline" class="text-danger"> {{activity.status}}
+               {% endif %}
+            </td>
+        </tr>
+        <tr id="showScalingCauseId{{forloop.counter}}" class="collapse out deployActionPanel">
+            <td colspan="4">{{activity.cause}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <br>
+    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip" href="/groups/{{group_name}}/scaling_activities/" title="" data-original-title="Click to see the details of all scaling activites">
+       <strong>All Scaling Activities</strong>
+    </a>
+</div>
+<script>
+    $(function() {
+        $('.deployActionPanel').on('hidden.bs.collapse shown.bs.collapse', function () {
+            var currentId = $(this).attr('id');
+            $('#' + currentId + 'Toggler').toggleClass('glyphicon-chevron-right glyphicon-chevron-down', 100);
+        });
+    });
+</script>

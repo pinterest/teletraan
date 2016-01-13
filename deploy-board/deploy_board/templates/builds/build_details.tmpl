@@ -1,0 +1,57 @@
+{% load utils %}
+<table class="table table-striped table-bordered table-condensed table-hover">
+    <tr>
+        <td>Build Id</td>
+        <td>{{ build.id }}</td>
+    </tr>
+    <tr>
+        <td>Build Name</td>
+        <td>{{ build.name }}</td>
+    </tr>
+    <tr>
+        <td>Repository</td>
+        <td>{{ build.repo }}</td>
+    </tr>
+    <tr>
+        <td>Branch</td>
+        <td>{{ build.branch }}</td>
+    </tr>
+    <tr>
+        <td>Commit Id</td>
+        <td>
+            <a class="deployToolTip" data-toggle="tooltip"
+               title="Click to see the commit details in {{ build.type }}"
+               href='{{ build.commitInfo }}'><i class="{{ build|commitIcon }}"></i>
+                {{ build.commitShort }}
+            </a>
+            ({{ build.commit }})
+        </td>
+    </tr>
+    <tr>
+        <td>Commit Date</td>
+        <td>{{ build.commitDate|convertTimestamp}}</td>
+    </tr>
+    <tr>
+        <td>Artifact</td>
+        <td>
+            <a class="deployToolTip" data-toggle="tooltip" title="Click to download the build"
+               href='{{ build.artifactUrl }}'><i class="fa fa-cloud-download"></i>
+                Build Artifact
+            </a>
+        </td>
+    </tr>
+    <tr>
+        <td>Publish Info</td>
+        <td>
+            <a class="deployToolTip" data-toggle="tooltip"
+               title="Click to see the details of jenkins build job"
+               href='{{ build.publishInfo }}'><i class="fa fa-wrench"></i>
+                Publisher Information
+            </a>
+        </td>
+    </tr>
+    <tr>
+        <td>Publish Date</td>
+        <td>{{ build.publishDate|convertTimestamp}}</td>
+    </tr>
+</table>

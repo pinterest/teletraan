@@ -1,0 +1,268 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title="Auto Deploy Configuration" panel_body_id="envPromoteConfigId" direction="down" %}
+<div id="envPromoteConfigId" class="collapse in panel-body">
+    <div class="container-fluid">
+        <form id="envPromoteConfigFormId" class="form-horizontal" role="form">
+            <fieldset>
+                <div class="form-group">
+                    <label for="promoteType" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="If deploy should happen automatically">
+                        Type
+                    </label>
+
+                    <div class="col-xs-4">
+                        <select class="form-control" name="promoteType" id="promotionType">
+                            {% get_promote_types as promoteTypes %}
+                            {% for promoteType in promoteTypes %}
+                            {% if env_promote.type == promoteType %}
+                            <option value="{{ promoteType }}" selected="selected">{{ promoteType }}</option>
+                            {% else %}
+                            <option value="{{ promoteType }}">{{ promoteType }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <label for="predStageName" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Preceding stage of this stage in the deploy pipeline">
+                        Preceding Stage
+                    </label>
+
+                     <div class="col-xs-4">
+                        <select class="form-control" name="predStageName" id="predStageName">
+                            {% for stage_name in stage_names %}
+                            {% if env_promote.predStage == stage_name %}
+                            <option value="{{ stage_name }}" selected="selected">{{ stage_name }}</option>
+                            {% else %}
+                            <option value="{{ stage_name }}">{{ stage_name }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div id="AutoPromoteDivId">
+
+                <div class="form-group">
+                    <label for="promoteFailPolicy" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="What to do if the auto deploy failed">
+                        Failure Policy
+                    </label>
+                    <div class ="col-xs-4">
+                        <select class="form-control" name="promoteFailPolicy">
+                            {% get_promote_fail_policies as failPolicies %}
+                            {% for failPolicy in failPolicies %}
+                            {% if env_promote.failPolicy == failPolicy %}
+                            <option value="{{ failPolicy }}" selected="selected">{{ failPolicy }}</option>
+                            {% else %}
+                            <option value="{{ failPolicy }}">{{ failPolicy }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <label for="promoteDisablePolicy" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Should we disable auto deploy if there are manual deploys override the auto deploys">
+                        Disable Policy
+                    </label>
+                    <div class ="col-xs-4">
+                        <select class="form-control" name="promoteDisablePolicy">
+                            {% get_promote_disable_policies as disablePolicies %}
+                            {% for disablePolicy in disablePolicies %}
+                            {% if env_promote.disablePolicy == disablePolicy %}
+                            <option value="{{ disablePolicy }}" selected="selected">{{ disablePolicy }}</option>
+                            {% else %}
+                            <option value="{{ disablePolicy }}">{{ disablePolicy }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="promoteSchedule" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Crontab like expression to control when promote should happen">
+                        Schedule
+                    </label>
+
+                    <div class ="col-xs-4">
+                    <div class="input-group">
+                        <input class="form-control" name="promoteSchedule" required="false"
+                               type="text"
+                               value="{{ env_promote.schedule | default_if_none:'' }}"/>
+                        <span class="input-group-btn">
+                            <button id="cronExpressionId" class="deployToolTip btn btn-default"
+                                    type="button" data-toggle="tooltip"
+                                    title="click for more information on cron expression">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                            </button>
+                        </span>
+                    </div>
+                    </div>
+
+                    <label for="promoteQueueSize" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Promote queue size">
+                        Queue Size
+                    </label>
+
+                     <div class="col-xs-4">
+                        <input class="form-control" name="promoteQueueSize" required="false"
+                               type="text" value="{{ env_promote.queueSize }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="promoteDelay" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Delay promotion until changes have been in previous stage for delay minutes">
+                        Delay
+                    </label>
+
+                     <div class="col-xs-4">
+                        <input class="form-control" name="promoteDelay" required="false"
+                               type="text" value="{{ env_promote.delay }}"/>
+                    </div>
+                </div>
+                <div class="form-group collapse" id="cronExpressionDetailsId">
+                    <div class="col-xs-2">
+                    </div>
+                    <div class="col-xs-10">
+  This field follows the syntax of cron (with minor differences).
+  Specifically, each line consists of 6 fields separated by whitespace:
+  <pre>SECOND MINUTE HOUR DOM MONTH DOW</pre>
+  <table class="table table-condensed table-striped table-hover">
+  <tr><td>SECOND</td><td>Seconds within the minute (0 - 59)</td></tr>
+  <tr><td>MINUTE</td><td>Minutes within the hour (0 – 59)</td></tr>
+  <tr><td>HOUR</td><td>The hour of the day (0 – 23)</td></tr>
+  <tr><td>DOM</td><td>The day of the month (1 – 31)</td></tr>
+  <tr><td>MONTH</td><td>The month (1 – 12)</td></tr>
+  <tr><td>DOW</td><td>The day of the week (0–7) where 0 and 7 are Sunday.</td></tr>
+  </table>
+  <ul>
+  <li><strong>*</strong>  - ("all values") - used to select all values within a field. For example, "" in the minute field means *"every minute".</li>
+  <li><strong>?</strong> - ("no specific value") - useful when you need to specify something in one
+       of the two fields in which the character is allowed, but not the other. For example,
+       if I want my trigger to fire on a particular day of the month (say, the 10th),
+       but don't care what day of the week that happens to be, I would put "10" in
+       the day-of-month field, and "?" in the day-of-week field. See the examples below for clarification.</li>
+
+  <li><strong>-</strong> - used to specify ranges. For example, "10-12" in the hour field means "the hours 10, 11 and 12". </li>
+  <li><strong>,</strong> - used to specify additional values. For example, "MON,WED,FRI" in the day-of-week field means
+      "the days Monday, Wednesday, and Friday".</li>
+  <li><strong>/</strong> - used to specify increments. For example, "0/15" in the seconds field means "the seconds 0, 15, 30, and 45".
+      And "5/15" in the seconds field means "the seconds 5, 20, 35, and 50". You can also specify '/'
+       after the '' character - in this case '' is equivalent to having '0' before the '/'. '1/3'
+       in the day-of-month field means "fire every 3 days starting on the first day of the month". </li>
+  </ul>
+  <p>Examples:</p>
+  <pre>
+# every fifteen minutes (at :0, :15, :30, :45)
+* 0/15 * * * ?
+# Fire at 10:15:00am every day
+0 15 10 * * ?
+  </pre>
+                     </div>
+                </div>
+
+                </div>
+            </fieldset>
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="resetEnvPromoteConfigBtnId" class="btn btn-default"
+                data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button id="saveEnvPromoteConfigBtnId" class="btn btn-primary"
+                data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
+</div>
+<script>
+    $(function () {
+        $('#saveEnvPromoteConfigBtnId').attr('disabled','disabled');
+        $('#resetEnvPromoteConfigBtnId').attr('disabled','disabled');
+
+        $('#envPromoteConfigFormId input').keyup(function() {
+            $('#saveEnvPromoteConfigBtnId').removeAttr('disabled');
+            $('#resetEnvPromoteConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#envPromoteConfigFormId select').change(function() {
+            $('#saveEnvPromoteConfigBtnId').removeAttr('disabled');
+            $('#resetEnvPromoteConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#envPromoteConfigFormId input').change(function() {
+            $('#saveEnvPromoteConfigBtnId').removeAttr('disabled');
+            $('#resetEnvPromoteConfigBtnId').removeAttr('disabled');
+        });
+
+        if ($("#promotionType").val() == "MANUAL") {
+            $("#AutoPromoteDivId").addClass("hidden");
+        } else {
+            $("#AutoPromoteDivId").removeClass("hidden");
+        }
+
+        $('#saveEnvPromoteConfigBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/auto_deploy/',
+                data: $("#envPromoteConfigFormId").serialize(),
+                dataType: 'json',
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $("#envPromoteConfigId").parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetEnvPromoteConfigBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/auto_deploy/',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    btn.button('reset');
+                    $("#envPromoteConfigId").parent().html(data.html);
+                }
+            });
+        });
+
+        $("#promotionType").change(function() {
+            if ($("#promotionType").val() == "MANUAL") {
+                 $("#AutoPromoteDivId").addClass("hidden");
+            } else  {
+                 $("#AutoPromoteDivId").removeClass("hidden");
+            }
+        });
+
+        $("#cronExpressionId").click(function() {
+            $("#cronExpressionDetailsId").collapse('toggle');
+
+        });
+    });
+</script>

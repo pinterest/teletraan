@@ -1,0 +1,81 @@
+{%load static %}
+<div class="panel-heading clearfix">
+    <h4 class="panel-title pull-left">Hosts</h4>
+</div>
+
+<div class="row">
+    <button id="publishBuildBtnId" type="button"
+            class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip" title="Publish a completed build">
+    <span class="glyphicon glyphicon-list"></span> All Hosts
+    </button>
+</div>
+
+{% if show_terminate and pinterest %}
+<div class="row">
+    <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
+            data-toggle="modal" title="Terminate Instances">
+        <span class="glyphicon glyphicon-remove"></span> Terminate Host
+    </button>
+</div>
+
+<div class="modal fade" id="terminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="terminateHostForm" class="form-horizontal" method="post" role="form"  action="/host/{{ name }}/terminate/?hostId={{ hostId }}">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Termination Confirm</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure to terminate {{ hostId }}?</p>
+                    {% if asg_group %}
+                        <div class="alert alert-info" role="alert">
+                            <strong>Note:</strong> This host is in an Auto Scaling group. It will automatically launch a new instance when terminating {{ hostId }}.<br><br>
+                            <input type="checkbox" class="checkToDecrease" name="checkToDecrease" > Check the box if you <strong>DO NOT</strong> want to replace it with a new host. <br>
+                            (Note: Auto scaling group may terminate some existing instances and launch new instances to balance the number of instances in different AZs if you don't replace it)
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+{% endif %}
+
+<!--- detach instances -->
+{% if asg_group %}
+<div class="row">
+<button class="deployToolTip btn btn-default btn-block" data-target="#detachHost"
+        data-toggle="modal" title="Detach Host">
+    <span class="glyphicon glyphicon-eject"></span> Detach Host
+</button>
+</div>
+
+<div class="modal fade" id="detachHost" tabindex="-1" role="dialog"
+     aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="detachHostForm" class="form-horizontal" method="post" role="form" action="/groups/{{ asg_group }}/detach_host/?hostId={{ hostId }}">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Detach Confirm</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure to detach {{ hostId }} from {{ asg_group }}?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="detachInstanceBtnId">Detach</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+{% endif %}

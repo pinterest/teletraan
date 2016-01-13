@@ -1,0 +1,19 @@
+{%load utils %}
+ <select class="form-control" name="instanceType">
+     {% if curr_instance_type == "" %}
+         <option value="" selected="selected"></option>
+     {% endif %}
+         {% for instance_type in instance_types %}
+             {% if curr_instance_type == instance_type %}
+                 <option value={{ instance_type }} selected="selected">{{ instance_type }}</option>
+             {% else %}
+                 <option value={{ instance_type }}>{{ instance_type }}</option>
+             {% endif %}
+         {% endfor %}
+ </select>
+<script>
+    $('#launchConfigIdFormId select').change(function() {
+        $('#saveGroupConfigBtnId').removeAttr('disabled');
+        $('#resetGroupConfigBtnId').removeAttr('disabled');
+    });
+</script>

@@ -1,0 +1,61 @@
+{% extends 'environs/env_base.html' %}
+{% load utils %}
+{% load static %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/groups/">Groups</a></li>
+    <li><a href="/groups/{{ group_name }}/">{{ group_name }}</a></li>
+    <li>Config History</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Group Config</h4>
+    </div>
+    <div class="row">
+        <a id="listGroupsBtnId" href="/groups/{{ group_name }}/config/" class="deployToolTip btn btn-default btn-block">
+            <span class="glyphicon glyphicon-wrench"></span> Back to Config
+        </a>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Auto Scaling Configuration History for {{ group_name }}</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        {% include "groups/group_config_history.tmpl" %}
+        {% if configs|length >= 2 %}
+            <ul class="pager">
+                <li>
+                    <a href='/groups/{{ group_name }}/config_history/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
+                       class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+                        <span class="glyphicon glyphicon-chevron-left"></span> Previous
+                    </a>
+                </li>
+                <li>
+                    <a href='/groups/{{ group_name }}/config_history/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
+                       class="btn btn-default {% if disableNext %}disabled{% endif %}">
+                        Next <span class="glyphicon glyphicon-chevron-right"></span>
+                    </a>
+                </li>
+            </ul>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'environs/env_base.html'%}
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li class="active">Error</li>
+</ul>
+{% endblock %}
+{% load static %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Metrics</h4>
+    </div>
+	<div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/"
+           data-toggle="tooltip" title="Return the Teletraan homepage">
+           <i class="glyphicon glyphicon-home"></i> Home
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+{% include "error.tmpl" %}
+    <img style="max-width:100%; max-height:100%;" src="/static/images/teletraan-general-error.png">
+{% endblock %}

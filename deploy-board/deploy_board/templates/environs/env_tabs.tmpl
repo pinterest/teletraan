@@ -1,0 +1,7 @@
+<ul class="nav nav-tabs">
+    {% for stage in stages %}
+    <li {% if stage == env.stageName %}class="active"{% endif %}>
+    <a href="/env/{{ env.envName }}/{{ stage }}/{{ envTabKind }}">{{ stage }}</a>
+    </li>
+    {% endfor %}
+</ul>

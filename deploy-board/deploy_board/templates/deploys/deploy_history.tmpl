@@ -1,0 +1,199 @@
+{% load utils %}
+{% load static %}
+{% include "deploys/deploys_pagination_header.tmpl" with url_prefix='/env/'|add:env.envName|add:'/'|add:env.stageName|add:'/deploys' %}
+<form id="deploy_history_form">
+    <table id="deployHistoryTableId" class="table table-condensed table-striped table-hover">
+        <tr>
+            <th></th>
+            <th>Start(-08:00)</th>
+            <th>Type</th>
+            <th>State</th>
+            <th>Acceptance</th>
+            <th>Success</th>
+            <th>Build</th>
+            <th>Operator</th>
+            <th>Details</th>
+        </tr>
+        {% for deploy_summary in deploy_summaries %}
+        <tr>
+            <td>
+                <input type="checkbox" value="{{ deploy_summary.build.id }}"
+                       name="chkbox_{{forloop.counter}}">
+            </td>
+            <td>
+                <a class="pointer-cursor" data-toggle="collapse"
+                   data-target="#deployAction{{forloop.counter}}">
+                    <span id="deployAction{{forloop.counter}}Toggler"
+                          class="glyphicon glyphicon-chevron-right">
+                    </span>
+                    {{ deploy_summary.deploy.startDate|convertTimestamp }}
+                </a>
+                <input type="hidden" value="{{ deploy_summary.deploy.id }}">
+            </td>
+            <td>
+                <span class="glyphicon {{ deploy_summary.deploy.type|deployTypeIcon }}"></span>
+                <small>{{ deploy_summary.deploy.type }}</small>
+            </td>
+            <td>
+                <span class="deployToolTip pointer-cursor {{ deploy_summary.deploy.state|deployStateIcon }}"
+                      data-toggle="tooltip" title="{{ deploy_summary.deploy.state|deployStateTip }}">
+                </span>
+                <small>{{ deploy_summary.deploy.state }}</small>
+            </td>
+            <td>
+                <span class ="deployToolTip pointer-cursor {{ deploy_summary.deploy.acceptanceStatus|deployAcceptanceIcon }}"
+                  data-toggle="tooltip" title="{{ deploy_summary.deploy.acceptanceStatus|deployAcceptanceTip }}">
+                </span>
+                <small>{{ deploy_summary.deploy.acceptanceStatus }}</small>
+            </td>
+            <td>
+                <span class="deployToolTip pointer-cursor" data-toggle="tooltip" title="{{ deploy_summary.deploy|successRateTip }}">
+                <small>{{ deploy_summary.deploy|successRate }}</small>
+                </span>
+            </td>
+            <td>
+                <a href="/builds/{{ deploy_summary.build.id }}">
+                    {{ deploy_summary.build|branchAndCommit }}</a>
+            </td>
+            <td>{{ deploy_summary.deploy.operator }}</td>
+            <td><a href="/deploy/{{ deploy_summary.deploy.id }}">Details</a></td>
+        </tr>
+        <tr id="deployAction{{forloop.counter}}" class="collapse out deployActionPanel">
+            <td></td>
+            <td colspan="8">
+                <input class="hiddenCommit7" type="hidden"
+                       value="{{ deploy_summary.build.commitShort }}"/>
+                <input class="hiddenBranch" type="hidden"
+                       value="{{ deploy_summary.build.branch }}"/>
+                <input class="hiddenDeployId" type="hidden"
+                       value="{{ deploy_summary.deploy.id }}"/>
+                <input class="hiddenBuildId" type="hidden"
+                       value="{{ deploy_summary.build.id }}"/>
+                <div class="row showContent">
+                </div>
+                <div class="row">
+                    <a class="showdiffer deployToolTip btn btn-default btn-sm"
+                        data-loading-text="Loading from {{ deploy_summary.build.type }}..."
+                        data-toggle="tooltip"
+                        title="Show all the new commits since last deploy">
+                        <span class="glyphicon glyphicon-zoom-in"></span> Show Commits
+                    </a>
+                    {% if stages|length > 1 %}
+                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/promote/{{ deploy_summary.deploy.id }}"
+                       type="button" class="deployToolTip btn btn-default btn-sm" data-toggle="tooltip"
+                       title="Promote this deployment to other stages">
+                       <span class="glyphicon glyphicon-transfer"></span> Promote
+                    </a>
+                    {% endif %}
+                    {% if deploy_summary.deploy|canRollbackTo %}
+                    <a class="rollbacker deployToolTip btn btn-default btn-sm"
+                       data-toggle="tooltip"
+                       title="Rollback to this deployment">
+                       <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback To
+                    </a>
+                    {% endif %}
+                    {% if pinterest %}
+                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/patch/?base_deploy={{ deploy_summary.deploy.id }}"
+                       class="deployToolTip btn btn-default btn-sm" data-toggle="tooltip"
+                       title="Create a hotfix based on this deployment">
+                       <span class="glyphicon glyphicon-fire"></span> Patch It
+                    </a>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+        {% endfor%}
+        {% csrf_token %}
+    </table>
+    <button type="button" id="compareDeploymentsBtn" class="btn btn-default">Compare deploys</button>
+</form>
+{% include "deploys/deploys_pagination_footer.tmpl" with url_prefix='/env/'|add:env.envName|add:'/'|add:env.stageName|add:'/deploys' %}
+
+<div class="modal fade" id="rollbackConfirmId" tabindex="-1" role="dialog"
+     aria-labelledby="rollbackConfirm" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title">Rollback Confirm</h4>
+      </div>
+      <form id="confirmRollbackFormId" method="POST" role="form" class="form-horizontal"
+            action="NEED_TO_BE_REPLACED">
+      <div class="modal-body">
+        <p>Are you sure to rollback to <a id="confirmCommitLinkId" href="#REPLACE">REPLACE</a>?</p>
+        {% csrf_token %}
+        <div class="row">
+        <div class="form-group">
+          <input class="form-control" name="description" type="text"
+                 placeholder="Rollback reason (optional)" value=""/>
+        </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <input type="submit" value="Rollback" class="btn btn-primary">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+      </div>
+      </form>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script>
+    $('#compareDeploymentsBtn').attr('disabled','disabled');
+
+    jQuery(function(){
+        var maxCheckedAllowed = 2;
+        var checkboxes = $('input[type="checkbox"]');
+            checkboxes.change(function(){
+                var numChecked = checkboxes.filter(':checked').length;
+                checkboxes.filter(':not(:checked)').prop('disabled', numChecked >= maxCheckedAllowed);
+                if(numChecked == 2) {
+                    $('#compareDeploymentsBtn').removeAttr('disabled');
+                } else {
+                    $('#compareDeploymentsBtn').attr('disabled','disabled');
+                }
+            });
+    });
+
+    $(function () {
+        $('.deployToolTip').tooltip();
+
+        $('.deployActionPanel').on('hidden.bs.collapse shown.bs.collapse', function () {
+            var currentId = $(this).attr('id');
+            $('#' + currentId + 'Toggler').toggleClass('glyphicon-chevron-right glyphicon-chevron-down', 100);
+        });
+
+        $('#deployHistoryTableId tr .rollbacker').click(function () {
+            trid = $(this).closest('tr');
+            commit7 = trid.find(".hiddenCommit7").val();
+            branch = trid.find(".hiddenBranch").val();
+            deployId = trid.find(".hiddenDeployId").val();
+            buildId = trid.find(".hiddenBuildId").val();
+            buildUrl = "/builds/" + buildId;
+            $("#confirmCommitLinkId").attr("href", buildUrl);
+            $("#confirmCommitLinkId").text(branch + '/' + commit7);
+            url = "/env/{{ env.envName }}/{{ env.stageName }}/rollback_to/" + deployId;
+            $('#confirmRollbackFormId').attr("action", url);
+            $('#rollbackConfirmId').modal();
+        });
+
+        $('#deployHistoryTableId tr .showdiffer').click(function () {
+            btn = $(this);
+            $(btn).button('loading');
+            $(btn).tooltip('hide');
+            trid = $(this).closest('tr');
+            deploy_id = trid.find(".hiddenDeployId").val();
+            contentId = trid.find('.showContent');
+            url = '/env/{{ env.envName }}/{{ env.stageName }}/compare_deploys/?start_deploy=' + deploy_id;
+            contentId.load(url, function () {
+                $(btn).button('reset');
+            });
+        });
+
+        $('#compareDeploymentsBtn').click(function () {
+            var query_string = $('#deploy_history_form').serialize();
+            window.location="/env/{{ env.envName }}/{{ env.stageName }}/compare_deploys_2/?" + query_string;
+        });
+
+    });
+</script>

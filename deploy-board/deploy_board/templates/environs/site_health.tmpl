@@ -1,0 +1,220 @@
+{% if pinterest %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left pointer-cursor">
+            <a data-toggle="collapse" data-target="#siteHealthEnvId">
+                <span class="glyphicon glyphicon-chevron-down"></span>
+                Site Health
+            </a>
+        </h4>
+        <div class="btn-group pull-right">
+            <div class="btn-group" data-toggle="buttons">
+                <label class="btn btn-default btn-sm" id="choose-gauge">
+                    <input type="radio" name="options" autocomplete="off">
+                    Gauge
+                </label>
+                <label class="btn btn-default btn-sm" id="choose-chart">
+                    <input type="radio" name="options" autocomplete="off">
+                    Chart
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div id="siteHealthEnvId" class="collapse in panel-body">
+        <div id="alarmDivId"></div>
+        <div class="row" align="center" id="site_health_gauges">
+            <div class="col-md-4">
+                <div><b>Requests</b></div>
+                <div id="gauge_Requests"></div>
+            </div>
+            <div class="col-md-4">
+                <div><b>Success Rate</b></div>
+                <div id="gauge_SuccessRate"></div>
+            </div>
+            <div class="col-md-4">
+                <div><b>Latency</b></div>
+                <div id="gauge_Latency"></div>
+            </div>
+        </div>
+        <div class="row" align="center" id="site_health_charts">
+            <div class="col-md-4">
+                <div><b>Requests</b></div>
+                <div id="chart_Requests"></div>
+            </div>
+            <div class="col-md-4">
+                <div><b>Success Rate</b></div>
+                <div id="chart_SuccessRate"></div>
+            </div>
+            <div class="col-md-4">
+                <div><b>Latency</b></div>
+                <div id="chart_Latency"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script>
+    var cookie_name = 'site-health-graph-selection';
+
+    $('#choose-gauge').on('click', function () {
+        Cookies.set(cookie_name, 'gauge');
+        $('#site_health_charts').hide();
+        $('#site_health_gauges').show();
+    })
+
+    $('#choose-chart').on('click', function () {
+        Cookies.set(cookie_name, 'chart');
+        $('#site_health_gauges').hide();
+        $('#site_health_charts').show();
+    })
+
+    // initilization based on cookie
+    var cookie_selection = Cookies.get(cookie_name);
+    if ((cookie_selection !== 'chart' && cookie_selection !== 'gauge')
+            || cookie_selection == 'gauge') {
+        $('#choose-gauge').click();
+    } else {
+        $('#choose-chart').click();
+    }
+
+    function drawGauges(request_value, sucrate_value, latency_value) {
+        var data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['', 0],
+        ]);
+        var value = parseInt(request_value.toFixed(0));
+        data.setValue(0, 1, value);
+        var options = {
+            width: 400, height: 175,
+            min: 50000,
+            max: 150000,
+            minorTicks: 5,
+            greenFrom: 100000, greenTo: 150000,
+            yellowFrom: 80000, yellowTo: 100000,
+            redFrom: 50000, redTo: 80000,
+        };
+        var chart = new google.visualization.Gauge(document.getElementById('gauge_Requests'));
+        chart.draw(data, options);
+
+        data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['', 0],
+        ]);
+        value = parseFloat(sucrate_value.toFixed(2));
+        data.setValue(0, 1, value);
+        options = {
+            width: 400, height: 175,
+            min: 90,
+            max: 100,
+            minorTicks: 5,
+            greenFrom: 99, greenTo: 100,
+            yellowFrom: 98, yellowTo: 99,
+            redFrom: 90, redTo: 98,
+        };
+        chart = new google.visualization.Gauge(document.getElementById('gauge_SuccessRate'));
+        chart.draw(data, options);
+
+        data = google.visualization.arrayToDataTable([
+            ['Label', 'Value'],
+            ['', 0],
+        ]);
+        value = parseInt(latency_value.toFixed(0));
+        data.setValue(0, 1, value);
+        options = {
+            width: 400, height: 175,
+            min: 100,
+            max: 500,
+            minorTicks: 5,
+            greenFrom: 100, greenTo: 250,
+            yellowFrom: 250, yellowTo: 300,
+            redFrom: 300, redTo: 500,
+        };
+        chart = new google.visualization.Gauge(document.getElementById('gauge_Latency'));
+        chart.draw(data, options);
+    }
+
+    function drawCharts(request_data, sucrate_data, latency_data) {
+        var options = {
+            width: 400, height: 175,
+            legend: { position: 'none' }
+        };
+        var current_time = new Date().getTime() ;
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('datetime', 'X');
+        data.addColumn('number', 'X');
+        for (var i = 0; i < request_data.length; i++) {
+            data.addRow([new Date(current_time - (60 - i) * 60000), request_data[i]]);
+        }
+        var chart = new google.visualization.LineChart(document.getElementById('chart_Requests'));
+        chart.draw(data, options);
+
+        data = new google.visualization.DataTable();
+        data.addColumn('datetime', 'X');
+        data.addColumn('number', 'X');
+        for (var i = 0; i < sucrate_data.length; i++) {
+            data.addRow([new Date(current_time - (60 - i) * 60000), sucrate_data[i]]);
+        }
+        var chart = new google.visualization.LineChart(document.getElementById('chart_SuccessRate'));
+        chart.draw(data, options);
+
+        data = new google.visualization.DataTable();
+        data.addColumn('datetime', 'X');
+        data.addColumn('number', 'X');
+        for (var i = 0; i < latency_data.length; i++) {
+            data.addRow([new Date(current_time - (60 - i) * 60000), latency_data[i]]);
+        }
+        var chart = new google.visualization.LineChart(document.getElementById('chart_Latency'));
+        chart.draw(data, options);
+    }
+
+    function initialize() {
+        drawGauges(0, 0, 0);
+        drawCharts([], [], []);
+    }
+
+    function draw(health_metrics) {
+        if (!health_metrics) {
+             return
+        }
+        var request_data = health_metrics['request'];
+        var sucrate_data = health_metrics['sucrate'];
+        var latency_data = health_metrics['latency'];
+        var request_value = parseInt(request_data[request_data.length-1].toFixed(0));
+        var sucrate_value = parseFloat(sucrate_data[sucrate_data.length-1].toFixed(2));
+        var latency_value = parseInt(latency_data[latency_data.length-1].toFixed(0));
+        drawGauges(request_value, sucrate_value, latency_value);
+        drawCharts(request_data, sucrate_data, latency_data);
+    }
+
+    google.load("visualization", "1", {packages: ["corechart", "gauge", "line"]});
+    google.setOnLoadCallback(initialize);
+
+    var sh_startTime = new Date().getTime();
+    function poll_metrics() {
+        if (new Date().getTime() - sh_startTime > 3600000) {
+            clearInterval(sh_interval);
+        }
+
+        $.get('/get_site_health_metrics/',function (response) {
+            draw(response.html);
+        }).fail(function () {
+                    window.console && console.log('Failed to call get_site_health_metrics');
+                });
+
+        {% if env %}
+        $('#alarmDivId').load('/env/{{ env.envName }}/{{ env.stageName }}/get_service_alarms/',
+                function (responseText, textStatus, req) {
+                    if (textStatus == "error") {
+                        window.console && console.log('Failed to call get_service_alarms');
+                    }
+                });
+        {% endif %}
+    }
+
+    poll_metrics();
+    var sh_interval = setInterval(poll_metrics, 30000);
+</script>
+{% endif %}

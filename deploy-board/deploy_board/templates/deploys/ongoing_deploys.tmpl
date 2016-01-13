@@ -1,0 +1,80 @@
+{% load utils %}
+{% load static %}
+<table id="deployTableId" class="table table-striped table-bordered table-condensed table-hover">
+    <tr>
+        <th class="col-lg-2">Environment</th>
+        <th class="col-lg-3">Build</th>
+        <th class="col-lg-1">Type</th>
+        <th class="col-lg-1">State</th>
+        <th class="col-lg-2">Progress</th>
+        <th class="col-lg-1">Elapsed</th>
+        <th class="col-lg-1">Operator</th>
+    </tr>
+    {% for deploy_summary in deploy_summaries %}
+    {% with env=deploy_summary.env deploy=deploy_summary.deploy build=deploy_summary.build %}
+    <tr>
+        <td>
+            <a href="/env/{{ env.envName }}/{{ env.stageName }}">
+               {{ env.envName }}/{{ env.stageName }}
+            </a>
+        </td>
+        <td>
+            <a href="/builds/{{ build.id }}">{{ build|branchAndCommit }}</a>
+        </td>
+        <td>
+            <span class="glyphicon {{ deploy.type|deployTypeIcon }}"></span>
+            <small>{{ deploy.type }}</small>
+        </td>
+        <td>
+        <span class="deployToolTip pointer-cursor {{ deploy.state|deployStateIcon }}"
+              data-toggle="tooltip" title="{{ deploy.state }}">
+        </span>
+            <small>{{ deploy.state }}</small>
+        <td>
+            <div class="progress deployToolTip"
+                 data-toggle="tooltip" title="{{ deploy|progressTip }}">
+                <div
+                     class="progress-bar {{ deploy|progressType }}"
+                     role="progressbar" aria-valuenow="{{ deploy|successRatePercentage }}"
+                     aria-valuemin="0" aria-valuemax="100"
+                     style="width: {{ deploy_summary.deploy|successRatePercentage }}%;">
+                    <span class="show">{{ deploy|successRate }}</span>
+                </div>
+            </div>
+        </td>
+        <td><span class="deployToolTip label label-default" data-toggle="tooltip"
+            title="Started on {{ deploy.startDate|convertTimestamp }}">
+            {{ deploy.startDate|computeDuration }}</span></td>
+        <td>{{ deploy.operator }}</td>
+    </tr>
+    {% endwith %}
+    {% endfor %}
+</table>
+<ul class="pager">
+    <li>
+        <button id="deploysPreviousId" type="button"
+                class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+            <span class="glyphicon glyphicon-chevron-left"></span> Previous
+        </button>
+    </li>
+    <li>
+        <button id="deploysNextId" type="button"
+                class="btn btn-default {% if disableNext %}disabled{% endif %}">
+            Next <span class="glyphicon glyphicon-chevron-right"></span>
+        </button>
+    </li>
+</ul>
+<script>
+    $(function () {
+        $('.deployToolTip').tooltip();
+        $("#deploysNextId").click(function () {
+            $('#deployTableId').parent().load(
+                '/deploys/ongoing/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}');
+        });
+
+        $("#deploysPreviousId").click(function () {
+            $('#deployTableId').parent().load(
+                '/deploys/ongoing/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}');
+        });
+    });
+</script>

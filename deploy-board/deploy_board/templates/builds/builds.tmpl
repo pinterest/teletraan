@@ -1,0 +1,30 @@
+{% load utils %}
+<table id="buildPickTableId" class="table table-condensed table-striped table-hover">
+    <tr>
+        <th>Publish Date</th>
+        <th>Commit</th>
+        <th>Branch</th>
+        <th>Repo</th>
+        <th>More Info</th>
+        <th>Details</th>
+    </tr>
+    {% for build in builds %}
+    <tr>
+        <td>{{ build.publishDate|convertTimestamp }}</td>
+        <td><a class="deployToolTip" href="{{ build.commitInfo }}"
+               title="Click to see commit in {{ build.type }}">
+            <i class="{{ build|commitIcon }}"></i> {{ build.commitShort }}
+        </a>
+        </td>
+        <td>{{ build.branch }}</td>
+        <td>{{ build.repo }}</td>
+        <td><a class="deployToolTip" data-toggle="tooltip"
+               title="Click to see the details of publish job info"
+               href='{{ build.publishInfo }}'><i class="fa fa-wrench"></i></a>
+            <a class="deployToolTip" data-toggle="tooltip" title="Click to download the build"
+               href='{{ build.artifactUrl }}'><i class="fa fa-cloud-download"></i></a>
+        </td>
+        <td><a href="/builds/{{ build.id }}">view</a></td>
+    </tr>
+    {% endfor%}
+</table>

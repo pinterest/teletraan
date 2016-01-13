@@ -1,0 +1,7 @@
+<div class="alert alert-danger" role="alert">
+    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+    <span class="sr-only">Error:</span>
+    The preceding stage <a href="/env/{{ envName }}/{{ predStageName}}/" class="alert-link">{{ predStageName }}</a>
+    doesn't have a successful deploy with this commit.
+    Do you really want to deploy this commit without deploy to {{ predStageName }} first?
+</div>

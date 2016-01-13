@@ -1,0 +1,24 @@
+{% extends 'builds/builds_base.html' %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/builds">Builds</a></li>
+    <li class="active">{{ build.id }}</li>
+</ul>
+{% endblock %}
+
+{% load utils %}
+
+{% block main %}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h4 class="panel-title">Build Details</h4>
+    </div>
+    <div class="panel-body table-responsive">
+    {% include "builds/build_details.tmpl" %}
+    </div>
+</div>
+
+{% endblock %}

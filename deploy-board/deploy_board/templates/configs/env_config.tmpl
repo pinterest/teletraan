@@ -1,0 +1,271 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title="General Config" panel_body_id="envConfigId" direction="down" %}
+<div id="envConfigId" class="collapse in panel-body">
+    <div class="container-fluid">
+        <form id="envConfigFormId" class="form-horizontal" role="form">
+            <fieldset id="envConfigFieldSetId">
+                <div class="form-group">
+                    <label for="maxParallelHosts" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Maximum number of hosts allowed to deploy at the same time">
+                        Maximum Hosts
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="maxParallelHosts" required="true"
+                               type="text" value="{{ env.maxParallel }}"/>
+                    </div>
+                    <label for="successThreshold" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Percentage of hosts should deploy successfully before declaring the whole deploy success">
+                        Success Threshold
+                    </label>
+
+                    <div class="col-xs-4">
+                        <div class="input-group">
+                        <input class="form-control" name="successThreshold" required="true"
+                               type="text" value="{{ env.successThreshold|convertSuccThreshold }}"/>
+                        <span class="input-group-addon">%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="stuckThreshold" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Number of seconds should pass without making any progress before desclaring deploy failed">
+                        Stuck Threshold
+                    </label>
+
+                    <div class="col-xs-4">
+                        <div class="input-group">
+                        <input class="form-control" name="stuckThreshold" required="true"
+                               type="text" value="{{ env.stuckThreshold }}"/>
+                        <span class="input-group-addon">Seconds</span>
+                        </div>
+                    </div>
+                    <label for="priority" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="When multiple services deploying to the same host, higher priority deploy deploys sooner">
+                        Deploy Priority
+                    </label>
+
+                    <div class="col-xs-4">
+                        <select class="form-control" name="priority">
+                            {% get_deploy_priorities as priorities %}
+                            {% for priority in priorities %}
+                            {% if env.priority == priority %}
+                            <option value="{{ priority }}" selected="selected">{{ priority }}</option>
+                            {% else %}
+                            <option value="{{ priority }}">{{ priority }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="chatroom" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Chat rooms where to send deploy notifies to, such as room1,room2">
+                        Chat Rooms
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="chatroom" required="false"
+                               type="text" value="{{ env.chatroom |default_if_none:'' }}"/>
+                    </div>
+                    <label for="notify" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Whether or not to notify commiters when deploy">
+                        Notify Authors
+                    </label>
+
+                    <div class="col-xs-4">
+                    {% if env.notifyAuthors %}
+                        <input class="" id="notify_author" name="notify_author" type="checkbox" value="" checked>
+                    {% else %}
+                        <input class="" id="notify_author" name="notify_author" type="checkbox" value="">
+                    {% endif %}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="chatRecipients" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Chat user handles to send deploy notifies to, such as user1,user2">
+                        Chat Recipients
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="watch_recipients" required="false"
+                               type="text" value="{{ env.watchRecipients |default_if_none:'' }}"/>
+                    </div>
+
+                    <label for="emailRecipients" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Email addressses to send deploy notifies to, such as user1@email.com,user2@email.com">
+                        Email Recipients
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="email_recipients" required="false"
+                               type="text" value="{{ env.emailRecipients |default_if_none:'' }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="buildName" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="What kind of build to deploy, for example, smartfeed">
+                        Build Name
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="buildName" required="true"
+                               type="text" value="{{ env.buildName|default_if_none:'' }}"/>
+                    </div>
+
+                    <label for="branch" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Which branch to deploy, default is master">
+                        Build Branch
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="branch" required="false"
+                               type="text" placeholder="Optional"
+                               value="{{ env.branch|default_if_none:'' }}"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="maxDeployNum" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Maximum number of deploys to keep">
+                        Maximum Deploys to keep
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="maxDeployNum" required="true"
+                               type="text" value="{{ env.maxDeployNum }}"/>
+                    </div>
+
+                    <label for="maxDeployDay" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Maximum days to keep a deploy">
+                        Days to keep deploys
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="maxDeployDay" required="true"
+                               type="text" value="{{ env.maxDeployDay }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="acceptanceType" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="If acceptance test is enabled">
+                        Acceptance Test
+                    </label>
+
+                    <div class="col-xs-4">
+                        <select class="form-control" name="acceptanceType">
+                            {% get_accept_types as acceptTypes %}
+                            {% for acceptType in acceptTypes %}
+                            {% if env.acceptanceType == acceptType %}
+                            <option value="{{ acceptType }}" selected="selected">{{ acceptType }}</option>
+                            {% else %}
+                            <option value="{{ acceptType }}">{{ acceptType }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="description" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Simple description of this env stage">
+                        Description
+                    </label>
+
+                    <div class="col-xs-10">
+                        <input class="form-control" name="description" type="text"
+                               value="{{ env.description }}"/>
+                    </div>
+                </div>
+            </fieldset>
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="resetEnvConfigBtnId" class="btn btn-default"
+                data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button id="saveEnvConfigBtnId" class="btn btn-primary"
+                data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
+</div>
+<script>
+    $(function () {
+        $('#saveEnvConfigBtnId').attr('disabled','disabled');
+        $('#resetEnvConfigBtnId').attr('disabled','disabled');
+
+        $('#envConfigFormId input').keyup(function() {
+            $('#saveEnvConfigBtnId').removeAttr('disabled');
+            $('#resetEnvConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#envConfigFormId select').change(function() {
+            $('#saveEnvConfigBtnId').removeAttr('disabled');
+            $('#resetEnvConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#envConfigFormId input').change(function() {
+            $('#saveEnvConfigBtnId').removeAttr('disabled');
+            $('#resetEnvConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#saveEnvConfigBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/',
+                data: $("#envConfigFormId").serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $("#envConfigId").parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetEnvConfigBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    $("#envConfigId").parent().html(data.html);
+                }
+            });
+        });
+    });
+</script>

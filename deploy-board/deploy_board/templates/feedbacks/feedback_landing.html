@@ -1,0 +1,124 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li class="active">Feedback</li>
+</ul>
+{% endblock %}
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Actions</h4>
+    </div>
+    <div class="row">
+        <a class="deployToolTip btn btn-default btn-block"
+           href="#" data-target="#feedbackModal" data-toggle="modal"
+           title="Leave new feedback for the Teletraan team">
+            <span class="glyphicon glyphicon-thumbs-up"></span> Leave New Feedback
+        </a>
+    </div>
+    <div class="row">
+        <a class="deployToolTip btn btn-default btn-block"
+           href="https://w.pinadmin.com/display/Tools/How+to+leave+Teletraan+Feedback" target="_blank"
+           title="Feedback instructions and info">
+            <span class="glyphicon glyphicon-question-sign"></span> Instructions and Info
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Recent Feedback</h4>
+    </div>
+
+    <div class="panel-body table-responsive">
+        <div class="col-md-8">
+            <h4>Average Star Rating:
+                <span style="color: gold">
+                {{ overallRating }} out of 5
+                </span>
+            </h4>
+        </div>
+    </div>
+
+
+    <div class="panel-body table-responsive">
+      <table class="table table-condensed table-striped table-hover">
+        <tr>
+            <th>Feedback</th>
+            <th>Rating</th>
+            <th>Author</th>
+            <th>Date</th>
+        </tr>
+        {% for rating in ratings %}
+            {%  if rating.feedback != "" or rating.rating != "-1" %}
+                <tr>
+                    <td>{{ rating.feedback }}</td>
+                    <td>
+                    <span style="color: gold">
+                    {% if rating.rating == "1" %}
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                    {% elif rating.rating == "2" %}
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                    {% elif rating.rating == "3" %}
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                    {% elif rating.rating == "4" %}
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span
+                    {% elif rating.rating == "5" %}
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                        <span class="glyphicon glyphicon-star" aria-hidden="true"></span>
+                    {% endif %}
+                    </span>
+                    </td>
+                    <td>{{ rating.author }}</td>
+                    <td>{{ rating.timestamp|convertTimestamp }}</td>
+            {% endif %}
+        {% endfor %}
+      </table>
+        <ul class="pager">
+            <li>
+                <a href='/ratings/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
+                   class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+                    <span class="glyphicon glyphicon-chevron-left"></span> Previous
+                </a>
+            </li>
+            <li>
+                <a href='/ratings/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
+                   class="btn btn-default {% if disableNext %}disabled{% endif %}">
+                    Next <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    $('#feedbackSliderSaveBtn').attr('disabled','disabled');
+
+    $('#feedbackSlider').slider({
+        formatter: function(value) {
+            return 'Current value: ' + value;
+        }
+    });
+</script>
+{% endblock %}

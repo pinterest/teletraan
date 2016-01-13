@@ -1,0 +1,94 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+{% load static %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li class="active">Hosts</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Hosts</h4>
+    </div>
+	<div class="row">
+        <button id="envDeployBtn" type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-flash"></span> Current Deployment
+        </button>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#envDeployBtn').click(function () {
+            window.location = "/env/{{ env.envName }}/{{ env.stageName }}/deploy";
+        });
+    });
+</script>
+{% endblock %}
+
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+{% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
+
+<!-- Used for generating the Show Host Nmaes button -->
+<div class="modal fade" id="showHosts" tabindex="-1" role="dialog" aria-labelledby="showHostsLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="showHostsLabel">Hosts</h4>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="host-name" class="control-label">Host names:</label>
+            <input type="text" class="form-control" id="host-name">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$('#showHosts').on('show.bs.modal', function (event) {
+    var hostNames = "";
+    var tmp = "";
+    {% for deployId, agents in agents_wrapper.items %}
+        {% for agent in agents %}
+            tmp = hostNames.concat("{{ agent.hostName }} ");
+            hostNames = tmp;
+        {% endfor %}
+    {% endfor %}
+    var modal = $(this)
+    modal.find('.modal-body input').val(hostNames)
+})
+</script>
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">{{ title }}</h4>
+        <div class="btn-group pull-right">
+            <button type="button" class="btn btn-default btn-sm" data-toggle="modal" data-target="#showHosts" title="Show plain host names">
+                Show Hosts
+            </button>
+        </div>
+    </div>
+    <div class="panel-body table-responsive">
+        {% include "hosts/hosts.tmpl" %}
+    </div>
+</div>
+{% endblock %}

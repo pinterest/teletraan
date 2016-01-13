@@ -1,0 +1,109 @@
+{% load utils %}
+<div id="hostInfo" class="panel panel-default">
+    <div class="panel-heading">
+        <strong>Environment:</strong><a href="/env/{{ env.envName }}/{{ env.stageName }}"> {{ env.envName }}/{{ env.stageName }}</a>
+        <strong>Deploy:</strong><a href="/deploy/{{ agent.deployId }}"> {{ agent.deployId }}</a>
+    </div>
+    <div class="panel-body table-responsive">
+        <table id="hostInfoTb{{agent.envId}}" class="table table-striped table-bordered table-condensed table-hover">
+            <tr>
+                <td>Stage</td>
+                <td>{{ agent.deployStage }}</td>
+            </tr>
+            <tr class="{{agent.state|agentStateClass}}">
+                <td>State</td>
+                <td>{{ agent.state }}</td>
+            </tr>
+            <tr>
+                <td>Status</td>
+                <td>{{ agent.status }}</td>
+            </tr>
+            <tr>
+                <td>StartDate(-08:00)</td>
+                <td>{{ agent.startDate|convertTimestamp }}</td>
+            </tr>
+            <tr>
+                <td>Last Update</td>
+                <td>{{ agent.lastUpdateDate|convertTimestamp }}</td>
+            </tr>
+            <tr>
+                <td>Operator</td>
+                <td>{{ agent.lastOperator }}</td>
+            </tr>
+            <tr>
+                <td>Error Code</td>
+                <td>{{ agent.lastErrno }}</td>
+            </tr>
+            <tr>
+                <td>Failed Count</td>
+                <td>{{ agent.failCount }}</td>
+            </tr>
+            <tr>
+                <td>Error Message</td>
+                <td><pre>{{ agent_wrapper.error }}</pre></td>
+            </tr>
+        </table>
+    </div>
+    <div class="panel-footer clearfix">
+        <div class="pull-left">
+            {% if agent|agentRetryable %}
+            <button id="reset_agent_{{ env.stageName }}"
+                    class="deployToolTip btn btn-default" data-toggle="tooltip"
+                    title="Retry the deploy on this host.">
+                <span class="glyphicon glyphicon-repeat"></span> Retry
+            </button>
+            {% endif %}
+            {% if agent|agentPausable %}
+            <button id="pause_agent_{{ env.stageName }}"
+                    class="deployToolTip btn btn-default" data-toggle="tooltip"
+                    title="Pause this host for any future deploys.">
+                <span class="glyphicon glyphicon-pause"></span> Pause
+            </button>
+            {% else %}
+            <button id="resume_agent_{{ env.stageName }}"
+                    class="deployToolTip btn btn-default" data-toggle="tooltip"
+                    title="Resume deploy on this host.">
+                <span class="glyphicon glyphicon-play"></span> Resume
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        $('.deployToolTip').tooltip();
+        $('#reset_agent_{{ env.stageName }}').click(function () {
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/reset_deploy/{{ agent.hostId }}/',
+                data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+                datatype: 'json',
+                success: function (data) {
+                    window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+                }
+            });
+        });
+        $('#pause_agent_{{ env.stageName }}').click(function () {
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/pause_deploy/{{ agent.hostId }}/',
+                data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+                datatype: 'json',
+                success: function (data) {
+                    window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+                }
+            });
+        });
+        $('#resume_agent_{{ env.stageName }}').click(function () {
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/resume_deploy/{{ agent.hostId }}/',
+                data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+                datatype: 'json',
+                success: function (data) {
+                    window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+                }
+            });
+        });
+    });
+</script>

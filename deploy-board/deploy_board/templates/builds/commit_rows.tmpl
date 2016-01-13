@@ -1,0 +1,39 @@
+{% load utils %}
+{% for commit in commits %}
+<tr>
+    {% if show_checkbox %}
+    <td>
+        <input class="cherryPickedCommit" type="checkbox" value="{{commit.sha}}">
+    </td>
+    {% endif %}
+    <td>
+        <div>
+        <a href="{{ commit.info }}" target="_blank">{{ commit.sha|shortenCommit }}</a>,
+        <strong><em>{{ commit.author }}</em></strong> authored on {{ commit.date|convertTimestamp }}, {{ commit.date|smartDate }}
+        </div>
+        <div>
+        {{ commit.title }}
+        {% if commit.message and commit.message.strip %}
+        <a class="showCommitDetails btn btn-default btn-xs"
+           href="#commitDetails_{{forloop.counter}}_{{ pagination_id }}"
+           data-toggle="collapse">more</a>
+        <div class="collapse" id="commitDetails_{{forloop.counter}}_{{ pagination_id }}">
+            <pre>{{ commit.message }}</pre>
+        </div>
+        {% endif %}
+        </div>
+    </td>
+</tr>
+{% endfor%}
+<script>
+    $(function () {
+        $('.showCommitDetails').click(function () {
+            if ($(this).text()==="more") {
+                $(this).text('less');
+            } else {
+                $(this).text('more');
+            }
+        });
+    });
+</script>
+
