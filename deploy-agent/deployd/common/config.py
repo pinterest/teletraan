@@ -18,6 +18,7 @@ from ConfigParser import SafeConfigParser
 
 from deployd.common.exceptions import DeployConfigException
 from deployd.common.types import DeployType
+from deployd.common.utils import exit_abruptly
 from deployd.types.deploy_stage import DeployStage
 from deployd.types.opcode import OpCode
 
@@ -30,17 +31,19 @@ class Config(object):
 
     def __init__(self, filenames=None, config_reader=None):
         self._configs = {}
-        self._filenames = filenames
         if config_reader:
             self._config_reader = config_reader
             return
 
+        if not os.path.exists(filenames):
+            print('Cannot find config files: {}'.format(filenames))
+            exit_abruptly(1)
+
+        self._filenames = filenames
         self._config_reader = SafeConfigParser()
         loaded_filenames = self._config_reader.read(self._filenames)
         if len(loaded_filenames) == 0:
-            log.error('Cannot find config files: {}'.format(self._filenames))
-        else:
-            log.info('Load configs from file: {}'.format(loaded_filenames[-1]))
+            print('Cannot read config files: {}'.format(self._filenames))
 
     def get_config_filename(self):
         return self._filenames
@@ -110,8 +113,6 @@ class Config(object):
                 os.environ['BUILD_URL'] = deploy_status.build_info.build_url
 
         os.environ['BUILDS_DIR'] = self.get_builds_directory()
-
-        log.info("Configs are being updated: {}".format(self._configs))
 
     def get_var(self, var_name, default_value=None):
         try:

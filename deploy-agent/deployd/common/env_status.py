@@ -18,6 +18,7 @@ import lockfile
 import os
 import traceback
 
+from deployd import IS_PINTEREST
 from deployd.common.types import DeployStatus
 from deployd.common.utils import touch
 
@@ -82,7 +83,8 @@ class EnvStatus(object):
                 json.dump(json_data, config_output, sort_keys=True,
                           indent=2, separators=(',', ': '))
 
-            self._touch_or_rm_host_type_file(envs, "canary")
+            if IS_PINTEREST:
+                self._touch_or_rm_host_type_file(envs, "canary")
             return True
         except IOError as e:
             log.warning("Could not write to {}. Reason: {}".format(self._status_fn, e.message))
