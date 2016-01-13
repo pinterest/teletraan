@@ -40,6 +40,10 @@ def main():
             print "Error: failed to publish build to /tmp directory.", error
             return
 
+        # Make deployd directory if it doesn't yet exist
+        if not os.path.exists("/tmp/deployd"):
+            os.makedirs("/tmp/deployd")
+
         # Copy over host_info  file
         process = subprocess.Popen(host_info_download_cmd, stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
