@@ -100,8 +100,7 @@ def run_prereqs(config):
     if IS_PINTEREST:
         respect_puppet = config.respect_puppet()
         if respect_puppet and not os.path.exists("/var/lib/puppet/state/state.yaml"):
-            log.info("Waiting for first sucuccessful puppet run.")
+            log.info("Waiting for first successful puppet run.")
             sys.exit(0)
 
-    log.info("Ensuring deploy agent config directories exist")
     ensure_dirs(config)
