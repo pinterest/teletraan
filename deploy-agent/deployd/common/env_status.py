@@ -1,0 +1,78 @@
+import json
+import logging
+import lockfile
+import os
+import traceback
+
+from deployd.common.types import DeployStatus
+from deployd.common.utils import touch
+
+log = logging.getLogger(__name__)
+
+
+class EnvStatus(object):
+
+    def __init__(self, status_fn):
+        self._status_fn = status_fn
+        self._lock_fn = '{}.lock'.format(self._status_fn)
+        self._lock = lockfile.FileLock(self._lock_fn)
+
+    def load_envs(self):
+        """
+        open up config file
+        validate that the service selected exists
+        """
+        envs = {}
+        try:
+            with self._lock, open(self._status_fn, 'r+') as config_fn:
+                data = json.load(config_fn)
+                log.debug('load status file: {}'.format(data))
+                envs = {key: DeployStatus(json_value=d) for key, d in data.iteritems()}
+        except IOError:
+            log.info("Could not find file {}. It happens when run deploy-agent the "
+                     "first time, or there is no deploy yet.".format(self._status_fn))
+            return {}
+        except Exception as e:
+            log.error(e.message)
+        finally:
+            return envs
+
+    def _touch_or_rm_host_type_file(self, envs, host_type, directory='/var/run/'):
+        """Touches or removes the identity file for the host type.
+        For now, a host type could be 'canary'.
+        """
+        host_type_match = False
+        file_path = os.path.join(directory, host_type)
+        for key, value in envs.iteritems():
+            if value.report.stageName == host_type:
+                host_type_match = True
+                break
+
+        if host_type_match:
+            log.debug('The host is a {}.'.format(host_type))
+            if not os.path.isfile(file_path):
+                touch(file_path)
+                log.debug('Touched {}.'.format(file_path))
+        else:
+            log.debug('The host is not a {}.'.format(host_type))
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                log.debug('Removed {}.'.format(file_path))
+
+    def dump_envs(self, envs):
+        try:
+            json_data = {}
+            if envs:
+                json_data = {key: value.to_json() for key, value in envs.iteritems()}
+            with self._lock, open(self._status_fn, 'w') as config_output:
+                json.dump(json_data, config_output, sort_keys=True,
+                          indent=2, separators=(',', ': '))
+
+            self._touch_or_rm_host_type_file(envs, "canary")
+            return True
+        except IOError as e:
+            log.warning("Could not write to {}. Reason: {}".format(self._status_fn, e.message))
+            return False
+        except Exception:
+            log.error(traceback.format_exc())
+            return False

@@ -1,0 +1,1 @@
+Hello! This is a test file for test_local_download_helper.py

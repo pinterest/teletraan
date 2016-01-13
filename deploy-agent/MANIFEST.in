@@ -1,0 +1,2 @@
+include README.md setup.py requirements.txt requirements_core.txt
+include deployd/conf/*

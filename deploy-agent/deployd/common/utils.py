@@ -1,0 +1,93 @@
+import code
+import errno
+import hashlib
+import logging
+import os
+import signal
+import sys
+import traceback
+from deployd import IS_PINTEREST
+
+log = logging.getLogger(__name__)
+
+
+# noinspection PyProtectedMember
+def exit_abruptly(status=0):
+    """Exit method that just quits abruptly.
+
+    Helps with KeyError issues.
+
+    :param status: exit code
+    """
+    # if we are testing we want to test gracefully or this will abort the tests
+    if os.environ.get('DEPLOY_TESTING'):
+        sys.exit(status)
+
+    os._exit(status)
+
+
+def touch(fname, times=None):
+    try:
+        with file(fname, 'a'):
+            os.utime(fname, times)
+    except IOError:
+        log.error('Failed touching host type file {}'.format(fname))
+
+
+def hash_file(filepath):
+    """ hash the file content
+    :param filepath: the full path of the file
+    :return:the sha1 of the file data
+    """
+    with open(filepath, 'rb') as f:
+        return hashlib.sha1(f.read()).hexdigest()
+
+
+# steal from http://stackoverflow.com/questions/132058/
+# showing-the-stack-trace-from-a-running-python-application
+# use : sudo kill -SIGUSR1 $pid to trigger the debug
+def debug(sig, frame):
+    """Interrupt running process, and provide a python prompt for
+    interactive debugging."""
+    d = {'_frame': frame}      # Allow access to frame object.
+    d.update(frame.f_globals)  # Unless shadowed by global
+    d.update(frame.f_locals)
+
+    i = code.InteractiveConsole(d)
+    message = "Signal recieved : entering python shell.\nTraceback:\n"
+    message += ''.join(traceback.format_stack(frame))
+    i.interact(message)
+
+
+def listen():
+    signal.signal(signal.SIGUSR1, debug)  # Register handler
+
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as ex:
+        # if the directory exists, silently exits
+        if ex.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
+
+
+def ensure_dirs(config):
+    # make sure deployd directories exist
+    mkdir_p(config.get_builds_directory())
+    mkdir_p(config.get_agent_directory())
+    mkdir_p(config.get_log_directory())
+
+
+def run_prereqs(config):
+    # check if the puppet has finished or not
+    if IS_PINTEREST:
+        respect_puppet = config.respect_puppet()
+        if respect_puppet and not os.path.exists("/var/lib/puppet/state/state.yaml"):
+            log.info("Waiting for first sucuccessful puppet run.")
+            sys.exit(0)
+
+    log.info("Ensuring deploy agent config directories exist")
+    ensure_dirs(config)

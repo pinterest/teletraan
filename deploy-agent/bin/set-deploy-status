@@ -1,0 +1,74 @@
+import argparse
+import os
+import subprocess
+import sys
+import time
+
+import pinlogger
+
+from deployservice.ttypes import DeployStage, AgentStatus
+from deployd.common.config import Config
+from deployd.common.env_status import EnvStatus
+
+
+def get_steps():
+    return ', '.join(DeployStage._NAMES_TO_VALUES.keys())
+
+
+def is_agent_running():
+    output = subprocess.check_output('pgrep -f "/usr/bin/python /usr/local/bin/deploy-agent"',
+                                     shell=True)
+    lists = output[:-1].split()
+    return len(lists) > 1
+
+
+def main():
+    pinlogger.initialize_logger()
+    parser = argparse.ArgumentParser(
+        description='A script to set deploy status')
+    parser.add_argument('-e', '--envname', dest='env', required=True,
+                        help='The environment name in the teletraan.')
+    parser.add_argument('-s', '--step', dest='step', default=None,
+                        help='The deploy step to be set, available steps: {}'.format(get_steps()))
+    parser.add_argument('--start_from_beginning', dest='restart', action='store_true',
+                        help='Restart the current deployment')
+    parser.add_argument('--force_restart', dest='force_start', action='store_true',
+                        help='if we should start the deploy agent')
+
+    args = parser.parse_args()
+    env_stats = EnvStatus(Config().get_var('env_status_filename'))
+    envs = env_stats.load_envs()
+
+    if not (args.env in envs):
+        print 'Env name does not exist.'
+        sys.exit(0)
+
+    if args.restart:
+        del envs[args.env]
+    elif args.step and args.step in DeployStage._NAMES_TO_VALUES:
+        report = envs[args.env]
+        report.deployStage = DeployStage._NAMES_TO_VALUES[args.step]
+        report.status = AgentStatus.SUCCEEDED
+        report.errorCode = 0
+        report.errorMessage = None
+        report.failCount = 0
+    else:
+        print 'Deploy step {} does not exist. Available steps: {}'.format(args.step,
+                                                                          get_steps())
+        sys.exit(1)
+
+    'wait for current agent to finish'
+    while is_agent_running():
+        time.sleep(1)
+
+    env_stats.dump_envs(envs)
+    if args.force_start:
+        os.environ['PINLOG_MIN_LOG_LEVEL'] = 'DEBUG'
+        os.environ['PINLOG_LOG_TO_STDERR'] = '1'
+        os.environ['PINLOG_STDERR_LEVEL'] = 'DEBUG'
+        os.environ['PINLOG_LOG_DIR'] = '/var/log/deployd'
+        subprocess.Popen(['/usr/local/bin/deploy-agent'], env=os.environ)
+
+
+if __name__ == '__main__':
+    main()
