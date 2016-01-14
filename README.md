@@ -10,7 +10,7 @@ Teletraan is designed to do one thing and one thing only - deploy. It supports c
 
 ### How to use Teletraan?
 Teletraan is designed to be a flexible building block. You can plug Teletraan into your existing release workflow given the following requirements met:
-* Provide [Host Identity File](https://github.com/pinterest/teletraan/wiki/Deploy-Agent#host-identity-file) and run [Deploy Agent](https://github.com/pinterest/teletraan/wiki/Deploy-Agent) on each host through your provisioning process
+* Run [Deploy Agent](https://github.com/pinterest/teletraan/wiki/Deploy-Agent) and provide [Host Info File](https://github.com/pinterest/teletraan/wiki/Deploy-Agent#host-info-file) and on each host through your provisioning process
 * Add [Deploy Scripts](https://github.com/pinterest/teletraan/wiki/Deploy-Agent#deploy-scripts) in your application code
 * Publish [Build](https://github.com/pinterest/teletraan/wiki/Introduction) to Teletraan for build artifacts to be deployed
 
