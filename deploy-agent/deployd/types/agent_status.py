@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 class AgentStatus(object):
     # Deploy step successfully completed
     SUCCEEDED = 0

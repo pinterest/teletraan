@@ -20,7 +20,7 @@ from deployd.common.exceptions import DeployConfigException
 from deployd.common.types import DeployType
 from deployd.common.utils import exit_abruptly
 from deployd.types.deploy_stage import DeployStage
-from deployd.types.opcode import OpCode
+from deployd.types.opcode import OperationCode
 
 log = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ class Config(object):
             os.environ['DEPLOY_STEP'] = deploy_status.report.deployStage
 
         if isinstance(deploy_status.op_code, int):
-            op_code = OpCode._VALUES_TO_NAMES[deploy_status.op_code]
+            op_code = OperationCode._VALUES_TO_NAMES[deploy_status.op_code]
         else:
             op_code = deploy_status.op_code
         os.environ['OPCODE'] = op_code

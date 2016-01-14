@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-class OpCode(object):
+
+class OperationCode(object):
     # No action needed
     NOOP = 0
     # Agent need to install new build
