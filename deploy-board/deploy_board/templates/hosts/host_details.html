@@ -1,5 +1,13 @@
 {% extends 'hosts/hosts_base.html' %}
 
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li class="active">{{ name }}</li>
+</ul>
+{% endblock %}
+
 {% load utils %}
 
 {% block side-panel %}
