@@ -113,6 +113,16 @@ public class HealthChecker implements Runnable {
         }
     }
 
+    private boolean shouldNotifyOncall(String groupName) throws Exception {
+        List<String> healthCheckBeans = healthCheckDAO.getRecentHealthCheckStatus(groupName, FAILED_HEALTH_CHECK_BEFORE_PAGE - 1);
+        if (healthCheckBeans.size() < FAILED_HEALTH_CHECK_BEFORE_PAGE - 1) {
+            return false;
+        }
+
+        // only notify oncall if the health check failed/timeout 3 consective times in the past.
+        return !healthCheckBeans.contains(HealthCheckStatus.QUALIFIED.toString());
+    }
+
     /**
      * This function is used to timeout the health check process
      */
@@ -145,20 +155,11 @@ public class HealthChecker implements Runnable {
             String subject = String.format("Health Check Alert - Health Check Timeout in group <%s>", groupName);
             String webLink = deployBoardUrlPrefix + String.format("/groups/health_check/%s", healthCheckBean.getId());
             String message = String.format("%s. See details: %s", errorMessage, webLink);
-            jobPool.submit(new NotificationJob(message, subject, groupBean.getPager_recipients(), groupBean.getChatroom(), commonHandler));
+            String recipients = shouldNotifyOncall(groupBean.getGroup_name()) ? groupBean.getPager_recipients() : groupBean.getEmail_recipients();
+            jobPool.submit(new NotificationJob(message, subject, recipients, groupBean.getChatroom(), commonHandler));
             return true;
         }
         return false;
-    }
-
-    private boolean shouldNotifyOncall(String groupName) throws Exception {
-        List<String> healthCheckBeans = healthCheckDAO.getRecentHealthCheckStatus(groupName, FAILED_HEALTH_CHECK_BEFORE_PAGE - 1);
-        if (healthCheckBeans.size() < FAILED_HEALTH_CHECK_BEFORE_PAGE) {
-            return false;
-        }
-
-        // only notify oncall if the health check failed/timeout 3 consective times in the past.
-        return !healthCheckBeans.contains(HealthCheckStatus.QUALIFIED.toString());
     }
 
     /**
