@@ -19,9 +19,7 @@ import com.pinterest.deployservice.bean.ConfigHistoryBean;
 
 import java.util.List;
 
-/**
- * A collection of methods to help interact with table asg_config_history
- */
+
 public interface ConfigHistoryDAO {
 
     public void insert(ConfigHistoryBean bean) throws Exception;
@@ -29,5 +27,7 @@ public interface ConfigHistoryDAO {
     public List<ConfigHistoryBean> getByConfigId(String configId, int pageIndex, int pageSize) throws Exception;
 
     public ConfigHistoryBean getByChangeId(String changeId) throws Exception;
+
+    public List<ConfigHistoryBean> getLatestChangesByType(String configId, String type) throws Exception;
 
 }

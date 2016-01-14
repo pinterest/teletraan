@@ -690,26 +690,16 @@ def add_instance(request, group_name):
     subnet = ""
     try:
         if asgStatus == 'ENABLED':
-            instanceIds = groups_helper.launch_instance_in_group(request, group_name, instanceCnt,
-                                                                 subnet)
-            if len(instanceIds) > 0:
-                content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
-                          '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> to check new hosts information.' \
-                    .format(instanceCnt, group_name, group_name)
-                messages.add_message(request, messages.SUCCESS, content)
-            else:
-                content = 'Failed to launch instances to group {}. ' \
-                          'Please make sure the <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
-                          ' is correct. If you have any question, please contact your friendly Teletraan owners' \
-                          ' for immediate assistance!'.format(group_name, group_name)
-                messages.add_message(request, messages.ERROR, content)
-
+            groups_helper.launch_instance_in_group(request, group_name, instanceCnt, subnet)
+            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
+                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
+                      'to check new hosts information.'.format(instanceCnt, group_name, group_name)
+            messages.add_message(request, messages.SUCCESS, content)
         elif asgStatus == 'DISABLED':
             content = 'This Auto Scaling Group {} is disabled.' \
                       ' Please go to <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
                       ' to enable it.'.format(group_name, group_name)
             messages.add_message(request, messages.ERROR, content)
-
         else:
             if "subnet" in params:
                 subnet = params["subnet"]

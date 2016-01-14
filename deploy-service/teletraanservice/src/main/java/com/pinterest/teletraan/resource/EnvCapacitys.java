@@ -19,8 +19,10 @@ import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
@@ -46,6 +48,7 @@ public class EnvCapacitys {
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvCapacitys.class);
     private EnvironHandler environHandler;
+    private ConfigHistoryHandler configHistoryHandler;
     private EnvironDAO environDAO;
     private GroupDAO groupDAO;
     private Authorizer authorizer;
@@ -55,6 +58,7 @@ public class EnvCapacitys {
 
     public EnvCapacitys(TeletraanServiceContext context) {
         environHandler = new EnvironHandler(context);
+        configHistoryHandler = new ConfigHistoryHandler(context);
         environDAO = context.getEnvironDAO();
         groupDAO = context.getGroupDAO();
         authorizer = context.getAuthorizer();
@@ -82,8 +86,12 @@ public class EnvCapacitys {
         String operator = sc.getUserPrincipal().getName();
         if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
             environHandler.updateGroups(envBean, names, operator);
+            configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_GROUP_CAPACITY, names, operator);
+            configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_GROUP_CAPACITY, operator);
         } else {
             environHandler.updateHosts(envBean, names, operator);
+            configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_HOST_CAPACITY, names, operator);
+            configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_HOST_CAPACITY, operator);
         }
         LOG.info("Successfully updated env {}/{} capacity config as {} by {}.",
             envName, stageName, names, operator);

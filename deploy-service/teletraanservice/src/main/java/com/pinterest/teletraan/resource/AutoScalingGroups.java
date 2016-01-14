@@ -19,6 +19,7 @@ import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.handler.GroupHandler;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
@@ -73,7 +74,7 @@ public class AutoScalingGroups {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         groupHandler.createAutoScalingGroup(groupName, request);
-        configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgScaling(), request, operator);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING, request, operator);
         LOG.info("Successfully created auto scaling on group {}", groupName);
     }
 
@@ -85,7 +86,7 @@ public class AutoScalingGroups {
         String operator = sc.getUserPrincipal().getName();
         groupHandler.deleteAutoScalingGroup(groupName, detachInstance);
         String configChange = String.format("Delete Auto Scaling. Detach Instance: %b", detachInstance);
-        configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgScaling(), configChange, operator);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING, configChange, operator);
         LOG.info("Deleting auto scaling group {}, and detach instance is: {}", groupName, detachInstance);
     }
 
@@ -101,8 +102,9 @@ public class AutoScalingGroups {
         AutoScalingRequestBean request) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgScaling(), request, operator);
         groupHandler.updateAutoScalingGroup(groupName, request);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING, request, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_SCALING, operator);
         LOG.info("Updated auto scaling group {}", groupName);
     }
 
@@ -117,13 +119,13 @@ public class AutoScalingGroups {
         if (actionType == AutoScalingActionType.ENABLE) {
             groupHandler.enableAutoScalingGroup(groupName);
             String configChange = String.format("Enable Auto Scaling");
-            configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgScaling(), configChange, operator);
+            configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING_ACTION, configChange, operator);
             LOG.info("Successfully enabled auto scaling on group {}", groupName);
             return;
         } else if (actionType == AutoScalingActionType.DISABLE) {
             groupHandler.disableAutoScalingGroup(groupName);
             String configChange = String.format("Disable Auto Scaling");
-            configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgScaling(), configChange, operator);
+            configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING_ACTION, configChange, operator);
             LOG.info("Successfully disabled auto scaling on group {}", groupName);
             return;
         }
@@ -154,7 +156,8 @@ public class AutoScalingGroups {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         groupHandler.putScalingPolicyToGroup(groupName, request);
-        configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgPolicy(), request, operator);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_POLICY, request, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_POLICY, operator);
         LOG.info("Put scaling policy to group {}", groupName);
     }
 
@@ -166,7 +169,8 @@ public class AutoScalingGroups {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         groupHandler.updateAlarmsToAutoScalingGroup(groupName, request);
-        configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgAlarm(), request, operator);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_ALARM, request, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_ALARM, operator);
         LOG.info("{} updated alarms {} to group {}", operator, request, groupName);
     }
 
@@ -178,7 +182,7 @@ public class AutoScalingGroups {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         groupHandler.addAlarmsToAutoScalingGroup(groupName, alarmInfos);
-        configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgAlarm(), alarmInfos, operator);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_ALARM, alarmInfos, operator);
         LOG.info("Successfully added new alarms {} to group {}", alarmInfos, groupName);
     }
 
@@ -223,13 +227,13 @@ public class AutoScalingGroups {
         if (actionType == InstancesActionType.ATTACH) {
             groupHandler.attachInstanceToAutoScalingGroup(instanceIds, groupName);
             String configChange = String.format("Attached instances %s to the group %s. Increased capacity by %d.", instanceIds.toString(), groupName, instanceIds.size());
-            configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeHostAttach(), configChange, operator);
+            configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_ATTACH, configChange, operator);
             LOG.info(configChange);
             return;
         } else if (actionType == InstancesActionType.DETACH) {
             groupHandler.detachInstanceFromAutoScalingGroup(instanceIds, groupName);
             String configChange = String.format("Detached instances %s to the group %s. Decreased capacity by %d.", instanceIds.toString(), groupName, instanceIds.size());
-            configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeHostDetach(), configChange, operator);
+            configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_DETACH, configChange, operator);
             LOG.info(configChange);
             return;
         }
@@ -262,13 +266,13 @@ public class AutoScalingGroups {
         if (actionType == AutoScalingActionType.ENABLE) {
             groupHandler.enableScalingDownEvent(groupName);
             String configChange = String.format("Enable Scaling Down event");
-            configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgScaling(), configChange, operator);
+            configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING_ACTION, configChange, operator);
             LOG.info("Successfully enabled scaling down on group {}", groupName);
             return;
         } else if (actionType == AutoScalingActionType.DISABLE) {
             groupHandler.disableScalingDownEvent(groupName);
             String configChange = String.format("Disable Scaling Down event");
-            configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgScaling(), configChange, operator);
+            configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING_ACTION, configChange, operator);
             LOG.info("Successfully disabled scaling down on group {}", groupName);
             return;
         }
