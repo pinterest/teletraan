@@ -23,17 +23,13 @@ import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.common.NotificationJob;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
-import com.pinterest.deployservice.handler.CommonHandler;
-import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 
 
 /**
@@ -41,27 +37,21 @@ import java.util.concurrent.ExecutorService;
  */
 public class ProvisionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ProvisionHandler.class);
-    private CommonHandler commonHandler;
-    private ConfigHistoryHandler configHistoryHandler;
     private HostDAO hostDAO;
     private HostInfoDAO hostInfoDAO;
     private GroupInfoDAO groupInfoDAO;
     private AutoScaleGroupManager asgDAO;
     private UtilDAO utilDAO;
-    private ExecutorService jobPool;
 
     public ProvisionHandler(ServiceContext serviceContext) {
-        commonHandler = new CommonHandler(serviceContext);
-        configHistoryHandler = new ConfigHistoryHandler(serviceContext);
         hostDAO = serviceContext.getHostDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         groupInfoDAO = serviceContext.getGroupInfoDAO();
         asgDAO = serviceContext.getAutoScaleGroupManager();
         utilDAO = serviceContext.getUtilDAO();
-        jobPool = serviceContext.getJobPool();
     }
 
-    public void terminateHost(String hostId, boolean decreaseSize, String operator) throws Exception {
+    public List<String> terminateHost(String hostId, boolean decreaseSize, String operator) throws Exception {
         LOG.info(String.format("Start to terminate the host %s, decrease size %b", hostId, decreaseSize));
         boolean terminateSucceeded = true;
         String lockName = String.format("PROCESS-HOSTID-%s", hostId);
@@ -98,26 +88,15 @@ public class ProvisionHandler {
         }
 
         if (!terminateSucceeded) {
-            return;
+            return new ArrayList<>();
         }
 
-        // Send notifications & save changes in config history
         List<HostBean> hosts = hostDAO.getHostsByHostId(hostId);
+        List<String> groupNames = new ArrayList<>();
         for (HostBean host : hosts) {
-            String groupName = host.getGroup_name();
-            GroupBean group = groupInfoDAO.getGroupInfo(groupName);
-            if (group != null) {
-                String subject = String.format("Host Termination - %s/%s has been teriminated", host.getHost_name(), hostId);
-                String message = String.format("A host %s/%s has been manually terminated by operator %s.", host.getHost_name(), hostId, operator);
-                if (decreaseSize) {
-                    message += String.format(" Decreased fleet size for Auto Scaling Group %s.", groupName);
-                }
-                jobPool.submit(new NotificationJob(message, subject, group.getEmail_recipients(), group.getChatroom(), commonHandler));
-
-                String configChange = String.format("Instance Id : %s", hostId);
-                configHistoryHandler.updateConfigHistory(groupName, configHistoryHandler.getTypeHostTerminate(), configChange, operator);
-            }
+            groupNames.add(host.getGroup_name());
         }
+        return groupNames;
     }
 
     public List<String> launchNewInstances(String groupName, int instanceCnt, String subnet, String operator) throws Exception {
@@ -125,21 +104,8 @@ public class ProvisionHandler {
         if (groupBean != null) {
             if (groupBean.getAsg_status() == ASGStatus.ENABLED) {  // AutoScaling is enabled, increase the ASG capacity
                 LOG.info(String.format("Launch %d EC2 instances in AutoScalingGroup %s", instanceCnt, groupName));
-                try {
-                    asgDAO.increaseASGDesiredCapacityBySize(groupName, instanceCnt);
-                } catch (Exception ex) {
-                    LOG.error("Failed to increase desired capacity for auto scaling group {}.", groupName, ex);
-                }
-
-                String subject = String.format("Host Launch for AutoScalingGroup \"%s\"", groupName);
-                String message = String.format("%d hosts have been manually launched to group %s by operator %s.", instanceCnt, groupName, operator);
-                jobPool.submit(new NotificationJob(message, subject, groupBean.getEmail_recipients(), groupBean.getChatroom(), commonHandler));
-
-                String configChange = String.format("ASG desired capacity increased by %d", instanceCnt);
-                configHistoryHandler.updateConfigHistory(groupName, configHistoryHandler.getTypeHostLaunch(), configChange, operator);
-
-                String hostId = String.format("Please check the group %s page.", groupName);
-                return Collections.singletonList(hostId);
+                asgDAO.increaseASGDesiredCapacityBySize(groupName, instanceCnt);
+                return new ArrayList<>();
             } else if (groupBean.getAsg_status() == ASGStatus.DISABLED) { // AutoScaling is disabled, do nothing
                 LOG.info(String.format("AutoScalingGroup %s is disabled. Prohibit from launching instances", groupName));
                 return new ArrayList<>();
@@ -148,26 +114,13 @@ public class ProvisionHandler {
                 List<HostBean> hosts = hostInfoDAO.launchEC2Instances(groupBean, instanceCnt, subnet);
                 List<String> hostIds = new ArrayList<>();
                 for (HostBean host : hosts) {
-                    try {
-                        LOG.debug(String.format("An new instance %s has been launched in group %s", host.getHost_id(), groupName));
-                        hostIds.add(host.getHost_id());
-                        hostDAO.insert(host);
-                    } catch (Exception e) {
-                        LOG.error("Failed to insert host {} into hosts", host.getHost_id(), e);
-                    }
+                    LOG.debug(String.format("An new instance %s has been launched in group %s", host.getHost_id(), groupName));
+                    hostIds.add(host.getHost_id());
+                    hostDAO.insert(host);
                 }
-
-                String subject = String.format("Host Launch for group \"%s\"", groupName);
-                String message = String.format("Hosts %s have been launched in group %s by operator %s.", hostIds, groupName, operator);
-                jobPool.submit(new NotificationJob(message, subject, groupBean.getEmail_recipients(), groupBean.getChatroom(), commonHandler));
-
-                String configChange = String.format("%s launched", hostIds);
-                configHistoryHandler.updateConfigHistory(groupName, configHistoryHandler.getTypeHostLaunch(), configChange, operator);
-
                 return hostIds;
             }
         }
-        LOG.debug(String.format("Failed to launch %d new instances in non-existing group %s", instanceCnt, groupName));
         return new ArrayList<>();
     }
 }

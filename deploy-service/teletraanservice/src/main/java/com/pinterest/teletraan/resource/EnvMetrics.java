@@ -19,7 +19,9 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.MetricsConfigBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
@@ -43,12 +45,14 @@ import java.util.List;
 public class EnvMetrics {
     private static final Logger LOG = LoggerFactory.getLogger(EnvWebHooks.class);
     private EnvironHandler environHandler;
+    private ConfigHistoryHandler configHistoryHandler;
     private EnvironDAO environDAO;
     private Authorizer authorizer;
 
     public EnvMetrics(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
+        configHistoryHandler = new ConfigHistoryHandler(context);
         authorizer = context.getAuthorizer();
     }
 
@@ -79,6 +83,8 @@ public class EnvMetrics {
         authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         environHandler.updateMetrics(environBean, metrics, userName);
+        configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_METRIC, metrics, userName);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_METRIC, userName);
         LOG.info("Successfully updated metrics {} for env {}/{} by {}.",
             metrics, envName, stageName, userName);
     }

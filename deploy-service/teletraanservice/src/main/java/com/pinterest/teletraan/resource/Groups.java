@@ -26,13 +26,14 @@ import com.pinterest.arcee.handler.ProvisionHandler;
 import com.pinterest.deployservice.bean.ConfigHistoryBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 
-import org.apache.commons.lang.StringUtils;
+import javafx.util.Pair;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,11 +83,10 @@ public class Groups {
     public void createGroup(@Context SecurityContext sc,
         @PathParam("groupName") String groupName, GroupBean groupBean) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
-        groupHandler.createGroup(groupName, groupBean);
         String operator = sc.getUserPrincipal().getName();
-        configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgGeneral(), groupBean, operator);
-        LOG.info("Successfully created group {} with config {} by {}",
-            groupName, groupBean, operator);
+        groupHandler.createGroup(groupName, groupBean);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_GENERAL, groupBean, operator);
+        LOG.info("Successfully created group {} with config {} by {}", groupName, groupBean, operator);
     }
 
     @PUT
@@ -94,11 +94,11 @@ public class Groups {
     public void updateGroupLaunchConfig(@Context SecurityContext sc,
         @PathParam("groupName") String groupName, GroupBean groupBean) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
-        groupHandler.updateLaunchConfig(groupName, groupBean);
         String operator = sc.getUserPrincipal().getName();
-        configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeAsgGeneral(), groupBean, operator);
-        LOG.info("Successfully updated group {} with config {} by {}",
-            groupName, groupBean, operator);
+        groupHandler.updateLaunchConfig(groupName, groupBean);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_GENERAL, groupBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_GENERAL, operator);
+        LOG.info("Successfully updated group {} with config {} by {}", groupName, groupBean, operator);
     }
 
     @GET
@@ -121,7 +121,12 @@ public class Groups {
         @NotEmpty @QueryParam("subnet") String subnet) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        return provisionHandler.launchNewInstances(groupName, instanceCnt.or(1), subnet, operator);
+        List<String> instanceIds = provisionHandler.launchNewInstances(groupName, instanceCnt.or(1), subnet, operator);
+        if (!instanceIds.isEmpty()) {
+            String configChange = String.format("%s", instanceIds);
+            configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_LAUNCH, configChange, operator);
+        }
+        return instanceIds;
     }
 
     @DELETE
@@ -133,7 +138,11 @@ public class Groups {
         // TODO we need env name or group for this one!
         // Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        provisionHandler.terminateHost(hostId, decreaseSize, operator);
+        List<String> groupNames = provisionHandler.terminateHost(hostId, decreaseSize, operator);
+        String configChange = String.format("Instance Id : %s", hostId);
+        for (String name : groupNames) {
+            configHistoryHandler.updateConfigHistory(name, Constants.TYPE_HOST_TERMINATE, configChange, operator);
+        }
     }
 
     @GET
@@ -154,9 +163,8 @@ public class Groups {
         String operator = sc.getUserPrincipal().getName();
         switch (actionType) {
             case ROLLBACK:
-                configHistoryHandler.rollbackConfig(changeId, operator);
-                LOG.info("{} rollbacked group {} config to config id = {}",
-                    new Object[]{operator, groupName, changeId});
+                configHistoryHandler.rollbackConfig(Constants.CONFIG_TYPE_GROUP, changeId, operator);
+                LOG.info("{} rollbacked group {} config to config id = {}", operator, groupName, changeId);
                 break;
             default:
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
@@ -197,7 +205,7 @@ public class Groups {
         if (ids.isEmpty()) {
             results = "Health check isn't enabled";
         }
-        configHistoryHandler.updateConfigHistory(groupName, ConfigHistoryHandler.getTypeHelathcheckManaually(), results, operator);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HELATHCHECK_MANAUALLY, results, operator);
         LOG.info("{} have added to group {} by {}", results, groupName, operator);
     }
 

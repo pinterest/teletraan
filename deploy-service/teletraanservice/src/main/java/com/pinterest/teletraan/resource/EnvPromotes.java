@@ -19,7 +19,9 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.PromoteBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
@@ -43,6 +45,7 @@ import javax.ws.rs.core.UriInfo;
 public class EnvPromotes {
     private static final Logger LOG = LoggerFactory.getLogger(EnvPromotes.class);
     private EnvironHandler environHandler;
+    private ConfigHistoryHandler configHistoryHandler;
     private EnvironDAO environDAO;
     private Authorizer authorizer;
 
@@ -51,6 +54,7 @@ public class EnvPromotes {
     public EnvPromotes(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
+        configHistoryHandler = new ConfigHistoryHandler(context);
         authorizer = context.getAuthorizer();
     }
 
@@ -78,6 +82,8 @@ public class EnvPromotes {
         authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         environHandler.updateEnvPromote(environBean, promoteBean, operator);
+        configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, promoteBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, operator);
         LOG.info("Successfully updated promote with {} to env {}/{} by {}.",
             promoteBean, envName, stageName, operator);
     }

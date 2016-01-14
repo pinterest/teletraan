@@ -37,4 +37,32 @@ public class Constants {
     public static final String AUTO_PROMOTER_NAME = "AutoPromoter";
     public static final int DEFAULT_DEPLOY_NUM = 5000;
     public static final int DEFAULT_DEPLOY_DAY = 365;
+
+    public static final String CONFIG_TYPE_GROUP = "ASG Config Change";
+    public static final String CONFIG_TYPE_ENV = "Deploy Env Config Change";
+
+    public static final String TYPE_ASG_GENERAL = "Asg General Config";
+    public static final String TYPE_ASG_SCALING = "Asg Scaling Group";
+    public static final String TYPE_ASG_POLICY = "Asg Scaling Policy";
+    public static final String TYPE_ASG_ALARM = "Asg Scaling Alarm";
+    public static final String TYPE_ASG_SCALING_ACTION = "Asg Scaling Action";
+
+    public static final String TYPE_ENV_GENERAL = "Env General Config";
+    public static final String TYPE_ENV_PROMOTE = "Env Promote Config";
+    public static final String TYPE_ENV_SCRIPT = "Env Script Config";
+    public static final String TYPE_ENV_ADVANCED = "Env Advanced Config";
+    public static final String TYPE_ENV_HOST_CAPACITY = "Env Host Capacity Config";
+    public static final String TYPE_ENV_GROUP_CAPACITY = "Env Group Capacity Config";
+    public static final String TYPE_ENV_METRIC = "Env Metrics Config";
+    public static final String TYPE_ENV_ALARM = "Env Alarm Config";
+    public static final String TYPE_ENV_WEBHOOK = "Env Webhook Config";
+
+    public static final String TYPE_HOST_LAUNCH = "Host Launch";
+    public static final String TYPE_HOST_TERMINATE = "Host Terminate";
+    public static final String TYPE_HOST_ATTACH = "Host Attach";
+    public static final String TYPE_HOST_DETACH = "Host Detach";
+    public static final String TYPE_HELATHCHECK_MANAUALLY = "MANUALLY_TRIGGERED Health Check";
+
+    public static final String CHANGEFEED_TEMPLATE = "{\"type\":\"%s\",\"environment\":\"%s\",\"description\":\"%s\",\"author\":\"%s\","
+        + "\"automation\":\"%s\",\"source\":\"Teletraan\",\"optional-1\":\"%s\",\"optional-2\":\"\"}";
 }
