@@ -340,7 +340,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-e', '--server_stage', dest='stage', default='prod',
                         help="This option is deprecated")
-    parser.add_argument('-f', '--config-file', dest='config_file', required=False, default='deployd/conf/agent.conf',
+    parser.add_argument('-f', '--config-file', dest='config_file', required=False,
                         help="the deploy agent config file path.")
     parser.add_argument('-d', '--daemon', dest="daemon", action='store_true')
     parser.add_argument('-n', '--host_name', dest="hostname", required=False, default=None)

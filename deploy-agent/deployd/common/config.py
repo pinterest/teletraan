@@ -35,15 +35,19 @@ class Config(object):
             self._config_reader = config_reader
             return
 
+        self._config_reader = SafeConfigParser()
+        if not filenames:
+            return
+
         if not os.path.exists(filenames):
             print('Cannot find config files: {}'.format(filenames))
             exit_abruptly(1)
 
         self._filenames = filenames
-        self._config_reader = SafeConfigParser()
         loaded_filenames = self._config_reader.read(self._filenames)
         if len(loaded_filenames) == 0:
             print('Cannot read config files: {}'.format(self._filenames))
+            exit_abruptly(1)
 
     def get_config_filename(self):
         return self._filenames
