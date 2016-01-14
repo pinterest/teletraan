@@ -18,7 +18,9 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
@@ -41,11 +43,13 @@ public class EnvStages {
     private static final Logger LOG = LoggerFactory.getLogger(EnvStages.class);
     private EnvironDAO environDAO;
     private EnvironHandler environHandler;
+    private ConfigHistoryHandler configHistoryHandler;
     private Authorizer authorizer;
 
     public EnvStages(TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
+        configHistoryHandler = new ConfigHistoryHandler(context);
         authorizer = context.getAuthorizer();
     }
 
@@ -73,6 +77,8 @@ public class EnvStages {
         authorizer.authorize(sc, new Resource(origBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         environHandler.updateStage(origBean, environBean, operator);
+        configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, environBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator);
         LOG.info("Successfully updated env {}/{} with {} by {}.",
             envName, stageName, environBean, operator);
     }

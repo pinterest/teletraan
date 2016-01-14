@@ -26,122 +26,46 @@ import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.ScalingPoliciesBean;
 import com.pinterest.arcee.handler.GroupHandler;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AlarmBean;
 import com.pinterest.deployservice.bean.ConfigHistoryBean;
+import com.pinterest.deployservice.bean.EnvWebHookBean;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.MetricsConfigBean;
+import com.pinterest.deployservice.bean.PromoteBean;
+import com.pinterest.deployservice.common.ChangeFeedJob;
 import com.pinterest.deployservice.common.CommonUtils;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.ConfigHistoryDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
-/**
- * This handler used to deal with all configuration change
- */
 public class ConfigHistoryHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigHistoryHandler.class);
     private ConfigHistoryDAO configHistoryDAO;
+    private EnvironDAO environDAO;
     private GroupHandler groupHandler;
-
-    private static final String TYPE_ASG_GENERAL = "Asg General Config";
-    private static final String TYPE_ASG_SCALING = "Asg Scaling Group";
-    private static final String TYPE_ASG_POLICY = "Asg Scaling Policy";
-    private static final String TYPE_ASG_ALARM = "Asg Scaling Alarm";
-
-    private static final String TYPE_ENV_GENERAL = "Env General Config";
-    private static final String TYPE_ENV_PROMOTE = "Env Promote Config";
-    private static final String TYPE_ENV_SCRIPT = "Env Script Config";
-    private static final String TYPE_ENV_ADVANCED = "Env Advanced Config";
-    private static final String TYPE_ENV_HOST_CAPACITY = "Env Host Capacity Config";
-    private static final String TYPE_ENV_GROUP_CAPACITY = "Env Group Capacity Config";
-    private static final String TYPE_ENV_METRIC = "Env Metrics Config";
-    private static final String TYPE_ENV_ALARM = "Env Alarm Config";
-    private static final String TYPE_ENV_WEBHOOK = "Env Webhook Config";
-
-    private static final String TYPE_HOST_LAUNCH = "Host Launch";
-    private static final String TYPE_HOST_TERMINATE = "Host Terminate";
-    private static final String TYPE_HOST_ATTACH = "Host Attach";
-    private static final String TYPE_HOST_DETACH = "Host Detach";
-
-    private static final String TYPE_HELATHCHECK_MANAUALLY = "MANUALLY_TRIGGERED Health Check";
+    private EnvironHandler environHandler;
+    private CommonHandler commonHandler;
+    private String changeFeedUrl;
+    private ExecutorService jobPool;
 
     public ConfigHistoryHandler(ServiceContext serviceContext) {
         configHistoryDAO = serviceContext.getConfigHistoryDAO();
+        environDAO = serviceContext.getEnvironDAO();
         groupHandler = new GroupHandler(serviceContext);
+        environHandler = new EnvironHandler(serviceContext);
+        commonHandler = new CommonHandler(serviceContext);
+        changeFeedUrl = serviceContext.getChangeFeedUrl();
+        jobPool = serviceContext.getJobPool();
     }
-
-    public static final String getTypeAsgGeneral() {
-        return TYPE_ASG_GENERAL;
-    }
-
-    public static final String getTypeAsgScaling() {
-        return TYPE_ASG_SCALING;
-    }
-
-    public static final String getTypeAsgPolicy() {
-        return TYPE_ASG_POLICY;
-    }
-
-    public static final String getTypeAsgAlarm() {
-        return TYPE_ASG_ALARM;
-    }
-
-    public static final String getTypeEnvGeneral() {
-        return TYPE_ENV_GENERAL;
-    }
-
-    public static final String getTypeEnvPromote() {
-        return TYPE_ENV_PROMOTE;
-    }
-
-    public static final String getTypeEnvScript() {
-        return TYPE_ENV_SCRIPT;
-    }
-
-    public static final String getTypeEnvAdvanced() {
-        return TYPE_ENV_ADVANCED;
-    }
-
-    public static final String getTypeEnvHostCapacity() {
-        return TYPE_ENV_HOST_CAPACITY;
-    }
-
-    public static final String getTypeEnvGroupCapacity() {
-        return TYPE_ENV_GROUP_CAPACITY;
-    }
-
-    public static final String getTypeEnvMetric() {
-        return TYPE_ENV_METRIC;
-    }
-
-    public static final String getTypeEnvAlarm() {
-        return TYPE_ENV_ALARM;
-    }
-
-    public static final String getTypeEnvWebhook() {
-        return TYPE_ENV_WEBHOOK;
-    }
-
-    public static final String getTypeHostLaunch() {
-        return TYPE_HOST_LAUNCH;
-    }
-
-    public static final String getTypeHostTerminate() {
-        return TYPE_HOST_TERMINATE;
-    }
-
-    public static final String getTypeHostAttach() {
-        return TYPE_HOST_ATTACH;
-    }
-
-    public static final String getTypeHostDetach() {
-        return TYPE_HOST_DETACH;
-    }
-
-    public static final String getTypeHelathcheckManaually() {
-        return TYPE_HELATHCHECK_MANAUALLY;
-    }
-
 
     /**
      * Json Field ExclusionStrategy
@@ -169,7 +93,7 @@ public class ConfigHistoryHandler {
     /**
      * add new config history
      * config_id can be env_id for environment config,
-     * or group_name for autoscaling configuration
+     * or group_name for group configuration
      */
     public void updateConfigHistory(String configId, String type, Object request, String operator) throws Exception {
         try {
@@ -191,41 +115,202 @@ public class ConfigHistoryHandler {
     /**
      * Rollback to previous configuration based on change id
      */
-    public void rollbackConfig(String changeId, String operator) throws Exception {
+    public void rollbackConfig(String configType, String changeId, String operator) throws Exception {
         try {
             ConfigHistoryBean bean = configHistoryDAO.getByChangeId(changeId);
-            String groupName = bean.getConfig_id();
             String type = bean.getType();
             String configChange = bean.getConfig_change();
-            LOG.info(String.format("Rollback to the ChangeId:%s, Type:%s", changeId, type));
 
             Gson gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
-            if (type.equals(TYPE_ASG_GENERAL)) {
-                GroupBean groupBean = gson.fromJson(configChange, GroupBean.class);
-                groupBean.setGroup_name(groupName);
-                String userData = new String(Base64.decodeBase64(groupBean.getUser_data()));
-                groupBean.setUser_data(userData);
-                groupHandler.updateLaunchConfig(groupName, groupBean);
-                updateConfigHistory(groupName, type, groupBean, operator);
-            } else if (type.equals(TYPE_ASG_SCALING)) {
-                AutoScalingRequestBean autoScalingRequestBean = gson.fromJson(configChange, AutoScalingRequestBean.class);
-                autoScalingRequestBean.setGroupName(groupName);
-                groupHandler.insertOrUpdateAutoScalingGroup(groupName, autoScalingRequestBean);
-                updateConfigHistory(groupName, type, autoScalingRequestBean, operator);
-            } else if (type.equals(TYPE_ASG_POLICY)) {
-                ScalingPoliciesBean request = gson.fromJson(configChange, ScalingPoliciesBean.class);
-                groupHandler.putScalingPolicyToGroup(groupName, request);
-                updateConfigHistory(groupName, type, request, operator);
-            } else if (type.equals(TYPE_ASG_ALARM)) {
-                List<AsgAlarmBean> request = gson.fromJson(configChange, new TypeToken<List<AsgAlarmBean>>() {
-                }.getType());
-                groupHandler.updateAlarmsToAutoScalingGroup(groupName, request);
-                updateConfigHistory(groupName, type, request, operator);
-            } else {
-                LOG.warn(String.format("Failed to find the type %s to rollback, %s", type, changeId));
+            if (configType.equals(Constants.CONFIG_TYPE_GROUP)) {
+                String groupName = bean.getConfig_id();
+                LOG.info(String.format("Rollback group config to the ChangeId: %s, Type:%s for group %s", changeId, type, groupName));
+
+                if (type.equals(Constants.TYPE_ASG_GENERAL)) {
+                    GroupBean newBean = gson.fromJson(configChange, GroupBean.class);
+                    newBean.setGroup_name(groupName);
+                    String userData = new String(Base64.decodeBase64(newBean.getUser_data()));
+                    newBean.setUser_data(userData);
+                    groupHandler.updateLaunchConfig(groupName, newBean);
+                    updateConfigHistory(groupName, type, newBean, operator);
+                } else if (type.equals(Constants.TYPE_ASG_SCALING)) {
+                    AutoScalingRequestBean newBean = gson.fromJson(configChange, AutoScalingRequestBean.class);
+                    newBean.setGroupName(groupName);
+                    groupHandler.insertOrUpdateAutoScalingGroup(groupName, newBean);
+                    updateConfigHistory(groupName, type, newBean, operator);
+                } else if (type.equals(Constants.TYPE_ASG_POLICY)) {
+                    ScalingPoliciesBean newBean = gson.fromJson(configChange, ScalingPoliciesBean.class);
+                    groupHandler.putScalingPolicyToGroup(groupName, newBean);
+                    updateConfigHistory(groupName, type, newBean, operator);
+                } else if (type.equals(Constants.TYPE_ASG_ALARM)) {
+                    List<AsgAlarmBean> newBeans = gson.fromJson(configChange, new TypeToken<ArrayList<AsgAlarmBean>>() {}.getType());
+                    groupHandler.updateAlarmsToAutoScalingGroup(groupName, newBeans);
+                    updateConfigHistory(groupName, type, newBeans, operator);
+                } else {
+                    LOG.warn(String.format("Failed to find the type %s to rollback, %s", type, changeId));
+                }
+            } else if (configType.equals(Constants.CONFIG_TYPE_ENV)) {
+                String envId = bean.getConfig_id();
+                EnvironBean environBean = environDAO.getById(envId);
+                LOG.info(String.format("Rollback environment config to the ChangeId: %s, Type:%s for env %s", changeId, type, environBean.getEnv_name()));
+
+                if (type.equals(Constants.TYPE_ENV_GENERAL)) {
+                    EnvironBean newBean = gson.fromJson(configChange, EnvironBean.class);
+                    environHandler.updateStage(environBean, newBean, operator);
+                    updateConfigHistory(envId, type, newBean, operator);
+                } else if (type.equals(Constants.TYPE_ENV_PROMOTE)) {
+                    PromoteBean newBean = gson.fromJson(configChange, PromoteBean.class);
+                    environHandler.updateEnvPromote(environBean, newBean, operator);
+                    updateConfigHistory(envId, type, newBean, operator);
+                } else if (type.equals(Constants.TYPE_ENV_SCRIPT)) {
+                    Map<String, String> newConfigs = gson.fromJson(configChange, new TypeToken<Map<String, String>>() {}.getType());
+                    environHandler.updateScriptConfigs(environBean, newConfigs, operator);
+                    updateConfigHistory(envId, type, newConfigs, operator);
+                } else if (type.equals(Constants.TYPE_ENV_ADVANCED)) {
+                    Map<String, String> newConfigs = gson.fromJson(configChange, new TypeToken<Map<String, String>>() {}.getType());
+                    environHandler.updateAdvancedConfigs(environBean, newConfigs, operator);
+                    updateConfigHistory(envId, type, newConfigs, operator);
+                } else if (type.equals(Constants.TYPE_ENV_METRIC)) {
+                    List<MetricsConfigBean> newBeans = gson.fromJson(configChange, new TypeToken<ArrayList<MetricsConfigBean>>() {}.getType());
+                    environHandler.updateMetrics(environBean, newBeans, operator);
+                    updateConfigHistory(envId, type, newBeans, operator);
+                } else if (type.equals(Constants.TYPE_ENV_ALARM)) {
+                    List<AlarmBean> newBeans = gson.fromJson(configChange, new TypeToken<ArrayList<AlarmBean>>() {}.getType());
+                    environHandler.updateAlarms(environBean, newBeans, operator);
+                    updateConfigHistory(envId, type, newBeans, operator);
+                } else if (type.equals(Constants.TYPE_ENV_WEBHOOK)) {
+                    EnvWebHookBean newBean = gson.fromJson(configChange, EnvWebHookBean.class);
+                    environHandler.updateHooks(environBean, newBean, operator);
+                    updateConfigHistory(envId, type, newBean, operator);
+                } else if (type.equals(Constants.TYPE_ENV_HOST_CAPACITY)) {
+                    List<String> newHosts = gson.fromJson(configChange, new TypeToken<ArrayList<String>>() {}.getType());
+                    environHandler.updateHosts(environBean, newHosts, operator);
+                    updateConfigHistory(envId, type, newHosts, operator);
+                } else if (type.equals(Constants.TYPE_ENV_GROUP_CAPACITY)) {
+                    List<String> newGroups = gson.fromJson(configChange, new TypeToken<ArrayList<String>>() {}.getType());
+                    environHandler.updateGroups(environBean, newGroups, operator);
+                    updateConfigHistory(envId, type, newGroups, operator);
+                } else {
+                    LOG.warn(String.format("Failed to find the type %s to rollback, %s", type, changeId));
+                }
             }
         } catch (Exception e) {
             LOG.error("Failed to rollback to previous config, " + changeId, e);
+        }
+    }
+
+    public void updateChangeFeed(String configType, String configId, String type, String operator) throws Exception {
+        Gson gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
+        List<ConfigHistoryBean> configHistoryBeans = configHistoryDAO.getLatestChangesByType(configId, type);
+        if (configHistoryBeans.size() != 2) {
+            return;
+        }
+
+        if (configType.equals(Constants.CONFIG_TYPE_GROUP)) {
+            LOG.info(String.format("Push group %s config change for %s", type, configId));
+
+            String subject = String.format("%s Group Config Updated", configId);
+            String message = String.format("%s updated the config for %s on %tc. The changes are: \n", operator, configId, new Date());
+            String configHistoryUrl = String.format("https://deploy.pinadmin.com/groups/%s/config_history/", configId);
+            String feedPayload = String.format(Constants.CHANGEFEED_TEMPLATE, configType, configId, configHistoryUrl, operator, "False", type);
+            GroupBean groupBean = groupHandler.getLaunchConfig(configId);
+            if (type.equals(Constants.TYPE_ASG_GENERAL)) {
+                GroupBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), GroupBean.class);
+                newBean.setLast_update(null);
+                newBean.setLaunch_config_id(null);
+                GroupBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), GroupBean.class);
+                oriBean.setLast_update(null);
+                oriBean.setLaunch_config_id(null);
+                jobPool.submit(new ChangeFeedJob(subject, message, groupBean.getEmail_recipients(), groupBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBean, newBean, commonHandler));
+            } else if (type.equals(Constants.TYPE_ASG_SCALING)) {
+                AutoScalingRequestBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), AutoScalingRequestBean.class);
+                AutoScalingRequestBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), AutoScalingRequestBean.class);
+                jobPool.submit(new ChangeFeedJob(subject, message, groupBean.getEmail_recipients(), groupBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBean, newBean, commonHandler));
+            } else if (type.equals(Constants.TYPE_ASG_POLICY)) {
+                ScalingPoliciesBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), ScalingPoliciesBean.class);
+                ScalingPoliciesBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), ScalingPoliciesBean.class);
+                jobPool.submit(new ChangeFeedJob(subject, message, groupBean.getEmail_recipients(), groupBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBean, newBean, commonHandler));
+            } else if (type.equals(Constants.TYPE_ASG_ALARM)) {
+                List<AsgAlarmBean> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<AsgAlarmBean>>() {}.getType());
+                List<AsgAlarmBean> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<AsgAlarmBean>>() {}.getType());
+                jobPool.submit(new ChangeFeedJob(subject, message, groupBean.getEmail_recipients(), groupBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBean, newBean, commonHandler));
+            } else {
+                LOG.warn(String.format("Failed to find the type %s to update changefeed", type));
+            }
+        } else if (configType.equals(Constants.CONFIG_TYPE_ENV)) {
+            EnvironBean environBean = environDAO.getById(configId);
+            String envStageName = String.format("%s (%s)", environBean.getEnv_name(), environBean.getStage_name());
+            LOG.info(String.format("Push env %s config change for %s", type, envStageName));
+
+            String subject = String.format("%s Env Config Updated", envStageName);
+            String message = String.format("%s updated the config for %s on %tc. The changes are: \n", operator, envStageName, new Date());
+            String configHistoryUrl = String.format("https://deploy.pinadmin.com/env/%s/%s/config_history/", environBean.getEnv_name(), environBean.getStage_name());
+            String feedPayload = String.format(Constants.CHANGEFEED_TEMPLATE, configType, envStageName, configHistoryUrl, operator, "False", type);
+            if (type.equals(Constants.TYPE_ENV_GENERAL)) {
+                EnvironBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), EnvironBean.class);
+                newBean.setLast_update(null);
+                newBean.setLast_operator(null);
+                EnvironBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), EnvironBean.class);
+                oriBean.setLast_update(null);
+                oriBean.setLast_operator(null);
+                if (!oriBean.getSuccess_th().equals(newBean.getSuccess_th())) {
+                    message += "(NOTE: success_th x 0.01% = Success Threshold)\n";
+                }
+
+                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBean, newBean, commonHandler));
+            } else if (type.equals(Constants.TYPE_ENV_PROMOTE)) {
+                PromoteBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), PromoteBean.class);
+                newBean.setLast_update(null);
+                newBean.setLast_operator(null);
+                PromoteBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), PromoteBean.class);
+                oriBean.setLast_update(null);
+                oriBean.setLast_operator(null);
+                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBean, newBean, commonHandler));
+            } else if (type.equals(Constants.TYPE_ENV_SCRIPT)) {
+                Map<String, String> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<Map<String, String> >() {}.getType());
+                Map<String, String> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<Map<String, String> >() {}.getType());
+                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBean, newBean, commonHandler));
+            } else if (type.equals(Constants.TYPE_ENV_ADVANCED)) {
+                Map<String, String> newConfigs = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<Map<String, String> >() {}.getType());
+                Map<String, String> oriConfigs = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<Map<String, String> >() {}.getType());
+                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriConfigs, newConfigs, commonHandler));
+            } else if (type.equals(Constants.TYPE_ENV_METRIC)) {
+                List<MetricsConfigBean> newBeans = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<MetricsConfigBean>>() {}.getType());
+                List<MetricsConfigBean> oriBeans = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<MetricsConfigBean>>() {}.getType());
+                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBeans, newBeans, commonHandler));
+            } else if (type.equals(Constants.TYPE_ENV_ALARM)) {
+                List<AlarmBean> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<AlarmBean>>() {}.getType());
+                List<AlarmBean> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<AlarmBean>>() {}.getType());
+                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBean, newBean, commonHandler));
+            } else if (type.equals(Constants.TYPE_ENV_WEBHOOK)) {
+                EnvWebHookBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), EnvWebHookBean.class);
+                EnvWebHookBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), EnvWebHookBean.class);
+                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriBean, newBean, commonHandler));
+            } else if (type.equals(Constants.TYPE_ENV_HOST_CAPACITY)) {
+                List<String> newHosts = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<String>>() {}.getType());
+                List<String> oriHosts = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {}.getType());
+                LOG.debug(String.format("Host update %s, %s", newHosts, oriHosts));
+                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriHosts, newHosts, commonHandler));
+            } else if (type.equals(Constants.TYPE_ENV_GROUP_CAPACITY)) {
+                List<String> newGroups = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<String>>() {}.getType());
+                List<String> oriGroups = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {}.getType());
+                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
+                    changeFeedUrl, oriGroups, newGroups, commonHandler));
+            } else {
+                LOG.warn(String.format("Failed to find the type %s to update changefeed", type));
+            }
         }
     }
 }

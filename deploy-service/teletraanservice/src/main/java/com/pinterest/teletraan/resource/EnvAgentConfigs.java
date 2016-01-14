@@ -18,7 +18,9 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
@@ -44,6 +46,7 @@ public class EnvAgentConfigs {
     private static final Logger LOG = LoggerFactory.getLogger(EnvAgentConfigs.class);
     private EnvironDAO environDAO;
     private EnvironHandler environHandler;
+    private ConfigHistoryHandler configHistoryHandler;
     private Authorizer authorizer;
 
     @Context
@@ -52,6 +55,7 @@ public class EnvAgentConfigs {
     public EnvAgentConfigs(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
+        configHistoryHandler = new ConfigHistoryHandler(context);
         authorizer = context.getAuthorizer();
     }
 
@@ -81,6 +85,8 @@ public class EnvAgentConfigs {
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         environHandler.updateAdvancedConfigs(envBean, configs, userName);
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, configs, userName);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, userName);
         LOG.info("Successfully updated agent config {} for env {}/{} by {}.",
             configs, envName, stageName, userName);
     }

@@ -19,7 +19,9 @@ import com.pinterest.deployservice.bean.AlarmBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
@@ -41,6 +43,7 @@ public class EnvAlarms {
     private static final Logger LOG = LoggerFactory.getLogger(EnvWebHooks.class);
     private EnvironHandler environHandler;
     private EnvironDAO environDAO;
+    private ConfigHistoryHandler configHistoryHandler;
     private Authorizer authorizer;
 
     @Context
@@ -48,6 +51,7 @@ public class EnvAlarms {
 
     public EnvAlarms(TeletraanServiceContext context) {
         environHandler = new EnvironHandler(context);
+        configHistoryHandler = new ConfigHistoryHandler(context);
         environDAO = context.getEnvironDAO();
         authorizer = context.getAuthorizer();
     }
@@ -66,6 +70,8 @@ public class EnvAlarms {
         authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         environHandler.updateAlarms(environBean, alarmBeans, userName);
+        configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_ALARM, alarmBeans, userName);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_ALARM, userName);
         LOG.info("Successfully updated alarms {} for env {}/{} by {}.",
             alarmBeans, envName, stageName, userName);
     }

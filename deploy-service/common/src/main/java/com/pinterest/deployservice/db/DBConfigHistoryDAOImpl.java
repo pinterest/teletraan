@@ -31,7 +31,7 @@ public class DBConfigHistoryDAOImpl implements ConfigHistoryDAO {
     private static final String INSERT_CONFIG_HISTORY = "INSERT INTO config_history SET %s";
     private static final String GET_ALL_BY_CONFIG_ID = "SELECT * FROM config_history WHERE config_id=? ORDER BY creation_time DESC LIMIT ?,?";
     private static final String GET_BY_CHANGE_ID = "SELECT * FROM config_history WHERE change_id=?";
-    //TODO GET Config Change history by TYPE
+    private static final String GET_LATEST_CHANGES_BY_TYPE = "SELECT * FROM config_history where config_id=? and type=? ORDER BY creation_time DESC LIMIT 2";
 
     private BasicDataSource dataSource;
 
@@ -58,5 +58,11 @@ public class DBConfigHistoryDAOImpl implements ConfigHistoryDAO {
     public ConfigHistoryBean getByChangeId(String changeId) throws Exception {
         ResultSetHandler<ConfigHistoryBean> h = new BeanHandler<>(ConfigHistoryBean.class);
         return new QueryRunner(dataSource).query(GET_BY_CHANGE_ID, h, changeId);
+    }
+
+    @Override
+    public List<ConfigHistoryBean> getLatestChangesByType(String configId, String type) throws Exception {
+        ResultSetHandler<List<ConfigHistoryBean>> h = new BeanListHandler<ConfigHistoryBean>(ConfigHistoryBean.class);
+        return new QueryRunner(this.dataSource).query(GET_LATEST_CHANGES_BY_TYPE, h, configId, type);
     }
 }
