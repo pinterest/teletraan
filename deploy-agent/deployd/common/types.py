@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from deployd.types.ping_report import PingReport
+from deployd.types.opcode import OpCode
 
 
 class AgentStatus(object):
@@ -178,7 +179,11 @@ class DeployStatus(object):
                                         build_branch=build_info.get('build_branch'))
 
         self.runtime_config = json_value.get('runtime_config')
-        self.op_code = json_value.get('op_code', OpCode.NOOP)
+        op_code = json_value.get('op_code', OpCode.NOOP)
+        if isinstance(op_code, int):
+            self.op_code = OpCode._VALUES_TO_NAMES[op_code]
+        else:
+            self.op_code = op_code
 
     def to_json(self):
         json = {}
