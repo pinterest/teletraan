@@ -36,7 +36,7 @@ logging:
       currentLogFilename: /tmp/teletraan/service.log
 
 #
-# Mysql connection config. By default, we use the embedded mysql as the backend.
+# Mysql connection config. By default, we use the real mysql as the backend.
 # Note: the embeded mysql is for demo or test purpose only. Use the official Mysql
 # installs for production usage.
 #
