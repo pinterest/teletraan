@@ -55,7 +55,6 @@ db:
   pool: 10:50:20:5
 
   # Uncomment the following to use the embedded mysql.
-  # Note: The data will be wipped out for each server restart
   #type: embedded
 
   # Optional - embedded mysql working directory. This is for embedded mysql only,
