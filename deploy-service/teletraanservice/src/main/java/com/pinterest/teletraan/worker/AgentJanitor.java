@@ -69,7 +69,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 } else {
                     // TODO this lock can be removed, once we move the terminating logic from state to status
                     HostBean host = hostDAO.getHostsByHostId(staleId).get(0);
-                    if (host.getState() != HostState.TERMINATING) {
+                    if (host.getState() != HostState.TERMINATING && host.getState() != HostState.PENDING_TERMINATE) {
                         String lockName = String.format("PROCESS-HOSTID-%s", staleId);
                         Connection connection = utilDAO.getLock(lockName);
                         if (connection != null) {
@@ -116,7 +116,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 if (current_time - host.getLast_update() >= maxLaunchLatencyThreshold) {
                     staleHostIds.add(host.getHost_id());
                 }
-            } else if (host.getState() != HostState.TERMINATING) {
+            } else if (host.getState() != HostState.TERMINATING && host.getState() != HostState.PENDING_TERMINATE) {
                 if (current_time - host.getLast_update() >= maxStaleHostThreshold) {
                     staleHostIds.add(host.getHost_id());
                 }
@@ -163,7 +163,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                             maxStaleHostIds.add(id);
                         }
                     }
-                } else if (host.getState() != HostState.TERMINATING) {
+                } else if (host.getState() != HostState.TERMINATING && host.getState() != HostState.PENDING_TERMINATE) {
                     if (current_time - last_update >= maxStaleHostThreshold) {
                         maxStaleHostIds.add(id);
                     } else if (current_time - last_update >= minStaleHostThreshold) {
