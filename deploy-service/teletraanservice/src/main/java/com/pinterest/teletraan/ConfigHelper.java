@@ -284,6 +284,13 @@ public class ConfigHelper {
                 LOG.info("Scheduled HealthCheckInserter.");
             }
 
+            if (workerName.equalsIgnoreCase(HealthCheckHostTerminator.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new HealthCheckHostTerminator(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled HealthCheckHostTerminator.");
+            }
+
             if (workerName.equalsIgnoreCase(NewInstanceChecker.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 Runnable worker = new NewInstanceChecker(serviceContext);

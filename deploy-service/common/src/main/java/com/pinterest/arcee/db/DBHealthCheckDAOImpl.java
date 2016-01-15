@@ -48,6 +48,8 @@ public class DBHealthCheckDAOImpl implements HealthCheckDAO {
 
     private static String GET_REGULAR_HEALTH_CHECK_BY_GROUP_AND_TIME = "SELECT * FROM health_checks WHERE group_name=? and type=? and last_worked_on>?";
 
+    private static String GET_HEALTH_CHECK_BY_UNTERMINATED_HOSTS = "SELECT * FROM health_checks WHERE state=? and host_terminated=0";
+
     private BasicDataSource dataSource;
 
     public DBHealthCheckDAOImpl(BasicDataSource dataSource) {
@@ -112,5 +114,11 @@ public class DBHealthCheckDAOImpl implements HealthCheckDAO {
     public List<String> getRecentHealthCheckStatus(String groupName, int pageSize) throws Exception {
         return new QueryRunner(dataSource).query(GET_RECENT_HEALTH_CHECK_STATUS,
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName, HealthCheckState.COMPLETED.toString(), pageSize);
+    }
+
+    @Override
+    public List<HealthCheckBean> getHealthChecksByUnterminatedHosts() throws Exception {
+        ResultSetHandler<List<HealthCheckBean>> h = new BeanListHandler<HealthCheckBean>(HealthCheckBean.class);
+        return new QueryRunner(dataSource).query(GET_HEALTH_CHECK_BY_UNTERMINATED_HOSTS, h, HealthCheckState.COMPLETED.toString());
     }
 }

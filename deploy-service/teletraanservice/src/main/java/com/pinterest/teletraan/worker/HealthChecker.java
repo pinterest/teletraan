@@ -97,19 +97,30 @@ public class HealthChecker implements Runnable {
      * This function is used to transit state/status
      */
     private void transistionState(HealthCheckBean healthCheckBean, HealthCheckState newState, HealthCheckStatus newStatus, String errorMessage) {
+        HealthCheckBean newBean = new HealthCheckBean();
+        if (!StringUtils.isEmpty(healthCheckBean.getHost_id())) {
+            newBean.setHost_id(healthCheckBean.getHost_id());
+        }
+
+        if (!StringUtils.isEmpty(errorMessage)) {
+            newBean.setError_message(errorMessage);
+        }
+
+        if (newStatus != null) {
+            newBean.setStatus(newStatus);
+        }
+
+        newBean.setHost_launch_time(healthCheckBean.getHost_launch_time());
+        newBean.setHost_terminated(healthCheckBean.getHost_terminated());
+        newBean.setDeploy_start_time(healthCheckBean.getDeploy_start_time());
+        newBean.setDeploy_complete_time(healthCheckBean.getDeploy_complete_time());
+        newBean.setState(newState);
+        newBean.setState_start_time(System.currentTimeMillis());
+        newBean.setLast_worked_on(System.currentTimeMillis());
         try {
-            if (newStatus != null) {
-                healthCheckBean.setStatus(newStatus);
-            }
-            if (!StringUtils.isEmpty(errorMessage)) {
-                healthCheckBean.setError_message(errorMessage);
-            }
-            healthCheckBean.setState(newState);
-            healthCheckBean.setState_start_time(System.currentTimeMillis());
-            healthCheckBean.setLast_worked_on(System.currentTimeMillis());
-            healthCheckDAO.updateHealthCheckById(healthCheckBean.getId(), healthCheckBean);
+            healthCheckDAO.updateHealthCheckById(healthCheckBean.getId(), newBean);
         } catch (Exception e) {
-            LOG.error("Failed to update healthCheckDAO {}", healthCheckBean.toString(), e);
+            LOG.error("Failed to update healthCheckDAO {}", newBean.toString(), e);
         }
     }
 
@@ -222,6 +233,7 @@ public class HealthChecker implements Runnable {
 
         healthCheckBean.setHost_id(host.getHost_id());
         healthCheckBean.setHost_launch_time(host.getCreate_date());
+        healthCheckBean.setHost_terminated(false);
         transistionState(healthCheckBean, HealthCheckState.LAUNCHING, HealthCheckStatus.SUCCEEDED, "");
         LOG.info("Health Check Succeeded: id {}, group {}, state {}", healthCheckBean.getId(), groupName, healthCheckBean.getState());
     }
@@ -284,7 +296,11 @@ public class HealthChecker implements Runnable {
         bean.setAgent_status(agentBean.getStatus());
         bean.setLast_err_no(agentBean.getLast_err_no());
         bean.setFail_count(agentBean.getFail_count());
-        bean.setError_msg(agentErrorBean.getError_msg());
+
+        if (!StringUtils.isEmpty(agentErrorBean.getError_msg())) {
+            bean.setError_msg(agentErrorBean.getError_msg());
+        }
+
         bean.setAgent_start_date(agentBean.getStart_date());
         bean.setAgent_last_update(agentBean.getLast_update());
         try {
@@ -422,15 +438,20 @@ public class HealthChecker implements Runnable {
         List<String> runningIds = hostInfoDAO.getRunningInstances(Arrays.asList(hostId));
         if (runningIds.isEmpty()) {
             LOG.info("The host {} has been terminated", hostId);
+            healthCheckBean.setHost_terminated(true);
         } else {
             HostBean hostBean = new HostBean();
             if (healthCheckBean.getStatus() == HealthCheckStatus.FAILED || healthCheckBean.getStatus() == HealthCheckStatus.TIMEOUT) {
+                LOG.info(String.format("Health check %s. Retain the host %s for debugging", healthCheckBean.getStatus().toString(), hostId));
                 hostBean.setState(HostState.PENDING_TERMINATE);
                 hostBean.setLast_update(System.currentTimeMillis());
+                healthCheckBean.setHost_terminated(false);
             } else {
+                LOG.info(String.format("Health check %s. Termimate the host %s", healthCheckBean.getStatus().toString(), hostId));
                 hostInfoDAO.terminateHost(hostId);
                 hostBean.setState(HostState.TERMINATING);
                 hostBean.setLast_update(System.currentTimeMillis());
+                healthCheckBean.setHost_terminated(true);
             }
             hostDAO.updateHostById(hostId, hostBean);
         }

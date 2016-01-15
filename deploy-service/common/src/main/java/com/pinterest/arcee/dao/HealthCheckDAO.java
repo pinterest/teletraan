@@ -37,4 +37,6 @@ public interface HealthCheckDAO {
     public List<HealthCheckBean> getRegularHealthChecksByGroupAndTime(String groupName, long time) throws Exception;
 
     public List<String> getRecentHealthCheckStatus(String groupName, int pageSize) throws Exception;
+
+    public List<HealthCheckBean> getHealthChecksByUnterminatedHosts() throws Exception;
 }

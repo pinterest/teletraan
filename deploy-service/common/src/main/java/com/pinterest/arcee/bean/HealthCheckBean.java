@@ -30,8 +30,9 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * status              VARCHAR(32)      NOT NULL,
  * type                VARCHAR(32)      NOT NULL,
  * host_id             VARCHAR(64),
- * error_message       VARCHAR(2048),
  * host_launch_time         BIGINT,
+ * host_terminated         TINYINT(1),
+ * error_message       VARCHAR(2048),
  * deploy_start_time        BIGINT,
  * deploy_complete_time     BIGINT,
  * state_start_time         BIGINT           NOT NULL,
@@ -50,8 +51,9 @@ public class HealthCheckBean implements Updatable {
     private HealthCheckStatus status;
     private HealthCheckType type;
     private String host_id;
-    private String error_message;
     private Long host_launch_time;
+    private Boolean host_terminated;
+    private String error_message;
     private Long deploy_start_time;
     private Long deploy_complete_time;
     private Long state_start_time;
@@ -130,6 +132,14 @@ public class HealthCheckBean implements Updatable {
         this.host_id = host_id;
     }
 
+    public Boolean getHost_terminated() {
+        return host_terminated;
+    }
+
+    public void setHost_terminated(Boolean host_terminated) {
+        this.host_terminated = host_terminated;
+    }
+
     public String getError_message() {
         return error_message;
     }
@@ -198,6 +208,7 @@ public class HealthCheckBean implements Updatable {
         clause.addColumn("status", status);
         clause.addColumn("type", type);
         clause.addColumn("host_id", host_id);
+        clause.addColumn("host_terminated", host_terminated);
         clause.addColumn("error_message", error_message);
         clause.addColumn("host_launch_time", host_launch_time);
         clause.addColumn("deploy_start_time", deploy_start_time);

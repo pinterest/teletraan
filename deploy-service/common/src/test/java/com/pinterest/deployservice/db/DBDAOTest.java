@@ -1081,10 +1081,14 @@ public class DBDAOTest {
         bean2.setLast_worked_on(System.currentTimeMillis());
         bean2.setStart_time(System.currentTimeMillis());
         bean2.setState_start_time(System.currentTimeMillis());
+        bean2.setHost_terminated(false);
         healthCheckDAO.insertHealthCheck(bean2);
 
         List<HealthCheckBean> beans = healthCheckDAO.getHealthChecksByGroup("group-1", 1, 3);
         assertEquals(beans.size(), 2);
+
+        beans = healthCheckDAO.getHealthChecksByUnterminatedHosts();
+        assertEquals(beans.size(), 1);
 
         HealthCheckBean bean3 = healthCheckDAO.getHealthCheckById("id-1");
         assertEquals(bean3.getId(), bean1.getId());
