@@ -15,7 +15,7 @@
 # -*- coding: utf-8 -*-
 """Collection of all deploy related views
 """
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import SITE_METRICS_CONFIGS
 from django.shortcuts import render
 from django.views.generic import View
 from django.template.loader import render_to_string
@@ -46,8 +46,9 @@ def _get_ongoing_deploys(request, index, size):
 
 
 def get_landing_page(request):
+    metrics = SITE_METRICS_CONFIGS
     return render(request, 'landing.html', {
-        "pinterest": IS_PINTEREST,
+        "metrics": metrics,
     })
 
 

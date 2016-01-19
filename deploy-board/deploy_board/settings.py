@@ -86,7 +86,7 @@ LOGGING = {
             'level': LOG_LEVEL,
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': '%s/service.log' % LOG_DIR,
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'maxBytes': 1024 * 1024 * 5, # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
         },
@@ -94,7 +94,7 @@ LOGGING = {
             'level': LOG_LEVEL,
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': '%s/access.log' % LOG_DIR,
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'maxBytes': 1024 * 1024 * 5, # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
         },
@@ -173,6 +173,11 @@ STATICFILES_DIRS = (
     os.path.join(PROJECT_PATH, "static"),
 )
 
+# Site global metrics
+SITE_METRICS_CONFIGS = []
+# Deep Teletraan backend health check url
+TELETRAAN_SERVICE_HEALTHCHECK_URL = os.getenv("TELETRAAN_SERVICE_HEALTHCHECK_URL", None)
+
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = "https://jenkins.pinadmin.com/job/"
@@ -190,15 +195,28 @@ if IS_PINTEREST:
 
         OAUTH_CLIENT_SECRET = Knox().get_primary(ADMIN_OAUTH_SECRET_KNOX_ID)
 
-    TELETRAAN_SERVICE_HEALTHCHECK_URL = os.getenv("TELETRAAN_SERVICE_HEALTHCHECK_URL")
-
     # Site health metrics
     REQUESTS_URL = os.getenv("REQUESTS_URL")
     SUCCESS_RATE_URL = os.getenv("SUCCESS_RATE_URL")
     LATENCY_URL = os.getenv("LATENCY_URL")
+    SITE_METRICS_CONFIGS = [
+        {"title": "Requests", "url": REQUESTS_URL,
+         "specs": [{"min": 0, "max": 50000, "color": "Red"},
+                   {"min": 50000, "max": 80000, "color": "Yellow"},
+                   {"min": 80000, "max": 150000, "color": "Green"}]},
+        {"title": "Success", "url": SUCCESS_RATE_URL,
+         "specs": [{"min": 90, "max": 98, "color": "Red"},
+                   {"min": 98, "max": 99, "color": "Yellow"},
+                   {"min": 99, "max": 100, "color": "Green"}]},
+        {"title": "Latency", "url": LATENCY_URL,
+         "specs": [{"min": 800, "max": 1000, "color": "Red"},
+                   {"min": 600, "max": 800, "color": "Yellow"},
+                   {"min": 300, "max": 600, "color": "Green"}]}
+    ]
 
     # Pinterest ngapp2 status file
     NGAPP_PRE_DEPLOY_STATUS_NODE = "varnish_pre_deploy_status"
     NGAPP_POST_DEPLOY_STATUS_NODE = "varnish_post_deploy_status"
     NGAPP_ROLLBACK_STATUS_NODE = "varnish_rollback_status"
     NGAPP_DEPLOY_CHANNEL = "deploys"
+

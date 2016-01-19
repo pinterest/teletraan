@@ -1,10 +1,11 @@
-{% if pinterest %}
+{% if metrics %}
 <div class="panel panel-default">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left pointer-cursor">
             <a data-toggle="collapse" data-target="#siteHealthEnvId">
-                <span class="glyphicon glyphicon-chevron-down"></span>
-                Site Health
+                <span id="siteHealthEnvId_Toggler"
+                      class="glyphicon glyphicon-chevron-down"></span>
+                Metrics
             </a>
         </h4>
         <div class="btn-group pull-right">
@@ -24,169 +25,191 @@
     <div id="siteHealthEnvId" class="collapse in panel-body">
         <div id="alarmDivId"></div>
         <div class="row" align="center" id="site_health_gauges">
-            <div class="col-md-4">
-                <div><b>Requests</b></div>
-                <div id="gauge_Requests"></div>
+            {% for config in metrics %}
+            <div class="col-md-4 col-centered">
+                <div id="gauge_{{ config.title }}" align="center"></div>
             </div>
-            <div class="col-md-4">
-                <div><b>Success Rate</b></div>
-                <div id="gauge_SuccessRate"></div>
-            </div>
-            <div class="col-md-4">
-                <div><b>Latency</b></div>
-                <div id="gauge_Latency"></div>
-            </div>
+            {% endfor %}
         </div>
         <div class="row" align="center" id="site_health_charts">
-            <div class="col-md-4">
-                <div><b>Requests</b></div>
-                <div id="chart_Requests"></div>
+            {% for config in metrics %}
+            <div class="col-md-4 col-centered">
+                <div id="chart_{{ config.title }}" align="center"></div>
             </div>
-            <div class="col-md-4">
-                <div><b>Success Rate</b></div>
-                <div id="chart_SuccessRate"></div>
-            </div>
-            <div class="col-md-4">
-                <div><b>Latency</b></div>
-                <div id="chart_Latency"></div>
-            </div>
+            {% endfor %}
         </div>
     </div>
 </div>
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script>
-    var cookie_name = 'site-health-graph-selection';
-
-    $('#choose-gauge').on('click', function () {
-        Cookies.set(cookie_name, 'gauge');
-        $('#site_health_charts').hide();
-        $('#site_health_gauges').show();
-    })
-
-    $('#choose-chart').on('click', function () {
-        Cookies.set(cookie_name, 'chart');
-        $('#site_health_gauges').hide();
-        $('#site_health_charts').show();
-    })
+    var select_cookie_name = 'site-health-graph-selection';
+    var toggle_cookie_name = 'site-health-panel-toggle';
 
     // initilization based on cookie
-    var cookie_selection = Cookies.get(cookie_name);
-    if ((cookie_selection !== 'chart' && cookie_selection !== 'gauge')
-            || cookie_selection == 'gauge') {
-        $('#choose-gauge').click();
-    } else {
-        $('#choose-chart').click();
+    var cookie_toggle = Cookies.get(toggle_cookie_name);
+    if (cookie_toggle == 'hide') {
+        $('#siteHealthEnvId').collapse('hide');
+        $('#siteHealthEnvId_Toggler').toggleClass('glyphicon-chevron-down glyphicon-chevron-right', 100);
     }
 
-    function drawGauges(request_value, sucrate_value, latency_value) {
+    var cookie_selection = Cookies.get(select_cookie_name);
+    if (cookie_selection == 'chart') {
+        $('#site_health_charts').show();
+        $('#site_health_gauges').hide();
+    } else {
+        $('#site_health_charts').hide();
+        $('#site_health_gauges').show();
+    }
+
+    $(function () {
+        $('#choose-gauge').on('click', function () {
+            Cookies.set(select_cookie_name, 'gauge');
+            $('#site_health_charts').hide();
+            $('#site_health_gauges').show();
+        });
+        $('#choose-chart').on('click', function () {
+            Cookies.set(select_cookie_name, 'chart');
+            $('#site_health_gauges').hide();
+            $('#site_health_charts').show();
+        });
+        $('#siteHealthEnvId').on('hide.bs.collapse', function () {
+            $('#siteHealthEnvId_Toggler').toggleClass('glyphicon-chevron-down glyphicon-chevron-right', 100);
+            Cookies.set(toggle_cookie_name, 'hide');
+        });
+        $('#siteHealthEnvId').on('show.bs.collapse', function () {
+            $('#siteHealthEnvId_Toggler').toggleClass('glyphicon-chevron-down glyphicon-chevron-right', 100);
+            Cookies.set(toggle_cookie_name, 'show');
+        });
+    });
+
+    var gauge_datas = {};
+    var chart_datas = {};
+    var gauge_options = {};
+    var chart_options = {};
+    var gauge_charts = {};
+    var chart_charts = {};
+
+    function drawGauges(w, h, title, specs, gauge_id) {
         var data = google.visualization.arrayToDataTable([
             ['Label', 'Value'],
-            ['', 0],
+            [title, 0],
         ]);
-        var value = parseInt(request_value.toFixed(0));
-        data.setValue(0, 1, value);
+
         var options = {
-            width: 400, height: 175,
-            min: 50000,
-            max: 150000,
+            width: w, height: h,
             minorTicks: 5,
-            greenFrom: 100000, greenTo: 150000,
-            yellowFrom: 80000, yellowTo: 100000,
-            redFrom: 50000, redTo: 80000,
         };
-        var chart = new google.visualization.Gauge(document.getElementById('gauge_Requests'));
-        chart.draw(data, options);
 
-        data = google.visualization.arrayToDataTable([
-            ['Label', 'Value'],
-            ['', 0],
-        ]);
-        value = parseFloat(sucrate_value.toFixed(2));
-        data.setValue(0, 1, value);
-        options = {
-            width: 400, height: 175,
-            min: 90,
-            max: 100,
-            minorTicks: 5,
-            greenFrom: 99, greenTo: 100,
-            yellowFrom: 98, yellowTo: 99,
-            redFrom: 90, redTo: 98,
-        };
-        chart = new google.visualization.Gauge(document.getElementById('gauge_SuccessRate'));
-        chart.draw(data, options);
+        // figure out min and max
+        var min = Number.MAX_VALUE;
+        var max = 0;
+        for(var i=0; i < specs.length; i++) {
+            spec_min = specs[i]['min'];
+            spec_max = specs[i]['max'];
+            min = Math.min(min, spec_min);
+            max = Math.max(max, spec_max);
+            if (specs[i]['color'] == "Green") {
+                options['greenFrom'] = spec_min;
+                options['greenTo'] = spec_max;
+            }
+            if (specs[i]['color'] == "Yellow") {
+                options['yellowFrom'] = spec_min;
+                options['yellowTo'] = spec_max;
+            }
+            if (specs[i]['color'] == "Red") {
+                options['redFrom'] = spec_min;
+                options['redTo'] = spec_max;
+            }
+        }
 
-        data = google.visualization.arrayToDataTable([
-            ['Label', 'Value'],
-            ['', 0],
-        ]);
-        value = parseInt(latency_value.toFixed(0));
-        data.setValue(0, 1, value);
-        options = {
-            width: 400, height: 175,
-            min: 100,
-            max: 500,
-            minorTicks: 5,
-            greenFrom: 100, greenTo: 250,
-            yellowFrom: 250, yellowTo: 300,
-            redFrom: 300, redTo: 500,
-        };
-        chart = new google.visualization.Gauge(document.getElementById('gauge_Latency'));
+        options['min'] = min;
+        options['max'] = max;
+        //greenFrom: colorFroms["Green"], greenTo: colorTos["Green"],
+        //yellowFrom: colorFroms["Yellow"], greenTo: colorTos["Yellow"],
+        //redFrom: colorFroms["Red"], greenTo: colorTos["Red"],
+
+        var chart = new google.visualization.Gauge(document.getElementById(gauge_id));
+
+        // Remember data, options and charts for future reference
+        gauge_datas[title] = data;
+        gauge_options[title] = options;
+        gauge_charts[title] = chart;
+
+        // Draw the init gauge for the first time
         chart.draw(data, options);
     }
 
-    function drawCharts(request_data, sucrate_data, latency_data) {
+    function drawCharts(w, h, title, datas, chart_id) {
         var options = {
-            width: 400, height: 175,
+            width: w, height: h,
+            title: title,
             legend: { position: 'none' }
         };
-        var current_time = new Date().getTime() ;
 
         var data = new google.visualization.DataTable();
         data.addColumn('datetime', 'X');
         data.addColumn('number', 'X');
-        for (var i = 0; i < request_data.length; i++) {
-            data.addRow([new Date(current_time - (60 - i) * 60000), request_data[i]]);
+        for (var i = 0; i < datas.length; i++) {
+            data.addRow([new Date(datas[i][0] * 1000), datas[i][1]]);
         }
-        var chart = new google.visualization.LineChart(document.getElementById('chart_Requests'));
-        chart.draw(data, options);
+        var chart = new google.visualization.LineChart(document.getElementById(chart_id));
 
-        data = new google.visualization.DataTable();
-        data.addColumn('datetime', 'X');
-        data.addColumn('number', 'X');
-        for (var i = 0; i < sucrate_data.length; i++) {
-            data.addRow([new Date(current_time - (60 - i) * 60000), sucrate_data[i]]);
-        }
-        var chart = new google.visualization.LineChart(document.getElementById('chart_SuccessRate'));
-        chart.draw(data, options);
+        // Remember data, options and charts for future reference
+        chart_datas[title] = data;
+        chart_options[title] = options;
+        chart_charts[title] = chart;
 
-        data = new google.visualization.DataTable();
-        data.addColumn('datetime', 'X');
-        data.addColumn('number', 'X');
-        for (var i = 0; i < latency_data.length; i++) {
-            data.addRow([new Date(current_time - (60 - i) * 60000), latency_data[i]]);
-        }
-        var chart = new google.visualization.LineChart(document.getElementById('chart_Latency'));
         chart.draw(data, options);
     }
 
     function initialize() {
-        drawGauges(0, 0, 0);
-        drawCharts([], [], []);
+        var specs = [];
+        var spec = {};
+        {% for config in metrics %}
+        specs = [];
+        {% for spec in config.specs %}
+        spec = {};
+        spec['min'] = {{ spec.min }};
+        spec['max'] = {{ spec.max }};
+        spec['color'] = "{{ spec.color }}";
+        specs.push(spec);
+        {% endfor %}
+        drawGauges(400, 175, "{{ config.title}}", specs, "gauge_{{ config.title }}");
+        {% endfor %}
+
+        //drawCharts();
+        {% for config in metrics %}
+        drawCharts(400, 175, "{{ config.title}}", [], "chart_{{ config.title }}");
+        {% endfor %}
     }
 
-    function draw(health_metrics) {
-        if (!health_metrics) {
-             return
+    function draw(metrics) {
+        // Draw gauge
+        for (var title in metrics) {
+            var values = metrics[title];
+            if(values) {
+                data = gauge_datas[title];
+                data.setValue(0, 1, values[values.length - 1][1].toFixed(2));
+                options = gauge_options[title];
+                gauge_charts[title].draw(data, options);
+            }
         }
-        var request_data = health_metrics['request'];
-        var sucrate_data = health_metrics['sucrate'];
-        var latency_data = health_metrics['latency'];
-        var request_value = parseInt(request_data[request_data.length-1].toFixed(0));
-        var sucrate_value = parseFloat(sucrate_data[sucrate_data.length-1].toFixed(2));
-        var latency_value = parseInt(latency_data[latency_data.length-1].toFixed(0));
-        drawGauges(request_value, sucrate_value, latency_value);
-        drawCharts(request_data, sucrate_data, latency_data);
+
+        // Draw charts as well
+        for (var title in metrics) {
+            var values = metrics[title];
+            if(values) {
+                var data = new google.visualization.DataTable();
+                data.addColumn('datetime', 'X');
+                data.addColumn('number', 'X');
+                for (var i = 0; i < values.length; i++) {
+                    data.addRow([new Date(values[i][0] * 1000), values[i][1]]);
+                }
+                options = chart_options[title];
+                chart_charts[title].draw(data, options);
+            }
+        }
     }
 
     google.load("visualization", "1", {packages: ["corechart", "gauge", "line"]});

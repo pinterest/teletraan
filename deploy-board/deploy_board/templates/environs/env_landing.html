@@ -261,17 +261,7 @@
 {% block main %}
 
     {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
-
-    {% if metrics %}
-    <div class="panel panel-default">
-    {% include "panel_heading.tmpl" with panel_title="Service Health" panel_body_id="metricsGauges" direction="down" %}
-    <div id="metricsGauges" class="collapse in panel-body" align="center">
-        {% include "configs/metrics_gauges.tmpl" %}
-    </div>
-    </div>
-    {% elif pinterest %}
     {% include "environs/site_health.tmpl" %}
-    {% endif %}
 
     {% if messages %}
         {% for message in messages %}

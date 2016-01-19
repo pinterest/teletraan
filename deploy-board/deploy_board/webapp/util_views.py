@@ -15,7 +15,7 @@
 # -*- coding: utf-8 -*-
 """Collection of all helper utils
 """
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import SITE_METRICS_CONFIGS, TELETRAAN_SERVICE_HEALTHCHECK_URL
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 import json
@@ -24,10 +24,6 @@ from helpers import environs_helper
 from helpers import autoscaling_metrics_helper, groups_helper
 import traceback
 
-if IS_PINTEREST:
-    from deploy_board.settings import REQUESTS_URL, SUCCESS_RATE_URL, LATENCY_URL, \
-        TELETRAAN_SERVICE_HEALTHCHECK_URL
-
 
 def _get_latest_metrics(url):
     response = urllib2.urlopen(url)
@@ -35,17 +31,24 @@ def _get_latest_metrics(url):
     # Return the first datapoint in the datapoints list
     if data:
         if 'datapoints' in data[0] and len(data[0]['datapoints']) != 0:
-            return min(data[0]['datapoints'][0])
-        # Check for TSDB response
+            return data[0]['datapoints']
+            # Check for TSDB response
         if 'dps' in data[0] and len(data[0]['dps']) != 0:
-            return data[0]['dps'].itervalues().next()
+            return data[0]['dps'].itervalues()
     return 0
 
 
-def get_site_metrics(request, name, stage):
+def get_service_metrics(request, name, stage):
     metrics = environs_helper.get_env_metrics_config(request, name, stage)
     data = {}
     for metric in metrics:
+        data[metric['title']] = _get_latest_metrics(metric['url'])
+    return HttpResponse(json.dumps({'html': data}), content_type="application/json")
+
+
+def get_site_health_metrics(request):
+    data = {}
+    for metric in SITE_METRICS_CONFIGS:
         data[metric['title']] = _get_latest_metrics(metric['url'])
     return HttpResponse(json.dumps({'html': data}), content_type="application/json")
 
@@ -69,21 +72,6 @@ def get_service_alarms(request, name, stage):
         "hasAlarm": True if alarms else False,
     })
     return HttpResponse(html)
-
-
-def _get_latest_health_metrics(url):
-    response = urllib2.urlopen(url)
-    data = json.loads(response.read())
-    data_array = data['item'][1]
-    return data_array
-
-
-def get_site_health_metrics(request):
-    data = {}
-    data["request"] = _get_latest_health_metrics(REQUESTS_URL)
-    data["sucrate"] = _get_latest_health_metrics(SUCCESS_RATE_URL)
-    data["latency"] = _get_latest_health_metrics(LATENCY_URL)
-    return HttpResponse(json.dumps({'html': data}), content_type="application/json")
 
 
 def validate_metrics_url(request):

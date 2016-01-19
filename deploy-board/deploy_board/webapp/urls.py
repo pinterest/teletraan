@@ -96,8 +96,8 @@ urlpatterns = [
         r'(?P<commit>[a-zA-Z0-9\-_]+)', env_views.deploy_commit),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/deploy/'
         r'(?P<deploy_id>[a-zA-Z0-9\-_]+)', env_views.get_deploy),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/get_site_metrics/$',
-        util_views.get_site_metrics),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/get_service_metrics/$',
+        util_views.get_service_metrics),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/get_service_alarms/$',
         util_views.get_service_alarms),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config_history/$',

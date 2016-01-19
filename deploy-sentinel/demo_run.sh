@@ -29,6 +29,7 @@ mkdir /tmp/deploy_board
 ./run.sh >& /tmp/deploy_board/access.log &
 
 cd ~/teletraan-demo
+mkdir deploy-sentinel
 wget -O - https://github.com/pinterest/teletraan/releases/download/${RELEASE_VERSION}/deploy-sentinel-${DEPLOY_SENTINEL_VERSION}.tar.gz | tar zxf - -C deploy-sentinel --strip-components=1
 
 cd ~/teletraan-demo

@@ -19,7 +19,7 @@ function escapeHtml(string) {
 
 $(document).ajaxError(function (event, jqxhr, settings, thrownError) {
     //ignore the metrics update faiure for now
-    if (settings.url.indexOf('get_site_metrics') > -1) {
+    if (settings.url.indexOf('get_service_metrics') > -1) {
         console.log(jqxhr.responseText);
         return;
     }
