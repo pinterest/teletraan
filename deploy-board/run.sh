@@ -1,6 +1,8 @@
 #!/bin/bash
+
 # This is for test and dev purpose only
 echo "Starting deploy board..."
+
 mkdir -p /tmp/deploy_board
 export ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export PYTHONPATH=$ROOT_DIR
