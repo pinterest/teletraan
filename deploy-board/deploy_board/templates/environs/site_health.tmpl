@@ -43,6 +43,9 @@
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script>
+    google.load("visualization", "1", {packages: ["corechart", "gauge", "line"]});
+    google.setOnLoadCallback(initialize);
+
     var select_cookie_name = 'site-health-graph-selection';
     var toggle_cookie_name = 'site-health-panel-toggle';
 
@@ -125,9 +128,6 @@
 
         options['min'] = min;
         options['max'] = max;
-        //greenFrom: colorFroms["Green"], greenTo: colorTos["Green"],
-        //yellowFrom: colorFroms["Yellow"], greenTo: colorTos["Yellow"],
-        //redFrom: colorFroms["Red"], greenTo: colorTos["Red"],
 
         var chart = new google.visualization.Gauge(document.getElementById(gauge_id));
 
@@ -189,7 +189,10 @@
         for (var title in metrics) {
             var values = metrics[title];
             if(values) {
-                data = gauge_datas[title];
+                var data = google.visualization.arrayToDataTable([
+                    ['Label', 'Value'],
+                    [title, 0],
+                ]);
                 data.setValue(0, 1, values[values.length - 1][1].toFixed(2));
                 options = gauge_options[title];
                 gauge_charts[title].draw(data, options);
@@ -212,20 +215,21 @@
         }
     }
 
-    google.load("visualization", "1", {packages: ["corechart", "gauge", "line"]});
-    google.setOnLoadCallback(initialize);
-
     var sh_startTime = new Date().getTime();
     function poll_metrics() {
         if (new Date().getTime() - sh_startTime > 3600000) {
             clearInterval(sh_interval);
         }
 
+        {% if metricsKind == "site" %}
         $.get('/get_site_health_metrics/',function (response) {
+        {% else %}
+        $.get('/env/{{ env.envName }}/{{ env.stageName }}/get_service_metrics/', function (response) {
+        {% endif %}
             draw(response.html);
         }).fail(function () {
-                    window.console && console.log('Failed to call get_site_health_metrics');
-                });
+            window.console && console.log('Failed to get metrics');
+        });
 
         {% if env %}
         $('#alarmDivId').load('/env/{{ env.envName }}/{{ env.stageName }}/get_service_alarms/',

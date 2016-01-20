@@ -25,6 +25,15 @@ from helpers import autoscaling_metrics_helper, groups_helper
 import traceback
 
 
+# convert json opentsdb to array based
+def _convert_opentsdb_data(dps):
+    data = []
+    for key, value in dps.iteritems():
+        data.append([int(key), value])
+    data.sort(key=lambda x: x[0])
+    return data
+
+
 def _get_latest_metrics(url):
     response = urllib2.urlopen(url)
     data = json.loads(response.read())
@@ -34,7 +43,7 @@ def _get_latest_metrics(url):
             return data[0]['datapoints']
             # Check for TSDB response
         if 'dps' in data[0] and len(data[0]['dps']) != 0:
-            return data[0]['dps'].itervalues()
+            return _convert_opentsdb_data(data[0]['dps'])
     return 0
 
 

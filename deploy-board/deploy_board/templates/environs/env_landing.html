@@ -261,7 +261,7 @@
 {% block main %}
 
     {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
-    {% include "environs/site_health.tmpl" %}
+    {% include "environs/site_health.tmpl" with metricsKind="service" %}
 
     {% if messages %}
         {% for message in messages %}

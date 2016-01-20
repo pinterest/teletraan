@@ -203,7 +203,7 @@ if IS_PINTEREST:
         {"title": "Requests", "url": REQUESTS_URL,
          "specs": [{"min": 0, "max": 50000, "color": "Red"},
                    {"min": 50000, "max": 80000, "color": "Yellow"},
-                   {"min": 80000, "max": 150000, "color": "Green"}]},
+                   {"min": 80000, "max": 200000, "color": "Green"}]},
         {"title": "Success", "url": SUCCESS_RATE_URL,
          "specs": [{"min": 90, "max": 98, "color": "Red"},
                    {"min": 98, "max": 99, "color": "Yellow"},
