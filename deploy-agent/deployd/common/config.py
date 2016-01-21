@@ -31,6 +31,7 @@ class Config(object):
 
     def __init__(self, filenames=None, config_reader=None):
         self._configs = {}
+        self._filenames = None
         if config_reader:
             self._config_reader = config_reader
             return

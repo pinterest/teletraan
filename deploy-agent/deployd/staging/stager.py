@@ -135,9 +135,10 @@ def main():
     parser.add_argument('-e', '--env-name', dest='env_name', required=True,
                         help="the environment name currently in deploy.")
     args = parser.parse_args()
+    config = Config(args.config_file)
+    logging.basicConfig(level=config.get_log_level())
 
     log.info("Start to stage the package.")
-    config = Config(args.config_file)
     result = Stager(config=config, build=args.build,
                     target=args.target, env_name=args.env_name).enable_package()
     if result == Status.SUCCEEDED:
