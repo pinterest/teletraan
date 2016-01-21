@@ -1,7 +1,14 @@
-all:    quickstart
+all:    publish
 
-quickstart: quickstart.py
+clean:
+	rm -fr quickstart-build.tar.gz
+
+build:	clean
+	tar -cf quickstart-build.tar.gz mysite
+
+publish: build quickstart.py
 	python quickstart.py
+        
 
 
 
