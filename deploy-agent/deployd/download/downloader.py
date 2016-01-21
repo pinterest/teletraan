@@ -29,8 +29,7 @@ log = logging.getLogger(__name__)
 
 class Downloader(object):
 
-    def __init__(self, config_fn, build, url, env_name):
-        config = Config(config_fn)
+    def __init__(self, config, build, url, env_name):
         self._matcher = re.compile(r'^.*?[.](?P<ext>tar\.gz|tar\.bz2|\w+)$')
         self._base_dir = config.get_builds_directory()
         self._build_name = env_name
@@ -107,8 +106,11 @@ def main():
     parser.add_argument('-e', '--env-name', dest='env_name', required=True,
                         help="the environment name currently in deploy.")
     args = parser.parse_args()
+    config = Config(args.config_file)
+    logging.basicConfig(level=config.get_log_level())
 
-    status = Downloader(args.config_file, args.build, args.url, args.env_name).download()
+    log.info("Start to download the package.")
+    status = Downloader(config, args.build, args.url, args.env_name).download()
     if status != Status.SUCCEEDED:
         log.error("Download failed.")
         sys.exit(1)
