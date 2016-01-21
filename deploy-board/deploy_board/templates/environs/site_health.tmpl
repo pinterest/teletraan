@@ -26,14 +26,14 @@
         <div id="alarmDivId"></div>
         <div class="row" align="center" id="site_health_gauges">
             {% for config in metrics %}
-            <div class="col-md-4 col-centered">
+            <div class="col-md-3 col-centered">
                 <div id="gauge_{{ config.title }}" align="center"></div>
             </div>
             {% endfor %}
         </div>
         <div class="row" align="center" id="site_health_charts">
             {% for config in metrics %}
-            <div class="col-md-4 col-centered">
+            <div class="col-md-3 col-centered">
                 <div id="chart_{{ config.title }}" align="center"></div>
             </div>
             {% endfor %}
@@ -56,15 +56,6 @@
         $('#siteHealthEnvId_Toggler').toggleClass('glyphicon-chevron-down glyphicon-chevron-right', 100);
     }
 
-    var cookie_selection = Cookies.get(select_cookie_name);
-    if (cookie_selection == 'chart') {
-        $('#site_health_charts').show();
-        $('#site_health_gauges').hide();
-    } else {
-        $('#site_health_charts').hide();
-        $('#site_health_gauges').show();
-    }
-
     $(function () {
         $('#choose-gauge').on('click', function () {
             Cookies.set(select_cookie_name, 'gauge');
@@ -85,6 +76,17 @@
             Cookies.set(toggle_cookie_name, 'show');
         });
     });
+
+    var cookie_selection = Cookies.get(select_cookie_name);
+    if (cookie_selection == 'chart') {
+        $('#choose-chart').click();
+        $('#site_health_charts').show();
+        $('#site_health_gauges').hide();
+    } else {
+        $('#choose-gauge').click();
+        $('#site_health_charts').hide();
+        $('#site_health_gauges').show();
+    }
 
     var gauge_datas = {};
     var chart_datas = {};
@@ -175,12 +177,12 @@
         spec['color'] = "{{ spec.color }}";
         specs.push(spec);
         {% endfor %}
-        drawGauges(400, 175, "{{ config.title}}", specs, "gauge_{{ config.title }}");
+        drawGauges(300, 150, "{{ config.title}}", specs, "gauge_{{ config.title }}");
         {% endfor %}
 
         //drawCharts();
         {% for config in metrics %}
-        drawCharts(400, 175, "{{ config.title}}", [], "chart_{{ config.title }}");
+        drawCharts(300, 150, "{{ config.title}}", [], "chart_{{ config.title }}");
         {% endfor %}
     }
 
