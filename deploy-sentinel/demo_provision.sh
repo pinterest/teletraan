@@ -2,7 +2,7 @@
 #
 # This script takes a standard ubuntu box and installs all the software needed to run teletraan locally.
 
-echo "Install java and python..."
+echo "Install Teletraan runtime dependencies..."
 
 # Add Java 8 repo
 #add-apt-repository ppa:webupd8team/java
@@ -13,14 +13,20 @@ apt-get update
 # Accept license agreement and install java
 #echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections
 #apt-get install -y oracle-java8-installer
+echo "Install openjdk 8..."
 apt-get install -y openjdk-8-jre
+echo "Successfully installed openjdk 8"
 
-# Install some dev tools
+echo "Install python and related tools..."
 apt-get install -y python python-pip python-virtualenv
+echo "Successfully installed python"
 
-# Install and config mysql
+echo "Install mysql..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get install -q -y mysql-server mysql-client
 mysql -u root < /home/vagrant/teletraan/deploy-service/common/src/main/resources/sql/deploy.sql
+echo "Successfully installed mysql"
 
-echo "Completed install!"
+echo "Successfully completed Teletraan dependencies install!"
+
+su -c "source /home/vagrant/teletraan/deploy-sentinel/demo_run.sh" vagrant
