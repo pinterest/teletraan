@@ -88,6 +88,7 @@ public class ConfigHelper {
         context.setChatManager(configuration.getChatFactory().create());
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
+        context.setMetricSource(configuration.getMetricSourceFactory().create());
 
         EventSenderFactory eventSenderFactory = configuration.getEventSenderFactory();
         if (eventSenderFactory != null) {

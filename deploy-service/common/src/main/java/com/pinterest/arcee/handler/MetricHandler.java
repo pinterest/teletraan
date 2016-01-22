@@ -16,15 +16,15 @@
 package com.pinterest.arcee.handler;
 
 import com.pinterest.arcee.bean.MetricDatumBean;
+import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.bean.AsgAlarmBean;
-import com.pinterest.deployservice.common.TSDBClient;
 import com.pinterest.arcee.dao.AlarmDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.util.Collection;
 
 public class MetricHandler {
     private static final Logger LOG = LoggerFactory.getLogger(MetricHandler.class);
@@ -32,35 +32,35 @@ public class MetricHandler {
     private static final String COUNTER_NAME_LAUNCH_LATENCY = "mimmax:autoscaling.%s.%s.launchlatency";
     private static final String COUNTER_NAME_DEPLOY_LATENCY = "mimmax:autoscaling.%s.%s.deploylatency";
 
-    private TSDBClient client;
+    private MetricSource client;
     private AlarmDAO alarmDAO;
     private AlarmManager alarmManager;
 
     public MetricHandler(ServiceContext serviceContext) {
-        client = new TSDBClient();
+        client = serviceContext.getMetricSource();
         alarmDAO = serviceContext.getAlarmDAO();
         alarmManager = serviceContext.getAlarmManager();
     }
 
-    public List<MetricDatumBean> getGroupSizeMetrics(String groupName, String startFrom) throws Exception {
+    public Collection<MetricDatumBean> getGroupSizeMetrics(String groupName, String startFrom) throws Exception {
         LOG.info("Get group {} size metrics from openTSDB.", groupName);
         String metricName = String.format(COUNTER_NAME, groupName);
         return client.getMetrics(metricName, startFrom);
     }
 
-    public List<MetricDatumBean> getLaunchLatencyMetrics(String envName, String stageName, String startFrom) throws Exception {
+    public Collection<MetricDatumBean> getLaunchLatencyMetrics(String envName, String stageName, String startFrom) throws Exception {
         LOG.info(String.format("Get env %s.%s Launch Latency metrics from openTSDB.", envName, stageName));
         String metricName = String.format(COUNTER_NAME_LAUNCH_LATENCY, envName, stageName);
         return client.getMetrics(metricName, startFrom);
     }
 
-    public List<MetricDatumBean> getDeployLatencyMetrics(String envName, String stageName, String startFrom) throws Exception {
+    public Collection<MetricDatumBean> getDeployLatencyMetrics(String envName, String stageName, String startFrom) throws Exception {
         LOG.info(String.format("Get env %s.%s Deploy Latency metrics from openTSDB.", envName, stageName));
         String metricName = String.format(COUNTER_NAME_DEPLOY_LATENCY, envName, stageName);
         return client.getMetrics(metricName, startFrom);
     }
 
-    public List<MetricDatumBean> getMetricData(String groupName, String metricName, String startFrom) throws Exception {
+    public Collection<MetricDatumBean> getMetricData(String groupName, String metricName, String startFrom) throws Exception {
         AsgAlarmBean asgAlarmBean = alarmDAO.getAlarmInfoByGroupAndMetricSource(groupName, metricName);
         if (!asgAlarmBean.getFrom_aws_metric()) {
             LOG.info("Get metrics {} from openTSDB.", metricName);
@@ -71,7 +71,7 @@ public class MetricHandler {
         }
     }
 
-    public List<MetricDatumBean> getRawMetricData(String metricName, String startFrom) throws Exception {
+    public Collection<MetricDatumBean> getRawMetricData(String metricName, String startFrom) throws Exception {
         return client.getMetrics(metricName, startFrom);
     }
 }

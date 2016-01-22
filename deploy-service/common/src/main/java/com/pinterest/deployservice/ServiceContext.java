@@ -21,6 +21,7 @@ import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.aws.AwsConfigManager;
 import com.pinterest.arcee.dao.*;
+import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.email.MailManager;
@@ -68,6 +69,7 @@ public class ServiceContext {
     private AmazonEC2Client ec2Client;
     private ConfigHistoryDAO configHistoryDAO;
     private AWSCredentials awsCredentials;
+    private MetricSource metricSource;
     AwsConfigManager awsConfigManager;
 
     private boolean buildCacheEnabled;
@@ -347,9 +349,6 @@ public class ServiceContext {
         return awsCredentials;
     }
 
-    public void setAwsCredentials(AWSCredentials credentials) {
-        awsCredentials = credentials;
-    }
 
     public void setAutoScaleGroupManager(AutoScaleGroupManager autoScaleGroupManager) {
         this.autoScaleGroupManager = autoScaleGroupManager;
@@ -409,5 +408,11 @@ public class ServiceContext {
 
     public void setAwsConfigManager(AwsConfigManager awsConfigManager) {
         this.awsConfigManager = awsConfigManager;
+    }
+
+    public MetricSource getMetricSource() { return metricSource; }
+
+    public void setMetricSource(MetricSource metricSource) {
+        this.metricSource = metricSource;
     }
 }

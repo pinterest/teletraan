@@ -74,7 +74,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-	    <dependency>
+        <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <version>1.5.4</version>

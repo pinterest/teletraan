@@ -72,7 +72,7 @@ public class AwsAlarmManager implements AlarmManager {
     }
 
     @Override
-    public void putMetricsToAlarm(String groupName, String metricName, List<MetricDatumBean> metricDataPoints) throws Exception {
+    public void putMetricsToAlarm(String groupName, String metricName, Collection<MetricDatumBean> metricDataPoints) throws Exception {
         List<MetricDatum> metricData = new ArrayList<>();
         if (metricDataPoints.isEmpty()) {
             LOG.debug(String.format("There are no metric data for metric %s, for group %s.", metricName, groupName));
