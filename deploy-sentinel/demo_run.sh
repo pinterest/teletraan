@@ -17,7 +17,7 @@ echo "Install Teletraan server..."
 cd ~/teletraan-demo
 mkdir deploy-service
 wget -O - https://github.com/pinterest/teletraan/releases/download/${RELEASE_VERSION}/teletraan-service-${DEPLOY_SERVICE_VERSION}.tar.gz | tar zxf - -C deploy-service
-./deploy-service/bin/run_server.sh &
+./deploy-service/bin/run.sh start
 echo "Successfully installed Teletraan Server"
 
 echo "Install Deploy Board..."
@@ -28,8 +28,7 @@ mkdir deploy-board
 wget -O - https://github.com/pinterest/teletraan/releases/download/${RELEASE_VERSION}/deploy-board-${DEPLOY_BOARD_VERSION}.tar.gz | tar zxf - -C deploy-board --strip-components=1
 cd deploy-board
 pip install -r requirements.txt
-mkdir /tmp/deploy_board
-./run.sh >& /tmp/deploy_board/access.log &
+./run.sh start
 echo "Successfully installed Deploy Board"
 
 echo "Install Deploy Sentinel..."
