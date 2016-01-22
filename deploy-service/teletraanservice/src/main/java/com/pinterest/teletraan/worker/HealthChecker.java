@@ -432,30 +432,6 @@ public class HealthChecker implements Runnable {
             }
         }
 
-        // Terminate the host
-        String hostId = healthCheckBean.getHost_id();
-        LOG.info("Start to terminates host id {}, for group {}", hostId, groupName);
-        List<String> runningIds = hostInfoDAO.getRunningInstances(Arrays.asList(hostId));
-        if (runningIds.isEmpty()) {
-            LOG.info("The host {} has been terminated", hostId);
-            healthCheckBean.setHost_terminated(true);
-        } else {
-            HostBean hostBean = new HostBean();
-            if (healthCheckBean.getStatus() == HealthCheckStatus.FAILED || healthCheckBean.getStatus() == HealthCheckStatus.TIMEOUT) {
-                LOG.info(String.format("Health check %s. Retain the host %s for debugging", healthCheckBean.getStatus().toString(), hostId));
-                hostBean.setState(HostState.PENDING_TERMINATE);
-                hostBean.setLast_update(System.currentTimeMillis());
-                healthCheckBean.setHost_terminated(false);
-            } else {
-                LOG.info(String.format("Health check %s. Termimate the host %s", healthCheckBean.getStatus().toString(), hostId));
-                hostInfoDAO.terminateHost(hostId);
-                hostBean.setState(HostState.TERMINATING);
-                hostBean.setLast_update(System.currentTimeMillis());
-                healthCheckBean.setHost_terminated(true);
-            }
-            hostDAO.updateHostById(hostId, hostBean);
-        }
-
         transistionState(healthCheckBean, HealthCheckState.COMPLETED, null, "");
         LOG.info("Health Check Succeeded: id {}, group {}, state {}, status {}",
             healthCheckBean.getId(), groupName, healthCheckBean.getState(), healthCheckBean.getStatus());
