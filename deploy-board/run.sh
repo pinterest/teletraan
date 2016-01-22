@@ -19,7 +19,7 @@ function server_start {
 
 function server_stop {
     echo "Stopping Deployboard..."
-    pkill -f "teletraan/deploy-board/manage.py runserver"
+    pkill -f "deploy-board/manage.py runserver"
     echo "Deployboard stopped."
 }
 
