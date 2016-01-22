@@ -65,4 +65,27 @@ public class TSDBMetricSource extends BaseMetricSource {
         }
         return dataPoints;
     }
+
+    private boolean sendMessage(byte[] message, int times) throws Exception {
+        Exception lastException = null;
+        for (int i = 0; i < times; ++i) {
+            DatagramSocket socket = new DatagramSocket();
+            try {
+                InetAddress address = InetAddress.getByName(tsdbServer);
+                DatagramPacket packet = new DatagramPacket(message, message.length, address, port);
+                socket.send(packet);
+                socket.close();
+                return true;
+            } catch (Exception ex) {
+                LOG.error("Failed to send message to tsd server", ex);
+                lastException = ex;
+            } finally {
+                if (!socket.isClosed()) {
+                    socket.close();
+                }
+            }
+        }
+
+        throw lastException;
+    }
 }
