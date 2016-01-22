@@ -18,7 +18,7 @@ apt-get install -y openjdk-8-jre
 echo "Successfully installed openjdk 8"
 
 echo "Install python and related tools..."
-apt-get install -y python python-pip python-virtualenv
+apt-get install -y python python-pip python-virtualenv python-dev
 echo "Successfully installed python"
 
 echo "Install mysql..."

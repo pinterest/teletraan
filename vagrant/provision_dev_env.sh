@@ -12,7 +12,7 @@ echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | su
 apt-get install -y oracle-java8-installer 
 
 # Install dev env
-apt-get install -y maven python python-setuptools python-pip python-virtualenv
+apt-get install -y maven python python-setuptools python-pip python-virtualenv python-dev
 
 # Install mysql and create tables
 export DEBIAN_FRONTEND=noninteractive
