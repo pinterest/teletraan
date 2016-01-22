@@ -44,7 +44,6 @@ class PingServer(object):
 
 
 class DeployAgent(object):
-
     _STATUS_FILE = None
     _curr_report = None
     _config = None
@@ -148,13 +147,6 @@ class DeployAgent(object):
         except Exception:
             log.exception("Deploy Agent got exceptions: {}".format(traceback.format_exc()))
 
-    def serve(self, run_as_daemon=False):
-        if run_as_daemon:
-            with daemon.DaemonContext():
-                self.serve_forever()
-        else:
-            self.serve_once()
-
     def process_deploy(self, response):
         op_code = response.opCode
         deploy_goal = response.deployGoal
@@ -193,29 +185,27 @@ class DeployAgent(object):
         build = deploy_goal.build.buildId
         env_name = self._curr_report.report.envName
         if not self._config.get_config_filename():
-            return ['deploy-downloader', '-v', build,  '-u', url, "-e", env_name]
+            return ['deploy-downloader', '-v', build, '-u', url, "-e", env_name]
         else:
             return ['deploy-downloader', '-f', self._config.get_config_filename(),
-                    '-v', build,  '-u', url, "-e", env_name]
+                    '-v', build, '-u', url, "-e", env_name]
 
     def get_staging_script(self):
         build = self._curr_report.build_info.build_id
         env_name = self._curr_report.report.envName
         if not self._config.get_config_filename():
-            return ['deploy-stager', '-v', build,  '-t', self._config.get_target(), "-e", env_name]
+            return ['deploy-stager', '-v', build, '-t', self._config.get_target(), "-e", env_name]
         else:
             return ['deploy-stager', '-f', self._config.get_config_filename(),
-                    '-v', build,  '-t', self._config.get_target(), "-e", env_name]
+                    '-v', build, '-t', self._config.get_target(), "-e", env_name]
 
     def _update_ping_reports(self, deploy_report):
         if self._curr_report:
             self._curr_report.update_by_deploy_report(deploy_report)
 
-        """
-        if we failed to dump the status to the disk. We should notify the server
-        as agent failure. We set the current report to be agent failure, so server would
-        tell agent to abort current deploy, then exit
-        """
+        # if we failed to dump the status to the disk. We should notify the server
+        # as agent failure. We set the current report to be agent failure, so server would
+        # tell agent to abort current deploy, then exit
         result = self._env_status.dump_envs(self._envs)
         if (not result) and self._curr_report:
             self._curr_report.update_by_deploy_report(
@@ -226,9 +216,8 @@ class DeployAgent(object):
     def update_deploy_status(self, deploy_report):
         self._update_ping_reports(deploy_report=deploy_report)
         response = self._client.send_reports(self._envs)
-        """
-        if we failed to get any response from server, set the self._response to None
-        """
+
+        # if we failed to get any response from server, set the self._response to None
         if response is None:
             log.info('Failed to get response from server')
             self._response = None
@@ -290,7 +279,7 @@ class DeployAgent(object):
         # update script varibales
         if deploy_goal.scriptVariables:
             log.info('Start to generate script variables for deploy: {}'.
-                     format(deploy_goal.deployId))
+            format(deploy_goal.deployId))
             env_dir = self._config.get_agent_directory()
             working_dir = os.path.join(env_dir, "{}_SCRIPT_CONFIG".format(env_name))
             with open(working_dir, "w+") as f:
@@ -357,17 +346,27 @@ def main():
 
     if IS_PINTEREST:
         import pinlogger
+
         pinlogger.initialize_logger(logger_filename='deploy-agent.log')
         pinlogger.LOG_TO_STDERR = True
     else:
         log_filename = os.path.join(config.get_log_directory(), 'deploy-agent.log')
         logging.basicConfig(filename=log_filename, level=config.get_log_level())
-        
+
     log.info("Start to run deploy-agent.")
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup)
     agent = DeployAgent(client=client, conf=config)
     utils.listen()
-    agent.serve(args.daemon)
+    if args.daemon:
+        logger = logging.getLogger()
+        handles = []
+        for handler in logger.handlers:
+            handles.append(handler.stream.fileno())
+        with daemon.DaemonContext(files_preserve=handles):
+            agent.serve_forever()
+    else:
+        agent.serve_once()
+
 
 if __name__ == '__main__':
     main()
