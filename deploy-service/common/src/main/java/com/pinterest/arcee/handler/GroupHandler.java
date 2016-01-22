@@ -30,7 +30,6 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.CommonHandler;
 import org.apache.commons.codec.binary.Base64;
@@ -50,7 +49,6 @@ public class GroupHandler {
 
     private AutoScaleGroupManager asgDAO;
     private AlarmDAO alarmDAO;
-    private HostGroupManager hostGroupDAO;
     private HostInfoDAO hostInfoDAO;
     private HostDAO hostDAO;
     private AlarmManager alarmWatcher;
@@ -62,7 +60,6 @@ public class GroupHandler {
 
     public GroupHandler(ServiceContext serviceContext) {
         asgDAO = serviceContext.getAutoScaleGroupManager();
-        hostGroupDAO = serviceContext.getHostGroupDAO();
         hostDAO = serviceContext.getHostDAO();
         groupDAO = serviceContext.getGroupDAO();
         groupInfoDAO = serviceContext.getGroupInfoDAO();

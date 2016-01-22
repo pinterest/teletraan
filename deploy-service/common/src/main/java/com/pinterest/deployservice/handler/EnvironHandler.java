@@ -25,11 +25,7 @@ import com.pinterest.deployservice.dao.PromoteDAO;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Field;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 
 public class EnvironHandler {
     private static final Logger LOG = LoggerFactory.getLogger(EnvironHandler.class);
@@ -40,8 +36,6 @@ public class EnvironHandler {
     private GroupDAO groupDAO;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
-    private ConfigHistoryHandler configHistoryHandler;
-    private ExecutorService jobPool;
 
     public EnvironHandler(ServiceContext serviceContext) {
         environDAO = serviceContext.getEnvironDAO();
@@ -50,66 +44,6 @@ public class EnvironHandler {
         groupDAO = serviceContext.getGroupDAO();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
-        configHistoryHandler = new ConfigHistoryHandler(serviceContext);
-        jobPool = serviceContext.getJobPool();
-    }
-
-    private final class NotifyMail implements Callable<Void> {
-        private String message;
-        private String subject;
-        private String recipients;
-        private Object oriObj;
-        private Object curObj;
-
-        public NotifyMail(String message, String subject, String recipients, Object oriObj, Object curObj) {
-            this.message = message;
-            this.subject = subject;
-            this.recipients = recipients;
-            this.oriObj = oriObj;
-            this.curObj = curObj;
-        }
-
-        // Used for getting Config Message
-        private String getConfigMessage(Object ori, Object cur) {
-            if (ori.getClass() != cur.getClass())
-                return null;
-            String msg = String.format("%n%-40s%-40s%-40s%n", "Name", "Original Value", "Current Value");
-            Field[] oriFields = ori.getClass().getDeclaredFields();
-            Field[] curFields = cur.getClass().getDeclaredFields();
-
-            try {
-                for (int i = 0; i < oriFields.length; ++i) {
-                    oriFields[i].setAccessible(true);
-                    curFields[i].setAccessible(true);
-                    Object oriObj = oriFields[i].get(ori);
-                    Object curObj = curFields[i].get(cur);
-                    if (curObj == null)
-                        continue;
-
-                    if ((oriObj == null) || !oriObj.equals(curObj)) {
-                        msg += String.format("%-40s%-40s%-40s%n", oriFields[i].getName(), oriObj, curObj);
-                    }
-                }
-            } catch (Exception e) {
-                LOG.error("Failed to get config message.", e);
-            }
-            return msg;
-        }
-
-        private void sendMail() {
-            message += getConfigMessage(oriObj, curObj);
-            commonHandler.sendEmailMessage(message, subject, recipients);
-        }
-
-        public Void call() {
-            try {
-                LOG.info(String.format("Send Email for %s.", subject));
-                sendMail();
-            } catch (Throwable t) {
-                LOG.error(String.format("%s: Failed to send notify emails!", subject), t);
-            }
-            return null;
-        }
     }
 
     void normalizeEnvRequest(EnvironBean envBean, String operator) throws Exception {
@@ -240,8 +174,6 @@ public class EnvironHandler {
         } else {
             dataHandler.updateData(id, alarmBeans, AlarmDataFactory.class, operator);
         }
-        configHistoryHandler.updateConfigHistory(environBean.getEnv_id(),
-            ConfigHistoryHandler.getTypeEnvAlarm(), alarmBeans, operator);
     }
 
     public List<MetricsConfigBean> getMetrics(EnvironBean environBean) throws Exception {
@@ -262,8 +194,6 @@ public class EnvironHandler {
         } else {
             dataHandler.updateData(id, metricsBeans, MetricsDataFactory.class, operator);
         }
-        configHistoryHandler.updateConfigHistory(environBean.getEnv_id(),
-            ConfigHistoryHandler.getTypeEnvMetric(), metricsBeans, operator);
     }
 
     public EnvWebHookBean getHooks(EnvironBean environBean) throws Exception {
@@ -284,8 +214,6 @@ public class EnvironHandler {
         } else {
             dataHandler.updateData(id, hookBean, WebhookDataFactory.class, operator);
         }
-        configHistoryHandler.updateConfigHistory(environBean.getEnv_id(),
-            ConfigHistoryHandler.getTypeEnvWebhook(), hookBean, operator);
     }
 
     public Map<String, String> getAdvancedConfigs(EnvironBean environBean) throws Exception {
@@ -307,8 +235,6 @@ public class EnvironHandler {
         } else {
             dataHandler.updateMap(dataId, configs, operator);
         }
-        configHistoryHandler.updateConfigHistory(environBean.getEnv_id(),
-            ConfigHistoryHandler.getTypeEnvAdvanced(), configs, operator);
     }
 
     public Map<String, String> getScriptConfigs(EnvironBean environBean) throws Exception {
@@ -330,35 +256,11 @@ public class EnvironHandler {
         } else {
             dataHandler.updateMap(dataId, configs, operator);
         }
-        configHistoryHandler.updateConfigHistory(environBean.getEnv_id(),
-            ConfigHistoryHandler.getTypeEnvScript(), configs, operator);
-    }
-
-    private void notifyConfigChange(EnvironBean origBean, EnvironBean updateBean) {
-        String recipients = origBean.getEmail_recipients();
-        if (origBean.getNotify_authors() && !StringUtils.isEmpty(recipients)) {
-            Date date = new Date();
-            String subject = String.format("%s/%s Deploy Config Updated.", origBean.getEnv_name(), origBean.getStage_name());
-            String message = String.format("%s updated the config for %s/%s on %tc. The changes are: \n",
-                updateBean.getLast_operator(), origBean.getEnv_name(), origBean.getStage_name(), date);
-
-            if (!origBean.getSuccess_th().equals(updateBean.getSuccess_th())) {
-                message += "(NOTE: success_th x 0.01% = Success Threshold)\n";
-            }
-
-            //set NULL to prevent the message from showing the hidden information
-            updateBean.setLast_operator(null);
-            updateBean.setLast_update(null);
-            jobPool.submit(new NotifyMail(message, subject, recipients, origBean, updateBean));
-        }
     }
 
     public void updateStage(EnvironBean origBean, EnvironBean updateBean, String operator) throws Exception {
         normalizeEnvRequest(updateBean, operator);
         environDAO.update(origBean.getEnv_name(), origBean.getStage_name(), updateBean);
-        configHistoryHandler.updateConfigHistory(origBean.getEnv_id(),
-            ConfigHistoryHandler.getTypeEnvGeneral(), updateBean, operator);
-        notifyConfigChange(origBean, updateBean);
     }
 
     PromoteBean genDefaultEnvPromote(String envId) {
@@ -381,22 +283,6 @@ public class EnvironHandler {
         return promoteBean;
     }
 
-    private void notifyPromoteChange(EnvironBean envBean, PromoteBean originBean, PromoteBean updateBean) {
-        String recipients = envBean.getEmail_recipients();
-        if (envBean.getNotify_authors() && !StringUtils.isEmpty(recipients)) {
-            Date date = new Date();
-            String subject = String.format("%s/%s Auto Deploy Config Updated.", envBean.getEnv_name(), envBean.getStage_name());
-            String message = String.format("%s updated the auto deploy config for %s/%s on %tc. The changes are: \n",
-                envBean.getLast_operator(), envBean.getEnv_name(), envBean.getStage_name(), date);
-
-            //set NULL to prevent the message from showing the hidden information
-            updateBean.setLast_operator(null);
-            updateBean.setLast_update(null);
-            jobPool.submit(new NotifyMail(message, subject, recipients, originBean, updateBean));
-        }
-
-    }
-
     public void updateEnvPromote(EnvironBean envBean, PromoteBean promoteBean, String operator) throws Exception {
         String envId = envBean.getEnv_id();
         promoteBean.setLast_operator(operator);
@@ -411,9 +297,6 @@ public class EnvironHandler {
         } else {
             promoteDAO.update(envId, promoteBean);
         }
-        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(),
-            ConfigHistoryHandler.getTypeEnvPromote(), promoteBean, operator);
-        notifyPromoteChange(envBean, originBean, promoteBean);
     }
 
     public String resume(EnvironBean envBean, String operator) throws Exception {
@@ -487,8 +370,6 @@ public class EnvironHandler {
         for (String host : oldHosts) {
             groupDAO.removeHostCapacity(envBean.getEnv_id(), host);
         }
-        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(),
-            ConfigHistoryHandler.getTypeEnvHostCapacity(), hosts, operator);
     }
 
     public void updateGroups(EnvironBean envBean, List<String> groups,
@@ -507,8 +388,6 @@ public class EnvironHandler {
         for (String group : oldGroups) {
             groupDAO.removeGroupCapacity(envBean.getEnv_id(), group);
         }
-        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(),
-            ConfigHistoryHandler.getTypeEnvGroupCapacity(), groups, operator);
     }
 
     /**
