@@ -132,13 +132,11 @@ class GoalAnalyst {
 
     public class UninstallCandidate implements Comparable<UninstallCandidate> {
         PingReportBean report;
-        AgentBean agent;
         EnvironBean environ;
 
-        UninstallCandidate(PingReportBean report, AgentBean agent) {
+        UninstallCandidate(PingReportBean report) {
             this.report = report;
-            this.agent = agent;
-            environ = existingAgentEnv.getOrDefault(agent.getEnv_id(), new EnvironBean());
+            environ = existingAgentEnv.getOrDefault(report.getEnvId(), new EnvironBean());
         }
 
         @Override
@@ -150,7 +148,6 @@ class GoalAnalyst {
         public String toString() {
             return "UninstallCandidate{" +
                 "report=" + report +
-                ", agent=" + agent +
                 ", env=" + environ +
                 '}';
         }
@@ -609,7 +606,7 @@ class GoalAnalyst {
          */
         if (report != null && !StringUtils.isEmpty(report.getEnvId())) {
             LOG.debug("GoalAnalyst case 3.1 - add an uninstall candidate to instruct host {} to remove the retired env {}", host, report.getEnvId());
-            uninstallCandidates.add(new UninstallCandidate(report, agent));
+            uninstallCandidates.add(new UninstallCandidate(report));
             updateBean.setState(AgentState.DELETE);
             return;
         }
