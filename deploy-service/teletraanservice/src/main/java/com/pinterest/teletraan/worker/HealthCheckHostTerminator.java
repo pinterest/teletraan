@@ -20,7 +20,7 @@ import java.util.List;
 
 public class HealthCheckHostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HealthCheckHostTerminator.class);
-    private static final long timeToRetain = 3 * 60 * 60 * 1000;
+    private static final long timeToRetain = 2 * 60 * 60 * 1000; // 2 hour
     private final HealthCheckDAO healthCheckDAO;
     private final HostDAO hostDAO;
     private final HostInfoDAO hostInfoDAO;

@@ -440,20 +440,18 @@ public class HealthChecker implements Runnable {
             LOG.info("The host {} has been terminated", hostId);
             healthCheckBean.setHost_terminated(true);
         } else {
-            HostBean hostBean = new HostBean();
             if (healthCheckBean.getStatus() == HealthCheckStatus.FAILED || healthCheckBean.getStatus() == HealthCheckStatus.TIMEOUT) {
                 LOG.info(String.format("Health check %s. Retain the host %s for debugging", healthCheckBean.getStatus().toString(), hostId));
-                hostBean.setState(HostState.PENDING_TERMINATE);
-                hostBean.setLast_update(System.currentTimeMillis());
                 healthCheckBean.setHost_terminated(false);
             } else {
                 LOG.info(String.format("Health check %s. Termimate the host %s", healthCheckBean.getStatus().toString(), hostId));
                 hostInfoDAO.terminateHost(hostId);
+                HostBean hostBean = new HostBean();
                 hostBean.setState(HostState.TERMINATING);
                 hostBean.setLast_update(System.currentTimeMillis());
+                hostDAO.updateHostById(hostId, hostBean);
                 healthCheckBean.setHost_terminated(true);
             }
-            hostDAO.updateHostById(hostId, hostBean);
         }
 
         transistionState(healthCheckBean, HealthCheckState.COMPLETED, null, "");
