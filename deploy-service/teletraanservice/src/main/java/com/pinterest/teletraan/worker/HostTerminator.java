@@ -29,7 +29,7 @@ import java.util.*;
 
 public class HostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HostTerminator.class);
-    private static final long timeToRetain = 2 * 60 * 60 * 1000; // 2 hour
+    private static final long timeToRetain = 60 * 60 * 1000; // 1 hour
     private final HostDAO hostDAO;
     private final HostInfoDAO hostInfoDAO;
     private final UtilDAO utilDAO;
