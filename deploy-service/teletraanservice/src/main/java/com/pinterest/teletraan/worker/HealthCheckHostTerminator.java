@@ -2,6 +2,7 @@ package com.pinterest.teletraan.worker;
 
 
 import com.pinterest.arcee.bean.HealthCheckBean;
+import com.pinterest.arcee.bean.HealthCheckStatus;
 import com.pinterest.arcee.dao.HealthCheckDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class HealthCheckHostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HealthCheckHostTerminator.class);
-    private static final long timeToRetain = 3 * 60 * 60 * 1000;
+    private static final long timeToRetain = 2 * 60 * 60 * 1000; // 2 hour
     private final HealthCheckDAO healthCheckDAO;
     private final HostDAO hostDAO;
     private final HostInfoDAO hostInfoDAO;
@@ -46,9 +47,8 @@ public class HealthCheckHostTerminator implements Runnable {
             Connection connection = utilDAO.getLock(lockName);
             if (connection != null) {
                 try {
-                    if (System.currentTimeMillis() - bean.getHost_launch_time() > timeToRetain) {
-                        LOG.info(String.format("This health check failed host %s has been retained for more than 3 hours since "
-                            + "it's launched.", hostId));
+                    if (bean.getStatus() == HealthCheckStatus.QUALIFIED || System.currentTimeMillis() - bean.getHost_launch_time() > timeToRetain) {
+                        LOG.info(String.format("Start to terminate health check instance %s", hostId));
 
                         List<String> runningIds = hostInfoDAO.getRunningInstances(Arrays.asList(hostId));
                         if (!runningIds.isEmpty()) {

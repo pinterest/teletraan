@@ -29,7 +29,7 @@ import java.util.*;
 
 public class HostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HostTerminator.class);
-    private static final long timeToRetain = 2 * 60 * 60 * 1000; // 2 hour
+    private static final long timeToRetain = 60 * 60 * 1000; // 1 hour
     private final HostDAO hostDAO;
     private final HostInfoDAO hostInfoDAO;
     private final UtilDAO utilDAO;
@@ -43,7 +43,7 @@ public class HostTerminator implements Runnable {
     void terminateHost(HostBean host) throws Exception {
         if ((System.currentTimeMillis() - host.getLast_update()) > timeToRetain) {
             String hostId = host.getHost_id();
-            LOG.info(String.format("This host %s has been retained for more than 2 hours since it's last updated. Terminate it", hostId));
+            LOG.info(String.format("This host %s has been retained for more than 1 hours since it's last updated. Terminate it", hostId));
             hostInfoDAO.terminateHost(hostId);
 
             HostBean hostBean = new HostBean();
