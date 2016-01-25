@@ -20,29 +20,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import com.pinterest.arcee.bean.AsgAlarmBean;
-import com.pinterest.arcee.bean.GroupBean;
-import com.pinterest.arcee.bean.HealthCheckBean;
-import com.pinterest.arcee.bean.HealthCheckErrorBean;
-import com.pinterest.arcee.bean.HealthCheckState;
-import com.pinterest.arcee.bean.HealthCheckStatus;
-import com.pinterest.arcee.bean.HealthCheckType;
-import com.pinterest.arcee.bean.ImageBean;
-import com.pinterest.arcee.bean.MetricBean;
-import com.pinterest.arcee.bean.NewInstanceReportBean;
+import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
-import com.pinterest.arcee.dao.AlarmDAO;
-import com.pinterest.arcee.dao.GroupInfoDAO;
-import com.pinterest.arcee.dao.HealthCheckDAO;
-import com.pinterest.arcee.dao.HealthCheckErrorDAO;
-import com.pinterest.arcee.dao.ImageDAO;
-import com.pinterest.arcee.dao.NewInstanceReportDAO;
-import com.pinterest.arcee.db.DBAlarmDAOImpl;
-import com.pinterest.arcee.db.DBGroupInfoDAOImpl;
-import com.pinterest.arcee.db.DBHealthCheckDAOImpl;
-import com.pinterest.arcee.db.DBHealthCheckErrorDAOImpl;
-import com.pinterest.arcee.db.DBImageDAOImpl;
-import com.pinterest.arcee.db.DBNewInstanceReportDAOImpl;
+import com.pinterest.arcee.dao.*;
+import com.pinterest.arcee.db.*;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.bean.AcceptanceStatus;
 import com.pinterest.deployservice.bean.AcceptanceType;
@@ -134,6 +115,7 @@ public class DBDAOTest {
     private static HealthCheckErrorDAO healthCheckErrorDAO;
     private static ConfigHistoryDAO configHistoryDAO;
     private static NewInstanceReportDAO newInstanceReportDAO;
+    private static AsgLifecycleEventDAO asgLifecycleEventDAO;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -171,6 +153,7 @@ public class DBDAOTest {
         healthCheckErrorDAO = new DBHealthCheckErrorDAOImpl(DATASOURCE);
         configHistoryDAO = new DBConfigHistoryDAOImpl(DATASOURCE);
         newInstanceReportDAO = new DBNewInstanceReportDAOImpl(DATASOURCE);
+        asgLifecycleEventDAO = new DBAsgLifecycleEventDAOImpl(DATASOURCE);
     }
 
     @AfterClass
@@ -846,6 +829,7 @@ public class DBDAOTest {
         groupBean.setInstance_type("x3.2xlarge");
         groupBean.setIam_role(AutoScalingConstants.DEFAULT_IAM_ROLE);
         groupBean.setAsg_status(ASGStatus.ENABLED);
+        groupBean.setLifecycle_state(true);
         groupInfoDAO.updateGroupInfo("deploy-test", groupBean);
         gBean = groupInfoDAO.getGroupInfo("deploy-test");
         assertEquals(gBean.getWatch_recipients(), "lo");
@@ -854,6 +838,7 @@ public class DBDAOTest {
         assertEquals(gBean.getInstance_type(), "x3.2xlarge");
         assertEquals(gBean.getIam_role(), AutoScalingConstants.DEFAULT_IAM_ROLE);
         assertEquals(gBean.getAsg_status(), ASGStatus.ENABLED);
+        assertTrue(gBean.getLifecycle_state());
     }
 
     @Test
@@ -1191,6 +1176,49 @@ public class DBDAOTest {
         assertNull(instanceReportBean);
         newInstanceReportDAO.reportNewInstances("h-124", "e-123");
         assertTrue(newInstanceReportDAO.getByIds("h-124", "e-123").getReported());
+    }
+
+    public void testAsgLifecycleEventDAO() throws Exception {
+        AsgLifecycleEventBean bean1 = new AsgLifecycleEventBean();
+        bean1.setToken_id("id1");
+        bean1.setHook_id("hook-1");
+        bean1.setGroup_name("group-1");
+        bean1.setHost_id("host-1");
+        bean1.setStart_date(System.currentTimeMillis());
+        asgLifecycleEventDAO.insertAsgLifecycleEvent(bean1);
+
+        AsgLifecycleEventBean bean2 = new AsgLifecycleEventBean();
+        bean2.setToken_id("id2");
+        bean2.setHook_id("hook-2");
+        bean2.setGroup_name("group-1");
+        bean2.setHost_id("host-2");
+        bean2.setStart_date(System.currentTimeMillis());
+        asgLifecycleEventDAO.insertAsgLifecycleEvent(bean2);
+
+        AsgLifecycleEventBean bean3 = new AsgLifecycleEventBean();
+        bean3.setToken_id("id3");
+        bean3.setHook_id("hook-2");
+        bean3.setGroup_name("group-1");
+        bean3.setHost_id("host-3");
+        bean3.setStart_date(System.currentTimeMillis());
+        asgLifecycleEventDAO.insertAsgLifecycleEvent(bean3);
+
+        List<String> hookIds = asgLifecycleEventDAO.getHookIdsFromAsgLifeCycleEvent();
+        assertEquals(hookIds.size(), 2);
+
+        List<AsgLifecycleEventBean> beans = asgLifecycleEventDAO.getAsgLifecycleEventByHook("hook-1");
+        assertEquals(beans.size(), 1);
+        assertEquals(beans.get(0).getToken_id(), "id1");
+        assertEquals(beans.get(0).getGroup_name(), "group-1");
+        assertEquals(beans.get(0).getHost_id(), "host-1");
+
+        asgLifecycleEventDAO.deleteAsgLifecycleEventById("id2");
+        beans = asgLifecycleEventDAO.getAsgLifecycleEventByHook("hook-2");
+        assertEquals(beans.size(), 1);
+
+        asgLifecycleEventDAO.deleteAsgLifeCycleEventByHookId("hook-2");
+        beans = asgLifecycleEventDAO.getAsgLifecycleEventByHook("hook-2");
+        assertEquals(beans.size(), 0);
     }
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {

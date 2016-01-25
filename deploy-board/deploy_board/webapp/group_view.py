@@ -79,6 +79,8 @@ def get_launch_config(request, group_name):
             group_info["launchLatencyTh"] = group_info.get("launchLatencyTh") / 60
         if group_info and group_info.get("healthcheckPeriod"):
             group_info["healthcheckPeriod"] = group_info.get("healthcheckPeriod") / 60
+        if group_info and group_info.get("lifecycleTimeout"):
+            group_info["lifecycleTimeout"] = group_info.get("lifecycleTimeout") / 60
 
         appNames = images_helper.get_all_app_names(request)
         appNames = sorted(appNames)
@@ -124,6 +126,12 @@ def update_launch_config(request, group_name):
         else:
             launchRequest["healthcheckState"] = False
         launchRequest["healthcheckPeriod"] = int(params["healthcheck_period"]) * 60
+
+        if "lifecycle_state" in params:
+            launchRequest["lifecycleState"] = True
+        else:
+            launchRequest["lifecycleState"] = False
+        launchRequest["lifecycleTimeout"] = int(params["lifecycle_timeout"]) * 60
         groups_helper.update_group_info(request, group_name,  launchRequest)
         return get_launch_config(request, group_name)
     except:

@@ -59,6 +59,7 @@ public class ServiceContext {
     private HealthCheckDAO healthCheckDAO;
     private HealthCheckErrorDAO healthCheckErrorDAO;
     private NewInstanceReportDAO newInstanceReportDAO;
+    private AsgLifecycleEventDAO asgLifecycleEventDAO;
 
     private AutoScaleGroupManager autoScaleGroupManager;
     private String serviceStage;
@@ -251,7 +252,17 @@ public class ServiceContext {
         this.newInstanceReportDAO = newInstanceReportDAO;
     }
 
-    public NewInstanceReportDAO getNewInstanceReportDAO() { return newInstanceReportDAO; }
+    public NewInstanceReportDAO getNewInstanceReportDAO() {
+        return newInstanceReportDAO;
+    }
+
+    public void setAsgLifecycleEventDAO(AsgLifecycleEventDAO asgLifecycleEventDAO) {
+        this.asgLifecycleEventDAO = asgLifecycleEventDAO;
+    }
+
+    public AsgLifecycleEventDAO getAsgLifecycleEventDAO() {
+        return asgLifecycleEventDAO;
+    }
 
     public void setEventSender(EventSender sender) {
         this.eventSender = sender;

@@ -46,6 +46,8 @@ import javax.validation.constraints.NotNull;
  * asg_satus            VARCHAR(64),
  * healthcheck_state    TINYINT(1)      NOT NULL DEFAULT 0,
  * healthcheck_period   BIGINT          NOT NULL DEFAULT 3600,
+ * lifecycle_state     TINYINT(1)      NOT NULL DEFAULT 0,
+ * lifecycle_timeout   BIGINT          NOT NULL DEFAULT 600,
  * PRIMARY KEY (group_name)
  * );
  */
@@ -111,6 +113,12 @@ public class GroupBean implements Updatable, Cloneable {
 
     @JsonProperty("healthcheckPeriod")
     private Long healthcheck_period;
+
+    @JsonProperty("lifecycleState")
+    private Boolean lifecycle_state;
+
+    @JsonProperty("lifecycleTimeout")
+    private Long lifecycle_timeout;
 
     public String getGroup_name() { return group_name; }
 
@@ -184,6 +192,14 @@ public class GroupBean implements Updatable, Cloneable {
 
     public void setHealthcheck_period(Long healthcheck_period) { this.healthcheck_period = healthcheck_period; }
 
+    public Boolean getLifecycle_state() { return lifecycle_state; }
+
+    public void setLifecycle_state(Boolean lifecycle_state) { this.lifecycle_state = lifecycle_state; }
+
+    public Long getLifecycle_timeout() { return lifecycle_timeout; }
+
+    public void setLifecycle_timeout(Long lifecycle_timeout) { this.lifecycle_timeout = lifecycle_timeout; }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -205,6 +221,8 @@ public class GroupBean implements Updatable, Cloneable {
         clause.addColumn("asg_status", asg_status);
         clause.addColumn("healthcheck_state", healthcheck_state);
         clause.addColumn("healthcheck_period", healthcheck_period);
+        clause.addColumn("lifecycle_state", lifecycle_state);
+        clause.addColumn("lifecycle_timeout", lifecycle_timeout);
         return clause;
     }
 
@@ -234,6 +252,8 @@ public class GroupBean implements Updatable, Cloneable {
         groupBean.setAsg_status(asg_status);
         groupBean.setHealthcheck_state(healthcheck_state);
         groupBean.setHealthcheck_period(healthcheck_period);
+        groupBean.setLifecycle_state(lifecycle_state);
+        groupBean.setLifecycle_timeout(lifecycle_timeout);
         return groupBean;
     }
 }

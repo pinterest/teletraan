@@ -22,6 +22,7 @@ public class AwsConfigManager {
     private String ownerId;
     private String sqsArn;
     private String snsArn;
+    private String roleArn;
 
     public String getId() {
         return id;
@@ -69,5 +70,13 @@ public class AwsConfigManager {
 
     public void setSnsArn(String snsArn) {
         this.snsArn = snsArn;
+    }
+
+    public String getRoleArn() {
+        return roleArn;
+    }
+
+    public void setRoleArn(String roleArn) {
+        this.roleArn = roleArn;
     }
 }

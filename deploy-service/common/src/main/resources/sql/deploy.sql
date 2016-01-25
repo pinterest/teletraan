@@ -225,6 +225,8 @@ CREATE TABLE IF NOT EXISTS groups (
     asg_status          VARCHAR(64),
     healthcheck_state   TINYINT(1)      NOT NULL DEFAULT 0,
     healthcheck_period  BIGINT          NOT NULL DEFAULT 3600,
+    lifecycle_state     TINYINT(1)      NOT NULL DEFAULT 0,
+    lifecycle_timeout   BIGINT          NOT NULL DEFAULT 600,
     PRIMARY KEY (group_name)
 );
 
@@ -330,4 +332,13 @@ CREATE TABLE IF NOT EXISTS new_instances_reports (
    launch_time          BIGINT,
    reported             TINYINT            NOT NULL DEFAULT 0,
    PRIMARY KEY (host_id, env_id)
+);
+
+CREATE TABLE IF NOT EXISTS asg_lifecycle_events (
+   token_id       VARCHAR(128)  NOT NULL,
+   hook_id        VARCHAR(64)   NOT NULL,
+   group_name     VARCHAR(64)   NOT NULL,
+   host_id        VARCHAR(64)   NOT NULL,
+   start_date     BIGINT        NOT NULL,
+   PRIMARY KEY (token_id)
 );

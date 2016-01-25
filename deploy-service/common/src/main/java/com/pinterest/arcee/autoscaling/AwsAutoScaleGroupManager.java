@@ -19,6 +19,7 @@ import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.autoscaling.model.*;
 import com.pinterest.arcee.bean.*;
+import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.deployservice.bean.ASGStatus;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -39,6 +40,7 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     private static final String PROCESS_ADDTOLOADBALANCER = "AddToLoadBalancer";
     private static final String PROCESS_AZREBALANCE = "AZRebalance";
     private String SNS_TOPIC_ARN;
+    private String ROLE_ARN;
     private AmazonAutoScalingClient aasClient;
     private static final  String[] NOTIFICATION_TYPE = {
         "autoscaling:EC2_INSTANCE_LAUNCH",
@@ -48,8 +50,9 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     // http://docs.aws.amazon.com/AutoScaling/latest/APIReference/API_DetachInstances.html
     private static final int MAX_DETACH_INSTANCE_LENGTH = 16;
 
-    public AwsAutoScaleGroupManager(String snsArn, AmazonAutoScalingClient aasClient) {
+    public AwsAutoScaleGroupManager(String snsArn, String roleArn, AmazonAutoScalingClient aasClient) {
         SNS_TOPIC_ARN = snsArn;
+        ROLE_ARN = roleArn;
         this.aasClient = aasClient;
     }
 
@@ -510,6 +513,59 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         request.setAutoScalingGroupName(groupName);
         request.setScalingProcesses(Arrays.asList(PROCESS_TERMINATE));
         aasClient.resumeProcesses(request);
+    }
+
+    // LifeCycle Hook
+    @Override
+    public void createLifecycleHook(String groupName, int timeout) throws Exception {
+        PutLifecycleHookRequest request = new PutLifecycleHookRequest();
+        request.setLifecycleHookName(String.format("LIFECYCLEHOOK-%s", groupName));
+        request.setAutoScalingGroupName(groupName);
+        request.setLifecycleTransition("autoscaling:EC2_INSTANCE_TERMINATING");
+        request.setNotificationTargetARN(SNS_TOPIC_ARN);
+        request.setRoleARN(ROLE_ARN);
+        request.setHeartbeatTimeout(timeout);
+        // If reach the timeout limit, ABANDON all the actions to that instances and proceed to terminate it
+        request.setDefaultResult(AutoScalingConstants.LIFECYCLE_ACTION_ABANDON);
+        aasClient.putLifecycleHook(request);
+    }
+
+    @Override
+    public void deleteLifecycleHook(String groupName) throws Exception {
+        List<String> lifecycleHooks = getLifecycleHookIds(groupName);
+        for (String hookId : lifecycleHooks) {
+            DeleteLifecycleHookRequest request = new DeleteLifecycleHookRequest();
+            request.setLifecycleHookName(hookId);
+            request.setAutoScalingGroupName(groupName);
+            aasClient.deleteLifecycleHook(request);
+        }
+    }
+
+    @Override
+    public void completeLifecycleAction(String hookId, String tokenId, String groupName) throws Exception {
+        List<String> lifecycleHooks = getLifecycleHookIds(groupName);
+        if (!lifecycleHooks.contains(hookId)) {
+            return;
+        }
+
+        CompleteLifecycleActionRequest completeLifecycleActionRequest = new CompleteLifecycleActionRequest();
+        completeLifecycleActionRequest.setLifecycleHookName(hookId);
+        completeLifecycleActionRequest.setLifecycleActionToken(tokenId);
+        completeLifecycleActionRequest.setAutoScalingGroupName(groupName);
+        // CONTINUE action will allow asg proceed to terminate instances earlier than timeout limit
+        completeLifecycleActionRequest.setLifecycleActionResult(AutoScalingConstants.LIFECYCLE_ACTION_CONTINUE);
+        aasClient.completeLifecycleAction(completeLifecycleActionRequest);
+    }
+
+    public List<String> getLifecycleHookIds(String groupName) throws Exception {
+        DescribeLifecycleHooksRequest request = new DescribeLifecycleHooksRequest();
+        request.setAutoScalingGroupName(groupName);
+        DescribeLifecycleHooksResult result = aasClient.describeLifecycleHooks(request);
+        List<String> lifecycleHookIds = new ArrayList<>();
+        for (LifecycleHook hook : result.getLifecycleHooks()) {
+            lifecycleHookIds.add(hook.getLifecycleHookName());
+        }
+        return lifecycleHookIds;
     }
 
     private AutoScalingGroupBean generateDefaultASGInfo() {

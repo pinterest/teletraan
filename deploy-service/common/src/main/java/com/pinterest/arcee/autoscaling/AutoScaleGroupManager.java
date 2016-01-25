@@ -19,6 +19,7 @@ import com.pinterest.arcee.bean.*;
 import com.pinterest.deployservice.bean.ASGStatus;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 
@@ -76,4 +77,11 @@ public interface AutoScaleGroupManager {
     public void enableScalingDownEvent(String groupName) throws Exception;
 
     public Collection<String> instancesInAutoScalingGroup(Collection<String> instances) throws Exception;
+
+    //-------- LifeCycle Hook
+    public void createLifecycleHook(String groupName, int timeout) throws Exception;
+
+    public void deleteLifecycleHook(String groupName) throws Exception;
+
+    public void completeLifecycleAction(String hookId, String tokenId, String groupName) throws Exception;
 }

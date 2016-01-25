@@ -81,6 +81,7 @@ public class ConfigHelper {
         context.setHealthCheckDAO(new DBHealthCheckDAOImpl(dataSource));
         context.setHealthCheckErrorDAO(new DBHealthCheckErrorDAOImpl(dataSource));
         context.setnewInstanceReportDAO(new DBNewInstanceReportDAOImpl(dataSource));
+        context.setAsgLifecycleEventDAO(new DBAsgLifecycleEventDAOImpl(dataSource));
 
         // Inject proper implemetation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
@@ -297,6 +298,13 @@ public class ConfigHelper {
                 Runnable worker = new NewInstanceChecker(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled NewInstanceChecker.");
+            }
+
+            if (workerName.equalsIgnoreCase(LifecycleUpdator.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new LifecycleUpdator(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled LifecycleUpdator.");
             }
         }
     }

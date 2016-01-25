@@ -26,4 +26,8 @@ public class AutoScalingConstants {
 
     public final static String ASG_GROW = "GROW";
     public final static String ASG_SHRINK = "SHRINK";
+
+    public final static String LIFECYCLE_ACTION_CONTINUE = "CONTINUE";
+    public final static String LIFECYCLE_ACTION_ABANDON = "ABANDON";
+    public final static long LIFECYCLE_TIMEOUT = 600;
 }

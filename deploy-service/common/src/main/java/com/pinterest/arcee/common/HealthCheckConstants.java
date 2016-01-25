@@ -18,4 +18,6 @@ package com.pinterest.arcee.common;
 
 public class HealthCheckConstants {
     public final static int DEFAULT_HEALTH_CHECK_TIMEOUT = 1800; // Seconds
+
+    public final static long HEALTHCHECK_PERIOD = 3600;
 }

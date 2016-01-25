@@ -185,6 +185,51 @@
                          You can see health check activities <a href="/groups/{{ group_name }}/health_check_activities/">here</a>.
                         </div>
                 </div>
+                 <div class="form-group">
+                    <label for="lifecycle_state" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Whether or not to enable lifecycle hook">
+                        Enable Lifecycle Hook
+                    </label>
+                    <div class="col-xs-4">
+                        <div class="input-group">
+                        {% if config.lifecycleState %}
+                            <input class="" id="lifecycle_state" name="lifecycle_state" type="checkbox" value="" checked>
+                        {% else %}
+                            <input class="" id="lifecycle_state" name="lifecycle_state" type="checkbox" value="">
+                        {% endif %}
+                        <span class="input-group-btn">
+                            <button id="lifecycleExpressionId" class="deployToolTip btn btn-default"
+                                    type="button" data-toggle="tooltip"
+                                    title="click for more information on lifecycle hook">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                            </button>
+                        </span>
+                        </div>
+                    </div>
+
+                    <label for="lifecycle_timeout" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Force to terminate the host if shutdown runtime exceeds x minutes">
+                        Lifecycle Timeout
+                    </label>
+                    <div class="col-xs-4">
+                        <div class="input-group">
+                        <input class="form-control" name="lifecycle_timeout" required="true"
+                               type="text" value="{{ config.lifecycleTimeout }}"/>
+                        <span class="input-group-addon">Minutes</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group collapse" id="lifecycleExpressionDetailsId">
+                        <div class="col-xs-2">
+                        </div>
+                        <div class="col-xs-10">
+                        <b>Lifecycle Hook</b> is used to work on gracefully shutdown processes.
+                        When you enabled this hook, Teletraan will execute the STOP script you provided.
+                        After the script is executed completely, Teletraan will proceed to terminate the host.
+                        </div>
+                </div>
                 <div class="form-group">
                     <label for="assignIp" class="deployToolTip control-label col-xs-2"
                            data-toggle="tooltip" title="Assign public IP address to the instance in VPC">
@@ -347,6 +392,10 @@
         $("#healthCheckExpressionId").click(function() {
             $("#healthCheckExpressionDetailsId").collapse('toggle');
 
+        });
+
+        $("#lifecycleExpressionId").click(function() {
+            $("#lifecycleExpressionDetailsId").collapse('toggle');
         });
     });
 </script>

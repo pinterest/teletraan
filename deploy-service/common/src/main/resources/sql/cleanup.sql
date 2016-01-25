@@ -28,3 +28,4 @@ DROP TABLE IF EXISTS groups_and_roles;
 DROP TABLE IF EXISTS health_checks;
 DROP TABLE IF EXISTS healthcheck_errors;
 DROP TABLE IF EXISTS new_instances_reports;
+DROP TABLE IF EXISTS asg_lifecycle_events;

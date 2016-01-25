@@ -17,13 +17,19 @@ package com.pinterest.teletraan.worker;
 
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.*;
+import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
+import com.pinterest.arcee.bean.AsgLifecycleEventBean;
 import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.arcee.dao.AsgLifecycleEventDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.NewInstanceReportDAO;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.common.LaunchEvent;
-import com.pinterest.deployservice.common.LaunchEventParser;
+import com.pinterest.deployservice.common.EventMessage;
+import com.pinterest.deployservice.common.EventMessageParser;
+import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
@@ -38,28 +44,34 @@ import java.util.List;
 
 public class LaunchEventCollector implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(LaunchEventCollector.class);
-    private AmazonSQSClient sqsClient;
-    private LaunchEventParser launchEventParser;
-    private GroupInfoDAO groupInfoDAO;
-    private UtilDAO utilDAO;
-    private HostDAO hostDAO;
-    private GroupDAO groupDAO;
-    private NewInstanceReportDAO newInstanceReportDAO;
+    private final AgentDAO agentDAO;
+    private final AsgLifecycleEventDAO asgLifecycleEventDAO;
+    private final GroupDAO groupDAO;
+    private final GroupInfoDAO groupInfoDAO;
+    private final HostDAO hostDAO;
+    private final NewInstanceReportDAO newInstanceReportDAO;
+    private final UtilDAO utilDAO;
+    private final EventMessageParser eventMessageParser;
+    private final AutoScaleGroupManager autoScaleGroupManager;
+    private final AmazonSQSClient sqsClient;
 
     public LaunchEventCollector(TeletraanServiceContext context) {
-        sqsClient = new AmazonSQSClient(context.getAwsCredentials());
-        sqsClient.setEndpoint(context.getAwsConfigManager().getSqsArn());
+        agentDAO = context.getAgentDAO();
+        asgLifecycleEventDAO = context.getAsgLifecycleEventDAO();
+        groupDAO = context.getGroupDAO();
         groupInfoDAO = context.getGroupInfoDAO();
+        hostDAO = context.getHostDAO();
         newInstanceReportDAO = context.getNewInstanceReportDAO();
         utilDAO = context.getUtilDAO();
-        hostDAO = context.getHostDAO();
-        groupDAO = context.getGroupDAO();
-        launchEventParser = new LaunchEventParser();
+        eventMessageParser = new EventMessageParser();
+        autoScaleGroupManager = context.getAutoScaleGroupManager();
+        sqsClient = new AmazonSQSClient(context.getAwsCredentials());
+        sqsClient.setEndpoint(context.getAwsConfigManager().getSqsArn());
     }
 
-    private boolean updateGroupInfo(LaunchEvent launchEvent) throws Exception {
-        String groupName = launchEvent.getGroupName();
-        String processLockName = String.format("UPDATE-%s", launchEvent.getGroupName());
+    private boolean updateGroupInfo(EventMessage eventMessage) throws Exception {
+        String groupName = eventMessage.getGroupName();
+        String processLockName = String.format("UPDATE-%s", eventMessage.getGroupName());
         Connection connection = utilDAO.getLock(processLockName);
         if (connection == null) {
             throw new Exception("Failed to obtain db lock for updates");
@@ -71,30 +83,68 @@ public class LaunchEventCollector implements Runnable {
                 return false;
             }
 
-            if (launchEvent.getEventType().equals("autoscaling:EC2_INSTANCE_LAUNCH")) {
-                LOG.debug(String.format("An new instance %s has been launched in group %s", launchEvent.getInstanceId(), launchEvent.getGroupName()));
+            if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_LAUNCH")) {
+                LOG.debug(String.format("An new instance %s has been launched in group %s", eventMessage.getInstanceId(), eventMessage.getGroupName()));
 
                 // insert new host
                 HostBean hostBean = new HostBean();
                 // set default host_name equals to instance Id
-                hostBean.setHost_name(launchEvent.getInstanceId());
-                hostBean.setHost_id(launchEvent.getInstanceId());
-                hostBean.setGroup_name(launchEvent.getGroupName());
+                hostBean.setHost_name(eventMessage.getInstanceId());
+                hostBean.setHost_id(eventMessage.getInstanceId());
+                hostBean.setGroup_name(eventMessage.getGroupName());
                 hostBean.setState(HostState.PROVISIONED);
-                hostBean.setCreate_date(launchEvent.getTimestamp());
-                hostBean.setLast_update(launchEvent.getTimestamp());
+                hostBean.setCreate_date(eventMessage.getTimestamp());
+                hostBean.setLast_update(eventMessage.getTimestamp());
                 hostDAO.insert(hostBean);
 
                 // add to the new instance report
                 List<String> envIds = groupDAO.getEnvsByGroupName(groupName);
-                LOG.debug(String.format("Adding %d instances report for host %s", envIds.size(), launchEvent.getInstanceId()));
-                newInstanceReportDAO.addNewInstanceReport(launchEvent.getInstanceId(), launchEvent.getTimestamp(), envIds);
-            } else if (launchEvent.getEventType().equals("autoscaling:EC2_INSTANCE_TERMINATE")) {
-                LOG.debug(String.format("An existing instance %s has been terminated in group %s", launchEvent.getInstanceId(), launchEvent.getGroupName()));
+                LOG.debug(String.format("Adding %d instances report for host %s", envIds.size(), eventMessage.getInstanceId()));
+                newInstanceReportDAO.addNewInstanceReport(eventMessage.getInstanceId(), eventMessage.getTimestamp(), envIds);
+            } else if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_TERMINATE")) {
+                LOG.debug(String.format("An existing instance %s has been terminated in group %s", eventMessage.getInstanceId(), eventMessage.getGroupName()));
                 HostBean hostBean = new HostBean();
                 hostBean.setState(HostState.TERMINATING);
-                hostBean.setLast_update(launchEvent.getTimestamp());
-                hostDAO.updateHostById(launchEvent.getInstanceId(), hostBean);
+                hostBean.setLast_update(eventMessage.getTimestamp());
+                hostDAO.updateHostById(eventMessage.getInstanceId(), hostBean);
+            } else if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_TERMINATING")) {
+                // Gracefully shut down services
+                String hostId = eventMessage.getInstanceId();
+                String hookId = eventMessage.getLifecycleHook();
+                LOG.debug(String.format("INSTANCE_TERMINATING: An instance %s is terminating in group %s with hook %s", hostId, groupName, hookId));
+                AgentBean agentBean = new AgentBean();
+                agentBean.setState(AgentState.STOP);
+                agentBean.setLast_update(System.currentTimeMillis());
+                agentDAO.updateAgentById(hostId, agentBean);
+
+                AsgLifecycleEventBean bean = new AsgLifecycleEventBean();
+                bean.setToken_id(eventMessage.getLifecycleToken());
+                bean.setHook_id(hookId);
+                bean.setGroup_name(groupName);
+                bean.setHost_id(hostId);
+                bean.setStart_date(System.currentTimeMillis());
+                asgLifecycleEventDAO.insertAsgLifecycleEvent(bean);
+            } else if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_LAUNCHING")) {
+                // Directly complete the launching lifecycle action
+                String hostId = eventMessage.getInstanceId();
+                String hookId = eventMessage.getLifecycleHook();
+                LOG.debug(String.format("INSTANCE_LAUNCHING: An instance %s is launching in group %s. Complete lifecycle hook %s", hostId, groupName, hookId));
+                autoScaleGroupManager.completeLifecycleAction(hookId, eventMessage.getLifecycleToken(), groupName);
+
+                // insert new host
+                HostBean hostBean = new HostBean();
+                hostBean.setHost_name(hostId);
+                hostBean.setHost_id(hostId);
+                hostBean.setGroup_name(groupName);
+                hostBean.setState(HostState.PROVISIONED);
+                hostBean.setCreate_date(eventMessage.getTimestamp());
+                hostBean.setLast_update(eventMessage.getTimestamp());
+                hostDAO.insert(hostBean);
+
+                // add to the new instance report
+                List<String> envIds = groupDAO.getEnvsByGroupName(groupName);
+                LOG.debug(String.format("Adding %d instances report for host %s", envIds.size(), eventMessage.getInstanceId()));
+                newInstanceReportDAO.addNewInstanceReport(eventMessage.getInstanceId(), eventMessage.getTimestamp(), envIds);
             }
             return true;
         } catch (Exception ex) {
@@ -107,7 +157,7 @@ public class LaunchEventCollector implements Runnable {
 
     private boolean processMessage(Message message) throws Exception {
         String messageBody = message.getBody();
-        LaunchEvent event = launchEventParser.fromJson(messageBody);
+        EventMessage event = eventMessageParser.fromJson(messageBody);
         if (event == null) {
             return true;
         } else {

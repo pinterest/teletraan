@@ -20,6 +20,7 @@ import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
+import com.pinterest.arcee.common.HealthCheckConstants;
 import com.pinterest.arcee.dao.AlarmDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
@@ -187,6 +188,7 @@ public class GroupHandler {
         // patch missing field in the newGroupBean with existing/default value
         newGroupBean = generateUpdatedGroupBean(groupBean, newGroupBean);
 
+        // Launch config management
         boolean hasAutoScalingGroup = asgDAO.hasAutoScalingGroup(groupName);
         // check if we should update aws autoscaling launch config
         if (needUpdateLaunchConfig(newGroupBean, groupBean)) {
@@ -202,6 +204,28 @@ public class GroupHandler {
         if (hasAutoScalingGroup && newGroupBean.getSubnets() != null && groupBean.getSubnets() != null &&
             !newGroupBean.getSubnets().equals(groupBean.getSubnets())) {
             asgDAO.updateSubnet(groupName, newGroupBean.getSubnets());
+        }
+
+        // Lifecycle management
+        if (newGroupBean.getLifecycle_state()) {
+            // Create Lifecycle hook
+            if (!groupBean.getLifecycle_state()) {
+                LOG.info("Start to add a lifecycle to group {}", groupName);
+                asgDAO.createLifecycleHook(groupName, newGroupBean.getLifecycle_timeout().intValue());
+            } else {
+                // Update Lifecycle hook only when timeout changes
+                if (!newGroupBean.getLifecycle_timeout().equals(groupBean.getLifecycle_timeout())) {
+                    LOG.info("Start to update the lifecycle to group {}", groupName);
+                    asgDAO.createLifecycleHook(groupName, newGroupBean.getLifecycle_timeout().intValue());
+                }
+            }
+        } else {
+            // Delete Lifecycle hook
+            if (groupBean.getLifecycle_state()) {
+                String lifecycleHookId = String.format("LIFECYCLEHOOK-%s", groupName);
+                LOG.info("Start to delete lifecycle {} to group {}", lifecycleHookId, groupName);
+                asgDAO.deleteLifecycleHook(groupName);
+            }
         }
 
         groupInfoDAO.updateGroupInfo(groupName, newGroupBean);
@@ -542,6 +566,10 @@ public class GroupHandler {
         groupBean.setAssign_public_ip(false);
         groupBean.setUser_data(Base64.encodeBase64String(String.format("#cloud-config\nrole: %s\n", groupName).getBytes()));
         groupBean.setAsg_status(ASGStatus.UNKNOWN);
+        groupBean.setHealthcheck_state(false);
+        groupBean.setHealthcheck_period(HealthCheckConstants.HEALTHCHECK_PERIOD);
+        groupBean.setLifecycle_state(false);
+        groupBean.setLifecycle_timeout(AutoScalingConstants.LIFECYCLE_TIMEOUT);
         return groupBean;
     }
 
@@ -583,6 +611,14 @@ public class GroupHandler {
 
         if (requestBean.getAsg_status() == null) {
             requestBean.setAsg_status(ASGStatus.UNKNOWN);
+        }
+
+        if (requestBean.getHealthcheck_state() == null) {
+            requestBean.setHealthcheck_state(groupBean.getHealthcheck_state());
+        }
+
+        if (requestBean.getLifecycle_state() == null) {
+            requestBean.setLifecycle_state(groupBean.getLifecycle_state());
         }
         return requestBean;
     }

@@ -16,14 +16,16 @@
 package com.pinterest.deployservice.common;
 
 
-public class LaunchEvent {
+public class EventMessage {
     private String instanceId;
     private String groupName;
     private String eventType;
     private String cause;
     private long timestamp;
+    private String lifecycleToken;
+    private String lifecycleHook;
 
-    public LaunchEvent(String instanceId, String groupName, String type, String cause, long timestamp) {
+    public EventMessage(String instanceId, String groupName, String type, String cause, long timestamp) {
         this.instanceId = instanceId;
         this.groupName = groupName;
         this.eventType = type;
@@ -31,7 +33,18 @@ public class LaunchEvent {
         this.timestamp = timestamp;
     }
 
-    public String getInstanceId() { return instanceId; }
+    public EventMessage(String lifecycleToken, String lifecycleHook, String groupName, String eventType, String instanceId, long timestamp) {
+        this.lifecycleToken = lifecycleToken;
+        this.lifecycleHook = lifecycleHook;
+        this.groupName = groupName;
+        this.eventType = eventType;
+        this.instanceId = instanceId;
+        this.timestamp = timestamp;
+    }
+
+    public String getInstanceId() {
+        return instanceId;
+    }
 
     public String getGroupName() {
         return groupName;
@@ -41,9 +54,19 @@ public class LaunchEvent {
         return eventType;
     }
 
-    public String getCause() { return cause; }
+    public String getCause() {
+        return cause;
+    }
 
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public String getLifecycleToken() {
+        return lifecycleToken;
+    }
+
+    public String getLifecycleHook() {
+        return lifecycleHook;
     }
 }

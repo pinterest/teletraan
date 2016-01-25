@@ -314,6 +314,8 @@ public class GroupHandlerTest {
         groupBean.setLaunch_latency_th(600);
         groupBean.setLast_update(lastUpdate);
         groupBean.setUser_data(Base64.encodeBase64String(String.format("#cloud-config\nrole: %s\n", groupName).getBytes()));
+        groupBean.setHealthcheck_state(false);
+        groupBean.setLifecycle_state(false);
         return groupBean;
     }
 }

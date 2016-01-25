@@ -51,6 +51,9 @@ public class AWSFactory {
     @JsonProperty
     private String sns_arn;
 
+    @JsonProperty
+    private String role_arn;
+
     public String getId() {
         return id;
     }
@@ -77,7 +80,7 @@ public class AWSFactory {
             LOG.info("AWS credential is missing for creating auto scaling client. Assuming to use IAM role for authentication.");
             aasClient = new AmazonAutoScalingClient();
         }
-        return new AwsAutoScaleGroupManager(sns_arn, aasClient);
+        return new AwsAutoScaleGroupManager(sns_arn, role_arn, aasClient);
     }
 
     public AwsAlarmManager buildAwsAlarmManager() {
@@ -110,6 +113,7 @@ public class AWSFactory {
         awsConfigManager.setOwnerId(owner_id);
         awsConfigManager.setSqsArn(sqs_arn);
         awsConfigManager.setSnsArn(sns_arn);
+        awsConfigManager.setRoleArn(role_arn);
         return awsConfigManager;
     }
 }
