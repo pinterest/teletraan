@@ -33,7 +33,7 @@ public class TSDBClient {
     private static final String TIMESTAMP = "timestamp";
     private static final String VALUE = "value";
     // TODO make this configurable in the yaml file
-    private static final String tsdbServer = "https://tsd.pinadmin.com";
+    private static final String tsdbServer = "http://visibility-opentsdbmp-prod-write-prod-00002300:4242";
 
     public TSDBClient() {
     }
