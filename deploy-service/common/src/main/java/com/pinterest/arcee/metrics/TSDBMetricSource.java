@@ -16,6 +16,10 @@
 package com.pinterest.arcee.metrics;
 
 import com.google.gson.GsonBuilder;
+
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.URL;
 import java.util.*;
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.arcee.bean.MetricDatumBean;
@@ -71,7 +75,7 @@ public class TSDBMetricSource extends BaseMetricSource {
         for (int i = 0; i < times; ++i) {
             DatagramSocket socket = new DatagramSocket();
             try {
-                InetAddress address = InetAddress.getByName(tsdbServer);
+                InetAddress address = InetAddress.getByName(writePath);
                 DatagramPacket packet = new DatagramPacket(message, message.length, address, port);
                 socket.send(packet);
                 socket.close();
