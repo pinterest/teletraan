@@ -17,9 +17,12 @@ package com.pinterest.arcee.metrics;
 
 import com.google.gson.GsonBuilder;
 
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.URL;
+import java.net.Socket;
+import java.io.OutputStreamWriter;
 import java.util.*;
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.arcee.bean.MetricDatumBean;
@@ -27,7 +30,6 @@ import com.pinterest.deployservice.common.HTTPClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
 
 public class TSDBMetricSource implements MetricSource {
     private static final Logger LOG = LoggerFactory.getLogger(com.pinterest.arcee.metrics.TSDBMetricSource.class);
@@ -56,8 +58,8 @@ public class TSDBMetricSource implements MetricSource {
             sb.append(String.format("%s=%s", entry.getKey(), entry.getValue()));
         }
 
-        byte[] message = String.format("put %s %f %f %s\n", metricName, (double)timestamp/1000, value, sb.toString()).getBytes();
-        LOG.info("exporting metric to tsdb " + new String(message));
+        String message = String.format("put %s %d %f %s\n", metricName, timestamp, value, sb.toString());
+        LOG.info("exporting metric to tsdb:  " + message);
         sendMessage(message, 3);
     }
 
@@ -93,15 +95,15 @@ public class TSDBMetricSource implements MetricSource {
         return dataPoints;
     }
 
-    private boolean sendMessage(byte[] message, int times) throws Exception {
+    private boolean sendMessage(String message, int times) throws Exception {
         Exception lastException = null;
         for (int i = 0; i < times; ++i) {
-            DatagramSocket socket = new DatagramSocket();
+            Socket socket = new Socket();
             try {
-                InetAddress address = InetAddress.getByName(writePath);
-                DatagramPacket packet = new DatagramPacket(message, message.length, address, port);
-                socket.send(packet);
-                socket.close();
+                socket.connect(new InetSocketAddress(writePath, port));
+                OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
+                writer.write(message);
+                writer.flush();
                 return true;
             } catch (Exception ex) {
                 LOG.error("Failed to send message to tsd server", ex);
