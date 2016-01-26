@@ -15,9 +15,9 @@
  */
 package com.pinterest.teletraan.worker;
 
+import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.common.TSDBClient;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import org.slf4j.Logger;
@@ -34,11 +34,13 @@ public class NewInstanceChecker implements Runnable {
     private static String FIRST_DEPLOY_FAILED_RATE_STR = "autoscaling.%s.%s.first_deploy.success_rate";
     private AgentDAO agentDAO;
     private EnvironDAO environDAO;
+    private MetricSource metricSource;
     private HashMap<String, String> tags;
 
     public NewInstanceChecker(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
         environDAO = serviceContext.getEnvironDAO();
+        metricSource = serviceContext.getMetricSource();
         tags = new HashMap<>();
     }
 
@@ -48,14 +50,13 @@ public class NewInstanceChecker implements Runnable {
         String stageName = environBean.getStage_name();
         long firstDeployCount = agentDAO.countFirstDeployingAgent(envId);
         long firstDeployFailedCount = agentDAO.countFailedFirstDeployingAgent(envId);
-        TSDBClient client = new TSDBClient();
         Long currentTime = System.currentTimeMillis();
         double rate = firstDeployCount == 0 ? 1 : (firstDeployCount - firstDeployFailedCount) / (double)firstDeployCount;
         LOG.info(String.format("Checking env: %s, first deploy count: %d, failed count: %d, failure rate: %f",
                         envName, firstDeployCount, firstDeployFailedCount, rate));
-        client.export(String.format(FIRST_DEPLOY_TOTAL_COUNT_STR, envName, stageName), tags, (double)firstDeployCount, currentTime);
-        client.export(String.format(FIRST_DEPLOY_FAILED_COUNT_STR, envName, stageName), tags, (double)firstDeployFailedCount, currentTime);
-        client.export(String.format(FIRST_DEPLOY_FAILED_RATE_STR,envName, stageName), tags, rate, currentTime);
+        metricSource.export(String.format(FIRST_DEPLOY_TOTAL_COUNT_STR, envName, stageName), tags, (double)firstDeployCount, currentTime);
+        metricSource.export(String.format(FIRST_DEPLOY_FAILED_COUNT_STR, envName, stageName), tags, (double)firstDeployFailedCount, currentTime);
+        metricSource.export(String.format(FIRST_DEPLOY_FAILED_RATE_STR,envName, stageName), tags, rate, currentTime);
     }
 
     public void run()  {

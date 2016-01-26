@@ -53,6 +53,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     private AWSFactory awsFactory;
 
     @Valid
+    @JsonProperty("metric")
+    private MetricSourceFactory metricSourceFactory;
+
+    @Valid
     @JsonProperty("hostgroup")
     private HostGroupFactory hostGroupFactory;
 
@@ -117,6 +121,18 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setChatFactory(ChatFactory chatFactory) {
         this.chatFactory = chatFactory;
+    }
+
+    public MetricSourceFactory getMetricSourceFactory() {
+        if (metricSourceFactory == null) {
+            return new DefaultMetricSourceFactory();
+        }
+
+        return metricSourceFactory;
+    }
+
+    public void setMetricSourceFactory(MetricSourceFactory metricSourceFactory) {
+        this.metricSourceFactory = metricSourceFactory;
     }
 
     public EmailFactory getEmailFactory() {

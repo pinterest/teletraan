@@ -15,8 +15,8 @@
  */
 package com.pinterest.teletraan.worker;
 
+import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.common.TSDBClient;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import org.slf4j.Logger;
@@ -34,9 +34,11 @@ public class GroupInfoUpdater implements Runnable {
     private GroupInfoDAO groupInfoDAO;
     private HostDAO hostDAO;
     private HashMap<String, String> tags;
+    private MetricSource metricSource;
     public GroupInfoUpdater(ServiceContext context) {
         groupInfoDAO = context.getGroupInfoDAO();
         hostDAO = context.getHostDAO();
+        metricSource = context.getMetricSource();
         tags = new HashMap<>();
         try {
             tags.put("host", InetAddress.getLocalHost().getHostName());
@@ -47,8 +49,7 @@ public class GroupInfoUpdater implements Runnable {
 
     private void sendGroupMetrics(String groupName) throws Exception {
         Long groupSize = hostDAO.getGroupSize(groupName);
-        TSDBClient client = new TSDBClient();
-        client.export(String.format(COUNTER_NAME, groupName), tags, groupSize.doubleValue(), System.currentTimeMillis());
+        metricSource.export(String.format(COUNTER_NAME, groupName), tags, groupSize.doubleValue(), System.currentTimeMillis());
     }
 
     public void processBatch() throws Exception {

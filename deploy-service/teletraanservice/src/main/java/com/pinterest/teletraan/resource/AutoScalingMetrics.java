@@ -28,8 +28,10 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Collection;
 import java.util.List;
 
+// TODO (jihe) refactor this endpoint to /v1/autoscaling/metrics
 @Path("/v1/metrics/autoscaling")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -48,14 +50,14 @@ public class AutoScalingMetrics {
 
     @GET
     @Path("/groups/size")
-    public List<MetricDatumBean> getGroupSizeMetrics(@QueryParam("groupName") String groupName,
+    public Collection<MetricDatumBean> getGroupSizeMetrics(@QueryParam("groupName") String groupName,
                                                      @QueryParam("start") String startFrom) throws Exception {
         return metricHandler.getGroupSizeMetrics(groupName, startFrom);
     }
 
     @GET
     @Path("/latency/")
-    public List<MetricDatumBean> getLatencyMetrics(@QueryParam("envId") String envId, @QueryParam("type") String type,
+    public Collection<MetricDatumBean> getLatencyMetrics(@QueryParam("envId") String envId, @QueryParam("type") String type,
                                                    @QueryParam("start") String startFrom) throws Exception {
         LatencyType latencyType = LatencyType.valueOf(LatencyType.class, type.toUpperCase());
         EnvironBean environBean = environDAO.getById(envId);
@@ -70,7 +72,7 @@ public class AutoScalingMetrics {
 
     @GET
     @Path("/groups/")
-    public List<MetricDatumBean> getMetricData(@QueryParam("groupName") String groupName,
+    public Collection<MetricDatumBean> getMetricData(@QueryParam("groupName") String groupName,
                                                @QueryParam("metricName") String metricName,
                                                @QueryParam("start") String startFrom) throws Exception {
         return metricHandler.getMetricData(groupName, metricName, startFrom);
@@ -78,7 +80,7 @@ public class AutoScalingMetrics {
 
     @GET
     @Path("/raw_metrics/")
-    public List<MetricDatumBean> getRawMetricData(@QueryParam("metricName") String metricName,
+    public Collection<MetricDatumBean> getRawMetricData(@QueryParam("metricName") String metricName,
                                                   @QueryParam("start") String startFrom) throws Exception {
         return metricHandler.getRawMetricData(metricName, startFrom);
     }

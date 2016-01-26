@@ -18,8 +18,8 @@ package com.pinterest.teletraan.worker;
 import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.bean.MetricBean;
 import com.pinterest.arcee.bean.MetricDatumBean;
+import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.common.TSDBClient;
 import com.pinterest.arcee.dao.AlarmDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,16 +31,16 @@ public class MetricsCollector implements Runnable {
 
     private AlarmDAO alarmDAO;
     private AlarmManager alarmManager;
-    private TSDBClient tsdbClient;
+    private MetricSource metricSource;
     public MetricsCollector(ServiceContext serviceContext) {
         alarmDAO = serviceContext.getAlarmDAO();
         alarmManager = serviceContext.getAlarmManager();
-        tsdbClient = new TSDBClient();
+        metricSource = serviceContext.getMetricSource();
     }
 
     private void processMetric(MetricBean metricBean) throws Exception {
         // get data from tsdb
-        List<MetricDatumBean> dataPoints = tsdbClient.getMetrics(metricBean.getMetric_source(), "1m-ago");
+        Collection<MetricDatumBean> dataPoints = metricSource.getMetrics(metricBean.getMetric_source(), "1m-ago");
 
         // send data to aws
         alarmManager.putMetricsToAlarm(metricBean.getGroup_name(), metricBean.getMetric_name(), dataPoints);

@@ -5,3 +5,4 @@ com.pinterest.teletraan.config.DataSourceFactory
 com.pinterest.teletraan.config.ChatFactory
 com.pinterest.teletraan.config.HostGroupFactory
 com.pinterest.teletraan.config.EmailFactory
+com.pinterest.teletraan.config.MetricSourceFactory
