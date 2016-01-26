@@ -19,6 +19,7 @@ import com.google.gson.GsonBuilder;
 
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.URL;
 import java.util.*;
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.arcee.bean.MetricDatumBean;
@@ -30,15 +31,17 @@ import java.net.InetAddress;
 
 public class TSDBMetricSource implements MetricSource {
     private static final Logger LOG = LoggerFactory.getLogger(com.pinterest.arcee.metrics.TSDBMetricSource.class);
-    private String tsdbServer;
+    private String writePath;
+    private String readPath;
     private Integer port;
 
-    public TSDBMetricSource(String url) {
-        String[] address = url.split(":");
-        tsdbServer = address[0];
-        port = Integer.getInteger(address[1]);
-        LOG.info("set up tsdb server as: %s : %d", tsdbServer, port);
-    }
+    public TSDBMetricSource(String urlpath, String readUrl) throws Exception {
+        URL url = new URL(urlpath);
+        writePath = url.getHost();
+        port = url.getPort();
+        readPath = readUrl;
+        LOG.info(String.format("set up tsdb server as: %s : %d, read path: %s", writePath, port, readPath));
+}
 
     @Override
     public void export(String metricName, Map<String, String> tags, Double value, Long timestamp) throws Exception {
@@ -66,7 +69,7 @@ public class TSDBMetricSource implements MetricSource {
         params.put("start", start);
         HashMap<String, String> headers = new HashMap<>();
 
-        String url = String.format("%s/api/query", tsdbServer);
+        String url = String.format("%s/api/query", readPath);
         String jsonPayload = httpClient.get(url, params, headers, 1);
         LOG.debug(String.format("Get metric data from source: %s", jsonPayload));
 
@@ -95,7 +98,7 @@ public class TSDBMetricSource implements MetricSource {
         for (int i = 0; i < times; ++i) {
             DatagramSocket socket = new DatagramSocket();
             try {
-                InetAddress address = InetAddress.getByName(tsdbServer);
+                InetAddress address = InetAddress.getByName(writePath);
                 DatagramPacket packet = new DatagramPacket(message, message.length, address, port);
                 socket.send(packet);
                 socket.close();

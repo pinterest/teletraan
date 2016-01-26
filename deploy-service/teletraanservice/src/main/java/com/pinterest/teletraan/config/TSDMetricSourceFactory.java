@@ -28,6 +28,10 @@ public class TSDMetricSourceFactory implements MetricSourceFactory {
     @JsonProperty
     private String url;
 
+    @NotEmpty
+    @JsonProperty
+    private String readUrl;
+
     public String getUrl() {
         return url;
     }
@@ -36,8 +40,12 @@ public class TSDMetricSourceFactory implements MetricSourceFactory {
         this.url = url;
     }
 
+    public String getReadUrl() { return readUrl; }
+
+    public void setReadUrl(String readUrl) { this.readUrl = readUrl; }
+
     @Override
     public MetricSource create() throws Exception {
-        return new TSDBMetricSource(url);
+        return new TSDBMetricSource(url, readUrl);
     }
 }
