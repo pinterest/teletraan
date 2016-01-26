@@ -105,10 +105,6 @@ class Stager(object):
         return symlink_target.rsplit("/", 1)[-1]
 
     def transform_script(self):
-        # if the dict is empty, no need to transform script
-        if self._transformer.dict_size() == 0:
-            return
-
         script_dir = os.path.join(self._target, self._script_dirname)
         if not os.path.exists(script_dir):
             return
