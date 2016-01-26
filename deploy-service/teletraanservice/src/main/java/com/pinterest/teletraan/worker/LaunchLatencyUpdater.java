@@ -20,17 +20,15 @@ import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.NewInstanceReportBean;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.NewInstanceReportDAO;
+import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentStatus;
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.common.NotificationJob;
-import com.pinterest.deployservice.common.TSDBClient;
 import com.pinterest.deployservice.dao.*;
 
 import com.pinterest.deployservice.handler.CommonHandler;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +56,7 @@ public class LaunchLatencyUpdater implements Runnable {
     private NewInstanceReportDAO newInstanceReportDAO;
     private CommonHandler commonHandler;
     private ExecutorService jobPool;
+    private MetricSource metricSource;
     private HashMap<String, String> tags;
 
     private class SendMetricsJob implements Callable {
@@ -78,14 +77,13 @@ public class LaunchLatencyUpdater implements Runnable {
                 long serveTrafficTime = agent.getFirst_deploy_time();
                 double launch_latency = serveTrafficTime - launchTime;
                 double deploy_latency = serveTrafficTime - agent.getStart_date();
-                TSDBClient client = new TSDBClient();
                 LOG.debug(String.format("Instance %s launched at: %d, started to deploy at: %d, start to serve traffic at: %d, launch latency is: %f seconds, deploy launtency is:%f seconds",
                         agent.getHost_id(), launchTime, agent.getStart_date(), serveTrafficTime, launch_latency, deploy_latency));
-                client.export(String.format(COUNTER_NAME_LAUNCH_LATENCY, environ.getEnv_name(), environ.getStage_name()), tags, launch_latency, System.currentTimeMillis());
-                client.export(String.format(COUNTER_NAME_DEPLOY_LATENCY, environ.getEnv_name(), environ.getStage_name()), tags, deploy_latency, System.currentTimeMillis());
-                client.export(String.format(TOTAL_INSTANCE_LAUNCH_COUNT, group.getGroup_name()), tags, (double) 1, System.currentTimeMillis());
+                metricSource.export(String.format(COUNTER_NAME_LAUNCH_LATENCY, environ.getEnv_name(), environ.getStage_name()), tags, launch_latency, System.currentTimeMillis());
+                metricSource.export(String.format(COUNTER_NAME_DEPLOY_LATENCY, environ.getEnv_name(), environ.getStage_name()), tags, deploy_latency, System.currentTimeMillis());
+                metricSource.export(String.format(TOTAL_INSTANCE_LAUNCH_COUNT, group.getGroup_name()), tags, (double) 1, System.currentTimeMillis());
                 if (launch_latency >= group.getLaunch_latency_th() * 1000) {
-                    client.export(String.format(EXCEED_THRESHOLD_LAUNCH_COUNT, group.getGroup_name()), tags, (double) 1, System.currentTimeMillis());
+                    metricSource.export(String.format(EXCEED_THRESHOLD_LAUNCH_COUNT, group.getGroup_name()), tags, (double) 1, System.currentTimeMillis());
                 }
             } catch (Exception ex) {
                 LOG.error("Failed to send metrics to the tsd.", ex);
@@ -103,6 +101,7 @@ public class LaunchLatencyUpdater implements Runnable {
         agentDAO = context.getAgentDAO();
         newInstanceReportDAO = context.getNewInstanceReportDAO();
         commonHandler = new CommonHandler(context);
+        metricSource = context.getMetricSource();
         jobPool = context.getJobPool();
         tags = new HashMap<>();
         try {
@@ -120,6 +119,11 @@ public class LaunchLatencyUpdater implements Runnable {
         }
         String groupName = groupNames.get(0);
         GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
+        if (groupBean == null) {
+            LOG.info(String.format("Group %s does not exist. skip.", groupName));
+            return;
+        }
+
         Integer launchTimeThreshold = groupBean.getLaunch_latency_th() * 1000;
         List<String> hostIds = newInstanceReportDAO.getNewInstanceIdsByEnv(envId);
 

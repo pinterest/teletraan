@@ -13,60 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pinterest.deployservice.common;
+package com.pinterest.arcee.metrics;
 
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.util.*;
-
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.arcee.bean.MetricDatumBean;
+import com.pinterest.deployservice.common.HTTPClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 
-public class TSDBClient {
-    private static final Logger LOG = LoggerFactory.getLogger(TSDBClient.class);
-    private static final String METRIC = "metric";
-    private static final String TIMESTAMP = "timestamp";
-    private static final String VALUE = "value";
-    // TODO make this configurable in the yaml file
-    private static final String tsdbServer = "http://visibility-opentsdbmp-prod-write-prod-00002300:4242";
+public class TSDBMetricSource implements MetricSource {
+    private static final Logger LOG = LoggerFactory.getLogger(com.pinterest.arcee.metrics.TSDBMetricSource.class);
+    private String tsdbServer;
+    private Integer port;
 
-    public TSDBClient() {
+    public TSDBMetricSource(String url) {
+        String[] address = url.split(":");
+        tsdbServer = address[0];
+        port = Integer.getInteger(address[1]);
+        LOG.info("set up tsdb server as: %s : %d", tsdbServer, port);
     }
 
+    @Override
     public void export(String metricName, Map<String, String> tags, Double value, Long timestamp) throws Exception {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty(METRIC, metricName);
-        jsonObject.addProperty(TIMESTAMP, timestamp);
-        jsonObject.addProperty(VALUE, value);
-
         if (tags.isEmpty()) {
             tags.put("host", InetAddress.getLocalHost().getHostName());
         }
-
-        JsonObject tagsJson = new JsonObject();
+        StringBuilder sb = new StringBuilder();
+        String prefix = "";
         for (Map.Entry<String, String> entry : tags.entrySet()) {
-            tagsJson.addProperty(entry.getKey(), entry.getValue());
+            sb.append(prefix);
+            prefix = " ";
+            sb.append(String.format("%s=%s", entry.getKey(), entry.getValue()));
         }
-        jsonObject.add("tags", tagsJson);
 
-        LOG.info("exporting metric to tsdb " + jsonObject);
-        String url = String.format("%s/api/put?details", tsdbServer);
-        HTTPClient client  = new HTTPClient();
-        HashMap<String, String> headers = new HashMap<>();
-        headers.put("Content-Type", "application/json");
-        headers.put("Accepts", "application/json");
-        headers.put("Accept", "*/*");
-        String result = client.post(url, jsonObject.toString(), headers, 3);
+        byte[] message = String.format("put %s %f %f %s\n", metricName, (double)timestamp/1000, value, sb.toString()).getBytes();
+        LOG.info("exporting metric to tsdb " + new String(message));
+        sendMessage(message, 3);
     }
 
-    public List<MetricDatumBean> getMetrics(String metricName, String start) throws Exception {
+    @Override
+    public Collection<MetricDatumBean> getMetrics(String metricName, String start) throws Exception {
         HTTPClient httpClient = new HTTPClient();
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("m", metricName);
         params.put("start", start);
         HashMap<String, String> headers = new HashMap<>();
@@ -93,5 +88,28 @@ public class TSDBClient {
             }
         }
         return dataPoints;
+    }
+
+    private boolean sendMessage(byte[] message, int times) throws Exception {
+        Exception lastException = null;
+        for (int i = 0; i < times; ++i) {
+            DatagramSocket socket = new DatagramSocket();
+            try {
+                InetAddress address = InetAddress.getByName(tsdbServer);
+                DatagramPacket packet = new DatagramPacket(message, message.length, address, port);
+                socket.send(packet);
+                socket.close();
+                return true;
+            } catch (Exception ex) {
+                LOG.error("Failed to send message to tsd server", ex);
+                lastException = ex;
+            } finally {
+                if (!socket.isClosed()) {
+                    socket.close();
+                }
+            }
+        }
+
+        throw lastException;
     }
 }
