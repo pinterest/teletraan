@@ -53,11 +53,17 @@ class Transformer(object):
             with open(from_path, 'r') as f:
                 res = f.read()
 
-            matcher = "\{\$TELETRAAN_(?P<KEY>[a-zA-Z0-9\-_]+):(?P<VALUE>.*)\}"
+            matcher = "(\{\$|\$\{)TELETRAAN_(?P<KEY>[a-zA-Z0-9\-_]+)(?P<COLON>:)?(?P<VALUE>.*?)\}"
             match_string = re.finditer(matcher, res)
             for match in match_string:
-                value = self._dictionary.get(match.group("KEY"), match.group("VALUE"))
-                res = res.replace(match.group(), value)
+                key = match.group("KEY")
+                colon = match.group("COLON")
+                value = match.group("VALUE")
+                if colon is None:
+                    value = None
+                value = self._dictionary.get(key, value)
+                if value is not None:
+                    res = res.replace(match.group(), value)
 
             s = TeletraanTemplate(res)
             res = s.safe_substitute(self._dictionary)

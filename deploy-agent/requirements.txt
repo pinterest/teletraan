@@ -4,6 +4,6 @@
 tox==1.6.1
 coverage
 pytest==2.3.5
-mock
+mock==1.0.1
 flake8
 nose-socket-whitelist

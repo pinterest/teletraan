@@ -38,7 +38,7 @@ class TestConfigFunctions(tests.TestCase):
             f.writelines(lines)
 
         config_reader = mock.Mock()
-        config_reader.get = mock.Mock(return_value="")
+        config_reader.get = mock.Mock(return_value="/tmp")
         cls.config = Config(config_reader=config_reader)
 
     def test_get_target(self):
