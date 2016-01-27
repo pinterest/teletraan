@@ -16,13 +16,6 @@
 package com.pinterest.arcee.metrics;
 
 import com.google.gson.GsonBuilder;
-
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.net.Socket;
-import java.io.OutputStreamWriter;
 import java.util.*;
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.arcee.bean.MetricDatumBean;
@@ -71,28 +64,5 @@ public class TSDBMetricSource extends BaseMetricSource {
             }
         }
         return dataPoints;
-    }
-
-    private boolean sendMessage(String message, int times) throws Exception {
-        Exception lastException = null;
-        for (int i = 0; i < times; ++i) {
-            Socket socket = new Socket();
-            try {
-                socket.connect(new InetSocketAddress(writePath, port));
-                OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
-                writer.write(message);
-                writer.flush();
-                return true;
-            } catch (Exception ex) {
-                LOG.error("Failed to send message to tsd server", ex);
-                lastException = ex;
-            } finally {
-                if (!socket.isClosed()) {
-                    socket.close();
-                }
-            }
-        }
-
-        throw lastException;
     }
 }
