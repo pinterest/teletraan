@@ -1,2 +1,3 @@
 com.pinterest.teletraan.config.TSDMetricSourceFactory
+com.pinterest.teletraan.config.StatsboardMetricSourceFactory
 com.pinterest.teletraan.config.DefaultMetricSourceFactory

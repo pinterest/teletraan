@@ -16,13 +16,6 @@
 package com.pinterest.arcee.metrics;
 
 import com.google.gson.GsonBuilder;
-
-
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.URL;
-import java.net.Socket;
-import java.io.OutputStreamWriter;
 import java.util.*;
 import com.google.gson.reflect.TypeToken;
 import com.pinterest.arcee.bean.MetricDatumBean;
@@ -31,36 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class TSDBMetricSource implements MetricSource {
+public class TSDBMetricSource extends BaseMetricSource {
     private static final Logger LOG = LoggerFactory.getLogger(com.pinterest.arcee.metrics.TSDBMetricSource.class);
-    private String writePath;
     private String readPath;
-    private Integer port;
 
     public TSDBMetricSource(String urlpath, String readUrl) throws Exception {
-        URL url = new URL(urlpath);
-        writePath = url.getHost();
-        port = url.getPort();
+        super(urlpath);
         readPath = readUrl;
-        LOG.info(String.format("set up tsdb server as: %s : %d, read path: %s", writePath, port, readPath));
-}
-
-    @Override
-    public void export(String metricName, Map<String, String> tags, Double value, Long timestamp) throws Exception {
-        if (tags.isEmpty()) {
-            tags.put("host", InetAddress.getLocalHost().getHostName());
-        }
-        StringBuilder sb = new StringBuilder();
-        String prefix = "";
-        for (Map.Entry<String, String> entry : tags.entrySet()) {
-            sb.append(prefix);
-            prefix = " ";
-            sb.append(String.format("%s=%s", entry.getKey(), entry.getValue()));
-        }
-
-        String message = String.format("put %s %d %f %s\n", metricName, timestamp, value, sb.toString());
-        LOG.info("exporting metric to tsdb:  " + message);
-        sendMessage(message, 3);
+        LOG.info(String.format("set up tsdb server read path as: %s", readPath));
     }
 
     @Override
@@ -93,28 +64,5 @@ public class TSDBMetricSource implements MetricSource {
             }
         }
         return dataPoints;
-    }
-
-    private boolean sendMessage(String message, int times) throws Exception {
-        Exception lastException = null;
-        for (int i = 0; i < times; ++i) {
-            Socket socket = new Socket();
-            try {
-                socket.connect(new InetSocketAddress(writePath, port));
-                OutputStreamWriter writer = new OutputStreamWriter(socket.getOutputStream());
-                writer.write(message);
-                writer.flush();
-                return true;
-            } catch (Exception ex) {
-                LOG.error("Failed to send message to tsd server", ex);
-                lastException = ex;
-            } finally {
-                if (!socket.isClosed()) {
-                    socket.close();
-                }
-            }
-        }
-
-        throw lastException;
     }
 }
