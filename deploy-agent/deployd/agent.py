@@ -90,7 +90,7 @@ class DeployAgent(object):
                 self._client.send_reports(self._envs)
                 return
 
-        while self._response and self._response.opCode != OpCode.NOOP:
+        while self._response and self._response.opCode and self._response.opCode != OpCode.NOOP:
             try:
                 # update the current deploy goal
                 if self._response.deployGoal:

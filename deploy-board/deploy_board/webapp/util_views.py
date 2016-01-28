@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -125,7 +125,7 @@ def get_latency_metrics(request, group_name):
             stage_names.append(name)
             metric_name1 = "launch_latency.{}".format(name)
             launch_data_points = autoscaling_metrics_helper.get_latency_data(request, env["id"],
-                                                                             "LAUNCH", "1d-ago")
+                                                                             "LAUNCH", "-1day")
             json_data = []
             for data_point in launch_data_points:
                 timestamp, value = data_point["timestamp"], data_point["value"] / 1000
@@ -134,7 +134,7 @@ def get_latency_metrics(request, group_name):
 
             metric_name2 = "deploy_latency.{}".format(name)
             deploy_data_points = autoscaling_metrics_helper.get_latency_data(request, env["id"],
-                                                                             "DEPLOY", "1d-ago")
+                                                                             "DEPLOY", "-1day")
             json_data2 = []
             for data_point in deploy_data_points:
                 timestamp, value = data_point["timestamp"], data_point["value"] / 1000
@@ -160,7 +160,7 @@ def get_launch_rate(request, group_name):
             metric_name = "mimmax:5m-mimmax:autoscaling.{}.{}.first_deploy.failed".format(
                 env["envName"], env["stageName"])
             rate_data_points = autoscaling_metrics_helper.get_raw_metrics(request, metric_name,
-                                                                          "1d-ago")
+                                                                          "-1day")
             json_data = []
             for data_point in rate_data_points:
                 timestamp, value = data_point["timestamp"], data_point["value"]
