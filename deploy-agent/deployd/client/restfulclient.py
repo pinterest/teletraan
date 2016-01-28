@@ -17,6 +17,7 @@ import logging
 
 from deployd.types.ping_response import PingResponse
 from deployd.common.decorators import singleton
+from deployd.common.exceptions import AgentException
 
 log = logging.getLogger(__name__)
 
@@ -41,8 +42,9 @@ class RestfulClient(object):
                                                  timeout=self.default_timeout, verify=False)
 
             if response.status_code > 300:
-                log.error("Teletraan failed to call backend server. "
-                          "Hint: %s, %s" % (response.status_code, response.content))
+                msg = "Teletraan failed to call backend server. Hint: %s, %s" % (response.status_code, response.content)
+                log.error(msg)
+                raise AgentException(msg)
 
             if (response.content):
                 return response.json()
