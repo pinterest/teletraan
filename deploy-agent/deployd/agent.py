@@ -132,9 +132,12 @@ class DeployAgent(object):
         while True:
             try:
                 self.serve_build()
-                time.sleep(self._config.get_daemon_sleep_time())
             except:
                 log.exception("Deploy Agent got exception: {}".format(traceback.format_exc()))
+            finally:
+                time.sleep(self._config.get_daemon_sleep_time())
+                self.load_status_file()
+
 
     def serve_once(self):
         log.info("Running deploy agent in non daemon mode")
