@@ -38,6 +38,11 @@ public class Constants {
     public static final int DEFAULT_DEPLOY_NUM = 5000;
     public static final int DEFAULT_DEPLOY_DAY = 365;
 
+    // TODO this is a hack to use NULL represent host with not group info
+    // Ideally we use database value NULL, but it will break a lot of existing
+    // functions, need to revisit
+    public static final String NULL_HOST_GROUP = "NULL";
+
     public static final String CONFIG_TYPE_GROUP = "ASG Config Change";
     public static final String CONFIG_TYPE_ENV = "Deploy Env Config Change";
 

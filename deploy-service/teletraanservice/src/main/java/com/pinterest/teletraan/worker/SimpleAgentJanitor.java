@@ -20,6 +20,7 @@ import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
@@ -163,6 +164,8 @@ public class SimpleAgentJanitor implements Runnable {
     void processBatch() throws Exception {
         // First, check those groups associates with certain envs
         List<String> groups = groupDAO.getAllEnvGroups();
+        // Manually inject the NULL group
+        groups.add(Constants.NULL_HOST_GROUP);
         Collections.shuffle(groups);
         for (String group : groups) {
             try {
