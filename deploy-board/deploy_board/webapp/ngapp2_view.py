@@ -463,11 +463,7 @@ class NgappView(View):
             raise
 
     def disable_health_check(self, request):
-        return self._update_health_check_state(request, False)
+        groups_helper.disable_health_check(request, "webapp")
 
     def enable_health_check(self, request):
-        return self._update_health_check_state(request, True)
-
-    def _update_health_check_state(self, request, state):
-        group_info = {"healthcheckState": state}
-        groups_helper.update_group_info(request, "webapp", group_info)
+        groups_helper.enable_health_check(request, "webapp")

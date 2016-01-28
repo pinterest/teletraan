@@ -42,7 +42,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -53,7 +52,6 @@ public class ConfigHistoryHandler {
     private EnvironDAO environDAO;
     private GroupHandler groupHandler;
     private EnvironHandler environHandler;
-    private CommonHandler commonHandler;
     private String changeFeedUrl;
     private ExecutorService jobPool;
 
@@ -62,7 +60,6 @@ public class ConfigHistoryHandler {
         environDAO = serviceContext.getEnvironDAO();
         groupHandler = new GroupHandler(serviceContext);
         environHandler = new EnvironHandler(serviceContext);
-        commonHandler = new CommonHandler(serviceContext);
         changeFeedUrl = serviceContext.getChangeFeedUrl();
         jobPool = serviceContext.getJobPool();
     }
@@ -209,11 +206,8 @@ public class ConfigHistoryHandler {
         if (configType.equals(Constants.CONFIG_TYPE_GROUP)) {
             LOG.info(String.format("Push group %s config change for %s", type, configId));
 
-            String subject = String.format("%s Group Config Updated", configId);
-            String message = String.format("%s updated the config for %s on %tc. The changes are: \n", operator, configId, new Date());
             String configHistoryUrl = String.format("https://deploy.pinadmin.com/groups/%s/config_history/", configId);
             String feedPayload = String.format(Constants.CHANGEFEED_TEMPLATE, configType, configId, configHistoryUrl, operator, "False", type);
-            GroupBean groupBean = groupHandler.getLaunchConfig(configId);
             if (type.equals(Constants.TYPE_ASG_GENERAL)) {
                 GroupBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), GroupBean.class);
                 newBean.setLast_update(null);
@@ -221,23 +215,19 @@ public class ConfigHistoryHandler {
                 GroupBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), GroupBean.class);
                 oriBean.setLast_update(null);
                 oriBean.setLaunch_config_id(null);
-                jobPool.submit(new ChangeFeedJob(subject, message, groupBean.getEmail_recipients(), groupBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBean, newBean, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
             } else if (type.equals(Constants.TYPE_ASG_SCALING)) {
                 AutoScalingRequestBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), AutoScalingRequestBean.class);
                 AutoScalingRequestBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), AutoScalingRequestBean.class);
-                jobPool.submit(new ChangeFeedJob(subject, message, groupBean.getEmail_recipients(), groupBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBean, newBean, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
             } else if (type.equals(Constants.TYPE_ASG_POLICY)) {
                 ScalingPoliciesBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), ScalingPoliciesBean.class);
                 ScalingPoliciesBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), ScalingPoliciesBean.class);
-                jobPool.submit(new ChangeFeedJob(subject, message, groupBean.getEmail_recipients(), groupBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBean, newBean, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
             } else if (type.equals(Constants.TYPE_ASG_ALARM)) {
                 List<AsgAlarmBean> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<AsgAlarmBean>>() {}.getType());
                 List<AsgAlarmBean> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<AsgAlarmBean>>() {}.getType());
-                jobPool.submit(new ChangeFeedJob(subject, message, groupBean.getEmail_recipients(), groupBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBean, newBean, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
             } else {
                 LOG.warn(String.format("Failed to find the type %s to update changefeed", type));
             }
@@ -246,8 +236,6 @@ public class ConfigHistoryHandler {
             String envStageName = String.format("%s (%s)", environBean.getEnv_name(), environBean.getStage_name());
             LOG.info(String.format("Push env %s config change for %s", type, envStageName));
 
-            String subject = String.format("%s Env Config Updated", envStageName);
-            String message = String.format("%s updated the config for %s on %tc. The changes are: \n", operator, envStageName, new Date());
             String configHistoryUrl = String.format("https://deploy.pinadmin.com/env/%s/%s/config_history/", environBean.getEnv_name(), environBean.getStage_name());
             String feedPayload = String.format(Constants.CHANGEFEED_TEMPLATE, configType, envStageName, configHistoryUrl, operator, "False", type);
             if (type.equals(Constants.TYPE_ENV_GENERAL)) {
@@ -257,12 +245,7 @@ public class ConfigHistoryHandler {
                 EnvironBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), EnvironBean.class);
                 oriBean.setLast_update(null);
                 oriBean.setLast_operator(null);
-                if (!oriBean.getSuccess_th().equals(newBean.getSuccess_th())) {
-                    message += "(NOTE: success_th x 0.01% = Success Threshold)\n";
-                }
-
-                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBean, newBean, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
             } else if (type.equals(Constants.TYPE_ENV_PROMOTE)) {
                 PromoteBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), PromoteBean.class);
                 newBean.setLast_update(null);
@@ -270,44 +253,36 @@ public class ConfigHistoryHandler {
                 PromoteBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), PromoteBean.class);
                 oriBean.setLast_update(null);
                 oriBean.setLast_operator(null);
-                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBean, newBean, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
             } else if (type.equals(Constants.TYPE_ENV_SCRIPT)) {
                 Map<String, String> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<Map<String, String> >() {}.getType());
                 Map<String, String> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<Map<String, String> >() {}.getType());
-                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBean, newBean, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
             } else if (type.equals(Constants.TYPE_ENV_ADVANCED)) {
                 Map<String, String> newConfigs = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<Map<String, String> >() {}.getType());
                 Map<String, String> oriConfigs = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<Map<String, String> >() {}.getType());
-                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriConfigs, newConfigs, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriConfigs, newConfigs));
             } else if (type.equals(Constants.TYPE_ENV_METRIC)) {
                 List<MetricsConfigBean> newBeans = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<MetricsConfigBean>>() {}.getType());
                 List<MetricsConfigBean> oriBeans = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<MetricsConfigBean>>() {}.getType());
-                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBeans, newBeans, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBeans, newBeans));
             } else if (type.equals(Constants.TYPE_ENV_ALARM)) {
                 List<AlarmBean> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<AlarmBean>>() {}.getType());
                 List<AlarmBean> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<AlarmBean>>() {}.getType());
-                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBean, newBean, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
             } else if (type.equals(Constants.TYPE_ENV_WEBHOOK)) {
                 EnvWebHookBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), EnvWebHookBean.class);
                 EnvWebHookBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), EnvWebHookBean.class);
-                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriBean, newBean, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
             } else if (type.equals(Constants.TYPE_ENV_HOST_CAPACITY)) {
                 List<String> newHosts = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<String>>() {}.getType());
                 List<String> oriHosts = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {}.getType());
                 LOG.debug(String.format("Host update %s, %s", newHosts, oriHosts));
-                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriHosts, newHosts, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriHosts, newHosts));
             } else if (type.equals(Constants.TYPE_ENV_GROUP_CAPACITY)) {
                 List<String> newGroups = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<String>>() {}.getType());
                 List<String> oriGroups = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {}.getType());
-                jobPool.submit(new ChangeFeedJob(subject, message, environBean.getEmail_recipients(), environBean.getChatroom(), feedPayload,
-                    changeFeedUrl, oriGroups, newGroups, commonHandler));
+                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriGroups, newGroups));
             } else {
                 LOG.warn(String.format("Failed to find the type %s to update changefeed", type));
             }

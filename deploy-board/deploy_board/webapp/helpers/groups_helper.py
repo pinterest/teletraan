@@ -200,6 +200,16 @@ def get_health_check_error(request, id):
                             request.teletraan_user_id.token)
 
 
+def enable_health_check(request, group_name):
+    return deployclient.post("/groups/{}/healthcheck/action".format(group_name), request.teletraan_user_id.token,
+                             params={"type": "enable"})
+
+
+def disable_health_check(request, group_name):
+    return deployclient.post("/groups/{}/healthcheck/action".format(group_name), request.teletraan_user_id.token,
+                             params={"type": "disable"})
+
+
 def get_scaling_down_event_status(request, group_name):
     return deployclient.get("/groups/{}/autoscaling/event/scalingdown".format(group_name),
                             request.teletraan_user_id.token)

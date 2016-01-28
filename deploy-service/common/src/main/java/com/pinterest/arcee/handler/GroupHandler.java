@@ -637,4 +637,10 @@ public class GroupHandler {
         LOG.info("Start to disable scaling down for group {}", groupName);
         asgDAO.disableScalingDownEvent(groupName);
     }
+
+    public void updateHealthCheckState(String groupName, boolean state) throws Exception {
+        GroupBean bean = new GroupBean();
+        bean.setHealthcheck_state(state);
+        groupInfoDAO.updateGroupInfo(groupName, bean);
+    }
 }

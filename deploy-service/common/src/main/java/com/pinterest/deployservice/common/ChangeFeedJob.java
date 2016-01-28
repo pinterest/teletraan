@@ -1,12 +1,23 @@
+/**
+ * Copyright 2016 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.deployservice.common;
-
-import com.pinterest.deployservice.handler.CommonHandler;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,29 +32,18 @@ import java.util.concurrent.Callable;
 public final class ChangeFeedJob implements Callable<Void> {
     private static final Logger LOG = LoggerFactory.getLogger(ChangeFeedJob.class);
     private final int RETRIES = 3;
-    private String subject;
-    private String message;
-    private String recipients;
-    private String chatrooms;
     private String payload;
     private String changeFeedUrl;
     private Object oriObj;
     private Object curObj;
     private HTTPClient httpClient;
-    private CommonHandler commonHandler;
 
-    public ChangeFeedJob(String subject, String message, String recipients, String chatrooms, String payload, String changeFeedUrl,
-                         Object oriObj, Object curObj, CommonHandler commonHandler) {
-        this.subject = subject;
-        this.message = message;
-        this.recipients = recipients;
-        this.chatrooms = chatrooms;
+    public ChangeFeedJob(String payload, String changeFeedUrl, Object oriObj, Object curObj) {
         this.payload = payload;
         this.changeFeedUrl = changeFeedUrl;
         this.oriObj = oriObj;
         this.curObj = curObj;
         this.httpClient = new HTTPClient();
-        this.commonHandler = commonHandler;
     }
 
     private static String toStringRepresentation(Object object) throws IllegalAccessException {
@@ -169,19 +169,6 @@ public final class ChangeFeedJob implements Callable<Void> {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
                 httpClient.post(changeFeedUrl, payload, headers, RETRIES);
-            }
-
-            StringBuilder resultBuilder = new StringBuilder();
-            resultBuilder.append(String.format("%s%s", message, configChange));
-
-            if (!StringUtils.isEmpty(recipients)) {
-                LOG.info(String.format("%s Send email to %s", subject, recipients));
-                commonHandler.sendEmailMessage(resultBuilder.toString(), subject, recipients);
-            }
-
-            if (!StringUtils.isEmpty(chatrooms)) {
-                LOG.info(String.format("Send message to %s", chatrooms));
-                commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, resultBuilder.toString(), "yellow");
             }
         } catch (Throwable t) {
             LOG.error(String.format("Failed to send change feed: %s", payload), t);

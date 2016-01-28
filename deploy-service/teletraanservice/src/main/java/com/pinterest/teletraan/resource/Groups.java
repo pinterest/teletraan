@@ -37,6 +37,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -50,6 +51,11 @@ import java.util.List;
 public class Groups {
     public enum ActionType {
         ROLLBACK
+    }
+
+    public enum HealthCheckActionType {
+        ENABLE,
+        DISABLE
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(Groups.class);
@@ -208,4 +214,24 @@ public class Groups {
         LOG.info("{} have added to group {} by {}", results, groupName, operator);
     }
 
+    @POST
+    @Path("/{groupName: [a-zA-Z0-9\\-_]+}/healthcheck/action")
+    public void actionOnHealthCheckState(@Context SecurityContext sc,
+                                         @Valid List<String> instanceIds,
+                                         @PathParam("groupName") String groupName,
+                                         @QueryParam("type") String type) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        HealthCheckActionType actionType = HealthCheckActionType.valueOf(HealthCheckActionType.class, type.toUpperCase());
+        if (actionType == HealthCheckActionType.ENABLE) {
+            groupHandler.updateHealthCheckState(groupName, true);
+            LOG.info(String.format("Enable health check for group %s", groupName));
+            return;
+        } else if (actionType == HealthCheckActionType.DISABLE) {
+            groupHandler.updateHealthCheckState(groupName, false);
+            LOG.info(String.format("Disable health check for group %s", groupName));
+            return;
+        }
+
+        throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Unkonw action type: %s", type));
+    }
 }
