@@ -29,6 +29,7 @@ import com.pinterest.deployservice.bean.OpCode;
 import com.pinterest.deployservice.bean.PingReportBean;
 import com.pinterest.deployservice.bean.PingRequestBean;
 import com.pinterest.deployservice.bean.PingResponseBean;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.AgentDAO;
@@ -73,7 +74,7 @@ public class PingHandler {
         NOOP.setOpCode(OpCode.NOOP);
 
         // TODO better to treat empty group as REAL NULL
-        EMPTY_GROUPS = new HashSet<>(Arrays.asList("NULL"));
+        EMPTY_GROUPS = new HashSet<>(Arrays.asList(Constants.NULL_HOST_GROUP));
     }
 
     private AgentDAO agentDAO;
