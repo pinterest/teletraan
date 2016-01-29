@@ -48,6 +48,10 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
             Pattern.compile("[i|r]-[a-z0-9]{8}");
     private static final String INSTANCE_NOT_FOUND_ERROR = "InvalidInstanceID.NotFound";
 
+    private static final Pattern MALFORMED_INSTANCE_ID_PATTERN =
+            Pattern.compile("Invalid id: \"(?<id>[a-zA-Z0-9-]+)\"");
+    private static final String INSTANCE_MALFORMED_ERROR = "InvalidInstanceID.Malformed";
+
     public EC2HostInfoDAOImpl(AmazonEC2Client client) {
         this.ec2Client = client;
     }
@@ -86,17 +90,10 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
                 terminatedHosts.addAll(ids);
                 return terminatedHosts;
             } catch (AmazonServiceException ex) {
-                // if the error code is not instance not found. return the terminated list we've already got.
-                if (!ex.getErrorCode().equals(INSTANCE_NOT_FOUND_ERROR)) {
-                    LOG.error("Failed to query AWS", ex);
-                    return terminatedHosts;
-                }
-
-                Matcher matcher = NON_EXISTING_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
-                while (matcher.find()) {
-                    ids.remove(matcher.group(0));
-                    terminatedHosts.add(matcher.group(0));
-                }
+                Collection<String> invalidHostIds = handleInvalidInstanceId(ex);
+                ids.removeAll(invalidHostIds);
+                // add invalid host ids to the terminated host list.
+                terminatedHosts.addAll(invalidHostIds);
             } catch (AmazonClientException ex) {
                 LOG.error(String.format("Get AmazonClientException, exit with terminiatedHost %s", terminatedHosts.toString()), ex);
                 return terminatedHosts;
@@ -184,20 +181,35 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
                 return resultIds;
             } catch (AmazonServiceException ex) {
                 // if the error code is not instance not found. return the terminated list we've already got.
-                if (!ex.getErrorCode().equals(INSTANCE_NOT_FOUND_ERROR)) {
-                    LOG.error("Failed to query AWS", ex);
-                    throw new Exception("Failed to query AWS", ex);
-                }
-
-                Matcher matcher = NON_EXISTING_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
-                while (matcher.find()) {
-                    ids.remove(matcher.group(0));
-                }
+                ids.removeAll(handleInvalidInstanceId(ex));
             } catch (AmazonClientException ex) {
                 LOG.error(String.format("Get AmazonClientException, exit with terminiatedHost %s", resultIds.toString()), ex);
                 throw new Exception(String.format("Get AmazonClientException, exit with terminiatedHost %s", resultIds.toString()), ex);
             }
         }
         return resultIds;
+    }
+
+    private Collection<String> handleInvalidInstanceId(AmazonServiceException ex) throws Exception {
+        if (ex.getErrorType().equals(AmazonServiceException.ErrorType.Client)) {
+            List<String> instanceIds = new ArrayList<>();
+            if (ex.getErrorCode().equals(INSTANCE_MALFORMED_ERROR)) {
+                Matcher matcher = MALFORMED_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
+                while (matcher.find()) {
+                    instanceIds.add(matcher.group("id"));
+                }
+            } else if (ex.getErrorCode().equals(INSTANCE_NOT_FOUND_ERROR)) {
+                Matcher matcher = NON_EXISTING_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
+                while (matcher.find()) {
+                    instanceIds.remove(matcher.group(0));
+                }
+            } else {
+                LOG.error(String.format("Ignore this error (Error Code: %s, Error message: %s)", ex.getErrorCode(), ex.getErrorMessage()));
+            }
+            return instanceIds;
+        } else {
+            LOG.error(String.format("Amazon server encounter problem (error Code:%s, Error message: %s", ex.getErrorCode(), ex.getErrorMessage()));
+            throw ex;
+        }
     }
 }
