@@ -217,7 +217,6 @@ public class Groups {
     @POST
     @Path("/{groupName: [a-zA-Z0-9\\-_]+}/healthcheck/action")
     public void actionOnHealthCheckState(@Context SecurityContext sc,
-                                         @Valid List<String> instanceIds,
                                          @PathParam("groupName") String groupName,
                                          @QueryParam("type") String type) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
