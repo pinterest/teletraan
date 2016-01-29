@@ -15,7 +15,7 @@
 from setuptools import setup
 import os
 
-__version__ = '1.2.2'
+__version__ = '1.2.3'
 
 markdown_contents = open(os.path.join(os.path.dirname(__file__),
                                       'README.md')).read()
@@ -27,7 +27,7 @@ console_scripts = ['deploy-agent = deployd.agent:main',
 install_requires = [
     "requests==2.9.1",
     "gevent==1.0.2",
-    "lockfile==0.12.2",
+    "lockfile==0.10.2",
     "boto>=2.39.0",
     "python-daemon==2.0.6"
 ]
