@@ -21,7 +21,7 @@
                 </div>
                 <div class="modal-body">
                     <p> Are you sure to terminate {{ hostId }}?</p>
-                    {% if asg_group %}
+                    {% if is_asg_host %}
                         <div class="alert alert-info" role="alert">
                             <strong>Note:</strong> This host is in an Auto Scaling group. It will automatically launch a new instance when terminating {{ hostId }}.<br><br>
                             <input type="checkbox" class="checkToDecrease" name="checkToDecrease" > Check the box if you <strong>DO NOT</strong> want to replace it with a new host. <br>
@@ -41,7 +41,7 @@
 {% endif %}
 
 <!--- detach instances -->
-{% if asg_group %}
+{% if is_asg_host and pinterest %}
 <div class="row">
 <button class="deployToolTip btn btn-default btn-block" data-target="#detachHost"
         data-toggle="modal" title="Detach Host">

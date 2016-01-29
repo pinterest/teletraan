@@ -35,6 +35,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -246,6 +248,15 @@ public class AutoScalingGroups {
     public List<String> getAutoScalingGroupHosts(@PathParam("groupName") String groupName) throws Exception {
         AutoScalingGroupBean autoScalingGroupBean = groupHandler.getAutoScalingGroupInfoByName(groupName);
         return autoScalingGroupBean.getInstances();
+    }
+
+    @GET
+    @Path(("/hosts/{host_id: [a-zA-Z0-9\\-_]+}"))
+    public Collection<String> getHostsInAutoScalingGroup(@Context SecurityContext sc,
+                                                         @PathParam("groupName") String groupName,
+                                                         @PathParam("host_id") String hostId) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        return groupHandler.getHostsInAutoScalingGroup(Arrays.asList(hostId));
     }
 
     @GET

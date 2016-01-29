@@ -159,6 +159,10 @@ public final class ChangeFeedJob implements Callable<Void> {
 
     public Void call() {
         try {
+            if (oriObj == null || curObj == null) {
+                return null;
+            }
+
             String configChange = getConfigChangeMessage(oriObj, curObj);
             if ((configChange == null) || StringUtils.isEmpty(configChange)) {
                 return null;
