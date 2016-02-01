@@ -38,6 +38,7 @@ SLACK_CHANNEL = settings.NGAPP_DEPLOY_CHANNEL
 
 NGAPP_A = "ngapp2-A"
 NGAPP_B = "ngapp2-B"
+NGAPP_GROUP = "webapp"
 DEFAULT_PAGE_SIZE = 30
 
 
@@ -151,6 +152,30 @@ def sendFinishMessage(request, user, envName, stageName, state):
     systems_helper.send_chat_message(request, deploy['operator'], get_slack_channel(), message)
 
 
+def enable_health_check(request):
+    groups_helper.enable_health_check(request, NGAPP_GROUP)
+
+
+def disable_health_check(request):
+        groups_helper.disable_health_check(request, NGAPP_GROUP)
+
+
+def update_env_priority(request):
+        ngapp2_deploy_utils = Ngapp2DeployUtils()
+        deploying_env = ngapp2_deploy_utils.get_deploying_env_from_zk()
+        if deploying_env == NGAPP_A:
+            curr_env = NGAPP_B
+            prev_env = NGAPP_A
+        else:
+            curr_env = NGAPP_A
+            prev_env = NGAPP_B
+
+        curr_data = {"priority": "HIGH"}
+        prev_data = {"priority": "NORMAL"}
+        environs_helper.update_env_basic_config(request, curr_env, "prod", data=curr_data)
+        environs_helper.update_env_basic_config(request, prev_env, "prod", data=prev_data)
+
+
 class NgappStatusView(View):
     ENDING_STATE = {NgappDeployStep.POST_DEPLOY, NgappDeployStep.ROLLBACK}
 
@@ -175,6 +200,12 @@ class NgappStatusView(View):
             state, response = self.get_varnish_status(request, env_name, deploy_stage)
             if state == "DONE":
                 sendFinishMessage(request, user, env_name, "prod", state)
+
+                # set higher priority to current env
+                update_env_priority(request)
+
+                # enable health check
+                enable_health_check(request)
         return response
 
     def get_varnish_status(self, request, env_name, deploy_stage):
@@ -435,7 +466,7 @@ class NgappView(View):
         if result < 0:
             raise
         # also disable health check for webapp
-        self.disable_health_check(request)
+        disable_health_check(request)
 
     def start_post_deploy(self, request):
         Recorder(settings.NGAPP_POST_DEPLOY_STATUS_NODE).init_info()
@@ -448,8 +479,6 @@ class NgappView(View):
         result = execute(cmd=cmd)
         if result < 0:
             raise
-        # also enable health check for webapp
-        self.enable_health_check(request)
 
     def start_roll_back(self):
         Recorder(settings.NGAPP_ROLLBACK_STATUS_NODE).init_info()
@@ -461,9 +490,3 @@ class NgappView(View):
         result = execute(cmd)
         if result < 0:
             raise
-
-    def disable_health_check(self, request):
-        groups_helper.disable_health_check(request, "webapp")
-
-    def enable_health_check(self, request):
-        groups_helper.enable_health_check(request, "webapp")
