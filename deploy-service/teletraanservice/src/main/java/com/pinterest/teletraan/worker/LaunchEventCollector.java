@@ -99,8 +99,10 @@ public class LaunchEventCollector implements Runnable {
 
                 // add to the new instance report
                 List<String> envIds = groupDAO.getEnvsByGroupName(groupName);
-                LOG.debug(String.format("Adding %d instances report for host %s", envIds.size(), eventMessage.getInstanceId()));
-                newInstanceReportDAO.addNewInstanceReport(eventMessage.getInstanceId(), eventMessage.getTimestamp(), envIds);
+                if (!envIds.isEmpty()) {
+                    LOG.debug(String.format("Adding %d instances report for host %s", envIds.size(), eventMessage.getInstanceId()));
+                    newInstanceReportDAO.addNewInstanceReport(eventMessage.getInstanceId(), eventMessage.getTimestamp(), envIds);
+                }
             } else if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_TERMINATE")) {
                 LOG.debug(String.format("An existing instance %s has been terminated in group %s", eventMessage.getInstanceId(), eventMessage.getGroupName()));
                 HostBean hostBean = new HostBean();
