@@ -98,34 +98,15 @@ function tmux_windows() {
 	# ----------------------
 	tmux new-window -t teletraan -n TeleLocalServer
 	tmux send-keys -t teletraan:TeleLocalServer "cd $GIT_DIR/teletraan" C-m
-	tmux send-keys -t teletraan:TeleLocalServer " ./deployservice/src/main/scripts/run_local_server.sh" C-m
+	tmux send-keys -t teletraan:TeleLocalServer " ./deploy-service/teletraanservice/bin/run.sh start" C-m
 
 	# ----------------------
 	# Start Deploy-board
 	# ----------------------
 	tmux new-window -t teletraan -n DeployBoard
 	tmux send-keys -t teletraan:DeployBoard "source $TEL_VENV/bin/activate" C-m
-	tmux send-keys -t teletraan:DeployBoard "cd $GIT_DIR/deploy-board" C-m
-	tmux send-keys -t teletraan:DeployBoard "./run_local.sh" C-m
-
-	# ----------------------
-	# Teletraan Agent
-	# ----------------------
-	tmux new-window -t teletraan -n TeleAgent
-	tmux send-keys -t teletraan:TeleAgent "source $TEL_VENV/bin/activate" C-m
-	tmux send-keys -t teletraan:TeleAgent "cd $GIT_DIR/teletraan" C-m
-	tmux send-keys -t teletraan:TeleAgent "./deployservice/src/main/scripts/run_local_agent_server.sh" C-m
-
-	# ----------------------
-	# Devtools Local Agent
-	# ----------------------
-	if [ -d "${GIT_DIR}"/devtools/deploy-mix ]; then
-		sleep 4 # wait for TeleLocalServer to startup so HTTP connections are not missed
-		tmux new-window -t teletraan -n DevtoolsAgent
-		tmux send-keys -t teletraan:DevtoolsAgent "source $TEL_VENV/bin/activate" C-m
-		tmux send-keys -t teletraan:DevtoolsAgent "cd $GIT_DIR/devtools/deploy-mix" C-m
-		tmux send-keys -t teletraan:DevtoolsAgent "./run-local.sh agent_ping2.py" C-m
-	fi
+	tmux send-keys -t teletraan:DeployBoard "cd $GIT_DIR/teletraan/deploy-board" C-m
+	tmux send-keys -t teletraan:DeployBoard "./run.sh start" C-m
 }
 
 function load_chrome() {
