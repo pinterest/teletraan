@@ -43,17 +43,24 @@ class HostDetailView(View):
             agent_wrappers.append(agent_wrapper)
 
         host_id = ""
-        asgGroup = ""
-        for host in hosts:
-            host_id = host['hostId']
-            group_name = host["groupName"]
-            # TODO Remove this hack
-            if not group_name or group_name == 'NULL':
-                continue
-            group_info = groups_helper.get_group_info(request, group_name)
-            if group_info and group_info["asgStatus"] == "ENABLED":
-                asgGroup = group_name
-                break
+        asg_group = ""
+        is_asg_host = False
+        if IS_PINTEREST:
+            for host in hosts:
+                host_id = host['hostId']
+                group_name = host["groupName"]
+
+                # TODO Remove this hack
+                if not group_name or group_name == 'NULL':
+                    continue
+
+                asg_status = groups_helper.get_autoscaling_status(request, group_name)
+                if asg_status != "UNKNOWN":
+                    asg_group = group_name
+                    asg_host = groups_helper.get_hosts_in_autoscaling_group(request, group_name, host_id)
+                    if asg_host:
+                        is_asg_host = True
+                    break
 
         return render(request, 'hosts/host_details.html', {
             'agent_wrappers': agent_wrappers,
@@ -61,7 +68,8 @@ class HostDetailView(View):
             'name': name,
             'hostId': host_id,
             'show_terminate': True,
-            "asg_group": asgGroup,
+            "asg_group": asg_group,
+            "is_asg_host": is_asg_host,
             "pinterest": IS_PINTEREST,
         })
 

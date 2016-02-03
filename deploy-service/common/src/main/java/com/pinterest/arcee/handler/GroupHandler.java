@@ -545,6 +545,10 @@ public class GroupHandler {
         }
     }
 
+    public Collection<String> getHostsInAutoScalingGroup(Collection<String> hostIds) throws Exception {
+        return asgDAO.instancesInAutoScalingGroup(hostIds);
+    }
+
     String getScalingPolicyName(String groupName, String scaleType) {
         return String.format("%s_%s_rule", groupName, scaleType);
     }

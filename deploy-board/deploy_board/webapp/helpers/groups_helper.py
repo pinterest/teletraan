@@ -73,6 +73,11 @@ def get_autoscaling_group_instances(request, group_name):
                             request.teletraan_user_id.token)
 
 
+def get_hosts_in_autoscaling_group(request, group_name, host_id):
+    return deployclient.get("/groups/{}/autoscaling/hosts/{}".format(group_name, host_id),
+                            request.teletraan_user_id.token)
+
+
 def update_autoscaling(request, group_name, asg_info):
     return deployclient.put("/groups/{}/autoscaling".format(group_name),
                             request.teletraan_user_id.token,
@@ -133,12 +138,6 @@ def delete_alarm(request, group_name, alarm_id):
 def add_alarm(request, group_name, alarm_infos):
     return deployclient.post("/groups/{}/autoscaling/alarms".format(group_name),
                              request.teletraan_user_id.token, data=alarm_infos)
-
-
-# get group host information
-def get_host_info(request, group_name):
-    return deployclient.get("/groups/{}/hosts/".format(group_name),
-                            request.teletraan_user_id.token)
 
 
 def get_system_metrics(request, group_name):
