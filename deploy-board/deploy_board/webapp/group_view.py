@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -607,7 +607,7 @@ class GroupConfigView(View):
 class GroupDetailView(View):
     def get(self, request, group_name):
         asg_status = groups_helper.get_autoscaling_status(request, group_name)
-        group_size_datum = autoscaling_metrics_helper.get_asg_size_metric(request, group_name, "1d-ago")
+        group_size_datum = autoscaling_metrics_helper.get_asg_size_metric(request, group_name, "-1day")
         alarm_infos = groups_helper.get_alarms(request, group_name)
         enable_policy = False
         if alarm_infos and len(alarm_infos) > 0:
@@ -627,7 +627,7 @@ class GroupDetailView(View):
                     removeIdx.append(idx)
                 else:
                     alarm_info["metric_datum"] = autoscaling_metrics_helper.get_metric_data(request, group_name,
-                                                                                            metric_name, "1d-ago")
+                                                                                            metric_name, "-1day")
 
         for offset, idx in enumerate(removeIdx):
             idx -= offset
