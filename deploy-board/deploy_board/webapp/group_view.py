@@ -28,6 +28,7 @@ from helpers import images_helper, groups_helper
 from helpers import specs_helper
 from helpers import autoscaling_metrics_helper
 from diff_match_patch import diff_match_patch
+from deploy_board import settings
 
 log = logging.getLogger(__name__)
 
@@ -607,7 +608,9 @@ class GroupConfigView(View):
 class GroupDetailView(View):
     def get(self, request, group_name):
         asg_status = groups_helper.get_autoscaling_status(request, group_name)
-        group_size_datum = autoscaling_metrics_helper.get_asg_size_metric(request, group_name, "-1day")
+        group_size_datum = \
+            autoscaling_metrics_helper.get_asg_size_metric(request, group_name,
+                                                           settings.DEFAULT_START_TIME)
         alarm_infos = groups_helper.get_alarms(request, group_name)
         enable_policy = False
         if alarm_infos and len(alarm_infos) > 0:
@@ -626,8 +629,10 @@ class GroupDetailView(View):
                     alarm_infos[idx - 1]["threshold2"] = alarm_info["threshold"]
                     removeIdx.append(idx)
                 else:
-                    alarm_info["metric_datum"] = autoscaling_metrics_helper.get_metric_data(request, group_name,
-                                                                                            metric_name, "-1day")
+                    alarm_info["metric_datum"] = \
+                        autoscaling_metrics_helper.get_metric_data(request, group_name,
+                                                                   metric_name,
+                                                                   settings.DEFAULT_START_TIME)
 
         for offset, idx in enumerate(removeIdx):
             idx -= offset

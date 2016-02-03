@@ -40,7 +40,7 @@ public class MetricsCollector implements Runnable {
 
     private void processMetric(MetricBean metricBean) throws Exception {
         // get data from tsdb
-        Collection<MetricDatumBean> dataPoints = metricSource.getMetrics(metricBean.getMetric_source(), "1m-ago");
+        Collection<MetricDatumBean> dataPoints = metricSource.getMetrics(metricBean.getMetric_source(), "-1m");
 
         // send data to aws
         alarmManager.putMetricsToAlarm(metricBean.getGroup_name(), metricBean.getMetric_name(), dataPoints);
