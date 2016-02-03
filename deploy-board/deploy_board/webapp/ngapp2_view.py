@@ -157,23 +157,23 @@ def enable_health_check(request):
 
 
 def disable_health_check(request):
-        groups_helper.disable_health_check(request, NGAPP_GROUP)
+    groups_helper.disable_health_check(request, NGAPP_GROUP)
 
 
 def update_env_priority(request):
-        ngapp2_deploy_utils = Ngapp2DeployUtils()
-        deploying_env = ngapp2_deploy_utils.get_deploying_env_from_zk()
-        if deploying_env == NGAPP_A:
-            curr_env = NGAPP_B
-            prev_env = NGAPP_A
-        else:
-            curr_env = NGAPP_A
-            prev_env = NGAPP_B
+    ngapp2_deploy_utils = Ngapp2DeployUtils()
+    deploying_env = ngapp2_deploy_utils.get_deploying_env_from_zk()
+    if deploying_env == NGAPP_A:
+        curr_env = NGAPP_B
+        prev_env = NGAPP_A
+    else:
+        curr_env = NGAPP_A
+        prev_env = NGAPP_B
 
-        curr_data = {"priority": "HIGH"}
-        prev_data = {"priority": "NORMAL"}
-        environs_helper.update_env_basic_config(request, curr_env, "prod", data=curr_data)
-        environs_helper.update_env_basic_config(request, prev_env, "prod", data=prev_data)
+    curr_data = {"priority": "HIGH"}
+    prev_data = {"priority": "NORMAL"}
+    environs_helper.update_env_basic_config(request, curr_env, "prod", data=curr_data)
+    environs_helper.update_env_basic_config(request, prev_env, "prod", data=prev_data)
 
 
 class NgappStatusView(View):
