@@ -150,8 +150,15 @@ public class AwsAlarmManager implements AlarmManager {
         return dimension;
     }
 
+    /*
+     * startFrom will be in the form as follow:
+     * -1m      start from 1 min ago
+     * -1h      start from 1 hour ago
+     * -1d      start from 1 day ago
+     * -1w      start from 1 week ago
+     */
     private static Date getDate(String startFrom) {
-        String timeFormat = Arrays.asList(startFrom.split("-")).get(0);
+        String timeFormat = startFrom.substring(startFrom.indexOf('-') + 1);
         int num = Integer.valueOf(timeFormat.substring(0, timeFormat.length() - 1));
         char amount = timeFormat.charAt(timeFormat.length() - 1);
         if (amount == 'm') {

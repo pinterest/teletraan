@@ -20,6 +20,7 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 import json
 import urllib2
+from deploy_board import settings
 from helpers import environs_helper
 from helpers import autoscaling_metrics_helper, groups_helper
 import traceback
@@ -125,7 +126,7 @@ def get_latency_metrics(request, group_name):
             stage_names.append(name)
             metric_name1 = "launch_latency.{}".format(name)
             launch_data_points = autoscaling_metrics_helper.get_latency_data(request, env["id"],
-                                                                             "LAUNCH", "-1day")
+                                                                             "LAUNCH", settings.DEFAULT_START_TIME)
             json_data = []
             for data_point in launch_data_points:
                 timestamp, value = data_point["timestamp"], data_point["value"] / 1000
@@ -134,7 +135,7 @@ def get_latency_metrics(request, group_name):
 
             metric_name2 = "deploy_latency.{}".format(name)
             deploy_data_points = autoscaling_metrics_helper.get_latency_data(request, env["id"],
-                                                                             "DEPLOY", "-1day")
+                                                                             "DEPLOY", settings.DEFAULT_START_TIME)
             json_data2 = []
             for data_point in deploy_data_points:
                 timestamp, value = data_point["timestamp"], data_point["value"] / 1000
@@ -160,7 +161,7 @@ def get_launch_rate(request, group_name):
             metric_name = "mimmax:5m-mimmax:autoscaling.{}.{}.first_deploy.failed".format(
                 env["envName"], env["stageName"])
             rate_data_points = autoscaling_metrics_helper.get_raw_metrics(request, metric_name,
-                                                                          "-1day")
+                                                                          settings.DEFAULT_START_TIME)
             json_data = []
             for data_point in rate_data_points:
                 timestamp, value = data_point["timestamp"], data_point["value"]
