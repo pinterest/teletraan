@@ -191,7 +191,6 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
     }
 
     private Collection<String> handleInvalidInstanceId(AmazonServiceException ex) throws Exception {
-        if (ex.getErrorType().equals(AmazonServiceException.ErrorType.Client)) {
             List<String> instanceIds = new ArrayList<>();
             if (ex.getErrorCode().equals(INSTANCE_MALFORMED_ERROR)) {
                 Matcher matcher = MALFORMED_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
@@ -204,12 +203,8 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
                     instanceIds.remove(matcher.group(0));
                 }
             } else {
-                LOG.error(String.format("Ignore this error (Error Code: %s, Error message: %s)", ex.getErrorCode(), ex.getErrorMessage()));
+                LOG.error(String.format("Ignore this error (Error Type: %s Error Code: %s, Error message: %s)", ex.getErrorType().toString(), ex.getErrorCode(), ex.getErrorMessage()));
             }
             return instanceIds;
-        } else {
-            LOG.error(String.format("Amazon server encounter problem (error Code:%s, Error message: %s", ex.getErrorCode(), ex.getErrorMessage()));
-            throw ex;
-        }
     }
 }
