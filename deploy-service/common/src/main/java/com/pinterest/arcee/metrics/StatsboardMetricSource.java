@@ -38,7 +38,7 @@ public class StatsboardMetricSource extends BaseMetricSource {
         HTTPClient httpClient = new HTTPClient();
         Map<String, String> params = new HashMap<>();
         params.put("target", metricName);
-        params.put("begin_time", start);
+        params.put("start", start);
         HashMap<String, String> headers = new HashMap<>();
 
         String url = String.format("%s/api/v1/query", readPath);
