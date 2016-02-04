@@ -71,7 +71,7 @@ public class DBGroupInfoDAOImpl implements GroupInfoDAO {
         }
         SetClause setClause = bean.genSetClause();
         String clause = String.format(UPDATE_GROUP_INFO, setClause.getClause());
-        setClause.addValue(bean.getGroup_name());
+        setClause.addValue(groupName);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
