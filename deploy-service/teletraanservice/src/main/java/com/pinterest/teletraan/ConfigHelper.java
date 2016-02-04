@@ -313,7 +313,7 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(ReservedInstanceScheduler.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new LifecycleUpdator(serviceContext);
+                Runnable worker = new ReservedInstanceScheduler(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled ReservedInstanceScheduler.");
             }

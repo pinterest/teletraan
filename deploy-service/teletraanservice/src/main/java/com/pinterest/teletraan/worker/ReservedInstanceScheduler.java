@@ -46,6 +46,7 @@ public class ReservedInstanceScheduler implements Runnable {
             List<InstanceType> instanceTypes = Arrays.asList(InstanceType.values());
             Collections.shuffle(instanceTypes);
             for (InstanceType type : instanceTypes) {
+                LOG.info(String.format("Process instance type: %s", type.toString()));
                 scheduleReserveInstance(type.toString());
             }
 
