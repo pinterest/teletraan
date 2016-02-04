@@ -327,41 +327,96 @@ CREATE TABLE IF NOT EXISTS healthcheck_errors (
 );
 
 CREATE TABLE IF NOT EXISTS new_instances_reports (
-   host_id              VARCHAR(64)        NOT NULL,
-   env_id               VARCHAR(64)        NOT NULL,
-   launch_time          BIGINT,
-   reported             TINYINT            NOT NULL DEFAULT 0,
-   PRIMARY KEY (host_id, env_id)
+    host_id              VARCHAR(64)        NOT NULL,
+    env_id               VARCHAR(64)        NOT NULL,
+    launch_time          BIGINT,
+    reported             TINYINT            NOT NULL DEFAULT 0,
+    PRIMARY KEY (host_id, env_id)
 );
 
 CREATE TABLE IF NOT EXISTS asg_lifecycle_events (
-   token_id       VARCHAR(128)  NOT NULL,
-   hook_id        VARCHAR(64)   NOT NULL,
-   group_name     VARCHAR(64)   NOT NULL,
-   host_id        VARCHAR(64)   NOT NULL,
-   start_date     BIGINT        NOT NULL,
-   PRIMARY KEY (token_id)
+    token_id       VARCHAR(128)  NOT NULL,
+    hook_id        VARCHAR(64)   NOT NULL,
+    group_name     VARCHAR(64)   NOT NULL,
+    host_id        VARCHAR(64)   NOT NULL,
+    start_date     BIGINT        NOT NULL,
+    PRIMARY KEY (token_id)
 );
-
 
 CREATE TABLE IF NOT EXISTS lending_activities (
-   id          VARCHAR(32)   NOT NULL,
-   group_name  VARCHAR(32)   NOT NULL,
-   actity_type VARCHAR(10)   NOT NULL,
-   reason      VARCHAR(1024) NOT NULL,
-   update_time  BIGINT       NOT NULL,
-   PRIMARY KEY (id)
+    id          VARCHAR(32)   NOT NULL,
+    group_name  VARCHAR(32)   NOT NULL,
+    actity_type VARCHAR(10)   NOT NULL,
+    reason      VARCHAR(1024) NOT NULL,
+    update_time  BIGINT       NOT NULL,
+    PRIMARY KEY (id)
 );
-
 
 CREATE TABLE IF NOT EXISTS managing_groups (
-   group_name          VARCHAR(32) NOT NULL,
-   max_lending_size    INT         NOT NULL,
-   lending_priority    VARCHAR(16) NOT NULL,
-   batch_size          INT         NOT NULL,
-   cool_down           INT         NOT NULL,
-   lent_size           INT         NOT NULL,
-   last_activity_time  BIGINT      NOT NULL,
-   PRIMARY KEY (group_name)
+    group_name          VARCHAR(32) NOT NULL,
+    max_lending_size    INT         NOT NULL,
+    lending_priority    VARCHAR(16) NOT NULL,
+    batch_size          INT         NOT NULL,
+    cool_down           INT         NOT NULL,
+    lent_size           INT         NOT NULL,
+    last_activity_time  BIGINT      NOT NULL,
+    PRIMARY KEY (group_name)
 );
 
+CREATE TABLE IF NOT EXISTS clusters (
+    cluster_name         VARCHAR(128)    NOT NULL,
+    capacity             INT             NOT NULL DEFAULT 0,
+    base_image_id        VARCHAR(22),
+    host_type_id         VARCHAR(22),
+    security_zone_id     VARCHAR(22),
+    placement_id         VARCHAR(22),
+    provider             VARCHAR(64),
+    assign_public_ip     TINYINT(1)      DEFAULT 0,
+    last_update          BIGINT(20)      NOT NULL,
+    PRIMARY KEY (cluster_name)
+);
+
+CREATE TABLE IF NOT EXISTS base_images (
+    id              VARCHAR(22)      NOT NULL,
+    abstract_name   VARCHAR(128)     NOT NULL,
+    provider_name   VARCHAR(128)     NOT NULL,
+    provider        VARCHAR(128)     NOT NULL,
+    basic           TINYINT(1)       DEFAULT  0,
+    qualified       TINYINT(1)       DEFAULT  0,
+    description     TEXT,
+    publish_date    BIGINT(20)       NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS host_types (
+    id              VARCHAR(22)      NOT NULL,
+    abstract_name   VARCHAR(128)     NOT NULL,
+    provider_name   VARCHAR(128)     NOT NULL,
+    provider        VARCHAR(128)     NOT NULL,
+    basic           TINYINT(1)       DEFAULT  0,
+    core            INT,
+    mem             INT,
+    storage         VARCHAR(128),
+    description     TEXT,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS security_zones (
+    id              VARCHAR(22)      NOT NULL,
+    abstract_name   VARCHAR(128)     NOT NULL,
+    provider_name   VARCHAR(128)     NOT NULL,
+    provider        VARCHAR(128)     NOT NULL,
+    basic           TINYINT(1)       DEFAULT  0,
+    description     TEXT,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS placements (
+    id              VARCHAR(22)      NOT NULL,
+    abstract_name   VARCHAR(128)     NOT NULL,
+    provider_name   VARCHAR(128)     NOT NULL,
+    provider        VARCHAR(128)     NOT NULL,
+    basic           TINYINT(1)       DEFAULT  0,
+    description     TEXT,
+    PRIMARY KEY (id)
+);

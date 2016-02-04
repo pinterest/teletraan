@@ -20,6 +20,13 @@ import com.pinterest.arcee.aws.DefaultHostInfoDAOImpl;
 import com.pinterest.arcee.aws.EC2HostInfoDAOImpl;
 import com.pinterest.arcee.aws.ReservedInstanceFetcher;
 import com.pinterest.arcee.db.*;
+import com.pinterest.clusterservice.db.DBBaseImageDAOImpl;
+import com.pinterest.clusterservice.db.DBClusterDAOImpl;
+import com.pinterest.clusterservice.db.DBHostTypeDAOImpl;
+import com.pinterest.clusterservice.db.DBPlacementDAOImpl;
+import com.pinterest.clusterservice.db.DBSecurityZoneDAOImpl;
+import com.pinterest.clusterservice.cm.AwsVMManager;
+import com.pinterest.clusterservice.cm.DefaultClusterManager;
 import com.pinterest.deployservice.db.*;
 import com.pinterest.deployservice.events.DefaultEventSender;
 import com.pinterest.teletraan.config.AWSFactory;
@@ -75,6 +82,12 @@ public class ConfigHelper {
         context.setAgentDAO(new DBAgentDAOImpl(dataSource));
         context.setAgentErrorDAO(new DBAgentErrorDAOImpl(dataSource));
 
+        context.setClusterDAO(new DBClusterDAOImpl(dataSource));
+        context.setBaseImageDAO(new DBBaseImageDAOImpl(dataSource));
+        context.setHostTypeDAO(new DBHostTypeDAOImpl(dataSource));
+        context.setSecurityZoneDAO(new DBSecurityZoneDAOImpl(dataSource));
+        context.setPlacementDAO(new DBPlacementDAOImpl(dataSource));
+
         // TODO Arcee specific
         context.setAlarmDAO(new DBAlarmDAOImpl(dataSource));
         context.setImageDAO(new DBImageDAOImpl(dataSource));
@@ -84,8 +97,6 @@ public class ConfigHelper {
         context.setnewInstanceReportDAO(new DBNewInstanceReportDAOImpl(dataSource));
         context.setAsgLifecycleEventDAO(new DBAsgLifecycleEventDAOImpl(dataSource));
         context.setManagingGroupDAO(new DBManaginGroupDAOImpl(dataSource));
-
-
 
         // Inject proper implemetation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
@@ -114,9 +125,11 @@ public class ConfigHelper {
             // TODO rename to manager
             context.setHostInfoDAO(new EC2HostInfoDAOImpl(ec2Client));
             context.setReservedInstanceInfoDAO(new ReservedInstanceFetcher(ec2Client));
+            context.setClusterManager(new AwsVMManager(context.getAwsConfigManager()));
         } else {
             // TODO make sure if aws is null, all the workers related to aws still works
             context.setHostInfoDAO(new DefaultHostInfoDAOImpl());
+            context.setClusterManager(new DefaultClusterManager());
         }
 
         /**
@@ -131,8 +144,7 @@ public class ConfigHelper {
          workQueue - the queue to use for holding tasks before they are executed. This queue will hold only the Runnable tasks submitted by the execute method.
          */
         // TODO make the thread configrable
-        ExecutorService jobPool = new ThreadPoolExecutor(1, 10, 30, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>());
+        ExecutorService jobPool = new ThreadPoolExecutor(1, 10, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         context.setJobPool(jobPool);
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());

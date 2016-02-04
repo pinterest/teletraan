@@ -24,6 +24,21 @@ import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.db.*;
+import com.pinterest.clusterservice.bean.ClusterBean;
+import com.pinterest.clusterservice.bean.HostTypeBean;
+import com.pinterest.clusterservice.bean.BaseImageBean;
+import com.pinterest.clusterservice.bean.SecurityZoneBean;
+import com.pinterest.clusterservice.bean.PlacementBean;
+import com.pinterest.clusterservice.dao.ClusterDAO;
+import com.pinterest.clusterservice.dao.HostTypeDAO;
+import com.pinterest.clusterservice.dao.BaseImageDAO;
+import com.pinterest.clusterservice.dao.SecurityZoneDAO;
+import com.pinterest.clusterservice.dao.PlacementDAO;
+import com.pinterest.clusterservice.db.DBBaseImageDAOImpl;
+import com.pinterest.clusterservice.db.DBClusterDAOImpl;
+import com.pinterest.clusterservice.db.DBHostTypeDAOImpl;
+import com.pinterest.clusterservice.db.DBPlacementDAOImpl;
+import com.pinterest.clusterservice.db.DBSecurityZoneDAOImpl;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.bean.AcceptanceStatus;
 import com.pinterest.deployservice.bean.AcceptanceType;
@@ -117,6 +132,11 @@ public class DBDAOTest {
     private static NewInstanceReportDAO newInstanceReportDAO;
     private static AsgLifecycleEventDAO asgLifecycleEventDAO;
     private static ManagingGroupDAO managingGroupDAO;
+    private static ClusterDAO clusterDAO;
+    private static BaseImageDAO baseImageDAO;
+    private static HostTypeDAO hostTypeDAO;
+    private static SecurityZoneDAO securityZoneDAO;
+    private static PlacementDAO placementDAO;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -156,6 +176,11 @@ public class DBDAOTest {
         newInstanceReportDAO = new DBNewInstanceReportDAOImpl(DATASOURCE);
         asgLifecycleEventDAO = new DBAsgLifecycleEventDAOImpl(DATASOURCE);
         managingGroupDAO = new DBManaginGroupDAOImpl(DATASOURCE);
+        clusterDAO = new DBClusterDAOImpl(DATASOURCE);
+        baseImageDAO = new DBBaseImageDAOImpl(DATASOURCE);
+        hostTypeDAO = new DBHostTypeDAOImpl(DATASOURCE);
+        securityZoneDAO = new DBSecurityZoneDAOImpl(DATASOURCE);
+        placementDAO = new DBPlacementDAOImpl(DATASOURCE);
     }
 
     @AfterClass
@@ -1236,21 +1261,147 @@ public class DBDAOTest {
         managingGroupsBean.setMax_lending_size(100);
         managingGroupDAO.insertManagingGroup(managingGroupsBean);
 
-        ManagingGroupsBean bean =  managingGroupDAO.getManagingGroupByGroupName("test1");
-        assertEquals(bean.getBatch_size(), (Integer)10);
-        assertEquals(bean.getCool_down(), (Integer)100);
+        ManagingGroupsBean bean = managingGroupDAO.getManagingGroupByGroupName("test1");
+        assertEquals(bean.getBatch_size(), (Integer) 10);
+        assertEquals(bean.getCool_down(), (Integer) 100);
         assertEquals(bean.getGroup_name(), "test1");
         assertEquals(bean.getLending_priority(), "HIGH");
-        assertEquals(bean.getLent_size(), (Integer)0);
-        assertEquals(bean.getMax_lending_size(), (Integer)100);
+        assertEquals(bean.getLent_size(), (Integer) 0);
+        assertEquals(bean.getMax_lending_size(), (Integer) 100);
 
         bean.setLent_size(10);
         Long currentTime = System.currentTimeMillis();
         bean.setLast_activity_time(currentTime);
         managingGroupDAO.updateManagingGroup("test1", bean);
         ManagingGroupsBean bean2 = managingGroupDAO.getManagingGroupByGroupName("test1");
-        assertEquals(bean2.getLent_size(), (Integer)10);
+        assertEquals(bean2.getLent_size(), (Integer) 10);
         assertEquals(bean2.getLast_activity_time(), currentTime);
+    }
+
+    @Test
+    public void testClusterDAO() throws Exception {
+        ClusterBean bean1 = new ClusterBean();
+        bean1.setCluster_name("sample1-prod");
+        bean1.setCapacity(10);
+        bean1.setBase_image_id("base-image");
+        bean1.setHost_type_id("ComputeHi");
+        bean1.setSecurity_zone_id("prod-public");
+        bean1.setPlacement_id("us-east");
+        bean1.setProvider("pinterest");
+        bean1.setAssign_public_ip(true);
+        bean1.setLast_update(System.currentTimeMillis());
+        clusterDAO.insert(bean1);
+
+        ClusterBean bean2 = clusterDAO.getByClusterName("sample1-prod");
+        assertEquals(bean2.getBase_image_id(), "base-image");
+        assertEquals(bean2.getHost_type_id(), "ComputeHi");
+        assertEquals(bean2.getSecurity_zone_id(), "prod-public");
+        assertEquals(bean2.getPlacement_id(), "us-east");
+        assertEquals(bean2.getProvider(), "pinterest");
+        assertTrue(bean2.getAssign_public_ip());
+
+        ClusterBean bean3 = new ClusterBean();
+        bean3.setHost_type_id("ComputeLo");
+        bean3.setPlacement_id("us-north");
+        clusterDAO.update("sample1-prod", bean3);
+
+        bean2 = clusterDAO.getByClusterName("sample1-prod");
+        assertEquals(bean2.getHost_type_id(), "ComputeLo");
+        assertEquals(bean2.getPlacement_id(), "us-north");
+
+        clusterDAO.delete("sample1-prod");
+        bean2 = clusterDAO.getByClusterName("sample1-prod");
+        assertNull(bean2);
+    }
+
+    @Test
+    public void testBaseImageDAO() throws Exception {
+        BaseImageBean bean1 = new BaseImageBean();
+        bean1.setId("ZnDpHvYgSO2yrxsj9mklvA");
+        bean1.setAbstract_name("base-vm");
+        bean1.setProvider_name("pinterest-image-a");
+        bean1.setProvider("pinterest");
+        bean1.setBasic(true);
+        bean1.setQualified(true);
+        bean1.setDescription("This is a basic vm image");
+        bean1.setPublish_date(System.currentTimeMillis());
+        baseImageDAO.insert(bean1);
+
+        BaseImageBean bean2 = baseImageDAO.getById("ZnDpHvYgSO2yrxsj9mklvA");
+        assertEquals(bean2.getProvider_name(), "pinterest-image-a");
+        assertEquals(bean2.getProvider(), "pinterest");
+        assertTrue(bean2.getBasic());
+        assertTrue(bean2.getQualified());
+        assertEquals(bean2.getDescription(), "This is a basic vm image");
+    }
+
+    @Test
+    public void testHostTypeDAO() throws Exception {
+        HostTypeBean bean1 = new HostTypeBean();
+        bean1.setId("ZnDpHvYgSO2yrxsj9mklvA");
+        bean1.setAbstract_name("ComputeHi");
+        bean1.setProvider_name("c10");
+        bean1.setProvider("pinterest");
+        bean1.setBasic(true);
+        bean1.setCore(16);
+        bean1.setMem(32);
+        bean1.setStorage("512G HDD");
+        bean1.setDescription("This is a high computing capability machine. $8/hour");
+        hostTypeDAO.insert(bean1);
+
+        HostTypeBean bean2 = hostTypeDAO.getById("ZnDpHvYgSO2yrxsj9mklvA");
+        assertEquals(bean2.getProvider_name(), "c10");
+        assertEquals(bean2.getProvider(), "pinterest");
+        assertTrue(bean2.getBasic());
+        assertEquals(bean2.getCore().intValue(), 16);
+        assertEquals(bean2.getMem().intValue(), 32);
+        assertEquals(bean2.getStorage(), "512G HDD");
+        assertEquals(bean2.getDescription(), "This is a high computing capability machine. $8/hour");
+
+        HostTypeBean bean3 = hostTypeDAO.getByProvider("pinterest");
+        assertEquals(bean3.getProvider_name(), "c10");
+    }
+
+    @Test
+    public void testSecurityZoneDAO() throws Exception {
+        SecurityZoneBean bean1 = new SecurityZoneBean();
+        bean1.setId("ZnDpHvYgSO2yrxsj9mklvA");
+        bean1.setAbstract_name("prod-public");
+        bean1.setProvider_name("prod-public-123");
+        bean1.setProvider("pinterest");
+        bean1.setBasic(true);
+        bean1.setDescription("This network zone is used for web facing service.");
+        securityZoneDAO.insert(bean1);
+
+        SecurityZoneBean bean2 = securityZoneDAO.getById("ZnDpHvYgSO2yrxsj9mklvA");
+        assertEquals(bean2.getProvider_name(), "prod-public-123");
+        assertEquals(bean2.getProvider(), "pinterest");
+        assertTrue(bean2.getBasic());
+        assertEquals(bean2.getDescription(), "This network zone is used for web facing service.");
+
+        SecurityZoneBean bean3 = securityZoneDAO.getByProvider("pinterest");
+        assertEquals(bean3.getProvider_name(), "prod-public-123");
+    }
+
+    @Test
+    public void testPlacementDAO() throws Exception {
+        PlacementBean bean1 = new PlacementBean();
+        bean1.setId("ZnDpHvYgSO2yrxsj9mklvA");
+        bean1.setAbstract_name("us-east");
+        bean1.setProvider_name("us-east-1");
+        bean1.setProvider("pinterest");
+        bean1.setBasic(true);
+        bean1.setDescription("This is east region datacenter.");
+        placementDAO.insert(bean1);
+
+        PlacementBean bean2 = placementDAO.getById("ZnDpHvYgSO2yrxsj9mklvA");
+        assertEquals(bean2.getProvider_name(), "us-east-1");
+        assertEquals(bean2.getProvider(), "pinterest");
+        assertTrue(bean2.getBasic());
+        assertEquals(bean2.getDescription(), "This is east region datacenter.");
+
+        PlacementBean bean3 = placementDAO.getByProvider("pinterest");
+        assertEquals(bean3.getProvider_name(), "us-east-1");
     }
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {

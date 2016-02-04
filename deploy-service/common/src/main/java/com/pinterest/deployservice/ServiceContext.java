@@ -20,9 +20,14 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.aws.AwsConfigManager;
-import com.pinterest.arcee.bean.ManagingGroupsBean;
 import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.metrics.MetricSource;
+import com.pinterest.clusterservice.dao.BaseImageDAO;
+import com.pinterest.clusterservice.dao.ClusterDAO;
+import com.pinterest.clusterservice.dao.HostTypeDAO;
+import com.pinterest.clusterservice.dao.PlacementDAO;
+import com.pinterest.clusterservice.dao.SecurityZoneDAO;
+import com.pinterest.clusterservice.cm.ClusterManager;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.email.MailManager;
@@ -61,18 +66,24 @@ public class ServiceContext {
     private HealthCheckErrorDAO healthCheckErrorDAO;
     private NewInstanceReportDAO newInstanceReportDAO;
     private AsgLifecycleEventDAO asgLifecycleEventDAO;
+    private ConfigHistoryDAO configHistoryDAO;
+    private ClusterDAO clusterDAO;
+    private BaseImageDAO baseImageDAO;
+    private HostTypeDAO hostTypeDAO;
+    private SecurityZoneDAO securityZoneDAO;
+    private PlacementDAO placementDAO;
 
-    private AutoScaleGroupManager autoScaleGroupManager;
     private String serviceStage;
     private MailManager mailManager;
     private SourceControlManager sourceControlManager;
     private ChatManager chatManager;
     private ExecutorService jobPool;
+    private ClusterManager clusterManager;
     private AmazonEC2Client ec2Client;
-    private ConfigHistoryDAO configHistoryDAO;
     private AWSCredentials awsCredentials;
+    private AutoScaleGroupManager autoScaleGroupManager;
     private MetricSource metricSource;
-    AwsConfigManager awsConfigManager;
+    private AwsConfigManager awsConfigManager;
 
     private boolean buildCacheEnabled;
     private String buildCacheSpec;
@@ -268,6 +279,62 @@ public class ServiceContext {
         return asgLifecycleEventDAO;
     }
 
+    public ReservedInstanceInfoDAO getReservedInstanceInfoDAO() {
+        return reservedInstanceInfoDAO;
+    }
+
+    public void setReservedInstanceInfoDAO(ReservedInstanceInfoDAO reservedInstanceInfoDAO) {
+        this.reservedInstanceInfoDAO = reservedInstanceInfoDAO;
+    }
+
+    public void setConfigHistoryDAO(ConfigHistoryDAO configHistoryDAO) {
+        this.configHistoryDAO = configHistoryDAO;
+    }
+
+    public ConfigHistoryDAO getConfigHistoryDAO() {
+        return configHistoryDAO;
+    }
+
+    public ClusterDAO getClusterDAO() {
+        return clusterDAO;
+    }
+
+    public void setClusterDAO(ClusterDAO clusterDAO) {
+        this.clusterDAO = clusterDAO;
+    }
+
+    public BaseImageDAO getBaseImageDAO() {
+        return baseImageDAO;
+    }
+
+    public void setBaseImageDAO(BaseImageDAO baseImageDAO) {
+        this.baseImageDAO = baseImageDAO;
+    }
+
+    public HostTypeDAO getHostTypeDAO() {
+        return hostTypeDAO;
+    }
+
+    public void setHostTypeDAO(HostTypeDAO hostTypeDAO) {
+        this.hostTypeDAO = hostTypeDAO;
+    }
+
+    public SecurityZoneDAO getSecurityZoneDAO() {
+        return securityZoneDAO;
+    }
+
+    public void setSecurityZoneDAO(SecurityZoneDAO securityZoneDAO) {
+        this.securityZoneDAO = securityZoneDAO;
+    }
+
+    public PlacementDAO getPlacementDAO() {
+        return placementDAO;
+    }
+
+    public void setPlacementDAO(PlacementDAO placementDAO) {
+        this.placementDAO = placementDAO;
+    }
+
     public void setEventSender(EventSender sender) {
         this.eventSender = sender;
     }
@@ -284,6 +351,10 @@ public class ServiceContext {
         return this.serviceStage;
     }
 
+    public SourceControlManager getSourceControlManager() {
+        return sourceControlManager;
+    }
+
     public void setSourceControlManager(SourceControlManager sourceControlManager) {
         this.sourceControlManager = sourceControlManager;
     }
@@ -292,16 +363,16 @@ public class ServiceContext {
         return autoScaleGroupManager;
     }
 
+    public void setAutoScaleGroupManager(AutoScaleGroupManager autoScaleGroupManager) {
+        this.autoScaleGroupManager = autoScaleGroupManager;
+    }
+
     public AlarmManager getAlarmManager() {
         return alarmManager;
     }
 
     public void setAlarmManager(AlarmManager alarmManager) {
         this.alarmManager = alarmManager;
-    }
-
-    public SourceControlManager getSourceControlManager() {
-        return sourceControlManager;
     }
 
     public ChatManager getChatManager() {
@@ -336,14 +407,6 @@ public class ServiceContext {
         ec2Client = client;
     }
 
-    public void setConfigHistoryDAO(ConfigHistoryDAO configHistoryDAO) {
-        this.configHistoryDAO = configHistoryDAO;
-    }
-
-    public ConfigHistoryDAO getConfigHistoryDAO() {
-        return configHistoryDAO;
-    }
-
     public UserRolesDAO getUserRolesDAO() {
         return userRolesDAO;
     }
@@ -360,13 +423,32 @@ public class ServiceContext {
         this.tokenRolesDAO = tokenRolesDAO;
     }
 
+    public ClusterManager getClusterManager() {
+        return clusterManager;
+    }
+
+    public void setClusterManager(ClusterManager clusterManager) {
+        this.clusterManager = clusterManager;
+    }
+
     public AWSCredentials getAwsCredentials() {
         return awsCredentials;
     }
 
+    public AwsConfigManager getAwsConfigManager() {
+        return awsConfigManager;
+    }
 
-    public void setAutoScaleGroupManager(AutoScaleGroupManager autoScaleGroupManager) {
-        this.autoScaleGroupManager = autoScaleGroupManager;
+    public void setAwsConfigManager(AwsConfigManager awsConfigManager) {
+        this.awsConfigManager = awsConfigManager;
+    }
+
+    public MetricSource getMetricSource() {
+        return metricSource;
+    }
+
+    public void setMetricSource(MetricSource metricSource) {
+        this.metricSource = metricSource;
     }
 
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
@@ -416,24 +498,6 @@ public class ServiceContext {
     public void setChangeFeedUrl(String changeFeedUrl) {
         this.changeFeedUrl = changeFeedUrl;
     }
-
-    public AwsConfigManager getAwsConfigManager() {
-        return awsConfigManager;
-    }
-
-    public void setAwsConfigManager(AwsConfigManager awsConfigManager) {
-        this.awsConfigManager = awsConfigManager;
-    }
-
-    public MetricSource getMetricSource() { return metricSource; }
-
-    public void setMetricSource(MetricSource metricSource) {
-        this.metricSource = metricSource;
-    }
-
-    public void setReservedInstanceInfoDAO(ReservedInstanceInfoDAO reservedInstanceInfoDAO) { this.reservedInstanceInfoDAO = reservedInstanceInfoDAO; }
-
-    public ReservedInstanceInfoDAO getReservedInstanceInfoDAO() { return reservedInstanceInfoDAO; }
 
     public void setManagingGroupDAO(ManagingGroupDAO managingGroupDAO) { this.managingGroupDAO = managingGroupDAO; }
 
