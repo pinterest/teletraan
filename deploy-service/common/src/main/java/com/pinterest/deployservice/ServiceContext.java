@@ -80,6 +80,8 @@ public class ServiceContext {
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
 
+    private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
+
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;
     }
@@ -426,4 +428,8 @@ public class ServiceContext {
     public void setMetricSource(MetricSource metricSource) {
         this.metricSource = metricSource;
     }
+
+    public void setReservedInstanceInfoDAO(ReservedInstanceInfoDAO reservedInstanceInfoDAO) { this.reservedInstanceInfoDAO = reservedInstanceInfoDAO; }
+
+    public ReservedInstanceInfoDAO getReservedInstanceInfoDAO() { return reservedInstanceInfoDAO; }
 }

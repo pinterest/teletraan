@@ -18,6 +18,7 @@ package com.pinterest.teletraan;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.pinterest.arcee.aws.DefaultHostInfoDAOImpl;
 import com.pinterest.arcee.aws.EC2HostInfoDAOImpl;
+import com.pinterest.arcee.aws.ReservedInstanceFetcher;
 import com.pinterest.arcee.db.*;
 import com.pinterest.deployservice.db.*;
 import com.pinterest.deployservice.events.DefaultEventSender;
@@ -83,6 +84,8 @@ public class ConfigHelper {
         context.setnewInstanceReportDAO(new DBNewInstanceReportDAOImpl(dataSource));
         context.setAsgLifecycleEventDAO(new DBAsgLifecycleEventDAOImpl(dataSource));
 
+
+
         // Inject proper implemetation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
         context.setSourceControlManager(configuration.getSourceControlFactory().create());
@@ -109,6 +112,7 @@ public class ConfigHelper {
             context.setAwsConfigManager(awsFactory.buildAwsConfigManager());
             // TODO rename to manager
             context.setHostInfoDAO(new EC2HostInfoDAOImpl(ec2Client));
+            context.setReservedInstanceInfoDAO(new ReservedInstanceFetcher(ec2Client));
         } else {
             // TODO make sure if aws is null, all the workers related to aws still works
             context.setHostInfoDAO(new DefaultHostInfoDAOImpl());
@@ -305,6 +309,13 @@ public class ConfigHelper {
                 Runnable worker = new LifecycleUpdator(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled LifecycleUpdator.");
+            }
+
+            if (workerName.equalsIgnoreCase(ReservedInstanceScheduler.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new LifecycleUpdator(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled ReservedInstanceScheduler.");
             }
         }
     }
