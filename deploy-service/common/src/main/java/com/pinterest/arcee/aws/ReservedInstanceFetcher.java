@@ -45,17 +45,20 @@ public class ReservedInstanceFetcher implements ReservedInstanceInfoDAO {
 
         String nextToken = result.getNextToken();
         Integer instanceCount  = 0;
-        while (StringUtils.isNotEmpty(nextToken)) {
+        while (true) {
             List<Reservation> reservations = result.getReservations();
             for (Reservation reservation : reservations) {
                 List<Instance> instances = reservation.getInstances();
                 for (Instance instance : instances) {
-                    if (StringUtils.isEmpty(instance.getInstanceLifecycle()) || !instance.getInstanceLifecycle().equals("spot")) {
+                    if (StringUtils.isEmpty(instance.getInstanceLifecycle())) {
                         instanceCount++;
                     }
                 }
             }
 
+            if (StringUtils.isEmpty(nextToken)) {
+                break;
+            }
             request.setNextToken(nextToken);
             result = ec2Client.describeInstances(request);
             nextToken = result.getNextToken();
