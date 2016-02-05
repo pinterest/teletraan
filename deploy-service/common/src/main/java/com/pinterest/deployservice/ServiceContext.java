@@ -20,6 +20,7 @@ import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.aws.AwsConfigManager;
+import com.pinterest.arcee.bean.ManagingGroupsBean;
 import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.chat.ChatManager;
@@ -81,6 +82,7 @@ public class ServiceContext {
     private String changeFeedUrl;
 
     private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
+    private ManagingGroupDAO managingGroupDAO;
 
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;
@@ -432,4 +434,8 @@ public class ServiceContext {
     public void setReservedInstanceInfoDAO(ReservedInstanceInfoDAO reservedInstanceInfoDAO) { this.reservedInstanceInfoDAO = reservedInstanceInfoDAO; }
 
     public ReservedInstanceInfoDAO getReservedInstanceInfoDAO() { return reservedInstanceInfoDAO; }
+
+    public void setManagingGroupDAO(ManagingGroupDAO managingGroupDAO) { this.managingGroupDAO = managingGroupDAO; }
+
+    public ManagingGroupDAO getManagingGroupDAO() { return managingGroupDAO; }
 }

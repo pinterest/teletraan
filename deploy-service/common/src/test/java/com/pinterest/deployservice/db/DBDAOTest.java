@@ -116,6 +116,7 @@ public class DBDAOTest {
     private static ConfigHistoryDAO configHistoryDAO;
     private static NewInstanceReportDAO newInstanceReportDAO;
     private static AsgLifecycleEventDAO asgLifecycleEventDAO;
+    private static ManagingGroupDAO managingGroupDAO;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -154,6 +155,7 @@ public class DBDAOTest {
         configHistoryDAO = new DBConfigHistoryDAOImpl(DATASOURCE);
         newInstanceReportDAO = new DBNewInstanceReportDAOImpl(DATASOURCE);
         asgLifecycleEventDAO = new DBAsgLifecycleEventDAOImpl(DATASOURCE);
+        managingGroupDAO = new DBManaginGroupDAOImpl(DATASOURCE);
     }
 
     @AfterClass
@@ -1178,6 +1180,7 @@ public class DBDAOTest {
         assertTrue(newInstanceReportDAO.getByIds("h-124", "e-123").getReported());
     }
 
+    @Test
     public void testAsgLifecycleEventDAO() throws Exception {
         AsgLifecycleEventBean bean1 = new AsgLifecycleEventBean();
         bean1.setToken_id("id1");
@@ -1219,6 +1222,35 @@ public class DBDAOTest {
         asgLifecycleEventDAO.deleteAsgLifeCycleEventByHookId("hook-2");
         beans = asgLifecycleEventDAO.getAsgLifecycleEventByHook("hook-2");
         assertEquals(beans.size(), 0);
+    }
+
+    @Test
+    public void testManagingGroupDAO() throws Exception {
+        ManagingGroupsBean managingGroupsBean = new ManagingGroupsBean();
+        managingGroupsBean.setBatch_size(10);
+        managingGroupsBean.setCool_down(100);
+        managingGroupsBean.setGroup_name("test1");
+        managingGroupsBean.setLast_activity_time(System.currentTimeMillis());
+        managingGroupsBean.setLending_priority("HIGH");
+        managingGroupsBean.setLent_size(0);
+        managingGroupsBean.setMax_lending_size(100);
+        managingGroupDAO.insertManagingGroup(managingGroupsBean);
+
+        ManagingGroupsBean bean =  managingGroupDAO.getManagingGroupByGroupName("test1");
+        assertEquals(bean.getBatch_size(), (Integer)10);
+        assertEquals(bean.getCool_down(), (Integer)100);
+        assertEquals(bean.getGroup_name(), "test1");
+        assertEquals(bean.getLending_priority(), "HIGH");
+        assertEquals(bean.getLent_size(), (Integer)0);
+        assertEquals(bean.getMax_lending_size(), (Integer)100);
+
+        bean.setLent_size(10);
+        Long currentTime = System.currentTimeMillis();
+        bean.setLast_activity_time(currentTime);
+        managingGroupDAO.updateManagingGroup("test1", bean);
+        ManagingGroupsBean bean2 = managingGroupDAO.getManagingGroupByGroupName("test1");
+        assertEquals(bean2.getLent_size(), (Integer)10);
+        assertEquals(bean2.getLast_activity_time(), currentTime);
     }
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {

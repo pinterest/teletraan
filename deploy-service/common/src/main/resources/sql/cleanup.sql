@@ -29,3 +29,5 @@ DROP TABLE IF EXISTS health_checks;
 DROP TABLE IF EXISTS healthcheck_errors;
 DROP TABLE IF EXISTS new_instances_reports;
 DROP TABLE IF EXISTS asg_lifecycle_events;
+DROP TABLE IF EXISTS lending_activities;
+DROP TABLE IF EXISTS managing_groups;

@@ -342,3 +342,26 @@ CREATE TABLE IF NOT EXISTS asg_lifecycle_events (
    start_date     BIGINT        NOT NULL,
    PRIMARY KEY (token_id)
 );
+
+
+CREATE TABLE IF NOT EXISTS lending_activities (
+   id          VARCHAR(32)   NOT NULL,
+   group_name  VARCHAR(32)   NOT NULL,
+   actity_type VARCHAR(10)   NOT NULL,
+   reason      VARCHAR(1024) NOT NULL,
+   update_time  BIGINT       NOT NULL,
+   PRIMARY KEY (id)
+);
+
+
+CREATE TABLE IF NOT EXISTS managing_groups (
+   group_name          VARCHAR(32) NOT NULL,
+   max_lending_size    INT         NOT NULL,
+   lending_priority    VARCHAR(16) NOT NULL,
+   batch_size          INT         NOT NULL,
+   cool_down           INT         NOT NULL,
+   lent_size           INT         NOT NULL,
+   last_activity_time  BIGINT      NOT NULL,
+   PRIMARY KEY (group_name)
+);
+
