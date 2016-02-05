@@ -29,14 +29,17 @@ public class ReservedInstanceScheduler implements Runnable {
         int reservedInstanceCount = reservedInstanceInfoDAO.getReservedInstanceCount(instanceType);
         int reservedRunningInstance = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
         int freeInstance = reservedInstanceCount - reservedRunningInstance;
-        LOG.info(String.format("Reserved instance type: %s, reserved count: %d, running: %d, free %d", instanceType, reservedInstanceCount, reservedRunningInstance, freeInstance));
+        LOG.info(String.format("Reserved instance type: %s, reserved count: %d, running: %d, free %d", instanceType,
+                reservedInstanceCount, reservedRunningInstance, freeInstance));
         metricSource.export(String.format(FREEINSTANCE_METRIC_NAME, instanceType), new HashMap<>(), (double)freeInstance, System.currentTimeMillis());
         if (freeInstance < ALERT_THRESHOLD) {
-            //
         } else if (freeInstance < THRESHOLD) {
-            // return instance
+            // return instance to the pool
+            int return_size = THRESHOLD - freeInstance;
+            LOG.info(String.format("need to return %d instances to the pool", return_size));
         } else {
-            // TODO lend instance to the service
+            int lend_size =  freeInstance - THRESHOLD;
+            LOG.info(String.format("can lend %d instances to the service", lend_size));
         }
     }
 
