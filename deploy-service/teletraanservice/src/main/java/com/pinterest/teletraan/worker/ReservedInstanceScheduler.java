@@ -62,7 +62,7 @@ public class ReservedInstanceScheduler implements Runnable {
                 metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, "qubole"), new HashMap<>(), (double)currentLendingSize, currentTime);
                 return;
             }
-            if (currentTime - managingGroupsBean.getLast_activity_time() >= coolDown) {
+            if (currentTime - managingGroupsBean.getLast_activity_time() >= coolDown * 1000 * 60) {
                 int returnSize = batchSize > lentSize ? lentSize : batchSize;
                 currentLendingSize = lentSize - returnSize;
                 ManagingGroupsBean newManagingGroupsBean = new ManagingGroupsBean();
