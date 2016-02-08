@@ -80,17 +80,19 @@
 
       // Add authorizations
       function addApiKeyAuthorization(){
-         var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization("Authorization", "token {{ client_id }}", "header");
-         window.swaggerUi.api.clientAuthorizations.add("Authorization", apiKeyAuth);
+         var key = encodeURIComponent($('#input_apiKey')[0].value);
+         if (key && key.trim() != "") {
+             var value = "token {{ client_id }}";
+             var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization("Authorization", value, "header");
+             window.swaggerUi.api.clientAuthorizations.add("Authorization", apiKeyAuth);
+         }
       }
 
       $('#input_apiKey').change(addApiKeyAuthorization);
 
       // if you have an apiKey you would like to pre-populate on the page for demonstration purposes...
-      /*
-        var apiKey = "myApiKeyXXXX123456789";
-        $('#input_apiKey').val(apiKey);
-      */
+      var apiKey = "{{ client_id }}";
+      $('#input_apiKey').val(apiKey);
 
       window.swaggerUi.load();
 
