@@ -79,7 +79,7 @@
       });
 
       // Add authorizations
-      swaggerUi.api.clientAuthorizations.add("key", new SwaggerClient.ApiKeyAuthorization("Authorization", "token " + {% client_id %}, "header"));
+      swaggerUi.api.clientAuthorizations.add("key", new SwaggerClient.ApiKeyAuthorization("Authorization", "token " + {{ client_id }}, "header"));
       console.log(swaggerUi.api.clientAuthorizations);
 
       function addApiKeyAuthorization(){
