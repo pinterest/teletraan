@@ -35,7 +35,7 @@
       if (url && url.length > 1) {
         url = decodeURIComponent(url[1]);
       } else {
-        url = "http://localhost:8080/swagger.json";
+        url = "https://localhost:8080/swagger.json";
       }
 
       // Pre load translate...
@@ -46,6 +46,11 @@
         url: url,
         dom_id: "swagger-ui-container",
         supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
+        authorizations: {
+            "clientId": {% clientId %},
+            "clientSecret": {% secret %}
+
+        },
         onComplete: function(swaggerApi, swaggerUi){
           if(typeof initOAuth == "function") {
             initOAuth({
@@ -77,6 +82,10 @@
         defaultModelRendering: 'schema',
         showRequestHeaders: false
       });
+
+      // Add authorizations
+      swaggerUi.api.clientAuthorizations.add("key", new SwaggerClient.ApiKeyAuthorization("Authorization", "token " + {% client_id %}, "header"));
+      console.log(swaggerUi.api.clientAuthorizations);
 
       function addApiKeyAuthorization(){
         var key = encodeURIComponent($('#input_apiKey')[0].value);

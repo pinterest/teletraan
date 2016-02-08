@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from deploy_board import settings
 from django.views.generic import View
 from django.shortcuts import render
 
 class SwaggerUIView(View):
     def get(self, request):
-        response = render(request, 'swagger-ui/dist/index.html', {})
+        response = render(request, 'swagger-ui/dist/index.html', {
+            "client_id": settings.OAUTH_CLIENT_ID,
+        })
         return response
