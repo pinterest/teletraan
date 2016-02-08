@@ -79,16 +79,9 @@
       });
 
       // Add authorizations
-      window.swaggerUi.api.clientAuthorizations.add("key", new SwaggerClient.ApiKeyAuthorization("Authorization", "token {{ client_id }}", "header"));
-      console.log(swaggerUi.api.clientAuthorizations);
-
       function addApiKeyAuthorization(){
-        var key = encodeURIComponent($('#input_apiKey')[0].value);
-        if(key && key.trim() != "") {
-            var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization("api_key", key, "query");
-            window.swaggerUi.api.clientAuthorizations.add("api_key", apiKeyAuth);
-            log("added key " + key);
-        }
+         var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization("Authorization", "token {{ client_id }}", "header");
+         window.swaggerUi.api.clientAuthorizations.add("Authorization", apiKeyAuth);
       }
 
       $('#input_apiKey').change(addApiKeyAuthorization);
