@@ -46,11 +46,6 @@
         url: url,
         dom_id: "swagger-ui-container",
         supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
-        authorizations: {
-            "clientId": {% clientId %},
-            "clientSecret": {% secret %}
-
-        },
         onComplete: function(swaggerApi, swaggerUi){
           if(typeof initOAuth == "function") {
             initOAuth({
