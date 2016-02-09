@@ -15,7 +15,6 @@
  */
 package com.pinterest.teletraan;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.*;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -28,7 +27,6 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import java.util.EnumSet;
-import java.util.HashMap;
 
 public class TeletraanService extends Application<TeletraanServiceConfiguration> {
     @Override
@@ -39,15 +37,6 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
     @Override
     public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
         TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
-
-        // Enable CORS headers
-        FilterRegistration.Dynamic filter = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
-        filter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
-        filter.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,OPTIONS");
-        filter.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
-        filter.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
-        filter.setInitParameter("allowedHeaders", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
-        filter.setInitParameter("allowCredentials", "true");
 
         environment.jersey().register(configuration.getAuthenticationFactory().create(context));
 
@@ -158,6 +147,16 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         config.setVersion("1.0.0");
         config.setResourcePackage("com.pinterest.teletraan.resource");
         config.setScan(true);
+
+        // Enable CORS headers
+        System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+        FilterRegistration.Dynamic filter = environment.servlets().addFilter("CORS", CrossOriginFilter.class);
+        filter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/*");
+        filter.setInitParameter(CrossOriginFilter.ALLOWED_METHODS_PARAM, "GET,PUT,POST,DELETE,OPTIONS");
+        filter.setInitParameter(CrossOriginFilter.ALLOWED_ORIGINS_PARAM, "*");
+        filter.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_ORIGIN_HEADER, "*");
+        filter.setInitParameter("allowedHeaders", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
+        filter.setInitParameter("allowCredentials", "true");
     }
 
     public static void main(String[] args) throws Exception {
