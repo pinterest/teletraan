@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -160,15 +160,13 @@ def disable_health_check(request):
     groups_helper.disable_health_check(request, NGAPP_GROUP)
 
 
-def update_env_priority(request):
-    ngapp2_deploy_utils = Ngapp2DeployUtils()
-    deploying_env = ngapp2_deploy_utils.get_deploying_env_from_zk()
-    if deploying_env == NGAPP_A:
-        curr_env = NGAPP_B
-        prev_env = NGAPP_A
-    else:
+def update_env_priority(request, env_name):
+    if env_name == NGAPP_A:
         curr_env = NGAPP_A
         prev_env = NGAPP_B
+    else:
+        curr_env = NGAPP_B
+        prev_env = NGAPP_A
 
     curr_data = {"priority": "HIGH"}
     prev_data = {"priority": "NORMAL"}
@@ -202,7 +200,7 @@ class NgappStatusView(View):
                 sendFinishMessage(request, user, env_name, "prod", state)
 
                 # set higher priority to current env
-                update_env_priority(request)
+                update_env_priority(request, env_name)
 
                 # enable health check
                 enable_health_check(request)
