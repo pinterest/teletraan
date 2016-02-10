@@ -26,6 +26,9 @@ public class SystemFactory {
     @JsonProperty
     private String changeFeedUrl;
 
+    @JsonProperty
+    private String quboleAuthentication;
+
     public String getDashboardUrl() {
         return dashboardUrl;
     }
@@ -41,4 +44,8 @@ public class SystemFactory {
     public void setChangeFeedUrl(String changeFeedUrl) {
         this.changeFeedUrl = changeFeedUrl;
     }
+
+    public String getQuboleAuthentication() { return quboleAuthentication; }
+
+    public void setQuboleAuthentication(String quboleAuthentication) { this.quboleAuthentication = quboleAuthentication; }
 }

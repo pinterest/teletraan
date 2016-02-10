@@ -8,12 +8,17 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+
+import java.util.List;
 
 public class DBManaginGroupDAOImpl implements ManagingGroupDAO {
     private static String INSERT_MANAGING_GROUP_BY_ID =
             "INSERT INTO managing_groups SET %s ON DUPLICATE KEY UPDATE %s";
     private static String GET_MANAGING_GROUP_BY_ID =
             "SELECT * FROM managing_groups WHERE group_name=?";
+    private static String GET_MANAGING_GROUP_BY_TYPE =
+            "SELECT * FROM managing_groups WHERE instance_type=?";
     private static String UPDATE_MANAGING_GROUP_BY_ID =
             "UPDATE managing_groups SET %s WHERE group_name=?";
     private static String DELETE_MANAGING_GROUP_BY_ID =
@@ -50,5 +55,11 @@ public class DBManaginGroupDAOImpl implements ManagingGroupDAO {
         SetClause setClause = managingGroupsBean.genSetClause();
         String clause = String.format(INSERT_MANAGING_GROUP_BY_ID, setClause.getClause(), ManagingGroupsBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+    }
+
+    @Override
+    public List<ManagingGroupsBean> getManagingGroupsByInstanceType(String instanceType) throws Exception {
+        ResultSetHandler<List<ManagingGroupsBean>> h = new BeanListHandler<>(ManagingGroupsBean.class);
+        return new QueryRunner(dataSource).query(GET_MANAGING_GROUP_BY_TYPE, h, instanceType);
     }
 }

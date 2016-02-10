@@ -10,6 +10,7 @@ import com.pinterest.deployservice.bean.Updatable;
  * lending_priority    VARCHAR(16) NOT NULL,
  * batch_size          INT         NOT NULL,
  * cool_down           INT         NOT NULL,
+ * instance_type       VARCHAR(16) NOT NULL,
  * lent_size           INT         NOT NULL,
  * last_activity_time  BIGINT      NOT NULL,
  * PRIMARY KEY (group_name)
@@ -25,6 +26,8 @@ public class ManagingGroupsBean implements Updatable {
     private Integer batch_size;
 
     private Integer cool_down;
+
+    private String instance_type;
 
     private Integer lent_size;
 
@@ -50,6 +53,10 @@ public class ManagingGroupsBean implements Updatable {
 
     public void setCool_down(Integer cool_down) { this.cool_down = cool_down; }
 
+    public String getInstance_type() { return instance_type; }
+
+    public void setInstance_type(String instance_type) { this.instance_type = instance_type; }
+
     public Integer getLent_size() { return lent_size; }
 
     public void setLent_size(Integer lent_size) { this.lent_size = lent_size; }
@@ -66,6 +73,7 @@ public class ManagingGroupsBean implements Updatable {
         clause.addColumn("lending_priority", lending_priority);
         clause.addColumn("batch_size", batch_size);
         clause.addColumn("cool_down", cool_down);
+        clause.addColumn("instance_type", instance_type);
         clause.addColumn("lent_size", lent_size);
         clause.addColumn("last_activity_time", last_activity_time);
         return clause;
@@ -77,6 +85,7 @@ public class ManagingGroupsBean implements Updatable {
             "lending_priority=VALUES(lending_priority)," +
             "batch_size=VALUES(batch_size)," +
             "cool_down=VALUES(cool_down)," +
+            "instance_type=VALUES(instance_type)," +
             "lent_size=VALUES(lent_size)," +
             "last_activity_time=VALUES(last_activity_time)";
 }

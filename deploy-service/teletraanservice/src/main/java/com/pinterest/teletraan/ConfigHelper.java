@@ -149,6 +149,7 @@ public class ConfigHelper {
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
+        context.setQuboleAuthentication(configuration.getSystemFactory().getQuboleAuthentication());
 
         return context;
     }

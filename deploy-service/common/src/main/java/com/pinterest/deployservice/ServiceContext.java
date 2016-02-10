@@ -95,6 +95,8 @@ public class ServiceContext {
     private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
     private ManagingGroupDAO managingGroupDAO;
 
+    private String quboleAuthentication;
+
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;
     }
@@ -502,4 +504,8 @@ public class ServiceContext {
     public void setManagingGroupDAO(ManagingGroupDAO managingGroupDAO) { this.managingGroupDAO = managingGroupDAO; }
 
     public ManagingGroupDAO getManagingGroupDAO() { return managingGroupDAO; }
+
+    public void setQuboleAuthentication(String quboleAuthentication) { this.quboleAuthentication = quboleAuthentication; }
+
+    public String getQuboleAuthentication() { return quboleAuthentication; }
 }

@@ -1,0 +1,8 @@
+Update
+================
+ALTER TABLE managing_groups ADD COLUMN instance_type VARCHAR(16) NOT NULL AFTER cool_down;
+
+
+Rollback
+================
+ALTER TABLE managing_groups DROP COLUMN instance_type;

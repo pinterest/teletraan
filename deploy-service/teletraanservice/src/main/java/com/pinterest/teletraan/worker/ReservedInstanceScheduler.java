@@ -2,6 +2,8 @@ package com.pinterest.teletraan.worker;
 
 
 import com.amazonaws.services.ec2.model.InstanceType;
+import com.pinterest.arcee.Qubole.QuboleClusterBean;
+import com.pinterest.arcee.Qubole.QuboleLeaseDAOImpl;
 import com.pinterest.arcee.bean.ManagingGroupsBean;
 import com.pinterest.arcee.dao.ManagingGroupDAO;
 import com.pinterest.arcee.dao.ReservedInstanceInfoDAO;
@@ -20,20 +22,24 @@ public class ReservedInstanceScheduler implements Runnable {
     private ManagingGroupDAO managingGroupDAO;
     private static String FREEINSTANCE_METRIC_NAME = "running_instance.%s.count";
     private static String LENDING_FREEINSTANCE_METRIC_NAME = "lending_instance.%s.count";
+    private static String QUBOLE_RUNNING_INSTANCE = "qubole.running_instance.count";
     private static int THRESHOLD = 100;
+    private QuboleLeaseDAOImpl quboleLeaseDAO;
 
     public ReservedInstanceScheduler(ServiceContext context) {
         reservedInstanceInfoDAO = context.getReservedInstanceInfoDAO();
         managingGroupDAO = context.getManagingGroupDAO();
         metricSource = context.getMetricSource();
+        quboleLeaseDAO = new QuboleLeaseDAOImpl(context.getQuboleAuthentication());
     }
 
     private ManagingGroupsBean pickLendingCandidate(String instanceType) throws Exception {
         // prototyping
-        if (instanceType.equals("c3.8xlarge")) {
-            return managingGroupDAO.getManagingGroupByGroupName("qubole");
-        } else {
+        List<ManagingGroupsBean> managingGroupsBeans = managingGroupDAO.getManagingGroupsByInstanceType(instanceType);
+        if (managingGroupsBeans.isEmpty()) {
             return null;
+        } else {
+            return managingGroupsBeans.get(0);
         }
     }
 
@@ -72,14 +78,23 @@ public class ReservedInstanceScheduler implements Runnable {
                 LOG.info(String.format("need to return %d instances to the pool", returnSize));
             }
         } else {
-            int lend_size =  freeInstance - THRESHOLD;
-            LOG.info(String.format("can lend %d instances to the service", lend_size));
+            int toLendSize =  Math.min(batchSize, freeInstance - THRESHOLD);
+            if (lentSize + toLendSize > managingGroupsBean.getMax_lending_size()) {
+                toLendSize = managingGroupsBean.getMax_lending_size() - lentSize;
+            }
+
+            currentLendingSize = lentSize + toLendSize;
+            LOG.info(String.format("can lend %d instances to the service", toLendSize));
             ManagingGroupsBean newManagingGroupsBean = new ManagingGroupsBean();
             newManagingGroupsBean.setLast_activity_time(currentTime);
-            currentLendingSize = lentSize + lend_size;
+
             newManagingGroupsBean.setLent_size(currentLendingSize);
             managingGroupDAO.updateManagingGroup("qubole", newManagingGroupsBean);
         }
+
+        // hard coded it for now
+        QuboleClusterBean quboleClusterBean = quboleLeaseDAO.getCluster("13709");
+        metricSource.export(QUBOLE_RUNNING_INSTANCE, new HashMap<>(), (double)quboleClusterBean.getRunningReservedInstanceCount(), currentTime);
         metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, "qubole"), new HashMap<>(), (double)currentLendingSize, currentTime);
     }
 
