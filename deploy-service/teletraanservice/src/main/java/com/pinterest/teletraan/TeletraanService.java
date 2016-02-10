@@ -116,6 +116,21 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         Pings pings = new Pings(context);
         environment.jersey().register(pings);
 
+        BaseImages baseImages = new BaseImages(context);
+        environment.jersey().register(baseImages);
+
+        HostTypes hostTypes = new HostTypes(context);
+        environment.jersey().register(hostTypes);
+
+        SecurityZones securityZones = new SecurityZones(context);
+        environment.jersey().register(securityZones);
+
+        Placements placements = new Placements(context);
+        environment.jersey().register(placements);
+
+        Clusters clusters = new Clusters(context);
+        environment.jersey().register(clusters);
+
         // TODO Arcee specific
         if (configuration.getAwsFactory() != null) {
             Groups groups = new Groups(context);

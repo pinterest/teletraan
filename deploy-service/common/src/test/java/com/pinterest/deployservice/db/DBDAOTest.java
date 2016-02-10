@@ -24,6 +24,7 @@ import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.db.*;
+import com.pinterest.clusterservice.bean.CloudProvider;
 import com.pinterest.clusterservice.bean.ClusterBean;
 import com.pinterest.clusterservice.bean.HostTypeBean;
 import com.pinterest.clusterservice.bean.BaseImageBean;
@@ -68,6 +69,7 @@ import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
@@ -1289,8 +1291,7 @@ public class DBDAOTest {
         bean1.setHost_type_id("ComputeHi");
         bean1.setSecurity_zone_id("prod-public");
         bean1.setPlacement_id("us-east");
-        bean1.setProvider("pinterest");
-        bean1.setAssign_public_ip(true);
+        bean1.setProvider(CloudProvider.AWS);
         bean1.setLast_update(System.currentTimeMillis());
         clusterDAO.insert(bean1);
 
@@ -1299,8 +1300,7 @@ public class DBDAOTest {
         assertEquals(bean2.getHost_type_id(), "ComputeHi");
         assertEquals(bean2.getSecurity_zone_id(), "prod-public");
         assertEquals(bean2.getPlacement_id(), "us-east");
-        assertEquals(bean2.getProvider(), "pinterest");
-        assertTrue(bean2.getAssign_public_ip());
+        assertEquals(bean2.getProvider(), CloudProvider.AWS);
 
         ClusterBean bean3 = new ClusterBean();
         bean3.setHost_type_id("ComputeLo");
@@ -1319,19 +1319,20 @@ public class DBDAOTest {
     @Test
     public void testBaseImageDAO() throws Exception {
         BaseImageBean bean1 = new BaseImageBean();
-        bean1.setId("ZnDpHvYgSO2yrxsj9mklvA");
+        String id = CommonUtils.getBase64UUID();
+        bean1.setId(id);
         bean1.setAbstract_name("base-vm");
         bean1.setProvider_name("pinterest-image-a");
-        bean1.setProvider("pinterest");
+        bean1.setProvider(CloudProvider.AWS);
         bean1.setBasic(true);
         bean1.setQualified(true);
         bean1.setDescription("This is a basic vm image");
         bean1.setPublish_date(System.currentTimeMillis());
         baseImageDAO.insert(bean1);
 
-        BaseImageBean bean2 = baseImageDAO.getById("ZnDpHvYgSO2yrxsj9mklvA");
+        BaseImageBean bean2 = baseImageDAO.getById(id);
         assertEquals(bean2.getProvider_name(), "pinterest-image-a");
-        assertEquals(bean2.getProvider(), "pinterest");
+        assertEquals(bean2.getProvider(), CloudProvider.AWS);
         assertTrue(bean2.getBasic());
         assertTrue(bean2.getQualified());
         assertEquals(bean2.getDescription(), "This is a basic vm image");
@@ -1340,70 +1341,73 @@ public class DBDAOTest {
     @Test
     public void testHostTypeDAO() throws Exception {
         HostTypeBean bean1 = new HostTypeBean();
-        bean1.setId("ZnDpHvYgSO2yrxsj9mklvA");
+        String id = CommonUtils.getBase64UUID();
+        bean1.setId(id);
         bean1.setAbstract_name("ComputeHi");
         bean1.setProvider_name("c10");
-        bean1.setProvider("pinterest");
+        bean1.setProvider(CloudProvider.AWS);
         bean1.setBasic(true);
         bean1.setCore(16);
-        bean1.setMem(32);
+        bean1.setMem(32000);
         bean1.setStorage("512G HDD");
         bean1.setDescription("This is a high computing capability machine. $8/hour");
         hostTypeDAO.insert(bean1);
 
-        HostTypeBean bean2 = hostTypeDAO.getById("ZnDpHvYgSO2yrxsj9mklvA");
+        HostTypeBean bean2 = hostTypeDAO.getById(id);
         assertEquals(bean2.getProvider_name(), "c10");
-        assertEquals(bean2.getProvider(), "pinterest");
+        assertEquals(bean2.getProvider(), CloudProvider.AWS);
         assertTrue(bean2.getBasic());
         assertEquals(bean2.getCore().intValue(), 16);
-        assertEquals(bean2.getMem().intValue(), 32);
+        assertEquals(bean2.getMem().intValue(), 32000);
         assertEquals(bean2.getStorage(), "512G HDD");
         assertEquals(bean2.getDescription(), "This is a high computing capability machine. $8/hour");
 
-        HostTypeBean bean3 = hostTypeDAO.getByProvider("pinterest");
-        assertEquals(bean3.getProvider_name(), "c10");
+        Collection<HostTypeBean> beans = hostTypeDAO.getByProviderAndBasic(CloudProvider.AWS.toString(), true);
+        assertEquals(beans.size(), 1);
     }
 
     @Test
     public void testSecurityZoneDAO() throws Exception {
         SecurityZoneBean bean1 = new SecurityZoneBean();
-        bean1.setId("ZnDpHvYgSO2yrxsj9mklvA");
+        String id = CommonUtils.getBase64UUID();
+        bean1.setId(id);
         bean1.setAbstract_name("prod-public");
         bean1.setProvider_name("prod-public-123");
-        bean1.setProvider("pinterest");
+        bean1.setProvider(CloudProvider.AWS);
         bean1.setBasic(true);
         bean1.setDescription("This network zone is used for web facing service.");
         securityZoneDAO.insert(bean1);
 
-        SecurityZoneBean bean2 = securityZoneDAO.getById("ZnDpHvYgSO2yrxsj9mklvA");
+        SecurityZoneBean bean2 = securityZoneDAO.getById(id);
         assertEquals(bean2.getProvider_name(), "prod-public-123");
-        assertEquals(bean2.getProvider(), "pinterest");
+        assertEquals(bean2.getProvider(), CloudProvider.AWS);
         assertTrue(bean2.getBasic());
         assertEquals(bean2.getDescription(), "This network zone is used for web facing service.");
 
-        SecurityZoneBean bean3 = securityZoneDAO.getByProvider("pinterest");
-        assertEquals(bean3.getProvider_name(), "prod-public-123");
+        Collection<SecurityZoneBean> beans = securityZoneDAO.getByProviderAndBasic(CloudProvider.AWS.toString(), true);
+        assertEquals(beans.size(), 1);
     }
 
     @Test
     public void testPlacementDAO() throws Exception {
         PlacementBean bean1 = new PlacementBean();
-        bean1.setId("ZnDpHvYgSO2yrxsj9mklvA");
+        String id = CommonUtils.getBase64UUID();
+        bean1.setId(id);
         bean1.setAbstract_name("us-east");
         bean1.setProvider_name("us-east-1");
-        bean1.setProvider("pinterest");
+        bean1.setProvider(CloudProvider.AWS);
         bean1.setBasic(true);
         bean1.setDescription("This is east region datacenter.");
         placementDAO.insert(bean1);
 
-        PlacementBean bean2 = placementDAO.getById("ZnDpHvYgSO2yrxsj9mklvA");
+        PlacementBean bean2 = placementDAO.getById(id);
         assertEquals(bean2.getProvider_name(), "us-east-1");
-        assertEquals(bean2.getProvider(), "pinterest");
+        assertEquals(bean2.getProvider(), CloudProvider.AWS);
         assertTrue(bean2.getBasic());
         assertEquals(bean2.getDescription(), "This is east region datacenter.");
 
-        PlacementBean bean3 = placementDAO.getByProvider("pinterest");
-        assertEquals(bean3.getProvider_name(), "us-east-1");
+        Collection<PlacementBean> beans = placementDAO.getByProviderAndBasic(CloudProvider.AWS.toString(), true);
+        assertEquals(beans.size(), 1);
     }
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {

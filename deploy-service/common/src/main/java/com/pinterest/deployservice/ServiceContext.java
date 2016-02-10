@@ -1,12 +1,12 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,6 +34,7 @@ import com.pinterest.deployservice.email.MailManager;
 import com.pinterest.deployservice.events.EventSender;
 import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.scm.SourceControlManager;
+
 import org.apache.commons.dbcp.BasicDataSource;
 
 import java.util.concurrent.ExecutorService;
@@ -501,11 +502,19 @@ public class ServiceContext {
         this.changeFeedUrl = changeFeedUrl;
     }
 
-    public void setManagingGroupDAO(ManagingGroupDAO managingGroupDAO) { this.managingGroupDAO = managingGroupDAO; }
+    public void setManagingGroupDAO(ManagingGroupDAO managingGroupDAO) {
+        this.managingGroupDAO = managingGroupDAO;
+    }
 
-    public ManagingGroupDAO getManagingGroupDAO() { return managingGroupDAO; }
+    public ManagingGroupDAO getManagingGroupDAO() {
+        return managingGroupDAO;
+    }
 
-    public void setQuboleAuthentication(String quboleAuthentication) { this.quboleAuthentication = quboleAuthentication; }
+    public void setQuboleAuthentication(String quboleAuthentication) {
+        this.quboleAuthentication = quboleAuthentication;
+    }
 
-    public String getQuboleAuthentication() { return quboleAuthentication; }
+    public String getQuboleAuthentication() {
+        return quboleAuthentication;
+    }
 }

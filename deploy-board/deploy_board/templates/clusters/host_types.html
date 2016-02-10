@@ -1,0 +1,152 @@
+{% extends 'environs/env_base.html' %}
+{% load utils %}
+{% load static %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/">Clouds</a></li>
+    <li><a href="/clouds/hosttypes/">Host Types</a></li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Host Types</h4>
+    </div>
+    <div class="row">
+        <a id="listGroupsBtnId" href="/" class="deployToolTip btn btn-default btn-block">
+            <span class="glyphicon glyphicon-wrench"></span> Back to Cloud
+        </a>
+    </div>
+    <div class="row">
+    <button class="deployToolTip btn btn-default btn-block"
+            data-toggle="modal" data-target="#createHostTypeModalId"
+            title="Create Host Type" id="createHostTypeBtnId">
+        <span class="glyphicon glyphicon-plus"></span> Add Host Type
+    </button>
+</div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Host Types</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        {% include "clusters/host_types.tmpl" %}
+        {% if configs|length >= 2 %}
+            <ul class="pager">
+                <li>
+                    <a href='/clouds/hosttypes/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
+                       class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+                        <span class="glyphicon glyphicon-chevron-left"></span> Previous
+                    </a>
+                </li>
+                <li>
+                    <a href='/clouds/hosttypes/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
+                       class="btn btn-default {% if disableNext %}disabled{% endif %}">
+                        Next <span class="glyphicon glyphicon-chevron-right"></span>
+                    </a>
+                </li>
+            </ul>
+        {% endif %}
+    </div>
+</div>
+
+<div class="modal fade" id="createHostTypeModalId" tabindex="-1" role="dialog" aria-labelledby="createHostTypeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form id="createHostTypeFormId" class="form-horizontal" role="form" method="post" action="/clouds/create_host_type/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Create Host Type Confirm</h4>
+                </div>
+                <div class="modal-body" id="createHostTypeModal">
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6" title="Uncheck it if this is a special machine type">
+                            Basic
+                        </label>
+                        <div class="col-md-6">
+                            <input class="" id="basicId" name="basic" type="checkbox" value="">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Abstract Name
+                        </label>
+                        <div class="col-md-6">
+                            <input class="form-control" name="abstractName" required="true" type="text" value=""/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Cloud specific host type id
+                        </label>
+                        <div class="col-md-6">
+                            <input class="form-control" name="providerName" required="true" type="text" value=""/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Cloud Provider
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="provider" required id="providerNameId">
+                                {% for provider in provider_list %}
+                                    <option value="{{ provider }}" >{{ provider }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Number of cores
+                        </label>
+                        <div class="col-md-6">
+                            <input class="form-control" name="core" required="false" type="text" value=""/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Size of memory (GB)
+                        </label>
+                        <div class="col-md-6">
+                            <input class="form-control" name="mem" type="text" value=""/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6" title="The spec of storge. e.g. 512G SSD, 1T HDD">
+                            storage
+                        </label>
+                        <div class="col-md-6">
+                            <input class="form-control" name="storage" type="text" value=""/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Description
+                        </label>
+                        <div class="col-md-6">
+                            <input class="form-control" name="description" type="text" value=""/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="modalConfirmBtnId" type="submit" class="btn btn-primary">Create</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

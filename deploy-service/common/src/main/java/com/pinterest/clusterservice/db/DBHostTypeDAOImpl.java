@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,19 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+
+import java.util.Collection;
+import java.util.List;
 
 public class DBHostTypeDAOImpl implements HostTypeDAO {
     private static String INSERT_HOST_TYPE = "INSERT INTO host_types SET %s";
 
     private static String GET_BY_ID = "SELECT * FROM host_types WHERE id=?";
 
-    private static String GET_BY_PROVIDER = "SELECT * FROM host_types WHERE provider=?";
+    private static String GET_ALL = "SELECT * FROM host_types ORDER by abstract_name LIMIT ?,?";
+
+    private static String GET_BY_PROVIDER_AND_BASIC = "SELECT * FROM host_types WHERE provider=? AND basic=? ORDER by abstract_name";
 
     private BasicDataSource dataSource;
 
@@ -51,8 +57,15 @@ public class DBHostTypeDAOImpl implements HostTypeDAO {
     }
 
     @Override
-    public HostTypeBean getByProvider(String provider) throws Exception {
-        ResultSetHandler<HostTypeBean> h = new BeanHandler<HostTypeBean>(HostTypeBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_PROVIDER, h, provider);
+    public Collection<HostTypeBean> getAll(int pageIndex, int pageSize) throws Exception {
+        long start = (pageIndex - 1) * pageSize;
+        ResultSetHandler<List<HostTypeBean>> h = new BeanListHandler<HostTypeBean>(HostTypeBean.class);
+        return new QueryRunner(this.dataSource).query(GET_ALL, h, start, pageSize);
+    }
+
+    @Override
+    public Collection<HostTypeBean> getByProviderAndBasic(String provider, boolean basic) throws Exception {
+        ResultSetHandler<List<HostTypeBean>> h = new BeanListHandler<HostTypeBean>(HostTypeBean.class);
+        return new QueryRunner(dataSource).query(GET_BY_PROVIDER_AND_BASIC, h, provider, basic);
     }
 }

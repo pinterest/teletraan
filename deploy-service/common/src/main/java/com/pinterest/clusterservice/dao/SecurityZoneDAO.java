@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +17,14 @@ package com.pinterest.clusterservice.dao;
 
 import com.pinterest.clusterservice.bean.SecurityZoneBean;
 
+import java.util.Collection;
+
 public interface SecurityZoneDAO {
     void insert(SecurityZoneBean bean) throws Exception;
 
     SecurityZoneBean getById(String id) throws Exception;
 
-    SecurityZoneBean getByProvider(String provider) throws Exception;
+    Collection<SecurityZoneBean> getAll(int pageIndex, int pageSize) throws Exception;
+
+    Collection<SecurityZoneBean> getByProviderAndBasic(String provider, boolean basic) throws Exception;
 }

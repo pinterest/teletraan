@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,4 +25,6 @@ public interface ClusterDAO {
     void delete(String clusterName) throws Exception;
 
     ClusterBean getByClusterName(String clusterName) throws Exception;
+
+    String getProviderByClusterName(String clusterName) throws Exception;
 }

@@ -371,9 +371,8 @@ CREATE TABLE IF NOT EXISTS clusters (
     base_image_id        VARCHAR(22),
     host_type_id         VARCHAR(22),
     security_zone_id     VARCHAR(22),
-    placement_id         VARCHAR(22),
+    placement_id         VARCHAR(128),
     provider             VARCHAR(64),
-    assign_public_ip     TINYINT(1)      DEFAULT 0,
     last_update          BIGINT(20)      NOT NULL,
     PRIMARY KEY (cluster_name)
 );

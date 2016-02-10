@@ -1,0 +1,20 @@
+{%load utils %}
+<select class="form-control chosen-select" id="placement_id" name="placementId" required multiple>
+{% for placement in placements %}
+    {% if curr_placement_arrays and placement.id in curr_placement_arrays %}
+        <option value="{{ placement.id }}" selected>{{ placement | genCloudResourceInfo }}</option>
+    {% else %}
+        <option value="{{ placement.id }}">{{ placement | genCloudResourceInfo }}</option>
+    {% endif %}
+{% endfor %}
+</select>
+
+<script>
+$(function () {
+    $(".chosen-select").chosen({"width": "100%"});
+    $('#clusterConfigFormId select').change(function() {
+        $('#saveClusterConfigBtnId').removeAttr('disabled');
+        $('#resetClusterConfigBtnId').removeAttr('disabled');
+    });
+});
+</script>

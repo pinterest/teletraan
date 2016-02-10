@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +16,11 @@
 package com.pinterest.clusterservice.cm;
 
 import com.pinterest.clusterservice.bean.ClusterBean;
-import com.pinterest.clusterservice.cm.ClusterManager;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
-public class DefaultClusterManager implements ClusterManager {
+public class DefaultClusterManager implements ClusterManager<ClusterBean> {
     @Override
     public void createCluster(String clusterName, ClusterBean bean) throws Exception {
     }
@@ -43,6 +43,11 @@ public class DefaultClusterManager implements ClusterManager {
     }
 
     @Override
-    public void terminateHosts(Collection<String> hostIds) throws Exception {
+    public void terminateHosts(String clusterName, Collection<String> hostIds, boolean replaceHost) throws Exception {
+    }
+
+    @Override
+    public Collection<String> getHosts(String clusterName, Collection<String> hostIds) throws Exception {
+        return new ArrayList<>();
     }
 }

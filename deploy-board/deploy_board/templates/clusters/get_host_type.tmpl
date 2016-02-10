@@ -1,0 +1,19 @@
+{%load utils %}
+<select class="form-control" id="host_type" name="hostTypeId" required="true">
+{% for host_type in host_types %}
+    {% if curr_host_type and curr_host_type == host_type.id %}
+        <option value="{{ host_type.id }}" selected>{{ host_type | genHostTypeInfo }}</option>
+    {% else %}
+        <option value="{{ host_type.id }}">{{ host_type | genHostTypeInfo }}</option>
+    {% endif %}
+{% endfor %}
+</select>
+
+<script>
+$(function () {
+    $('#clusterConfigFormId select').change(function() {
+        $('#saveClusterConfigBtnId').removeAttr('disabled');
+        $('#resetClusterConfigBtnId').removeAttr('disabled');
+    });
+});
+</script>

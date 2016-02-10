@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ import com.pinterest.deployservice.bean.Updatable;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
-/**
+/*
  * Keep the bean and table in sync
  * <p/>
  * CREATE TABLE IF NOT EXISTS network_zone (
@@ -38,7 +38,7 @@ public class SecurityZoneBean implements Updatable {
     private String id;
     private String abstract_name;
     private String provider_name;
-    private String provider;
+    private CloudProvider provider;
     private Boolean basic;
     private String description;
 
@@ -66,11 +66,11 @@ public class SecurityZoneBean implements Updatable {
         this.provider_name = provider_name;
     }
 
-    public String getProvider() {
+    public CloudProvider getProvider() {
         return provider;
     }
 
-    public void setProvider(String provider) {
+    public void setProvider(CloudProvider provider) {
         this.provider = provider;
     }
 

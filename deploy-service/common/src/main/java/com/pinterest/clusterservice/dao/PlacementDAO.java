@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +17,14 @@ package com.pinterest.clusterservice.dao;
 
 import com.pinterest.clusterservice.bean.PlacementBean;
 
+import java.util.Collection;
+
 public interface PlacementDAO {
     void insert(PlacementBean bean) throws Exception;
 
     PlacementBean getById(String id) throws Exception;
 
-    PlacementBean getByProvider(String provider) throws Exception;
+    Collection<PlacementBean> getAll(int pageIndex, int pageSize) throws Exception;
+
+    Collection<PlacementBean> getByProviderAndBasic(String provider, boolean basic) throws Exception;
 }

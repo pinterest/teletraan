@@ -1,12 +1,12 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,7 +25,7 @@ import com.pinterest.clusterservice.db.DBClusterDAOImpl;
 import com.pinterest.clusterservice.db.DBHostTypeDAOImpl;
 import com.pinterest.clusterservice.db.DBPlacementDAOImpl;
 import com.pinterest.clusterservice.db.DBSecurityZoneDAOImpl;
-import com.pinterest.clusterservice.cm.AwsVMManager;
+import com.pinterest.clusterservice.cm.AwsVmManager;
 import com.pinterest.clusterservice.cm.DefaultClusterManager;
 import com.pinterest.deployservice.db.*;
 import com.pinterest.deployservice.events.DefaultEventSender;
@@ -33,6 +33,7 @@ import com.pinterest.teletraan.config.AWSFactory;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 import com.pinterest.teletraan.worker.*;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.quartz.*;
@@ -125,7 +126,7 @@ public class ConfigHelper {
             // TODO rename to manager
             context.setHostInfoDAO(new EC2HostInfoDAOImpl(ec2Client));
             context.setReservedInstanceInfoDAO(new ReservedInstanceFetcher(ec2Client));
-            context.setClusterManager(new AwsVMManager(context.getAwsConfigManager()));
+            context.setClusterManager(new AwsVmManager(context.getAwsConfigManager()));
         } else {
             // TODO make sure if aws is null, all the workers related to aws still works
             context.setHostInfoDAO(new DefaultHostInfoDAOImpl());
@@ -209,12 +210,12 @@ public class ConfigHelper {
             if (workerName.equalsIgnoreCase(DeployJanitor.class.getSimpleName())) {
                 String schedule = MapUtils.getString(properties, "schedule", DEFAULT_DEPLOY_JANITOR_SCHEDULE);
                 deployJanitorJob = JobBuilder.newJob(DeployJanitor.class)
-                    .withIdentity("deployJanitorJob", "group1")
-                    .build();
+                        .withIdentity("deployJanitorJob", "group1")
+                        .build();
                 deployJanitorTrigger = TriggerBuilder.newTrigger()
-                    .forJob(deployJanitorJob)
-                    .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
-                    .build();
+                        .forJob(deployJanitorJob)
+                        .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
+                        .build();
             }
             JobDetail buildJanitorJob = null;
             CronTrigger buildJanitorTrigger = null;
@@ -225,12 +226,12 @@ public class ConfigHelper {
                 serviceContext.setMaxDaysToKeep(maxDaysToKeep);
                 serviceContext.setMaxBuildsToKeep(maxBuildsToKeep);
                 buildJanitorJob = JobBuilder.newJob(BuildJanitor.class)
-                    .withIdentity("buildJanitorJob", "group1")
-                    .build();
+                        .withIdentity("buildJanitorJob", "group1")
+                        .build();
                 buildJanitorTrigger = TriggerBuilder.newTrigger()
-                    .forJob(buildJanitorJob)
-                    .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
-                    .build();
+                        .forJob(buildJanitorJob)
+                        .withSchedule(CronScheduleBuilder.cronSchedule(schedule))
+                        .build();
             }
 
             if (deployJanitorTrigger != null || buildJanitorTrigger != null) {

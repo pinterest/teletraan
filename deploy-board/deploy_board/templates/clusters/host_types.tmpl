@@ -1,0 +1,29 @@
+{% load utils %}
+{% load static %}
+
+<form name="hostTypeList">
+    <table id="hostTypeTableId" class="table table-condensed table-striped table-hover">
+        <tr>
+            <th class="col-lg-1">Basic</th>
+            <th class="col-lg-2">Abstract Name</th>
+            <th class="col-lg-2">Provider Name</th>
+            <th class="col-lg-1">Cloud Provider</th>
+            <th class="col-lg-1">Core</th>
+            <th class="col-lg-1">Memory (GB)</th>
+            <th class="col-lg-2">Storage</th>
+            <th class="col-lg-4">Description</th>
+        </tr>
+        {% for host_type in host_types %}
+        <tr>
+            <td><span class="deployToolTip pointer-cursor {{ host_type.basic | basicIcon }}"></span></td>
+            <td> {{ host_type.abstract_name }} </td>
+            <td> {{ host_type.provider_name }}  </td>
+            <td> {{ host_type.provider }}  </td>
+            <td> {{ host_type.core }}  </td>
+            <td> {{ host_type.mem }} </td>
+            <td> {{ host_type.storage }} </td>
+            <td> {{ host_type.description }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+</form>

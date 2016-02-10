@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,13 +23,19 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+
+import java.util.Collection;
+import java.util.List;
 
 public class DBSecurityZoneDAOImpl implements SecurityZoneDAO {
     private static String INSERT_NETWORK_ZONE = "INSERT INTO security_zones SET %s";
 
     private static String GET_BY_ID = "SELECT * FROM security_zones WHERE id=?";
 
-    private static String GET_BY_PROVIDER = "SELECT * FROM security_zones WHERE provider=?";
+    private static String GET_ALL = "SELECT * FROM security_zones ORDER by abstract_name LIMIT ?,?";
+
+    private static String GET_BY_PROVIDER_AND_BASIC = "SELECT * FROM security_zones WHERE provider=? AND basic=? ORDER by abstract_name";
 
     private BasicDataSource dataSource;
 
@@ -51,8 +57,16 @@ public class DBSecurityZoneDAOImpl implements SecurityZoneDAO {
     }
 
     @Override
-    public SecurityZoneBean getByProvider(String provider) throws Exception {
-        ResultSetHandler<SecurityZoneBean> h = new BeanHandler<SecurityZoneBean>(SecurityZoneBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_PROVIDER, h, provider);
+    public Collection<SecurityZoneBean> getAll(int pageIndex, int pageSize) throws Exception {
+        QueryRunner run = new QueryRunner(this.dataSource);
+        long start = (pageIndex - 1) * pageSize;
+        ResultSetHandler<List<SecurityZoneBean>> h = new BeanListHandler<SecurityZoneBean>(SecurityZoneBean.class);
+        return run.query(GET_ALL, h, start, pageSize);
+    }
+
+    @Override
+    public Collection<SecurityZoneBean> getByProviderAndBasic(String provider, boolean basic) throws Exception {
+        ResultSetHandler<List<SecurityZoneBean>> h = new BeanListHandler<SecurityZoneBean>(SecurityZoneBean.class);
+        return new QueryRunner(dataSource).query(GET_BY_PROVIDER_AND_BASIC, h, provider, basic);
     }
 }

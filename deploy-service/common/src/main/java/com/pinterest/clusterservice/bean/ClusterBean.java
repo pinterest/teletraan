@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +20,7 @@ import com.pinterest.deployservice.bean.Updatable;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
-/**
+/*
  * Keep the bean and table in sync
  * <p/>
  * CREATE TABLE IF NOT EXISTS clusters (
@@ -31,7 +31,6 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * security_zone_id     VARCHAR(22),
  * placement_id         VARCHAR(22),
  * provider             VARCHAR(64),
- * assign_public_ip     TINYINT(1)      DEFAULT 0,
  * last_update          BIGINT(20)      NOT NULL,
  * PRIMARY KEY (cluster_name)
  );
@@ -39,15 +38,13 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  */
 
 public class ClusterBean implements Updatable {
-
     private String cluster_name;
     private Integer capacity;
     private String base_image_id;
     private String host_type_id;
     private String security_zone_id;
     private String placement_id;
-    private String provider;
-    private Boolean assign_public_ip;
+    private CloudProvider provider;
     private Long last_update;
 
     public String getCluster_name() {
@@ -98,20 +95,12 @@ public class ClusterBean implements Updatable {
         this.placement_id = placement_id;
     }
 
-    public String getProvider() {
+    public CloudProvider getProvider() {
         return provider;
     }
 
-    public void setProvider(String provider) {
+    public void setProvider(CloudProvider provider) {
         this.provider = provider;
-    }
-
-    public Boolean getAssign_public_ip() {
-        return assign_public_ip;
-    }
-
-    public void setAssign_public_ip(Boolean assign_public_ip) {
-        this.assign_public_ip = assign_public_ip;
     }
 
     public Long getLast_update() {
@@ -132,7 +121,6 @@ public class ClusterBean implements Updatable {
         clause.addColumn("security_zone_id", security_zone_id);
         clause.addColumn("placement_id", placement_id);
         clause.addColumn("provider", provider);
-        clause.addColumn("assign_public_ip", assign_public_ip);
         clause.addColumn("last_update", last_update);
         return clause;
     }

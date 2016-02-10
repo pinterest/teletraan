@@ -27,6 +27,7 @@ if IS_PINTEREST:
         url(r'^', include('deploy_board.webapp.mix_urls')),
         url(r'^', include('deploy_board.webapp.arcee_urls')),
         url(r'^', include('deploy_board.webapp.ngapp2_urls')),
+        url(r'^', include('deploy_board.webapp.cluster_urls')),
     )
 else:
     urlpatterns = patterns(

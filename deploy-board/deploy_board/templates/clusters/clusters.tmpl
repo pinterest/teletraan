@@ -1,0 +1,252 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title="Capacity Config" panel_body_id="clusterConfigId" direction="down" %}
+<div id="clusterConfigId" class="collapse in panel-body">
+    <div class="container-fluid">
+        <form id="clusterConfigFormId" class="form-horizontal" role="form">
+            <fieldset id="clusterConfigFieldSetId">
+                <div class="form-group">
+                    <label for="provider" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Provider">
+                        Cloud Provider
+                    </label>
+                    <div class="col-xs-8">
+                        <select class="form-control" id="provider" name="provider" required="true">
+                            {% for provider in provider_list %}
+                                {% if basic_cluster_info.provider == provider %}
+                                    <option value="{{ provider }}" selected>{{ provider }}</option>
+                                {% else %}
+                                    <option value="{{ provider }}">{{ provider }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="capacity" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Number of hosts for this service">
+                    Capacity
+                    </label>
+                    <div class="col-xs-8">
+                        <input class="form-control" name="capacity" required="true" type="text" value="{{ basic_cluster_info.capacity }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="baseImageId" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Base Image">
+                        Base Image
+                    </label>
+                    <div class="col-xs-8" id="base_image_div_id">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="hostTypeId" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Compute Capability of the host">
+                        Host Type
+                    </label>
+                    <div class="col-xs-8" id="host_type_div_id">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="securityZoneId" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Security zone to control inbound/outboud traffic">
+                        Security Zone
+                    </label>
+                    <div class="col-xs-8" id="security_zone_div_id">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="placementId" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Placement">
+                        Placements
+                    </label>
+                    <div class="col-xs-8" id="placement_div_id">
+                    </div>
+                </div>
+                <div id="advanceSettingDivId" class="hidden">
+                    <div id="advanced_config_div_id">
+                    </div>
+                </div>
+            </fieldset>
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+<div id="showAdvanceDivId">Show advanced settings...</div>
+<div id="hideAdvanceDivId" class="hidden">Hide advanced settings...</div>
+
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button type="button" id="resetClusterConfigBtnId" class="btn btn-default"
+                data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary"
+                data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
+</div>
+
+<style>
+#showAdvanceDivId {
+    color:blue;
+    cursor:pointer;
+}
+
+#showAdvanceDivId:hover {
+    color:red;
+}
+
+#hideAdvanceDivId {
+    color:blue;
+    cursor:pointer;
+}
+
+#hideAdvanceDivId:hover {
+    color:red;
+}
+</style>
+
+<script>
+function loadConfig(provider, basic) {
+    var base_image_url = "/clouds/get_base_images/?provider=" + provider + "&basic=" + basic + "&curr_host_type={{ basic_cluster_info.base_image_id }}";
+    $.get(base_image_url, function(response) {
+        $("#base_image_div_id").html(response);
+    });
+
+    var host_type_url = "/clouds/get_host_types/?provider=" + provider + "&basic=" + basic + "&curr_host_type={{ basic_cluster_info.host_type_id }}";
+    $.get(host_type_url, function(response) {
+        $("#host_type_div_id").html(response);
+    });
+
+    var security_zone_url = "/clouds/get_security_zones/?provider=" + provider + "&basic=" + basic + "&curr_security_zone={{ basic_cluster_info.security_zone_id }}";
+    $.get(security_zone_url, function(response) {
+        $("#security_zone_div_id").html(response);
+    });
+
+    var placement_url = "/clouds/get_placements/?provider=" + provider + "&basic=" + basic + "&curr_placement={{ basic_cluster_info.placement_id }}";
+    $.get(placement_url, function(response) {
+        $("#placement_div_id").html(response);
+    });
+}
+
+function loadAdvancedConfig(provider, basic) {
+    var env = "{{ env.envName }}";
+    var stage = "{{ env.stageName }}";
+    var advanced_config_url = "/clouds/get_advanced_config/?provider=" + provider + "&basic=" + basic + "&env=" + env + "&stage=" + stage;
+    $.get(advanced_config_url, function(response) {
+        $("#advanced_config_div_id").html(response);
+    });
+}
+
+function getCurrentProvider() {
+    return $("#provider option:selected").val();
+}
+
+$(document).ready(function() {
+    if ($("#hideAdvanceDivId").is(":hidden")) {
+        loadConfig(getCurrentProvider(), "1");
+        loadAdvancedConfig(getCurrentProvider(), "1");
+    } else {
+        loadConfig(getCurrentProvider(), "0");
+        loadAdvancedConfig(getCurrentProvider(), "0");
+    }
+
+    $('#showAdvanceDivId').click(function () {
+        loadConfig(getCurrentProvider(), "0");
+        loadAdvancedConfig(getCurrentProvider(), "0");
+        $("#hideAdvanceDivId").removeClass("hidden");
+        $("#advanceSettingDivId").removeClass("hidden");
+        $("#showAdvanceDivId").addClass("hidden");
+    });
+
+    $('#hideAdvanceDivId').click(function () {
+        loadConfig(getCurrentProvider(), "1");
+        loadAdvancedConfig(getCurrentProvider(), "1");
+        $("#hideAdvanceDivId").addClass("hidden");
+        $("#advanceSettingDivId").addClass("hidden");
+        $("#showAdvanceDivId").removeClass("hidden");
+    });
+});
+
+$(function () {
+    $("#provider").change(function() {
+        if ($("#hideAdvanceDivId").is(":hidden")) {
+            loadConfig(getCurrentProvider(), "1");
+            loadAdvancedConfig(getCurrentProvider(), "1");
+            $("#advanceSettingDivId").addClass("hidden");
+        } else {
+            loadConfig(getCurrentProvider(), "0");
+            loadAdvancedConfig(getCurrentProvider(), "0");
+            $("#advanceSettingDivId").removeClass("hidden");
+        }
+    });
+
+    $('#saveClusterConfigBtnId').attr('disabled','disabled');
+    $('#resetClusterConfigBtnId').attr('disabled','disabled');
+
+    $('#clusterConfigFormId input').keyup(function() {
+        $('#saveClusterConfigBtnId').removeAttr('disabled');
+        $('#resetClusterConfigBtnId').removeAttr('disabled');
+    });
+
+    $('#clusterConfigFormId select').change(function() {
+        $('#saveClusterConfigBtnId').removeAttr('disabled');
+        $('#resetClusterConfigBtnId').removeAttr('disabled');
+    });
+
+    $('#clusterConfigFormId input').change(function() {
+        $('#saveClusterConfigBtnId').removeAttr('disabled');
+        $('#resetClusterConfigBtnId').removeAttr('disabled');
+    });
+
+    $('#saveClusterConfigBtnId').click(function () {
+        var btn = $(this);
+        $.ajax({
+            type: 'POST',
+            url: '/env/{{ env.envName }}/{{ env.stageName }}/config/update_cluster/',
+            data: $("#clusterConfigFormId").serialize(),
+            dataType: 'json',
+            beforeSend: function () {
+                btn.button('loading');
+            },
+            success: function (data) {
+                if(data != null && data.success == false) {
+                    $('#errorBannerId').append(data.error);
+                    $('#errorBannerId').show();
+                } else {
+                    $("#clusterConfigId").parent().html(data);
+                    $('#errorBannerId').empty().hide();
+                }
+                btn.button('reset');
+            },
+            error: function (data) {
+                $('#errorBannerId').append(data.responseText);
+                $('#errorBannerId').show();
+            }
+        });
+    });
+
+    $('#resetClusterConfigBtnId').click(function () {
+        var btn = $(this);
+        $.ajax({
+            type: 'GET',
+            url: '/env/{{ env.envName }}/{{ env.stageName }}/config/get_basic_cluster/',
+            beforeSend: function () {
+                btn.button('loading');
+            },
+            success: function (data) {
+                btn.button('reset');
+                $("#clusterConfigId").parent().html(data);
+            }
+        });
+    });
+});
+</script>
