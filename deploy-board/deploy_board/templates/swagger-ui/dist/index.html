@@ -79,11 +79,6 @@
         showRequestHeaders: false
       });
 
-      // Add authorizations
-      var value = "token {{ token }}";
-      var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization("Authorization", value, "header");
-      window.swaggerUi.api.clientAuthorizations.add("Authorization", apiKeyAuth);
-
       function addApiKeyAuthorization(){
          var key = encodeURIComponent($('#input_apiKey')[0].value);
          if (key && key.trim() != "") {
