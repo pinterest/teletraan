@@ -299,7 +299,7 @@ def _parse_metrics_configs(query_data, group_name):
             alarm_info["metricSource"] = page_data["metricsUrl_{}".format(alarm_id)][0]
             alarm_info["comparator"] = page_data["comparator_{}".format(alarm_id)][0]
             alarm_info["evaluationTime"] = int(page_data["evaluateTime_{}".format(alarm_id)][0])
-            alarm_info["threshold"] = int(page_data["threshold_{}".format(alarm_id)][0])
+            alarm_info["threshold"] = float(page_data["threshold_{}".format(alarm_id)][0])
             if page_data["fromAwsMetric_{}".format(alarm_id)][0] == "True":
                 alarm_info["fromAwsMetric"] = True
             else:
