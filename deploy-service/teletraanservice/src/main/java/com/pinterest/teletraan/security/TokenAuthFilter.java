@@ -47,15 +47,18 @@ public class TokenAuthFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext context) throws IOException {
-        SecurityContext securityContext;
-        try {
-            securityContext = authenticate(context);
-        } catch (Exception e) {
-            LOG.info("Authentication failed. Reason: " + e.getMessage());
-            throw new TeletaanInternalException(Response.Status.UNAUTHORIZED,
-                "Failed to authenticate user. " + e.getMessage());
+        if(!context.getMethod().equals("OPTIONS")) {
+            SecurityContext securityContext;
+
+            try {
+                securityContext = authenticate(context);
+            } catch (Exception e) {
+                LOG.info("Authentication failed. Reason: " + e.getMessage());
+                throw new TeletaanInternalException(Response.Status.UNAUTHORIZED,
+                        "Failed to authenticate user. " + e.getMessage());
+            }
+            context.setSecurityContext(securityContext);
         }
-        context.setSecurityContext(securityContext);
     }
 
     private SecurityContext authenticate(ContainerRequestContext context) throws Exception {
