@@ -237,7 +237,7 @@ CREATE TABLE IF NOT EXISTS asg_alarms (
     comparator          VARCHAR(30)        NOT NULL,
     action_type         VARCHAR(10)        NOT NULL,
     group_name          VARCHAR(64)        NOT NULL,
-    threshold           BIGINT             NOT NULL,
+    threshold           DOUBLE             NOT NULL,
     evaluation_time     INT                NOT NULL,
     last_update         BIGINT             NOT NULL,
     from_aws_metric       TINYINT(1)         NOT NULL DEFAULT 0,

@@ -961,7 +961,7 @@ public class DBDAOTest {
         bean1.setEvaluation_time(1000);
         bean1.setMetric_name("test-metric");
         bean1.setMetric_source("https://pinadmin.com");
-        bean1.setThreshold(20L);
+        bean1.setThreshold(20.1);
         bean1.setFrom_aws_metric(true);
 
 
@@ -973,7 +973,7 @@ public class DBDAOTest {
         bean2.setEvaluation_time(1000);
         bean2.setMetric_name("test-metric");
         bean2.setMetric_source("https://pinadmin.com");
-        bean2.setThreshold(10L);
+        bean2.setThreshold(10.1);
         bean2.setFrom_aws_metric(true);
 
         AsgAlarmBean bean3 = new AsgAlarmBean();
@@ -984,7 +984,7 @@ public class DBDAOTest {
         bean3.setEvaluation_time(1000);
         bean3.setMetric_name("test-metric2");
         bean3.setMetric_source("https://pinadmin.com2");
-        bean3.setThreshold(10L);
+        bean3.setThreshold(10.1);
         bean3.setFrom_aws_metric(false);
 
         alarmDAO.insertAlarmInfo(bean1);
@@ -1016,7 +1016,7 @@ public class DBDAOTest {
 
         // test update
         bean2.setComparator("LessThanOrEqualToThreshold");
-        bean2.setThreshold(30L);
+        bean2.setThreshold(30.1);
 
         alarmDAO.updateAlarmInfoById
             (bean2.getAlarm_id(), bean2);

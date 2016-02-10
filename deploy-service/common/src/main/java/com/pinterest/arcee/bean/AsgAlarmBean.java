@@ -64,7 +64,7 @@ public class AsgAlarmBean implements Updatable {
 
     @NotNull
     @JsonProperty("threshold")
-    private Long threshold;
+    private Double threshold;
 
     @NotNull
     @JsonProperty("evaluationTime")
@@ -125,11 +125,11 @@ public class AsgAlarmBean implements Updatable {
         this.group_name = group_name;
     }
 
-    public Long getThreshold() {
+    public Double getThreshold() {
         return threshold;
     }
 
-    public void setThreshold(Long threshold) {
+    public void setThreshold(Double threshold) {
         this.threshold = threshold;
     }
 
