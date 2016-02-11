@@ -29,4 +29,4 @@ echo "Successfully installed mysql"
 
 echo "Successfully completed Teletraan dependencies install!"
 
-su -c "source /home/vagrant/teletraan/deploy-sentinel/demo_run.sh" vagrant
+su -c "source /home/vagrant/teletraan/deploy-sentinel/demo_run_vagrant.sh" vagrant
