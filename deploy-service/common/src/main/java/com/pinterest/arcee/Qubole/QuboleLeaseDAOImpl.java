@@ -55,7 +55,7 @@ public class QuboleLeaseDAOImpl implements LeaseDAO {
         configuration.add("node_configuration", jsonObject);
         configuration.addProperty("push", true);
         String path = String.format("%s/clusters/%s", API_URL, clusterName);
-        client.post(path, configuration.toString(), generateHeaders(), 3);
+        client.put(path, configuration.toString(), generateHeaders(), 3);
     }
 
     public QuboleClusterBean getCluster(String clusterName) throws Exception {
@@ -65,9 +65,6 @@ public class QuboleLeaseDAOImpl implements LeaseDAO {
 
         String configurationPath = String.format("%s/clusters/%s", API_URL, clusterName);
         String configuration = client.get(configurationPath, null, generateHeaders(), 3);
-
-        System.out.println(configuration);
-
         return fromJson(clusterName, configuration, clusterState);
     }
 
@@ -109,7 +106,6 @@ public class QuboleLeaseDAOImpl implements LeaseDAO {
         }
         quboleClusterBean.setRunningReservedInstanceCount(reservedInsanceCount);
         quboleClusterBean.setRunningSpotInstanceCount(spotInstanceCount);
-        System.out.println(String.format("min: %d, max: %d, running: %d", quboleClusterBean.getMinSize(), quboleClusterBean.getMaxSize(), quboleClusterBean.getRunningReservedInstanceCount()));
         return quboleClusterBean;
     }
 }

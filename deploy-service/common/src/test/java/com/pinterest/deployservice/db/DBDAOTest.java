@@ -1257,6 +1257,7 @@ public class DBDAOTest {
         managingGroupsBean.setGroup_name("test1");
         managingGroupsBean.setLast_activity_time(System.currentTimeMillis());
         managingGroupsBean.setLending_priority("HIGH");
+        managingGroupsBean.setInstance_type("c3.8xlarge");
         managingGroupsBean.setLent_size(0);
         managingGroupsBean.setMax_lending_size(100);
         managingGroupDAO.insertManagingGroup(managingGroupsBean);
@@ -1267,6 +1268,7 @@ public class DBDAOTest {
         assertEquals(bean.getGroup_name(), "test1");
         assertEquals(bean.getLending_priority(), "HIGH");
         assertEquals(bean.getLent_size(), (Integer) 0);
+        assertEquals(bean.getInstance_type(), "c3.8xlarge");
         assertEquals(bean.getMax_lending_size(), (Integer) 100);
 
         bean.setLent_size(10);

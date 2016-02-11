@@ -11,6 +11,7 @@ import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.ServiceContext;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,15 @@ public class ReservedInstanceScheduler implements Runnable {
         }
     }
 
+    // hard coded for stats
+    private void reportQuboleStatus() throws Exception {
+        QuboleClusterBean quboleClusterBean = quboleLeaseDAO.getCluster("13709");
+        Long currentTimestamp = System.currentTimeMillis();
+        metricSource.export(QUBOLE_RUNNING_INSTANCE, new HashMap<>(), (double)quboleClusterBean.getRunningReservedInstanceCount(), currentTimestamp);
+        metricSource.export("resource_managing.qubole.min_size", new HashMap<>(), (double)quboleClusterBean.getMinSize(), currentTimestamp);
+        metricSource.export("resource_managing.qubole.max_size", new HashMap<>(), (double)quboleClusterBean.getMaxSize(), currentTimestamp);
+    }
+
     public void scheduleReserveInstance(String instanceType) throws Exception {
         int reservedInstanceCount = reservedInstanceInfoDAO.getReservedInstanceCount(instanceType);
         int reservedRunningInstance = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
@@ -57,6 +67,7 @@ public class ReservedInstanceScheduler implements Runnable {
             return;
         }
 
+        String clusterName = managingGroupsBean.getGroup_name();
         int batchSize = managingGroupsBean.getBatch_size();
         int coolDown = managingGroupsBean.getCool_down();
         int lentSize = managingGroupsBean.getLent_size();
@@ -65,7 +76,7 @@ public class ReservedInstanceScheduler implements Runnable {
             // return instance to the pool
             if (lentSize == 0) {
                 LOG.info("Already returned all instances to the pool");
-                metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, "qubole"), new HashMap<>(), (double)currentLendingSize, currentTime);
+                metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currentTime);
                 return;
             }
             if (currentTime - managingGroupsBean.getLast_activity_time() >= coolDown * 1000 * 60) {
@@ -89,13 +100,12 @@ public class ReservedInstanceScheduler implements Runnable {
             newManagingGroupsBean.setLast_activity_time(currentTime);
 
             newManagingGroupsBean.setLent_size(currentLendingSize);
-            managingGroupDAO.updateManagingGroup("qubole", newManagingGroupsBean);
+            managingGroupDAO.updateManagingGroup(clusterName, newManagingGroupsBean);
         }
 
         // hard coded it for now
-        QuboleClusterBean quboleClusterBean = quboleLeaseDAO.getCluster("13709");
-        metricSource.export(QUBOLE_RUNNING_INSTANCE, new HashMap<>(), (double)quboleClusterBean.getRunningReservedInstanceCount(), currentTime);
-        metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, "qubole"), new HashMap<>(), (double)currentLendingSize, currentTime);
+        reportQuboleStatus();
+        metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currentTime);
     }
 
     @Override

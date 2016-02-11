@@ -55,6 +55,10 @@ public class HTTPClient {
         return internalCall(url, "POST", payload, headers, retries);
     }
 
+    public String put(String url, String payload, Map<String, String> headers, int retries) throws Exception {
+        return internalCall(url, "PUT", payload, headers, retries);
+    }
+
     private String internalCall(String url, String method, String payload, Map<String, String> headers, int retries) throws Exception {
         HttpURLConnection conn = null;
         Exception lastException = null;
