@@ -340,9 +340,16 @@ def main():
                         help="This option is deprecated")
     parser.add_argument('-f', '--config-file', dest='config_file', required=False,
                         help="the deploy agent config file path.")
-    parser.add_argument('-d', '--daemon', dest="daemon", action='store_true')
-    parser.add_argument('-n', '--host_name', dest="hostname", required=False, default=None)
-    parser.add_argument('-g', '--group', dest='hostgroup', required=False, default=None)
+    parser.add_argument('-d', '--daemon', dest="daemon", action='store_true',
+                        help="Run deploy agent in daemon mode. Default is false.")
+    parser.add_argument('-n', '--host', dest="hostname", required=False, default=None,
+                        help="Host name being used when interact with Teletraan service. "
+                             "This is optional. By default the hostname defined in host-info "
+                             "file will be used")
+    parser.add_argument('-g', '--group', dest='hostgroup', required=False, default=None,
+                        help="Group name being used when interact with Teletraan service. "
+                             "This is optional. By default the group name defined in host-info "
+                             "file will be used")
     args = parser.parse_args()
     config = Config(args.config_file)
     utils.run_prereqs(config)
