@@ -26,6 +26,12 @@ public class ScalingPolicyBean {
     private String policyName;
 
     @NotNull
+    @JsonProperty("scalingType")
+    private String scalingType;
+    /*
+     *
+     */
+    @NotNull
     @JsonProperty("scaleSize")
     private int scaleSize;
 
@@ -43,6 +49,10 @@ public class ScalingPolicyBean {
     public void setPolicyName(String policyName) {
         this.policyName = policyName;
     }
+
+    public String getScalingType() { return scalingType; }
+
+    public void setScalingType(String scalingType) { this.scalingType = scalingType; }
 
     public int getScaleSize() {
         return scaleSize;
