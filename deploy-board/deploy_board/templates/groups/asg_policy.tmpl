@@ -8,21 +8,35 @@
                     <label for="scaleUpSize" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="minimum number of hosts in one autoscaling group">
-                        Scaleup by:
+                        Scale up:
                     </label>
 
-                    <div class="col-xs-3">
+                    <div class="col-xs-1">
                     <div class="input-group">
                     {% if policy.enabled %}
-                        <input class="form-control" name="scaleupSize" required="true"
+                        <input class="form-control col-xs-1" name="scaleupSize" required="true"
                                type="text" value="{{ policy.scaleUpSize }}"/>
                     {% else %}
-                        <input class="form-control" name="scaleupSize" required="true"
+                        <input class="form-control col-xs-1" name="scaleupSize" required="true"
                                type="text" value=""/>
                     {% endif %}
-                    <span class="input-group-addon">instances</span>
+
                     </div>
                     </div>
+
+                <div class="col-xs-2">
+                <select class="form-control" name="scaleupType" required="true" id="scaleupSelectId">
+
+                   {% if policy.scaleUpType == "ChangeInCapacity" %}
+                   <option value="ChangeInCapacity" selected>Instances</option>
+                   <option value="PercentChangeInCapacity">Percent of the group</option>
+                   {% else %}
+                   <option value="ChangeInCapacity">Instances</option>
+                   <option value="PercentChangeInCapacity" selected>Percent of the group</option>
+                   {% endif %}
+
+               </select>
+            </div>
                     <label for="maxSize" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="maximum number of hosts in one autoscaling group">
@@ -41,7 +55,7 @@
                     <span class="input-group-addon">minutes</span>
                     </div>
                     </div>
-                     <label for="maxSize" class="deployToolTip control-label col-xs-3"
+                     <label for="maxSize" class="deployToolTip control-label col-xs-2"
                         style="font-weight: normal !important">
                         before allowing another activity
                     </label>
@@ -51,10 +65,9 @@
                     <label for="minSize" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="minimum number of hosts in one autoscaling group">
-                        Scaledown by:
+                        Scale down:
                     </label>
-
-                    <div class="col-xs-3">
+                    <div class="col-xs-1">
                     <div class="input-group">
                     {% if policy.enabled %}
                         <input class="form-control" name="scaledownSize" required="true"
@@ -63,9 +76,22 @@
                         <input class="form-control" name="scaledownSize" required="true"
                                type="text" value=""/>
                     {% endif %}
-                    <span class="input-group-addon">instances</span>
+
                     </div>
                     </div>
+<div class="col-xs-2">
+                <select class="form-control" name="scaledownType" required="true" id="scaledownSelectId">
+
+                   {% if policy.scaleDownType == "ChangeInCapacity" %}
+                   <option value="ChangeInCapacity" selected>Instances</option>
+                   <option value="PercentChangeInCapacity">Percent of the group</option>
+                   {% else %}
+                   <option value="ChangeInCapacity">Instances</option>
+                   <option value="PercentChangeInCapacity" selected>Percent of the group</option>
+                   {% endif %}
+
+               </select>
+               </div>
                     <label for="maxSize"  class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip">
                          and then wait for:
@@ -85,7 +111,7 @@
 
                     </div>
 
-                     <label for="maxSize" style="font-weight: normal !important" class="control-label col-xs-3">
+                     <label for="maxSize" style="font-weight: normal !important" class="control-label col-xs-2">
                         before allowing another activity
                     </label>
                 </div>
