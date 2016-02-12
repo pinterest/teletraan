@@ -55,3 +55,6 @@ junit-py27.xml
 .project
 .pydevproject
 .DS_Store
+
+# PIP stuff
+MANIFEST
