@@ -11,7 +11,9 @@ public interface ManagingGroupDAO {
 
     void updateManagingGroup(String groupName, ManagingGroupsBean managingGroupsBean) throws Exception;
 
-    List<ManagingGroupsBean> getManagingGroupsByInstanceType(String instanceType) throws Exception;
+    List<ManagingGroupsBean> getLendManagingGroupsByInstanceType(String instanceType) throws Exception;
+
+    List<ManagingGroupsBean> getReturnManagingGroupsByInstanceType(String instanceType) throws Exception;
 
     void deleteManagingGroup(String groupName) throws Exception;
 }

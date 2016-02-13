@@ -355,7 +355,7 @@ CREATE TABLE IF NOT EXISTS lending_activities (
 CREATE TABLE IF NOT EXISTS managing_groups (
     group_name          VARCHAR(32) NOT NULL,
     max_lending_size    INT         NOT NULL,
-    lending_priority    VARCHAR(16) NOT NULL,
+    lending_priority    INT         NOT NULL,
     instance_type       VARCHAR(16) NOT NULL,
     batch_size          INT         NOT NULL,
     cool_down           INT         NOT NULL,
