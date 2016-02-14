@@ -10,8 +10,10 @@ import com.pinterest.arcee.dao.ReservedInstanceInfoDAO;
 import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.ServiceContext;
 
+import java.sql.Connection;
 import java.util.*;
 
+import com.pinterest.deployservice.dao.UtilDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +22,8 @@ public class ReservedInstanceScheduler implements Runnable {
     private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
     private MetricSource metricSource;
     private ManagingGroupDAO managingGroupDAO;
-    private static String FREEINSTANCE_METRIC_NAME = "running_instance.%s.count";
+    private UtilDAO utilDAO;
+    private static String FREEINSTANCE_METRIC_NAME = "free_reserved_instance.%s.count";
     private static String LENDING_FREEINSTANCE_METRIC_NAME = "lending_instance.%s.count";
     private static String QUBOLE_RUNNING_INSTANCE = "qubole.running_instance.count";
     private static int THRESHOLD = 100;
@@ -29,6 +32,7 @@ public class ReservedInstanceScheduler implements Runnable {
     public ReservedInstanceScheduler(ServiceContext context) {
         reservedInstanceInfoDAO = context.getReservedInstanceInfoDAO();
         managingGroupDAO = context.getManagingGroupDAO();
+        utilDAO = context.getUtilDAO();
         metricSource = context.getMetricSource();
         quboleLeaseDAO = new QuboleLeaseDAOImpl(context.getQuboleAuthentication());
     }
@@ -52,11 +56,9 @@ public class ReservedInstanceScheduler implements Runnable {
         managingGroupDAO.updateManagingGroup(clusterName, newManagingGroupsBean);
 
         // lend instance to qubole
-        // quboleLeaseDAO.lendInstances(managingGroupsBean.getGroup_name(), toLendSize);
-        // reportQuboleStatus(managingGroupsBean.getGroup_name());
-
+        quboleLeaseDAO.lendInstances(managingGroupsBean.getGroup_name(), toLendSize);
+        reportQuboleStatus(managingGroupsBean.getGroup_name());
         metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currentTime);
-        // schedule work for
         return toLendSize;
     }
 
@@ -87,8 +89,8 @@ public class ReservedInstanceScheduler implements Runnable {
         managingGroupDAO.updateManagingGroup(clusterName,  newManageGroupsBean);
 
         metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currTime);
-        //quboleLeaseDAO.returnInstances(clusterName, returnSize);
-        //reportQuboleStatus(clusterName);
+        quboleLeaseDAO.returnInstances(clusterName, returnSize);
+        reportQuboleStatus(clusterName);
         return returnSize;
     }
 
@@ -102,35 +104,48 @@ public class ReservedInstanceScheduler implements Runnable {
     }
 
     public void scheduleReserveInstances(String instanceType) throws Exception {
-        int reservedInstanceCount = reservedInstanceInfoDAO.getReservedInstanceCount(instanceType);
-        int reservedRunningInstance = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
-        int freeInstance = reservedInstanceCount - reservedRunningInstance;
-        LOG.info(String.format("Reserved instance type: %s, reserved count: %d, running: %d, free %d", instanceType,
-                reservedInstanceCount, reservedRunningInstance, freeInstance));
-        long currentTime = System.currentTimeMillis();
-        metricSource.export(String.format(FREEINSTANCE_METRIC_NAME, instanceType), new HashMap<>(), (double)freeInstance, currentTime);
+        String lockId = String.format("RESOURCE_MANAGE_%s", instanceType);
+        Connection connection = utilDAO.getLock(lockId);
+        if (connection == null) {
+            LOG.info("Failed to obtain lock, skip");
+            return;
+        }
 
-        if (freeInstance > THRESHOLD) {
-            freeInstance -= THRESHOLD;
-            Collection<ManagingGroupsBean> managingGroupsBeans = managingGroupDAO.getLendManagingGroupsByInstanceType(instanceType);
-            for (ManagingGroupsBean managingGroupsBean : managingGroupsBeans) {
-                LOG.info(String.format("Free instance: %d, next service to lend: %s", freeInstance, managingGroupsBean.getGroup_name()));
-                int toLendSize = lendInstances(managingGroupsBean, freeInstance);
-                freeInstance -= toLendSize;
-                if (freeInstance <= 0) {
-                    break;
+        try {
+            int reservedInstanceCount = reservedInstanceInfoDAO.getReservedInstanceCount(instanceType);
+            int reservedRunningInstance = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
+            int freeInstance = reservedInstanceCount - reservedRunningInstance;
+            LOG.info(String.format("Reserved instance type: %s, reserved count: %d, running: %d, free %d", instanceType,
+                    reservedInstanceCount, reservedRunningInstance, freeInstance));
+            long currentTime = System.currentTimeMillis();
+            metricSource.export(String.format(FREEINSTANCE_METRIC_NAME, instanceType), new HashMap<>(), (double) freeInstance, currentTime);
+
+            if (freeInstance > THRESHOLD) {
+                freeInstance -= THRESHOLD;
+                Collection<ManagingGroupsBean> managingGroupsBeans = managingGroupDAO.getLendManagingGroupsByInstanceType(instanceType);
+                for (ManagingGroupsBean managingGroupsBean : managingGroupsBeans) {
+                    LOG.info(String.format("Free instance: %d, next service to lend: %s", freeInstance, managingGroupsBean.getGroup_name()));
+                    int toLendSize = lendInstances(managingGroupsBean, freeInstance);
+                    freeInstance -= toLendSize;
+                    if (freeInstance <= 0) {
+                        break;
+                    }
+                }
+            } else {
+                Collection<ManagingGroupsBean> managingGroupsBeans = managingGroupDAO.getReturnManagingGroupsByInstanceType(instanceType);
+                for (ManagingGroupsBean managingGroupsBean : managingGroupsBeans) {
+                    LOG.info(String.format("Free instance: %d, next service to return: %s", freeInstance, managingGroupsBean.getGroup_name()));
+                    int returnSize = returnInstances(managingGroupsBean);
+                    freeInstance += returnSize;
+                    if (freeInstance > THRESHOLD) {
+                        break;
+                    }
                 }
             }
-        } else {
-            Collection<ManagingGroupsBean> managingGroupsBeans = managingGroupDAO.getReturnManagingGroupsByInstanceType(instanceType);
-            for (ManagingGroupsBean managingGroupsBean : managingGroupsBeans) {
-                LOG.info(String.format("Free instance: %d, next service to return: %s", freeInstance, managingGroupsBean.getGroup_name()));
-                int returnSize = returnInstances(managingGroupsBean);
-                freeInstance += returnSize;
-                if (freeInstance > THRESHOLD) {
-                    break;
-                }
-            }
+        } catch (Exception ex) {
+            LOG.error(String.format("Failed to schedule free reserved instance type: %s", instanceType), ex);
+        } finally {
+            utilDAO.releaseLock(lockId, connection);
         }
     }
 
