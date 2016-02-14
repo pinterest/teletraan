@@ -7,7 +7,7 @@ import com.pinterest.deployservice.bean.Updatable;
  * CREATE TABLE IF NOT EXISTS managing_groups {
  * group_name          VARCHAR(32) NOT NULL,
  * max_lending_size    INT         NOT NULL,
- * lending_priority    VARCHAR(16) NOT NULL,
+ * lending_priority    INT         NOT NULL,
  * batch_size          INT         NOT NULL,
  * cool_down           INT         NOT NULL,
  * instance_type       VARCHAR(16) NOT NULL,
@@ -21,7 +21,7 @@ public class ManagingGroupsBean implements Updatable {
 
     private Integer max_lending_size;
 
-    private String lending_priority;
+    private Integer lending_priority;
 
     private Integer batch_size;
 
@@ -41,9 +41,9 @@ public class ManagingGroupsBean implements Updatable {
 
     public void setMax_lending_size(Integer max_lending_size) { this.max_lending_size = max_lending_size; }
 
-    public String getLending_priority() { return lending_priority; }
+    public Integer getLending_priority() { return lending_priority; }
 
-    public void setLending_priority(String lending_priority) { this.lending_priority = lending_priority; }
+    public void setLending_priority(Integer lending_priority) { this.lending_priority = lending_priority; }
 
     public Integer getBatch_size() { return batch_size; }
 

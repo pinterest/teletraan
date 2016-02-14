@@ -35,6 +35,7 @@ log = logging.getLogger(__name__)
 
 DEFAULT_PAGE_SIZE = 50
 
+ScalingType = ["ChangeInCapacity", "ExactCapacity", "PercentChangeInCapacity"]
 
 def group_landing(request):
     index = int(request.GET.get('page_index', '1'))
@@ -253,6 +254,8 @@ class ScalingPolicy(object):
             self.scaleDownSize = policies.get("scaledownPolicies")[0].get("scaleSize")
             self.scaleUpCoolDownTime = policies.get("scaleupPolicies")[0].get("coolDown")
             self.scaleDownCoolDownTime = policies.get("scaledownPolicies")[0].get("coolDown")
+            self.scaleUpType = policies.get("scaleupPolicies")[0].get("scalingType")
+            self.scaleDownType = policies.get("scaleupPolicies")[0].get("scalingType")
 
 
 def get_policy(request, group_name):
@@ -273,8 +276,10 @@ def update_policy(request, group_name):
         scaling_policies["scaleupPolicies"] = []
         scaling_policies["scaledownPolicies"] = []
         scaling_policies["scaleupPolicies"].append({"scaleSize": make_int(params["scaleupSize"]),
+                                                    "scalingType": params["scaleupType"],
                                                     "coolDown": make_int(params["scaleupCooldownTime"])})
         scaling_policies["scaledownPolicies"].append({"scaleSize": make_int(params["scaledownSize"]),
+                                                      "scalingType": params["scaledownType"],
                                                       "coolDown": make_int(params["scaleDownCooldownTime"])})
 
         groups_helper.put_scaling_policies(request, group_name, scaling_policies)

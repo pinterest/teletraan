@@ -388,7 +388,7 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     @Override
     public void addScalingPolicyToGroup(String groupName, ScalingPolicyBean policyBean) throws Exception {
         PutScalingPolicyRequest request = new PutScalingPolicyRequest();
-        request.setAdjustmentType("ChangeInCapacity");
+        request.setAdjustmentType(policyBean.getScalingType());
         request.setPolicyName(policyBean.getPolicyName());
         request.setAutoScalingGroupName(groupName);
         request.setScalingAdjustment(policyBean.getScaleSize());
@@ -407,6 +407,7 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
             for (ScalingPolicy policy : policySet) {
                 ScalingPolicyBean bean = new ScalingPolicyBean();
                 bean.setCoolDownTime(policy.getCooldown() / 60);
+                bean.setScalingType(policy.getAdjustmentType());
                 bean.setPolicyName(policy.getPolicyName());
                 bean.setScaleSize(policy.getScalingAdjustment());
                 bean.setARN(policy.getPolicyARN());

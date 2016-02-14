@@ -74,7 +74,7 @@ public class RoleAuthorizer implements Authorizer {
             }
         }
 
-        // Consider SYSTEM wide group role
+        // Consider SYSTEM wide role
         UserRolesBean systemBean = userRolesDAO.getByNameAndResource(userName, Resource.ALL, Resource.Type.SYSTEM);
         if (systemBean != null) {
             if(systemBean.getRole().isAuthorized(requiredRole)) {

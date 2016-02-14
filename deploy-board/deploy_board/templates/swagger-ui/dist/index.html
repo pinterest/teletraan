@@ -35,7 +35,7 @@
       if (url && url.length > 1) {
         url = decodeURIComponent(url[1]);
       } else {
-        url = "https://localhost:8080/swagger.json";
+        url = "http://localhost:8080/swagger.json";
       }
 
       // Pre load translate...
@@ -82,18 +82,17 @@
       function addApiKeyAuthorization(){
          var key = encodeURIComponent($('#input_apiKey')[0].value);
          if (key && key.trim() != "") {
-             var value = "token {{ token }}";
+             var value = "token " + key;
              var apiKeyAuth = new SwaggerClient.ApiKeyAuthorization("Authorization", value, "header");
              window.swaggerUi.api.clientAuthorizations.add("Authorization", apiKeyAuth);
          }
       }
 
       $('#input_apiKey').change(addApiKeyAuthorization);
-      console.log("test {{ token }}")
-
+        
       // if you have an apiKey you would like to pre-populate on the page for demonstration purposes...
-      //var apiKey = "{{ token }}";
-      //$('#input_apiKey').val(apiKey);
+      var apiKey = "{{ token }}";
+      $('#input_apiKey').val(apiKey);
 
       window.swaggerUi.load();
 

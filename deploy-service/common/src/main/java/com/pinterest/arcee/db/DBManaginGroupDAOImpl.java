@@ -17,8 +17,10 @@ public class DBManaginGroupDAOImpl implements ManagingGroupDAO {
             "INSERT INTO managing_groups SET %s ON DUPLICATE KEY UPDATE %s";
     private static String GET_MANAGING_GROUP_BY_ID =
             "SELECT * FROM managing_groups WHERE group_name=?";
-    private static String GET_MANAGING_GROUP_BY_TYPE =
-            "SELECT * FROM managing_groups WHERE instance_type=?";
+    private static String GET_LENDING_MANAGING_GROUP_BY_TYPE =
+            "SELECT * FROM managing_groups WHERE instance_type=? ORDER BY lending_priority, lent_size";
+    private static String GET_RETURN_MANAGING_GROUP_BY_TYPE =
+            "SELECT * FROM managing_groups WHERE instance_type=? ORDER BY lending_priority DESC, lent_size DESC";
     private static String UPDATE_MANAGING_GROUP_BY_ID =
             "UPDATE managing_groups SET %s WHERE group_name=?";
     private static String DELETE_MANAGING_GROUP_BY_ID =
@@ -58,8 +60,14 @@ public class DBManaginGroupDAOImpl implements ManagingGroupDAO {
     }
 
     @Override
-    public List<ManagingGroupsBean> getManagingGroupsByInstanceType(String instanceType) throws Exception {
+    public List<ManagingGroupsBean> getLendManagingGroupsByInstanceType(String instanceType) throws Exception {
         ResultSetHandler<List<ManagingGroupsBean>> h = new BeanListHandler<>(ManagingGroupsBean.class);
-        return new QueryRunner(dataSource).query(GET_MANAGING_GROUP_BY_TYPE, h, instanceType);
+        return new QueryRunner(dataSource).query(GET_LENDING_MANAGING_GROUP_BY_TYPE, h, instanceType);
+    }
+
+    @Override
+    public List<ManagingGroupsBean> getReturnManagingGroupsByInstanceType(String instanceType) throws Exception {
+        ResultSetHandler<List<ManagingGroupsBean>> h = new BeanListHandler<>(ManagingGroupsBean.class);
+        return new QueryRunner(dataSource).query(GET_RETURN_MANAGING_GROUP_BY_TYPE, h, instanceType);
     }
 }
