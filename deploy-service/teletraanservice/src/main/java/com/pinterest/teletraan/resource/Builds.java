@@ -126,7 +126,6 @@ public class Builds {
     public Response publish(
             @Context SecurityContext sc,
             @ApiParam(value = "Build object", required = true)@Valid BuildBean buildBean) throws Exception {
-        authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PUBLISHER);
         if (StringUtils.isEmpty(buildBean.getScm())) {
             buildBean.setScm(sourceControlManager.getType());
         }
@@ -152,11 +151,14 @@ public class Builds {
             buildBean.setCommit_date(System.currentTimeMillis());
         }
 
+        // Set who published the build
+        buildBean.setPublisher(sc.getUserPrincipal().getName());
+
         // We append commit SHA after build id to make build directory name human friendly
         String id = CommonUtils.getBase64UUID();
         String buildId = String.format("%s_%s", id, buildBean.getScm_commit_7());
         buildBean.setBuild_id(buildId);
-
+        
         buildDAO.insert(buildBean);
         LOG.info("Successfully published build {} by {}.", buildId, sc.getUserPrincipal().getName());
 
