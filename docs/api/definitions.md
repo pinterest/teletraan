@@ -274,11 +274,11 @@
 
   - PENDING_DEPLOY
 
-     Deploy has not compelted yet
+     Deploy has not completed yet
 
   OUSTANDING:
 
-     Deploy has not compelted yet
+     Deploy has not completed yet
 
 ### AcceptanceType
 
