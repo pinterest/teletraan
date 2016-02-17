@@ -17,7 +17,7 @@ package com.pinterest.deployservice.common;
 
 /**
  * An implementation of PersistableJSONFactory is capable of serialize and deserialize
- * arbitary object E to and from JSON string. This JSON string will be stored in datas
+ * arbitrary object E to and from JSON string. This JSON string will be stored in datas
  * table as BLOB
  */
 public interface PersistableJSONFactory<E> {
