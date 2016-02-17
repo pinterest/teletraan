@@ -21,5 +21,5 @@ import org.apache.commons.dbcp.BasicDataSource;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public interface DataSourceFactory extends Discoverable {
-    public BasicDataSource build() throws Exception;
+    BasicDataSource build() throws Exception;
 }

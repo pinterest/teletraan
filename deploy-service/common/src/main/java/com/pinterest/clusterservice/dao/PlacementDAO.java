@@ -18,9 +18,9 @@ package com.pinterest.clusterservice.dao;
 import com.pinterest.clusterservice.bean.PlacementBean;
 
 public interface PlacementDAO {
-    public void insert(PlacementBean bean) throws Exception;
+    void insert(PlacementBean bean) throws Exception;
 
-    public PlacementBean getById(String id) throws Exception;
+    PlacementBean getById(String id) throws Exception;
 
-    public PlacementBean getByProvider(String provider) throws Exception;
+    PlacementBean getByProvider(String provider) throws Exception;
 }

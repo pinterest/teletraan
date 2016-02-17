@@ -20,23 +20,23 @@ import com.pinterest.arcee.bean.HealthCheckBean;
 import java.util.List;
 
 public interface HealthCheckDAO {
-    public void insertHealthCheck(HealthCheckBean healthCheckBean) throws Exception;
+    void insertHealthCheck(HealthCheckBean healthCheckBean) throws Exception;
 
-    public void updateHealthCheckById(String id, HealthCheckBean healthCheckBean) throws Exception;
+    void updateHealthCheckById(String id, HealthCheckBean healthCheckBean) throws Exception;
 
-    public void removeHealthCheckById(String id) throws Exception;
+    void removeHealthCheckById(String id) throws Exception;
 
-    public HealthCheckBean getHealthCheckById(String id) throws Exception;
+    HealthCheckBean getHealthCheckById(String id) throws Exception;
 
-    public List<HealthCheckBean> getHealthChecksByGroup(String groupName, int pageIndex, int pageSize) throws Exception;
+    List<HealthCheckBean> getHealthChecksByGroup(String groupName, int pageIndex, int pageSize) throws Exception;
 
-    public List<HealthCheckBean> getOngoingHealthChecks() throws Exception;
+    List<HealthCheckBean> getOngoingHealthChecks() throws Exception;
 
-    public List<HealthCheckBean> getOngoingRegularHealthChecksByGroup(String groupName) throws Exception;
+    List<HealthCheckBean> getOngoingRegularHealthChecksByGroup(String groupName) throws Exception;
 
-    public List<HealthCheckBean> getRegularHealthChecksByGroupAndTime(String groupName, long time) throws Exception;
+    List<HealthCheckBean> getRegularHealthChecksByGroupAndTime(String groupName, long time) throws Exception;
 
-    public List<String> getRecentHealthCheckStatus(String groupName, int pageSize) throws Exception;
+    List<String> getRecentHealthCheckStatus(String groupName, int pageSize) throws Exception;
 
-    public List<HealthCheckBean> getHealthChecksByUnterminatedHosts() throws Exception;
+    List<HealthCheckBean> getHealthChecksByUnterminatedHosts() throws Exception;
 }

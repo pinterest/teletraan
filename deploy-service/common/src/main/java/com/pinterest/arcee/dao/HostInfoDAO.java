@@ -26,11 +26,11 @@ import java.util.Set;
  * TODO this is NOT a DAO, but CloudProvider, need to refactor
  */
 public interface HostInfoDAO {
-    public Set<String> getTerminatedHosts(Set<String> ids) throws Exception;
+    Set<String> getTerminatedHosts(Set<String> ids) throws Exception;
 
-    public void terminateHost(String hostId) throws Exception;
+    void terminateHost(String hostId) throws Exception;
 
-    public List<HostBean> launchEC2Instances(GroupBean groupBean, int instanceCnt, String subnet) throws Exception;
+    List<HostBean> launchEC2Instances(GroupBean groupBean, int instanceCnt, String subnet) throws Exception;
 
-    public List<String> getRunningInstances(List<String> runningIds) throws Exception;
+    List<String> getRunningInstances(List<String> runningIds) throws Exception;
 }

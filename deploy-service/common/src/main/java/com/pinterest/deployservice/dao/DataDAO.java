@@ -21,13 +21,13 @@ import com.pinterest.deployservice.bean.DataBean;
  * A collection of methods to help arbitary data
  */
 public interface DataDAO {
-    public DataBean getById(String id) throws Exception;
+    DataBean getById(String id) throws Exception;
 
-    public void delete(String id) throws Exception;
+    void delete(String id) throws Exception;
 
-    public void insert(DataBean dataBean) throws Exception;
+    void insert(DataBean dataBean) throws Exception;
 
-    public void update(String id, DataBean dataBean) throws Exception;
+    void update(String id, DataBean dataBean) throws Exception;
 
-    public void insertOrUpdate(String id, DataBean bean) throws Exception;
+    void insertOrUpdate(String id, DataBean bean) throws Exception;
 }

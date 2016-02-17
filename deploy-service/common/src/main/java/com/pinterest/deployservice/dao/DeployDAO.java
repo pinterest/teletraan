@@ -26,36 +26,36 @@ import java.util.List;
  * A collection of methods to help read table DEPLOYS
  */
 public interface DeployDAO {
-    public DeployBean getById(String deployId) throws Exception;
+    DeployBean getById(String deployId) throws Exception;
 
-    public DeployQueryResultBean getAllDeploys(DeployQueryFilter filterBean) throws Exception;
+    DeployQueryResultBean getAllDeploys(DeployQueryFilter filterBean) throws Exception;
 
-    public void delete(String deployId) throws Exception;
+    void delete(String deployId) throws Exception;
 
-    public void update(String deployId, DeployBean deployBean) throws Exception;
+    void update(String deployId, DeployBean deployBean) throws Exception;
 
-    public UpdateStatement genUpdateStatement(String deployId, DeployBean deployBean);
+    UpdateStatement genUpdateStatement(String deployId, DeployBean deployBean);
 
-    public UpdateStatement genInsertStatement(DeployBean deployBean);
+    UpdateStatement genInsertStatement(DeployBean deployBean);
 
-    public void insert(DeployBean deployBean) throws Exception;
+    void insert(DeployBean deployBean) throws Exception;
 
     // Return upto size number of ACCEPTED deploy whose build publish time is after after
-    public List<DeployBean> getAcceptedDeploys(String envId, long after, int size) throws Exception;
+    List<DeployBean> getAcceptedDeploys(String envId, long after, int size) throws Exception;
 
     // Return upto size number of ACCEPTED deploy whose suc_date is before before and build publish time is after after
-    public List<DeployBean> getAcceptedDeploysDelayed(String envId, long before, long after) throws Exception;
+    List<DeployBean> getAcceptedDeploysDelayed(String envId, long before, long after) throws Exception;
 
     // Return upto size number of ACCEPTED deploy whose suc_date is before before and build publish time is after after
-    public Long countNonRegularDeploys(String envId, long after) throws Exception;
+    Long countNonRegularDeploys(String envId, long after) throws Exception;
 
     // Update state, and other colums, if only if state == currentState
     // Return affected rows, 0 means not updated
-    public int updateStateSafely(String deployId, String currentState, DeployBean updateBean) throws Exception;
+    int updateStateSafely(String deployId, String currentState, DeployBean updateBean) throws Exception;
 
     // Count total number of deploys by env_id
-    public long countDeploysByEnvId(String envId) throws Exception;
+    long countDeploysByEnvId(String envId) throws Exception;
 
     // Delete all unused deploys whose last update time is before timeThreshold
-    public void deleteUnusedDeploys(String envId, long timeThreshold, long numOfDeploys) throws Exception;
+    void deleteUnusedDeploys(String envId, long timeThreshold, long numOfDeploys) throws Exception;
 }

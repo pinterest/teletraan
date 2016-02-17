@@ -18,9 +18,9 @@ package com.pinterest.clusterservice.dao;
 import com.pinterest.clusterservice.bean.SecurityZoneBean;
 
 public interface SecurityZoneDAO {
-    public void insert(SecurityZoneBean bean) throws Exception;
+    void insert(SecurityZoneBean bean) throws Exception;
 
-    public SecurityZoneBean getById(String id) throws Exception;
+    SecurityZoneBean getById(String id) throws Exception;
 
-    public SecurityZoneBean getByProvider(String provider) throws Exception;
+    SecurityZoneBean getByProvider(String provider) throws Exception;
 }

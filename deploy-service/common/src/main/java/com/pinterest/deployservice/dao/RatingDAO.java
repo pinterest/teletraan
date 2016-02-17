@@ -24,11 +24,11 @@ import java.util.List;
  */
 public interface RatingDAO {
 
-    public void insert(RatingBean bean) throws Exception;
+    void insert(RatingBean bean) throws Exception;
 
-    public void delete(String id) throws Exception;
+    void delete(String id) throws Exception;
 
-    public List<RatingBean> getRatingsInfos(int pageId, int pageSize) throws Exception;
+    List<RatingBean> getRatingsInfos(int pageId, int pageSize) throws Exception;
 
-    public List<RatingBean> getRatingsByAuthor(String author) throws Exception;
+    List<RatingBean> getRatingsByAuthor(String author) throws Exception;
 }

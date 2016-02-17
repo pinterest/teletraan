@@ -20,9 +20,9 @@ import com.pinterest.arcee.bean.HealthCheckErrorBean;
 
 public interface HealthCheckErrorDAO {
 
-    public void insertHealthCheckError(HealthCheckErrorBean healthCheckErrorBean) throws Exception;
+    void insertHealthCheckError(HealthCheckErrorBean healthCheckErrorBean) throws Exception;
 
-    public void removeHealthCheckErrorById(String id) throws Exception;
+    void removeHealthCheckErrorById(String id) throws Exception;
 
-    public HealthCheckErrorBean getHealthCheckErrorById(String id) throws Exception;
+    HealthCheckErrorBean getHealthCheckErrorById(String id) throws Exception;
 }

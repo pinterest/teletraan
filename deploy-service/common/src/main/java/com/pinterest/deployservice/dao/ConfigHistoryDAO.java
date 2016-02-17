@@ -22,12 +22,12 @@ import java.util.List;
 
 public interface ConfigHistoryDAO {
 
-    public void insert(ConfigHistoryBean bean) throws Exception;
+    void insert(ConfigHistoryBean bean) throws Exception;
 
-    public List<ConfigHistoryBean> getByConfigId(String configId, int pageIndex, int pageSize) throws Exception;
+    List<ConfigHistoryBean> getByConfigId(String configId, int pageIndex, int pageSize) throws Exception;
 
-    public ConfigHistoryBean getByChangeId(String changeId) throws Exception;
+    ConfigHistoryBean getByChangeId(String changeId) throws Exception;
 
-    public List<ConfigHistoryBean> getLatestChangesByType(String configId, String type) throws Exception;
+    List<ConfigHistoryBean> getLatestChangesByType(String configId, String type) throws Exception;
 
 }

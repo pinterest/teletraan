@@ -18,9 +18,9 @@ package com.pinterest.clusterservice.dao;
 import com.pinterest.clusterservice.bean.HostTypeBean;
 
 public interface HostTypeDAO {
-    public void insert(HostTypeBean bean) throws Exception;
+    void insert(HostTypeBean bean) throws Exception;
 
-    public HostTypeBean getById(String id) throws Exception;
+    HostTypeBean getById(String id) throws Exception;
 
-    public HostTypeBean getByProvider(String provider) throws Exception;
+    HostTypeBean getByProvider(String provider) throws Exception;
 }

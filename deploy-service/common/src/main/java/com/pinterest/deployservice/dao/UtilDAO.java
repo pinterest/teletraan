@@ -27,10 +27,10 @@ public interface UtilDAO {
      * Return this connection if succeeds. The caller would have to hold on
      * this connection, and close it in the end
      */
-    public Connection getLock(String id);
+    Connection getLock(String id);
 
     /**
      * Release lock based on the id and connection
      */
-    public void releaseLock(String id, Connection connection);
+    void releaseLock(String id, Connection connection);
 }

@@ -20,13 +20,13 @@ import com.pinterest.arcee.bean.AsgLifecycleEventBean;
 import java.util.List;
 
 public interface AsgLifecycleEventDAO {
-    public void insertAsgLifecycleEvent(AsgLifecycleEventBean asgLifecycleEventBean) throws Exception;
+    void insertAsgLifecycleEvent(AsgLifecycleEventBean asgLifecycleEventBean) throws Exception;
 
-    public void deleteAsgLifecycleEventById(String tokenId) throws Exception;
+    void deleteAsgLifecycleEventById(String tokenId) throws Exception;
 
-    public void deleteAsgLifeCycleEventByHookId(String hookId) throws Exception;
+    void deleteAsgLifeCycleEventByHookId(String hookId) throws Exception;
 
-    public List<AsgLifecycleEventBean> getAsgLifecycleEventByHook(String hookId) throws Exception;
+    List<AsgLifecycleEventBean> getAsgLifecycleEventByHook(String hookId) throws Exception;
 
-    public List<String> getHookIdsFromAsgLifeCycleEvent() throws Exception;
+    List<String> getHookIdsFromAsgLifeCycleEvent() throws Exception;
 }

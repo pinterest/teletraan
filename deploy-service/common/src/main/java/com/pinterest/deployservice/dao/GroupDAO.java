@@ -19,21 +19,21 @@ import java.util.List;
 
 
 public interface GroupDAO {
-    public List<String> getExistingGroups(long pageIndex, int pageSize) throws Exception;
+    List<String> getExistingGroups(long pageIndex, int pageSize) throws Exception;
 
-    public List<String> getAllEnvGroups() throws Exception;
+    List<String> getAllEnvGroups() throws Exception;
 
-    public List<String> getEnvsByGroupName(String groupName) throws Exception;
+    List<String> getEnvsByGroupName(String groupName) throws Exception;
 
-    public List<String> getCapacityHosts(String envId) throws Exception;
+    List<String> getCapacityHosts(String envId) throws Exception;
 
-    public void addHostCapacity(String envId, String host) throws Exception;
+    void addHostCapacity(String envId, String host) throws Exception;
 
-    public void removeHostCapacity(String envId, String host) throws Exception;
+    void removeHostCapacity(String envId, String host) throws Exception;
 
-    public List<String> getCapacityGroups(String envId) throws Exception;
+    List<String> getCapacityGroups(String envId) throws Exception;
 
-    public void addGroupCapacity(String envId, String group) throws Exception;
+    void addGroupCapacity(String envId, String group) throws Exception;
 
-    public void removeGroupCapacity(String envId, String group) throws Exception;
+    void removeGroupCapacity(String envId, String group) throws Exception;
 }

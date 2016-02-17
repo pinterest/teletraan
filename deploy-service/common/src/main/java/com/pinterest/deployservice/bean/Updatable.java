@@ -16,5 +16,5 @@
 package com.pinterest.deployservice.bean;
 
 public interface Updatable {
-    public SetClause genSetClause();
+    SetClause genSetClause();
 }

@@ -23,44 +23,44 @@ import java.util.List;
  * A collection of methods to help interact with table agents
  */
 public interface AgentDAO {
-    public void insertOrUpdate(AgentBean agentBean) throws Exception;
+    void insertOrUpdate(AgentBean agentBean) throws Exception;
 
-    public void update(String hostId, String envId, AgentBean updateBean) throws Exception;
+    void update(String hostId, String envId, AgentBean updateBean) throws Exception;
 
-    public void resetFailedAgents(String envId, String deployId) throws Exception;
+    void resetFailedAgents(String envId, String deployId) throws Exception;
 
-    public void updateAgentById(String hostId, AgentBean bean) throws Exception;
+    void updateAgentById(String hostId, AgentBean bean) throws Exception;
 
-    public void delete(String hostId, String envId) throws Exception;
+    void delete(String hostId, String envId) throws Exception;
 
     // TODO refector this
-    public List<AgentBean> getByHost(String hostName) throws Exception;
+    List<AgentBean> getByHost(String hostName) throws Exception;
 
-    public List<AgentBean> getByHostId(String hostId) throws Exception;
+    List<AgentBean> getByHostId(String hostId) throws Exception;
 
-    public List<AgentBean> getAllByEnv(String envId) throws Exception;
+    List<AgentBean> getAllByEnv(String envId) throws Exception;
 
-    public List<AgentBean> getByEnvAndFirstDeployTime(String envId, long time) throws Exception;
+    List<AgentBean> getByEnvAndFirstDeployTime(String envId, long time) throws Exception;
 
-    public AgentBean getByHostEnvIds(String hostId, String envId) throws Exception;
+    AgentBean getByHostEnvIds(String hostId, String envId) throws Exception;
 
-    public void deleteAllById(String hostId) throws Exception;
+    void deleteAllById(String hostId) throws Exception;
 
     // return how many agents are deploying for this env, regardless of deployId
-    public long countDeployingAgent(String envId) throws Exception;
+    long countDeployingAgent(String envId) throws Exception;
 
     // return how many agents are doing first time deploy for this env.
-    public long countFirstDeployingAgent(String envId) throws Exception;
+    long countFirstDeployingAgent(String envId) throws Exception;
 
     // return how many agents are failing during first time deploy for this env
-    public long countFailedFirstDeployingAgent(String envId) throws Exception;
+    long countFailedFirstDeployingAgent(String envId) throws Exception;
 
     // return how many agent already succeeded for certain deploy
-    public long countSucceededAgent(String envId, String deployId) throws Exception;
+    long countSucceededAgent(String envId, String deployId) throws Exception;
 
     // return how many agent reports for this env regardless of deployId or stage
-    public long countAgentByEnv(String envId) throws Exception;
+    long countAgentByEnv(String envId) throws Exception;
 
     // return how many agent state is PAUSED_BY_SYSTEM, or stuck/failed
-    public long countStuckAgent(String envId, String deployId) throws Exception;
+    long countStuckAgent(String envId, String deployId) throws Exception;
 }

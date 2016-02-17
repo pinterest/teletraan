@@ -21,15 +21,15 @@ import java.util.Collection;
 
 public interface ClusterManager {
 
-    public void createCluster(String clusterName, ClusterBean bean) throws Exception;
+    void createCluster(String clusterName, ClusterBean bean) throws Exception;
 
-    public void updateCluster(String clusterName, ClusterBean bean) throws Exception;
+    void updateCluster(String clusterName, ClusterBean bean) throws Exception;
 
-    public ClusterBean getCluster(String clusterName) throws Exception;
+    ClusterBean getCluster(String clusterName) throws Exception;
 
-    public void deleteCluster(String clusterName) throws Exception;
+    void deleteCluster(String clusterName) throws Exception;
 
-    public void launchHosts(String clusterName, int num) throws Exception;
+    void launchHosts(String clusterName, int num) throws Exception;
 
-    public void terminateHosts(Collection<String> hostIds) throws Exception;
+    void terminateHosts(Collection<String> hostIds) throws Exception;
 }

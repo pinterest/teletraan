@@ -21,13 +21,13 @@ import com.pinterest.arcee.bean.ImageBean;
 import java.util.List;
 
 public interface ImageDAO {
-    public void insertOrUpdate(ImageBean amiBean) throws Exception;
+    void insertOrUpdate(ImageBean amiBean) throws Exception;
 
-    public ImageBean getById(String amiId) throws Exception;
+    ImageBean getById(String amiId) throws Exception;
 
-    public List<ImageBean> getImages(String appName, int pageIndex, int pageSize) throws Exception;
+    List<ImageBean> getImages(String appName, int pageIndex, int pageSize) throws Exception;
 
-    public List<String> getAppNames() throws Exception;
+    List<String> getAppNames() throws Exception;
 
-    public void delete(String amiId) throws Exception;
+    void delete(String amiId) throws Exception;
 }

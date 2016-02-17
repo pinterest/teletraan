@@ -16,5 +16,5 @@
 package com.pinterest.deployservice.chat;
 
 public interface ChatManager {
-    public void send(String from, String room, String message, String color) throws Exception;
+    void send(String from, String room, String message, String color) throws Exception;
 }
