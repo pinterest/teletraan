@@ -28,6 +28,7 @@ import java.util.*;
 public class AwsAlarmManager implements AlarmManager {
     private static final Logger LOG = LoggerFactory.getLogger(AwsAlarmManager.class);
     private static int TOTAL_RETRY = 5;
+    private static int MAX_AWS_METRIC_RECORDS = 20;
     private static final String DIMENTION_NAME = "AutoScalingGroupName";
     private static final String METRIC_NAMESPACE = "AWS/EC2";
     private AmazonCloudWatchClient acwClient;
@@ -56,7 +57,7 @@ public class AwsAlarmManager implements AlarmManager {
         request.setStatistic(Statistic.Average);
 
         request.setMetricName(asgAlarmBean.getMetric_name());
-        request.setThreshold((double) asgAlarmBean.getThreshold());
+        request.setThreshold(asgAlarmBean.getThreshold());
         request.setAlarmName(getAlarmName(asgAlarmBean));
 
         acwClient.putMetricAlarm(request);
@@ -65,7 +66,7 @@ public class AwsAlarmManager implements AlarmManager {
     @Override
     public void deleteAlarmFromPolicy(AsgAlarmBean asgAlarmBean) throws Exception {
         DeleteAlarmsRequest request = new DeleteAlarmsRequest();
-        List<String> alarmNames = new LinkedList<String>();
+        List<String> alarmNames = new LinkedList<>();
         alarmNames.add(getAlarmName(asgAlarmBean));
         request.setAlarmNames(alarmNames);
         acwClient.deleteAlarms(request);
@@ -86,19 +87,14 @@ public class AwsAlarmManager implements AlarmManager {
             metricDatum.setValue(metricDataPoint.getValue());
             metricDatum.setDimensions(Arrays.asList(getDimention(groupName)));
             metricData.add(metricDatum);
+            if (metricData.size() == MAX_AWS_METRIC_RECORDS) {
+                sendMetricsInternal(metricData, groupName);
+                metricData.clear();
+            }
         }
 
-        PutMetricDataRequest request = new PutMetricDataRequest();
-        request.setMetricData(metricData);
-        request.setNamespace(getNameSpace(groupName));
-
-        for (int retry = 0; retry < TOTAL_RETRY; retry++) {
-            try {
-                acwClient.putMetricData(request);
-                return;
-            } catch (InternalServiceException e) {
-                LOG.error("Failed to put metrics to aws: ", e);
-            }
+        if (!metricData.isEmpty()) {
+            sendMetricsInternal(metricData, groupName);
         }
     }
 
@@ -176,6 +172,23 @@ public class AwsAlarmManager implements AlarmManager {
         } else {
             return Date.from(ZonedDateTime.now().minusSeconds(num).toInstant());
         }
+    }
+
+    private void sendMetricsInternal(Collection<MetricDatum> metricData, String groupName) throws Exception {
+        PutMetricDataRequest request = new PutMetricDataRequest();
+        request.setMetricData(metricData);
+        request.setNamespace(getNameSpace(groupName));
+        Exception lastException = null;
+        for (int retry = 0; retry < TOTAL_RETRY; retry++) {
+            try {
+                acwClient.putMetricData(request);
+                return;
+            } catch (InternalServiceException e) {
+                lastException = e;
+                LOG.error("Failed to put metrics to aws: ", e);
+            }
+        }
+        throw lastException;
     }
 
     private String getNameSpace(String groupName) {
