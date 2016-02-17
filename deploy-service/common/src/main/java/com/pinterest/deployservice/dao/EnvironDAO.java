@@ -25,37 +25,37 @@ import java.util.List;
  * A collection of methods to help interact with Environments tables
  */
 public interface EnvironDAO {
-    public void insert(EnvironBean bean) throws Exception;
+    void insert(EnvironBean bean) throws Exception;
 
-    public void update(String envId, EnvironBean bean) throws Exception;
+    void update(String envId, EnvironBean bean) throws Exception;
 
-    public void update(String envName, String envStage, EnvironBean bean) throws Exception;
+    void update(String envName, String envStage, EnvironBean bean) throws Exception;
 
-    public UpdateStatement genUpdateStatement(String envId, EnvironBean bean);
+    UpdateStatement genUpdateStatement(String envId, EnvironBean bean);
 
-    public void delete(String envId) throws Exception;
+    void delete(String envId) throws Exception;
 
-    public List<String> getAllEnvNames(String nameFilter, long pageIndex, int pageSize) throws Exception;
+    List<String> getAllEnvNames(String nameFilter, long pageIndex, int pageSize) throws Exception;
 
-    public EnvironBean getById(String envId) throws Exception;
+    EnvironBean getById(String envId) throws Exception;
 
-    public List<EnvironBean> getByName(String envName) throws Exception;
+    List<EnvironBean> getByName(String envName) throws Exception;
 
-    public EnvironBean getByStage(String envName, String envStage) throws Exception;
+    EnvironBean getByStage(String envName, String envStage) throws Exception;
 
-    public List<String> getOverrideHosts(String envId, String envName, String envStage) throws Exception;
+    List<String> getOverrideHosts(String envId, String envName, String envStage) throws Exception;
 
-    public long countTotalCapacity(String envId, String envName, String envStage) throws Exception;
+    long countTotalCapacity(String envId, String envName, String envStage) throws Exception;
 
-    public List<String> getTotalCapacityHosts(String envId, String envName, String envStage) throws Exception;
+    List<String> getTotalCapacityHosts(String envId, String envName, String envStage) throws Exception;
 
-    public List<EnvironBean> getEnvsByHost(String host) throws Exception;
+    List<EnvironBean> getEnvsByHost(String host) throws Exception;
 
-    public List<EnvironBean> getEnvsByGroups(Collection<String> groups) throws Exception;
+    List<EnvironBean> getEnvsByGroups(Collection<String> groups) throws Exception;
 
-    public List<String> getCurrentDeployIds() throws Exception;
+    List<String> getCurrentDeployIds() throws Exception;
 
     // Return all
-    public List<String> getAllEnvIds() throws Exception;
+    List<String> getAllEnvIds() throws Exception;
 
 }

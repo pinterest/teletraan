@@ -26,11 +26,11 @@ public interface AlarmManager {
 
     void putAlarmToPolicy(String actionId, AsgAlarmBean asgAlarmBean) throws Exception;
 
-    public void deleteAlarmFromPolicy(AsgAlarmBean asgAlarmBean) throws Exception;
+    void deleteAlarmFromPolicy(AsgAlarmBean asgAlarmBean) throws Exception;
 
-    public void putMetricsToAlarm(String groupName, String metricName, Collection<MetricDatumBean> metricDataPoints) throws Exception;
+    void putMetricsToAlarm(String groupName, String metricName, Collection<MetricDatumBean> metricDataPoints) throws Exception;
 
-    public List<String> listAwsMetrics(String groupName) throws Exception;
+    List<String> listAwsMetrics(String groupName) throws Exception;
 
-    public List<MetricDatumBean> getMetricsStatistics(String groupName, String metricName, String startFrom) throws Exception;
+    List<MetricDatumBean> getMetricsStatistics(String groupName, String metricName, String startFrom) throws Exception;
 }

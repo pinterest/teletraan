@@ -21,17 +21,17 @@ import com.pinterest.deployservice.bean.Resource;
 import java.util.List;
 
 public interface GroupRolesDAO {
-    public void insert(GroupRolesBean bean) throws Exception;
+    void insert(GroupRolesBean bean) throws Exception;
 
-    public void delete(String groupName, String resourceId,
+    void delete(String groupName, String resourceId,
         Resource.Type resourceType) throws Exception;
 
-    public void update(GroupRolesBean bean, String groupName, String resourceId,
+    void update(GroupRolesBean bean, String groupName, String resourceId,
         Resource.Type resourceType) throws Exception;
 
-    public GroupRolesBean getByNameAndResource(String groupName, String resourceId,
+    GroupRolesBean getByNameAndResource(String groupName, String resourceId,
         Resource.Type resourceType) throws Exception;
 
-    public List<GroupRolesBean> getByResource(String resourceId,
+    List<GroupRolesBean> getByResource(String resourceId,
         Resource.Type resourceType) throws Exception;
 }

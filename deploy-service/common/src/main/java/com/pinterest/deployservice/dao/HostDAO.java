@@ -24,38 +24,38 @@ import java.util.Set;
  * A collection of methods to help hosts and groups mapping
  */
 public interface HostDAO {
-    public List<String> getGroupNamesByHost(String hostName) throws Exception;
+    List<String> getGroupNamesByHost(String hostName) throws Exception;
 
-    public List<String> getHostNamesByGroup(String groupName) throws Exception;
+    List<String> getHostNamesByGroup(String groupName) throws Exception;
 
-    public List<String> getHostIdsByGroup(String groupName) throws Exception;
+    List<String> getHostIdsByGroup(String groupName) throws Exception;
 
-    public void insert(HostBean hostBean) throws Exception;
+    void insert(HostBean hostBean) throws Exception;
 
-    public void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception;
+    void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception;
 
-    public void updateHostById(String hostId, HostBean hostBean) throws Exception;
+    void updateHostById(String hostId, HostBean hostBean) throws Exception;
 
-    public void deleteById(String hostId) throws Exception;
+    void deleteById(String hostId) throws Exception;
 
-    public void deleteAllById(String id) throws Exception;
+    void deleteAllById(String id) throws Exception;
 
-    public void removeHostFromGroup(String hostId, String groupName) throws Exception;
+    void removeHostFromGroup(String hostId, String groupName) throws Exception;
 
-    public List<HostBean> getHostsByGroup(String groupName, long pageIndex, int pageSize) throws Exception;
+    List<HostBean> getHostsByGroup(String groupName, long pageIndex, int pageSize) throws Exception;
 
-    public Long getGroupSize(String groupName) throws Exception;
+    Long getGroupSize(String groupName) throws Exception;
 
-    public List<HostBean> getHosts(String hostName) throws Exception;
+    List<HostBean> getHosts(String hostName) throws Exception;
 
-    public List<HostBean> getAllActiveHostsByGroup(String groupName) throws Exception;
+    List<HostBean> getAllActiveHostsByGroup(String groupName) throws Exception;
 
-    public List<HostBean> getHostsByHostId(String hostId) throws Exception;
+    List<HostBean> getHostsByHostId(String hostId) throws Exception;
 
-    public List<HostBean> getTerminatingHosts() throws Exception;
+    List<HostBean> getTerminatingHosts() throws Exception;
 
-    public List<HostBean> getStaleEnvHosts(long after) throws Exception;
+    List<HostBean> getStaleEnvHosts(long after) throws Exception;
 
-    public HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception;
+    HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception;
 
 }

@@ -18,7 +18,7 @@ package com.pinterest.clusterservice.dao;
 import com.pinterest.clusterservice.bean.BaseImageBean;
 
 public interface BaseImageDAO {
-    public void insert(BaseImageBean bean) throws Exception;
+    void insert(BaseImageBean bean) throws Exception;
 
-    public BaseImageBean getById(String id) throws Exception;
+    BaseImageBean getById(String id) throws Exception;
 }

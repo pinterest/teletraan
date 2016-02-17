@@ -18,11 +18,11 @@ package com.pinterest.clusterservice.dao;
 import com.pinterest.clusterservice.bean.ClusterBean;
 
 public interface ClusterDAO {
-    public void insert(ClusterBean bean) throws Exception;
+    void insert(ClusterBean bean) throws Exception;
 
-    public void update(String clusterName, ClusterBean bean) throws Exception;
+    void update(String clusterName, ClusterBean bean) throws Exception;
 
-    public void delete(String clusterName) throws Exception;
+    void delete(String clusterName) throws Exception;
 
-    public ClusterBean getByClusterName(String clusterName) throws Exception;
+    ClusterBean getByClusterName(String clusterName) throws Exception;
 }

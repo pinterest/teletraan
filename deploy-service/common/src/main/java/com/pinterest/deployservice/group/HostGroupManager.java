@@ -21,7 +21,7 @@ import java.util.Map;
 
 
 public interface HostGroupManager {
-    public Map<String, HostBean> getHostIdsByGroup(String groupName) throws Exception;
+    Map<String, HostBean> getHostIdsByGroup(String groupName) throws Exception;
 
-    public String getLastInstanceId(String groupName) throws Exception;
+    String getLastInstanceId(String groupName) throws Exception;
 }

@@ -27,7 +27,7 @@ public interface PersistableJSONFactory<E> {
      * @return a JSON string
      * @throws Exception
      */
-    public String toJson(E e) throws Exception;
+    String toJson(E e) throws Exception;
 
     /**
      * Parse a JSON string previously converted from an object back to this object
@@ -35,5 +35,5 @@ public interface PersistableJSONFactory<E> {
      * @return an Object
      * @throws Exception
      */
-    public E fromJson(String payload) throws Exception;
+    E fromJson(String payload) throws Exception;
 }

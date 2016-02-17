@@ -21,19 +21,19 @@ import com.pinterest.deployservice.bean.TokenRolesBean;
 import java.util.List;
 
 public interface TokenRolesDAO {
-    public void insert(TokenRolesBean bean) throws Exception;
+    void insert(TokenRolesBean bean) throws Exception;
 
-    public void delete(String scriptName, String resourceId,
+    void delete(String scriptName, String resourceId,
         Resource.Type resourceType) throws Exception;
 
-    public void update(TokenRolesBean bean, String scriptName, String resourceId,
+    void update(TokenRolesBean bean, String scriptName, String resourceId,
         Resource.Type resourceType) throws Exception;
 
-    public TokenRolesBean getByToken(String token) throws Exception;
+    TokenRolesBean getByToken(String token) throws Exception;
 
-    public TokenRolesBean getByNameAndResource(String scriptName, String resourceId,
+    TokenRolesBean getByNameAndResource(String scriptName, String resourceId,
         Resource.Type resourceType) throws Exception;
 
-    public List<TokenRolesBean> getByResource(String resourceId,
+    List<TokenRolesBean> getByResource(String resourceId,
         Resource.Type resourceType) throws Exception;
 }

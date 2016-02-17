@@ -18,11 +18,11 @@ package com.pinterest.deployservice.dao;
 import com.pinterest.deployservice.bean.AgentErrorBean;
 
 public interface AgentErrorDAO {
-    public AgentErrorBean get(String hostName, String envId) throws Exception;
+    AgentErrorBean get(String hostName, String envId) throws Exception;
 
-    public void insert(AgentErrorBean agentErrorBean) throws Exception;
+    void insert(AgentErrorBean agentErrorBean) throws Exception;
 
-    public void update(String hostName, String envId, AgentErrorBean agentErrorBean) throws Exception;
+    void update(String hostName, String envId, AgentErrorBean agentErrorBean) throws Exception;
 
-    public AgentErrorBean getByHostIdAndEnvId(String hostId, String envId) throws Exception;
+    AgentErrorBean getByHostIdAndEnvId(String hostId, String envId) throws Exception;
 }

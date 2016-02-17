@@ -21,13 +21,13 @@ import com.pinterest.deployservice.bean.UserRolesBean;
 import java.util.List;
 
 public interface UserRolesDAO {
-    public void insert(UserRolesBean bean) throws Exception;
+    void insert(UserRolesBean bean) throws Exception;
 
-    public void delete(String userName, String resourceId, Resource.Type resourceType) throws Exception;
+    void delete(String userName, String resourceId, Resource.Type resourceType) throws Exception;
 
-    public void update(UserRolesBean bean, String userName, String resourceId, Resource.Type resourceType) throws Exception;
+    void update(UserRolesBean bean, String userName, String resourceId, Resource.Type resourceType) throws Exception;
 
-    public UserRolesBean getByNameAndResource(String userName, String resourceId, Resource.Type resourceType) throws Exception;
+    UserRolesBean getByNameAndResource(String userName, String resourceId, Resource.Type resourceType) throws Exception;
 
-    public List<UserRolesBean> getByResource(String resourceId, Resource.Type resourceType) throws Exception;
+    List<UserRolesBean> getByResource(String resourceId, Resource.Type resourceType) throws Exception;
 }

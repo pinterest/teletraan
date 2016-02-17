@@ -16,5 +16,5 @@
 package com.pinterest.deployservice.email;
 
 public interface MailManager {
-    public void send(String to, String title, String message) throws Exception;
+    void send(String to, String title, String message) throws Exception;
 }

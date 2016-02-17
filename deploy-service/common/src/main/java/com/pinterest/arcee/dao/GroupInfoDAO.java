@@ -22,28 +22,28 @@ import java.util.List;
 
 public interface GroupInfoDAO {
 
-    public void updateGroupInfo(String groupName, GroupBean groupBean) throws Exception;
+    void updateGroupInfo(String groupName, GroupBean groupBean) throws Exception;
 
-    public void insertGroupInfo(GroupBean groupBean) throws Exception;
+    void insertGroupInfo(GroupBean groupBean) throws Exception;
 
-    public void removeGroup(String groupName) throws Exception;
+    void removeGroup(String groupName) throws Exception;
 
-    public GroupBean getGroupInfo(String groupName) throws Exception;
+    GroupBean getGroupInfo(String groupName) throws Exception;
 
     // get all group information in envs_groups but not in the groups table
-    public List<String> getNewGroupNames() throws Exception;
+    List<String> getNewGroupNames() throws Exception;
 
-    public List<String> getExistingGroups(long pageIndex, int pageSize) throws Exception;
+    List<String> getExistingGroups(long pageIndex, int pageSize) throws Exception;
 
-    public List<String> getToUpdateGroups(long after) throws Exception;
+    List<String> getToUpdateGroups(long after) throws Exception;
 
-    public List<GroupBean> getGroupInfoByAppName(String appName) throws Exception;
+    List<GroupBean> getGroupInfoByAppName(String appName) throws Exception;
 
-    public List<String> getGroupNamesByHostIdAndASGStatus(String hostName, String asgStatus) throws Exception;
+    List<String> getGroupNamesByHostIdAndASGStatus(String hostName, String asgStatus) throws Exception;
 
-    public List<String> getGroupNamesByEnvNameAndASGStatus(String envName, String asgStatus) throws Exception;
+    List<String> getGroupNamesByEnvNameAndASGStatus(String envName, String asgStatus) throws Exception;
 
-    public List<GroupBean> getGroupsByEnvNameAndASGStauts(String envName, String asgStatus) throws Exception;
+    List<GroupBean> getGroupsByEnvNameAndASGStauts(String envName, String asgStatus) throws Exception;
 
-    public List<String> getEnabledHealthCheckGroupNames() throws Exception;
+    List<String> getEnabledHealthCheckGroupNames() throws Exception;
 }

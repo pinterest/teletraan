@@ -23,13 +23,13 @@ import java.util.List;
  * A collection of methods to help interact with Promotes table
  */
 public interface PromoteDAO {
-    public PromoteBean getById(String envId) throws Exception;
+    PromoteBean getById(String envId) throws Exception;
 
-    public List<String> getAutoPromoteEnvIds() throws Exception;
+    List<String> getAutoPromoteEnvIds() throws Exception;
 
-    public void delete(String envId) throws Exception;
+    void delete(String envId) throws Exception;
 
-    public void insert(PromoteBean promoteBean) throws Exception;
+    void insert(PromoteBean promoteBean) throws Exception;
 
-    public void update(String envId, PromoteBean promoteBean) throws Exception;
+    void update(String envId, PromoteBean promoteBean) throws Exception;
 }

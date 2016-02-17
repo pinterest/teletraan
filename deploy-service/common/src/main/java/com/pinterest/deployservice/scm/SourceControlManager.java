@@ -22,18 +22,18 @@ import java.util.Queue;
 
 public interface SourceControlManager {
 
-    public String generateCommitLink(String repo, String sha);
+    String generateCommitLink(String repo, String sha);
 
-    public String getCommitLinkTemplate();
+    String getCommitLinkTemplate();
 
-    public String getUrlPrefix();
+    String getUrlPrefix();
 
-    public String getType();
+    String getType();
 
-    public CommitBean getCommit(String repo, String sha) throws Exception;
+    CommitBean getCommit(String repo, String sha) throws Exception;
 
     // Start from sha, get default number of commits
-    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception;
+    Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception;
 
     /**
      * Returns a list of CommitInfo from startSha inclusive to endSha exclusive,
@@ -41,5 +41,5 @@ public interface SourceControlManager {
      * if size == 0, then will return the full list until endSha
      * if endSha == null, then will return up to size, max_size = 500
      */
-    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Exception;
+    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Exception;
 }

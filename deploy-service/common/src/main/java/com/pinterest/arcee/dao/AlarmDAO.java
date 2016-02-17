@@ -21,19 +21,19 @@ import com.pinterest.arcee.bean.MetricBean;
 import java.util.List;
 
 public interface AlarmDAO {
-    public AsgAlarmBean getAlarmInfoById(String alarmId) throws Exception;
+    AsgAlarmBean getAlarmInfoById(String alarmId) throws Exception;
 
-    public List<AsgAlarmBean> getAlarmInfosByGroup(String groupName) throws Exception;
+    List<AsgAlarmBean> getAlarmInfosByGroup(String groupName) throws Exception;
 
-    public AsgAlarmBean getAlarmInfoByGroupAndMetricSource(String groupName, String metricSource) throws Exception;
+    AsgAlarmBean getAlarmInfoByGroupAndMetricSource(String groupName, String metricSource) throws Exception;
 
-    public void insertAlarmInfo(AsgAlarmBean asgAlarmBean) throws Exception;
+    void insertAlarmInfo(AsgAlarmBean asgAlarmBean) throws Exception;
 
-    public void deleteAlarmInfoById(String alarmId)  throws Exception;
+    void deleteAlarmInfoById(String alarmId)  throws Exception;
 
-    public void deleteAlarmInfoByGroup(String groupName) throws Exception;
+    void deleteAlarmInfoByGroup(String groupName) throws Exception;
 
-    public void updateAlarmInfoById(String alarmId, AsgAlarmBean asgAlarmBean) throws Exception;
+    void updateAlarmInfoById(String alarmId, AsgAlarmBean asgAlarmBean) throws Exception;
 
-    public List<MetricBean> getMetrics() throws Exception;
+    List<MetricBean> getMetrics() throws Exception;
 }

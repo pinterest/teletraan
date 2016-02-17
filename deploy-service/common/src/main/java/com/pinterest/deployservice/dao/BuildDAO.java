@@ -24,34 +24,34 @@ import java.util.List;
  * A collection of methods to help interact with table BUILDS
  */
 public interface BuildDAO {
-    public void insert(BuildBean buildBean) throws Exception;
+    void insert(BuildBean buildBean) throws Exception;
 
-    public BuildBean getById(String buildId) throws Exception;
+    BuildBean getById(String buildId) throws Exception;
 
     // commit in short version
-    public List<BuildBean> getByCommit7(String scmCommit7, int pageIndex, int pageSize) throws Exception;
+    List<BuildBean> getByCommit7(String scmCommit7, int pageIndex, int pageSize) throws Exception;
 
-    public void delete(String buildId) throws Exception;
+    void delete(String buildId) throws Exception;
 
-    public BuildBean getLatest(String buildName, String branch) throws Exception;
+    BuildBean getLatest(String buildName, String branch) throws Exception;
 
-    public List<String> getBuildNames(String nameFilter, int pageIndex, int pageSize) throws Exception;
+    List<String> getBuildNames(String nameFilter, int pageIndex, int pageSize) throws Exception;
 
-    public List<BuildBean> getByName(String buildName, String branch, int pageIndex, int pageSize) throws Exception;
+    List<BuildBean> getByName(String buildName, String branch, int pageIndex, int pageSize) throws Exception;
 
-    public List<BuildBean> getByNameDate(String buildName, String branch, long before, long after) throws Exception;
+    List<BuildBean> getByNameDate(String buildName, String branch, long before, long after) throws Exception;
 
-    public List<String> getBranches(String buildName) throws Exception;
+    List<String> getBranches(String buildName) throws Exception;
 
     // Return up to size number of builds whose publish time is after after
-    public List<BuildBean> getAcceptedBuilds(String buildName, String branch, long after, int size) throws Exception;
+    List<BuildBean> getAcceptedBuilds(String buildName, String branch, long after, int size) throws Exception;
 
     // Return all distinct build names
-    public List<String> getAllBuildNames() throws Exception;
+    List<String> getAllBuildNames() throws Exception;
 
     // Get total number of builds by build name
-    public long countBuildsByName(String buildName) throws Exception;
+    long countBuildsByName(String buildName) throws Exception;
 
     // Get all unused builds whose publish time is before timeThreshold
-    public void deleteUnusedBuilds(String buildName, long timeThreshold, long numOfBuilds) throws Exception;
+    void deleteUnusedBuilds(String buildName, long timeThreshold, long numOfBuilds) throws Exception;
 }

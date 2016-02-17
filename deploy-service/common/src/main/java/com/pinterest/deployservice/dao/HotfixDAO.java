@@ -24,15 +24,15 @@ import java.util.List;
  */
 public interface HotfixDAO {
 
-    public void insert(HotfixBean bean) throws Exception;
+    void insert(HotfixBean bean) throws Exception;
 
-    public void update(String hotfix_id, HotfixBean bean) throws Exception;
+    void update(String hotfix_id, HotfixBean bean) throws Exception;
 
-    public void delete(String id) throws Exception;
+    void delete(String id) throws Exception;
 
-    public HotfixBean getByHotfixId(String id) throws Exception;
+    HotfixBean getByHotfixId(String id) throws Exception;
 
-    public List<HotfixBean> getHotfixes(String envName, int pageIndex, int pageSize) throws Exception;
+    List<HotfixBean> getHotfixes(String envName, int pageIndex, int pageSize) throws Exception;
 
-    public List<String> getOngoingHotfixIds() throws Exception;
+    List<String> getOngoingHotfixIds() throws Exception;
 }
