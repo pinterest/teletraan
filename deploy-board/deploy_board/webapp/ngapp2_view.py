@@ -136,6 +136,8 @@ def sendFinishMessage(request, user, envName, stageName, state):
     # if we've already sent the message
     if ngapp2DeployUtils.get_finish_message_flag(stageName) == "True":
         return
+
+    ngapp2DeployUtils.set_finish_message_flag(stageName)
     env = environs_helper.get_env_by_stage(request, envName, stageName)
     deploy = deploys_helper.get(request, env['deployId'])
     build = builds_helper.get_build(request, deploy['buildId'])
@@ -148,8 +150,8 @@ def sendFinishMessage(request, user, envName, stageName, state):
     else:
         template = "{}/{}: deploy of {}/{} failed. See details <{}|here>"
     message = template.format(envName, stageName, branch, commit[:7], weblink)
-    ngapp2DeployUtils.set_finish_message_flag(stageName)
     systems_helper.send_chat_message(request, deploy['operator'], get_slack_channel(), message)
+
 
 
 def enable_health_check(request):
@@ -168,6 +170,9 @@ def update_env_priority(request, env_name):
         curr_env = NGAPP_B
         prev_env = NGAPP_A
 
+    # we only update env priority once
+    if Ngapp2DeployUtils().get_finish_message_flag("prod") == "True":
+        return
     curr_data = {"priority": "HIGH"}
     prev_data = {"priority": "NORMAL"}
     environs_helper.update_env_basic_config(request, curr_env, "prod", data=curr_data)
@@ -198,10 +203,8 @@ class NgappStatusView(View):
             state, response = self.get_varnish_status(request, env_name, deploy_stage)
             if state == "DONE":
                 sendFinishMessage(request, user, env_name, "prod", state)
-
                 # set higher priority to current env
                 update_env_priority(request, env_name)
-
                 # enable health check
                 enable_health_check(request)
         return response
