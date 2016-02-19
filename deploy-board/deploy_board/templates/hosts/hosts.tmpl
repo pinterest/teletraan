@@ -20,7 +20,17 @@
           {% for agent in agents %}
           <tr>
               {% if agent.lastErrorCode|isUnknownHost %}
-                  <td><a href="/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
+                  <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+                  <td>N/A</td>
+              {% elif agent.lastErrorCode|isProvisioningHost %}
+                  <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
+                  <td>{{ agent.hostId | default_if_none:'' }}</td>
                   <td>N/A</td>
                   <td>N/A</td>
                   <td>N/A</td>
@@ -28,7 +38,7 @@
                   <td>N/A</td>
                   <td>N/A</td>
               {% else %}
-                  <td><a href="/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
+                  <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
                   <td>{{ agent.hostId }}</td>
                   <td>{{ agent.deployStage }}</td>
                   <td>{{ agent.state }}</td>

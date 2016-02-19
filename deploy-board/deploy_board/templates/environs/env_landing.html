@@ -88,7 +88,7 @@
     {% if pinterest %}
     <div class="row">
         <button id="addNewInstancesBtnId" class="deployToolTip btn btn-default btn-block"
-                data-loading-text="Creating..." title="Launch new instances">
+                data-target="#newInstanceModalId" data-toggle="modal" title="Launch new instances">
                 <span class="glyphicon glyphicon-plus-sign"></span> Launch Instance
         </button>
     </div>
@@ -103,15 +103,6 @@
     <div id="groupsDiv">
     </div>
 </div>
-<script>
-    $(function() {
-       $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
-    });
-
-    $('#addNewInstancesBtnId').click(function () {
-        $('#newInstanceModalId').modal()
-    });
-</script>
 {% endif %}
 
 <div class="modal fade" id="restartConfirmModelId" tabindex="-1" role="dialog"
@@ -236,7 +227,6 @@
 
 {% if pinterest %}
 <script>
-    // TODO why we do this???
     $(document).ready(function() {
         var selected_value = $("#group_name option:selected").val();
         var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
@@ -246,6 +236,8 @@
     });
 
     $(function () {
+        $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
+
         $("#group_name").change(function() {
             var selected_value = $("#group_name option:selected").val();
             var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
@@ -260,25 +252,25 @@
 
 {% block main %}
 
-    {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
-    {% include "environs/site_health.tmpl" with metricsKind="service" %}
+{% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
+{% include "environs/site_health.tmpl" with metricsKind="service" %}
 
-    {% if messages %}
-        {% for message in messages %}
-            {% if message.level == 40 %}
-                <div class="alert alert-danger" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <strong>Warning!</strong> {{ message | safe}}
-                </div>
-            {% else %}
-                <div class="alert alert-success" role="alert">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <strong>Launch Succeeded!</strong> {{ message | safe}}
-                </div>
-            {% endif %}
+{% if messages %}
+    {% for message in messages %}
+        {% if message.level == 40 %}
+            <div class="alert alert-danger" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>Warning!</strong> {{ message | safe}}
+            </div>
+        {% else %}
+            <div class="alert alert-success" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>Launch Succeeded!</strong> {{ message | safe}}
+            </div>
+        {% endif %}
 
-        {% endfor %}
-    {% endif %}
+    {% endfor %}
+{% endif %}
 
 {% if has_deploy %}
 
@@ -412,8 +404,43 @@
 
 {% else %}
     <p align="center" style="padding:2%;"><i>Deploy not yet started in stage {{ env.stageName }}.</i></p>
+{% if  provisioning_hosts %}
+<div class="panel panel-default table-responsive">
+    <table class="table table-condensed table-hover">
+        <tr>
+            <td class="col-lg-2">
+                <span class="deployToolTip" data-toggle="tooltip"
+                   title="Host is new to this env.">
+                <small>New Hosts</small>
+                </span>
+            </td>
+            <td class="col-lg-10">
+                <small>
+                    {% for host in provisioning_hosts %}
+                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
+                       type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
+                       title="{{ host | hostTip }}">
+                        {{ host.hostName }}
+                        <i class="fa fa-fw {{ host | hostIcon }}"></i>
+                    </a>
+                    {% endfor %}
+                </small>
+            </td>
+            <td class="col-lg-1 text-right">
+                <small>
+                <a href="/env/{{ env.envName }}/{{ env.stageName }}/hosts/provision/" class="deployToolTip" data-toggle="tooltip"
+                   title="Click to see more details">
+                    {{ provisioning_hosts | length }}
+                </a>
+                </small>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endif %}
+
 {% if capacity_hosts %}
-    <div class="panel panel-default table-responsive">
+<div class="panel panel-default table-responsive">
     <table class="table table-condensed table-hover">
         <tr>
             <td class="col-lg-2">
@@ -426,7 +453,7 @@
             <td class="col-lg-10">
                 <small>
                     {% for host in capacity_hosts %}
-                    <a href="/host/{{ host }}"
+                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host }}"
                        type="button" class="btn btn-xs btn-warning">
                         {{ host }}
                     </a>
@@ -444,6 +471,9 @@
         </tr>
     </table>
 </div>
+{% endif %}
+{% if provisioning_hosts %}
+hello
 {% endif %}
 {% endif %}
 

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -161,6 +161,7 @@ public class EnvDeploys {
             DeployProgressBean emptyProgress = new DeployProgressBean();
             emptyProgress.setAgents(Collections.emptyList());
             emptyProgress.setMissingHosts(Collections.emptyList());
+            emptyProgress.setProvisioningHosts(Collections.emptyList());
             return emptyProgress;
         }
         return environHandler.updateDeployProgress(envBean);

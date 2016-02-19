@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class ClusterHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ClusterHandler.class);
@@ -127,6 +128,15 @@ public class ClusterHandler {
         }
     }
 
+    public Collection<String> getHosts(String clusterName, Collection<String> hostIds) throws Exception {
+        ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
+        if (clusterBean.getProvider() == CloudProvider.AWS) {
+            ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
+            return clusterManager.getHosts(clusterName, hostIds);
+        }
+        return Collections.emptyList();
+    }
+
     public String getProviderByClusterName(String clusterName) throws Exception {
         return clusterDAO.getProviderByClusterName(clusterName);
     }
@@ -149,7 +159,7 @@ public class ClusterHandler {
             awsVmBean.setRole(advancedBean.getRole());
         }
 
-        if (!advancedBean.getUserDataConfigs().isEmpty()) {
+        if (advancedBean.getUserDataConfigs() != null && !advancedBean.getUserDataConfigs().isEmpty()) {
             awsVmBean.setUserDataConfigs(advancedBean.getUserDataConfigs());
         }
 
@@ -181,7 +191,7 @@ public class ClusterHandler {
             awsVmBean.setRole(advancedBean.getRole());
         }
 
-        if (!advancedBean.getUserDataConfigs().isEmpty()) {
+        if (advancedBean.getUserDataConfigs() != null && !advancedBean.getUserDataConfigs().isEmpty()) {
             awsVmBean.setUserDataConfigs(advancedBean.getUserDataConfigs());
         }
 

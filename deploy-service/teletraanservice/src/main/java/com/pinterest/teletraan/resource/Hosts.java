@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +16,6 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import io.swagger.annotations.*;

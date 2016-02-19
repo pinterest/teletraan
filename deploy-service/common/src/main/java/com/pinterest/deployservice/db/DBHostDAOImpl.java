@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,53 +19,40 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.HostDAO;
+
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public class DBHostDAOImpl implements HostDAO {
-    private static final String DELETE_ALL_BY_ID =
-        "DELETE hosts, agents, agent_errors FROM hosts LEFT JOIN agents ON hosts.host_id=agents.host_id " +
+    private static final String DELETE_ALL_BY_ID = "DELETE hosts, agents, agent_errors FROM hosts LEFT JOIN agents ON hosts.host_id=agents.host_id " +
             "LEFT JOIN agent_errors ON agents.host_name=agent_errors.host_name WHERE hosts.host_id=?";
-    private static final String UPDATE_HOST_BY_ID =
-        "UPDATE hosts SET %s WHERE host_id=?";
-    private static final String INSERT_HOST_TEMPLATE =
-        "INSERT INTO hosts SET %s ON DUPLICATE KEY UPDATE %s";
-    private static final String INSERT_UPDATE_TEMPLATE =
-        "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, state=?, "
-            + "host_name=CASE WHEN host_name IS NULL THEN ? WHEN host_name=host_id THEN ? ELSE host_name END, "
-            + "ip=CASE WHEN ip IS NULL THEN ? ELSE ip END";
-    private static final String DELETE_HOST_BY_ID =
-        "DELETE FROM hosts WHERE host_id=?";
-    private static final String REMOVE_HOST_FROM_GROUP =
-        "DELETE FROM hosts WHERE host_id=? AND group_name=?";
-    private static final String GET_HOSTS_BY_GROUP =
-        "SELECT * FROM hosts WHERE group_name=? ORDER BY host_name LIMIT ?,?";
-    private static final String GET_GROUP_SIZE =
-        "SELECT COUNT(host_id) FROM hosts WHERE group_name=?";
-    private static final String GET_ALL_HOSTS_BY_GROUP =
-            "SELECT * FROM hosts WHERE group_name=? AND state!='TERMINATING'";
-    private static final String GET_HOST_BY_NAME =
-        "SELECT * FROM hosts WHERE host_name=?";
-    private static final String GET_HOST_BY_HOSTID =
-        "SELECT * FROM hosts WHERE host_id=?";
-    private static final String GET_HOSTS_BY_STATES =
-        "SELECT * FROM hosts WHERE state in (?, ?) GROUP BY host_id";
-    private static final String GET_GROUP_NAMES_BY_HOST =
-        "SELECT group_name FROM hosts WHERE host_name=?";
-    private static final String GET_STALE_ENV_HOST =
-        "SELECT DISTINCT hosts.* FROM hosts INNER JOIN hosts_and_envs ON hosts.host_name=hosts_and_envs.host_name WHERE hosts.last_update<?";
-    private static final String GET_HOST_NAMES_BY_GROUP =
-        "SELECT host_name FROM hosts WHERE group_name=?";
-    private static final String GET_HOST_IDS_BY_GROUP =
-        "SELECT host_id FROM hosts WHERE group_name=?";
-    private static final String GET_HOST_BY_ENVID_AND_HOSTID =
-        "SELECT DISTINCT e.* FROM hosts e INNER JOIN groups_and_envs ge ON ge.group_name = e.group_name WHERE ge.env_id=? AND e.host_id=?";
+    private static final String UPDATE_HOST_BY_ID = "UPDATE hosts SET %s WHERE host_id=?";
+    private static final String INSERT_HOST_TEMPLATE = "INSERT INTO hosts SET %s ON DUPLICATE KEY UPDATE %s";
+    private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, state=?, " +
+            "host_name=CASE WHEN host_name IS NULL THEN ? WHEN host_name=host_id THEN ? ELSE host_name END, " +
+            "ip=CASE WHEN ip IS NULL THEN ? ELSE ip END";
+    private static final String DELETE_HOST_BY_ID = "DELETE FROM hosts WHERE host_id=?";
+    private static final String REMOVE_HOST_FROM_GROUP = "DELETE FROM hosts WHERE host_id=? AND group_name=?";
+    private static final String GET_HOSTS_BY_GROUP = "SELECT * FROM hosts WHERE group_name=? ORDER BY host_name LIMIT ?,?";
+    private static final String GET_GROUP_SIZE = "SELECT COUNT(host_id) FROM hosts WHERE group_name=?";
+    private static final String GET_ALL_HOSTS_BY_GROUP = "SELECT * FROM hosts WHERE group_name=? AND state!='TERMINATING'";
+    private static final String GET_HOST_BY_NAME = "SELECT * FROM hosts WHERE host_name=?";
+    private static final String GET_HOST_BY_HOSTID = "SELECT * FROM hosts WHERE host_id=?";
+    private static final String GET_HOSTS_BY_STATES = "SELECT * FROM hosts WHERE state in (?, ?) GROUP BY host_id";
+    private static final String GET_GROUP_NAMES_BY_HOST = "SELECT group_name FROM hosts WHERE host_name=?";
+    private static final String GET_STALE_ENV_HOST = "SELECT DISTINCT hosts.* FROM hosts INNER JOIN hosts_and_envs ON hosts.host_name=hosts_and_envs.host_name WHERE hosts.last_update<?";
+    private static final String GET_HOST_NAMES_BY_GROUP = "SELECT host_name FROM hosts WHERE group_name=?";
+    private static final String GET_HOST_IDS_BY_GROUP = "SELECT host_id FROM hosts WHERE group_name=?";
+    private static final String GET_HOSTS_BY_ENVID = "SELECT e.* FROM hosts e INNER JOIN groups_and_envs ge ON ge.group_name = e.group_name WHERE ge.env_id=?";
+    private static final String GET_HOST_BY_ENVID_AND_HOSTID = "SELECT DISTINCT e.* FROM hosts e INNER JOIN groups_and_envs ge ON ge.group_name = e.group_name WHERE ge.env_id=? AND e.host_id=?";
+    private static final String GET_HOST_BY_ENVID_AND_HOSTNAME = "SELECT DISTINCT e.* FROM hosts e INNER JOIN groups_and_envs ge ON ge.group_name = e.group_name WHERE ge.env_id=? AND e.host_name=?";
 
     private BasicDataSource dataSource;
 
@@ -76,25 +63,25 @@ public class DBHostDAOImpl implements HostDAO {
     @Override
     public List<String> getGroupNamesByHost(String hostName) throws Exception {
         return new QueryRunner(dataSource).query(GET_GROUP_NAMES_BY_HOST,
-            SingleResultSetHandlerFactory.<String>newListObjectHandler(), hostName);
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), hostName);
     }
 
     @Override
     public List<String> getHostNamesByGroup(String groupName) throws Exception {
         return new QueryRunner(dataSource).query(GET_HOST_NAMES_BY_GROUP,
-            SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName);
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName);
     }
 
     @Override
     public List<String> getHostIdsByGroup(String groupName) throws Exception {
         return new QueryRunner(dataSource).query(GET_HOST_IDS_BY_GROUP,
-            SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName);
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName);
     }
 
     @Override
     public Long getGroupSize(String groupName) throws Exception {
         Long n = new QueryRunner(dataSource).query(GET_GROUP_SIZE,
-            SingleResultSetHandlerFactory.<Long>newObjectHandler(), groupName);
+                SingleResultSetHandlerFactory.<Long>newObjectHandler(), groupName);
         return n == null ? 0 : n;
     }
 
@@ -190,7 +177,7 @@ public class DBHostDAOImpl implements HostDAO {
     public List<HostBean> getTerminatingHosts() throws Exception {
         ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
         return new QueryRunner(dataSource).query(GET_HOSTS_BY_STATES, h, HostState.PENDING_TERMINATE.toString(),
-            HostState.TERMINATING.toString());
+                HostState.TERMINATING.toString());
     }
 
     @Override
@@ -208,8 +195,20 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
+    public Collection<HostBean> getHostsByEnvId(String envId) throws Exception {
+        ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
+        return new QueryRunner(dataSource).query(GET_HOSTS_BY_ENVID, h, envId);
+    }
+
+    @Override
     public HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception {
         ResultSetHandler<HostBean> h = new BeanHandler<>(HostBean.class);
         return new QueryRunner(dataSource).query(GET_HOST_BY_ENVID_AND_HOSTID, h, envId, hostId);
+    }
+
+    @Override
+    public HostBean getByEnvIdAndHostName(String envId, String hostName) throws Exception {
+        ResultSetHandler<HostBean> h = new BeanHandler<>(HostBean.class);
+        return new QueryRunner(dataSource).query(GET_HOST_BY_ENVID_AND_HOSTNAME, h, envId, hostName);
     }
 }

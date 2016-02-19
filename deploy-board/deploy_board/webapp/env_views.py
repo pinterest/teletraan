@@ -27,12 +27,12 @@ import common
 import random
 import json
 from helpers import builds_helper, environs_helper, groups_helper, \
-    agents_helper, ratings_helper, deploys_helper, systems_helper
+    agents_helper, ratings_helper, deploys_helper, systems_helper, environ_hosts_helper
 import math
 from dateutil.parser import parse
 import calendar
 from deploy_board.webapp.agent_report import TOTAL_ALIVE_HOST_REPORT, TOTAL_HOST_REPORT, ALIVE_STAGE_HOST_REPORT, \
-    FAILED_HOST_REPORT, UNKNOWN_HOST_REPORT
+    FAILED_HOST_REPORT, UNKNOWN_HOST_REPORT, PROVISION_HOST_REPORT
 from diff_match_patch import diff_match_patch
 import traceback
 import logging
@@ -111,6 +111,7 @@ def update_deploy_progress(request, name, stage):
     report.sortByStatus = sortByStatus
     html = render_to_string('deploys/deploy_progress.tmpl', {
         "report": report,
+        "env": env,
     })
 
     response = HttpResponse(html)
@@ -183,6 +184,7 @@ class EnvLandingView(View):
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
+            provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
             response = render(request, 'environs/env_landing.html', {
                 "env": env,
                 "env_promote": env_promote,
@@ -192,6 +194,7 @@ class EnvLandingView(View):
                 "request_feedback": request_feedback,
                 "groups": groups,
                 "capacity_hosts": capacity_hosts,
+                "provisioning_hosts": provisioning_hosts,
                 "pinterest": IS_PINTEREST,
             })
             showMode = 'complete'
@@ -900,6 +903,23 @@ def get_unknown_hosts(request, name, stage):
     agents_wrapper = agent_report.gen_agent_by_deploy(progress, env['deployId'],
                                                       UNKNOWN_HOST_REPORT)
     title = "Unknow hosts"
+
+    return render(request, 'environs/env_hosts.html', {
+        "env": env,
+        "stages": stages,
+        "agents_wrapper": agents_wrapper,
+        "title": title,
+    })
+
+
+# get provisioning hosts
+def get_provisioning_hosts(request, name, stage):
+    envs = environs_helper.get_all_env_stages(request, name)
+    stages, env = common.get_all_stages(envs, stage)
+    progress = deploys_helper.update_progress(request, name, stage)
+    agents_wrapper = agent_report.gen_agent_by_deploy(progress, env['deployId'],
+                                                      PROVISION_HOST_REPORT)
+    title = "Provisioning hosts"
 
     return render(request, 'environs/env_hosts.html', {
         "env": env,

@@ -54,3 +54,8 @@ def update_advanced_cluster(request, env_name, stage_name, provider, cluster_inf
 def get_advanced_cluster(request, env_name, stage_name, provider):
     return deploy_client.get("/envs/%s/%s/clusters/provider/%s" % (env_name, stage_name, provider),
                              request.teletraan_user_id.token)
+
+
+def get_hosts(request, env_name, stage_name, host_ids):
+    return deploy_client.get("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
+                             data=host_ids)

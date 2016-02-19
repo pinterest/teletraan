@@ -129,6 +129,8 @@ urlpatterns = [
     # host related
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/unknowns/$',
         env_views.get_unknown_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/provision/$',
+        env_views.get_provisioning_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/all/$',
         env_views.get_all_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/failed/$',
@@ -138,7 +140,6 @@ urlpatterns = [
         env_views.get_hosts_by_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/reset_failed_hosts/'
         r'(?P<deploy_id>[a-zA-Z0-9\-_]+)/$', env_views.reset_failed_hosts),
-    url(r'^host/(?P<name>[a-zA-Z0-9\-_]+)/terminate/', host_views.terminate_instance),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/addinstance/$',
         env_views.add_instance),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/reset_deploy/'
@@ -147,7 +148,12 @@ urlpatterns = [
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.pause_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume_deploy/'
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.resume_deploy),
-    url(r'^host/(?P<name>[a-zA-Z0-9\-_]+)', host_views.HostDetailView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/host/(?P<hostname>[a-zA-Z0-9\-_]+)',
+        host_views.HostDetailView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/terminate_host/(?P<hostname>[a-zA-Z0-9\-_]+)',
+        host_views.terminate_host),
+    url(r'^host/(?P<name>[a-zA-Z0-9\-_]+)/terminate/', host_views.terminate_instance),
+    url(r'^host/(?P<name>[a-zA-Z0-9\-_]+)', host_views.get_host_details),
     url(r'^hosts/$', host_views.hosts_list),
 
     # builds related

@@ -28,8 +28,8 @@
 
             <td class="col-lg-10">
         {% for host in asg_hosts %}
-           <a href="/host/{{host}}"
-       type="button" class="deployToolTip btn btn-xs btn-default host-btn"><small>{{ host }}</small>
+           <a type="button" class="deployToolTip btn btn-xs btn-default host-btn">
+           <small>{{ host }}</small>
            <i class="fa fa-fw fa-check"></i></a>
         {% endfor %}
     <br><br>
@@ -52,11 +52,9 @@
             <td class="col-lg-10">
                 <small>
                     {% for other_host in other_hosts %}
-                        <a href="/host/{{ other_host }}"
-                           type="button" class="deployToolTip btn btn-xs btn-default host-btn"
+                        <a type="button" class="deployToolTip btn btn-xs btn-default host-btn"
                            title="">
                            <small>{{ other_host }}</small>
-
                            <i class="fa fa-fw fa-check"></i>
                         </a>
                     {% endfor %}

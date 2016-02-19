@@ -16,13 +16,14 @@
 """Helper functions to help generate agents views
 """
 from common import is_agent_failed
-from helpers import builds_helper, deploys_helper, environs_helper
+from helpers import builds_helper, deploys_helper, environs_helper, clusters_helper
 import time
 from collections import OrderedDict
 
 # Constants used to distinguish the action to generate the host report
 TOTAL_ALIVE_HOST_REPORT = "TOTAL_ALIVE_HOST_REPORT"
 UNKNOWN_HOST_REPORT = "UNKNOWN_HOST_REPORT"
+PROVISION_HOST_REPORT = "PROVISION_HOST_REPORT"
 TOTAL_HOST_REPORT = "TOTAL_HOST_REPORT"
 FAILED_HOST_REPORT = "FAILED_HOST_REPORT"
 ALIVE_STAGE_HOST_REPORT = "ALIVE_STAGE_HOST_REPORT"
@@ -31,6 +32,7 @@ DEFAULT_STALE_THRESHOLD = 300
 
 # Error Code
 UNKNOWN_HOSTS_CODE = -1000
+PROVISION_HOST_CODE = -1001
 
 
 class AgentStatistics(object):
@@ -52,12 +54,13 @@ class DeployStatistics(object):
 class AgentReport(object):
     def __init__(self, firstTimeAgentStats=None, agentStats=None, currentDeployStat=None,
                  deprecatedDeployStats=None,
-                 missingHosts=None, envName=None, stageName=None):
+                 missingHosts=None, provisioningHosts=None, envName=None, stageName=None):
         self.firstTimeAgentStats = firstTimeAgentStats
         self.agentStats = agentStats
         self.currentDeployStat = currentDeployStat
         self.deprecatedDeployStats = deprecatedDeployStats
         self.missingHosts = missingHosts
+        self.provisioningHosts = provisioningHosts
         self.envName = envName
         self.stageName = stageName
         self.showMode = 'complete'
@@ -155,10 +158,25 @@ def gen_report(request, env, progress, sortByStatus="false"):
         if key != env['deployId']:
             deprecatedDeployStats.append(value)
 
+    provisioning_hosts = progress["provisioningHosts"]
+    basic_cluster_info = clusters_helper.get_cluster(request, env['envName'], env['stageName'])
+    if basic_cluster_info and basic_cluster_info.get('capacity'):
+        hosts_in_cluster = clusters_helper.get_hosts(request, env['envName'], env['stageName'], [])
+        num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
+        for i in range(num_to_fake):
+            faked_host = {}
+            faked_host['hostName'] = 'UNKNOWN'
+            faked_host['hostId'] = 'UNKNOWN'
+            faked_host['state'] = 'PROVISIONED'
+            provisioning_hosts.append(faked_host)
+
+
     return AgentReport(firstTimeAgentStats=firstTimeAgentStats,
-                       agentStats=agentStats, currentDeployStat=currentDeployStat,
+                       agentStats=agentStats,
+                       currentDeployStat=currentDeployStat,
                        deprecatedDeployStats=deprecatedDeployStats,
                        missingHosts=progress["missingHosts"],
+                       provisioningHosts=provisioning_hosts,
                        envName=env['envName'], stageName=env['stageName'])
 
 
@@ -178,6 +196,13 @@ def gen_agent_by_deploy(progress, deployId, reportKind, deployStage=""):
             # create a fake agent to pass into the agent wrapper
             missingAgent = {'hostName': agent, 'lastErrorCode': UNKNOWN_HOSTS_CODE}
             agent_wrapper[deployId].append(missingAgent)
+
+    # get provisioning hosts
+    elif reportKind == PROVISION_HOST_REPORT:
+        for host in progress['provisioningHosts']:
+            # create a fake agent to pass into the agent wrapper
+            newHost = {'hostName': host.get('hostName'), 'hostId': host.get('hostId'), 'lastErrorCode': PROVISION_HOST_CODE}
+            agent_wrapper[deployId].append(newHost)
 
     # get all hosts (alive + unknown)
     elif reportKind == TOTAL_HOST_REPORT:

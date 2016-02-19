@@ -8,13 +8,13 @@
   <div class="panel-body">
 <div class="row">
     {% for agentStat in report.agentStats %}
-    <a href="/host/{{ agentStat.agent.hostName }}"
-       type="button" class="deployToolTip btn btn-xs {{ agentStat|hostButton }} host-btn"
-       title="{{ agentStat|hostTip }}">
+    <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+       type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+       title="{{ agentStat | agentTip }}">
        {% if report.showMode == "complete" %}
        <small>{{ agentStat.agent.hostName }}</small>
        {% endif %}
-       <i class="fa fa-fw {{ agentStat|hostIcon }}"></i>
+       <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
     </a>
     {% endfor %}
     <br><br>
@@ -46,13 +46,13 @@
             <td class="col-lg-10">
                 <small>
                     {% for agentStat in report.firstTimeAgentStats %}
-                        <a href="/host/{{ agentStat.agent.hostName }}"
-                           type="button" class="deployToolTip btn btn-xs {{ agentStat|hostButton }} host-btn"
-                           title="{{ agentStat|hostTip }}">
+                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+                           type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+                           title="{{ agentStat | agentTip }}">
                            {% if report.showMode == "complete" %}
                            <small>{{ agentStat.agent.hostName }}</small>
                            {% endif %}
-                           <i class="fa fa-fw {{ agentStat|hostIcon }}"></i>
+                           <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                         </a>
                     {% endfor %}
                 </small>
@@ -148,6 +148,41 @@
     </table>
 </div>
 
+{% if report.provisioningHosts %}
+<div class="panel panel-default table-responsive">
+    <table class="table table-condensed table-hover">
+        <tr>
+            <td class="col-lg-2">
+                <span class="deployToolTip" data-toggle="tooltip"
+                   title="Host is new to this env.">
+                <small>New Hosts</small>
+                </span>
+            </td>
+            <td class="col-lg-10">
+                <small>
+                    {% for host in report.provisioningHosts %}
+                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
+                       type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
+                       title="{{ host | hostTip }}">
+                        {{ host.hostName }}
+                        <i class="fa fa-fw {{ host | hostIcon }}"></i>
+                    </a>
+                    {% endfor %}
+                </small>
+            </td>
+            <td class="col-lg-1 text-right">
+                <small>
+                <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/provision/" class="deployToolTip" data-toggle="tooltip"
+                   title="Click to see more details">
+                    {{ report.provisioningHosts | length }}
+                </a>
+                </small>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endif %}
+
 {% if report.missingHosts %}
 <div class="panel panel-default table-responsive">
     <table class="table table-condensed table-hover">
@@ -162,7 +197,7 @@
             <td class="col-lg-10">
                 <small>
                     {% for host in report.missingHosts %}
-                    <a href="/host/{{ host }}"
+                    <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ host }}"
                        type="button" class="btn btn-xs btn-warning">
                         {{ host }}
                     </a>

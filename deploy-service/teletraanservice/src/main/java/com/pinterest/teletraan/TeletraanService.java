@@ -64,8 +64,8 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         EnvDeploys envDeploys = new EnvDeploys(context);
         environment.jersey().register(envDeploys);
 
-        EnvCapacitys envHosts = new EnvCapacitys(context);
-        environment.jersey().register(envHosts);
+        EnvCapacitys envCapacitys = new EnvCapacitys(context);
+        environment.jersey().register(envCapacitys);
 
         Environs envs = new Environs(context);
         environment.jersey().register(envs);
@@ -93,6 +93,9 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
 
         EnvWebHooks envWebHooks = new EnvWebHooks(context);
         environment.jersey().register(envWebHooks);
+
+        EnvHosts envHosts = new EnvHosts(context);
+        environment.jersey().register(envHosts);
 
         Hotfixs hotfixes = new Hotfixs(context);
         environment.jersey().register(hotfixes);

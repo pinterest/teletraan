@@ -146,6 +146,15 @@ public class Clusters {
     }
 
     @GET
+    @Path("/hosts")
+    public Collection<String> getHosts(@PathParam("envName") String envName,
+                                @PathParam("stageName") String stageName,
+                                @Valid Collection<String> hostIds) throws Exception {
+        String clusterName = String.format("%s-%s", envName, stageName);
+        return clusterHandler.getHosts(clusterName, hostIds);
+    }
+
+    @GET
     @Path("/provider")
     public String getClusterProvider(@PathParam("envName") String envName,
                                      @PathParam("stageName") String stageName) throws Exception {

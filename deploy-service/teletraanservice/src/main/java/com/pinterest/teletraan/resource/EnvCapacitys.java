@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,6 @@ import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
-import io.swagger.annotations.Api;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +35,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+
 import java.util.List;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/capacity")
@@ -43,7 +43,8 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvCapacitys {
     public enum CapacityType {
-        GROUP, HOST
+        GROUP,
+        HOST
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvCapacitys.class);

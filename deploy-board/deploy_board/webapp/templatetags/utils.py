@@ -22,7 +22,7 @@ import time
 from math import trunc
 import pytz
 import logging
-from deploy_board.webapp.agent_report import UNKNOWN_HOSTS_CODE
+from deploy_board.webapp.agent_report import UNKNOWN_HOSTS_CODE, PROVISION_HOST_CODE
 from deploy_board.webapp.common import is_agent_failed, BUILD_STAGE
 from deploy_board.webapp.helpers import environs_helper
 
@@ -191,6 +191,11 @@ def hotfixCanCancel(value):
 @register.filter("isUnknownHost")
 def isUnknownHost(value):
     return value == UNKNOWN_HOSTS_CODE
+
+
+@register.filter("isProvisioningHost")
+def isProvisioningHost(value):
+    return value == PROVISION_HOST_CODE
 
 
 @register.filter("agentRetryable")
@@ -476,8 +481,8 @@ def percentize(deploy):
     return "%d%%" % round(deploy.succeeded * 100 / deploy.reported)
 
 
-@register.filter("hostTip")
-def hostTip(agentStats):
+@register.filter("agentTip")
+def agentTip(agentStats):
     agent = agentStats.agent
     hostname = agent['hostName']
     if agentStats.isStale:
@@ -518,8 +523,8 @@ def hostTip(agentStats):
                 return '{}: Agent is on older build and waiting for deploy'.format(hostname)
 
 
-@register.filter("hostButton")
-def hostButton(agentStats):
+@register.filter("agentButton")
+def agentButton(agentStats):
     agent = agentStats.agent
 
     if agent['state'] == "PAUSED_BY_USER" or agent['state'] == "DELETE" \
@@ -542,8 +547,8 @@ def hostButton(agentStats):
     return 'btn-warning'
 
 
-@register.filter("hostIcon")
-def hostIcon(agentStats):
+@register.filter("agentIcon")
+def agentIcon(agentStats):
     agent = agentStats.agent
 
     if agent['state'] == "PAUSED_BY_USER":
@@ -572,6 +577,43 @@ def hostIcon(agentStats):
         return 'fa-spinner fa-spin'
 
     return 'fa-clock-o'
+
+
+@register.filter("hostButton")
+def hostButton(host):
+    if host['state'] == 'UNREACHABLE':
+        return 'btn-danger'
+
+    return 'btn-default'
+
+
+@register.filter("hostIcon")
+def hostIcon(host):
+    if host['state'] == 'PROVISIONED':
+        return 'fa-refresh fa-spin'
+
+    if host['state'] == 'ACTIVE':
+        return 'fa-check-square-o'
+
+    if host['state'] == 'UNREACHABLE':
+        return 'fa fa-exclamation'
+
+    return 'fa-recycle fa-spin'
+
+
+@register.filter("hostTip")
+def hostTip(host):
+    hostname = host['hostName']
+    if host['state'] == 'PROVISIONED':
+        return '{}: Host is provisioning, click for more information'.format(hostname)
+
+    if host['state'] == 'ACTIVE':
+        return '{}: Host is active and running, click for more information'.format(hostname)
+
+    if host['state'] == 'UNREACHABLE':
+        return '{}: Host is unreachable, please take action'.format(hostname)
+
+    return '{}: Host is marked for termination, click for more information'.format(hostname)
 
 
 @register.filter("jenkinsButton")
@@ -682,8 +724,8 @@ def lineNumber(value):
 @register.filter("reportTotal")
 def reportTotal(report):
     total = len(report.agentStats)
-    if report.missingHosts:
-        return total + len(report.missingHosts)
+    if report.missingHosts or report.provisioningHosts:
+        return total + len(report.missingHosts) + len(report.provisioningHosts)
     return total
 
 

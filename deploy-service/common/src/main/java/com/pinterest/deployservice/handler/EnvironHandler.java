@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,10 +21,13 @@ import com.pinterest.deployservice.common.*;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
+import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.*;
 
 public class EnvironHandler {
@@ -34,6 +37,7 @@ public class EnvironHandler {
     private PromoteDAO promoteDAO;
     private AgentDAO agentDAO;
     private GroupDAO groupDAO;
+    private HostDAO hostDAO;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
 
@@ -42,6 +46,7 @@ public class EnvironHandler {
         promoteDAO = serviceContext.getPromoteDAO();
         agentDAO = serviceContext.getAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
+        hostDAO = serviceContext.getHostDAO();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
     }
@@ -84,7 +89,7 @@ public class EnvironHandler {
 
         if (envBean.getDescription() == null) {
             envBean.setDescription(String.format("%s stage for env %s", envBean.getEnv_name(),
-                envBean.getStage_name()));
+                    envBean.getStage_name()));
         }
 
         if (envBean.getBuild_name() == null) {
@@ -372,8 +377,7 @@ public class EnvironHandler {
         }
     }
 
-    public void updateGroups(EnvironBean envBean, List<String> groups,
-        String operator) throws Exception {
+    public void updateGroups(EnvironBean envBean, List<String> groups, String operator) throws Exception {
         // TODO need to check group env conflicts and reject if so
         List<String> oldGroupList = groupDAO.getCapacityGroups(envBean.getEnv_id());
         Set<String> oldGroups = new HashSet<>();
@@ -399,13 +403,11 @@ public class EnvironHandler {
         commonHandler.transitionDeployState(envBean.getDeploy_id(), envBean);
         List<AgentBean> agentBeans = agentDAO.getAllByEnv(envBean.getEnv_id());
 
-        long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(),
-            envBean.getEnv_name(), envBean.getStage_name());
+        long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
         Set<String> capacityHosts = new HashSet<>();
         if (capacityTotal > agentBeans.size()) {
             // we only consider the missing hosts if there is a hint
-            List<String> capacityHostList =
-                environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getEnv_state().toString());
+            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getEnv_state().toString());
             capacityHosts.addAll(capacityHostList);
         }
 
@@ -419,8 +421,18 @@ public class EnvironHandler {
             }
         }
 
+        List<HostBean> newHosts = new ArrayList<>();
+        for (Iterator<String> iterator = capacityHosts.iterator(); iterator.hasNext(); ) {
+            HostBean hostBean = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), iterator.next());
+            if (hostBean != null) {
+                iterator.remove();
+                newHosts.add(hostBean);
+            }
+        }
+
         progress.setMissingHosts(new ArrayList<>(capacityHosts));
         progress.setAgents(agents);
+        progress.setProvisioningHosts(newHosts);
         return progress;
     }
 
@@ -437,10 +449,9 @@ public class EnvironHandler {
         long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(),
                 envBean.getStage_name());
         Set<String> capacityHosts = new HashSet<>();
-        if(capacityTotal > agentBeans.size()) {
+        if (capacityTotal > agentBeans.size()) {
             // we only consider the missing hosts if there is a hint
-            List<String> capacityHostList =
-                    environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getEnv_state().toString());
+            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getEnv_state().toString());
             capacityHosts.addAll(capacityHostList);
         }
 
@@ -451,6 +462,12 @@ public class EnvironHandler {
             }
         }
 
+        for (Iterator<String> iterator = capacityHosts.iterator(); iterator.hasNext(); ) {
+            HostBean hostBean = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), iterator.next());
+            if (hostBean != null) {
+                iterator.remove();
+            }
+        }
         return new ArrayList<>(capacityHosts);
     }
 }

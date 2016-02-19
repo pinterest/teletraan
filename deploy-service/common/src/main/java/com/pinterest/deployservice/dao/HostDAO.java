@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@ package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.HostBean;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -56,6 +57,9 @@ public interface HostDAO {
 
     List<HostBean> getStaleEnvHosts(long after) throws Exception;
 
+    Collection<HostBean> getHostsByEnvId(String envId) throws Exception;
+
     HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception;
 
+    HostBean getByEnvIdAndHostName(String envId, String hostName) throws Exception;
 }

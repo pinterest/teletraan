@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@ import java.util.List;
 public class DeployProgressBean {
     private List<AgentBean> agents;
     private List<String> missingHosts;
+    private List<HostBean> provisioningHosts;
 
     public List<AgentBean> getAgents() {
         return agents;
@@ -37,6 +38,14 @@ public class DeployProgressBean {
 
     public void setMissingHosts(List<String> missingHosts) {
         this.missingHosts = missingHosts;
+    }
+
+    public List<HostBean> getProvisioningHosts() {
+        return provisioningHosts;
+    }
+
+    public void setProvisioningHosts(List<HostBean> provisioningHosts) {
+        this.provisioningHosts = provisioningHosts;
     }
 
     @Override
