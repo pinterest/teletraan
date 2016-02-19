@@ -34,6 +34,7 @@ import org.hibernate.validator.constraints.NotEmpty;
  * commit_date      BIGINT              NOT NULL,
  * publish_info     VARCHAR(512)        NOT NULL,
  * publish_date     BIGINT              NOT NULL,
+ * publisher        VARCHAR(64),
  * scm_info         VARCHAR(512),
  * PRIMARY KEY    (build_id)
  * );

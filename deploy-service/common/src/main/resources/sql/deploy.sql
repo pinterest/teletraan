@@ -183,6 +183,7 @@ CREATE TABLE IF NOT EXISTS builds (
     commit_date      BIGINT              NOT NULL,
     publish_info     VARCHAR(512),
     publish_date     BIGINT              NOT NULL,
+    publisher        VARCHAR(64),
     scm_info         VARCHAR(512),
     PRIMARY KEY    (build_id)
 );
