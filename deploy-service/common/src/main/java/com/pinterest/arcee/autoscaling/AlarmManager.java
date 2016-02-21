@@ -24,7 +24,7 @@ import java.util.List;
 
 public interface AlarmManager {
 
-    void putAlarmToPolicy(String actionId, AsgAlarmBean asgAlarmBean) throws Exception;
+    void putAlarmToPolicy(String actionId, String clusterName, AsgAlarmBean asgAlarmBean) throws Exception;
 
     void deleteAlarmFromPolicy(AsgAlarmBean asgAlarmBean) throws Exception;
 

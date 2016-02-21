@@ -134,7 +134,7 @@ public class DBGroupInfoDAOImpl implements GroupInfoDAO {
 
     @Override
     public List<GroupBean> getGroupsByEnvNameAndASGStauts(String envName, String asgStatus) throws Exception {
-        ResultSetHandler<List<GroupBean>> h = new BeanListHandler<GroupBean>(GroupBean.class);
+        ResultSetHandler<List<GroupBean>> h = new BeanListHandler<>(GroupBean.class);
         return new QueryRunner(dataSource).query(GET_GROUPS_BY_ENVNAME_AND_ASGSTATUS, h, envName, asgStatus);
     }
 

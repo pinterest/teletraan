@@ -27,7 +27,7 @@ public interface AutoScaleGroupManager {
     //------ Launch Config
     String createLaunchConfig(GroupBean request) throws Exception;
 
-    String createLaunchConfig(String groupName, String instanceId, String imageId) throws Exception;
+    String createSpotLaunchConfig(GroupBean request, String bidPrice) throws Exception;
 
     void deleteLaunchConfig(String configId) throws Exception;
 
@@ -35,7 +35,7 @@ public interface AutoScaleGroupManager {
 
     void createAutoScalingGroup(String configId, AutoScalingRequestBean request, String subnets) throws Exception;
 
-    void updateAutoScalingGroup(AutoScalingRequestBean request, String subnets) throws Exception;
+    void  updateAutoScalingGroup(AutoScalingRequestBean request, String subnets) throws Exception;
 
     void changeAutoScalingGroupLaunchConfig(String groupName, String configId) throws Exception;
 
@@ -47,9 +47,6 @@ public interface AutoScaleGroupManager {
     void increaseASGDesiredCapacityBySize(String groupName, int instanceCnt) throws Exception;
 
     void terminateInstanceInAutoScalingGroup(String instanceId, boolean decreaseSize) throws Exception;
-
-    //------ Scaling policy
-    GroupBean getLaunchConfigByName(String configId) throws Exception;
 
     AutoScalingGroupBean getAutoScalingGroupInfoByName(String asgName) throws Exception;
 

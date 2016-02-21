@@ -41,6 +41,15 @@ public class AutoScalingRequestBean {
     @JsonProperty("attachExistingInstances")
     private Boolean attachInstances;
 
+    @JsonProperty("enableSpot")
+    private Boolean enableSpot;
+
+    @JsonProperty("spotPrice")
+    private String spotPrice;
+
+    @JsonProperty("spotRatio")
+    private Double spotRatio;
+
     public String getGroupName() {
         return groupName;
     }
@@ -80,4 +89,16 @@ public class AutoScalingRequestBean {
     public void setAttachInstances(boolean attachInstances) {
         this.attachInstances = attachInstances;
     }
+
+    public Boolean getEnableSpot() { return enableSpot; }
+
+    public void setEnableSpot(Boolean enableSpot) { this.enableSpot =enableSpot; }
+
+    public String getSpotPrice() { return spotPrice; }
+
+    public void setSpotPrice(String spotPrice) { this.spotPrice = spotPrice; }
+
+    public Double getSpotRatio() { return spotRatio; }
+
+    public void setSpotRatio(Double spotRatio) { this.spotRatio = spotRatio; }
 }

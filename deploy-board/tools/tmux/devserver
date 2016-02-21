@@ -98,7 +98,7 @@ function tmux_windows() {
 	# ----------------------
 	tmux new-window -t teletraan -n TeleLocalServer
 	tmux send-keys -t teletraan:TeleLocalServer "cd $GIT_DIR/teletraan" C-m
-	tmux send-keys -t teletraan:TeleLocalServer " ./deploy-service/teletraanservice/bin/run.sh start" C-m
+	tmux send-keys -t teletraan:TeleLocalServer " ./deploy-service/teletraanservice/bin/run.sh run" C-m
 
 	# ----------------------
 	# Start Deploy-board
@@ -106,7 +106,7 @@ function tmux_windows() {
 	tmux new-window -t teletraan -n DeployBoard
 	tmux send-keys -t teletraan:DeployBoard "source $TEL_VENV/bin/activate" C-m
 	tmux send-keys -t teletraan:DeployBoard "cd $GIT_DIR/teletraan/deploy-board" C-m
-	tmux send-keys -t teletraan:DeployBoard "./run.sh start" C-m
+	tmux send-keys -t teletraan:DeployBoard "./run.sh run" C-m
 }
 
 function load_chrome() {

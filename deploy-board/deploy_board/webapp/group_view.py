@@ -179,15 +179,32 @@ def create_asg(request, group_name):
 
 
 def get_asg_config(request, group_name):
-    asg = groups_helper.get_autoscaling(request, group_name)
+    asgs = groups_helper.get_autoscaling(request, group_name)
     instances = groups_helper.get_group_instances(request, group_name)
+    group_info = groups_helper.get_group_info(request, group_name)
+    result_asg = {}
+    if len(asgs) > 1:
+        result_asg["enableSpot"] = True
+        for asg in asgs:
+            if asg.get("spotGroup"):
+                result_asg["ratio"] = asg["spotRatio"] * 100
+                result_asg["bidPrice"] = asg["bidPrice"]
+            else:
+                result_asg["minSize"] = asg["minSize"]
+                result_asg["maxSize"] = asg["maxSize"]
+                result_asg["terminationPolicy"] = asg["terminationPolicy"]
+    else:
+        result_asg = asgs[0]
+        result_asg["enableSpot"] = False
+
     group_size = len(instances)
     policies = groups_helper.TerminationPolicy
     content = render_to_string("groups/asg_config.tmpl", {
         "group_name": group_name,
-        "asg": asg,
+        "asg": result_asg,
         "group_size": group_size,
         "terminationPolicies": policies,
+        "instanceType": group_info.get("instanceType"),
         "csrf_token": get_token(request),
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -232,6 +249,12 @@ def update_asg_config(request, group_name):
         asg_request["minSize"] = int(params["minSize"])
         asg_request["maxSize"] = int(params["maxSize"])
         asg_request["terminationPolicy"] = params["terminationPolicy"]
+        if "enableSpot" in params:
+            asg_request["enableSpot"] = True
+            asg_request["spotRatio"] = float(params["spotRatio"]) / 100
+            asg_request["spotPrice"] = params["bidPrice"]
+        else:
+            asg_request["enableSpot"] = False
         groups_helper.update_autoscaling(request, group_name, asg_request)
     except:
         log.error(traceback.format_exc())
@@ -366,7 +389,6 @@ def add_alarms(request, group_name):
             if "awsMetrics" in params:
                 alarm_info["metricSource"] = params["awsMetrics"]
         alarm_info["groupName"] = group_name
-        print alarm_info
         groups_helper.add_alarm(request, group_name, [alarm_info])
     except:
         log.error(traceback.format_exc())

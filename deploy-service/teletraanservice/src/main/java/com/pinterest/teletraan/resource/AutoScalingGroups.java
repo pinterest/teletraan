@@ -35,6 +35,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -91,7 +92,7 @@ public class AutoScalingGroups {
     }
 
     @GET
-    public AutoScalingGroupBean getAutoScalingGroupInfoByName(
+    public List<AutoScalingGroupBean> getAutoScalingGroupInfoByName(
         @PathParam("groupName") String groupName) throws Exception {
         return groupHandler.getAutoScalingGroupInfoByName(groupName);
     }
@@ -238,14 +239,18 @@ public class AutoScalingGroups {
             return;
         }
 
-        throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Unkonw action type: %s", type));
+        throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Unknown action type: %s", type));
     }
 
     @GET
     @Path("/instances")
     public List<String> getAutoScalingGroupHosts(@PathParam("groupName") String groupName) throws Exception {
-        AutoScalingGroupBean autoScalingGroupBean = groupHandler.getAutoScalingGroupInfoByName(groupName);
-        return autoScalingGroupBean.getInstances();
+        List<AutoScalingGroupBean> autoScalingGroupBeans = groupHandler.getAutoScalingGroupInfoByName(groupName);
+        List<String> instances = new ArrayList<>();
+        for (AutoScalingGroupBean autoScalingGroupBean : autoScalingGroupBeans) {
+            instances.addAll(autoScalingGroupBean.getInstances());
+        }
+        return instances;
     }
 
     @GET
