@@ -46,7 +46,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
     private static final String AWS_VM_KEYNAME = "ops";
     private static final String AWS_DEFAULT_ROLE = "base";
     private static final String AWS_ROLE_TEMPLATE = "arn:aws:iam::%s:instance-profile/%s";
-    private static final String AWS_USERDATA_TEMPLATE = "#cloud-config\nCMP: \n  -group: %s\n   hostname_prefix:%s";
+    private static final String AWS_USERDATA_TEMPLATE = "#cloud-config\nrole: %s\nCMP: \n  -group: %s";
     private static final String[] NOTIFICATION_TYPE = {
             "autoscaling:EC2_INSTANCE_LAUNCH",
             "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
