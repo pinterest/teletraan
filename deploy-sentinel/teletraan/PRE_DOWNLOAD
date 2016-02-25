@@ -4,7 +4,12 @@ set +e
 
 echo Running PRE_DOWNLOAD script.
 # Remove old tmp files
-rm -r /tmp/deploy-sentinel
+FILE=/tmp/deploy-sentinel
+if [ ! -d $FILE ]; then
+  echo 'file not found'
+else
+  rm -r $FILE
+fi
 
 # Delete running processes on port 8000
 PORT_NUMBER=8000
