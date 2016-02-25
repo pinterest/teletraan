@@ -168,7 +168,7 @@ public class ClusterMappingHandler {
 
         if (clusterBean.getCapacity() != null) {
             awsVmBean.setMinSize(clusterBean.getCapacity());
-            awsVmBean.setMinSize(patchBean.getMaxSize());
+            awsVmBean.setMaxSize(clusterBean.getCapacity());
         }
         return awsVmBean;
     }
