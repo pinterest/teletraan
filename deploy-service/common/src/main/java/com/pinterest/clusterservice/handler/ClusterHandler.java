@@ -25,6 +25,7 @@ import com.pinterest.clusterservice.cm.ClusterManager;
 import com.pinterest.clusterservice.cm.DefaultClusterManager;
 import com.pinterest.clusterservice.dao.ClusterDAO;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.dao.HostDAO;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -36,11 +37,13 @@ import java.util.Collections;
 public class ClusterHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ClusterHandler.class);
     private final ClusterDAO clusterDAO;
+    private final HostDAO hostDAO;
     private final AwsConfigManager awsConfigManager;
     private final ClusterMappingHandler clusterMappingHandler;
 
     public ClusterHandler(ServiceContext serviceContext) {
         this.clusterDAO = serviceContext.getClusterDAO();
+        this.hostDAO = serviceContext.getHostDAO();
         this.awsConfigManager = serviceContext.getAwsConfigManager();
         this.clusterMappingHandler = new ClusterMappingHandler(serviceContext);
     }
@@ -129,6 +132,10 @@ public class ClusterHandler {
     }
 
     public Collection<String> getHosts(String clusterName, Collection<String> hostIds) throws Exception {
+        if (hostIds.isEmpty()) {
+            return hostDAO.getHostNamesByGroup(clusterName);
+        }
+
         ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
         if (clusterBean.getProvider() == CloudProvider.AWS) {
             ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
