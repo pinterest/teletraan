@@ -132,9 +132,9 @@ public class ClusterHandler {
             } else {
                 // 1. Hosts in asg
                 Collection<String> hostIdsInCluster = clusterManager.getHosts(clusterName, hostIdsToTerminate);
-                int capacity = Math.min(clusterBean.getCapacity() - hostIdsInCluster.size(), 0);
                 clusterManager.terminateHosts(clusterName, hostIdsInCluster, false);
 
+                int capacity = Math.max(clusterBean.getCapacity() - hostIdsInCluster.size(), 0);
                 ClusterBean newBean = new ClusterBean();
                 newBean.setCapacity(capacity);
                 newBean.setLast_update(System.currentTimeMillis());
