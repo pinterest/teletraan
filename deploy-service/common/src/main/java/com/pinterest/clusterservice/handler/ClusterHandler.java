@@ -25,12 +25,16 @@ import com.pinterest.clusterservice.cm.ClusterManager;
 import com.pinterest.clusterservice.cm.DefaultClusterManager;
 import com.pinterest.clusterservice.dao.ClusterDAO;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.HostDAO;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -98,6 +102,11 @@ public class ClusterHandler {
     }
 
     public void launchHosts(String clusterName, int num) throws Exception {
+        if (num <= 0) {
+            LOG.error(String.format("Failed to launch %d hosts to auto scaling group %s: number cannot be negative", num, clusterName));
+            throw new Exception(String.format("Failed to launch %d hosts to auto scaling group %s: number cannot be negative", num, clusterName));
+        }
+
         ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
         if (clusterBean.getProvider() == CloudProvider.AWS) {
             LOG.info(String.format("Start to launch %d AWS VM hosts to cluster %s", num, clusterName));
@@ -111,15 +120,18 @@ public class ClusterHandler {
         clusterDAO.update(clusterName, newBean);
     }
 
-    public void termianteHosts(String clusterName, Collection<String> hostIds, boolean replaceHost) throws Exception {
+    public void terminateHosts(String clusterName, Collection<String> hostIds, boolean replaceHost) throws Exception {
         ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
+        Collection<String> hostIdsToTerminate = new ArrayList<>(hostIds);
+
         if (clusterBean.getProvider() == CloudProvider.AWS) {
-            LOG.info(String.format("Start to termiante AWS VM hosts %s from cluster %s", hostIds.toString(), clusterName));
+            LOG.info(String.format("Start to terminate AWS VM hosts %s from cluster %s", hostIdsToTerminate.toString(), clusterName));
             ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
             if (replaceHost) {
-                clusterManager.terminateHosts(clusterName, hostIds, true);
+                clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
             } else {
-                Collection<String> hostIdsInCluster = clusterManager.getHosts(clusterName, hostIds);
+                // 1. Hosts in asg
+                Collection<String> hostIdsInCluster = clusterManager.getHosts(clusterName, hostIdsToTerminate);
                 int capacity = Math.min(clusterBean.getCapacity() - hostIdsInCluster.size(), 0);
                 clusterManager.terminateHosts(clusterName, hostIdsInCluster, false);
 
@@ -127,6 +139,19 @@ public class ClusterHandler {
                 newBean.setCapacity(capacity);
                 newBean.setLast_update(System.currentTimeMillis());
                 clusterDAO.update(clusterName, newBean);
+
+                // 2. Hosts not in asg, it means these hosts are detached from asg
+                hostIdsToTerminate.removeAll(hostIdsInCluster);
+                if (!hostIdsToTerminate.isEmpty()) {
+                    clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
+                }
+            }
+
+            for (String hostId : hostIds) {
+                HostBean hostBean = new HostBean();
+                hostBean.setState(HostState.TERMINATING);
+                hostBean.setLast_update(System.currentTimeMillis());
+                hostDAO.updateHostById(hostId, hostBean);
             }
         }
     }
@@ -148,7 +173,7 @@ public class ClusterHandler {
         return clusterDAO.getProviderByClusterName(clusterName);
     }
 
-    public void createAwsVmCluster(AwsVmBean advancedBean) throws Exception {
+    public ClusterBean createAwsVmCluster(AwsVmBean advancedBean) throws Exception {
         String clusterName = advancedBean.getClusterName();
         ClusterBean clusterBean = new ClusterBean();
         clusterBean.setCluster_name(clusterName);
@@ -177,9 +202,10 @@ public class ClusterHandler {
         ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
         clusterManager.createCluster(clusterName, awsVmBean);
         clusterDAO.insert(clusterBean);
+        return clusterBean;
     }
 
-    public void updateAwsVmCluster(String clusterName, AwsVmBean advancedBean) throws Exception {
+    public ClusterBean updateAwsVmCluster(String clusterName, AwsVmBean advancedBean) throws Exception {
         ClusterBean clusterBean = new ClusterBean();
         clusterBean.setCluster_name(clusterName);
         clusterBean.setCapacity(advancedBean.getMaxSize());
@@ -209,6 +235,7 @@ public class ClusterHandler {
         clusterManager.updateCluster(clusterName, awsVmBean);
         clusterBean.setLast_update(System.currentTimeMillis());
         clusterDAO.update(clusterName, clusterBean);
+        return clusterBean;
     }
 
     public AwsVmBean getAwsVmCluster(String clusterName) throws Exception {

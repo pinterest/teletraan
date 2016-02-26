@@ -27,7 +27,7 @@ import common
 import random
 import json
 from helpers import builds_helper, environs_helper, groups_helper, \
-    agents_helper, ratings_helper, deploys_helper, systems_helper, environ_hosts_helper
+    agents_helper, ratings_helper, deploys_helper, systems_helper, environ_hosts_helper, clusters_helper
 import math
 from dateutil.parser import parse
 import calendar
@@ -181,6 +181,9 @@ class EnvLandingView(View):
         groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
         metrics = environs_helper.get_env_metrics_config(request, name, stage)
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
+        cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
+        if cluster_provider == 'null':
+            cluster_provider = None
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -195,6 +198,7 @@ class EnvLandingView(View):
                 "groups": groups,
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
+                "cluster_provider": cluster_provider,
                 "pinterest": IS_PINTEREST,
             })
             showMode = 'complete'
@@ -219,6 +223,7 @@ class EnvLandingView(View):
                 "alarms": alarms,
                 "request_feedback": request_feedback,
                 "groups": groups,
+                "cluster_provider": cluster_provider,
                 "pinterest": IS_PINTEREST,
             })
 

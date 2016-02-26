@@ -139,7 +139,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
 
     @Override
     public void deleteCluster(String clusterName) throws Exception {
-        AwsVmBean awsVmBean = (AwsVmBean) getCluster(clusterName);
+        AwsVmBean awsVmBean = getCluster(clusterName);
         deleteAutoScalingGroup(clusterName);
         deleteLaunchConfig(awsVmBean.getLaunchConfigId());
     }
@@ -152,29 +152,25 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
             throw new Exception(String.format("Failed to launch hosts: auto scaling group %s does not exist", clusterName));
         }
 
-        try {
-            UpdateAutoScalingGroupRequest updateRequest = new UpdateAutoScalingGroupRequest();
-            updateRequest.setAutoScalingGroupName(clusterName);
+        int currMinSize = group.getMinSize();
+        int currMaxSize = group.getMaxSize();
+        UpdateAutoScalingGroupRequest updateRequest = new UpdateAutoScalingGroupRequest();
+        updateRequest.setAutoScalingGroupName(clusterName);
+        updateRequest.setMaxSize(currMaxSize + num);
+        if (currMaxSize == currMinSize) {
+            updateRequest.setMinSize(currMinSize + num);
+        } else {
             updateRequest.setDesiredCapacity(group.getDesiredCapacity() + num);
-            updateRequest.setMaxSize(Math.max(group.getDesiredCapacity(), group.getDesiredCapacity() + num));
-            aasClient.updateAutoScalingGroup(updateRequest);
-        } catch (AmazonClientException e) {
-            LOG.error(String.format("Failed to launch %d hosts to auto scaling group %s: %s", num, clusterName, e.getMessage()));
-            throw new Exception(String.format("Failed to launch %d hosts to auto scaling group %s: %s", num, clusterName, e.getMessage()));
         }
+        aasClient.updateAutoScalingGroup(updateRequest);
     }
 
     @Override
     public void terminateHosts(String clusterName, Collection<String> hostIds, boolean replaceHost) throws Exception {
         if (replaceHost) {
-            TerminateInstancesRequest termianteRequest = new TerminateInstancesRequest();
-            termianteRequest.setInstanceIds(hostIds);
-            try {
-                ec2Client.terminateInstances(termianteRequest);
-            } catch (AmazonClientException e) {
-                LOG.error(String.format("Failed to termiante hosts %s: %s", hostIds.toString(), e.getMessage()));
-                throw new Exception(String.format("Failed to termiante hosts %s: %s", hostIds.toString(), e.getMessage()));
-            }
+            TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest();
+            terminateRequest.setInstanceIds(hostIds);
+            ec2Client.terminateInstances(terminateRequest);
         } else {
             // Do not replace host and decrease the cluster capacity
             AutoScalingGroup group = getAutoScalingGroup(clusterName);
@@ -183,15 +179,25 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
                 throw new Exception(String.format("Failed to terminate hosts: auto scaling group %s does not exist", clusterName));
             }
 
+            int currMinSize = group.getMinSize();
+            int currMaxSize = group.getMaxSize();
             UpdateAutoScalingGroupRequest updateRequest = new UpdateAutoScalingGroupRequest();
             updateRequest.setAutoScalingGroupName(clusterName);
-            updateRequest.setMinSize(Math.max(group.getMinSize() - hostIds.size(), 0));
+            updateRequest.setMinSize(Math.max(currMinSize - hostIds.size(), 0));
+            aasClient.updateAutoScalingGroup(updateRequest);
 
             for (String hostId : hostIds) {
                 TerminateInstanceInAutoScalingGroupRequest terminateRequest = new TerminateInstanceInAutoScalingGroupRequest();
                 terminateRequest.setShouldDecrementDesiredCapacity(true);
                 terminateRequest.setInstanceId(hostId);
                 aasClient.terminateInstanceInAutoScalingGroup(terminateRequest);
+            }
+
+            if (currMaxSize == currMinSize) {
+                UpdateAutoScalingGroupRequest updateMaxSizeRequest = new UpdateAutoScalingGroupRequest();
+                updateMaxSizeRequest.setAutoScalingGroupName(clusterName);
+                updateMaxSizeRequest.setMaxSize(Math.max(currMaxSize - hostIds.size(), 0));
+                aasClient.updateAutoScalingGroup(updateMaxSizeRequest);
             }
         }
     }
@@ -201,6 +207,11 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
         Collection<String> asgHostIds = new ArrayList<>();
         if (hostIds == null || hostIds.isEmpty()) {
             AutoScalingGroup group = getAutoScalingGroup(clusterName);
+            if (group == null) {
+                LOG.error(String.format("Failed to get hosts: auto scaling group %s does not exist", clusterName));
+                throw new Exception(String.format("Failed to get hosts: auto scaling group %s does not exist", clusterName));
+            }
+
             List<Instance> asgInstances = group.getInstances();
             for (Instance asgInstance : asgInstances) {
                 asgHostIds.add(asgInstance.getInstanceId());
@@ -260,10 +271,8 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
             configRequest.setKeyName(AWS_VM_KEYNAME);
             configRequest.setImageId(newBean.getImage() != null ? newBean.getImage() : oldBean.getImage());
             configRequest.setInstanceType(newBean.getHostType() != null ? newBean.getHostType() : oldBean.getHostType());
-            configRequest.setSecurityGroups(
-                    Arrays.asList(newBean.getSecurityZone() != null ? newBean.getSecurityZone() : oldBean.getSecurityZone()));
-            configRequest.setAssociatePublicIpAddress(
-                    newBean.getAssignPublicIp() != null ? newBean.getAssignPublicIp() : oldBean.getAssignPublicIp());
+            configRequest.setSecurityGroups(Arrays.asList(newBean.getSecurityZone() != null ? newBean.getSecurityZone() : oldBean.getSecurityZone()));
+            configRequest.setAssociatePublicIpAddress(newBean.getAssignPublicIp() != null ? newBean.getAssignPublicIp() : oldBean.getAssignPublicIp());
             String userData;
             if (newBean.getUserDataConfigs() != null) {
                 userData = transformUserDataConfigToString(clusterName, newBean.getUserDataConfigs());

@@ -18,7 +18,7 @@ from django.views.generic import View
 import traceback
 import logging
 from helpers import environs_helper, agents_helper, environ_hosts_helper
-from helpers import groups_helper, hosts_helper
+from helpers import groups_helper, hosts_helper, clusters_helper
 from deploy_board.settings import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -35,6 +35,11 @@ class HostDetailView(View):
             if host.get('state') != 'PENDING_TERMINATE' and host.get('state') != 'TERMINATING' and host.get('state') != 'TERMINATED':
                 show_terminate = True
 
+        cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
+        if cluster_provider == 'null':
+            cluster_provider = None
+
+        # TODO deprecated it
         if host and host.get('groupName'):
             group_info = groups_helper.get_group_info(request, host.get('groupName'))
             if group_info and group_info["asgStatus"] == "ENABLED":
@@ -61,6 +66,7 @@ class HostDetailView(View):
             'host': host,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
+            'cluster_provider': cluster_provider,
             'asg_group': asg,
             'pinterest': IS_PINTEREST,
         })
@@ -108,6 +114,7 @@ def get_host_details(request, name):
     })
 
 
+# TODO deprecated it
 def terminate_host(request, name, stage, hostname):
     hostId = request.GET.get('hostId')
     params = request.POST

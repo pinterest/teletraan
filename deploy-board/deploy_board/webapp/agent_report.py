@@ -170,7 +170,6 @@ def gen_report(request, env, progress, sortByStatus="false"):
             faked_host['state'] = 'PROVISIONED'
             provisioning_hosts.append(faked_host)
 
-
     return AgentReport(firstTimeAgentStats=firstTimeAgentStats,
                        agentStats=agentStats,
                        currentDeployStat=currentDeployStat,

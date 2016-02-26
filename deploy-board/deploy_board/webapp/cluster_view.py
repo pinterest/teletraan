@@ -329,7 +329,7 @@ def update_cluster(request, name, stage):
         cluster_info['host_type_id'] = params['hostTypeId']
         cluster_info['security_zone_id'] = params['securityZoneId']
         cluster_info['placement_id'] = ",".join(params.getlist('placementId'))
-        clusters_helper.udpate_cluster(request, name, stage, cluster_info)
+        clusters_helper.update_cluster(request, name, stage, cluster_info)
     return get_basic_cluster(request, name, stage)
 
 
@@ -399,3 +399,22 @@ def get_advanced_cluster(request):
         'advanced_cluster_info': advanced_cluster_info,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
+
+
+def launch_hosts(request, name, stage):
+    params = request.POST
+    num = int(params['num'])
+    clusters_helper.launch_hosts(request, name, stage, num)
+    return redirect('/env/{}/{}/'.format(name, stage))
+
+
+def terminate_hosts(request, name, stage):
+    host_name = request.GET.get('host_name')
+    host_id = [request.GET.get('host_id')]
+    params = request.POST
+    replaceHost = False
+    if "checkToReplace" in params:
+        replaceHost = True
+
+    clusters_helper.terminate_hosts(request, name, stage, host_id, replaceHost)
+    return redirect('/env/{}/{}/host/{}'.format(name, stage, host_name))

@@ -21,8 +21,10 @@ import com.pinterest.clusterservice.handler.ClusterHandler;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
 
@@ -59,12 +61,14 @@ public class Clusters {
     private final EnvironDAO environDAO;
     private final GroupDAO groupDAO;
     private final ClusterHandler clusterHandler;
+    private final ConfigHistoryHandler configHistoryHandler;
 
     public Clusters(TeletraanServiceContext context) {
         authorizer = context.getAuthorizer();
         environDAO = context.getEnvironDAO();
         groupDAO = context.getGroupDAO();
         clusterHandler = new ClusterHandler(context);
+        configHistoryHandler = new ConfigHistoryHandler(context);
     }
 
     @POST
@@ -79,6 +83,9 @@ public class Clusters {
         clusterBean.setCluster_name(clusterName);
         clusterHandler.createCluster(clusterBean);
         groupDAO.addGroupCapacity(envBean.getEnv_id(), clusterName);
+
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
         LOG.info(String.format("Successfully create cluster for %s/%s by %s", envName, stageName, operator));
     }
 
@@ -93,6 +100,9 @@ public class Clusters {
         String clusterName = String.format("%s-%s", envName, stageName);
         clusterBean.setCluster_name(clusterName);
         clusterHandler.updateCluster(clusterName, clusterBean);
+
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
         LOG.info(String.format("Successfully update cluster for %s/%s by %s", envName, stageName, operator));
     }
 
@@ -113,6 +123,9 @@ public class Clusters {
         String clusterName = String.format("%s-%s", envName, stageName);
         clusterHandler.deleteCluster(clusterName);
         groupDAO.removeGroupCapacity(envBean.getEnv_id(), clusterName);
+
+        String configChange = String.format("delete cluster for %s/%s", envName, stageName);
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, configChange, operator);
         LOG.info(String.format("Successfully delete cluster for %s/%s by %s", envName, stageName, operator));
     }
 
@@ -127,12 +140,15 @@ public class Clusters {
         String operator = sc.getUserPrincipal().getName();
         String clusterName = String.format("%s-%s", envName, stageName);
         clusterHandler.launchHosts(clusterName, num.or(1));
-        LOG.info(String.format("Successfully launch hosts for %s/%s by %s", envName, stageName, operator));
+
+        String configChange = String.format("launch %d hosts", num.or(1));
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_HOST_LAUNCH, configChange, operator);
+        LOG.info(String.format("Successfully launch %d hosts for %s/%s by %s", num.or(1), envName, stageName, operator));
     }
 
     @DELETE
     @Path("/hosts")
-    public void termianteHosts(@Context SecurityContext sc,
+    public void terminateHosts(@Context SecurityContext sc,
                                @PathParam("envName") String envName,
                                @PathParam("stageName") String stageName,
                                @Valid Collection<String> hostIds,
@@ -141,8 +157,11 @@ public class Clusters {
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         String clusterName = String.format("%s-%s", envName, stageName);
-        clusterHandler.termianteHosts(clusterName, hostIds, replaceHost.or(true));
-        LOG.info(String.format("Successfully terminate hosts for %s/%s by %s", envName, stageName, operator));
+        clusterHandler.terminateHosts(clusterName, hostIds, replaceHost.or(true));
+
+        String configChange = String.format("hostIds: %s", hostIds.toString());
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_HOST_TERMINATE, configChange, operator);
+        LOG.info(String.format("Successfully terminate hosts for %s/%s by %s\nhostIds: %s", envName, stageName, operator, hostIds.toString()));
     }
 
     @GET
@@ -173,8 +192,11 @@ public class Clusters {
         String operator = sc.getUserPrincipal().getName();
         String clusterName = String.format("%s-%s", envName, stageName);
         awsVmBean.setClusterName(clusterName);
-        clusterHandler.createAwsVmCluster(awsVmBean);
+        ClusterBean clusterBean = clusterHandler.createAwsVmCluster(awsVmBean);
         groupDAO.addGroupCapacity(envBean.getEnv_id(), clusterName);
+
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
         LOG.info(String.format("Successfully create advanced cluster for %s/%s by %s", envName, stageName, operator));
     }
 
@@ -189,7 +211,10 @@ public class Clusters {
         String operator = sc.getUserPrincipal().getName();
         String clusterName = String.format("%s-%s", envName, stageName);
         awsVmBean.setClusterName(clusterName);
-        clusterHandler.updateAwsVmCluster(clusterName, awsVmBean);
+        ClusterBean clusterBean = clusterHandler.updateAwsVmCluster(clusterName, awsVmBean);
+
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
         LOG.info(String.format("Successfully update advanced cluster for %s/%s by %s", envName, stageName, operator));
     }
 

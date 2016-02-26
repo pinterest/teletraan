@@ -61,13 +61,11 @@ public class Constants {
     public static final String TYPE_ENV_METRIC = "Env Metrics Config";
     public static final String TYPE_ENV_ALARM = "Env Alarm Config";
     public static final String TYPE_ENV_WEBHOOK = "Env Webhook Config";
+    public static final String TYPE_ENV_CLUSTER = "Env Cluster Config";
 
     public static final String TYPE_HOST_LAUNCH = "Host Launch";
     public static final String TYPE_HOST_TERMINATE = "Host Terminate";
     public static final String TYPE_HOST_ATTACH = "Host Attach";
     public static final String TYPE_HOST_DETACH = "Host Detach";
     public static final String TYPE_HELATHCHECK_MANAUALLY = "MANUALLY_TRIGGERED Health Check";
-
-    public static final String CHANGEFEED_TEMPLATE = "{\"type\":\"%s\",\"environment\":\"%s\",\"description\":\"%s\",\"author\":\"%s\","
-        + "\"automation\":\"%s\",\"source\":\"Teletraan\",\"optional-1\":\"%s\",\"optional-2\":\"\"}";
 }

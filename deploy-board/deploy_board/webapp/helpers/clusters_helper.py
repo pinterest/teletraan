@@ -24,7 +24,7 @@ def create_cluster(request, env_name, stage_name, cluster_info):
                               data=cluster_info)
 
 
-def udpate_cluster(request, env_name, stage_name, cluster_info):
+def update_cluster(request, env_name, stage_name, cluster_info):
     return deploy_client.put("/envs/%s/%s/clusters" % (env_name, stage_name), request.teletraan_user_id.token,
                              data=cluster_info)
 
@@ -59,3 +59,15 @@ def get_advanced_cluster(request, env_name, stage_name, provider):
 def get_hosts(request, env_name, stage_name, host_ids):
     return deploy_client.get("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
                              data=host_ids)
+
+
+def launch_hosts(request, env_name, stage_name, num):
+    params = [('num', num)]
+    return deploy_client.put("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
+                             params=params)
+
+
+def terminate_hosts(request, env_name, stage_name, host_ids, replace_host):
+    params = [('replaceHost', replace_host)]
+    return deploy_client.delete("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
+                                data=host_ids, params=params)

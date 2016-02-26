@@ -6,11 +6,40 @@
 {% if show_terminate and pinterest %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
-            data-toggle="modal" title="Terminate Instances">
+            data-toggle="modal" title="Terminate Host">
         <span class="glyphicon glyphicon-remove"></span> Terminate Host
     </button>
 </div>
+{% endif %}
 
+{% if cluster_provider %}
+<div class="modal fade" id="terminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="terminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/terminate_hosts/?host_name={{ host.hostName }}&host_id={{ host.hostId }}">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Host Termination Confirm</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure to terminate {{ host.hostName }}?</p>
+                    <div class="alert alert-info" role="alert">
+                        <strong>Note:</strong> This host is in an Auto Scaling group. It will automatically launch a new instance when terminating {{ host.hostName }}.<br><br>
+                        <input type="checkbox" class="checkToReplace" name="checkToReplace" checked> <strong>UnCheck</strong> the box if you <strong>DO NOT</strong> want to replace it with a new host. <br>
+                        (Note: Auto scaling group may terminate some existing instances and launch new instances to balance the number of instances in different AZs if you don't replace it)
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+{% else %}
+<!-- TODO deprecate it-->
 <div class="modal fade" id="terminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">

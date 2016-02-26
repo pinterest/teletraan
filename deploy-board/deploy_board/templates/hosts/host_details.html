@@ -19,6 +19,12 @@
 {% endblock %}
 
 {% block main %}
+{% if host and host.state == "PENDING_TERMINATE" or  host.state == "TERMINATING" or host.state == "TERMINATED"%}
+<div class="alert alert-danger" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> {{ host.hostName }} has been marked for termination.
+</div>
+{% endif %}
 
 {% if agent_wrappers %}
     <div class="panel panel-default">
@@ -33,13 +39,6 @@
 
     </div>
     </div>
-{% endif %}
-
-{% if host and host.state == "PENDING_TERMINATE" or  host.state == "TERMINATING" or host.state == "TERMINATED"%}
-<div class="alert alert-danger" role="alert">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    <strong>Warning!</strong> {{ host.hostName }} has been marked for termination.
-</div>
 {% endif %}
 
 <div class="panel panel-default">
