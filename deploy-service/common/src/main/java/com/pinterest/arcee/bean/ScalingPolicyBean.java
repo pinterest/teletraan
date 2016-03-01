@@ -23,7 +23,7 @@ import javax.validation.constraints.NotNull;
 
 public class ScalingPolicyBean {
     @JsonIgnore
-    private String policyName;
+    private String policyType;
 
     @NotNull
     @JsonProperty("scalingType")
@@ -42,12 +42,15 @@ public class ScalingPolicyBean {
     @JsonIgnore
     private String ARN;
 
-    public String getPolicyName() {
-        return policyName;
+    @JsonIgnore
+    private Boolean spotPolicy;
+
+    public String getPolicyType() {
+        return policyType;
     }
 
-    public void setPolicyName(String policyName) {
-        this.policyName = policyName;
+    public void setPolicyType(String policyType) {
+        this.policyType = policyType;
     }
 
     public String getScalingType() { return scalingType; }
@@ -77,4 +80,8 @@ public class ScalingPolicyBean {
     public void setARN(String arn) {
         this.ARN = arn;
     }
+
+    public Boolean getSpotPolicy() { return spotPolicy; }
+
+    public void setSpotPolicy(Boolean spotPolicy) { this.spotPolicy = spotPolicy;}
 }

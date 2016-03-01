@@ -22,11 +22,11 @@ import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.arcee.common.HealthCheckConstants;
 import com.pinterest.arcee.dao.AlarmDAO;
+import com.pinterest.arcee.dao.SpotAutoScalingDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.ASGStatus;
-import com.pinterest.deployservice.bean.GroupHostBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.GroupDAO;
@@ -48,6 +48,8 @@ public class GroupHandler {
     // http://docs.aws.amazon.com/AutoScaling/latest/APIReference/API_AttachInstances.html
     private static final int ATTACH_INSTANCE_SIZE = 16;
 
+    private static final double SPOT_THRESHOLD_ADJUSTMENT_RATIO = 0.05;
+
     private AutoScaleGroupManager asgDAO;
     private AlarmDAO alarmDAO;
     private HostInfoDAO hostInfoDAO;
@@ -56,6 +58,7 @@ public class GroupHandler {
     private GroupDAO groupDAO;
     private GroupInfoDAO groupInfoDAO;
     private UtilDAO utilDAO;
+    private SpotAutoScalingDAO spotAutoScalingDAO;
     private ExecutorService jobPool;
     private CommonHandler commonHandler;
 
@@ -69,16 +72,19 @@ public class GroupHandler {
         jobPool = serviceContext.getJobPool();
         utilDAO = serviceContext.getUtilDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
+        spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
         commonHandler = new CommonHandler(serviceContext);
     }
 
     private final class DeleteAutoScalingJob implements Callable<Void> {
         private String groupName;
         private boolean detachInstances;
+        private String spotLaunchConfig;
 
-        public DeleteAutoScalingJob(String groupName, boolean detachInstances) {
+        public DeleteAutoScalingJob(String groupName, boolean detachInstances, String spotLaunchConfig) {
             this.groupName = groupName;
             this.detachInstances = detachInstances;
+            this.spotLaunchConfig = spotLaunchConfig;
         }
 
         public Void call() {
@@ -90,16 +96,23 @@ public class GroupHandler {
                     alarmWatcher.deleteAlarmFromPolicy(asgAlarmBean);
                     alarmDAO.deleteAlarmInfoById(asgAlarmBean.getAlarm_id());
                 }
-
                 // step 2 delete auto scaling group
                 asgDAO.deleteAutoScalingGroup(groupName, detachInstances);
                 LOG.info(String.format("Delete autoscaling group: %s", groupName));
 
                 // step 3 update the groups db
-                GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
-                groupBean.setAsg_status(ASGStatus.UNKNOWN);
-                groupBean.setLast_update(System.currentTimeMillis());
-                groupInfoDAO.updateGroupInfo(groupName, groupBean);
+                if (!StringUtils.isEmpty(spotLaunchConfig)) {
+                    LOG.info(String.format("Delete launch config for group: %s", groupName));
+                    asgDAO.deleteLaunchConfig(spotLaunchConfig);
+
+                } else {
+                    GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
+                    if (groupBean != null) {
+                        groupBean.setAsg_status(ASGStatus.UNKNOWN);
+                        groupBean.setLast_update(System.currentTimeMillis());
+                        groupInfoDAO.updateGroupInfo(groupName, groupBean);
+                    }
+                }
             } catch (Exception t) {
                 LOG.error(String.format("Failed to delete auto scaling group %s", groupName), t);
             } finally {
@@ -148,6 +161,55 @@ public class GroupHandler {
         }
     }
 
+    private final class CreateSpotAutoScalingGroupJob implements Callable<Void> {
+
+        private String clusterName;
+        private String spotGroupName;
+
+        public CreateSpotAutoScalingGroupJob(String clusterName, String spotGroupName) {
+            this.clusterName = clusterName;
+            this.spotGroupName = spotGroupName;
+        }
+
+        @Override
+        public Void call() {
+            try {
+                createSpotAutoScalingGroup(clusterName);
+            } catch (Exception ex) {
+                LOG.error(String.format("Failed to create spot auto scaling group: %s", clusterName), ex);
+            } finally {
+                return null;
+            }
+        }
+
+        private void createSpotAutoScalingGroup(String groupName) throws Exception {
+            // step 1. update auto scaling policies
+            Map<String, ScalingPolicyBean> scalingPolicies = asgDAO.getScalingPoliciesForGroup(groupName);
+            if (scalingPolicies.isEmpty()) {
+                return;
+            }
+
+            for (Map.Entry<String, ScalingPolicyBean> scalingPolicy : scalingPolicies.entrySet()) {
+                asgDAO.addScalingPolicyToGroup(spotGroupName, scalingPolicy.getValue());
+            }
+
+
+            // step 2. update alarms
+            List<AsgAlarmBean> asgAlarmBeans = getAlarmInfoByGroup(groupName);
+            if (asgAlarmBeans.isEmpty()) {
+                return;
+            }
+
+            Map<String, ScalingPolicyBean> spotScalingPolicies = asgDAO.getScalingPoliciesForGroup(spotGroupName);
+            List<AsgAlarmBean> spotAlarmInfos = new ArrayList<>();
+            for (AsgAlarmBean asgAlarmBean : asgAlarmBeans) {
+                spotAlarmInfos.add(generateSpotFleetAlarm(spotGroupName, asgAlarmBean));
+            }
+
+            updateAlarmInfoInternal(groupName, spotScalingPolicies, spotAlarmInfos);
+        }
+    }
+
     public void createGroup(String groupName, GroupBean requestBean) throws Exception {
         GroupBean defaultBean = generateDefaultGroupBean(groupName);
         GroupBean groupBean = generateUpdatedGroupBean(defaultBean, requestBean);
@@ -180,6 +242,41 @@ public class GroupHandler {
         return !newBean.getAssign_public_ip().equals(oldBean.getAssign_public_ip());
     }
 
+    private String changeConfig(String groupName, String oldConfig, GroupBean newGroupBean, String bidPrice) throws Exception {
+        String newConfig;
+        if (bidPrice == null) {
+            newConfig = asgDAO.createLaunchConfig(newGroupBean);
+        } else {
+            newConfig = asgDAO.createSpotLaunchConfig(newGroupBean, bidPrice);
+        }
+        asgDAO.changeAutoScalingGroupLaunchConfig(groupName, newConfig);
+        asgDAO.deleteLaunchConfig(oldConfig);
+        return newConfig;
+    }
+
+    private void updateLifeCycle(String groupName, GroupBean existingGroupBean, GroupBean newGroupBean) throws Exception {
+        // Lifecycle management
+        if (newGroupBean.getLifecycle_state()) {
+            // Create Lifecycle hook
+            if (!existingGroupBean.getLifecycle_state()) {
+                LOG.info("Start to add a lifecycle to group {}", groupName);
+                asgDAO.createLifecycleHook(groupName, newGroupBean.getLifecycle_timeout().intValue());
+            } else {
+                // Update Lifecycle hook only when timeout changes
+                if (!newGroupBean.getLifecycle_timeout().equals(existingGroupBean.getLifecycle_timeout())) {
+                    LOG.info("Start to update the lifecycle to group {}", groupName);
+                    asgDAO.createLifecycleHook(groupName, newGroupBean.getLifecycle_timeout().intValue());
+                }
+            }
+        } else if (existingGroupBean.getLifecycle_state()) {
+            // Delete Lifecycle hook
+            String lifecycleHookId = String.format("LIFECYCLEHOOK-%s", groupName);
+            LOG.info("Start to delete lifecycle {} to group {}", lifecycleHookId, groupName);
+            asgDAO.deleteLifecycleHook(groupName);
+
+        }
+    }
+
     public void updateLaunchConfig(String groupName, GroupBean newGroupBean) throws Exception {
         GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
         if (groupBean == null) {
@@ -188,47 +285,37 @@ public class GroupHandler {
         // patch missing field in the newGroupBean with existing/default value
         newGroupBean = generateUpdatedGroupBean(groupBean, newGroupBean);
 
-        // Launch config management
-        boolean hasAutoScalingGroup = asgDAO.hasAutoScalingGroup(groupName);
         // check if we should update aws autoscaling launch config
-        if (needUpdateLaunchConfig(newGroupBean, groupBean)) {
-            String oldConfigId = groupBean.getLaunch_config_id();
-            String newConfigId = asgDAO.createLaunchConfig(newGroupBean);
-            if (hasAutoScalingGroup) {
-                asgDAO.changeAutoScalingGroupLaunchConfig(groupName, newConfigId);
-            }
-            asgDAO.deleteLaunchConfig(oldConfigId);
-            newGroupBean.setLaunch_config_id(newConfigId);
+        boolean needUpdateLaunchConfig = needUpdateLaunchConfig(newGroupBean, groupBean);
+        boolean needUpdateSubnets = newGroupBean.getSubnets() != null && groupBean.getSubnets() != null && !newGroupBean.getSubnets().equals(groupBean.getSubnets());
+
+        if (needUpdateLaunchConfig) {
+            String newConfig = changeConfig(groupName, groupBean.getLaunch_config_id(), newGroupBean, null);
+            newGroupBean.setLaunch_config_id(newConfig);
         }
 
-        if (hasAutoScalingGroup && newGroupBean.getSubnets() != null && groupBean.getSubnets() != null &&
-            !newGroupBean.getSubnets().equals(groupBean.getSubnets())) {
+        if (needUpdateSubnets) {
             asgDAO.updateSubnet(groupName, newGroupBean.getSubnets());
         }
-
-        // Lifecycle management
-        if (newGroupBean.getLifecycle_state()) {
-            // Create Lifecycle hook
-            if (!groupBean.getLifecycle_state()) {
-                LOG.info("Start to add a lifecycle to group {}", groupName);
-                asgDAO.createLifecycleHook(groupName, newGroupBean.getLifecycle_timeout().intValue());
-            } else {
-                // Update Lifecycle hook only when timeout changes
-                if (!newGroupBean.getLifecycle_timeout().equals(groupBean.getLifecycle_timeout())) {
-                    LOG.info("Start to update the lifecycle to group {}", groupName);
-                    asgDAO.createLifecycleHook(groupName, newGroupBean.getLifecycle_timeout().intValue());
-                }
-            }
-        } else {
-            // Delete Lifecycle hook
-            if (groupBean.getLifecycle_state()) {
-                String lifecycleHookId = String.format("LIFECYCLEHOOK-%s", groupName);
-                LOG.info("Start to delete lifecycle {} to group {}", lifecycleHookId, groupName);
-                asgDAO.deleteLifecycleHook(groupName);
-            }
-        }
-
+        updateLifeCycle(groupName, groupBean, newGroupBean);
         groupInfoDAO.updateGroupInfo(groupName, newGroupBean);
+
+
+        // handle spot auto scaling group
+        List<SpotAutoScalingBean> spotAutoScalingGroups = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingGroups) {
+            if (needUpdateLaunchConfig) {
+                String newConfig = changeConfig(spotAutoScalingBean.getAsg_name(), spotAutoScalingBean.getLaunch_config_id(), newGroupBean, spotAutoScalingBean.getBid_price());
+                SpotAutoScalingBean newSpotAutoScalingBean = new SpotAutoScalingBean();
+                newSpotAutoScalingBean.setLaunch_config_id(newConfig);
+                spotAutoScalingDAO.updateSpotAutoScalingGroup(spotAutoScalingBean.getAsg_name(), newSpotAutoScalingBean);
+            }
+            if (needUpdateSubnets) {
+                asgDAO.updateSubnet(spotAutoScalingBean.getAsg_name(), newGroupBean.getSubnets());
+            }
+
+            updateLifeCycle(spotAutoScalingBean.getAsg_name(), groupBean, newGroupBean);
+        }
     }
 
     // try to get group bean from db. create a default one if it does not exist
@@ -275,34 +362,77 @@ public class GroupHandler {
         GroupBean updatedGroupBean = (GroupBean) existingGroupInfo.clone();
         updatedGroupBean.setImage_id(newImageId);
 
-        boolean hasAutoScalingGroup = asgDAO.hasAutoScalingGroup(groupName);
-
-        String newConfigId = asgDAO.createLaunchConfig(updatedGroupBean);
-        if (hasAutoScalingGroup) {
-            asgDAO.changeAutoScalingGroupLaunchConfig(groupName, newConfigId);
-        }
-
-        String oldConfigId = existingGroupInfo.getLaunch_config_id();
-        asgDAO.deleteLaunchConfig(oldConfigId);
-
+        String newConfigId = changeConfig(groupName, existingGroupInfo.getLaunch_config_id(), updatedGroupBean, null);
         updatedGroupBean.setLaunch_config_id(newConfigId);
         groupInfoDAO.updateGroupInfo(groupName, updatedGroupBean);
+
+        // handle spot instance asg
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(existingGroupInfo.getGroup_name());
+        for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
+            String spotGroupName = spotAutoScalingBean.getAsg_name();
+            String existingConfig = spotAutoScalingBean.getLaunch_config_id();
+            GroupBean spotGroupBean = (GroupBean)updatedGroupBean.clone();
+            spotGroupBean.setGroup_name(spotAutoScalingBean.getAsg_name());
+            String newSpotConfig =  changeConfig(spotGroupName, existingConfig, spotGroupBean, spotAutoScalingBean.getBid_price());
+            spotAutoScalingBean.setLaunch_config_id(newSpotConfig);
+
+            spotAutoScalingDAO.updateSpotAutoScalingGroup(spotGroupName, spotAutoScalingBean);
+        }
     }
 
     public void disableAutoScalingGroup(String groupName) throws Exception {
-        asgDAO.disableAutoScalingGroup(groupName);
         GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
+        asgDAO.disableAutoScalingGroup(groupName);
         groupBean.setAsg_status(ASGStatus.DISABLED);
         groupBean.setLast_update(System.currentTimeMillis());
         groupInfoDAO.updateGroupInfo(groupName, groupBean);
+
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
+            asgDAO.disableAutoScalingGroup(spotAutoScalingBean.getAsg_name());
+        }
     }
 
     public void enableAutoScalingGroup(String groupName) throws Exception {
-        asgDAO.enableAutoScalingGroup(groupName);
         GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
+        asgDAO.enableAutoScalingGroup(groupName);
         groupBean.setAsg_status(ASGStatus.ENABLED);
         groupBean.setLast_update(System.currentTimeMillis());
         groupInfoDAO.updateGroupInfo(groupName, groupBean);
+
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
+            asgDAO.enableAutoScalingGroup(spotAutoScalingBean.getAsg_name());
+        }
+    }
+
+    public void insertOrUpdateAutoScalingGroup(String groupName, AutoScalingRequestBean request) throws Exception {
+        if (asgDAO.hasAutoScalingGroup(request.getGroupName())) {
+            updateAutoScalingGroup(groupName, request);
+        } else {
+            createAutoScalingGroup(groupName, request);
+        }
+    }
+
+    private void createSpotAutoScalingGroup(String clusterName, GroupBean groupBean, AutoScalingRequestBean request) throws Exception {
+        String spotGroupName = String.format("%s-spot", clusterName);
+        GroupBean newGroupBean = (GroupBean)groupBean.clone();
+        newGroupBean.setGroup_name(spotGroupName);
+        String bidPrice = request.getSpotPrice();
+        // step 1 create launch config
+        String newConfig = asgDAO.createSpotLaunchConfig(groupBean, bidPrice);
+        asgDAO.createAutoScalingGroup(newConfig, generateSpotAutoScalingGroupRequest(spotGroupName, request), groupBean.getSubnets());
+
+        // step 2 update datebase with the launch config
+        SpotAutoScalingBean spotAutoScalingBean = new SpotAutoScalingBean();
+        spotAutoScalingBean.setAsg_name(spotGroupName);
+        spotAutoScalingBean.setCluster_name(clusterName);
+        spotAutoScalingBean.setBid_price(request.getSpotPrice());
+        spotAutoScalingBean.setSpot_ratio(request.getSpotRatio());
+        spotAutoScalingBean.setLaunch_config_id(newConfig);
+        spotAutoScalingDAO.insertAutoScalingGroupToCluster(spotGroupName, spotAutoScalingBean);
+        // make aws create auto scaling as an async job
+        jobPool.submit(new CreateSpotAutoScalingGroupJob(clusterName, spotGroupName));
     }
 
     public void createAutoScalingGroup(String groupName, AutoScalingRequestBean request) throws Exception {
@@ -328,18 +458,14 @@ public class GroupHandler {
         } else {
             asgDAO.createAutoScalingGroup(launchConfigId, request, groupBean.getSubnets());
         }
+
         groupBean.setAsg_status(ASGStatus.ENABLED);
         groupBean.setLast_update(System.currentTimeMillis());
         groupInfoDAO.updateGroupInfo(groupName, groupBean);
-    }
 
-    public void deleteAutoScalingGroup(String groupName, boolean detachInstance) throws Exception {
-        // do it async
-        jobPool.submit(new DeleteAutoScalingJob(groupName, detachInstance));
-    }
-
-    public ASGStatus getAutoScalingGroupStatus(String groupName) throws Exception {
-        return asgDAO.getAutoScalingGroupStatus(groupName);
+        if (request.getEnableSpot()) {
+            createSpotAutoScalingGroup(groupName, groupBean, request);
+        }
     }
 
 
@@ -347,27 +473,90 @@ public class GroupHandler {
         GroupBean groupBean = groupInfoDAO.getGroupInfo(request.getGroupName());
         request.setGroupName(groupName);
         asgDAO.updateAutoScalingGroup(request, groupBean.getSubnets());
-    }
 
-    public void insertOrUpdateAutoScalingGroup(String groupName, AutoScalingRequestBean request) throws Exception {
-        if (asgDAO.hasAutoScalingGroup(request.getGroupName())) {
-            updateAutoScalingGroup(groupName, request);
+
+        // handle spot instance group
+        List<SpotAutoScalingBean> autoScalingGroupBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        if (autoScalingGroupBeans.isEmpty() && request.getEnableSpot()) {
+            createSpotAutoScalingGroup(groupName, groupBean, request);
+        } else if (!autoScalingGroupBeans.isEmpty() && !request.getEnableSpot()) {
+            for (SpotAutoScalingBean autoScalingBean : autoScalingGroupBeans) {
+                spotAutoScalingDAO.deleteAutoScalingGroupFromCluster(autoScalingBean.getAsg_name());
+                String LaunchConfig = autoScalingBean.getLaunch_config_id();
+                jobPool.submit(
+                    new DeleteAutoScalingJob(autoScalingBean.getAsg_name(), true, LaunchConfig));
+            }
         } else {
-            createAutoScalingGroup(groupName, request);
+            for (SpotAutoScalingBean autoScalingBean : autoScalingGroupBeans) {
+                if (!autoScalingBean.getBid_price().equals(request.getSpotPrice())) {
+                    String existingConfig = autoScalingBean.getLaunch_config_id();
+                    String newSpotConfig = asgDAO.createSpotLaunchConfig(groupBean, request.getSpotPrice());
+                    asgDAO.changeAutoScalingGroupLaunchConfig(autoScalingBean.getAsg_name(), newSpotConfig);
+                    asgDAO.deleteLaunchConfig(existingConfig);
+
+                    autoScalingBean.setLaunch_config_id(newSpotConfig);
+                    autoScalingBean.setBid_price(request.getSpotPrice());
+                }
+                autoScalingBean.setSpot_ratio(request.getSpotRatio());
+                spotAutoScalingDAO.updateSpotAutoScalingGroup(autoScalingBean.getAsg_name(), autoScalingBean);
+                asgDAO.updateAutoScalingGroup(generateSpotAutoScalingGroupRequest(autoScalingBean.getAsg_name(), request), groupBean.getSubnets());
+            }
         }
     }
 
-    public AutoScalingGroupBean getAutoScalingGroupInfoByName(String groupName) throws Exception {
+    private AutoScalingRequestBean generateSpotAutoScalingGroupRequest(String spotGroupName, AutoScalingRequestBean request) {
+        AutoScalingRequestBean autoScalingRequestBean = new AutoScalingRequestBean();
+        autoScalingRequestBean.setAttachInstances(false);
+        autoScalingRequestBean.setTerminationPolicy(request.getTerminationPolicy());
+        autoScalingRequestBean.setMinSize(0);
+        autoScalingRequestBean.setMaxSize((int)(request.getMinSize() * request.getSpotRatio()));
+        autoScalingRequestBean.setGroupName(spotGroupName);
+        return autoScalingRequestBean;
+    }
+
+
+
+    public void deleteAutoScalingGroup(String groupName, boolean detachInstance) throws Exception {
+        // do it async
+        jobPool.submit(new DeleteAutoScalingJob(groupName, detachInstance, null));
+
+        // handle spot auto scaling group case
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
+            String spotLaunchConfig = spotAutoScalingBean.getLaunch_config_id();
+            spotAutoScalingDAO.deleteAutoScalingGroupFromCluster(spotAutoScalingBean.getAsg_name());
+            jobPool.submit(new DeleteAutoScalingJob(spotAutoScalingBean.getAsg_name(), detachInstance, spotLaunchConfig));
+        }
+    }
+
+    public ASGStatus getAutoScalingGroupStatus(String groupName) throws Exception {
+        return asgDAO.getAutoScalingGroupStatus(groupName);
+    }
+
+    public List<AutoScalingGroupBean> getAutoScalingGroupInfoByName(String groupName) throws Exception {
+        List<AutoScalingGroupBean> autoScalingGroupBeans = new ArrayList<>();
         AutoScalingGroupBean asgInfo = asgDAO.getAutoScalingGroupInfoByName(groupName);
+        asgInfo.setSpotGroup(false);
 
         if (asgInfo.getStatus() == ASGStatus.UNKNOWN) {
             // if the auto scaling is not even enabled for this group
             asgInfo.setMaxSize(AutoScalingConstants.DEFAULT_GROUP_CAPACITY);
             asgInfo.setMinSize(AutoScalingConstants.DEFAULT_GROUP_CAPACITY);
-            return asgInfo;
-        } else {
-            return asgInfo;
+            autoScalingGroupBeans.add(asgInfo);
+            return autoScalingGroupBeans;
         }
+
+        autoScalingGroupBeans.add(asgInfo);
+        // add spot instance
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
+            AutoScalingGroupBean spotAsgGroup = asgDAO.getAutoScalingGroupInfoByName(spotAutoScalingBean.getAsg_name());
+            spotAsgGroup.setSpotGroup(true);
+            spotAsgGroup.setBidPrice(spotAutoScalingBean.getBid_price());
+            spotAsgGroup.setSpotRatio(spotAutoScalingBean.getSpot_ratio());
+            autoScalingGroupBeans.add(spotAsgGroup);
+        }
+        return autoScalingGroupBeans;
     }
 
     public ScalingPoliciesBean getScalingPolicyInfoByName(String groupName) throws Exception {
@@ -392,37 +581,95 @@ public class GroupHandler {
     }
 
     public void putScalingPolicyToGroup(String groupName, ScalingPoliciesBean request) throws Exception {
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
         if (!request.getScaleUpPolicies().isEmpty()) {
             ScalingPolicyBean scaleUpPolicy = request.getScaleUpPolicies().get(0);
-            scaleUpPolicy.setPolicyName(getScalingPolicyName(groupName, "scaleup"));
+            scaleUpPolicy.setPolicyType(PolicyType.SCALEUP.toString());
             asgDAO.addScalingPolicyToGroup(groupName, scaleUpPolicy);
+
+
+            for (SpotAutoScalingBean mappingBean : spotAutoScalingBeans) {
+                asgDAO.addScalingPolicyToGroup(mappingBean.getAsg_name(), scaleUpPolicy);
+            }
         }
 
         if (!request.getScaleDownPolicies().isEmpty()) {
             ScalingPolicyBean scaleDownPolicy = request.getScaleDownPolicies().get(0);
-            scaleDownPolicy.setPolicyName(getScalingPolicyName(groupName, "scaledown"));
+            scaleDownPolicy.setPolicyType(PolicyType.SCALEDOWN.toString());
             scaleDownPolicy.setScaleSize(-1 * scaleDownPolicy.getScaleSize());
             asgDAO.addScalingPolicyToGroup(groupName, scaleDownPolicy);
+
+            for (SpotAutoScalingBean mappingBean : spotAutoScalingBeans) {
+                asgDAO.addScalingPolicyToGroup(mappingBean.getAsg_name(), scaleDownPolicy);
+            }
         }
     }
 
     public void addAlarmsToAutoScalingGroup(String groupName, List<AsgAlarmBean> alarmInfos) throws Exception {
-        updateAlarmInfoInternal(groupName, alarmInfos, false);
+        for (AsgAlarmBean asgAlarmBean : alarmInfos) {
+            asgAlarmBean.setAlarm_id(CommonUtils.getBase64UUID());
+        }
+
+        Map<String, ScalingPolicyBean> policies = asgDAO.getScalingPoliciesForGroup(groupName);
+        updateAlarmInfoInternal(groupName, policies, alarmInfos);
+
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
+            String spotGroupName = spotAutoScalingBean.getAsg_name();
+            Map<String, ScalingPolicyBean> spotPolicies = asgDAO.getScalingPoliciesForGroup(spotGroupName);
+
+            List<AsgAlarmBean> spotAlarmInfos = new ArrayList<>();
+            for (AsgAlarmBean asgAlarmBean : alarmInfos) {
+                spotAlarmInfos.add(
+                    generateSpotFleetAlarm(spotAutoScalingBean.getAsg_name(), asgAlarmBean));
+            }
+            // the alarm should be set up to the reserved instance group space.
+            updateAlarmInfoInternal(groupName, spotPolicies, spotAlarmInfos);
+        }
+
     }
 
     public void updateAlarmsToAutoScalingGroup(String groupName, List<AsgAlarmBean> alarmInfos) throws Exception {
-        updateAlarmInfoInternal(groupName, alarmInfos, true);
-    }
-
-    public void updateAlarmInfoInternal(String groupName, List<AsgAlarmBean> alarmInfoRequests, boolean isUpdate) throws Exception {
         Map<String, ScalingPolicyBean> policies = asgDAO.getScalingPoliciesForGroup(groupName);
-        String growPolicyARN = policies.get(getScalingPolicyName(groupName, "scaleup")).getARN();
-        String shrinkPolicyARN = policies.get(getScalingPolicyName(groupName, "scaledown")).getARN();
-        for (AsgAlarmBean asgAlarmBean : alarmInfoRequests) {
-            if (!isUpdate) {
-                asgAlarmBean.setAlarm_id(CommonUtils.getBase64UUID());
+        updateAlarmInfoInternal(groupName, policies, alarmInfos);
+
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
+            List<AsgAlarmBean> spotAlarmInfos = new ArrayList<>();
+            for (AsgAlarmBean asgAlarmBean : alarmInfos) {
+                spotAlarmInfos.add(generateSpotFleetAlarm(spotAutoScalingBean.getAsg_name(), asgAlarmBean));
             }
 
+            String spotGroupName = spotAutoScalingBean.getAsg_name();
+            Map<String, ScalingPolicyBean> spotPolicies = asgDAO.getScalingPoliciesForGroup(spotGroupName);
+            updateAlarmInfoInternal(spotGroupName, spotPolicies, spotAlarmInfos);
+        }
+    }
+
+
+    private AsgAlarmBean generateSpotFleetAlarm(String spotGroupName, AsgAlarmBean asgAlarmBean) throws Exception {
+        AsgAlarmBean spotAlarmBean = new AsgAlarmBean();
+        spotAlarmBean.setAlarm_id(String.format("%s-spot", asgAlarmBean.getAlarm_id()));
+        spotAlarmBean.setAction_type(asgAlarmBean.getAction_type());
+        spotAlarmBean.setComparator(asgAlarmBean.getComparator());
+        spotAlarmBean.setEvaluation_time(asgAlarmBean.getEvaluation_time());
+        spotAlarmBean.setFrom_aws_metric(asgAlarmBean.getFrom_aws_metric());
+        spotAlarmBean.setGroup_name(spotGroupName);
+        spotAlarmBean.setMetric_source(asgAlarmBean.getMetric_source());
+        spotAlarmBean.setMetric_name(asgAlarmBean.getMetric_name());
+        if (asgAlarmBean.getComparator().equals("LessThanOrEqualToThreshold")) {
+            spotAlarmBean.setThreshold(asgAlarmBean.getThreshold() * 1.1);
+        } else {
+            spotAlarmBean.setThreshold(asgAlarmBean.getThreshold() * 0.9);
+        }
+        return spotAlarmBean;
+    }
+
+    public void updateAlarmInfoInternal(String groupName, Map<String, ScalingPolicyBean> policies, List<AsgAlarmBean> alarmInfoRequests) throws Exception {
+        String growPolicyARN = policies.get(PolicyType.SCALEUP.toString()).getARN();
+        String shrinkPolicyARN = policies.get(PolicyType.SCALEDOWN.toString()).getARN();
+
+        for (AsgAlarmBean asgAlarmBean : alarmInfoRequests) {
             if (asgAlarmBean.getFrom_aws_metric()) {
                 asgAlarmBean.setMetric_name(asgAlarmBean.getMetric_source());
             } else {
@@ -431,18 +678,14 @@ public class GroupHandler {
 
             String autoScalingActionType = asgAlarmBean.getAction_type().toUpperCase();
             if (autoScalingActionType.equals(AutoScalingConstants.ASG_GROW)) {
-                alarmWatcher.putAlarmToPolicy(growPolicyARN, asgAlarmBean);
+                alarmWatcher.putAlarmToPolicy(growPolicyARN, groupName, asgAlarmBean);
             } else if (autoScalingActionType.equals(AutoScalingConstants.ASG_SHRINK)) {
-                alarmWatcher.putAlarmToPolicy(shrinkPolicyARN, asgAlarmBean);
+                alarmWatcher.putAlarmToPolicy(shrinkPolicyARN, groupName, asgAlarmBean);
             } else {
                 throw new Exception(String.format("Unsupported alarm action type: %s", autoScalingActionType));
             }
 
-            if (isUpdate) {
-                alarmDAO.updateAlarmInfoById(asgAlarmBean.getAlarm_id(), asgAlarmBean);
-            } else {
-                alarmDAO.insertAlarmInfo(asgAlarmBean);
-            }
+            alarmDAO.insertOrUpdateAlarmInfo(asgAlarmBean);
         }
     }
 
@@ -469,14 +712,6 @@ public class GroupHandler {
         return groupDAO.getExistingGroups(pageIndex, pageSize);
     }
 
-    public List<String> getASGNamesByHostId(String hostId) throws Exception {
-        return groupInfoDAO.getGroupNamesByHostIdAndASGStatus(hostId, ASGStatus.ENABLED.toString());
-    }
-
-    public List<String> getASGNamesByEnvName(String envName) throws Exception {
-        return groupInfoDAO.getGroupNamesByEnvNameAndASGStatus(envName, ASGStatus.ENABLED.toString());
-    }
-
     public ScalingActivitiesBean getScalingActivities(String groupName, int pageSize, String token) throws Exception {
         if (asgDAO.hasAutoScalingGroup(groupName)) {
             return asgDAO.getScalingActivity(groupName, pageSize, token);
@@ -485,22 +720,6 @@ public class GroupHandler {
             scalingActivitiesInfo.setActivities(new ArrayList<>());
             return scalingActivitiesInfo;
         }
-    }
-
-    public GroupHostBean getGroupHostInfo(String groupName) throws Exception {
-        GroupHostBean groupHostInfo = new GroupHostBean();
-        AutoScalingGroupBean asgInfo = asgDAO.getAutoScalingGroupInfoByName(groupName);
-        Set<String> hostIdsInAsg = new HashSet<>(asgInfo.getInstances());
-        groupHostInfo.setAutoScalingGroupHosts(asgInfo.getInstances());
-        List<String> hostInstances = hostDAO.getHostIdsByGroup(groupName);
-        LOG.info("auto scaling group size: {}", groupHostInfo.getAutoScalingGroupHosts().size());
-        for (String instanceId : groupHostInfo.getAutoScalingGroupHosts()) {
-            if (hostIdsInAsg.contains(instanceId)) {
-                hostInstances.remove(instanceId);
-            }
-        }
-        groupHostInfo.setHostsInGroup(hostInstances);
-        return groupHostInfo;
     }
 
     public List<HostBean> getHostsByGroupName(String groupName) throws Exception {
@@ -543,10 +762,6 @@ public class GroupHandler {
             LOG.info("Start to detach instance {} from group {}", instanceIds.toString(), groupName);
             asgDAO.detachInstancesFromAutoScalingGroup(instanceIds, groupName, true);
         }
-    }
-
-    String getScalingPolicyName(String groupName, String scaleType) {
-        return String.format("%s_%s_rule", groupName, scaleType);
     }
 
     String getMetricName(String groupName, String metricResource) {
@@ -620,6 +835,7 @@ public class GroupHandler {
         if (requestBean.getLifecycle_state() == null) {
             requestBean.setLifecycle_state(groupBean.getLifecycle_state());
         }
+
         return requestBean;
     }
 

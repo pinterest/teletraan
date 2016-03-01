@@ -36,7 +36,7 @@ CREATE TABLE asg_alarms (
         evaluation_time     INT                NOT NULL,
         last_update         BIGINT             NOT NULL,
         from_aws_metric     TINYINT(1)         NOT NULL DEFAULT 0,
-        );
+);
 */
 public class AsgAlarmBean implements Updatable {
     @NotEmpty
@@ -172,6 +172,18 @@ public class AsgAlarmBean implements Updatable {
         clause.addColumn("from_aws_metric", from_aws_metric);
         return clause;
     }
+
+    public final static String UPDATE_CLAUSE =
+            "alarm_id=VALUES(alarm_id)," +
+                    "metric_name=VALUES(metric_name)," +
+                    "metric_source=VALUES(metric_source)," +
+                    "comparator=VALUES(comparator)," +
+                    "action_type=VALUES(action_type)," +
+                    "group_name=VALUES(group_name)," +
+                    "threshold=VALUES(threshold)," +
+                    "evaluation_time=VALUES(evaluation_time)," +
+                    "last_update=VALUES(last_update)," +
+                    "from_aws_metric=VALUES(from_aws_metric)";
 
     @Override
     public String toString() {

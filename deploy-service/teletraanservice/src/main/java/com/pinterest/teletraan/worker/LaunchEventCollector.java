@@ -20,9 +20,11 @@ import com.amazonaws.services.sqs.model.*;
 import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.bean.AsgLifecycleEventBean;
 import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.arcee.bean.SpotAutoScalingBean;
 import com.pinterest.arcee.dao.AsgLifecycleEventDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.NewInstanceReportDAO;
+import com.pinterest.arcee.dao.SpotAutoScalingDAO;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.HostBean;
@@ -52,6 +54,7 @@ public class LaunchEventCollector implements Runnable {
     private final HostDAO hostDAO;
     private final NewInstanceReportDAO newInstanceReportDAO;
     private final UtilDAO utilDAO;
+    private final SpotAutoScalingDAO spotAutoScalingDAO;
     private final EventMessageParser eventMessageParser;
     private final AutoScaleGroupManager autoScaleGroupManager;
     private final AmazonSQSClient sqsClient;
@@ -64,6 +67,7 @@ public class LaunchEventCollector implements Runnable {
         hostDAO = context.getHostDAO();
         newInstanceReportDAO = context.getNewInstanceReportDAO();
         utilDAO = context.getUtilDAO();
+        spotAutoScalingDAO = context.getSpotAutoScalingDAO();
         eventMessageParser = new EventMessageParser();
         autoScaleGroupManager = context.getAutoScaleGroupManager();
         sqsClient = new AmazonSQSClient(context.getAwsCredentials());
@@ -72,6 +76,10 @@ public class LaunchEventCollector implements Runnable {
 
     private boolean updateGroupInfo(EventMessage eventMessage) throws Exception {
         String groupName = eventMessage.getGroupName();
+        SpotAutoScalingBean spotAutoScalingBean = spotAutoScalingDAO.getClusterByAutoScalingGroup(groupName);
+        if (spotAutoScalingBean != null) {
+            groupName = spotAutoScalingBean.getCluster_name();
+        }
         String processLockName = String.format("UPDATE-%s", eventMessage.getGroupName());
         Connection connection = utilDAO.getLock(processLockName);
         if (connection == null) {

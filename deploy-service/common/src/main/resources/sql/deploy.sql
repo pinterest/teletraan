@@ -232,7 +232,7 @@ CREATE TABLE IF NOT EXISTS groups (
 );
 
 CREATE TABLE IF NOT EXISTS asg_alarms (
-    alarm_id            VARCHAR(22)        NOT NULL,
+    alarm_id            VARCHAR(64)        NOT NULL,
     metric_name         VARCHAR(80)        NOT NULL,
     metric_source       VARCHAR(128)       NOT NULL,
     comparator          VARCHAR(30)        NOT NULL,
@@ -421,3 +421,13 @@ CREATE TABLE IF NOT EXISTS placements (
     description     TEXT,
     PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS spot_auto_scaling_groups (
+   asg_name         VARCHAR(128)     NOT NULL,
+   cluster_name     VARCHAR(128)     NOT NULL,
+   launch_config_id VARCHAR(128),
+   bid_price        VARCHAR(32)      NOT NULL,
+   spot_ratio       DOUBLE           NOT NULL,
+   PRIMARY KEY (asg_name)
+);
+CREATE INDEX asg_cluster_idx ON spot_auto_scaling_groups (cluster_name);

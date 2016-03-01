@@ -13,16 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pinterest.arcee.dao;
+
+package com.pinterest.arcee.bean;
 
 
-import com.pinterest.arcee.bean.ReservedInstanceBean;
-import java.util.Collection;
-
-public interface ReservedInstanceInfoDAO {
-    Collection<ReservedInstanceBean> getAllReservedInstanceInfo() throws Exception;
-
-    int getReservedInstanceCount(String instanceType) throws Exception;
-
-    int getRunningReservedInstanceCount(String instanceType) throws Exception;
+public enum PolicyType {
+    SCALEUP, SCALEDOWN
 }

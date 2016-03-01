@@ -17,6 +17,7 @@ package com.pinterest.arcee.db;
 
 import com.pinterest.arcee.bean.AsgAlarmBean;
 import com.pinterest.arcee.bean.MetricBean;
+import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.arcee.dao.AlarmDAO;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -34,8 +35,8 @@ public class DBAlarmDAOImpl implements AlarmDAO {
             "SELECT * FROM asg_alarms WHERE group_name=? ORDER BY metric_source";
     private static String GET_BY_GROUP_AND_METRICSOURCE =
         "SELECT * FROM asg_alarms WHERE group_name=? and metric_source=?";
-    private static String INSERT_ALARM =
-            "INSERT INTO asg_alarms SET %s";
+    private static String INSERT_UPDATE_ALARM =
+            "INSERT INTO asg_alarms SET %s ON DUPLICATE KEY UPDATE %s";
     private static String DELETE_ALARM_BY_ID =
             "DELETE FROM asg_alarms WHERE alarm_id=?";
     private static String DELETE_ALARM_BY_GROUP =
@@ -69,10 +70,10 @@ public class DBAlarmDAOImpl implements AlarmDAO {
     }
 
     @Override
-    public void insertAlarmInfo(AsgAlarmBean asgAlarmBean) throws Exception {
+    public void insertOrUpdateAlarmInfo(AsgAlarmBean asgAlarmBean) throws Exception {
         asgAlarmBean.setLast_update(System.currentTimeMillis());
         SetClause setClause = asgAlarmBean.genSetClause();
-        String clause = String.format(INSERT_ALARM, setClause.getClause());
+        String clause = String.format(INSERT_UPDATE_ALARM, setClause.getClause(), AsgAlarmBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 

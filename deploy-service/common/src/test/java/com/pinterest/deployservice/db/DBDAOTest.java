@@ -139,6 +139,7 @@ public class DBDAOTest {
     private static HostTypeDAO hostTypeDAO;
     private static SecurityZoneDAO securityZoneDAO;
     private static PlacementDAO placementDAO;
+    private static SpotAutoScalingDAO spotAutoScalingDAO;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -183,6 +184,7 @@ public class DBDAOTest {
         hostTypeDAO = new DBHostTypeDAOImpl(DATASOURCE);
         securityZoneDAO = new DBSecurityZoneDAOImpl(DATASOURCE);
         placementDAO = new DBPlacementDAOImpl(DATASOURCE);
+        spotAutoScalingDAO = new DBSpotAutoScalingDAOImpl(DATASOURCE);
     }
 
     @AfterClass
@@ -989,9 +991,9 @@ public class DBDAOTest {
         bean3.setThreshold(10.1);
         bean3.setFrom_aws_metric(false);
 
-        alarmDAO.insertAlarmInfo(bean1);
-        alarmDAO.insertAlarmInfo(bean2);
-        alarmDAO.insertAlarmInfo(bean3);
+        alarmDAO.insertOrUpdateAlarmInfo(bean1);
+        alarmDAO.insertOrUpdateAlarmInfo(bean2);
+        alarmDAO.insertOrUpdateAlarmInfo(bean3);
 
         // test get
         AsgAlarmBean resultBean = alarmDAO.getAlarmInfoById("ABCDEF1");
@@ -1408,6 +1410,60 @@ public class DBDAOTest {
 
         Collection<PlacementBean> beans = placementDAO.getByProviderAndBasic(CloudProvider.AWS.toString(), true);
         assertEquals(beans.size(), 1);
+    }
+
+    @Test
+    public void testSpotAutoScalingGroupDAO() throws Exception {
+        SpotAutoScalingBean bean1 = new SpotAutoScalingBean();
+        bean1.setAsg_name("asg-1-spot");
+        bean1.setCluster_name("asg-1");
+        bean1.setLaunch_config_id("l-1");
+        bean1.setBid_price("0.5");
+        bean1.setSpot_ratio(0.5);
+        spotAutoScalingDAO.insertAutoScalingGroupToCluster("asg-1-spot", bean1);
+        List<SpotAutoScalingBean> resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
+        assertFalse(resultBean.isEmpty());
+
+        assertEquals(resultBean.get(0).getAsg_name(), "asg-1-spot");
+        assertEquals(resultBean.get(0).getCluster_name(), "asg-1");
+        assertEquals(resultBean.get(0).getLaunch_config_id(), "l-1");
+        assertEquals(resultBean.get(0).getBid_price(), "0.5");
+
+        SpotAutoScalingBean updatedBean = new SpotAutoScalingBean();
+        updatedBean.setBid_price("0.6");
+        spotAutoScalingDAO.updateSpotAutoScalingGroup("asg-1-spot", updatedBean);
+        List<SpotAutoScalingBean> resultBean2 = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
+        assertFalse(resultBean2.isEmpty());
+
+        assertEquals(resultBean2.get(0).getAsg_name(), "asg-1-spot");
+        assertEquals(resultBean2.get(0).getCluster_name(), "asg-1");
+        assertEquals(resultBean2.get(0).getLaunch_config_id(), "l-1");
+        assertEquals(resultBean2.get(0).getBid_price(), "0.6");
+
+        SpotAutoScalingBean bean3 = new SpotAutoScalingBean();
+        bean3.setAsg_name("asg-1-spot1");
+        bean3.setCluster_name("asg-1");
+        bean3.setLaunch_config_id("l-2");
+        bean3.setBid_price("0.7");
+        bean3.setSpot_ratio(0.6);
+
+        spotAutoScalingDAO.insertAutoScalingGroupToCluster("asg-1-spot1", bean3);
+        resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
+        assertEquals(resultBean.size(), 2);
+
+        SpotAutoScalingBean resultBean3 = spotAutoScalingDAO.getClusterByAutoScalingGroup("asg-1-spot1");
+        assertEquals(resultBean3.getAsg_name(), "asg-1-spot1");
+        assertEquals(resultBean3.getCluster_name(), "asg-1");
+        assertEquals(resultBean3.getBid_price(), "0.7");
+
+        spotAutoScalingDAO.deleteAutoScalingGroupFromCluster("asg-1-spot1");
+        resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
+        assertEquals(resultBean.size(), 1);
+
+        spotAutoScalingDAO.deleteAllAutoScalingGroupByCluster("asg-1");
+        resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
+        assertTrue(resultBean.isEmpty());
+
     }
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {

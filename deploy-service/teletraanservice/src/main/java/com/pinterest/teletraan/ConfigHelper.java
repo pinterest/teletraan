@@ -88,6 +88,7 @@ public class ConfigHelper {
         context.setHostTypeDAO(new DBHostTypeDAOImpl(dataSource));
         context.setSecurityZoneDAO(new DBSecurityZoneDAOImpl(dataSource));
         context.setPlacementDAO(new DBPlacementDAOImpl(dataSource));
+        context.setSpotAutoScalingDAO(new DBSpotAutoScalingDAOImpl(dataSource));
 
         // TODO Arcee specific
         context.setAlarmDAO(new DBAlarmDAOImpl(dataSource));
@@ -263,13 +264,6 @@ public class ConfigHelper {
                 LOG.info("Scheduled MetricsCollector.");
             }
 
-            if (workerName.equalsIgnoreCase(GroupInfoCollector.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new GroupInfoCollector(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled GroupInfoCollector.");
-            }
-
             if (workerName.equalsIgnoreCase(GroupInfoUpdater.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 Runnable worker = new GroupInfoUpdater(serviceContext);
@@ -331,6 +325,13 @@ public class ConfigHelper {
                 Runnable worker = new ReservedInstanceScheduler(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled ReservedInstanceScheduler.");
+            }
+
+            if (workerName.equalsIgnoreCase(SpotAutoScalingScheduler.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new SpotAutoScalingScheduler(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled SpotAutoScalingScheduler");
             }
         }
     }

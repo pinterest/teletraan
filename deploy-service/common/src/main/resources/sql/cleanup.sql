@@ -36,3 +36,4 @@ DROP TABLE IF EXISTS base_images;
 DROP TABLE IF EXISTS host_types;
 DROP TABLE IF EXISTS security_zones;
 DROP TABLE IF EXISTS placements;
+DROP TABLE IF EXISTS spot_auto_scaling_groups;

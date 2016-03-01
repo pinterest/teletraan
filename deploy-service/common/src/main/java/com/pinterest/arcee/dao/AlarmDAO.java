@@ -27,7 +27,7 @@ public interface AlarmDAO {
 
     AsgAlarmBean getAlarmInfoByGroupAndMetricSource(String groupName, String metricSource) throws Exception;
 
-    void insertAlarmInfo(AsgAlarmBean asgAlarmBean) throws Exception;
+    void insertOrUpdateAlarmInfo(AsgAlarmBean asgAlarmBean) throws Exception;
 
     void deleteAlarmInfoById(String alarmId)  throws Exception;
 

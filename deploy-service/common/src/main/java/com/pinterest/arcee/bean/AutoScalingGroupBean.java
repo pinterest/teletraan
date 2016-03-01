@@ -43,6 +43,15 @@ public class AutoScalingGroupBean {
     @JsonProperty("instances")
     private List<String> instances;
 
+    @JsonProperty("spotGroup")
+    private Boolean spotGroup;
+
+    @JsonProperty("spotRatio")
+    private Double spotRatio;
+
+    @JsonProperty("bidPrice")
+    private String bidPrice;
+
     public int getMinSize() { return minSize; }
 
     public void setMinSize(int minSize) { this.minSize = minSize; }
@@ -64,4 +73,16 @@ public class AutoScalingGroupBean {
     public void setInstances(List<String> instances) { this.instances = instances; }
 
     public void addToInstances(String instance) { this.instances.add(instance); }
+
+    public void setSpotGroup(Boolean spotGroup) { this.spotGroup = spotGroup; }
+
+    public Boolean getSpotGroup() { return spotGroup; }
+
+    public void setSpotRatio(Double spotRatio) { this.spotRatio = spotRatio; }
+
+    public Double getSpotRatio() { return spotRatio; }
+
+    public void setBidPrice(String bidPrice) { this.bidPrice = bidPrice; }
+
+    public String getBidPrice() { return bidPrice; }
 }

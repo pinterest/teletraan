@@ -30,12 +30,15 @@ import com.pinterest.arcee.autoscaling.AwsAlarmManager;
 import com.pinterest.arcee.autoscaling.AwsAutoScaleGroupManager;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.ImageBean;
+import com.pinterest.arcee.bean.SpotAutoScalingBean;
 import com.pinterest.arcee.dao.AlarmDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.ImageDAO;
+import com.pinterest.arcee.dao.SpotAutoScalingDAO;
 import com.pinterest.arcee.db.DBAlarmDAOImpl;
 import com.pinterest.arcee.db.DBGroupInfoDAOImpl;
 import com.pinterest.arcee.db.DBImageDAOImpl;
+import com.pinterest.arcee.db.DBSpotAutoScalingDAOImpl;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.dao.GroupDAO;
@@ -80,6 +83,7 @@ public class GroupHandlerTest {
     private static CMDBHostGroupManager mockCMDBDAO;
     private static GroupHandler groupHandler;
     private static ImageDAO imageDAO;
+    private static SpotAutoScalingDAO spotAutoScalingDAO;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -104,6 +108,8 @@ public class GroupHandlerTest {
         alarmDAO = new DBAlarmDAOImpl(DATASOURCE);
         utilDAO = new DBUtilDAOImpl(DATASOURCE);
         imageDAO = new DBImageDAOImpl(DATASOURCE);
+        spotAutoScalingDAO = new DBSpotAutoScalingDAOImpl(DATASOURCE);
+
 
         mockCMDBDAO = mock(CMDBHostGroupManager.class);
         mockAwsManager = mock(AwsAutoScaleGroupManager.class);
@@ -123,6 +129,7 @@ public class GroupHandlerTest {
         context.setAutoScaleGroupManager(mockAwsManager);
         context.setAlarmManager(mockAlarmWatcher);
         context.setImageDAO(imageDAO);
+        context.setSpotAutoScalingDAO(spotAutoScalingDAO);
         groupHandler = new GroupHandler(context);
     }
 
@@ -173,6 +180,13 @@ public class GroupHandlerTest {
 
         GroupBean groupBean = generateDefaultBean("test2", "ami-12345", "test2", "test2-1", lastUpdate);
         groupInfoDAO.insertGroupInfo(groupBean);
+        SpotAutoScalingBean spotAutoScalingBean = new SpotAutoScalingBean();
+        spotAutoScalingBean.setAsg_name("test2-spot");
+        spotAutoScalingBean.setBid_price("0.6");
+        spotAutoScalingBean.setCluster_name("test2");
+        spotAutoScalingBean.setLaunch_config_id("l-2");
+        spotAutoScalingBean.setSpot_ratio(0.5);
+        spotAutoScalingDAO.insertAutoScalingGroupToCluster("test2-spot", spotAutoScalingBean);
 
         // no launch config update, only update group table
         GroupBean updatedBean2 = new GroupBean();
@@ -233,41 +247,42 @@ public class GroupHandlerTest {
         groupHandler.updateLaunchConfig("test4", updatedBean);
         ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
         verify(mockAwsManager, never()).createLaunchConfig(argument.capture());
-        verify(mockAwsManager, times(1)).updateSubnet("test4", "subnet-2");
+        verify(mockAwsManager, times(1)).updateSubnet("test4", updatedBean.getSubnets());
     }
 
     @Test
     public void updateBothConfigAndSubnetChangeTest() throws Exception {
         // update launch config, asg updates
         Long lastUpdate = System.currentTimeMillis();
-        GroupBean groupBean = generateDefaultBean("test5", "ami-12345", "subnet-3", "config-2", lastUpdate);
+        GroupBean groupBean = generateDefaultBean("test6", "ami-12345", "subnet-3", "config-2", lastUpdate);
         groupInfoDAO.insertGroupInfo(groupBean);
 
         GroupBean updatedBean = new GroupBean();
-        updatedBean.setGroup_name("test5");
+        updatedBean.setGroup_name("test6");
         updatedBean.setImage_id("ami-123456");
         updatedBean.setSubnets("subnet-4");
-        when(mockAwsManager.hasAutoScalingGroup("test5")).thenReturn(Boolean.TRUE);
-        groupHandler.updateLaunchConfig("test5", updatedBean);
+        when(mockAwsManager.hasAutoScalingGroup("test6")).thenReturn(Boolean.TRUE);
+
+        groupHandler.updateLaunchConfig("test6", updatedBean);
         ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
         verify(mockAwsManager, times(1)).createLaunchConfig(argument.capture());
         GroupBean actualUpdatedBean = argument.getValue();
 
-        assertEquals(actualUpdatedBean.getGroup_name(), "test5");
+        assertEquals(actualUpdatedBean.getGroup_name(), "test6");
         assertFalse(actualUpdatedBean.getAssign_public_ip());
         assertEquals(actualUpdatedBean.getIam_role(), "base");
         assertEquals(actualUpdatedBean.getImage_id(), "ami-123456");
-        assertEquals(actualUpdatedBean.getUser_data(), Base64.encodeBase64String("#cloud-config\nrole: test5\n".getBytes()));
+        assertEquals(actualUpdatedBean.getUser_data(), Base64.encodeBase64String("#cloud-config\nrole: test6\n".getBytes()));
 
-        verify(mockAwsManager, times(1)).updateSubnet("test5", "subnet-4");
+        verify(mockAwsManager, times(1)).updateSubnet("test6", updatedBean.getSubnets());
 
-        GroupBean resultGroupBean = groupInfoDAO.getGroupInfo("test5");
-        assertEquals(resultGroupBean.getGroup_name(), "test5");
+        GroupBean resultGroupBean = groupInfoDAO.getGroupInfo("test6");
+        assertEquals(resultGroupBean.getGroup_name(), "test6");
         assertFalse(resultGroupBean.getAssign_public_ip());
         assertEquals(resultGroupBean.getIam_role(), "base");
         assertEquals(resultGroupBean.getImage_id(), "ami-123456");
         assertEquals(resultGroupBean.getSubnets(), "subnet-4");
-        assertEquals(resultGroupBean.getUser_data(), Base64.encodeBase64String("#cloud-config\nrole: test5\n".getBytes()));
+        assertEquals(resultGroupBean.getUser_data(), Base64.encodeBase64String("#cloud-config\nrole: test6\n".getBytes()));
     }
 
     @Test

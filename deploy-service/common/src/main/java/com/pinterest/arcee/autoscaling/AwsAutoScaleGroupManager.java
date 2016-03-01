@@ -15,13 +15,12 @@
  */
 package com.pinterest.arcee.autoscaling;
 
-import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.autoscaling.model.*;
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.deployservice.bean.ASGStatus;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +41,7 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     private String SNS_TOPIC_ARN;
     private String ROLE_ARN;
     private AmazonAutoScalingClient aasClient;
+
     private static final  String[] NOTIFICATION_TYPE = {
         "autoscaling:EC2_INSTANCE_LAUNCH",
         "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
@@ -59,15 +59,27 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     //------ Launch Config
     @Override
     public String createLaunchConfig(GroupBean request) throws Exception {
+        return createLaunchConfigInternal(request, null);
+    }
+
+    @Override
+    public String createSpotLaunchConfig(GroupBean request, String bidPrice) throws Exception {
+        return createLaunchConfigInternal(request, bidPrice);
+    }
+
+
+    private String createLaunchConfigInternal(GroupBean request, String bidPrice) {
+        String launchConfigId = genLaunchConfigId(request.getGroup_name());
         CreateLaunchConfigurationRequest configurationRequest = new CreateLaunchConfigurationRequest();
         configurationRequest.setImageId(request.getImage_id());
         configurationRequest.setKeyName("ops");
-        String configId = genLaunchConfigId(request.getGroup_name());
-        configurationRequest.setLaunchConfigurationName(configId);
+        configurationRequest.setLaunchConfigurationName(launchConfigId);
         configurationRequest.setAssociatePublicIpAddress(request.getAssign_public_ip() != null && request.getAssign_public_ip());
-
         if (request.getSecurity_group() != null) {
             configurationRequest.setSecurityGroups(Arrays.asList(request.getSecurity_group()));
+        }
+        if (bidPrice != null) {
+            configurationRequest.setSpotPrice(bidPrice);
         }
 
         configurationRequest.setIamInstanceProfile(request.getIam_role());
@@ -78,37 +90,27 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         configurationRequest.setInstanceMonitoring(monitoring);
         configurationRequest.setUserData(request.getUser_data());
         aasClient.createLaunchConfiguration(configurationRequest);
-        return configId;
+        return launchConfigId;
     }
 
     @Override
-    public String createLaunchConfig(String groupName, String instanceId, String imageId) throws Exception {
-        if (instanceId == null) {
-            throw new Exception(String.format("Cannot get instance id when creating launch config for %s", groupName));
-        }
-        String configId = genLaunchConfigId(groupName);
-        CreateLaunchConfigurationRequest configurationRequest = new CreateLaunchConfigurationRequest();
-        configurationRequest.setInstanceId(instanceId);
-        configurationRequest.setImageId(imageId);
-        configurationRequest.setLaunchConfigurationName(configId);
-        aasClient.createLaunchConfiguration(configurationRequest);
-        return configId;
-    }
-
-    @Override
-    public void deleteLaunchConfig(String ConfigId) throws Exception {
+    public void deleteLaunchConfig(String launchConfig) throws Exception {
         try {
-            if (ConfigId == null) {
+            if (launchConfig == null) {
                 return;
             }
 
             DeleteLaunchConfigurationRequest request = new DeleteLaunchConfigurationRequest();
-            request.setLaunchConfigurationName(ConfigId);
+            request.setLaunchConfigurationName(launchConfig);
             aasClient.deleteLaunchConfiguration(request);
-        } catch (AmazonClientException e) {
-            LOG.error(e.getMessage());
+        } catch (AmazonServiceException e) {
+            // if the launch config not found, or still in use. siliently ignore the error
+            if (e.getErrorType() != AmazonServiceException.ErrorType.Client) {
+                throw e;
+            }
         }
     }
+
 
     @Override
     public void disableAutoScalingGroup(String groupName) throws Exception {
@@ -125,9 +127,9 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         ResumeProcessesRequest request = new ResumeProcessesRequest();
         request.setAutoScalingGroupName(groupName);
         request.setScalingProcesses(Arrays
-            .asList(PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_HEALTHCHECK,
-                PROCESS_REPLACEUNHEALTHY,
-                PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS, PROCESS_ADDTOLOADBALANCER));
+                .asList(PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_HEALTHCHECK,
+                        PROCESS_REPLACEUNHEALTHY,
+                        PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS, PROCESS_ADDTOLOADBALANCER));
         aasClient.resumeProcesses(request);
     }
 
@@ -178,23 +180,34 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
 
     @Override
     public void updateSubnet(String groupName, String subnets) throws Exception {
-        UpdateAutoScalingGroupRequest updateAutoScalingGroupRequest = new UpdateAutoScalingGroupRequest();
-        updateAutoScalingGroupRequest.setAutoScalingGroupName(groupName);
-        updateAutoScalingGroupRequest.setVPCZoneIdentifier(subnets);
-        aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
+        try {
+            UpdateAutoScalingGroupRequest updateAutoScalingGroupRequest = new UpdateAutoScalingGroupRequest();
+            updateAutoScalingGroupRequest.setAutoScalingGroupName(groupName);
+            updateAutoScalingGroupRequest.setVPCZoneIdentifier(subnets);
+            aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
+        } catch (AmazonServiceException ex) {
+            if (ex.getErrorType() == AmazonServiceException.ErrorType.Client) {
+                LOG.info(String.format("Ignore client error: error code: %s, error message: %s",
+                        ex.getErrorCode(), ex.getErrorMessage()));
+            } else {
+                throw ex;
+            }
+        }
     }
 
     @Override
-    public void createAutoScalingGroup(String ConfigId, AutoScalingRequestBean request, String subnets) throws Exception {
+    public void createAutoScalingGroup(String configId, AutoScalingRequestBean request, String subnets) throws Exception {
         CreateAutoScalingGroupRequest autoScalingGroupRequest = new CreateAutoScalingGroupRequest();
         autoScalingGroupRequest.setAutoScalingGroupName(request.getGroupName());
         autoScalingGroupRequest.setVPCZoneIdentifier(subnets);
         autoScalingGroupRequest.withMinSize(request.getMinSize()).withMaxSize(request.getMaxSize());
-        autoScalingGroupRequest.setLaunchConfigurationName(ConfigId);
+        autoScalingGroupRequest.setLaunchConfigurationName(configId);
         autoScalingGroupRequest.setTerminationPolicies(
-            Arrays.asList(request.getTerminationPolicy()));
+                Arrays.asList(request.getTerminationPolicy()));
         aasClient.createAutoScalingGroup(autoScalingGroupRequest);
 
+        LOG.info(String.format("Creating auto scaling group: %s, with min size: %d, max size: %d",
+                request.getGroupName(), request.getMinSize(), request.getMaxSize()));
         SuspendProcessesRequest suspendProcessesRequest = new SuspendProcessesRequest();
         suspendProcessesRequest.setScalingProcesses(Arrays.asList(PROCESS_AZREBALANCE));
         suspendProcessesRequest.setAutoScalingGroupName(request.getGroupName());
@@ -214,54 +227,30 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     public void updateAutoScalingGroup(AutoScalingRequestBean request, String subnets) throws Exception {
         UpdateAutoScalingGroupRequest updateAutoScalingGroupRequest = new UpdateAutoScalingGroupRequest();
         updateAutoScalingGroupRequest.setAutoScalingGroupName(request.getGroupName());
-        updateAutoScalingGroupRequest.setVPCZoneIdentifier(subnets);
+        if (!StringUtils.isEmpty(subnets)) {
+            updateAutoScalingGroupRequest.setVPCZoneIdentifier(subnets);
+        }
         updateAutoScalingGroupRequest.setTerminationPolicies(
-            Arrays.asList(request.getTerminationPolicy()));
+                Arrays.asList(request.getTerminationPolicy()));
         updateAutoScalingGroupRequest.withMinSize(request.getMinSize()).withMaxSize(
-            request.getMaxSize());
+                request.getMaxSize());
         aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
     }
 
     @Override
     public void changeAutoScalingGroupLaunchConfig(String groupName, String configId) throws Exception {
-        UpdateAutoScalingGroupRequest updateAutoScalingGroupRequest = new UpdateAutoScalingGroupRequest();
-        updateAutoScalingGroupRequest.setAutoScalingGroupName(groupName);
-        updateAutoScalingGroupRequest.setLaunchConfigurationName(configId);
-        aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
-    }
-
-    @Override
-    public GroupBean getLaunchConfigByName(String configId) throws Exception {
-        GroupBean groupBean = new GroupBean();
-        if (configId == null) {
-            return groupBean;
+        try {
+            UpdateAutoScalingGroupRequest updateAutoScalingGroupRequest = new UpdateAutoScalingGroupRequest();
+            updateAutoScalingGroupRequest.setAutoScalingGroupName(groupName);
+            updateAutoScalingGroupRequest.setLaunchConfigurationName(configId);
+            aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
+        } catch (AmazonServiceException ex) {
+            if (ex.getErrorType() == AmazonServiceException.ErrorType.Client) {
+                LOG.info(String.format("%s %s", ex.getErrorCode(), ex.getErrorMessage()));
+            } else {
+                throw ex;
+            }
         }
-
-        DescribeLaunchConfigurationsRequest configurationsRequest = new DescribeLaunchConfigurationsRequest();
-        configurationsRequest.setLaunchConfigurationNames(Arrays.asList(configId));
-        DescribeLaunchConfigurationsResult configurationsResult = aasClient.describeLaunchConfigurations(configurationsRequest);
-        List<LaunchConfiguration> configs = configurationsResult.getLaunchConfigurations();
-        if (configs.isEmpty()) {
-            return groupBean;
-        }
-
-        LaunchConfiguration config = configs.get(0);
-        groupBean.setInstance_type(config.getInstanceType());
-        groupBean.setImage_id(config.getImageId());
-        if (!config.getSecurityGroups().isEmpty()) {
-            groupBean.setSecurity_group(config.getSecurityGroups().get(0));
-        }
-
-        groupBean.setUser_data(new String(Base64.decodeBase64(config.getUserData())));
-        groupBean.setIam_role(config.getIamInstanceProfile());
-
-        if (config.isAssociatePublicIpAddress() != null) {
-            groupBean.setAssign_public_ip(config.getAssociatePublicIpAddress());
-        } else {
-            // default value to false
-            groupBean.setAssign_public_ip(false);
-        }
-        return groupBean;
     }
 
     @Override
@@ -389,7 +378,7 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     public void addScalingPolicyToGroup(String groupName, ScalingPolicyBean policyBean) throws Exception {
         PutScalingPolicyRequest request = new PutScalingPolicyRequest();
         request.setAdjustmentType(policyBean.getScalingType());
-        request.setPolicyName(policyBean.getPolicyName());
+        request.setPolicyName(getScalingPolicyName(groupName, policyBean.getPolicyType()));
         request.setAutoScalingGroupName(groupName);
         request.setScalingAdjustment(policyBean.getScaleSize());
         request.setCooldown(policyBean.getCoolDownTime() * 60);
@@ -408,10 +397,14 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
                 ScalingPolicyBean bean = new ScalingPolicyBean();
                 bean.setCoolDownTime(policy.getCooldown() / 60);
                 bean.setScalingType(policy.getAdjustmentType());
-                bean.setPolicyName(policy.getPolicyName());
                 bean.setScaleSize(policy.getScalingAdjustment());
+                if (policy.getScalingAdjustment() > 0) {
+                    bean.setPolicyType(PolicyType.SCALEUP.toString());
+                } else {
+                    bean.setPolicyType(PolicyType.SCALEDOWN.toString());
+                }
                 bean.setARN(policy.getPolicyARN());
-                policyBeans.put(bean.getPolicyName(), bean);
+                policyBeans.put(bean.getPolicyType(), bean);
             }
             return policyBeans;
         } catch (com.amazonaws.AmazonServiceException e) {
@@ -583,5 +576,9 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         Date date = new Date();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
         return String.format("%s-%s", groupName, df.format(date));
+    }
+
+    String getScalingPolicyName(String groupName, String scaleType) {
+        return String.format("%s_%s_rule", groupName, scaleType);
     }
 }

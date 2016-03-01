@@ -73,6 +73,7 @@ public class ServiceContext {
     private HostTypeDAO hostTypeDAO;
     private SecurityZoneDAO securityZoneDAO;
     private PlacementDAO placementDAO;
+    private SpotAutoScalingDAO spotAutoScalingDAO;
 
     private String serviceStage;
     private MailManager mailManager;
@@ -337,6 +338,10 @@ public class ServiceContext {
     public void setPlacementDAO(PlacementDAO placementDAO) {
         this.placementDAO = placementDAO;
     }
+
+    public SpotAutoScalingDAO getSpotAutoScalingDAO() { return spotAutoScalingDAO; }
+
+    public void setSpotAutoScalingDAO(SpotAutoScalingDAO spotAutoScalingDAO) { this.spotAutoScalingDAO = spotAutoScalingDAO; }
 
     public void setEventSender(EventSender sender) {
         this.eventSender = sender;

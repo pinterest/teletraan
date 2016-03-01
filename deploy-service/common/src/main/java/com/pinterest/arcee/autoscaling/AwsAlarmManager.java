@@ -38,7 +38,7 @@ public class AwsAlarmManager implements AlarmManager {
     }
 
     @Override
-    public void putAlarmToPolicy(String action, AsgAlarmBean asgAlarmBean) throws Exception {
+    public void putAlarmToPolicy(String action, String clusterName, AsgAlarmBean asgAlarmBean) throws Exception {
         PutMetricAlarmRequest request = new PutMetricAlarmRequest();
         List<String> ARNs = new LinkedList<>();
         ARNs.add(action);
@@ -46,9 +46,9 @@ public class AwsAlarmManager implements AlarmManager {
         if (asgAlarmBean.getFrom_aws_metric()) {
             request.setNamespace(METRIC_NAMESPACE);
         } else {
-            request.setNamespace(getNameSpace(asgAlarmBean.getGroup_name()));
+            request.setNamespace(getNameSpace(clusterName));
         }
-        request.setDimensions(Arrays.asList(getDimention(asgAlarmBean.getGroup_name())));
+        request.setDimensions(Arrays.asList(getDimention(clusterName)));
         request.setActionsEnabled(true);
 
         request.setComparisonOperator(ComparisonOperator.fromValue(asgAlarmBean.getComparator()));

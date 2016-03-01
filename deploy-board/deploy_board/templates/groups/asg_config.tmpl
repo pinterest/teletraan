@@ -77,6 +77,55 @@
                </select>
             </div>
           </div>
+
+          <div class="form-group">
+          <label for="enablespot" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Whether we allow spot instance in the fleet">
+                        Allow Spot Instances
+           </label>
+            <div class="col-xs-3">
+                <div class="input-group">
+                    {% if asg.enableSpot %}
+                        <input class="" id="enableSpot" name="enableSpot" type="checkbox" value="" checked>
+                    {% else %}
+                        <input class="" id="enableSpot" name="enableSpot" type="checkbox" value="">
+                    {% endif %}
+                </div>
+            </div>
+            <label for="spotInstanceRatio" class="deployToolTip control-label col-xs-3"
+                        data-toggle="tooltip"
+                        title="percentage of the spot instance in the fleet">
+                        Spot Instances Percentage
+            </label>
+                    <div class="col-xs-4">
+                        <div class="input-group">
+                        <input class="form-control" name="spotRatio" required="true" id="spotRatio"
+                               type="text" value="{{ asg.ratio }}"/>
+                        <span class="input-group-addon">%</span>
+                        </div>
+                    </div>
+          </div>
+
+          <div class="form-group">
+            <label for="bidPrice" class="deployToolTip control-label col-xs-2"
+              data-toggle="tooltip"
+              title="bidPrice">
+            Maximum Bid Price
+            </label>
+            <div class="col-xs-4">
+                <div class="input-group">
+                <span class="input-group-addon">$</span>
+                <input class="form-control" name="bidPrice" required="true" type="text" id="bidPrice"
+                value="{{asg.bidPrice| default_if_none:'' }}" />
+                </div>
+            </div>
+            <label for="bidPrice" class="deployToolTip control-label col-xs-2"
+              data-toggle="tooltip"
+              title="bidPrice">
+            ({{instanceType}} Pricing: $1.68/Hour)
+            </label>
+          </div>
         </fieldset>
       {% csrf_token %}
     </form>
@@ -100,6 +149,16 @@
     $(function () {
         $('#saveEnvConfigBtnId').attr('disabled','disabled');
         $('#resetEnvConfigBtnId').attr('disabled','disabled');
+        if ($("#enableSpot").is(":checked")) {
+            $("#spotRatio").removeAttr("disabled");
+            $("#bidPrice").removeAttr("disabled");
+        } else {
+            $("#spotRatio").attr("disabled", "disabled");
+            $("#bidPrice").attr("disabled", "disabled");
+            $("#spotRatio").attr("value", "");
+            $("#bidPrice").attr("value", "");
+        }
+
 
         $('#autoscalingGroupConfigFormId input').keyup(function() {
             $('#saveEnvConfigBtnId').removeAttr('disabled');
@@ -121,6 +180,19 @@
         $('#autoscalingGroupConfigFormId input').change(function() {
             $('#saveEnvConfigBtnId').removeAttr('disabled');
             $('#resetEnvConfigBtnId').removeAttr('disabled');
+        });
+
+        $("#enableSpot").click(function() {
+            if ($("#enableSpot").is(":checked")) {
+                $("#spotRatio").removeAttr("disabled");
+                $("#bidPrice").removeAttr("disabled");
+
+            } else {
+                $("#spotRatio").attr("value", "");
+                $("#bidPrice").attr("value", "");
+                $("#spotRatio").attr("disabled", "disabled");
+                $("#bidPrice").attr("disabled", "disabled");
+            }
         });
 
         $('#saveEnvConfigBtnId').click(function () {
