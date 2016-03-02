@@ -50,6 +50,9 @@ public class AutoScalingRequestBean {
     @JsonProperty("spotRatio")
     private Double spotRatio;
 
+    @JsonProperty("sensitivityRatio")
+    private Double sensitivityRatio;
+
     public String getGroupName() {
         return groupName;
     }
@@ -101,4 +104,8 @@ public class AutoScalingRequestBean {
     public Double getSpotRatio() { return spotRatio; }
 
     public void setSpotRatio(Double spotRatio) { this.spotRatio = spotRatio; }
+
+    public Double getSensitivityRatio() { return sensitivityRatio; }
+
+    public void setSensitivityRatio(Double sensitivityRatio) { this.sensitivityRatio =sensitivityRatio; }
 }

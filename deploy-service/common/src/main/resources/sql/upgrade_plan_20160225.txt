@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS spot_auto_scaling_groups (
    launch_config_id VARCHAR(128)     NOT NULL,
    bid_price        VARCHAR(32)      NOT NULL,
    spot_ratio       DOUBLE           NOT NULL,
+   sensitivity_ratio DOUBLE          NOT NULL DEFAULT 0.1,
    PRIMARY KEY (asg_name)
 );
 CREATE INDEX asg_cluster_idx ON spot_auto_scaling_groups (cluster_name);

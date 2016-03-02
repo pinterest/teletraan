@@ -68,6 +68,11 @@ def get_autoscaling(request, group_name):
                             request.teletraan_user_id.token)
 
 
+def get_autoscaling_summary(request, group_name):
+    return deployclient.get("/groups/{}/autoscaling/summary".format(group_name),
+                            request.teletraan_user_id.token)
+
+
 def get_autoscaling_group_instances(request, group_name):
     return deployclient.get("/groups/{}/autoscaling/instances".format(group_name),
                             request.teletraan_user_id.token)

@@ -165,10 +165,12 @@ public class GroupHandler {
 
         private String clusterName;
         private String spotGroupName;
+        private Double sensitivityRatio;
 
-        public CreateSpotAutoScalingGroupJob(String clusterName, String spotGroupName) {
+        public CreateSpotAutoScalingGroupJob(String clusterName, SpotAutoScalingBean spotAutoScalingBean) {
             this.clusterName = clusterName;
-            this.spotGroupName = spotGroupName;
+            spotGroupName = spotAutoScalingBean.getAsg_name();
+            sensitivityRatio = spotAutoScalingBean.getSensitivity_ratio();
         }
 
         @Override
@@ -190,7 +192,7 @@ public class GroupHandler {
             }
 
             for (Map.Entry<String, ScalingPolicyBean> scalingPolicy : scalingPolicies.entrySet()) {
-                asgDAO.addScalingPolicyToGroup(spotGroupName, scalingPolicy.getValue());
+                asgDAO.addScalingPolicyToGroup(spotGroupName,  scalingPolicy.getValue());
             }
 
 
@@ -203,7 +205,7 @@ public class GroupHandler {
             Map<String, ScalingPolicyBean> spotScalingPolicies = asgDAO.getScalingPoliciesForGroup(spotGroupName);
             List<AsgAlarmBean> spotAlarmInfos = new ArrayList<>();
             for (AsgAlarmBean asgAlarmBean : asgAlarmBeans) {
-                spotAlarmInfos.add(generateSpotFleetAlarm(spotGroupName, asgAlarmBean));
+                spotAlarmInfos.add(generateSpotFleetAlarm(spotGroupName, sensitivityRatio, asgAlarmBean));
             }
 
             updateAlarmInfoInternal(groupName, spotScalingPolicies, spotAlarmInfos);
@@ -432,7 +434,7 @@ public class GroupHandler {
         spotAutoScalingBean.setLaunch_config_id(newConfig);
         spotAutoScalingDAO.insertAutoScalingGroupToCluster(spotGroupName, spotAutoScalingBean);
         // make aws create auto scaling as an async job
-        jobPool.submit(new CreateSpotAutoScalingGroupJob(clusterName, spotGroupName));
+        jobPool.submit(new CreateSpotAutoScalingGroupJob(clusterName, spotAutoScalingBean));
     }
 
     public void createAutoScalingGroup(String groupName, AutoScalingRequestBean request) throws Exception {
@@ -498,6 +500,7 @@ public class GroupHandler {
                     autoScalingBean.setBid_price(request.getSpotPrice());
                 }
                 autoScalingBean.setSpot_ratio(request.getSpotRatio());
+                autoScalingBean.setSensitivity_ratio(request.getSensitivityRatio());
                 spotAutoScalingDAO.updateSpotAutoScalingGroup(autoScalingBean.getAsg_name(), autoScalingBean);
                 asgDAO.updateAutoScalingGroup(generateSpotAutoScalingGroupRequest(autoScalingBean.getAsg_name(), request), groupBean.getSubnets());
             }
@@ -521,7 +524,8 @@ public class GroupHandler {
         jobPool.submit(new DeleteAutoScalingJob(groupName, detachInstance, null));
 
         // handle spot auto scaling group case
-        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(
+            groupName);
         for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
             String spotLaunchConfig = spotAutoScalingBean.getLaunch_config_id();
             spotAutoScalingDAO.deleteAutoScalingGroupFromCluster(spotAutoScalingBean.getAsg_name());
@@ -552,11 +556,34 @@ public class GroupHandler {
         for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
             AutoScalingGroupBean spotAsgGroup = asgDAO.getAutoScalingGroupInfoByName(spotAutoScalingBean.getAsg_name());
             spotAsgGroup.setSpotGroup(true);
-            spotAsgGroup.setBidPrice(spotAutoScalingBean.getBid_price());
-            spotAsgGroup.setSpotRatio(spotAutoScalingBean.getSpot_ratio());
             autoScalingGroupBeans.add(spotAsgGroup);
         }
         return autoScalingGroupBeans;
+    }
+
+    public AutoScalingSummaryBean getAutoScalingSummaryByName(String clusterName) throws Exception {
+        AutoScalingGroupBean asgInfo = asgDAO.getAutoScalingGroupInfoByName(clusterName);
+        AutoScalingSummaryBean autoScalingSummaryBean = new AutoScalingSummaryBean();
+        autoScalingSummaryBean.setStatus(asgInfo.getStatus());
+        autoScalingSummaryBean.setTerminationPolicy(asgInfo.getTerminationPolicy());
+        autoScalingSummaryBean.setMinSize(asgInfo.getMinSize());
+        autoScalingSummaryBean.setMaxSize(asgInfo.getMaxSize());
+        autoScalingSummaryBean.setEnableSpot(false);
+        if (asgInfo.getStatus() == ASGStatus.UNKNOWN) {
+            return autoScalingSummaryBean;
+        }
+
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(clusterName);
+        if (spotAutoScalingBeans.isEmpty()) {
+            return autoScalingSummaryBean;
+        }
+
+        autoScalingSummaryBean.setEnableSpot(true);
+        SpotAutoScalingBean spotAutoScalingBean = spotAutoScalingBeans.get(0);
+        autoScalingSummaryBean.setBidPrice(spotAutoScalingBean.getBid_price());
+        autoScalingSummaryBean.setSensitivityRatio(spotAutoScalingBean.getSensitivity_ratio());
+        autoScalingSummaryBean.setSpotRatio(spotAutoScalingBean.getSpot_ratio());
+        return autoScalingSummaryBean;
     }
 
     public ScalingPoliciesBean getScalingPolicyInfoByName(String groupName) throws Exception {
@@ -621,7 +648,7 @@ public class GroupHandler {
             List<AsgAlarmBean> spotAlarmInfos = new ArrayList<>();
             for (AsgAlarmBean asgAlarmBean : alarmInfos) {
                 spotAlarmInfos.add(
-                    generateSpotFleetAlarm(spotAutoScalingBean.getAsg_name(), asgAlarmBean));
+                    generateSpotFleetAlarm(spotAutoScalingBean.getAsg_name(), spotAutoScalingBean.getSensitivity_ratio(),  asgAlarmBean));
             }
             // the alarm should be set up to the reserved instance group space.
             updateAlarmInfoInternal(groupName, spotPolicies, spotAlarmInfos);
@@ -637,7 +664,7 @@ public class GroupHandler {
         for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
             List<AsgAlarmBean> spotAlarmInfos = new ArrayList<>();
             for (AsgAlarmBean asgAlarmBean : alarmInfos) {
-                spotAlarmInfos.add(generateSpotFleetAlarm(spotAutoScalingBean.getAsg_name(), asgAlarmBean));
+                spotAlarmInfos.add(generateSpotFleetAlarm(spotAutoScalingBean.getAsg_name(), spotAutoScalingBean.getSensitivity_ratio(), asgAlarmBean));
             }
 
             String spotGroupName = spotAutoScalingBean.getAsg_name();
@@ -647,7 +674,7 @@ public class GroupHandler {
     }
 
 
-    private AsgAlarmBean generateSpotFleetAlarm(String spotGroupName, AsgAlarmBean asgAlarmBean) throws Exception {
+    private AsgAlarmBean generateSpotFleetAlarm(String spotGroupName, Double sensitivity_ratio, AsgAlarmBean asgAlarmBean) throws Exception {
         AsgAlarmBean spotAlarmBean = new AsgAlarmBean();
         spotAlarmBean.setAlarm_id(String.format("%s-spot", asgAlarmBean.getAlarm_id()));
         spotAlarmBean.setAction_type(asgAlarmBean.getAction_type());
@@ -658,9 +685,9 @@ public class GroupHandler {
         spotAlarmBean.setMetric_source(asgAlarmBean.getMetric_source());
         spotAlarmBean.setMetric_name(asgAlarmBean.getMetric_name());
         if (asgAlarmBean.getComparator().equals("LessThanOrEqualToThreshold")) {
-            spotAlarmBean.setThreshold(asgAlarmBean.getThreshold() * 1.1);
+            spotAlarmBean.setThreshold(asgAlarmBean.getThreshold() * (1 - sensitivity_ratio));
         } else {
-            spotAlarmBean.setThreshold(asgAlarmBean.getThreshold() * 0.9);
+            spotAlarmBean.setThreshold(asgAlarmBean.getThreshold() * (1 - sensitivity_ratio));
         }
         return spotAlarmBean;
     }

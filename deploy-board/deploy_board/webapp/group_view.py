@@ -179,29 +179,18 @@ def create_asg(request, group_name):
 
 
 def get_asg_config(request, group_name):
-    asgs = groups_helper.get_autoscaling(request, group_name)
+    asg_summary = groups_helper.get_autoscaling_summary(request, group_name)
     instances = groups_helper.get_group_instances(request, group_name)
     group_info = groups_helper.get_group_info(request, group_name)
-    result_asg = {}
-    if len(asgs) > 1:
-        result_asg["enableSpot"] = True
-        for asg in asgs:
-            if asg.get("spotGroup"):
-                result_asg["ratio"] = asg["spotRatio"] * 100
-                result_asg["bidPrice"] = asg["bidPrice"]
-            else:
-                result_asg["minSize"] = asg["minSize"]
-                result_asg["maxSize"] = asg["maxSize"]
-                result_asg["terminationPolicy"] = asg["terminationPolicy"]
-    else:
-        result_asg = asgs[0]
-        result_asg["enableSpot"] = False
-
     group_size = len(instances)
     policies = groups_helper.TerminationPolicy
+    if asg_summary.get("spotRatio", None):
+        asg_summary["spotRatio"] *= 100
+    if asg_summary.get("sensitivityRatio", None):
+        asg_summary["sensitivityRatio"] *= 100
     content = render_to_string("groups/asg_config.tmpl", {
         "group_name": group_name,
-        "asg": result_asg,
+        "asg": asg_summary,
         "group_size": group_size,
         "terminationPolicies": policies,
         "instanceType": group_info.get("instanceType"),
@@ -252,6 +241,7 @@ def update_asg_config(request, group_name):
         if "enableSpot" in params:
             asg_request["enableSpot"] = True
             asg_request["spotRatio"] = float(params["spotRatio"]) / 100
+            asg_request["sensitivityRatio"] = float(params["sensitivityRatio"]) / 100
             asg_request["spotPrice"] = params["bidPrice"]
         else:
             asg_request["enableSpot"] = False

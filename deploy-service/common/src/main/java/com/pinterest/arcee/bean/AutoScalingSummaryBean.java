@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,6 @@
  */
 package com.pinterest.arcee.bean;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.deployservice.bean.ASGStatus;
 
@@ -23,7 +22,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 
 import java.util.List;
 
-public class AutoScalingGroupBean {
+public class AutoScalingSummaryBean {
     @NotEmpty
     @JsonProperty("minSize")
     private int minSize;
@@ -44,9 +43,17 @@ public class AutoScalingGroupBean {
     @JsonProperty("instances")
     private List<String> instances;
 
-    @NotEmpty
-    @JsonProperty("spotGroup")
-    private Boolean spotGroup;
+    @JsonProperty("enableSpot")
+    private Boolean enableSpot;
+
+    @JsonProperty("spotRatio")
+    private Double spotRatio;
+
+    @JsonProperty("bidPrice")
+    private String bidPrice;
+
+    @JsonProperty("sensitivityRatio")
+    private Double sensitivityRatio;
 
     public int getMinSize() { return minSize; }
 
@@ -70,7 +77,19 @@ public class AutoScalingGroupBean {
 
     public void addToInstances(String instance) { this.instances.add(instance); }
 
-    public void setSpotGroup(Boolean spotGroup) { this.spotGroup = spotGroup; }
+    public void setEnableSpot(Boolean enableSpot) { this.enableSpot = enableSpot; }
 
-    public Boolean getSpotGroup() { return spotGroup; }
+    public Boolean getEnableSpot() { return enableSpot; }
+
+    public void setSpotRatio(Double spotRatio) { this.spotRatio = spotRatio; }
+
+    public Double getSpotRatio() { return spotRatio; }
+
+    public void setBidPrice(String bidPrice) { this.bidPrice = bidPrice; }
+
+    public String getBidPrice() { return bidPrice; }
+
+    public void setSensitivityRatio(Double sensitivityRatio) { this.sensitivityRatio = sensitivityRatio; }
+
+    public Double getSensitivityRatio() { return sensitivityRatio; }
 }
