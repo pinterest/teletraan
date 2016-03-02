@@ -432,6 +432,7 @@ public class GroupHandler {
         spotAutoScalingBean.setBid_price(request.getSpotPrice());
         spotAutoScalingBean.setSpot_ratio(request.getSpotRatio());
         spotAutoScalingBean.setLaunch_config_id(newConfig);
+        spotAutoScalingBean.setSensitivity_ratio(request.getSensitivityRatio());
         spotAutoScalingDAO.insertAutoScalingGroupToCluster(spotGroupName, spotAutoScalingBean);
         // make aws create auto scaling as an async job
         jobPool.submit(new CreateSpotAutoScalingGroupJob(clusterName, spotAutoScalingBean));
