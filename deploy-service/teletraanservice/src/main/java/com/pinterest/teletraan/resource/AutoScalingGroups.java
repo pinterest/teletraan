@@ -97,6 +97,12 @@ public class AutoScalingGroups {
         return groupHandler.getAutoScalingGroupInfoByName(groupName);
     }
 
+    @GET
+    @Path("/summary")
+    public AutoScalingSummaryBean getAutoScalingSummaryByName(@PathParam("groupName") String groupName) throws Exception {
+        return groupHandler.getAutoScalingSummaryByName(groupName);
+    }
+
     @PUT
     public void updateAutoScalingGroup(@Context SecurityContext sc,
         @PathParam("groupName") String groupName,

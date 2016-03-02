@@ -84,7 +84,7 @@
                         title="Whether we allow spot instance in the fleet">
                         Allow Spot Instances
            </label>
-            <div class="col-xs-3">
+           <div class="col-xs-3">
                 <div class="input-group">
                     {% if asg.enableSpot %}
                         <input class="" id="enableSpot" name="enableSpot" type="checkbox" value="" checked>
@@ -93,18 +93,33 @@
                     {% endif %}
                 </div>
             </div>
-            <label for="spotInstanceRatio" class="deployToolTip control-label col-xs-3"
+           </div>
+
+           <div id="spotInstanceConfigDiv" class="hidden">
+           <div class="form-group">
+            <label for="spotInstanceRatio" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="percentage of the spot instance in the fleet">
-                        Spot Instances Percentage
+                        Spot Instances Ratio
             </label>
                     <div class="col-xs-4">
                         <div class="input-group">
                         <input class="form-control" name="spotRatio" required="true" id="spotRatio"
-                               type="text" value="{{ asg.ratio }}"/>
+                               type="text" value="{{ asg.spotRatio }}"/>
                         <span class="input-group-addon">%</span>
                         </div>
                     </div>
+             <label for="spotsensitivityRatio" class="deployToolTip control-label col-xs-2"
+               data-toggle="tooltip" title="">
+               Sensitivity Ratio
+               </label>
+              <div class="col-xs-4">
+                <div class="input-group">
+                    <input class="form-control" name="sensitivityRatio" required="true"
+                           type="text" value="{{ asg.sensitivityRatio }}"/>
+                    <span class="input-group-addon">%</span>
+                </div>
+              </div>
           </div>
 
           <div class="form-group">
@@ -126,6 +141,7 @@
             ({{instanceType}} Pricing: $1.68/Hour)
             </label>
           </div>
+        </div>
         </fieldset>
       {% csrf_token %}
     </form>
@@ -150,13 +166,9 @@
         $('#saveEnvConfigBtnId').attr('disabled','disabled');
         $('#resetEnvConfigBtnId').attr('disabled','disabled');
         if ($("#enableSpot").is(":checked")) {
-            $("#spotRatio").removeAttr("disabled");
-            $("#bidPrice").removeAttr("disabled");
+            $("#spotInstanceConfigDiv").removeClass("hidden");
         } else {
-            $("#spotRatio").attr("disabled", "disabled");
-            $("#bidPrice").attr("disabled", "disabled");
-            $("#spotRatio").attr("value", "");
-            $("#bidPrice").attr("value", "");
+            $("#spotInstanceConfigDiv").addClass("hidden");
         }
 
 
@@ -183,16 +195,11 @@
         });
 
         $("#enableSpot").click(function() {
-            if ($("#enableSpot").is(":checked")) {
-                $("#spotRatio").removeAttr("disabled");
-                $("#bidPrice").removeAttr("disabled");
-
-            } else {
-                $("#spotRatio").attr("value", "");
-                $("#bidPrice").attr("value", "");
-                $("#spotRatio").attr("disabled", "disabled");
-                $("#bidPrice").attr("disabled", "disabled");
-            }
+           if ($("#enableSpot").is(":checked")) {
+            $("#spotInstanceConfigDiv").removeClass("hidden");
+           } else {
+            $("#spotInstanceConfigDiv").addClass("hidden");
+           }
         });
 
         $('#saveEnvConfigBtnId').click(function () {

@@ -30,6 +30,8 @@ public class SpotAutoScalingBean implements Updatable {
 
     private Double spot_ratio;
 
+    private Double sensitivity_ratio;
+
     public String getAsg_name() { return asg_name; }
 
     public void setAsg_name(String asg_name) { this.asg_name = asg_name; }
@@ -50,6 +52,10 @@ public class SpotAutoScalingBean implements Updatable {
 
     public void setSpot_ratio(Double spot_ratio) { this.spot_ratio = spot_ratio; }
 
+    public Double getSensitivity_ratio() { return sensitivity_ratio; }
+
+    public void setSensitivity_ratio(Double sensitivity_ratio) { this.sensitivity_ratio = sensitivity_ratio; }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -58,6 +64,7 @@ public class SpotAutoScalingBean implements Updatable {
         clause.addColumn("launch_config_id", launch_config_id);
         clause.addColumn("bid_price", bid_price);
         clause.addColumn("spot_ratio", spot_ratio);
+        clause.addColumn("sensitivity_ratio", sensitivity_ratio);
         return clause;
     }
 
@@ -66,5 +73,6 @@ public class SpotAutoScalingBean implements Updatable {
                     "cluster_name=VALUES(cluster_name)," +
                     "launch_config_id=VALUES(launch_config_id)," +
                     "bid_price=VALUES(bid_price), " +
-                    "spot_ratio=VALUES(spot_ratio)";
+                    "spot_ratio=VALUES(spot_ratio)," +
+                    "sensitivity_ratio=VALUES(sensitivity_ratio)";
 }
