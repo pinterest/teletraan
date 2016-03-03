@@ -99,8 +99,8 @@ def run_prereqs(config):
     # check if the puppet has finished or not
     if IS_PINTEREST:
         respect_puppet = config.respect_puppet()
-        if respect_puppet and not os.path.exists("/var/lib/puppet/state/state.yaml"):
-            log.info("Waiting for first successful puppet run.")
+        if respect_puppet and not os.path.exists(config.get_puppet_file_path()):
+            log.info("Waiting for first puppet run.")
             sys.exit(0)
 
     ensure_dirs(config)
