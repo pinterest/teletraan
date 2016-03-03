@@ -501,7 +501,19 @@ public class GroupHandler {
                     autoScalingBean.setBid_price(request.getSpotPrice());
                 }
                 autoScalingBean.setSpot_ratio(request.getSpotRatio());
-                autoScalingBean.setSensitivity_ratio(request.getSensitivityRatio());
+                if (!autoScalingBean.getSensitivity_ratio().equals(request.getSensitivityRatio())) {
+                    autoScalingBean.setSensitivity_ratio(request.getSensitivityRatio());
+
+                    // update alarms.
+                    List<AsgAlarmBean> asgAlarmBeans = alarmDAO.getAlarmInfosByGroup(groupName);
+                    List<AsgAlarmBean> spotAsgAlarmBeans = new ArrayList<>();
+                    Map<String, ScalingPolicyBean> spotPolicies = asgDAO.getScalingPoliciesForGroup(autoScalingBean.getAsg_name());
+                    for (AsgAlarmBean asgAlarmBean : asgAlarmBeans) {
+                        spotAsgAlarmBeans.add(generateSpotFleetAlarm(autoScalingBean.getAsg_name(), request.getSensitivityRatio(), asgAlarmBean));
+                    }
+
+                    updateAlarmInfoInternal(groupName, spotPolicies, spotAsgAlarmBeans);
+                }
                 spotAutoScalingDAO.updateSpotAutoScalingGroup(autoScalingBean.getAsg_name(), autoScalingBean);
                 asgDAO.updateAutoScalingGroup(generateSpotAutoScalingGroupRequest(autoScalingBean.getAsg_name(), request), groupBean.getSubnets());
             }
@@ -670,7 +682,7 @@ public class GroupHandler {
 
             String spotGroupName = spotAutoScalingBean.getAsg_name();
             Map<String, ScalingPolicyBean> spotPolicies = asgDAO.getScalingPoliciesForGroup(spotGroupName);
-            updateAlarmInfoInternal(spotGroupName, spotPolicies, spotAlarmInfos);
+            updateAlarmInfoInternal(groupName, spotPolicies, spotAlarmInfos);
         }
     }
 
@@ -718,6 +730,12 @@ public class GroupHandler {
     }
 
     public void deleteAlarmFromAutoScalingGroup(String alarmId) throws Exception {
+        deleteAlarmFromAutoScalingGroupInternal(alarmId);
+        String spotAlarmId = String.format("%s-spot", alarmId);
+        deleteAlarmFromAutoScalingGroupInternal(spotAlarmId);
+    }
+
+    public void deleteAlarmFromAutoScalingGroupInternal(String alarmId) throws Exception {
         AsgAlarmBean asgAlarmBean = alarmDAO.getAlarmInfoById(alarmId);
         if (asgAlarmBean == null) {
             LOG.debug(String.format("Cannot find alarm with Id %s", alarmId));
