@@ -22,14 +22,14 @@ cd ~/teletraan-demo
 mkdir -p deploy-service
 curl -L https://github.com/pinterest/teletraan/releases/download/${RELEASE_VERSION}/teletraan-service-${DEPLOY_SERVICE_VERSION}.tar.gz | tar zxf - -C deploy-service
 echo "Teletraan server downloaded"
-sed -i '' 's/type: mysql/#type: mysql/' ./deploy-service/bin/server.yaml
-sed -i '' 's/host: localhost/#host: localhost/' ./deploy-service/bin/server.yaml
-sed -i '' 's/port: 3306/#port: 3306/' ./deploy-service/bin/server.yaml
-sed -i '' 's/userName: root/#userName: root/' ./deploy-service/bin/server.yaml
-sed -i '' 's/password:/#password:/' ./deploy-service/bin/server.yaml
-sed -i '' 's/pool: 10:50:20:5/#pool: 10:50:20:5/' ./deploy-service/bin/server.yaml
-sed -i '' 's/#type: embedded/type: embedded/' ./deploy-service/bin/server.yaml
-sed -i '' 's/#workDir: \/tmp\/teletraan\/db/workDir: \/tmp\/teletraan\/db/' ./deploy-service/bin/server.yaml
+sed -i -e 's/type: mysql/#type: mysql/' ./deploy-service/bin/server.yaml
+sed -i -e 's/host: localhost/#host: localhost/' ./deploy-service/bin/server.yaml
+sed -i -e 's/port: 3306/#port: 3306/' ./deploy-service/bin/server.yaml
+sed -i -e 's/userName: root/#userName: root/' ./deploy-service/bin/server.yaml
+sed -i -e 's/password:/#password:/' ./deploy-service/bin/server.yaml
+sed -i -e 's/pool: 10:50:20:5/#pool: 10:50:20:5/' ./deploy-service/bin/server.yaml
+sed -i -e 's/#type: embedded/type: embedded/' ./deploy-service/bin/server.yaml
+sed -i -e 's/#workDir: \/tmp\/teletraan\/db/workDir: \/tmp\/teletraan\/db/' ./deploy-service/bin/server.yaml
 echo "Edited server.yaml to user embedded database"
 ./deploy-service/bin/run.sh start
 echo "Teletraan server is running"
