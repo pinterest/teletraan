@@ -99,7 +99,10 @@ def run_prereqs(config):
     # check if the puppet has finished or not
     if IS_PINTEREST:
         respect_puppet = config.respect_puppet()
-        if respect_puppet and not os.path.exists(config.get_puppet_file_path()):
+        puppet_file_path = config.get_puppet_file_path()
+        if respect_puppet and \
+           puppet_file_path is not None and \
+           not os.path.exists(puppet_file_path):
             log.info("Waiting for first puppet run.")
             sys.exit(0)
 
