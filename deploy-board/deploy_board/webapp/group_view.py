@@ -368,7 +368,7 @@ def add_alarms(request, group_name):
         else:
             alarm_info["actionType"] = "SHRINK"
         alarm_info["comparator"] = params["comparators"]
-        alarm_info["threshold"] = int(params["threshold"])
+        alarm_info["threshold"] = float(params["threshold"])
         alarm_info["evaluationTime"] = int(params["evaluate_time"])
         if "customUrlCheckbox" in params:
             alarm_info["fromAwsMetric"] = False
