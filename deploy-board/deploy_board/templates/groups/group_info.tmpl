@@ -3,13 +3,21 @@
     <tr>
         <th class="col-lg-1">Instance Type</th>
         <th class="col-lg-1">Security Group</th>
-        <th class="col-lg-2">Fleet Size</th>
-        <th class="col-lg-2">Auto Scaling Status</th>
+        <th class="col-lg-1">Min Size</th>
+        <th class="col-lg-1">Max Size</th>
+        <th class="col-lg-1">Fleet Size</th>
+        <th class="col-lg-1">Auto Scaling Status</th>
     </tr>
     <tr>
         <td>{{ instance_type }}</td>
         <td>{{ security_group }}</td>
+        <td>{{ asg.minSize }}</td>
+        <td>{{ asg.maxSize }}</td>
+        {% if spot_size > 0 %}
+          <td> {{ fleet_size }} ({{spot_size}}) </td>
+        {% else %}
         <td>{{ fleet_size }}</td>
+        {% endif %}
         <td>{{ asg_status }}</td>
     </tr>
   </table>

@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -65,9 +65,6 @@ class EnvWebhooksView(View):
                 webhook['body'] = page_data[body].strip()
                 webhook['headers'] = page_data[headers]
                 type = page_data[deploy_type]
-
-                print webhook
-
                 # Determine whether this is a pre or post webhook
                 if type == "post":
                     post_webhooks.append(webhook)

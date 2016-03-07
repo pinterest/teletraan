@@ -46,6 +46,22 @@
                     {% endif %}
                 {% endif %}
 
+                {% if alarm_info.spotActionType != "UNKNOWN" %}
+                    {% if alarm_info.spotActionType == "SHRINK" %}
+                        extended_data.addColumn("number", "Spot Scale Down Threshold");
+                    {% else %}
+                        extended_data.addColumn("number", "Spot Scale Up Threshold");
+                    {% endif %}
+                {% endif %}
+
+                 {% if alarm_info.spotActionType2 != "UNKNOWN" %}
+                    {% if alarm_info.spotActionType2 == "GROW" %}
+                        extended_data.addColumn("number", "Spot Scale Up Threshold");
+                    {% else %}
+                        extended_data.addColumn("number", "Spot Scale Down Threshold");
+                    {% endif %}
+                 {% endif %}
+
                 {% for metric_data in alarm_info.metric_datum %}
                     var time = "{{ metric_data.timestamp }}";
                     var d = new Date(0);
@@ -54,27 +70,77 @@
                     var threshold = parseFloat("{{ alarm_info.threshold }}");
                     {% if alarm_info.actionType2 != "UNKNOWN" %}
                         var threshold2 = parseFloat("{{ alarm_info.threshold2 }}");
+                        {% if alarm_info.spotActionType != "UNKNOWN" %}
+                            var spotThreshold = parseFloat("{{alarm_info.spotThreshold}}")
+                            var spotThreshold2 = parseFloat("{{alarm_info.spotThreshold2}}")
+
+                            extended_data.addRow([d, value, threshold, spotThreshold, threshold2, spotThreshold2])
+                        {% else %}
                         extended_data.addRow([d, value, threshold, threshold2]);
+                        {% endif %}
                     {% else %}
-                        extended_data.addRow([d, value, threshold]);
+                        {% if alarm_info.spotActionType != "UNKNOWN" %}
+                            var spotThreshold = parseFloat("{{alarm_info.spotThreshold}}")
+                            extended_data.addRow([d, value, threshold, spotThreshold])
+                        {% else %}
+                            extended_data.addRow([d, value, threshold]);
+                        {% endif %}
                     {% endif %}
                 {% endfor %}
 
                 {% if alarm_info.actionType2 != "UNKNOWN" %}
-                    var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2,3]);
+                    {% if alarm_info.spotActionType != "UNKNOWN" %}
+                        var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2,3,4,5]);
+                    {% else %}
+                        var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2,3]);
+                    {% endif %}
                 {% else %}
-                    var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2]);
+                    {% if alarm_info.spotActionType != "UNKNOWN" %}
+                        var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2, 3]);
+                    {% else %}
+                        var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2]);
+                    {% endif %}
                 {% endif %}
 
-                var options = {
-                    title: 'Fleet Size',
-                    titleFontSize: 15,
-                    height: 300,
-                    min: 0,
-                    max: 10,
-                    curveType: 'function',
-                    legend: 'top',
-                    series: {
+                {% if alarm_info.spotActionType != "UNKNOWN" %}
+                    {% if alarm_info.actionType2 != "UNKNOWN" %}
+                        var seriesData = {0: {targetAxisIndex: 0,
+                                    color: 'blue',
+                                    lineWidth: 3,
+                                    side: 'top'},
+                                1: {targetAxisIndex: 1,
+                                    color: 'green',
+                                    lineWidth: 2},
+                                2: {targetAxisIndex: 1,
+                                    color: 'red',
+                                    lineWidth: 2},
+                                3: {targetAxisIndex: 1,
+                                    color: 'black',
+                                    lineWidth: 1},
+                                4: {targetAxisIndex: 1,
+                                    color: '#e0440e',
+                                    lineWidth: 2},
+                                5: {targetAxisIndex: 1,
+                                    color: 'black',
+                                    lineWidth: 1}}
+                    {% else %}
+                        var seriesData = {0: {targetAxisIndex: 0,
+                                    color: 'blue',
+                                    lineWidth: 3,
+                                    side: 'top'},
+                                1: {targetAxisIndex: 1,
+                                    color: 'green',
+                                    lineWidth: 2},
+                                2: {targetAxisIndex: 1,
+                                    color: 'red',
+                                    lineWidth: 2},
+                                3: {targetAxisIndex: 1,
+                                    color: 'black',
+                                    lineWidth: 1}}
+                    {% endif %}
+                {% else %}
+                {% if alarm_info.actionType2 != "UNKNOWN" %}
+                    var seriesData = {
                         0: {targetAxisIndex: 0,
                             color: 'blue',
                             lineWidth: 3,
@@ -88,7 +154,32 @@
                         3: {targetAxisIndex: 1,
                             color: '#e0440e',
                             lineWidth: 2},
-                    },
+                    }
+                 {% else %}
+                 var seriesData = {
+                        0: {targetAxisIndex: 0,
+                            color: 'blue',
+                            lineWidth: 3,
+                            side: 'top'},
+                        1: {targetAxisIndex: 1,
+                            color: 'green',
+                            lineWidth: 2},
+                        2: {targetAxisIndex: 1,
+                            color: 'red',
+                            lineWidth: 2},
+                  }
+                  {% endif %}
+                {% endif %}
+
+                var options = {
+                    title: 'Fleet Size',
+                    titleFontSize: 15,
+                    height: 300,
+                    min: 0,
+                    max: 10,
+                    curveType: 'function',
+                    legend: 'top',
+                    series: seriesData,
                     vAxes: {
                         0: {title: 'Group Size',
                             titleTextStyle: {italic: false}},

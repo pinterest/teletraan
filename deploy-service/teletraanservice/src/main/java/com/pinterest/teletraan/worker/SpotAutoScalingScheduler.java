@@ -34,9 +34,11 @@ public class SpotAutoScalingScheduler implements Runnable {
     private SpotAutoScalingDAO spotAutoScalingDAO;
     private AutoScaleGroupManager autoScaleGroupManager;
 
+
     public SpotAutoScalingScheduler(ServiceContext serviceContext) {
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
         autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
+
     }
 
     private void processOne(String clusterName, SpotAutoScalingBean spotAutoScalingBean)  throws Exception {
@@ -51,7 +53,11 @@ public class SpotAutoScalingScheduler implements Runnable {
         if (targetSpotAutoScalingGroupMaxSize == spotAutoScalingGroup.getMaxSize()) {
             LOG.info(String.format("Auto Scaling group: %s current running: %d, target spot max size: %d, current max size: %d",
                                    clusterName, instanceCount, targetSpotAutoScalingGroupMaxSize, spotAutoScalingGroup.getMaxSize()));
+            return;
         }
+
+        LOG.info(String.format("Auto Scaling group: %s current running: %d, current max size: %d, change to target spot max size: %d,  ",
+                               clusterName, instanceCount, spotAutoScalingGroup.getMaxSize(), targetSpotAutoScalingGroupMaxSize));
 
         AutoScalingRequestBean requestBean = new AutoScalingRequestBean();
         requestBean.setMinSize(0);

@@ -48,7 +48,7 @@ public class GroupHandler {
     // http://docs.aws.amazon.com/AutoScaling/latest/APIReference/API_AttachInstances.html
     private static final int ATTACH_INSTANCE_SIZE = 16;
 
-    private static final double SPOT_THRESHOLD_ADJUSTMENT_RATIO = 0.05;
+    private static final String SPOT_AUTO_SCALING_TERMINATION_POLICY = "OldestInstance";
 
     private AutoScaleGroupManager asgDAO;
     private AlarmDAO alarmDAO;
@@ -515,7 +515,7 @@ public class GroupHandler {
                     updateAlarmInfoInternal(groupName, spotPolicies, spotAsgAlarmBeans);
                 }
                 spotAutoScalingDAO.updateSpotAutoScalingGroup(autoScalingBean.getAsg_name(), autoScalingBean);
-                asgDAO.updateAutoScalingGroup(generateSpotAutoScalingGroupRequest(autoScalingBean.getAsg_name(), request), groupBean.getSubnets());
+                // We don't update the spot auto scaling group max size. The worker will do it async.
             }
         }
     }
@@ -523,14 +523,12 @@ public class GroupHandler {
     private AutoScalingRequestBean generateSpotAutoScalingGroupRequest(String spotGroupName, AutoScalingRequestBean request) {
         AutoScalingRequestBean autoScalingRequestBean = new AutoScalingRequestBean();
         autoScalingRequestBean.setAttachInstances(false);
-        autoScalingRequestBean.setTerminationPolicy(request.getTerminationPolicy());
+        autoScalingRequestBean.setTerminationPolicy(SPOT_AUTO_SCALING_TERMINATION_POLICY);
         autoScalingRequestBean.setMinSize(0);
         autoScalingRequestBean.setMaxSize((int)(request.getMinSize() * request.getSpotRatio()));
         autoScalingRequestBean.setGroupName(spotGroupName);
         return autoScalingRequestBean;
     }
-
-
 
     public void deleteAutoScalingGroup(String groupName, boolean detachInstance) throws Exception {
         // do it async

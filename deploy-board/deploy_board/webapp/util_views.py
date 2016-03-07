@@ -145,7 +145,7 @@ def get_latency_metrics(request, group_name):
         util_data["stage_names"] = stage_names
         util_data["launch_latency_th"] = launch_config["launchLatencyTh"]
     except:
-        print traceback.format_exc()
+        log.error(traceback.format_exc())
     return HttpResponse(json.dumps(util_data), content_type="application/json")
 
 
@@ -170,5 +170,5 @@ def get_launch_rate(request, group_name):
             util_data[metric_name] = json_data
             util_data["metric_names"].append(metric_name)
     except:
-        print traceback.format_exc()
+        log.error(traceback.format_exc())
     return HttpResponse(json.dumps(util_data), content_type="application/json")

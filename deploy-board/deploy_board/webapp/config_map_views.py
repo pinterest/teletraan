@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -83,8 +83,6 @@ class EnvConfigMapView(View):
     def post(self, request, name, stage):
         configs = self.parse_configs(request.POST)
         flavor = request.POST.get('flavor', 'AC')
-        print configs
-        print flavor
         if flavor == AC_FLAVOR:
             environs_helper.update_env_agent_config(request, name, stage, data=configs)
             configs = environs_helper.get_env_agent_config(request, name, stage)

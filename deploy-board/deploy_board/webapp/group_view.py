@@ -390,19 +390,39 @@ def add_alarms(request, group_name):
 def get_group_info(request, group_name):
     try:
         group_info = groups_helper.get_group_info(request, group_name)
-        hosts_in_asg = set(groups_helper.get_autoscaling_group_instances(request, group_name))
+        asgs = groups_helper.get_autoscaling(request, group_name)
+        spot_asg = None
+        nonspot_asg = None
+        spot_asg_instances = []
+        nonspot_asg_instances = []
+        if asgs:
+            for asg in asgs:
+                if asg.get("spotGroup", None):
+                    spot_asg = asg
+                    spot_asg_instances = asg.get("instances")
+                else:
+                    nonspot_asg = asg
+                    nonspot_asg_instances = asg.get("instances")
+
         all_hosts_in_group = groups_helper.get_group_instances(request, group_name)
         non_asg_host_names = []
         asg_host_names = []
+        spot_asg_host_names = []
+
         for host in all_hosts_in_group:
             host_name = host.get("hostName", "")
             host_id = host.get("hostId", "")
-            if host_id in hosts_in_asg:
+            if nonspot_asg_instances and host_id in nonspot_asg_instances:
                 asg_host_names.append(host_name)
-                hosts_in_asg.remove(host_id)
+                nonspot_asg_instances.remove(host_id)
+            elif spot_asg_instances and host_id in spot_asg_instances:
+                spot_asg_host_names.append(host_name)
+                spot_asg_instances.remove(host_id)
             else:
                 non_asg_host_names.append(host_name)
-        asg_host_names.extend(hosts_in_asg)
+
+        asg_host_names.extend(nonspot_asg_instances)
+        spot_asg_host_names.extend(spot_asg_instances)
 
         if group_info["asgStatus"] == "DISABLED":
             asg_status_str = "Disabled"
@@ -410,15 +430,19 @@ def get_group_info(request, group_name):
             asg_status_str = "Enabled"
         else:
             asg_status_str = "Not Enabled"
-        group_size = len(hosts_in_asg) + len(all_hosts_in_group)
+        group_size = len(asg_host_names) + len(non_asg_host_names) + len(spot_asg_host_names)
+        spot_size = len(spot_asg_host_names)
         content = render_to_string("groups/group_info.tmpl", {
-            "group_name": group_name,
             "instance_type": group_info["instanceType"],
             "security_group": group_info["securityGroup"],
+            "group_name": group_name,
             "fleet_size": group_size,
+            "spot_size": spot_size,
+            "asg": nonspot_asg,
+            "spot_asg": spot_asg,
             "asg_status": asg_status_str,
             "asg_hosts": asg_host_names,
-            "other_hosts": non_asg_host_names
+            "other_hosts": non_asg_host_names,
         })
         return HttpResponse(json.dumps({"html": content}), content_type="application/json")
     except:
@@ -628,22 +652,38 @@ class GroupDetailView(View):
         group_size_datum = \
             autoscaling_metrics_helper.get_asg_size_metric(request, group_name,
                                                            settings.DEFAULT_START_TIME)
+        spot_group_name = "{}-spot".format(group_name)
         alarm_infos = groups_helper.get_alarms(request, group_name)
+        spot_alarm_infos = groups_helper.get_alarms(request, spot_group_name)
         enable_policy = False
         if alarm_infos and len(alarm_infos) > 0:
             enable_policy = True
 
         removeIdx = []
-
         if alarm_infos:
+            alarm_infos = sorted(alarm_infos, key=lambda info: info["metricSource"])
             for idx in xrange(len(alarm_infos)):
                 alarm_info = alarm_infos[idx]
                 alarm_infos[idx]["actionType2"] = "UNKNOWN"
                 alarm_infos[idx]["threshold2"] = -1
+                if spot_alarm_infos:
+                    alarm_infos[idx]["spotActionType"] = spot_alarm_infos[idx]["actionType"]
+                    alarm_infos[idx]["spotThreshold"] = spot_alarm_infos[idx]["threshold"]
+                    alarm_infos[idx]["spotActionType2"] = "UNKNOWN"
+                    alarm_infos[idx]["spotThreshold2"] = -1
+                else:
+                    alarm_infos[idx]["spotActionType"] = "UNKNOWN"
+                    alarm_infos[idx]["spotThreshold"] = -1
+                    alarm_infos[idx]["spotActionType2"] = "UNKNOWN"
+                    alarm_infos[idx]["spotThreshold2"] = -1
+
                 metric_name = alarm_info["metricSource"]
                 if idx > 0 and metric_name == alarm_infos[idx - 1]["metricSource"]:
                     alarm_infos[idx - 1]["actionType2"] = alarm_info["actionType"]
                     alarm_infos[idx - 1]["threshold2"] = alarm_info["threshold"]
+                    if spot_alarm_infos:
+                        alarm_infos[idx - 1]["spotActionType2"] = spot_alarm_infos[idx]["actionType"]
+                        alarm_infos[idx - 1]["spotThreshold2"] = spot_alarm_infos[idx]["threshold"]
                     removeIdx.append(idx)
                 else:
                     alarm_info["metric_datum"] = \
@@ -662,6 +702,7 @@ class GroupDetailView(View):
             "group_name": group_name,
             "enable_policy": enable_policy,
             "alarm_infos": alarm_infos,
+            "spot_alarm_infos": spot_alarm_infos,
             "group_size_datum": group_size_datum,
             "scaling_down_event_enabled": scaling_down_event_enabled,
             "envs": envs,
