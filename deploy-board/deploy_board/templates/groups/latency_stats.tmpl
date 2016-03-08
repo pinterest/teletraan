@@ -65,20 +65,22 @@
             var launch_tmp = "launch_latency.";
             var deploy_tmp = "deploy_latency.";
 
-            for (var i = 0; i < 1; ++i) {
-                var metric_name1 = launch_tmp + stage_names[i];
-                var metric_name2 = deploy_tmp + stage_names[i];
+            if (stage_names != null) {
+                for (var i = 0; i < 1; ++i) {
+                    var metric_name1 = launch_tmp + stage_names[i];
+                    var metric_name2 = deploy_tmp + stage_names[i];
 
-                data.addColumn("number", metric_name1);
-                data.addColumn("number", metric_name2);
+                    data.addColumn("number", metric_name1);
+                    data.addColumn("number", metric_name2);
 
-                var data_list1 = response[metric_name1];
-                var data_list2 = response[metric_name2];
-                var data_len = Math.min(data_list1.length,  data_list2.length);
-                for (var j = 0; j < data_len; ++j) {
-                    var d = new Date(0);
-                    d.setMilliseconds(data_list1[j][0]);
-                    data.addRow([d, launch_latency_th, data_list1[j][1], data_list2[j][1]]);
+                    var data_list1 = response[metric_name1];
+                    var data_list2 = response[metric_name2];
+                    var data_len = Math.min(data_list1.length,  data_list2.length);
+                    for (var j = 0; j < data_len; ++j) {
+                        var d = new Date(0);
+                        d.setMilliseconds(data_list1[j][0]);
+                        data.addRow([d, launch_latency_th, data_list1[j][1], data_list2[j][1]]);
+                    }
                 }
             }
             var metric_chart = charts2["Requests"];

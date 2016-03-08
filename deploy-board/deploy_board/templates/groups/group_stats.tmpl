@@ -1,10 +1,4 @@
-<style>
-.chartContainer>div {
-    width:550px;
-    height:350px;
-    display:inline-block;
-}
-</style>
+
 
 <script type="text/javascript">
 {% if enable_policy  %}
@@ -14,186 +8,179 @@
         newDiv.id = id;
         var container = document.getElementById("container");
         container.appendChild(newDiv);
+        var data = new google.visualization.DataTable();
+        var metric_name = "{{ alarm_info.metricSource }}";
+        data.addColumn("datetime", "Date");
+        data.addColumn("number", "Group Size");
+        {% for group_data in group_size_datum %}
+               var time = "{{ group_data.timestamp }}";
+               var value = parseFloat("{{ group_data.value }}");
+               var d = new Date(0);
+               d.setMilliseconds(time);
+               data.addRow([d, value]);
+        {% endfor %}
 
-        var f = function(chartDiv) {
-            return function() {
-                var data = new google.visualization.DataTable();
-                var metric_name = "{{ alarm_info.metricSource }}";
-                data.addColumn("datetime", "Date");
-                data.addColumn("number", "Group Size");
-                {% for group_data in group_size_datum %}
-                    var time = "{{ group_data.timestamp }}";
-                    var value = parseFloat("{{ group_data.value }}");
-                    var d = new Date(0);
-                    d.setMilliseconds(time);
-                    data.addRow([d, value]);
-                {% endfor %}
+        {% if has_spot_asg %}
+        var spot_data = new google.visualization.DataTable();
+        spot_data.addColumn("datetime", "Date");
+        spot_data.addColumn("number", "Spot Group Size");
+        {% for spot_group_data in spot_group_size_datum %}
+               var time = "{{ spot_group_data.timestamp }}";
+               var value = parseFloat("{{ spot_group_data.value }}");
+               var d = new Date(0);
+               d.setMilliseconds(time);
+               spot_data.addRow([d, value]);
+        {% endfor %}
+        {% endif %}
 
-                var extended_data = new google.visualization.DataTable();
-                extended_data.addColumn("datetime", "Date");
-                extended_data.addColumn("number", metric_name);
-                {% if alarm_info.actionType == "GROW" %}
-                    extended_data.addColumn("number", "Scale Up Threshold");
-                {% else %}
-                    extended_data.addColumn("number", "Scale Down Threshold");
-                {% endif %}
+        var extended_data = new google.visualization.DataTable();
+        extended_data.addColumn("datetime", "Date");
+        extended_data.addColumn("number", metric_name);
+        {% if alarm_info.actionType == "GROW" %}
+            extended_data.addColumn("number", "Scale Up Threshold");
+        {% else %}
+            extended_data.addColumn("number", "Scale Down Threshold");
+        {% endif %}
 
-                {% if alarm_info.actionType2 != "UNKNOWN" %}
-                    {% if alarm_info.actionType2 == "GROW" %}
-                        extended_data.addColumn("number", "Scale Up Threshold");
-                    {% else %}
-                        extended_data.addColumn("number", "Scale Down Threshold");
-                    {% endif %}
-                {% endif %}
 
-                {% if alarm_info.spotActionType != "UNKNOWN" %}
-                    {% if alarm_info.spotActionType == "SHRINK" %}
-                        extended_data.addColumn("number", "Spot Scale Down Threshold");
-                    {% else %}
-                        extended_data.addColumn("number", "Spot Scale Up Threshold");
-                    {% endif %}
-                {% endif %}
+        {% if alarm_info.actionType2 == "GROW" %}
+            extended_data.addColumn("number", "Scale Up Threshold");
+        {% elif alarm_info.actionType2 == "SHRINK" %}
+            extended_data.addColumn("number", "Scale Down Threshold");
+        {% endif %}
 
+        {% if has_spot_asg %}
+            var spot_extended_data = new google.visualization.DataTable();
+            spot_extended_data.addColumn("datetime", "Date");
+            spot_extended_data.addColumn("number", metric_name);
+
+            {% if alarm_info.spotActionType == 'GROW' %}
+                spot_extended_data.addColumn("number", "Spot Scale Up Threshold");
+            {% else %}
+                spot_extended_data.addColumn("number", "Spot Scale Down Threshold");
+            {% endif %}
+
+            {% if alarm_info.spotActionType2 == "GROW" %}
+                spot_extended_data.addColumn("number", "Spot Scale Up Threshold");
+            {% elif alarm_info.spotActionType2 == "SHRINK" %}
+                spot_extended_data.addColumn("number", "Spot Scale Down Threshold");
+            {% endif %}
+        {% endif %}
+
+
+        {% for metric_data in alarm_info.metric_datum %}
+            var time = "{{ metric_data.timestamp }}";
+            var d = new Date(0);
+            d.setMilliseconds(time);
+            var value = parseFloat("{{ metric_data.value }}");
+            var threshold = parseFloat("{{ alarm_info.threshold }}");
+
+            {% if alarm_info.actionType2 != "UNKNOWN" %}
+                var threshold2 = parseFloat("{{ alarm_info.threshold2 }}");
+                extended_data.addRow([d, value, threshold, threshold2]);
+            {% else %}
+               extended_data.addRow([d, value, threshold]);
+            {% endif %}
+
+             {% if has_spot_asg %}
+                 var spot_threshold = parseFloat("{{alarm_info.spotThreshold}}");
                  {% if alarm_info.spotActionType2 != "UNKNOWN" %}
-                    {% if alarm_info.spotActionType2 == "GROW" %}
-                        extended_data.addColumn("number", "Spot Scale Up Threshold");
-                    {% else %}
-                        extended_data.addColumn("number", "Spot Scale Down Threshold");
-                    {% endif %}
-                 {% endif %}
-
-                {% for metric_data in alarm_info.metric_datum %}
-                    var time = "{{ metric_data.timestamp }}";
-                    var d = new Date(0);
-                    d.setMilliseconds(time);
-                    var value = parseFloat("{{ metric_data.value }}");
-                    var threshold = parseFloat("{{ alarm_info.threshold }}");
-                    {% if alarm_info.actionType2 != "UNKNOWN" %}
-                        var threshold2 = parseFloat("{{ alarm_info.threshold2 }}");
-                        {% if alarm_info.spotActionType != "UNKNOWN" %}
-                            var spotThreshold = parseFloat("{{alarm_info.spotThreshold}}")
-                            var spotThreshold2 = parseFloat("{{alarm_info.spotThreshold2}}")
-
-                            extended_data.addRow([d, value, threshold, spotThreshold, threshold2, spotThreshold2])
-                        {% else %}
-                        extended_data.addRow([d, value, threshold, threshold2]);
-                        {% endif %}
-                    {% else %}
-                        {% if alarm_info.spotActionType != "UNKNOWN" %}
-                            var spotThreshold = parseFloat("{{alarm_info.spotThreshold}}")
-                            extended_data.addRow([d, value, threshold, spotThreshold])
-                        {% else %}
-                            extended_data.addRow([d, value, threshold]);
-                        {% endif %}
-                    {% endif %}
-                {% endfor %}
-
-                {% if alarm_info.actionType2 != "UNKNOWN" %}
-                    {% if alarm_info.spotActionType != "UNKNOWN" %}
-                        var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2,3,4,5]);
-                    {% else %}
-                        var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2,3]);
-                    {% endif %}
-                {% else %}
-                    {% if alarm_info.spotActionType != "UNKNOWN" %}
-                        var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2, 3]);
-                    {% else %}
-                        var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2]);
-                    {% endif %}
-                {% endif %}
-
-                {% if alarm_info.spotActionType != "UNKNOWN" %}
-                    {% if alarm_info.actionType2 != "UNKNOWN" %}
-                        var seriesData = {0: {targetAxisIndex: 0,
-                                    color: 'blue',
-                                    lineWidth: 3,
-                                    side: 'top'},
-                                1: {targetAxisIndex: 1,
-                                    color: 'green',
-                                    lineWidth: 2},
-                                2: {targetAxisIndex: 1,
-                                    color: 'red',
-                                    lineWidth: 2},
-                                3: {targetAxisIndex: 1,
-                                    color: 'black',
-                                    lineWidth: 1},
-                                4: {targetAxisIndex: 1,
-                                    color: '#e0440e',
-                                    lineWidth: 2},
-                                5: {targetAxisIndex: 1,
-                                    color: 'black',
-                                    lineWidth: 1}}
-                    {% else %}
-                        var seriesData = {0: {targetAxisIndex: 0,
-                                    color: 'blue',
-                                    lineWidth: 3,
-                                    side: 'top'},
-                                1: {targetAxisIndex: 1,
-                                    color: 'green',
-                                    lineWidth: 2},
-                                2: {targetAxisIndex: 1,
-                                    color: 'red',
-                                    lineWidth: 2},
-                                3: {targetAxisIndex: 1,
-                                    color: 'black',
-                                    lineWidth: 1}}
-                    {% endif %}
-                {% else %}
-                {% if alarm_info.actionType2 != "UNKNOWN" %}
-                    var seriesData = {
-                        0: {targetAxisIndex: 0,
-                            color: 'blue',
-                            lineWidth: 3,
-                            side: 'top'},
-                        1: {targetAxisIndex: 1,
-                            color: 'green',
-                            lineWidth: 2},
-                        2: {targetAxisIndex: 1,
-                            color: 'red',
-                            lineWidth: 2},
-                        3: {targetAxisIndex: 1,
-                            color: '#e0440e',
-                            lineWidth: 2},
-                    }
+                     var spot_threshold2 = parseFloat("{{alarm_info.spotThreshold2}}");
+                     spot_extended_data.addRow([d, value, spot_threshold, spot_threshold2]);
                  {% else %}
-                 var seriesData = {
-                        0: {targetAxisIndex: 0,
-                            color: 'blue',
-                            lineWidth: 3,
-                            side: 'top'},
-                        1: {targetAxisIndex: 1,
-                            color: 'green',
-                            lineWidth: 2},
-                        2: {targetAxisIndex: 1,
-                            color: 'red',
-                            lineWidth: 2},
-                  }
-                  {% endif %}
-                {% endif %}
+                     spot_extended_data.addRow([d, value, spot_threshold]);
+                 {% endif %}
+             {% endif %}
+         {% endfor %}
 
-                var options = {
-                    title: 'Fleet Size',
-                    titleFontSize: 15,
-                    height: 300,
-                    min: 0,
-                    max: 10,
-                    curveType: 'function',
-                    legend: 'top',
-                    series: seriesData,
-                    vAxes: {
-                        0: {title: 'Group Size',
-                            titleTextStyle: {italic: false}},
-                        1: {title: metric_name,
-                            titleTextStyle: {italic: false}}
-                    },
-                    interpolateNulls: true,
-                };
+         {% if alarm_info.actionType2 != "UNKNOWN" %}
+             var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2, 3]);
+         {% else %}
+             var dt = google.visualization.data.join(data, extended_data, "full", [[0,0]], [1], [1,2]);
+         {% endif %}
 
-                var chart = new google.visualization.LineChart(chartDiv);
-                chart.draw(dt, options);
-            }
-        };
-        google.setOnLoadCallback(f(newDiv));
+         var options = {
+             title: 'On Demand Fleet Size',
+             titleFontSize: 15,
+             height: 300,
+             min: 0,
+             max: 10,
+             curveType: 'function',
+             legend: 'top',
+             series: {
+                 0: {targetAxisIndex: 0,
+                     color: 'blue',
+                     lineWidth: 3,
+                     side: 'top'},
+                 1: {targetAxisIndex: 1,
+                     color: 'green',
+                     lineWidth: 2},
+                 2: {targetAxisIndex: 1,
+                     color: 'red',
+                     lineWidth: 2},
+                 3: {targetAxisIndex: 1,
+                     color: '#e0440e',
+                     lineWidth: 2},
+             },
+             vAxes: {
+                 0: {title: 'On Demand Group Size',
+                     titleTextStyle: {italic: false}},
+                 1: {title: metric_name,
+                     titleTextStyle: {italic: false}}
+             },
+             interpolateNulls: true,
+         };
+
+         var chart = new google.visualization.LineChart(newDiv);
+         chart.draw(dt, options);
+
+         {% if has_spot_asg %}
+             {% if alarm_info.spotActionType2 != "UNKNOWN" %}
+                 var spot_dt = google.visualization.data.join(spot_data, spot_extended_data, "full", [[0,0]], [1], [1,2,3]);
+             {% else %}
+                 var spot_dt = google.visualization.data.join(spot_data, spot_extended_data, "full", [[0,0]], [1], [1,2]);
+             {% endif %}
+
+             var spot_options = {
+                 title: 'Spot Fleet Size',
+                 titleFontSize: 15,
+                 height: 300,
+                 min: 0,
+                 max: 10,
+                 curveType: 'function',
+                 legend: 'top',
+                 series: {
+                     0: {targetAxisIndex: 0,
+                         color: 'blue',
+                         lineWidth: 3,
+                         side: 'top'},
+                     1: {targetAxisIndex: 1,
+                         color: 'green',
+                         lineWidth: 2},
+                     2: {targetAxisIndex: 1,
+                         color: 'red',
+                         lineWidth: 2},
+                     3: {targetAxisIndex: 1,
+                         color: '#e0440e',
+                         lineWidth: 2},
+                 },
+                 vAxes: {
+                     0: {title: 'Spot Group Size',
+                         titleTextStyle: {italic: false}},
+                     1: {title: metric_name,
+                         titleTextStyle: {italic: false}}
+                 },
+                 interpolateNulls: true,
+             };
+
+             var newSpotDiv = document.createElement("div");
+             var id = "chart" + {{ forloop.counter0 }} +"-spot";
+             newSpotDiv.id = id;
+             var container = document.getElementById("container");
+             container.appendChild(newSpotDiv);
+             var spot_chart = new google.visualization.LineChart(newSpotDiv);
+             spot_chart.draw(spot_dt, spot_options);
+         {% endif %}
     {% endfor %}
 {% else %}
     var newDiv = document.createElement("div");
@@ -201,9 +188,7 @@
     newDiv.id = id;
     var container = document.getElementById("container");
     container.appendChild(newDiv);
-    var f = function(chartDiv) {
-        return function() {
-            var data = new google.visualization.DataTable();
+    var data = new google.visualization.DataTable();
             var metric_name = "{{ alarm_info.metricSource }}";
             data.addColumn("datetime", "Date");
             data.addColumn("number", "Group Size");
@@ -244,10 +229,8 @@
                 interpolateNulls: true,
             };
 
-            var chart = new google.visualization.LineChart(chartDiv);
+            var chart = new google.visualization.LineChart(newDiv);
             chart.draw(data, options);
-        }
-    };
-    google.setOnLoadCallback(f(newDiv));
+
 {% endif %}
 </script>

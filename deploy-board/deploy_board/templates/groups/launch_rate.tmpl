@@ -59,14 +59,16 @@
             var data = launch_rate_data_options['Requests'][0];
             var options = launch_rate_data_options['Requests'][1];
             var metric_names = response['metric_names'];
-            for (var i = 0; i < 1; ++i) {
-                var metric_name = metric_names[i];
-                data.addColumn("number", "Launch Failure Count");
-                data_list = response[metric_name];
-                for (j = 0; j < data_list.length; ++j) {
-                    var d = new Date(0);
-                    d.setMilliseconds(data_list[j][0]);
-                    data.addRow([d, data_list[j][1]]);
+            if (metric_names != null) {
+                for (var i = 0; i < 1; ++i) {
+                    var metric_name = metric_names[i];
+                    data.addColumn("number", "Launch Failure Count");
+                    data_list = response[metric_name];
+                    for (j = 0; j < data_list.length; ++j) {
+                        var d = new Date(0);
+                        d.setMilliseconds(data_list[j][0]);
+                        data.addRow([d, data_list[j][1]]);
+                    }
                 }
             }
             var metric_chart = charts3["Requests"];
@@ -74,7 +76,7 @@
         }
 
         function pollLaunchRateMetrics() {
-            $.get('/group_launch_rate/{{ group_name }}', function(response) {
+            $.get('/group_launch_rate/{{ group_name }}/', function(response) {
                 updateLaunchRateCharts(response);
             }).fail(function() {
             });

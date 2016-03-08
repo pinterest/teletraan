@@ -11,11 +11,13 @@
     <tr>
         <td>{{ instance_type }}</td>
         <td>{{ security_group }}</td>
+        {% if has_spot_group %}
+        <td>{{ asg.minSize }} ({{spot_asg.minSize}})</td>
+        <td>{{ asg.maxSize }} ({{spot_asg.maxSize}})</td>
+        <td> {{ fleet_size }} ({{spot_size}}) </td>
+        {% else %}
         <td>{{ asg.minSize }}</td>
         <td>{{ asg.maxSize }}</td>
-        {% if spot_size > 0 %}
-          <td> {{ fleet_size }} ({{spot_size}}) </td>
-        {% else %}
         <td>{{ fleet_size }}</td>
         {% endif %}
         <td>{{ asg_status }}</td>
@@ -30,7 +32,7 @@
             <td class="col-lg-2">
                 <span class="deployToolTip" data-toggle="tooltip"
                    title="New hosts being installed for the first time">
-                <small>Hosts in auto scaling group</small>
+                <small>Hosts in  on demand auto scaling group</small>
                 </span>
             </td>
 
@@ -46,7 +48,29 @@
     </table>
 </div>
 {% endif %}
+{% if spot_asg_hosts %}
+<div class="panel panel-default table-responsive">
+    <table class="table table-condensed table-hover">
+        <tr class="row">
+            <td class="col-lg-2">
+                <span class="deployToolTip" data-toggle="tooltip"
+                   title="New hosts being installed for the first time">
+                <small>Hosts in spot auto scaling group</small>
+                </span>
+            </td>
 
+            <td class="col-lg-10">
+        {% for host in spot_asg_hosts %}
+           <a type="button" class="deployToolTip btn btn-xs btn-default host-btn">
+           <small>{{ host }}</small>
+           <i class="fa fa-fw fa-check"></i></a>
+        {% endfor %}
+    <br><br>
+    </td>
+    </tr>
+    </table>
+</div>
+{% endif %}
 {% if other_hosts %}
 <div class="panel panel-default table-responsive">
     <table class="table table-condensed table-hover">

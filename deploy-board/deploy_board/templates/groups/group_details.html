@@ -82,9 +82,16 @@
                 <div id="line_latencystats"></div>
                 <div id="launch_rate_id"></div>
                 {% include "groups/latency_stats.tmpl" %}
-                {% include "groups/group_stats.tmpl" %}
                 {% include "groups/launch_rate.tmpl" %}
+                <style>
+                .chartContainer>div {
+                    width:550px;
+                    height:350px;
+                    display:inline-block;
+                }
+                </style>
             </div>
+            <div id="loadGroupInfo"></div>
         </div>
         <div align="left" id="tsdLinksId">
             <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
@@ -327,6 +334,10 @@
            $("#scalingActivityDivid").html(response.html)
         });
         $('#EnvsId').load('/groups/{{ group_name }}/envs/');
+
+        $.get("/groups/{{ group_name }}/group_size/", function(response) {
+            $("#loadGroupInfo").html(response.html)
+        })
     });
 
     $(document).ready(function() {
