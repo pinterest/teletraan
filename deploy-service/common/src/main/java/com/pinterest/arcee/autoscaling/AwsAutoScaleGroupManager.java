@@ -579,6 +579,6 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     }
 
     String getScalingPolicyName(String groupName, String scaleType) {
-        return String.format("%s_%s_rule", groupName, scaleType);
+        return String.format("%s_%s_rule", groupName, scaleType.toLowerCase());
     }
 }
