@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.worker;
 
+import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
+import com.pinterest.arcee.bean.AutoScalingGroupBean;
 import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.arcee.dao.GroupInfoDAO;
@@ -35,10 +37,13 @@ public class GroupInfoUpdater implements Runnable {
     private HostDAO hostDAO;
     private HashMap<String, String> tags;
     private MetricSource metricSource;
+    private AutoScaleGroupManager autoScaleGroupManager;
+
     public GroupInfoUpdater(ServiceContext context) {
         groupInfoDAO = context.getGroupInfoDAO();
         hostDAO = context.getHostDAO();
         metricSource = context.getMetricSource();
+        autoScaleGroupManager = context.getAutoScaleGroupManager();
         tags = new HashMap<>();
         try {
             tags.put("host", InetAddress.getLocalHost().getHostName());
@@ -49,7 +54,14 @@ public class GroupInfoUpdater implements Runnable {
 
     private void sendGroupMetrics(String groupName) throws Exception {
         Long groupSize = hostDAO.getGroupSize(groupName);
-        metricSource.export(String.format(COUNTER_NAME, groupName), tags, groupSize.doubleValue(), System.currentTimeMillis());
+        AutoScalingGroupBean autoScalingGroupBean = autoScaleGroupManager.getAutoScalingGroupInfoByName(String.format("%s-spot", groupName));
+        Long currentTime = System.currentTimeMillis();
+        if (autoScalingGroupBean != null) {
+            Integer spotInstanceCount = autoScalingGroupBean.getInstances().size();
+            groupSize = groupSize - spotInstanceCount;
+            metricSource.export(String.format(COUNTER_NAME, String.format("%s-spot", groupName)), tags, spotInstanceCount.doubleValue(), currentTime);
+        }
+        metricSource.export(String.format(COUNTER_NAME, groupName), tags, groupSize.doubleValue(), currentTime);
     }
 
     public void processBatch() throws Exception {
