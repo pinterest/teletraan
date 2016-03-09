@@ -415,12 +415,10 @@ public class DBDAOTest {
         assertEquals(agentBeans.get(0).getFirst_deploy_time(),  new Long(10));
 
         updateBean1.setFirst_deploy_time(1000L);
-        System.out.println(updateBean1);
         agentDAO.insertOrUpdate(updateBean1);
 
         agentBeans = agentDAO.getByHost("h1");
         assertEquals(agentBeans.size(), 1);
-        System.out.println(agentBeans.get(0));
         assertEquals(agentBeans.get(0).getFirst_deploy_time(), new Long(10));
     }
 
