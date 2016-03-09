@@ -217,6 +217,9 @@ class Config(object):
     def respect_puppet(self):
         return self.get_intvar("respect_puppet", 0)
 
+    def get_puppet_file_path(self):
+        return self.get_var("puppet_file_path", None)
+
     def get_daemon_sleep_time(self):
         return self.get_intvar("daemon_sleep_time", 30)
 
