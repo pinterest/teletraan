@@ -19,7 +19,10 @@ package com.pinterest.teletraan.worker;
 import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.bean.AutoScalingGroupBean;
 import com.pinterest.arcee.bean.AutoScalingRequestBean;
+import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.SpotAutoScalingBean;
+import com.pinterest.arcee.dao.GroupInfoDAO;
+import com.pinterest.arcee.dao.ReservedInstanceInfoDAO;
 import com.pinterest.arcee.dao.SpotAutoScalingDAO;
 import com.pinterest.deployservice.ServiceContext;
 
@@ -32,13 +35,37 @@ import java.util.List;
 public class SpotAutoScalingScheduler implements Runnable {
     private static Logger LOG = LoggerFactory.getLogger(SpotAutoScalingScheduler.class);
     private SpotAutoScalingDAO spotAutoScalingDAO;
+    private GroupInfoDAO groupInfoDAO;
+    private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
     private AutoScaleGroupManager autoScaleGroupManager;
-
+    private static int FREE_RESERVED_INSTANCE_THRESHOLD = 150;
 
     public SpotAutoScalingScheduler(ServiceContext serviceContext) {
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
         autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
+        groupInfoDAO = serviceContext.getGroupInfoDAO();
+        reservedInstanceInfoDAO = serviceContext.getReservedInstanceInfoDAO();
+        autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
+    }
 
+    private void processSpotAutoScaling(String clusterName, String spotAutoScalingGroupName) throws Exception {
+        GroupBean groupBean = groupInfoDAO.getGroupInfo(clusterName);
+        if (groupBean == null) {
+            return;
+        }
+
+        String instanceType = groupBean.getInstance_type();
+        int reservedInstanceCount = reservedInstanceInfoDAO.getReservedInstanceCount(instanceType);
+        int runningReservedInstanceCount = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
+        int freeInstance = reservedInstanceCount - runningReservedInstanceCount;
+
+        if (freeInstance < FREE_RESERVED_INSTANCE_THRESHOLD) {
+            LOG.info(String.format("Enable scaling up for spot auto scaling group %s. Free RI is: %d", clusterName, freeInstance));
+            autoScaleGroupManager.enableScalingUpEvent(spotAutoScalingGroupName);
+        } else {
+            LOG.info(String.format("Disable scaling up for spot auto scaling group %s. Free RI is: %d", clusterName, freeInstance));
+            autoScaleGroupManager.disableScalingUpEvent(spotAutoScalingGroupName);
+        }
     }
 
     private void processOne(String clusterName, SpotAutoScalingBean spotAutoScalingBean)  throws Exception {
@@ -65,6 +92,8 @@ public class SpotAutoScalingScheduler implements Runnable {
         requestBean.setGroupName(spotAutoScalingGroupName);
         requestBean.setTerminationPolicy(spotAutoScalingGroup.getTerminationPolicy().toString());
         autoScaleGroupManager.updateAutoScalingGroup(requestBean, null);
+
+        processSpotAutoScaling(clusterName, spotAutoScalingGroupName);
     }
 
     public void processBatch() throws Exception {

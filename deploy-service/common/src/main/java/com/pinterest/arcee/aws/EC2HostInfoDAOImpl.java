@@ -191,20 +191,22 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
     }
 
     private Collection<String> handleInvalidInstanceId(AmazonServiceException ex) throws Exception {
-            List<String> instanceIds = new ArrayList<>();
-            if (ex.getErrorCode().equals(INSTANCE_MALFORMED_ERROR)) {
-                Matcher matcher = MALFORMED_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
-                while (matcher.find()) {
-                    instanceIds.add(matcher.group("id"));
-                }
-            } else if (ex.getErrorCode().equals(INSTANCE_NOT_FOUND_ERROR)) {
-                Matcher matcher = NON_EXISTING_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
-                while (matcher.find()) {
-                    instanceIds.remove(matcher.group(0));
-                }
-            } else {
-                LOG.error(String.format("Ignore this error (Error Type: %s Error Code: %s, Error message: %s)", ex.getErrorType().toString(), ex.getErrorCode(), ex.getErrorMessage()));
+        List<String> instanceIds = new ArrayList<>();
+        if (ex.getErrorCode().equals(INSTANCE_MALFORMED_ERROR)) {
+            Matcher matcher = MALFORMED_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
+            while (matcher.find()) {
+                instanceIds.add(matcher.group("id"));
             }
-            return instanceIds;
+        } else if (ex.getErrorCode().equals(INSTANCE_NOT_FOUND_ERROR)) {
+            Matcher matcher = NON_EXISTING_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
+            while (matcher.find()) {
+                instanceIds.remove(matcher.group(0));
+            }
+        } else {
+            LOG.error(String.format(
+                "Ignore this error (Error Type: %s Error Code: %s, Error message: %s)",
+                ex.getErrorType().toString(), ex.getErrorCode(), ex.getErrorMessage()));
+        }
+        return instanceIds;
     }
 }

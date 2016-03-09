@@ -114,23 +114,15 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
 
     @Override
     public void disableAutoScalingGroup(String groupName) throws Exception {
-        SuspendProcessesRequest request = new SuspendProcessesRequest();
-        // We only disable alarm notification and scheduled actions
-        request.setScalingProcesses(Arrays.asList(PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS,
-                PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_REPLACEUNHEALTHY));
-        request.setAutoScalingGroupName(groupName);
-        aasClient.suspendProcesses(request);
+        disableScalingProcesses(groupName, Arrays.asList(PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS,
+                                                         PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_REPLACEUNHEALTHY));
     }
 
     @Override
     public void enableAutoScalingGroup(String groupName) throws Exception {
-        ResumeProcessesRequest request = new ResumeProcessesRequest();
-        request.setAutoScalingGroupName(groupName);
-        request.setScalingProcesses(Arrays
-                .asList(PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_HEALTHCHECK,
-                        PROCESS_REPLACEUNHEALTHY,
-                        PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS, PROCESS_ADDTOLOADBALANCER));
-        aasClient.resumeProcesses(request);
+        enableScalingProcesses(groupName, Arrays.asList(PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_HEALTHCHECK,
+                    PROCESS_REPLACEUNHEALTHY,
+                    PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS, PROCESS_ADDTOLOADBALANCER));
     }
 
     @Override
@@ -208,10 +200,7 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
 
         LOG.info(String.format("Creating auto scaling group: %s, with min size: %d, max size: %d",
                 request.getGroupName(), request.getMinSize(), request.getMaxSize()));
-        SuspendProcessesRequest suspendProcessesRequest = new SuspendProcessesRequest();
-        suspendProcessesRequest.setScalingProcesses(Arrays.asList(PROCESS_AZREBALANCE));
-        suspendProcessesRequest.setAutoScalingGroupName(request.getGroupName());
-        aasClient.suspendProcesses(suspendProcessesRequest);
+        disableScalingProcesses(request.getGroupName(), Arrays.asList(PROCESS_AZREBALANCE));
 
         // setup notificaiton
         if (!StringUtils.isEmpty(SNS_TOPIC_ARN)) {
@@ -346,6 +335,35 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     }
 
     @Override
+    public boolean isInstanceProtected(String instances, String groupName) throws Exception {
+        DescribeAutoScalingInstancesResult result = aasClient.describeAutoScalingInstances();
+        if (result.getAutoScalingInstances().isEmpty()) {
+            return false;
+        }
+        AutoScalingInstanceDetails details = result.getAutoScalingInstances().get(0);
+        return details.getProtectedFromScaleIn();
+    }
+
+    @Override
+    public void protectInstanceInAutoScalingGroup(Collection<String> instances, String groupName) throws Exception {
+        setInstanceProtection(instances, groupName, true);
+    }
+
+    @Override
+    public void unprotectInstanceInAutoScalingGroup(Collection<String> instances, String groupName) throws Exception {
+        setInstanceProtection(instances, groupName, false);
+    }
+
+
+    private void setInstanceProtection(Collection<String> instances, String groupName, boolean protect) throws Exception {
+        SetInstanceProtectionRequest setInstanceProtectionRequest = new SetInstanceProtectionRequest();
+        setInstanceProtectionRequest.setAutoScalingGroupName(groupName);
+        setInstanceProtectionRequest.setInstanceIds(instances);
+        setInstanceProtectionRequest.setProtectedFromScaleIn(protect);
+        aasClient.setInstanceProtection(setInstanceProtectionRequest);
+    }
+
+    @Override
     public void increaseASGDesiredCapacityBySize(String groupName, int instanceCnt) throws Exception {
         DescribeAutoScalingGroupsRequest request = new DescribeAutoScalingGroupsRequest();
         request.setAutoScalingGroupNames(Arrays.asList(groupName));
@@ -475,6 +493,36 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
 
     @Override
     public boolean isScalingDownEventEnabled(String groupName) throws Exception {
+        return isScalingProcessEnabled(groupName, PROCESS_TERMINATE);
+    }
+
+    @Override
+    public boolean isScalingUpEventEnabled(String groupName) throws Exception {
+        return isScalingProcessEnabled(groupName, PROCESS_LAUNCH);
+    }
+
+    @Override
+    public void disableScalingDownEvent(String groupName) throws Exception {
+        disableScalingProcesses(groupName, Arrays.asList(PROCESS_TERMINATE));
+    }
+
+    @Override
+    public void enableScalingDownEvent(String groupName) throws Exception {
+        enableScalingProcesses(groupName, Arrays.asList(PROCESS_TERMINATE));
+    }
+
+
+    @Override
+    public void disableScalingUpEvent(String groupName) throws Exception {
+        disableScalingProcesses(groupName, Arrays.asList(PROCESS_LAUNCH));
+    }
+
+    @Override
+    public void enableScalingUpEvent(String groupName) throws Exception {
+        enableScalingProcesses(groupName, Arrays.asList(PROCESS_LAUNCH));
+    }
+
+    private boolean isScalingProcessEnabled(String groupName, String processName) throws Exception {
         DescribeAutoScalingGroupsRequest request = new DescribeAutoScalingGroupsRequest();
         request.setAutoScalingGroupNames(Arrays.asList(groupName));
         DescribeAutoScalingGroupsResult result = aasClient.describeAutoScalingGroups(request);
@@ -486,26 +534,24 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         AutoScalingGroup group = groups.get(0);
         List<SuspendedProcess> suspendedProcesses = group.getSuspendedProcesses();
         for (SuspendedProcess process : suspendedProcesses) {
-            if (process.getProcessName().equals(PROCESS_TERMINATE)) {
+            if (process.getProcessName().equals(processName)) {
                 return false;
             }
         }
         return true;
     }
 
-    @Override
-    public void disableScalingDownEvent(String groupName) throws Exception {
+    private void disableScalingProcesses(String groupName, Collection<String> processes) throws Exception {
         SuspendProcessesRequest request = new SuspendProcessesRequest();
-        request.setScalingProcesses(Arrays.asList(PROCESS_TERMINATE));
+        request.setScalingProcesses(processes);
         request.setAutoScalingGroupName(groupName);
         aasClient.suspendProcesses(request);
     }
 
-    @Override
-    public void enableScalingDownEvent(String groupName) throws Exception {
+    private void enableScalingProcesses(String groupName, Collection<String> processes) throws Exception {
         ResumeProcessesRequest request = new ResumeProcessesRequest();
         request.setAutoScalingGroupName(groupName);
-        request.setScalingProcesses(Arrays.asList(PROCESS_TERMINATE));
+        request.setScalingProcesses(processes);
         aasClient.resumeProcesses(request);
     }
 

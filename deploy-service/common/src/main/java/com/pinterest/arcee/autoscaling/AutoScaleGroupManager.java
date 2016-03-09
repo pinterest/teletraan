@@ -48,6 +48,12 @@ public interface AutoScaleGroupManager {
 
     void terminateInstanceInAutoScalingGroup(String instanceId, boolean decreaseSize) throws Exception;
 
+    boolean isInstanceProtected(String instances, String groupName) throws Exception;
+
+    void protectInstanceInAutoScalingGroup(Collection<String> instances, String groupName) throws Exception;
+
+    void unprotectInstanceInAutoScalingGroup(Collection<String> instances, String groupName) throws Exception;
+
     AutoScalingGroupBean getAutoScalingGroupInfoByName(String asgName) throws Exception;
 
     boolean hasAutoScalingGroup(String groupName) throws Exception;
@@ -72,6 +78,12 @@ public interface AutoScaleGroupManager {
     void disableScalingDownEvent(String groupName) throws Exception;
 
     void enableScalingDownEvent(String groupName) throws Exception;
+
+    boolean isScalingUpEventEnabled(String groupName) throws Exception;
+
+    void disableScalingUpEvent(String groupName) throws Exception;
+
+    void enableScalingUpEvent(String groupName) throws Exception;
 
     Collection<String> instancesInAutoScalingGroup(Collection<String> instances) throws Exception;
 

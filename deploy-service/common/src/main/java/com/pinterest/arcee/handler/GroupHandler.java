@@ -424,6 +424,7 @@ public class GroupHandler {
         // step 1 create launch config
         String newConfig = asgDAO.createSpotLaunchConfig(groupBean, bidPrice);
         asgDAO.createAutoScalingGroup(newConfig, generateSpotAutoScalingGroupRequest(spotGroupName, request), groupBean.getSubnets());
+        asgDAO.disableScalingUpEvent(spotGroupName);
 
         // step 2 update datebase with the launch config
         SpotAutoScalingBean spotAutoScalingBean = new SpotAutoScalingBean();
@@ -789,6 +790,24 @@ public class GroupHandler {
         if (!runningIds.isEmpty()) {
             jobPool.submit(new AttachInstanceToGroupJob(groupName, null, runningIds, 0, null));
         }
+    }
+
+    public void protectInstancesInAutoScalingGroup(List<String> instanceIds, String groupName) throws Exception {
+        List<String> runningIds = hostInfoDAO.getRunningInstances(instanceIds);
+        if (runningIds.isEmpty()) {
+            LOG.info("Instances {} are not running. Cannot attach to group {}", instanceIds.toString(), groupName);
+            return;
+        }
+        asgDAO.protectInstanceInAutoScalingGroup(runningIds, groupName);
+    }
+
+    public void unprotectInstancesInAutoScalingGroup(List<String> instanceIds, String groupName) throws Exception {
+        List<String> runningIds = hostInfoDAO.getRunningInstances(instanceIds);
+        if (runningIds.isEmpty()) {
+            LOG.info("Instances {} are not running. Cannot attach to group {}", instanceIds.toString(), groupName);
+            return;
+        }
+        asgDAO.unprotectInstanceInAutoScalingGroup(runningIds, groupName);
     }
 
     public void detachInstanceFromAutoScalingGroup(List<String> instanceIds, String groupName) throws Exception {

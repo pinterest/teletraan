@@ -67,5 +67,7 @@ public class Constants {
     public static final String TYPE_HOST_TERMINATE = "Host Terminate";
     public static final String TYPE_HOST_ATTACH = "Host Attach";
     public static final String TYPE_HOST_DETACH = "Host Detach";
+    public static final String TYPE_HOST_PROTECTION = "Host Protection";
+    public static final String TYPE_HOST_UNPROTECTION = "Host Unprotection";
     public static final String TYPE_HELATHCHECK_MANAUALLY = "MANUALLY_TRIGGERED Health Check";
 }
