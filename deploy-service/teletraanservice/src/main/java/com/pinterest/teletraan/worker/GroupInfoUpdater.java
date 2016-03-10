@@ -17,9 +17,12 @@ package com.pinterest.teletraan.worker;
 
 import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.bean.AutoScalingGroupBean;
+import com.pinterest.arcee.bean.SpotAutoScalingBean;
+import com.pinterest.arcee.dao.SpotAutoScalingDAO;
 import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.arcee.dao.GroupInfoDAO;
+import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.dao.HostDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,12 +41,14 @@ public class GroupInfoUpdater implements Runnable {
     private HashMap<String, String> tags;
     private MetricSource metricSource;
     private AutoScaleGroupManager autoScaleGroupManager;
+    private SpotAutoScalingDAO spotAutoScalingDAO;
 
     public GroupInfoUpdater(ServiceContext context) {
         groupInfoDAO = context.getGroupInfoDAO();
         hostDAO = context.getHostDAO();
         metricSource = context.getMetricSource();
         autoScaleGroupManager = context.getAutoScaleGroupManager();
+        spotAutoScalingDAO = context.getSpotAutoScalingDAO();
         tags = new HashMap<>();
         try {
             tags.put("host", InetAddress.getLocalHost().getHostName());
@@ -54,12 +59,18 @@ public class GroupInfoUpdater implements Runnable {
 
     private void sendGroupMetrics(String groupName) throws Exception {
         Long groupSize = hostDAO.getGroupSize(groupName);
-        AutoScalingGroupBean autoScalingGroupBean = autoScaleGroupManager.getAutoScalingGroupInfoByName(String.format("%s-spot", groupName));
+
+        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
         Long currentTime = System.currentTimeMillis();
-        if (autoScalingGroupBean != null) {
-            Integer spotInstanceCount = autoScalingGroupBean.getInstances().size();
-            groupSize = groupSize - spotInstanceCount;
-            metricSource.export(String.format(COUNTER_NAME, String.format("%s-spot", groupName)), tags, spotInstanceCount.doubleValue(), currentTime);
+        if (!spotAutoScalingBeans.isEmpty()) {
+            String spotAutoScalingName = spotAutoScalingBeans.get(0).getAsg_name();
+            AutoScalingGroupBean autoScalingGroupBean = autoScaleGroupManager.getAutoScalingGroupInfoByName(spotAutoScalingName);
+            if (!autoScalingGroupBean.getStatus().equals(ASGStatus.UNKNOWN)) {
+                Integer spotInstanceCount = autoScalingGroupBean.getInstances().size();
+                groupSize = groupSize - spotInstanceCount;
+                metricSource.export(String.format(COUNTER_NAME, spotAutoScalingName), tags,
+                                    spotInstanceCount.doubleValue(), currentTime);
+            }
         }
         metricSource.export(String.format(COUNTER_NAME, groupName), tags, groupSize.doubleValue(), currentTime);
     }
@@ -71,8 +82,6 @@ public class GroupInfoUpdater implements Runnable {
             try {
                 LOG.info("Start to send metrics to tsd for group: {}", group);
                 sendGroupMetrics(group);
-                // sleep 500 milliseconds for the next operation
-                Thread.sleep(500);
             } catch (Exception ex) {
                 LOG.error("Failed to send group {} to tsd.", group, ex);
             }
