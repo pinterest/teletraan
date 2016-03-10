@@ -22,7 +22,6 @@ import com.google.gson.JsonParser;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.HTTPClient;
-import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,5 +150,23 @@ public class CMDBHostGroupManager implements HostGroupManager {
                 URLEncoder.encode(entry.getValue(), "UTF-8")));
         }
         return sb.toString();
+    }
+
+    private static class Pair<K, V> {
+        private final K key;
+        private final V val;
+
+        private Pair(K key, V val) {
+            this.key = key;
+            this.val = val;
+        }
+
+        private K getKey() {
+            return key;
+        }
+
+        private V getValue() {
+            return val;
+        }
     }
 }
