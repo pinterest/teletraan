@@ -1,77 +1,102 @@
 {% load utils %}
-    <table class="table table-striped table-bordered table-condensed table-hover">
-        <tr>
-            <td>Deployment ID</td>
-            <td>{{ deploy.id }}</td>
-        </tr>
-        {% if deploy|isRollback %}
-        <tr>
-            <td>Rollback To</td>
-            <td><a href="/deploy/{{ deploy.deployAlias }}">{{ deploy.deployAlias }}</a></td>
-        </tr>
-        {% endif %}
-        <tr>
-            <td>Description</td>
-            <td>{{ deploy.description }}</td>
-        </tr>
-        <tr>
-            <td>Operator</td>
-            <td>{{ deploy.operator }}</td>
-        </tr>
-        <tr>
-            <td>Type</td>
-            <td>
+<table class="table table-striped table-bordered table-condensed table-hover">
+    <tr>
+        <td>Deployment ID</td>
+        <td>{{ deploy.id }}</td>
+    </tr>
+    {% if deploy|isRollback %}
+    <tr>
+        <td>Rollback To</td>
+        <td><a href="/deploy/{{ deploy.deployAlias }}">{{ deploy.deployAlias }}</a></td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td>Description</td>
+        <td>
+            {% if not deploy.description %}
+            <a href="#" id="edit_desc" class="deployToolTip" data-name="description"
+               title="Click to update deploy description"
+               data-placeholder="type deploy description...">
+            </a>
+            {% else %}
+                {{ deploy.description }}
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td>Operator</td>
+        <td>{{ deploy.operator }}</td>
+    </tr>
+    <tr>
+        <td>Type</td>
+        <td>
                 <span class="deployToolTip pointer-cursor glyphicon {{ deploy.type|deployTypeIcon }}"
-                    data-toggle="tooltip" title="{{ deploy.type|deployTypeTip }}">
+                      data-toggle="tooltip" title="{{ deploy.type|deployTypeTip }}">
                 </span>
-                {{ deploy.type }}
-            </td>
-        </tr>
-        <tr>
-            <td>State</td>
-            <td>
+            {{ deploy.type }}
+        </td>
+    </tr>
+    <tr>
+        <td>State</td>
+        <td>
                 <span class="deployToolTip pointer-cursor {{ deploy.state|deployStateIcon }}"
-                     data-toggle="tooltip" title="{{ deploy.state|deployStateTip }}">
+                      data-toggle="tooltip" title="{{ deploy.state|deployStateTip }}">
                 </span>
-                {{ deploy.state }}
-            </td>
-        </tr>
-        <tr>
-            <td>Acceptance Status</td>
-            <td>{{ deploy.acceptanceStatus }}</td>
-        </tr>
-        <tr>
-            <td>From Deploy</td>
-            <td>{{ deploy.fromDeployId }}</td>
-        </tr>
-        <tr>
-            <td>Start</td>
-            <td>{{ deploy.startDate|convertTimestamp }}</td>
-        </tr>
-        <tr>
-            <td>Last Update</td>
-            <td>{{ deploy.lastUpdateDate|convertTimestamp}}</td>
-        </tr>
-        <tr>
-            <td>Operator</td>
-            <td>{{ deploy.operator}}</td>
-        </tr>
-        <tr>
-            <td>Success Rate</td>
-            <td>{{ deploy|successRate }}</td>
-        </tr>
-        <tr>
-            <td>Success Date</td>
-            <td>
-                {% if deploy.successDate > 0 %}
-                {{ deploy.successDate|convertTimestamp }}
-                {% endif %}
-            </td>
-        </tr>
-        <tr>
-            <td>Build</td>
-            <td>
-                {% include "builds/build_details.tmpl" %}
-            </td>
-        </tr>
-    </table>
+            {{ deploy.state }}
+        </td>
+    </tr>
+    <tr>
+        <td>Acceptance Status</td>
+        <td>{{ deploy.acceptanceStatus }}</td>
+    </tr>
+    <tr>
+        <td>From Deploy</td>
+        <td>{{ deploy.fromDeployId }}</td>
+    </tr>
+    <tr>
+        <td>Start</td>
+        <td>{{ deploy.startDate|convertTimestamp }}</td>
+    </tr>
+    <tr>
+        <td>Last Update</td>
+        <td>{{ deploy.lastUpdateDate|convertTimestamp}}</td>
+    </tr>
+    <tr>
+        <td>Operator</td>
+        <td>{{ deploy.operator}}</td>
+    </tr>
+    <tr>
+        <td>Success Rate</td>
+        <td>{{ deploy|successRate }}</td>
+    </tr>
+    <tr>
+        <td>Success Date</td>
+        <td>
+            {% if deploy.successDate > 0 %}
+            {{ deploy.successDate|convertTimestamp }}
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td>Build</td>
+        <td>
+            {% include "builds/build_details.tmpl" %}
+        </td>
+    </tr>
+</table>
+<script>
+    $.fn.editable.defaults.mode = 'popup';
+    $(function () {
+        $('#edit_desc').editable({
+           tpl: "<input type='text' style='width: 400px'>",
+           type: 'text',
+           pk: 1,
+           url: '/deploy/inline_update/',
+           title: 'Enter deploy description',
+           params: {
+               csrfmiddlewaretoken: '{{ csrf_token }}',
+               deploy_id: '{{ deploy.id }}'
+           }
+        });
+    });
+</script>

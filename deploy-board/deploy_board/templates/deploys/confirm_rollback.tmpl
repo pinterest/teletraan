@@ -1,0 +1,28 @@
+<div class="modal fade" id="rollbackConfirmId" tabindex="-1" role="dialog"
+     aria-labelledby="rollbackConfirm" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title">Rollback Confirm</h4>
+      </div>
+      <form id="confirmRollbackFormId" method="POST" role="form" class="form-horizontal"
+            action="NEED_TO_BE_REPLACED">
+      <div class="modal-body">
+        Are you sure to rollback to <a id="confirmCommitLinkId" href="#REPLACE">REPLACE</a>?
+        {% csrf_token %}
+        <div class="row">
+        <div class="form-group">
+          <input class="form-control" name="description" type="text" required="true"
+                 placeholder="Rollback reason (required)" value=""/>
+        </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <input type="submit" value="Rollback" class="btn btn-primary">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+      </div>
+      </form>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

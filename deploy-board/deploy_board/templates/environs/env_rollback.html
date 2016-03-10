@@ -43,17 +43,11 @@
 
 <div class="panel panel-default">
     <div class="panel-heading clearfix">
-        {% if not to_deploy_id %}
-        <h4 class="panel-title pull-left">Pick a deploy to rollback to</h4>
-        {% else %}
-        <h4 class="panel-title pull-left">Are you sure to rollback to
-            <a href="/builds/{{ build_id }}">{{ branch }}/{{ commit }}</a>?
-        </h4>
-        {% endif %}
+        <h4 class="panel-title pull-left">Pick the deploy to rollback to</h4>
     </div>
     <div class="panel-body">
 
-<table id="deployHistoryTableId" class="table table-condensed table-striped table-hover">
+<table id="rollbackHistoryTableId" class="table table-condensed table-striped table-hover">
     <tr>
         <th></th>
         <th>Start(-08:00)</th>
@@ -66,17 +60,21 @@
         <th>Details</th>
     </tr>
     {% for deploy_summary in deploy_summaries %}
-    {% if deploy_summary.deploy.id == to_deploy_id %}
-    <tr class="rollbacker success">
-    {% else %}
     <tr class="rollbacker">
-    {% endif %}
         <td>
-            <input type="checkbox" value="{{ deploy_summary.deploy.id }}"
+            <input type="radio" id="select_{{forloop.counter}}"
             {% if deploy_summary.deploy.id == to_deploy_id %}
                    checked
             {% endif %}
-            name="chkbox_{{forloop.counter}}">
+            name="deploy_radio">
+            <input class="hiddenCommit7" type="hidden"
+                   value="{{ deploy_summary.build.commitShort }}"/>
+            <input class="hiddenBranch" type="hidden"
+                   value="{{ deploy_summary.build.branch }}"/>
+            <input class="hiddenDeployId" type="hidden"
+                   value="{{ deploy_summary.deploy.id }}"/>
+            <input class="hiddenBuildId" type="hidden"
+                   value="{{ deploy_summary.build.id }}"/>
         </td>
         <td>
             {{ deploy_summary.deploy.startDate|convertTimestamp }}
@@ -114,36 +112,49 @@
     </tr>
     {% endfor%}
 </table>
+    Can not find the deploy to rollback to?
+    <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploys"
+       title="Choose different deploy to rollback to in Deploy History page">More options...</a>
+
+    <div id="showNoDeployWarningId" class="alert alert-warning" style="display: none">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Warning!</strong> Pick a deploy first!
+    </div>
 
     </div>
     <div class="panel-footer clearfix">
         <div class="pull-left">
-        {% if to_deploy_id %}
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback_to/{{ to_deploy_id }}"
-            title="Rollback to the selected deploy"
-            type="button" class="deployToolTip btn btn-primary">
-            <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback It
-        </a>
-        {% endif %}
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
-            title="Cancel and return to previous page"
-            type="button" class="deployToolTip btn btn-default">
-            <span class="glyphicon glyphicon-remove"></span> Cancel
-        </a>
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploys"
-            title="Choose different deploy to rollback to in Deploy History page"
-            type="button" class="deployToolTip btn btn-default"> More Options...
-        </a>
+            <a id="rollbackItButton" class="deployToolTip btn btn-primary"
+               data-toggle="tooltip" title="Rollback to the picked deployment">
+                <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback to It
+            </a>
+            <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
+               title="Cancel and return to previous page"
+               type="button" class="deployToolTip btn btn-default">
+                <span class="glyphicon glyphicon-remove"></span> Cancel
+            </a>
         </div>
     </div>
 </div>
 
+{% include "deploys/confirm_rollback.tmpl" %}
 <script>
-    $(function () {
-        $('#deployHistoryTableId tr.rollbacker input:checkbox').click(function () {
-            to_deploy_id = $(this).val();
-            window.location = "/env/{{ env.envName }}/{{ env.stageName }}/rollback/?to_deploy_id="+to_deploy_id;
-        });
+    $('#rollbackItButton').click(function () {
+        trid = $("#rollbackHistoryTableId input[name=deploy_radio]:checked").closest('tr');
+        commit7 = trid.find(".hiddenCommit7").val();
+        branch = trid.find(".hiddenBranch").val();
+        deployId = trid.find(".hiddenDeployId").val();
+        buildId = trid.find(".hiddenBuildId").val();
+        if (deployId) {
+            buildUrl = "/builds/" + buildId;
+            $("#confirmCommitLinkId").attr("href", buildUrl);
+            $("#confirmCommitLinkId").text(branch + '/' + commit7);
+            url = "/env/{{ env.envName }}/{{ env.stageName }}/rollback_to/" + deployId;
+            $('#confirmRollbackFormId').attr("action", url);
+            $('#rollbackConfirmId').modal();
+        } else {
+            $('#showNoDeployWarningId').show();
+        }
     });
 </script>
 

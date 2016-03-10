@@ -110,6 +110,11 @@
             $('#confirmcommit7InputId').val(commit7);
             $('#confirmBranchInputId').val(branch);
             $('#confirmBuildIdInputId').val(buildId);
+            if (branch.startsWith("hotfix")) {
+                $('#confirmDeplyDescId').prop('required', true);
+                $('#confirmDeplyDescId').prop('placeholder',
+                    'Simple description of this deploy (required for hotfix)');
+            }
         });
 
         $('#buildPickTableId tr .showdiffer').click(function () {

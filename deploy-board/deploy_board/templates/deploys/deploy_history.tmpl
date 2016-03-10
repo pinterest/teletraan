@@ -70,6 +70,9 @@
                 <input class="hiddenBuildId" type="hidden"
                        value="{{ deploy_summary.build.id }}"/>
                 <div class="row showContent">
+                    {% if deploy_summary.deploy.description %}
+                        {{ deploy_summary.deploy.description }}
+                    {% endif %}
                 </div>
                 <div class="row">
                     <a class="showdiffer deployToolTip btn btn-default btn-sm"
@@ -82,14 +85,14 @@
                     <a href="/env/{{ env.envName }}/{{ env.stageName }}/promote/{{ deploy_summary.deploy.id }}"
                        type="button" class="deployToolTip btn btn-default btn-sm" data-toggle="tooltip"
                        title="Promote this deployment to other stages">
-                       <span class="glyphicon glyphicon-transfer"></span> Promote
+                       <span class="glyphicon glyphicon-transfer"></span> Promote It
                     </a>
                     {% endif %}
                     {% if deploy_summary.deploy|canRollbackTo %}
                     <a class="rollbacker deployToolTip btn btn-default btn-sm"
                        data-toggle="tooltip"
                        title="Rollback to this deployment">
-                       <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback To
+                       <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback to It
                     </a>
                     {% endif %}
                     {% if pinterest %}
@@ -108,35 +111,7 @@
     <button type="button" id="compareDeploymentsBtn" class="btn btn-default">Compare deploys</button>
 </form>
 {% include "deploys/deploys_pagination_footer.tmpl" with url_prefix='/env/'|add:env.envName|add:'/'|add:env.stageName|add:'/deploys' %}
-
-<div class="modal fade" id="rollbackConfirmId" tabindex="-1" role="dialog"
-     aria-labelledby="rollbackConfirm" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title">Rollback Confirm</h4>
-      </div>
-      <form id="confirmRollbackFormId" method="POST" role="form" class="form-horizontal"
-            action="NEED_TO_BE_REPLACED">
-      <div class="modal-body">
-        <p>Are you sure to rollback to <a id="confirmCommitLinkId" href="#REPLACE">REPLACE</a>?</p>
-        {% csrf_token %}
-        <div class="row">
-        <div class="form-group">
-          <input class="form-control" name="description" type="text"
-                 placeholder="Rollback reason (optional)" value=""/>
-        </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <input type="submit" value="Rollback" class="btn btn-primary">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-      </div>
-      </form>
-    </div><!-- /.modal-content -->
-  </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+{% include "deploys/confirm_rollback.tmpl" %}
 
 <script>
     $('#compareDeploymentsBtn').attr('disabled','disabled');

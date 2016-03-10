@@ -781,6 +781,7 @@ def get_deploy(request, name, stage, deploy_id):
     env = environs_helper.get_env_by_stage(request, name, stage)
     return render(request, 'environs/env_deploy_details.html', {
         "deploy": deploy,
+        "csrf_token": get_token(request),
         "build": build,
         "env": env,
     })

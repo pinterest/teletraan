@@ -217,7 +217,7 @@ def shortenCommit(value):
 
 @register.filter("isHotfixBranch")
 def isHotfixBranch(branch):
-    return branch.startswith("hotfix")
+    return branch and branch.startswith("hotfix")
 
 
 @register.assignment_tag(takes_context=True)

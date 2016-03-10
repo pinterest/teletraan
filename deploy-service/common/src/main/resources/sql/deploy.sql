@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS deploys (
     start_date    BIGINT              NOT NULL,
     operator      VARCHAR(64)         NOT NULL,
     last_update   BIGINT              NOT NULL,
-    description   VARCHAR(512),
+    description   VARCHAR(2048),
     suc_total     INT                 NOT NULL DEFAULT 0,
     fail_total    INT                 NOT NULL DEFAULT 0,
     total         INT                 NOT NULL DEFAULT 0,

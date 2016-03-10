@@ -32,6 +32,7 @@ import docs_views
 
 urlpatterns = [
     # deploy related
+    url(r'^deploy/inline_update/$', deploy_views.inline_update),
     url(r'^deploy/(?P<deploy_id>[a-zA-Z0-9\-_]+)', deploy_views.DeployView.as_view()),
     url(r'^deploys/ongoing/$', deploy_views.get_ongoing_deploys),
     url(r'^env/create/$', env_views.post_create_env),
