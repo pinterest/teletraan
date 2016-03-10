@@ -16,6 +16,8 @@
 """Collection of all deploy related views
 """
 from deploy_board.settings import SITE_METRICS_CONFIGS
+from django.middleware.csrf import get_token
+import json
 from django.shortcuts import render
 from django.views.generic import View
 from django.template.loader import render_to_string
@@ -76,5 +78,18 @@ class DeployView(View):
         return render(request, 'deploys/deploy_details.html', {
             "deploy": deploy,
             "build": build,
+            "csrf_token": get_token(request),
             "env": env,
         })
+
+
+def inline_update(request):
+    query_dict = request.POST
+    name = query_dict["name"]
+    value = query_dict["value"]
+    deploy_id = query_dict["deploy_id"]
+    if name == "description":
+        deploys_helper.update(request, deploy_id, {"description": value})
+    else:
+        log.error("Unsupport deploy update on field " + name)
+    return HttpResponse(json.dumps({'html': ''}), content_type="application/json")

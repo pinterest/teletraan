@@ -82,9 +82,8 @@ def update_progress(request, env_name, stage_name):
                             request.teletraan_user_id.token)
 
 
-def update_acceptance_status(request, id, status):
-    return deployclient.put("/deploys/%s" % id, request.teletraan_user_id.token,
-                            params=[("acceptanceStatus", status)])
+def update(request, id, data):
+    return deployclient.put("/deploys/%s" % id, request.teletraan_user_id.token, data=data)
 
 
 def get_missing_hosts(request, env_name, stage_name):

@@ -80,18 +80,6 @@
                     </div>
                 </div>
             </fieldset>
-            <fieldset>
-                <div class="form-group">
-                    <label class="control-label col-xs-2">
-                        Comments:
-                    </label>
-
-                    <div class="col-xs-10">
-                        <input id="commentId" class="form-control" name="comment" type="text"
-                               placeholder="Promote reason (optional)" value=""/>
-                    </div>
-                </div>
-            </fieldset>
         </form>
     </div>
     <div class="panel-footer clearfix">
@@ -111,8 +99,12 @@
         });
         var toStagesTxt = toStages.join();
         $('#confirmToStagesId').val(toStagesTxt);
-        $('#confirmCommentId').val($("#commentId").val());
         $('#toStagesDescId').text(toStagesTxt);
+        if ( "{{ build.branch }}".startsWith("hotfix")) {
+            $('#confirmCommentId').prop('required', true);
+            $('#confirmCommentId').prop('placeholder',
+                    'Simple description of this prmote (required for hotfix)');
+        }
         $('#promoteConfirmModelId').modal();
     });
     </script>

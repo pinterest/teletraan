@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package com.pinterest.deployservice.handler;
+
+import com.google.common.base.Joiner;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AcceptanceStatus;
@@ -43,8 +45,6 @@ import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.scm.SourceControlManager;
-
-import com.google.common.base.Joiner;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -347,10 +347,7 @@ public class DeployHandler {
         return internalDeploy(envBean, deployBean);
     }
 
-    public void updateAcceptanceStatus(String deployId, AcceptanceStatus newStatus, String operator) throws Exception {
-        getDeploySafely(deployId);
-        DeployBean updateBean = new DeployBean();
-        updateBean.setAcc_status(newStatus);
+    public void update(String deployId, DeployBean updateBean, String operator) throws Exception {
         updateBean.setLast_update(System.currentTimeMillis());
         // TODO use oldStatus to do atomic update status or state
         deployDAO.update(deployId, updateBean);

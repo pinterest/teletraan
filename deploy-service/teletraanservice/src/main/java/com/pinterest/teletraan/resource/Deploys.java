@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,16 @@ package com.pinterest.teletraan.resource;
 
 
 import com.google.common.base.Optional;
-import com.pinterest.deployservice.bean.*;
+
+import com.pinterest.deployservice.bean.AcceptanceStatus;
+import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployFilterBean;
+import com.pinterest.deployservice.bean.DeployQueryResultBean;
+import com.pinterest.deployservice.bean.DeployState;
+import com.pinterest.deployservice.bean.DeployType;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.Resource;
+import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.db.DeployQueryFilter;
@@ -25,17 +34,30 @@ import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
-import io.swagger.annotations.*;
-import org.hibernate.validator.constraints.NotEmpty;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import java.util.List;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.SwaggerDefinition;
+import io.swagger.annotations.Tag;
 
 @Path("/v1/deploys")
 @Api(tags = "Deploys")
@@ -116,20 +138,21 @@ public class Deploys {
     @PUT
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
-            value = "Update deploy info",
-            notes = "Update deploy info given a deploy id and AcceptanceStatus")
+            value = "Update deploy",
+            notes = "Update deploy given a deploy id and deploy object. Current only "
+                    + "acceptanceStatus and description are supported to change.")
     public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id,
-            @ApiParam(value = "AcceptanceStatus enum option", required = true)
-            @NotEmpty @QueryParam("acceptanceStatus") AcceptanceStatus acceptanceStatus) throws Exception {
-        DeployBean deployBean = Utils.getDeploy(deployDAO, id);
-        EnvironBean environBean = Utils.getEnvStage(environDAO, deployBean.getEnv_id());
+            @ApiParam(value = "Partially populated deploy object", required = true)
+            DeployBean deployBean) throws Exception {
+        DeployBean originBean = Utils.getDeploy(deployDAO, id);
+        EnvironBean environBean = Utils.getEnvStage(environDAO, originBean.getEnv_id());
         authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
-        deployHandler.updateAcceptanceStatus(id, acceptanceStatus, userName);
-        LOG.info("{} successfully updated deploy {} with acceptanceStatus {}",
-            userName, id, acceptanceStatus);
+        deployHandler.update(id, deployBean, userName);
+        LOG.info("{} successfully updated deploy {} with {}",
+            userName, id, deployBean);
     }
 
     @DELETE
