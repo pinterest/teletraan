@@ -104,3 +104,10 @@ def run_prereqs(config):
             sys.exit(0)
 
     ensure_dirs(config)
+
+def get_parent_dir(path, levels=1):
+    parent = path
+    while levels > 0:
+        parent = os.path.dirname(parent)
+        levels -= 1
+    return parent
