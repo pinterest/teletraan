@@ -71,6 +71,8 @@ public class GroupInfoUpdater implements Runnable {
             try {
                 LOG.info("Start to send metrics to tsd for group: {}", group);
                 sendGroupMetrics(group);
+                // sleep 500 milliseconds for the next operation
+                Thread.sleep(500);
             } catch (Exception ex) {
                 LOG.error("Failed to send group {} to tsd.", group, ex);
             }

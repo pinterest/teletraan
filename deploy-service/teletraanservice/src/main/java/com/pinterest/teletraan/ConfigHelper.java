@@ -267,7 +267,8 @@ public class ConfigHelper {
             if (workerName.equalsIgnoreCase(GroupInfoUpdater.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 Runnable worker = new GroupInfoUpdater(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                int randomInitTime = new Random().nextInt(initDelay);
+                scheduler.scheduleAtFixedRate(worker, randomInitTime, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled GroupInfoUpdater.");
             }
 
