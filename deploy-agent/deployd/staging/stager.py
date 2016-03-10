@@ -128,12 +128,13 @@ class Stager(object):
         path = os.path.dirname(os.path.realpath(__file__))
         teletraan_root = get_parent_dir(path, 3)
         mirror_dir = "%s/%s" % (teletraan_root, self._teletraan_mirror_path)
-        for f in os.listdir(mirror_dir):
-            cp_cmd = ["rsync", "-r", "%s/%s" % (mirror_dir, f), "/%s" % f]
-            output, status, process = Caller.call_and_log(cp_cmd)
-            if status != 0:
-                log.error(output)
-                return
+        if os.path.isdir(mirror_dir):
+            for f in os.listdir(mirror_dir):
+                cp_cmd = ["rsync", "-r", "%s/%s" % (mirror_dir, f), "/%s" % f]
+                output, status, process = Caller.call_and_log(cp_cmd)
+                if status != 0:
+                    log.error(output)
+                    return
 
 
 def main():
