@@ -23,6 +23,7 @@ import logging
 from deployd.common.caller import Caller
 from deployd.common.config import Config
 from deployd.common.status_code import Status
+from deployd.common.utils import get_parent_dir
 from transformer import Transformer
 
 log = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ log = logging.getLogger(__name__)
 class Stager(object):
     _script_dirname = "teletraan"
     _template_dirname = "teletraan_template"
+    _teletraan_mirror_path = "teletraan/mirror"
 
     def __init__(self, config, build, target, env_name, transformer=None):
         self._build_dir = config.get_builds_directory()
@@ -40,6 +42,7 @@ class Stager(object):
             transformer or Transformer(agent_dir=agent_dir, env_name=env_name)
         self._build = build
         self._target = target
+        self.mirror_dirs()
 
     def enable_package(self):
         """Set the enabled build.
@@ -118,6 +121,20 @@ class Stager(object):
                                             template_dirname=self._template_dirname,
                                             script_dirname=self._script_dirname)
 
+    def mirror_dirs(self):
+        """
+        Mirror the directories in the teletraan/data/mirror folder in the system filesystem.
+        """
+        path = os.path.dirname(os.path.realpath(__file__))
+        teletraan_root = get_parent_dir(path, 3)
+        mirror_dir = "%s/%s" % (teletraan_root, self._teletraan_mirror_path)
+        for f in os.listdir(mirror_dir):
+            cp_cmd = ["rsync", "-r", "%s/%s" % (mirror_dir, f), "/%s" % f]
+            output, status, process = Caller.call_and_log(cp_cmd)
+            if status != 0:
+                log.error(output)
+                return
+
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -137,6 +154,7 @@ def main():
     log.info("Start to stage the package.")
     result = Stager(config=config, build=args.build,
                     target=args.target, env_name=args.env_name).enable_package()
+
     if result == Status.SUCCEEDED:
         return 0
     else:
