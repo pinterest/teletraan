@@ -98,6 +98,7 @@ public class ServiceContext {
     private ManagingGroupDAO managingGroupDAO;
 
     private String quboleAuthentication;
+    private int spotAutoScalingThreshold;
 
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;
@@ -522,4 +523,10 @@ public class ServiceContext {
     public String getQuboleAuthentication() {
         return quboleAuthentication;
     }
+
+    public void setSpotAutoScalingThreshold(int spotAutoScalingThreshold) {
+        this.spotAutoScalingThreshold = spotAutoScalingThreshold;
+    }
+
+    public int getSpotAutoScalingThreshold() { return spotAutoScalingThreshold; }
 }

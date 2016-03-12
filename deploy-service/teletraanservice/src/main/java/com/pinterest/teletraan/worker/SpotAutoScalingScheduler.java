@@ -38,7 +38,7 @@ public class SpotAutoScalingScheduler implements Runnable {
     private GroupInfoDAO groupInfoDAO;
     private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
     private AutoScaleGroupManager autoScaleGroupManager;
-    private static int FREE_RESERVED_INSTANCE_THRESHOLD = 150;
+    private int spotAutoScalingThreshold;
 
     public SpotAutoScalingScheduler(ServiceContext serviceContext) {
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
@@ -46,9 +46,11 @@ public class SpotAutoScalingScheduler implements Runnable {
         groupInfoDAO = serviceContext.getGroupInfoDAO();
         reservedInstanceInfoDAO = serviceContext.getReservedInstanceInfoDAO();
         autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
+        spotAutoScalingThreshold = serviceContext.getSpotAutoScalingThreshold();
+        LOG.info(String.format("Set spot auto scaling threshold to %d", spotAutoScalingThreshold));
     }
 
-    private void processSpotAutoScaling(String clusterName, String spotAutoScalingGroupName) throws Exception {
+    private void processSpotAutoScaling(String clusterName, SpotAutoScalingBean spotAutoScalingBean) throws Exception {
         GroupBean groupBean = groupInfoDAO.getGroupInfo(clusterName);
         if (groupBean == null) {
             return;
@@ -58,13 +60,25 @@ public class SpotAutoScalingScheduler implements Runnable {
         int reservedInstanceCount = reservedInstanceInfoDAO.getReservedInstanceCount(instanceType);
         int runningReservedInstanceCount = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
         int freeInstance = reservedInstanceCount - runningReservedInstanceCount;
-
-        if (freeInstance < FREE_RESERVED_INSTANCE_THRESHOLD) {
-            LOG.info(String.format("Enable scaling up for spot auto scaling group %s. Free RI is: %d", clusterName, freeInstance));
-            autoScaleGroupManager.enableScalingUpEvent(spotAutoScalingGroupName);
+        String spotAutoScalingGroupName = spotAutoScalingBean.getAsg_name();
+        if (freeInstance < spotAutoScalingThreshold) {
+            LOG.info(String.format("Enable scaling up for spot auto scaling group %s. Free RI is: %d (Threshold: %d)", clusterName, freeInstance,
+                                   spotAutoScalingThreshold));
+            if (!spotAutoScalingBean.getEnable_grow()) {
+                autoScaleGroupManager.enableScalingUpEvent(spotAutoScalingGroupName);
+                SpotAutoScalingBean updatedBean = new SpotAutoScalingBean();
+                updatedBean.setEnable_grow(true);
+                spotAutoScalingDAO.updateSpotAutoScalingGroup(spotAutoScalingGroupName, updatedBean);
+            }
         } else {
-            LOG.info(String.format("Disable scaling up for spot auto scaling group %s. Free RI is: %d", clusterName, freeInstance));
-            autoScaleGroupManager.disableScalingUpEvent(spotAutoScalingGroupName);
+            LOG.info(String.format("Disable scaling up for spot auto scaling group %s. Free RI is: %d (Threshold: %d)", clusterName, freeInstance,
+                                   spotAutoScalingThreshold));
+            if (spotAutoScalingBean.getEnable_grow()) {
+                autoScaleGroupManager.disableScalingUpEvent(spotAutoScalingGroupName);
+                SpotAutoScalingBean updatedBean = new SpotAutoScalingBean();
+                updatedBean.setEnable_grow(false);
+                spotAutoScalingDAO.updateSpotAutoScalingGroup(spotAutoScalingGroupName, updatedBean);
+            }
         }
     }
 
@@ -75,6 +89,8 @@ public class SpotAutoScalingScheduler implements Runnable {
         String spotAutoScalingGroupName = spotAutoScalingBean.getAsg_name();
         AutoScalingGroupBean spotAutoScalingGroup = autoScaleGroupManager.getAutoScalingGroupInfoByName(
             spotAutoScalingGroupName);
+
+        processSpotAutoScaling(clusterName, spotAutoScalingBean);
 
         int targetSpotAutoScalingGroupMaxSize = (int)(instanceCount * spotAutoScalingBean.getSpot_ratio());
         if (targetSpotAutoScalingGroupMaxSize == spotAutoScalingGroup.getMaxSize()) {
@@ -92,8 +108,6 @@ public class SpotAutoScalingScheduler implements Runnable {
         requestBean.setGroupName(spotAutoScalingGroupName);
         requestBean.setTerminationPolicy(spotAutoScalingGroup.getTerminationPolicy().toString());
         autoScaleGroupManager.updateAutoScalingGroup(requestBean, null);
-
-        processSpotAutoScaling(clusterName, spotAutoScalingGroupName);
     }
 
     public void processBatch() throws Exception {

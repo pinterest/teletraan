@@ -30,6 +30,7 @@ import com.pinterest.clusterservice.cm.DefaultClusterManager;
 import com.pinterest.deployservice.db.*;
 import com.pinterest.deployservice.events.DefaultEventSender;
 import com.pinterest.teletraan.config.AWSFactory;
+import com.pinterest.teletraan.config.AutoScalingFactory;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 import com.pinterest.teletraan.worker.*;
@@ -151,7 +152,12 @@ public class ConfigHelper {
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
-        context.setQuboleAuthentication(configuration.getSystemFactory().getQuboleAuthentication());
+
+        AutoScalingFactory autoScalingFactory = configuration.getAutoScalingFactory();
+        if (autoScalingFactory != null) {
+            context.setQuboleAuthentication(autoScalingFactory.getQuboleAuthentication());
+            context.setSpotAutoScalingThreshold(autoScalingFactory.getSpotAutoScalingThreshold());
+        }
 
         return context;
     }

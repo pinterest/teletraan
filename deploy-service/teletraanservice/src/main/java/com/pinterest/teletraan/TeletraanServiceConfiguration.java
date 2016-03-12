@@ -72,6 +72,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("system")
     private SystemFactory systemFactory;
 
+    @Valid
+    @JsonProperty("autoscaling")
+    private AutoScalingFactory autoScalingFactory;
+
     public DataSourceFactory getDataSourceFactory() {
         if (dataSourceFactory == null) {
             return new EmbeddedDataSourceFactory();
@@ -186,6 +190,14 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setSystemFactory(SystemFactory systemFactory) {
         this.systemFactory = systemFactory;
+    }
+
+    public AutoScalingFactory getAutoScalingFactory() {
+        return autoScalingFactory;
+    }
+
+    public void setAutoScalingFactory(AutoScalingFactory autoScalingFactory) {
+        this.autoScalingFactory = autoScalingFactory;
     }
 
     public List<WorkerConfig> getWorkerConfigs() {

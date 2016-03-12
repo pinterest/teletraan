@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,31 +17,19 @@ package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class SystemFactory {
-    private static final String DEFAULT_DASHBOARD_URL = "http://localhost:8888";
-
-    @JsonProperty
-    private String dashboardUrl = DEFAULT_DASHBOARD_URL;
-
-    @JsonProperty
-    private String changeFeedUrl;
+public class AutoScalingFactory {
 
     @JsonProperty
     private String quboleAuthentication;
 
-    public String getDashboardUrl() {
-        return dashboardUrl;
-    }
+    @JsonProperty
+    private int spotAutoScalingThreshold;
 
-    public void setDashboardUrl(String dashboardUrl) {
-        this.dashboardUrl = dashboardUrl;
-    }
+    public String getQuboleAuthentication() { return quboleAuthentication; }
 
-    public String getChangeFeedUrl() {
-        return changeFeedUrl;
-    }
+    public void setQuboleAuthentication(String quboleAuthentication) { this.quboleAuthentication = quboleAuthentication; }
 
-    public void setChangeFeedUrl(String changeFeedUrl) {
-        this.changeFeedUrl = changeFeedUrl;
-    }
+    public int getSpotAutoScalingThreshold() { return spotAutoScalingThreshold; }
+
+    public void setSpotAutoScalingThreshold(Integer spotAutoScalingThreshold) { this.spotAutoScalingThreshold = spotAutoScalingThreshold; }
 }
