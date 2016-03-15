@@ -24,4 +24,4 @@ virtualenv /home/vagrant/venv
 source /home/vagrant/venv/bin/activate
 pip install -r /home/vagrant/teletraan/deploy-board/requirements.txt
 
-echo "Completed intitliazing the VM".
+echo "Completed initializing the VM".
