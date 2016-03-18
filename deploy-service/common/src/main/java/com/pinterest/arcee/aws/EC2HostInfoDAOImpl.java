@@ -206,6 +206,7 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
             LOG.error(String.format(
                 "Ignore this error (Error Type: %s Error Code: %s, Error message: %s)",
                 ex.getErrorType().toString(), ex.getErrorCode(), ex.getErrorMessage()));
+            throw ex;
         }
         return instanceIds;
     }
