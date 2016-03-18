@@ -98,6 +98,7 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
                 LOG.error(String.format("Get AmazonClientException, exit with terminiatedHost %s", terminatedHosts.toString()), ex);
                 return terminatedHosts;
             }
+            Thread.sleep(500);
         }
         return terminatedHosts;
     }
@@ -186,6 +187,7 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
                 LOG.error(String.format("Get AmazonClientException, exit with terminiatedHost %s", resultIds.toString()), ex);
                 throw new Exception(String.format("Get AmazonClientException, exit with terminiatedHost %s", resultIds.toString()), ex);
             }
+            Thread.sleep(500);
         }
         return resultIds;
     }
@@ -200,7 +202,7 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
         } else if (ex.getErrorCode().equals(INSTANCE_NOT_FOUND_ERROR)) {
             Matcher matcher = NON_EXISTING_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
             while (matcher.find()) {
-                instanceIds.remove(matcher.group(0));
+                instanceIds.add(matcher.group(0));
             }
         } else {
             LOG.error(String.format(
