@@ -139,8 +139,8 @@ public class Deploys {
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Update deploy",
-            notes = "Update deploy given a deploy id and deploy object. Current only "
-                    + "acceptanceStatus and description are supported to change.")
+            notes = "Update deploy given a deploy id and a deploy object. Current only "
+                    + "acceptanceStatus and description are allowed to change.")
     public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id,

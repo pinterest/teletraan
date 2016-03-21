@@ -40,13 +40,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+// TODO There are many AWS launch config configurations need to be made customizable through config file
+// TODO AWS_VM_KEYNAME, AWS_DEFAULT_ROLE, AWS_ROLE_TEMPLATE, AWS_USERDATA_TEMPLATE and maybe others...
 public class AwsVmManager implements ClusterManager<AwsVmBean> {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AwsVmManager.class);
     private static final String PROCESS_AZREBALANCE = "AZRebalance";
     private static final String AWS_VM_KEYNAME = "ops";
     private static final String AWS_DEFAULT_ROLE = "base";
     private static final String AWS_ROLE_TEMPLATE = "arn:aws:iam::%s:instance-profile/%s";
-    private static final String AWS_USERDATA_TEMPLATE = "#cloud-config\nrole: %s\nCMP: \n  -group: %s";
+    private static final String AWS_USERDATA_TEMPLATE =
+        "#cloud-config\ncmp_group: %s\npinfo_environment: prod\npinfo_team: cloudeng\npinfo_role: cmp_docker";
     private static final String[] NOTIFICATION_TYPE = {
             "autoscaling:EC2_INSTANCE_LAUNCH",
             "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
@@ -386,7 +389,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
     }
 
     private Map<String, String> transformUserDataToConfigMap(String clusterName, String userData) throws Exception {
-        String userDataString = userData.replace(String.format(AWS_USERDATA_TEMPLATE, clusterName, clusterName), "");
+        String userDataString = userData.replace(String.format(AWS_USERDATA_TEMPLATE, clusterName), "");
         Map<String, String> resultMap = new HashMap<>();
         if (userDataString.length() == 0) {
             return resultMap;
@@ -405,7 +408,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
     }
 
     private String transformUserDataConfigToString(String clusterName, Map<String, String> userDataConfigs) throws Exception {
-        String prefix = String.format(AWS_USERDATA_TEMPLATE, clusterName, clusterName);
+        String prefix = String.format(AWS_USERDATA_TEMPLATE, clusterName);
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append(prefix);
         if (userDataConfigs == null) {
