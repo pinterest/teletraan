@@ -153,30 +153,53 @@ def sendFinishMessage(request, user, envName, stageName, state):
     systems_helper.send_chat_message(request, deploy['operator'], get_slack_channel(), message)
 
 
+def send_health_check_error_message(request, enable):
+    weblink = "deploy.pinadmin.com/groups/webapp/config/"
+    if enable:
+        message = "Failed to enable health check for auto scaling group webapp. Please manually enable it: <{}|here>".format(weblink)
+    else:
+        message = "Failed to disable health check for auto scaling group webapp. Please manually disable it: <{}|here>".format(weblink)
+    systems_helper.send_chat_message(request, "system", "autoscaling", message)
+
 
 def enable_health_check(request):
-    groups_helper.enable_health_check(request, NGAPP_GROUP)
+    try:
+        groups_helper.enable_health_check(request, NGAPP_GROUP)
+    except:
+        send_health_check_error_message(True)
 
 
 def disable_health_check(request):
-    groups_helper.disable_health_check(request, NGAPP_GROUP)
+    try:
+        groups_helper.disable_health_check(request, NGAPP_GROUP)
+    except:
+        send_health_check_error_message(False)
 
 
 def update_env_priority(request, env_name):
-    if env_name == NGAPP_A:
-        curr_env = NGAPP_A
-        prev_env = NGAPP_B
-    else:
-        curr_env = NGAPP_B
-        prev_env = NGAPP_A
+    try:
+        if env_name == NGAPP_A:
+            curr_env = NGAPP_A
+            prev_env = NGAPP_B
+        else:
+            curr_env = NGAPP_B
+            prev_env = NGAPP_A
 
-    # we only update env priority once
-    if Ngapp2DeployUtils().get_finish_message_flag("prod") == "True":
-        return
-    curr_data = {"priority": "HIGH"}
-    prev_data = {"priority": "NORMAL"}
-    environs_helper.update_env_basic_config(request, curr_env, "prod", data=curr_data)
-    environs_helper.update_env_basic_config(request, prev_env, "prod", data=prev_data)
+        # we only update env priority once
+        if Ngapp2DeployUtils().get_finish_message_flag("prod") != "True":
+            return
+
+        curr_data = {"priority": "HIGH"}
+        prev_data = {"priority": "NORMAL"}
+        environs_helper.update_env_basic_config(request, curr_env, "prod", data=curr_data)
+        environs_helper.update_env_basic_config(request, prev_env, "prod", data=prev_data)
+    except:
+        logger.error("Failed change ngapp2 deploy priority")
+
+        # send message to the auto scaling channel
+        message = "Failed to switch ngapp2 deploy priority after deploy. This may lead to health check failure. Please take actions."
+        systems_helper.send_chat_message(request, "system", "autoscaling", message)
+
 
 
 class NgappStatusView(View):

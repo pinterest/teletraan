@@ -221,16 +221,23 @@ public class Groups {
                                          @QueryParam("type") String type) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         HealthCheckActionType actionType = HealthCheckActionType.valueOf(HealthCheckActionType.class, type.toUpperCase());
+        boolean enableHealthCheck;
         if (actionType == HealthCheckActionType.ENABLE) {
-            groupHandler.updateHealthCheckState(groupName, true);
+            enableHealthCheck = true;
             LOG.info(String.format("Enable health check for group %s", groupName));
-            return;
         } else if (actionType == HealthCheckActionType.DISABLE) {
-            groupHandler.updateHealthCheckState(groupName, false);
+            enableHealthCheck = false;
             LOG.info(String.format("Disable health check for group %s", groupName));
-            return;
+        } else {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                                                String.format("Unkonw action type: %s", type));
         }
 
-        throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Unkonw action type: %s", type));
+        String operator = sc.getUserPrincipal().getName();
+        groupHandler.updateHealthCheckState(groupName, enableHealthCheck);
+        GroupBean groupBean = new GroupBean();
+        groupBean.setHealthcheck_state(enableHealthCheck);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_GENERAL, groupBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_GENERAL, operator);
     }
 }
