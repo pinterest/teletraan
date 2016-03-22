@@ -407,7 +407,7 @@ public class EnvironHandler {
         Set<String> capacityHosts = new HashSet<>();
         if (capacityTotal > agentBeans.size()) {
             // we only consider the missing hosts if there is a hint
-            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getEnv_state().toString());
+            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
             capacityHosts.addAll(capacityHostList);
         }
 
@@ -451,7 +451,7 @@ public class EnvironHandler {
         Set<String> capacityHosts = new HashSet<>();
         if (capacityTotal > agentBeans.size()) {
             // we only consider the missing hosts if there is a hint
-            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getEnv_state().toString());
+            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
             capacityHosts.addAll(capacityHostList);
         }
 

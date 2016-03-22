@@ -17,8 +17,8 @@ from django.http import HttpResponse
 from django.views.generic import View
 import traceback
 import logging
-from helpers import environs_helper, agents_helper, environ_hosts_helper
-from helpers import groups_helper, hosts_helper, clusters_helper
+from helpers import environs_helper, agents_helper
+from helpers import groups_helper, hosts_helper, clusters_helper, environ_hosts_helper
 from deploy_board.settings import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -26,33 +26,31 @@ log = logging.getLogger(__name__)
 
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
-        agents = agents_helper.get_agents_by_host(request, hostname)
-        env = environs_helper.get_env_by_stage(request, name, stage)
         host = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
         show_terminate = False
-        asg = ''
-        if host and host.get('hostId'):
-            if host.get('state') != 'PENDING_TERMINATE' and host.get('state') != 'TERMINATING' and host.get('state') != 'TERMINATED':
-                show_terminate = True
+        if host and host.get('state') and host.get('state') != 'PENDING_TERMINATE' and host.get('state') != 'TERMINATING' and host.get('state') != 'TERMINATED':
+            show_terminate = True
 
         cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
         if cluster_provider == 'null':
             cluster_provider = None
 
         # TODO deprecated it
+        asg = ''
         if host and host.get('groupName'):
             group_info = groups_helper.get_group_info(request, host.get('groupName'))
             if group_info and group_info["asgStatus"] == "ENABLED":
                 asg = host.get('groupName')
 
         # gather the env name and stage info
+        agents = agents_helper.get_agents_by_host(request, hostname)
         agent_wrappers = []
         for agent in agents:
             agent_wrapper = {}
             agent_wrapper["agent"] = agent
             envId = agent['envId']
             agent_env = environs_helper.get(request, envId)
-            agent_wrapper["env"] = env
+            agent_wrapper["env"] = agent_env
             agent_wrapper["error"] = ""
             if agent.get('lastErrno', 0) != 0:
                 agent_wrapper["error"] = agents_helper.get_agent_error(request, agent_env['envName'],

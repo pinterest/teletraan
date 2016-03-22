@@ -412,7 +412,7 @@ public class DBDAOTest {
 
         List<AgentBean> agentBeans = agentDAO.getByHost("h1");
         assertEquals(agentBeans.size(), 1);
-        assertEquals(agentBeans.get(0).getFirst_deploy_time(),  new Long(10));
+        assertEquals(agentBeans.get(0).getFirst_deploy_time(), new Long(10));
 
         updateBean1.setFirst_deploy_time(1000L);
         agentDAO.insertOrUpdate(updateBean1);
@@ -684,6 +684,14 @@ public class DBDAOTest {
         assertEquals(hostBean2.getGroup_name(), "new_group");
         assertEquals(hostBean2.getHost_name(), "host-3");
         assertEquals(hostBean2.getIp(), "3.3.3.3");
+
+        HostBean hostBean3 = hostDAO.getByEnvIdAndHostName("e-3", "host-3");
+        assertEquals(hostBean3.getHost_name(), "host-3");
+
+        groupDAO.addGroupCapacity("e-3", "new_group");
+        hostBean3 = hostDAO.getByEnvIdAndHostName("e-3", "host-3");
+        assertEquals(hostBean3.getHost_name(), "host-3");
+        groupDAO.removeGroupCapacity("e-3", "new_group");
 
         // test host insert
         HostBean hostBean1 = new HostBean();
