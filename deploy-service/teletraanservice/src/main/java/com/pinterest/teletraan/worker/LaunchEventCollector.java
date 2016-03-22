@@ -80,7 +80,8 @@ public class LaunchEventCollector implements Runnable {
         if (spotAutoScalingBean != null) {
             groupName = spotAutoScalingBean.getCluster_name();
         }
-        String processLockName = String.format("UPDATE-%s", eventMessage.getGroupName());
+
+        String processLockName = String.format("UPDATE-%s", groupName);
         Connection connection = utilDAO.getLock(processLockName);
         if (connection == null) {
             throw new Exception("Failed to obtain db lock for updates");
@@ -94,14 +95,14 @@ public class LaunchEventCollector implements Runnable {
             }
 
             if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_LAUNCH")) {
-                LOG.debug(String.format("An new instance %s has been launched in group %s", eventMessage.getInstanceId(), eventMessage.getGroupName()));
+                LOG.debug(String.format("An new instance %s has been launched in group %s", eventMessage.getInstanceId(), groupName));
 
                 // insert new host
                 HostBean hostBean = new HostBean();
                 // set default host_name equals to instance Id
                 hostBean.setHost_name(eventMessage.getInstanceId());
                 hostBean.setHost_id(eventMessage.getInstanceId());
-                hostBean.setGroup_name(eventMessage.getGroupName());
+                hostBean.setGroup_name(groupName);
                 hostBean.setState(HostState.PROVISIONED);
                 hostBean.setCreate_date(eventMessage.getTimestamp());
                 hostBean.setLast_update(eventMessage.getTimestamp());
@@ -114,7 +115,7 @@ public class LaunchEventCollector implements Runnable {
                     newInstanceReportDAO.addNewInstanceReport(eventMessage.getInstanceId(), eventMessage.getTimestamp(), envIds);
                 }
             } else if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_TERMINATE")) {
-                LOG.debug(String.format("An existing instance %s has been terminated in group %s", eventMessage.getInstanceId(), eventMessage.getGroupName()));
+                LOG.debug(String.format("An existing instance %s has been terminated in group %s", eventMessage.getInstanceId(), groupName));
                 HostBean hostBean = new HostBean();
                 hostBean.setState(HostState.TERMINATING);
                 hostBean.setLast_update(eventMessage.getTimestamp());
