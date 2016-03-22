@@ -27,6 +27,8 @@ public class ReservedInstanceScheduler implements Runnable {
     private static String LENDING_FREEINSTANCE_METRIC_NAME = "lending_instance.%s.count";
     private static String QUBOLE_RUNNING_INSTANCE = "qubole.running_instance.count";
     private static int THRESHOLD = 100;
+    private static InstanceType[] MANAGING_INSTANCE_TYPE = {InstanceType.C38xlarge, InstanceType.C32xlarge};
+    private HashSet<InstanceType> managingInstanceType;
     private QuboleLeaseDAOImpl quboleLeaseDAO;
 
     public ReservedInstanceScheduler(ServiceContext context) {
@@ -35,6 +37,7 @@ public class ReservedInstanceScheduler implements Runnable {
         utilDAO = context.getUtilDAO();
         metricSource = context.getMetricSource();
         quboleLeaseDAO = new QuboleLeaseDAOImpl(context.getQuboleAuthentication());
+        managingInstanceType = new HashSet<>(Arrays.asList(MANAGING_INSTANCE_TYPE));
     }
 
     private int lendInstances(ManagingGroupsBean managingGroupsBean, int freeInstances) throws Exception {
@@ -155,8 +158,13 @@ public class ReservedInstanceScheduler implements Runnable {
             List<InstanceType> instanceTypes = Arrays.asList(InstanceType.values());
             Collections.shuffle(instanceTypes);
             for (InstanceType type : instanceTypes) {
+                if (!managingInstanceType.contains(type)) {
+                    continue;
+                }
+
                 LOG.info(String.format("Process instance type: %s", type.toString()));
                 scheduleReserveInstances(type.toString());
+                Thread.sleep(500);
             }
 
         } catch (Throwable t) {
