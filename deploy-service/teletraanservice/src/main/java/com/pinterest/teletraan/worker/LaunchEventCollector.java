@@ -25,6 +25,8 @@ import com.pinterest.arcee.dao.AsgLifecycleEventDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.NewInstanceReportDAO;
 import com.pinterest.arcee.dao.SpotAutoScalingDAO;
+import com.pinterest.clusterservice.bean.ClusterBean;
+import com.pinterest.clusterservice.dao.ClusterDAO;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.HostBean;
@@ -49,6 +51,7 @@ public class LaunchEventCollector implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(LaunchEventCollector.class);
     private final AgentDAO agentDAO;
     private final AsgLifecycleEventDAO asgLifecycleEventDAO;
+    private final ClusterDAO clusterDAO;
     private final GroupDAO groupDAO;
     private final GroupInfoDAO groupInfoDAO;
     private final HostDAO hostDAO;
@@ -62,6 +65,7 @@ public class LaunchEventCollector implements Runnable {
     public LaunchEventCollector(TeletraanServiceContext context) {
         agentDAO = context.getAgentDAO();
         asgLifecycleEventDAO = context.getAsgLifecycleEventDAO();
+        clusterDAO = context.getClusterDAO();
         groupDAO = context.getGroupDAO();
         groupInfoDAO = context.getGroupInfoDAO();
         hostDAO = context.getHostDAO();
@@ -88,9 +92,9 @@ public class LaunchEventCollector implements Runnable {
         }
         try {
             GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
-            // TODO ClusterBean clusterBean = clusterDAO.getByClusterName(groupName);
-            if (groupBean == null) {
-                LOG.info(String.format("The group %s information is not in the database yet.", groupName));
+            ClusterBean clusterBean = clusterDAO.getByClusterName(groupName);
+            if (groupBean == null && clusterBean == null) {
+                LOG.info(String.format("The group/cluster %s information is not in the database yet.", groupName));
                 return false;
             }
 
