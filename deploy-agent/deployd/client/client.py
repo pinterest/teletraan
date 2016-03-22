@@ -21,6 +21,7 @@ import traceback
 from deployd.client.restfulclient import RestfulClient
 from deployd.common.decorators import retry
 from deployd.common.stats import create_stats_timer, create_sc_increment
+from deployd.common import utils
 from deployd.types.ping_request import PingRequest
 
 log = logging.getLogger(__name__)
@@ -28,36 +29,56 @@ log = logging.getLogger(__name__)
 
 class Client(object):
     def __init__(self, config=None, hostname=None,
-                 ip=None, hostgroup=None, host_id=None):
+                 ip=None, hostgroup=None, host_id=None, use_facter=None):
         self._hostname = hostname
         self._ip = ip
         self._hostgroup = hostgroup
         self._id = host_id
         self._config = config
+        self._use_facter = use_facter
 
     def _read_host_info(self):
-        host_info_fn = self._config.get_host_info_fn()
-        lock_fn = '{}.lock'.format(host_info_fn)
-        lock = lockfile.FileLock(lock_fn)
-        if os.path.exists(host_info_fn):
-            with lock, open(host_info_fn, "r+") as f:
-                host_info = dict((n.strip('\"\n\' ') for n in line.split("=", 1)) for line in f)
+        if self._use_facter:
+            log.info("Use facter to get host info")
+            if not self._hostname and self._config.get_facter_name_key():
+                self._hostname = utils.get_info_from_facter(self._config.get_facter_name_key())
 
-            if "hostname" in host_info:
-                self._hostname = host_info.get("hostname")
+            if not self._ip and self._config.get_facter_ip_key():
+                self._ip = utils.get_info_from_facter(self._config.get_facter_ip_key())
 
-            if "ip" in host_info:
-                self._ip = host_info.get("ip")
+            if not self._id and self._config.get_facter_id_key():
+                self._id = utils.get_info_from_facter(self._config.get_facter_id_key())
 
-            if "id" in host_info:
-                self._id = host_info.get("id")
-
-            host_group = host_info.get("groups", None)
-            if host_group:
-                self._hostgroup = host_group.split(",")
+            if not self._hostgroup and self._config.get_facter_group_key():
+                output = utils.get_info_from_facter(self._config.get_facter_group_key())
+                if output:
+                    self._hostgroup = output.split(",")
         else:
-            log.warn("Cannot find host information file {}. See doc for more details".format(host_info_fn))
+            # read host_info file
+            host_info_fn = self._config.get_host_info_fn()
+            lock_fn = '{}.lock'.format(host_info_fn)
+            lock = lockfile.FileLock(lock_fn)
+            if os.path.exists(host_info_fn):
+                with lock, open(host_info_fn, "r+") as f:
+                    host_info = dict((n.strip('\"\n\' ') for n in line.split("=", 1)) for line in f)
 
+                if not self._hostname and "hostname" in host_info:
+                    self._hostname = host_info.get("hostname")
+
+                if not self._ip and "ip" in host_info:
+                    self._ip = host_info.get("ip")
+
+                if not self._id and "id" in host_info:
+                    self._id = host_info.get("id")
+
+                if not self._hostgroup:
+                    host_group = host_info.get("groups", None)
+                    if host_group:
+                        self._hostgroup = host_group.split(",")
+            else:
+                log.warn("Cannot find host information file {}. See doc for more details".format(host_info_fn))
+
+        # patch missing part
         if not self._hostname:
             self._hostname = socket.gethostname()
 

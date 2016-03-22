@@ -350,6 +350,8 @@ def main():
                         help="Group name being used when interact with Teletraan service. "
                              "This is optional. By default the group name defined in host-info "
                              "file will be used")
+    parser.add_argument('--use-facter', dest='use_facter', action='store_true', default=False)
+
     args = parser.parse_args()
     config = Config(args.config_file)
     utils.run_prereqs(config)
@@ -364,7 +366,7 @@ def main():
         logging.basicConfig(filename=log_filename, level=config.get_log_level())
 
     log.info("Start to run deploy-agent.")
-    client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup)
+    client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup, use_facter=args.use_facter)
     agent = DeployAgent(client=client, conf=config)
     utils.listen()
     if args.daemon:

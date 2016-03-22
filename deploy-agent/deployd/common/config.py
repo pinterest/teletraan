@@ -230,3 +230,15 @@ class Config(object):
         elif log_level == "ERROR":
             return logging.ERROR
         return logging.DEBUG
+
+    def get_facter_id_key(self):
+        return self.get_var('agent_id_key', None)
+
+    def get_facter_ip_key(self):
+        return self.get_var('agent_ip_key', None)
+
+    def get_facter_name_key(self):
+        return self.get_var('agent_name_key', None)
+
+    def get_facter_group_key(self):
+        return self.get_var('agent_group_key', None)

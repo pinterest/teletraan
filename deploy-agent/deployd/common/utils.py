@@ -20,6 +20,7 @@ import os
 import signal
 import sys
 import traceback
+import subprocess
 from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -107,3 +108,15 @@ def run_prereqs(config):
             sys.exit(0)
 
     ensure_dirs(config)
+
+
+def get_info_from_facter(key):
+    try:
+        output = subprocess.check_output(['facter', '-p', key])
+        if output:
+            return output.strip("\n")
+        else:
+            return None
+    except:
+        log.error("Failed to get info from facter by key {}".format(key))
+        return None
