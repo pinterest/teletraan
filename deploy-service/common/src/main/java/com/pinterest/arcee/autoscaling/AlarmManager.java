@@ -30,6 +30,10 @@ public interface AlarmManager {
 
     void putMetricsToAlarm(String groupName, String metricName, Collection<MetricDatumBean> metricDataPoints) throws Exception;
 
+    void disableAlarm(List<String> actionId, String groupName) throws Exception;
+
+    void enableAlarm(List<String> actionId, String groupName) throws Exception;
+
     List<String> listAwsMetrics(String groupName) throws Exception;
 
     List<MetricDatumBean> getMetricsStatistics(String groupName, String metricName, String startFrom) throws Exception;
