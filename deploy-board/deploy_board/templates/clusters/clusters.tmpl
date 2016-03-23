@@ -116,7 +116,7 @@
 
 <script>
 function loadConfig(provider, basic) {
-    var base_image_url = "/clouds/get_base_images/?provider=" + provider + "&basic=" + basic + "&curr_host_type={{ basic_cluster_info.base_image_id }}";
+    var base_image_url = "/clouds/get_base_images/?provider=" + provider + "&basic=" + basic + "&curr_base_image={{ basic_cluster_info.base_image_id }}";
     $.get(base_image_url, function(response) {
         $("#base_image_div_id").html(response);
     });
