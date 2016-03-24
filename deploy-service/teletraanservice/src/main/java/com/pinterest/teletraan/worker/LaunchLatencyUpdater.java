@@ -161,7 +161,7 @@ public class LaunchLatencyUpdater implements Runnable {
                         continue;
                     }
 
-                    if (agentBean.getStatus() != AgentStatus.SUCCEEDED && agentBean.getStatus() != AgentStatus.UNKNOWN) {
+                    if (agentBean.getStatus() != AgentStatus.SUCCEEDED && agentBean.getStatus() != AgentStatus.UNKNOWN && agentBean.getStatus() != AgentStatus.SCRIPT_FAILED) {
                         failingIds.add(hostId);
                         newInstanceReportDAO.reportNewInstances(hostId, envId);
                     } else if (currentTime - launchTime > launchTimeThreshold) {
