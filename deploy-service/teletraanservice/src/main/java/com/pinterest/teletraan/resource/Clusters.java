@@ -125,7 +125,7 @@ public class Clusters {
         groupDAO.removeGroupCapacity(envBean.getEnv_id(), clusterName);
 
         String configChange = String.format("delete cluster for %s/%s", envName, stageName);
-        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, configChange, operator);
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_OTHER, configChange, operator);
         LOG.info(String.format("Successfully delete cluster for %s/%s by %s", envName, stageName, operator));
     }
 

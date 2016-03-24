@@ -23,6 +23,11 @@ public class AwsConfigManager {
     private String sqsArn;
     private String snsArn;
     private String roleArn;
+    private String vmKeyName;
+    private String defaultRole;
+    private String pinfoEnvironment;
+    private String roleTemplate;
+    private String userDataTemplate;
 
     public String getId() {
         return id;
@@ -78,5 +83,45 @@ public class AwsConfigManager {
 
     public void setRoleArn(String roleArn) {
         this.roleArn = roleArn;
+    }
+
+    public String getVmKeyName() {
+        return vmKeyName;
+    }
+
+    public void setVmKeyName(String vmKeyName) {
+        this.vmKeyName = vmKeyName;
+    }
+
+    public String getDefaultRole() {
+        return defaultRole;
+    }
+
+    public void setDefaultRole(String defaultRole) {
+        this.defaultRole = defaultRole;
+    }
+
+    public String getPinfoEnvironment() {
+        return pinfoEnvironment;
+    }
+
+    public void setPinfoEnvironment(String pinfoEnvironment) {
+        this.pinfoEnvironment = pinfoEnvironment;
+    }
+
+    public String getRoleTemplate() {
+        return roleTemplate;
+    }
+
+    public void setRoleTemplate(String roleTemplate) {
+        this.roleTemplate = roleTemplate;
+    }
+
+    public String getUserDataTemplate() {
+        return userDataTemplate;
+    }
+
+    public void setUserDataTemplate(String userDataTemplate) {
+        this.userDataTemplate = userDataTemplate;
     }
 }

@@ -54,6 +54,21 @@ public class AWSFactory {
     @JsonProperty
     private String role_arn;
 
+    @JsonProperty
+    private String vm_keyname;
+
+    @JsonProperty
+    private String default_role;
+
+    @JsonProperty
+    private String pinfo_environment;
+
+    @JsonProperty
+    private String role_template;
+
+    @JsonProperty
+    private String user_data_template;
+
     public String getId() {
         return id;
     }
@@ -114,6 +129,11 @@ public class AWSFactory {
         awsConfigManager.setSqsArn(sqs_arn);
         awsConfigManager.setSnsArn(sns_arn);
         awsConfigManager.setRoleArn(role_arn);
+        awsConfigManager.setVmKeyName(vm_keyname);
+        awsConfigManager.setDefaultRole(default_role);
+        awsConfigManager.setPinfoEnvironment(pinfo_environment);
+        awsConfigManager.setRoleTemplate(role_template);
+        awsConfigManager.setUserDataTemplate(user_data_template);
         return awsConfigManager;
     }
 }

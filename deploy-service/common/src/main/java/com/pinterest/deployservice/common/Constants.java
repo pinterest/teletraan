@@ -70,4 +70,6 @@ public class Constants {
     public static final String TYPE_HOST_PROTECTION = "Host Protection";
     public static final String TYPE_HOST_UNPROTECTION = "Host Unprotection";
     public static final String TYPE_HELATHCHECK_MANAUALLY = "MANUALLY_TRIGGERED Health Check";
+
+    public static final String TYPE_OTHER = "Others";
 }

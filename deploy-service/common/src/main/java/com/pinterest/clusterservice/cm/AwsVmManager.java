@@ -40,16 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-// TODO There are many AWS launch config configurations need to be made customizable through config file
-// TODO AWS_VM_KEYNAME, AWS_DEFAULT_ROLE, AWS_ROLE_TEMPLATE, AWS_USERDATA_TEMPLATE and maybe others...
 public class AwsVmManager implements ClusterManager<AwsVmBean> {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AwsVmManager.class);
     private static final String PROCESS_AZREBALANCE = "AZRebalance";
-    private static final String AWS_VM_KEYNAME = "ops";
-    private static final String AWS_DEFAULT_ROLE = "base";
-    private static final String AWS_ROLE_TEMPLATE = "arn:aws:iam::%s:instance-profile/%s";
-    private static final String AWS_USERDATA_TEMPLATE =
-        "#cloud-config\ncmp_group: %s\npinfo_environment: prod\npinfo_team: cloudeng\npinfo_role: cmp_docker";
     private static final String[] NOTIFICATION_TYPE = {
             "autoscaling:EC2_INSTANCE_LAUNCH",
             "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
@@ -59,6 +52,11 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
     private AmazonEC2Client ec2Client;
     private String ownerId;
     private String snsArn;
+    private String vmKeyName;
+    private String defaultRole;
+    private String pinfoEnvironment;
+    private String roleTemplate;
+    private String userDataTemplate;
 
     public AwsVmManager(AwsConfigManager configManager) {
         if (StringUtils.isNotEmpty(configManager.getId()) && StringUtils.isNotEmpty(configManager.getKey())) {
@@ -73,6 +71,11 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
 
         this.ownerId = configManager.getOwnerId();
         this.snsArn = configManager.getSnsArn();
+        this.vmKeyName = configManager.getVmKeyName();
+        this.defaultRole = configManager.getDefaultRole();
+        this.pinfoEnvironment = configManager.getPinfoEnvironment();
+        this.roleTemplate = configManager.getRoleTemplate();
+        this.userDataTemplate = configManager.getUserDataTemplate();
     }
 
     @Override
@@ -245,7 +248,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
             CreateLaunchConfigurationRequest configRequest = new CreateLaunchConfigurationRequest();
             String launchConfigId = genLaunchConfigId(clusterName);
             configRequest.setLaunchConfigurationName(launchConfigId);
-            configRequest.setKeyName(AWS_VM_KEYNAME);
+            configRequest.setKeyName(vmKeyName);
             configRequest.setImageId(awsVmBean.getImage());
             configRequest.setInstanceType(awsVmBean.getHostType());
             configRequest.setSecurityGroups(Arrays.asList(awsVmBean.getSecurityZone()));
@@ -253,9 +256,9 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
             String userData = transformUserDataConfigToString(clusterName, awsVmBean.getUserDataConfigs());
             configRequest.setUserData(Base64.encodeBase64String(userData.getBytes()));
             if (awsVmBean.getRole() == null) {
-                configRequest.setIamInstanceProfile(String.format(AWS_ROLE_TEMPLATE, ownerId, AWS_DEFAULT_ROLE));
+                configRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, defaultRole));
             } else {
-                configRequest.setIamInstanceProfile(String.format(AWS_ROLE_TEMPLATE, ownerId, awsVmBean.getRole()));
+                configRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, awsVmBean.getRole()));
             }
             configRequest.setInstanceMonitoring(new InstanceMonitoring().withEnabled(false));
             aasClient.createLaunchConfiguration(configRequest);
@@ -271,7 +274,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
             CreateLaunchConfigurationRequest configRequest = new CreateLaunchConfigurationRequest();
             String launchConfigId = genLaunchConfigId(clusterName);
             configRequest.setLaunchConfigurationName(launchConfigId);
-            configRequest.setKeyName(AWS_VM_KEYNAME);
+            configRequest.setKeyName(vmKeyName);
             configRequest.setImageId(newBean.getImage() != null ? newBean.getImage() : oldBean.getImage());
             configRequest.setInstanceType(newBean.getHostType() != null ? newBean.getHostType() : oldBean.getHostType());
             configRequest.setSecurityGroups(Arrays.asList(newBean.getSecurityZone() != null ? newBean.getSecurityZone() : oldBean.getSecurityZone()));
@@ -285,9 +288,9 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
             configRequest.setUserData(Base64.encodeBase64String(userData.getBytes()));
 
             if (newBean.getRole() != null) {
-                configRequest.setIamInstanceProfile(String.format(AWS_ROLE_TEMPLATE, ownerId, newBean.getRole()));
+                configRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, newBean.getRole()));
             } else {
-                configRequest.setIamInstanceProfile(String.format(AWS_ROLE_TEMPLATE, ownerId, oldBean.getRole()));
+                configRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, oldBean.getRole()));
             }
 
             configRequest.setInstanceMonitoring(new InstanceMonitoring().withEnabled(false));
@@ -389,7 +392,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
     }
 
     private Map<String, String> transformUserDataToConfigMap(String clusterName, String userData) throws Exception {
-        String userDataString = userData.replace(String.format(AWS_USERDATA_TEMPLATE, clusterName), "");
+        String userDataString = userData.replace(String.format(userDataTemplate, clusterName, pinfoEnvironment), "");
         Map<String, String> resultMap = new HashMap<>();
         if (userDataString.length() == 0) {
             return resultMap;
@@ -408,7 +411,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
     }
 
     private String transformUserDataConfigToString(String clusterName, Map<String, String> userDataConfigs) throws Exception {
-        String prefix = String.format(AWS_USERDATA_TEMPLATE, clusterName);
+        String prefix = String.format(userDataTemplate, clusterName, pinfoEnvironment);
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append(prefix);
         if (userDataConfigs == null) {
@@ -416,7 +419,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
         }
 
         for (Map.Entry<String, String> entry : userDataConfigs.entrySet()) {
-            resultBuilder.append(String.format("\n   %s: %s", entry.getKey(), entry.getValue()));
+            resultBuilder.append(String.format("\n%s: %s", entry.getKey(), entry.getValue()));
         }
         return resultBuilder.toString();
     }
