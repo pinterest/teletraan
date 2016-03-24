@@ -46,6 +46,15 @@
            <i class="fa fa-car"></i> Auto Deploy
         </a>
     </div>
+    {% if show_cluster_config %}
+    <div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/clusters"
+           data-toggle="tooltip" title="Configure capacity">
+           <i class="fa fa-database"></i> Capacity
+        </a>
+    </div>
+    {% else %}
 	<div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity"
@@ -53,6 +62,7 @@
            <i class="fa fa-database"></i> Capacity
         </a>
     </div>
+    {% endif %}
 	<div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/map/?flavor=SC"

@@ -22,7 +22,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="form-group">
                     <label for="capacity" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
@@ -34,12 +33,20 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label for="imageName" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Image Name">
+                        Image Name
+                    </label>
+                    <div class="col-xs-3" id="image_name_div_id">
+                    </div>
+
                     <label for="baseImageId" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Base Image">
-                        Base Image
+                        Image
                     </label>
-                    <div class="col-xs-8" id="base_image_div_id">
+                    <div class="col-xs-3" id="base_image_div_id">
                     </div>
                 </div>
                 <div class="form-group">
@@ -116,7 +123,12 @@
 
 <script>
 function loadConfig(provider, basic) {
-    var base_image_url = "/clouds/get_base_images/?provider=" + provider + "&basic=" + basic + "&curr_base_image={{ basic_cluster_info.base_image_id }}";
+    var image_name_url = "/clouds/get_image_names/?provider=" + provider + "&curr_base_image={{ basic_cluster_info.base_image_id }}";
+    $.get(image_name_url, function(response) {
+        $("#image_name_div_id").html(response);
+    });
+
+    var base_image_url = "/clouds/get_base_images/?curr_base_image={{ basic_cluster_info.base_image_id }}";
     $.get(base_image_url, function(response) {
         $("#base_image_div_id").html(response);
     });

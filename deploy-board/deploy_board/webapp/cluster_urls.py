@@ -19,6 +19,7 @@ import cluster_view
 urlpatterns = [
     url(r'^clouds/create_base_image/$', cluster_view.create_base_image),
     url(r'^clouds/baseimages/$', cluster_view.get_base_images),
+    url(r'^clouds/get_image_names/$', cluster_view.get_image_names),
     url(r'^clouds/get_base_images/$', cluster_view.get_base_images_by_provider_and_basic),
 
     url(r'^clouds/create_host_type/$', cluster_view.create_host_type),

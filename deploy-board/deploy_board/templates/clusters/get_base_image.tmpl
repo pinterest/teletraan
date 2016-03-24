@@ -2,9 +2,9 @@
 <select class="form-control" id="base_image" name="baseImageId" required="true">
 {% for base_image in base_images %}
     {% if curr_base_image and curr_base_image == base_image.id %}
-        <option value="{{ base_image.id }}" selected>{{ base_image | genCloudResourceInfo }}</option>
+        <option value="{{ base_image.id }}" selected>{{ base_image.provider_name }}</option>
     {% else %}
-        <option value="{{ base_image.id }}">{{ base_image | genCloudResourceInfo }}</option>
+        <option value="{{ base_image.id }}">{{ base_image.provider_name }}</option>
     {% endif %}
 {% endfor %}
 </select>

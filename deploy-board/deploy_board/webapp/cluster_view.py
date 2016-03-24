@@ -60,19 +60,35 @@ def get_base_images(request):
     })
 
 
-def get_base_images_by_provider_and_basic(request):
+def get_image_names(request):
     params = request.GET
     provider = params['provider']
-    basic = int(params['basic'])
+    image_names = baseimages_helper.get_image_names(request, provider)
+    curr_image_name = None
+    if 'curr_base_image' in params:
+        image = baseimages_helper.get_by_id(request, params['curr_base_image'])
+        curr_image_name = image.get('abstract_name')
+
+    contents = render_to_string("clusters/get_image_name.tmpl", {
+        'image_names': image_names,
+        'curr_image_name': curr_image_name,
+    })
+    return HttpResponse(json.dumps(contents), content_type="application/json")
+
+
+def get_base_images_by_provider_and_basic(request):
+    params = request.GET
+    base_images = None
+    if 'name' in params:
+        name = params['name']
+        base_images = baseimages_helper.get_by_name(request, name)
+
     curr_base_image = None
     if 'curr_base_image' in params:
         curr_base_image = params['curr_base_image']
-
-    base_images = baseimages_helper.get_by_provider_and_basic(request, provider, True)
-    if basic == 0:
-        advanced_base_images = baseimages_helper.get_by_provider_and_basic(request, provider, False)
-        for advanced_base_image in advanced_base_images:
-            base_images.append(advanced_base_image)
+        image = baseimages_helper.get_by_id(request, curr_base_image)
+        curr_image_name = image.get('abstract_name')
+        base_images = baseimages_helper.get_by_name(request, curr_image_name)
 
     contents = render_to_string("clusters/get_base_image.tmpl", {
         'base_images': base_images,

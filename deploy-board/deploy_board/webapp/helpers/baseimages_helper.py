@@ -28,9 +28,17 @@ def get_all(request, index, size):
     return deploy_client.get("/base_images", request.teletraan_user_id.token, params=params)
 
 
-def get_by_provider_and_basic(request, provider, basic):
-    params = [('provider', provider), ('basic', basic)]
-    return deploy_client.get("/base_images/basic", request.teletraan_user_id.token, params=params)
+def get_image_names(request, provider):
+    params = [('provider', provider)]
+    return deploy_client.get("/base_images/names", request.teletraan_user_id.token, params=params)
+
+
+def get_by_name(request, name):
+    return deploy_client.get("/base_images/names/%s" % name, request.teletraan_user_id.token)
+
+
+def get_by_id(request, id):
+    return deploy_client.get("/base_images/%s" % id, request.teletraan_user_id.token)
 
 
 def get_all_providers(request):

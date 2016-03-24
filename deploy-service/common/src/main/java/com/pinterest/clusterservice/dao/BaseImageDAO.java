@@ -18,6 +18,7 @@ package com.pinterest.clusterservice.dao;
 import com.pinterest.clusterservice.bean.BaseImageBean;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface BaseImageDAO {
     void insert(BaseImageBean bean) throws Exception;
@@ -26,5 +27,7 @@ public interface BaseImageDAO {
 
     Collection<BaseImageBean> getAll(int pageIndex, int pageSize) throws Exception;
 
-    Collection<BaseImageBean> getByProviderAndBasic(String provider, boolean basic) throws Exception;
+    Collection<String> getAbstractNamesByProvider(String provider) throws Exception;
+
+    Collection<BaseImageBean> getByAbstractName(String abstractName) throws Exception;
 }

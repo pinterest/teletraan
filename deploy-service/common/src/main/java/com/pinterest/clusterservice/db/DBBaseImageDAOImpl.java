@@ -18,6 +18,7 @@ package com.pinterest.clusterservice.db;
 import com.pinterest.clusterservice.bean.BaseImageBean;
 import com.pinterest.clusterservice.dao.BaseImageDAO;
 import com.pinterest.deployservice.bean.SetClause;
+import com.pinterest.deployservice.db.SingleResultSetHandlerFactory;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
@@ -36,7 +37,9 @@ public class DBBaseImageDAOImpl implements BaseImageDAO {
 
     private static String GET_ALL = "SELECT * FROM base_images ORDER BY publish_date DESC LIMIT ?,?";
 
-    private static String GET_BY_PROVIDER_AND_BASIC = "SELECT * FROM base_images WHERE provider=? AND basic=? ORDER BY publish_date";
+    private static String GET_ABSTRACT_NAME_BY_PROVIDER = "SELECT DISTINCT abstract_name FROM base_images WHERE provider=?";
+
+    private static String GET_BY_ABSTRACTNAME = "SELECT * FROM base_images WHERE abstract_name=? ORDER BY publish_date DESC";
 
     private BasicDataSource dataSource;
 
@@ -65,8 +68,13 @@ public class DBBaseImageDAOImpl implements BaseImageDAO {
     }
 
     @Override
-    public Collection<BaseImageBean> getByProviderAndBasic(String provider, boolean basic) throws Exception {
+    public Collection<String> getAbstractNamesByProvider(String provider) throws Exception {
+        return new QueryRunner(dataSource).query(GET_ABSTRACT_NAME_BY_PROVIDER, SingleResultSetHandlerFactory.<String>newListObjectHandler(), provider);
+    }
+
+    @Override
+    public Collection<BaseImageBean> getByAbstractName(String abstractName) throws Exception {
         ResultSetHandler<List<BaseImageBean>> h = new BeanListHandler<BaseImageBean>(BaseImageBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_PROVIDER_AND_BASIC, h, provider, basic);
+        return new QueryRunner(dataSource).query(GET_BY_ABSTRACTNAME, h, abstractName);
     }
 }

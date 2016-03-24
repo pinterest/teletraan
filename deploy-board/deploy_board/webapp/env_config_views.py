@@ -23,7 +23,7 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.generic import View
 import common
-from helpers import environs_helper
+from helpers import environs_helper, clusters_helper
 
 
 class EnvConfigView(View):
@@ -41,18 +41,26 @@ class EnvConfigView(View):
 
         # get capacity to decide if we need to show the remove stage button
         show_remove = True
+        # if people have already specified host capacity or group capacity but do not have cluster config
+        # show capacity config page; otherwise, show cluster config page
+        show_cluster_config = True
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
         if hosts:
             show_remove = False
+            show_cluster_config = False
         else:
             groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
             if groups:
                 show_remove = False
+                cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
+                if cluster_provider == 'null':
+                    show_cluster_config = False
 
         return render(request, 'configs/env_config.html', {
             "env": env,
             "stages": stages,
             "show_remove": show_remove,
+            "show_cluster_config": show_cluster_config,
             "pinterest": IS_PINTEREST,
         })
 

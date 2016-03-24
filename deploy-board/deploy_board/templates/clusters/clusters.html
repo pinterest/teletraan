@@ -23,6 +23,15 @@
            data-toggle="tooltip" title="Return the generic configuration page">
            <i class="fa fa-gears"></i> General Config
         </a>
+    </div>
+    <div class="row">
+        <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity"
+           data-toggle="tooltip" title="Configure capacity">
+           <i class="fa fa-database"></i> Capacity
+        </a>
+    </div>
+    <div class="row">
         {% if cluster_provider %}
             <button class="deployToolTip btn btn-default btn-block" data-target="#deleteCluster"
             data-toggle="modal" title="Delete Cluster">
@@ -40,7 +49,7 @@
 
 {% block main %}
 
-{% include "environs/env_tabs.tmpl" with envTabKind="config" %}
+{% include "environs/env_tabs.tmpl" with envTabKind="config/clusters" %}
 
 <div class="panel panel-default">
 {% if not cluster_provider %}

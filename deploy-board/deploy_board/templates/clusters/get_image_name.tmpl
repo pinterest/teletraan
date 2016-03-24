@@ -1,0 +1,38 @@
+{%load utils %}
+<select class="form-control" id="image_name" name="imageName" required="true">
+{% for image_name in image_names %}
+    {% if curr_image_name and curr_image_name == image_name %}
+        <option value="{{ image_name }}" selected>{{ image_name }}</option>
+    {% else %}
+        <option value="{{ image_name }}">{{ image_name }}</option>
+    {% endif %}
+{% endfor %}
+</select>
+
+<script>
+function getCurrentName() {
+    return $("#image_name option:selected").val();
+}
+
+function loadConfig(name) {
+    var base_image_url = "/clouds/get_base_images/?name=" + name;
+    $.get(base_image_url, function(response) {
+        $("#base_image_div_id").html(response);
+    });
+}
+
+$(document).ready(function() {
+    loadConfig(getCurrentName());
+});
+
+$(function () {
+    $("#image_name").change(function() {
+        loadConfig(getCurrentName());
+    });
+
+    $('#clusterConfigFormId select').change(function() {
+        $('#saveClusterConfigBtnId').removeAttr('disabled');
+        $('#resetClusterConfigBtnId').removeAttr('disabled');
+    });
+});
+</script>
