@@ -92,11 +92,24 @@
                 </span>
             </td>
             <td>
-                <a href="/build/{{ deploy_summary.build.id}}">
-                    {{ deploy_summary.build.branch }}/{{deploy_summary.build.commitShort }}</a>
+                {%  if deploy_summary.build.id %}
+                    <a href="/build/{{ deploy_summary.build.id}}">
+                        {{ deploy_summary.build.branch }}/{{deploy_summary.build.commitShort }}</a>
+                {% else %}
+                    {{deploy_summary.build.commitShort }}
+                {%  endif %}
             </td>
             <td>{{ deploy_summary.deploy.operator }}</td>
-            <td><a href="/deploy/{{ deploy_summary.deploy.id }}">Details</a></td>
+            <td>
+                {%  if deploy_summary.deploy.id %}
+                    <a href="/deploy/{{ deploy_summary.deploy.id }}">Details</a>
+                {% else %}
+                    <label id="reasonId" class="deployToolTip" data-toggle="tooltip"
+                           title="{{ deploy_summary.deploy.reason }}">
+                        Reason
+                    </label>
+                {% endif %}
+            </td>
         </tr>
         {% endfor%}
         {% csrf_token %}

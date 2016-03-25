@@ -255,6 +255,7 @@
     </div>
 </div>
 
+    {% include "ngapp2/ngapp2_confirm_rollback.tmpl" %}
 
 <script>
     function auto_refresh(elem, url, to_enable, stop_function) {
@@ -404,17 +405,9 @@
         });
 
         // rollback to the previous
-        $("#rollBackDeployBtn").click(function() {
-            $.ajax({
-                type: 'POST',
-                url: '/ngapp2/new_deploy/',
-                data: {'csrfmiddlewaretoken': '{{csrf_token}}',
-                       'current_stage': 'rollback'},
-                datatype: 'json',
-                success: function(data) {
-                    window.location = "/ngapp2/deploy";
-                }
-            })
+        $('#rollBackDeployBtn').click(function () {
+            $("#buildId").text("{{ prev_env.build|shortenCommit }}");
+            $('#rollbackConfirmId').modal();
         });
 
         // cancel the current deploy
@@ -495,6 +488,5 @@
         $(this).find('button[type=submit]').text('Cancelling...');
     });
 </script>
-
 
 {% endblock %}
