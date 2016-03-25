@@ -195,22 +195,18 @@
                 </span>
             </td>
             <td class="col-lg-10">
-                <small>
-                    {% for host in report.missingHosts %}
-                    <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ host }}"
-                       type="button" class="btn btn-xs btn-warning">
-                        {{ host }}
-                    </a>
-                    {% endfor %}
-                </small>
+                {% for host in report.missingHosts %}
+                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ host }}"
+                   type="button" class="btn btn-xs btn-warning">
+                <small>{{ host }}</small>
+                </a>
+                {% endfor %}
             </td>
             <td class="col-lg-1 text-right">
-                <small>
                 <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/unknowns/" class="deployToolTip" data-toggle="tooltip"
                    title="Click to see more details">
-                    {{ report.missingHosts|length }}
+                <small>{{ report.missingHosts|length }}</small>
                 </a>
-                </small>
             </td>
         </tr>
     </table>
