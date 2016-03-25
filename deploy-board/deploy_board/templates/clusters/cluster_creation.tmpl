@@ -42,7 +42,7 @@
                         title="Base Image">
                         Image
                     </label>
-                     <div class="col-xs-3" id="base_image_div_id">
+                    <div class="col-xs-3" id="base_image_div_id">
                     </div>
                 </div>
                 <div class="form-group">
@@ -72,17 +72,11 @@
                     <div class="col-xs-8" id="placement_div_id">
                     </div>
                 </div>
-                <div id="advanceSettingDivId" class="hidden">
-                    <div id="advanced_config_div_id">
-                    </div>
-                </div>
             </fieldset>
             {% csrf_token %}
         </form>
     </div>
 </div>
-<div id="showAdvanceDivId">Show advanced settings...</div>
-<div id="hideAdvanceDivId" class="hidden">Hide advanced settings...</div>
 
 <div class="panel-footer clearfix">
     <div class="pull-right">
@@ -93,26 +87,6 @@
     </div>
 </div>
 
-<style>
-#showAdvanceDivId {
-    color:blue;
-    cursor:pointer;
-}
-
-#showAdvanceDivId:hover {
-    color:red;
-}
-
-#hideAdvanceDivId {
-    color:blue;
-    cursor:pointer;
-}
-
-#hideAdvanceDivId:hover {
-    color:red;
-}
-</style>
-
 <script>
 function loadConfig(provider, basic) {
     var image_name_url = "/clouds/get_image_names/?provider=" + provider;
@@ -121,77 +95,33 @@ function loadConfig(provider, basic) {
     });
 
     var host_type_url = "/clouds/get_host_types/?provider=" + provider + "&basic=" + basic;
-    var host_selected_val = $("#host_type").val();
     $.get(host_type_url, function(response) {
         $("#host_type_div_id").html(response);
-        $("#host_type").val(host_selected_val);
     });
 
     var security_zone_url = "/clouds/get_security_zones/?provider=" + provider + "&basic=" + basic;
-    var security_selected_val = $("#security_zone").val();
     $.get(security_zone_url, function(response) {
         $("#security_zone_div_id").html(response);
-        $("#security_zone").val(security_selected_val);
     });
 
     var placement_url = "/clouds/get_placements/?provider=" + provider + "&basic=" + basic;
-    var placement_selected_val = $("#placement_id").val();
     $.get(placement_url, function(response) {
         $("#placement_div_id").html(response);
-        $("#placement_id").val(placement_selected_val);
-    });
-}
-
-function loadAdvancedConfig(provider, basic) {
-    var env = "{{ env.envName }}";
-    var stage = "{{ env.stageName }}";
-    var advanced_config_url = "/clouds/get_advanced_config/?provider=" + provider + "&basic=" + basic + "&env=" + env + "&stage=" + stage;
-    $.get(advanced_config_url, function(response) {
-        $("#advanced_config_div_id").html(response);
     });
 }
 
 function getCurrentProvider() {
+    val = $("#provider option:selected").val()
     return $("#provider option:selected").val();
 }
 
 $(document).ready(function() {
-    if ($("#hideAdvanceDivId").is(":hidden")) {
-        loadConfig(getCurrentProvider(), "1");
-        loadAdvancedConfig(getCurrentProvider(), "1");
-    } else {
-        loadConfig(getCurrentProvider(), "0");
-        loadAdvancedConfig(getCurrentProvider(), "0");
-    }
-
-    $('#showAdvanceDivId').click(function () {
-        loadConfig(getCurrentProvider(), "0");
-        loadAdvancedConfig(getCurrentProvider(), "0");
-        $("#hideAdvanceDivId").removeClass("hidden");
-        $("#advanceSettingDivId").removeClass("hidden");
-        $("#showAdvanceDivId").addClass("hidden");
-    });
-
-    $('#hideAdvanceDivId').click(function () {
-        loadConfig(getCurrentProvider(), "1");
-        loadAdvancedConfig(getCurrentProvider(), "1");
-        $("#hideAdvanceDivId").addClass("hidden");
-        $("#advanceSettingDivId").addClass("hidden");
-        $("#showAdvanceDivId").removeClass("hidden");
-    });
+    loadConfig(getCurrentProvider(), "1");
 });
 
 $(function () {
     $("#provider").change(function() {
-        if ($("#hideAdvanceDivId").is(":hidden")) {
-            loadConfig(getCurrentProvider(), "1");
-            loadAdvancedConfig(getCurrentProvider(), "1");
-            $("#advanceSettingDivId").addClass("hidden");
-        } else {
-            loadConfig(getCurrentProvider(), "0");
-            loadAdvancedConfig(getCurrentProvider(), "0");
-            $("#advanceSettingDivId").removeClass("hidden");
-        }
+        loadConfig(getCurrentProvider(), "1");
     });
 
     $('#saveClusterConfigBtnId').attr('disabled','disabled');

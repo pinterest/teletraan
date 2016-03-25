@@ -14,7 +14,7 @@ function getCurrentName() {
     return $("#image_name option:selected").val();
 }
 
-function loadConfig(name) {
+function loadImageConfig(name) {
     var base_image_url = "/clouds/get_base_images/?name=" + name;
     $.get(base_image_url, function(response) {
         $("#base_image_div_id").html(response);
@@ -22,12 +22,12 @@ function loadConfig(name) {
 }
 
 $(document).ready(function() {
-    loadConfig(getCurrentName());
+    loadImageConfig(getCurrentName());
 });
 
 $(function () {
     $("#image_name").change(function() {
-        loadConfig(getCurrentName());
+        loadImageConfig(getCurrentName());
     });
 
     $('#clusterConfigFormId select').change(function() {

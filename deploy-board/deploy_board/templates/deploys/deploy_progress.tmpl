@@ -159,24 +159,20 @@
                 </span>
             </td>
             <td class="col-lg-10">
-                <small>
-                    {% for host in report.provisioningHosts %}
-                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
-                       type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
-                       title="{{ host | hostTip }}">
-                        {{ host.hostName }}
-                        <i class="fa fa-fw {{ host | hostIcon }}"></i>
-                    </a>
-                    {% endfor %}
-                </small>
+                {% for host in report.provisioningHosts %}
+                <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
+                   type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
+                   title="{{ host | hostTip }}">
+                <small>{{ host.hostName }}</small>
+                    <i class="fa fa-fw {{ host | hostIcon }}"></i>
+                </a>
+                {% endfor %}
             </td>
             <td class="col-lg-1 text-right">
-                <small>
                 <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/provision/" class="deployToolTip" data-toggle="tooltip"
                    title="Click to see more details">
-                    {{ report.provisioningHosts | length }}
+                <small>{{ report.provisioningHosts | length }}</small>
                 </a>
-                </small>
             </td>
         </tr>
     </table>
