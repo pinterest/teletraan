@@ -6,4 +6,4 @@ ${PYTHON} ${VIRTUAL_ENV}/bin/ngapp-rollback &
 
 sleep 10
 
-${PYTHON} ${BASE_DIR}/integ_test/ngapp2/rollback_count.py &
+${PYTHON} ${BASE_DIR}/../integ_test/ngapp2/rollback_count.py &

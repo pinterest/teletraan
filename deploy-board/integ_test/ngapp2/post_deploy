@@ -6,4 +6,4 @@ ${PYTHON}  ${VIRTUAL_ENV}/bin/ngapp-post-deploy &
 
 sleep 10
 
-${PYTHON} ${BASE_DIR}/integ_test/ngapp2/post_count.py &
+${PYTHON} ${BASE_DIR}/../integ_test/ngapp2/post_count.py &
