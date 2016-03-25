@@ -45,7 +45,9 @@ NGAPP_B = "ngapp2-B"
 NGAPP_GROUP = "webapp"
 DEFAULT_PAGE_SIZE = 30
 S3_INTERNAL_TOOLS_BUCKET_NAME = "pinterest-internal-tools"
-NGAPP_ROLLBACK_HISTORY = "ngapp2-rollback-history"
+NGAPP_ROLLBACK_HISTORY = "ngapp2-rollback-history-integ"
+if os.environ.get("ENV_STAGE") == "prod":
+    NGAPP_ROLLBACK_HISTORY = "ngapp2-rollback-history-prod"
 
 
 def get_last_ngapp2_deploy(request, curr_env, stage):
