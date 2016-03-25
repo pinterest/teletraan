@@ -55,30 +55,39 @@ public class LifecycleUpdator implements Runnable {
         for (AsgLifecycleEventBean lifecycleEventBean : lifecycleEventBeans) {
             String hostId = lifecycleEventBean.getHost_id();
             String tokenId = lifecycleEventBean.getToken_id();
-            List<HostBean> hostBeans = hostDAO.getHostsByHostId(hostId);
-            if (hostBeans.isEmpty()) {
-                LOG.info("Host {} has been removed. Delete token {} from asgLifecycleEventDAO", hostId, tokenId);
-                autoScaleGroupManager.completeLifecycleAction(hookId, tokenId, lifecycleEventBean.getGroup_name());
-                asgLifecycleEventDAO.deleteAsgLifecycleEventById(tokenId);
-            } else {
-                List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
-                boolean stopSucceeded = true;
-                for (AgentBean agentBean : agentBeans) {
-                    if (agentBean.getDeploy_stage() != DeployStage.STOPPED) {
-                        stopSucceeded = false;
+            try {
+                List<HostBean> hostBeans = hostDAO.getHostsByHostId(hostId);
+                if (hostBeans.isEmpty()) {
+                    LOG.info("Host {} has been removed. Delete token {} from asgLifecycleEventDAO",
+                             hostId, tokenId);
+                    autoScaleGroupManager.completeLifecycleAction(hookId, tokenId,
+                                                                  lifecycleEventBean
+                                                                      .getGroup_name());
+                    asgLifecycleEventDAO.deleteAsgLifecycleEventById(tokenId);
+                } else {
+                    List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
+                    boolean stopSucceeded = true;
+                    for (AgentBean agentBean : agentBeans) {
+                        if (agentBean.getDeploy_stage() != DeployStage.STOPPED) {
+                            stopSucceeded = false;
+                        }
+                    }
+
+                    if (stopSucceeded) {
+                        LOG.info("Complete lifecycle action for host {}", hostId, tokenId);
+                        autoScaleGroupManager.completeLifecycleAction(hookId, tokenId,
+                                                                      lifecycleEventBean
+                                                                          .getGroup_name());
+                        asgLifecycleEventDAO.deleteAsgLifecycleEventById(tokenId);
+
+                        HostBean hostBean = new HostBean();
+                        hostBean.setState(HostState.TERMINATING);
+                        hostBean.setLast_update(System.currentTimeMillis());
+                        hostDAO.updateHostById(hostId, hostBean);
                     }
                 }
-
-                if (stopSucceeded) {
-                    LOG.info("Complete lifecycle action for host {}", hostId, tokenId);
-                    autoScaleGroupManager.completeLifecycleAction(hookId, tokenId, lifecycleEventBean.getGroup_name());
-                    asgLifecycleEventDAO.deleteAsgLifecycleEventById(tokenId);
-
-                    HostBean hostBean = new HostBean();
-                    hostBean.setState(HostState.TERMINATING);
-                    hostBean.setLast_update(System.currentTimeMillis());
-                    hostDAO.updateHostById(hostId, hostBean);
-                }
+            } catch (Exception ex) {
+                LOG.error(String.format("Failed to process hook for host: %s, token: %s", hostId, tokenId), ex);
             }
         }
     }
@@ -98,7 +107,7 @@ public class LifecycleUpdator implements Runnable {
                 try {
                     processLifecycle(hookId);
                 } catch (Exception ex) {
-                    LOG.error("Failed to process lifecycle hook {}", hookId);
+                    LOG.error(String.format("Failed to process lifecycle hook %s", hookId), ex);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
                 }
