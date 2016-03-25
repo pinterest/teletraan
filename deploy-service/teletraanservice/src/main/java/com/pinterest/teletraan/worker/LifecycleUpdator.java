@@ -60,9 +60,7 @@ public class LifecycleUpdator implements Runnable {
                 if (hostBeans.isEmpty()) {
                     LOG.info("Host {} has been removed. Delete token {} from asgLifecycleEventDAO",
                              hostId, tokenId);
-                    autoScaleGroupManager.completeLifecycleAction(hookId, tokenId,
-                                                                  lifecycleEventBean
-                                                                      .getGroup_name());
+
                     asgLifecycleEventDAO.deleteAsgLifecycleEventById(tokenId);
                 } else {
                     List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
@@ -76,8 +74,7 @@ public class LifecycleUpdator implements Runnable {
                     if (stopSucceeded) {
                         LOG.info("Complete lifecycle action for host {}", hostId, tokenId);
                         autoScaleGroupManager.completeLifecycleAction(hookId, tokenId,
-                                                                      lifecycleEventBean
-                                                                          .getGroup_name());
+                                                                      lifecycleEventBean.getGroup_name());
                         asgLifecycleEventDAO.deleteAsgLifecycleEventById(tokenId);
 
                         HostBean hostBean = new HostBean();
