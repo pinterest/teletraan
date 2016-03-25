@@ -510,7 +510,7 @@ class NgappView(View):
             cmd = [os.path.join(virtual_env, "python"),
                    os.path.join(virtual_env, "ngapp-pre-deploy")]
         else:
-            cmd = [os.path.join(os.environ.get("BASE_DIR"), "integ_test/ngapp2/pre_deploy")]
+            cmd = [os.path.join(os.environ.get("BASE_DIR"), "../integ_test/ngapp2/pre_deploy")]
 
         result = execute(cmd=cmd)
         if result < 0:
@@ -525,7 +525,7 @@ class NgappView(View):
             cmd = [os.path.join(virtual_env, "python"),
                    os.path.join(virtual_env, "ngapp-post-deploy")]
         else:
-            cmd = [os.path.join(os.environ.get("BASE_DIR"), "integ_test/ngapp2/post_deploy")]
+            cmd = [os.path.join(os.environ.get("BASE_DIR"), "../integ_test/ngapp2/post_deploy")]
         result = execute(cmd=cmd)
         if result < 0:
             raise
@@ -542,7 +542,7 @@ class NgappView(View):
             virtual_env = os.path.join(os.environ.get("VIRTUAL_ENV"), "bin")
             cmd = [os.path.join(virtual_env, "python"), os.path.join(virtual_env, "ngapp-rollback")]
         else:
-            cmd = [os.path.join(os.environ.get("BASE_DIR"), "integ_test/ngapp2/rollback")]
+            cmd = [os.path.join(os.environ.get("BASE_DIR"), "../integ_test/ngapp2/rollback")]
         result = execute(cmd)
 
         # record history

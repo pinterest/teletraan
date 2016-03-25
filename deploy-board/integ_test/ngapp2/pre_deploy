@@ -5,4 +5,4 @@ PYTHON=${VIRTUAL_ENV}/bin/python
 ${PYTHON} ${VIRTUAL_ENV}/bin/ngapp-pre-deploy &
 
 sleep 2
-${PYTHON} ${BASE_DIR}/integ_test/ngapp2/pre_count.py &
+${PYTHON} ${BASE_DIR}/../integ_test/ngapp2/pre_count.py &
