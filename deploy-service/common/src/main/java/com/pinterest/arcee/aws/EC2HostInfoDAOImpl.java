@@ -26,7 +26,6 @@ import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.common.DeployInternalException;
 
 import com.pinterest.deployservice.bean.HostState;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,62 +43,40 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
     private static final int STOPPED_CODE = 80;
     private static final String RUNNING_CODE = "16";
 
-    private static final Pattern NON_EXISTING_INSTANCE_ID_PATTERN =
-            Pattern.compile("[i|r]-[a-z0-9]{8}");
-    private static final String INSTANCE_NOT_FOUND_ERROR = "InvalidInstanceID.NotFound";
-
-    private static final Pattern MALFORMED_INSTANCE_ID_PATTERN =
-            Pattern.compile("Invalid id: \"(?<id>.+)\"");
-    private static final String INSTANCE_MALFORMED_ERROR = "InvalidInstanceID.Malformed";
-
     public EC2HostInfoDAOImpl(AmazonEC2Client client) {
         this.ec2Client = client;
     }
 
     @Override
     public Set<String> getTerminatedHosts(Set<String> staleIds) throws Exception {
-        HashSet<String> ids = new HashSet<>(staleIds);
         HashSet<String> terminatedHosts = new HashSet<>();
-        while (!ids.isEmpty()) {
-            DescribeInstancesRequest request = new DescribeInstancesRequest();
-            request.setInstanceIds(ids);
-            try {
-                do {
-                    DescribeInstancesResult results = ec2Client.describeInstances(request);
-                    List<Reservation> reservations = results.getReservations();
-                    for (Reservation reservation : reservations) {
-                        for (Instance instance : reservation.getInstances()) {
-                            int stateCode = instance.getState().getCode();
-                            String id = instance.getInstanceId();
-                            if (stateCode == TERMINATED_CODE || stateCode == STOPPED_CODE) {
-                                LOG.info(String.format("Instance %s has already been terminated or stopped.", id));
-                                terminatedHosts.add(id);
-                            }
 
-                            ids.remove(id);
+        for (String staleId : staleIds) {
+            try {
+                DescribeInstancesRequest request = new DescribeInstancesRequest();
+                request.setInstanceIds(Collections.singletonList(staleId));
+                DescribeInstancesResult result = ec2Client.describeInstances(request);
+                List<Reservation> reservations = result.getReservations();
+                for (Reservation reservation : reservations) {
+                    for (Instance instance : reservation.getInstances()) {
+                        int stateCode = instance.getState().getCode();
+                        String id = instance.getInstanceId();
+                        if (stateCode == TERMINATED_CODE || stateCode == STOPPED_CODE) {
+                            LOG.info(String.format(
+                                "Instance %s has already been terminated or stopped.", id));
+                            terminatedHosts.add(id);
                         }
                     }
-                    if (results.getNextToken() == null || results.getNextToken().isEmpty()) {
-                        break;
-                    }
-                    request = new DescribeInstancesRequest();
-                    request.setInstanceIds(ids);
-                    request.setNextToken(results.getNextToken());
-                } while (true);
-                LOG.debug("Cannot find the following ids in AWS:", ids);
-                terminatedHosts.addAll(ids);
-                return terminatedHosts;
+                }
             } catch (AmazonServiceException ex) {
-                Collection<String> invalidHostIds = handleInvalidInstanceId(ex);
-                ids.removeAll(invalidHostIds);
-                // add invalid host ids to the terminated host list.
-                terminatedHosts.addAll(invalidHostIds);
+                terminatedHosts.add(staleId);
             } catch (AmazonClientException ex) {
                 LOG.error(String.format("Get AmazonClientException, exit with terminiatedHost %s", terminatedHosts.toString()), ex);
-                return terminatedHosts;
+            } finally {
+                Thread.sleep(500);
             }
-            Thread.sleep(500);
         }
+
         return terminatedHosts;
     }
 
@@ -155,61 +132,28 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
 
     @Override
     public List<String> getRunningInstances(List<String> runningIds) throws Exception {
-        HashSet<String> ids = new HashSet<>(runningIds);
         ArrayList<String> resultIds = new ArrayList<>();
-        while (!ids.isEmpty()) {
-            DescribeInstancesRequest request = new DescribeInstancesRequest();
-            request.setInstanceIds(ids);
-            Filter filter = new Filter("instance-state-code", Arrays.asList(RUNNING_CODE));
-            request.setFilters(Arrays.asList(filter));
+        for (String runningId : runningIds) {
             try {
-                do {
-                    DescribeInstancesResult results = ec2Client.describeInstances(request);
-                    List<Reservation> reservations = results.getReservations();
-                    for (Reservation reservation : reservations) {
-                        for (Instance instance : reservation.getInstances()) {
-                            resultIds.add(instance.getInstanceId());
-                        }
+                DescribeInstancesRequest request = new DescribeInstancesRequest();
+                request.setFilters(Collections.singletonList(new Filter("instance-state-code", Collections.singletonList(RUNNING_CODE))));
+                request.setInstanceIds(Collections.singletonList(runningId));
+                DescribeInstancesResult result = ec2Client.describeInstances(request);
+                List<Reservation> reservations = result.getReservations();
+                for (Reservation reservation : reservations) {
+                    for (Instance instance : reservation.getInstances()) {
+                        resultIds.add(instance.getInstanceId());
                     }
-                    if (StringUtils.isEmpty(results.getNextToken())) {
-                        break;
-                    }
-
-                    request = new DescribeInstancesRequest();
-                    request.setNextToken(results.getNextToken());
-                } while (true);
-                LOG.debug("Cannot find the following ids in AWS:", ids);
-                return resultIds;
+                }
             } catch (AmazonServiceException ex) {
-                // if the error code is not instance not found. return the terminated list we've already got.
-                ids.removeAll(handleInvalidInstanceId(ex));
+                LOG.error(String.format("Failed to process id: %s. Ignore it.", runningId), ex);
             } catch (AmazonClientException ex) {
-                LOG.error(String.format("Get AmazonClientException, exit with terminiatedHost %s", resultIds.toString()), ex);
-                throw new Exception(String.format("Get AmazonClientException, exit with terminiatedHost %s", resultIds.toString()), ex);
+                LOG.error("Get AmazonClientException", ex);
+            } finally {
+                Thread.sleep(500);
             }
-            Thread.sleep(500);
         }
-        return resultIds;
-    }
 
-    private Collection<String> handleInvalidInstanceId(AmazonServiceException ex) throws Exception {
-        List<String> instanceIds = new ArrayList<>();
-        if (ex.getErrorCode().equals(INSTANCE_MALFORMED_ERROR)) {
-            Matcher matcher = MALFORMED_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
-            while (matcher.find()) {
-                instanceIds.add(matcher.group("id"));
-            }
-        } else if (ex.getErrorCode().equals(INSTANCE_NOT_FOUND_ERROR)) {
-            Matcher matcher = NON_EXISTING_INSTANCE_ID_PATTERN.matcher(ex.getErrorMessage());
-            while (matcher.find()) {
-                instanceIds.add(matcher.group(0));
-            }
-        } else {
-            LOG.error(String.format(
-                "Ignore this error (Error Type: %s Error Code: %s, Error message: %s)",
-                ex.getErrorType().toString(), ex.getErrorCode(), ex.getErrorMessage()));
-            throw ex;
-        }
-        return instanceIds;
+        return resultIds;
     }
 }
