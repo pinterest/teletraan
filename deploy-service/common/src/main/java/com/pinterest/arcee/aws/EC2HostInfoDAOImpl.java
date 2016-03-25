@@ -49,7 +49,7 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
     private static final String INSTANCE_NOT_FOUND_ERROR = "InvalidInstanceID.NotFound";
 
     private static final Pattern MALFORMED_INSTANCE_ID_PATTERN =
-            Pattern.compile("Invalid id: \"(?<id>[a-zA-Z0-9-]+)\"");
+            Pattern.compile("Invalid id: \"(?<id>.+)\"");
     private static final String INSTANCE_MALFORMED_ERROR = "InvalidInstanceID.Malformed";
 
     public EC2HostInfoDAOImpl(AmazonEC2Client client) {
