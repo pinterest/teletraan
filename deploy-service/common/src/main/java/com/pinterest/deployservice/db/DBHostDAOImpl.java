@@ -35,7 +35,8 @@ public class DBHostDAOImpl implements HostDAO {
             "LEFT JOIN agent_errors ON agents.host_name=agent_errors.host_name WHERE hosts.host_id=?";
     private static final String UPDATE_HOST_BY_ID = "UPDATE hosts SET %s WHERE host_id=?";
     private static final String INSERT_HOST_TEMPLATE = "INSERT INTO hosts SET %s ON DUPLICATE KEY UPDATE %s";
-    private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, state=?, " +
+    private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, " +
+            "state=IF(state!='%s' AND state!='%s', VALUES(state), state), " +
             "host_name=CASE WHEN host_name IS NULL THEN ? WHEN host_name=host_id THEN ? ELSE host_name END, " +
             "ip=CASE WHEN ip IS NULL THEN ? ELSE ip END";
     private static final String DELETE_HOST_BY_ID = "DELETE FROM hosts WHERE host_id=?";
@@ -97,6 +98,7 @@ public class DBHostDAOImpl implements HostDAO {
     public void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception {
         long now = System.currentTimeMillis();
         //TODO need to refactoring this to be more generic to all columns, e.g. use genStringGroupClause() like the other DAOs
+        // If state is PENDING_TERMINATE or TERMINATING, do not overwrite its state
         StringBuilder names = new StringBuilder("(host_id,group_name,create_date,last_update,state");
         if (hostName != null) {
             names.append(",host_name");
@@ -132,7 +134,8 @@ public class DBHostDAOImpl implements HostDAO {
             sb.append("'),");
         }
         sb.setLength(sb.length() - 1);
-        new QueryRunner(dataSource).update(String.format(INSERT_UPDATE_TEMPLATE, names, sb.toString()), ip, now, state, hostName, hostName, ip);
+        new QueryRunner(dataSource).update(String.format(INSERT_UPDATE_TEMPLATE, names, sb.toString(),
+                HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString()), ip, now, hostName, hostName, ip);
     }
 
     @Override

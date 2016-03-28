@@ -124,11 +124,11 @@ public class PingHandler {
         return cache.get(key);
     }
 
-    // Keep host and group memebership in sync
+    // Keep host and group membership in sync
     void updateHosts(PingRequestBean pingRequest) throws Exception {
         hostDAO.insertOrUpdate(pingRequest.getHostName(), pingRequest.getHostIp(),
-            pingRequest.getHostId(), HostState.ACTIVE.toString(), pingRequest.getGroups());
-
+                pingRequest.getHostId(), HostState.ACTIVE.toString(), pingRequest.getGroups());
+        
         List<String> recordedGroups = hostDAO.getGroupNamesByHost(pingRequest.getHostName());
         Set<String> groups = pingRequest.getGroups();
         for (String recordedGroup : recordedGroups) {

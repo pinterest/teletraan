@@ -574,7 +574,10 @@ public class DBDAOTest {
         // Added 2 hosts to group1 and group2
         Set<String> groups = new HashSet<>(Arrays.asList("group1", "group2"));
         hostDAO.insertOrUpdate("host-1", "1.1.1.1", "id-123434", HostState.ACTIVE.toString(), groups);
+        hostDAO.insertOrUpdate("host-2", "1.1.1.2", "id-123435", HostState.TERMINATING.toString(), groups);
         hostDAO.insertOrUpdate("host-2", "1.1.1.2", "id-123435", HostState.ACTIVE.toString(), groups);
+        List<HostBean> hostBeans = hostDAO.getHostsByHostId("id-123435");
+        assertEquals(hostBeans.get(0).getState(), HostState.TERMINATING);
 
         // Total capacity for env-1 should be 3, host1, host-1(group1), host-2(group2)
         assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 0);
