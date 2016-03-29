@@ -97,6 +97,15 @@ def get_base_images_by_provider_and_basic(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
+def get_base_image_info(request):
+    params = request.GET
+    base_image_info = baseimages_helper.get_by_id(request, params['id'])
+    contents = render_to_string("clusters/get_base_image_info.tmpl", {
+        'base_image_info': base_image_info,
+    })
+    return HttpResponse(json.dumps(contents), content_type="application/json")
+
+
 def create_host_type(request):
     params = request.POST
     host_type_info = {}
@@ -157,6 +166,17 @@ def get_host_types_by_provider_and_basic(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
+def get_host_type_info(request):
+    params = request.GET
+    host_type_info = hosttypes_helper.get_by_id(request, params['id'])
+    if host_type_info.get('mem'):
+        host_type_info['mem'] = float(host_type_info['mem']) / 1024
+    contents = render_to_string("clusters/get_host_type_info.tmpl", {
+        'host_type_info': host_type_info,
+    })
+    return HttpResponse(json.dumps(contents), content_type="application/json")
+
+
 def create_security_zone(request):
     params = request.POST
     security_zone_info = {}
@@ -205,6 +225,15 @@ def get_security_zones_by_provider_and_basic(request):
     contents = render_to_string("clusters/get_security_zone.tmpl", {
         'security_zones': security_zones,
         'curr_security_zone': curr_security_zone,
+    })
+    return HttpResponse(json.dumps(contents), content_type="application/json")
+
+
+def get_security_zone_info(request):
+    params = request.GET
+    security_zone_info = securityzones_helper.get_by_id(request, params['id'])
+    contents = render_to_string("clusters/get_security_zone_info.tmpl", {
+        'security_zone_info': security_zone_info,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
@@ -258,6 +287,20 @@ def get_placements_by_provider_and_basic(request):
     contents = render_to_string("clusters/get_placement.tmpl", {
         'placements': placements,
         'curr_placement_arrays': curr_placement_arrays,
+    })
+    return HttpResponse(json.dumps(contents), content_type="application/json")
+
+
+def get_placement_infos(request):
+    params = request.GET
+    ids_str = params['ids_str']
+    ids = [x.strip() for x in ids_str.split(',')]
+    placement_infos = []
+    for placement_id in ids:
+        info = placements_helper.get_by_id(request, placement_id)
+        placement_infos.append(info)
+    contents = render_to_string("clusters/get_placement_infos.tmpl", {
+        'placement_infos': placement_infos,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 

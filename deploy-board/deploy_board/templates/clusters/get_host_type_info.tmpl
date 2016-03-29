@@ -1,0 +1,19 @@
+{% load utils %}
+{% if host_type_info %}
+<table class="table table-condensed table-striped table-hover">
+<tr>
+    <th class="col-sm-1">Id</th>
+    <th class="col-sm-1">Cores</th>
+    <th class="col-sm-1">Memory (GB)</th>
+    <th class="col-sm-2">Storage</th>
+    <th class="col-sm-5">Description</th>
+</tr>
+<tr>
+    <td>{{ host_type_info.provider_name }}</td>
+    <td>{{ host_type_info.core }}</td>
+    <td>{{ host_type_info.mem }}</td>
+    <td>{{ host_type_info.storage }}</td>
+    <td>{{ host_type_info.description }}</td>
+</tr>
+</table>
+{% endif %}

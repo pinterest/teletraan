@@ -1,0 +1,17 @@
+{% load utils %}
+{% if base_image_info %}
+<table class="table table-condensed table-striped table-hover">
+<tr>
+    <th class="col-sm-2">Publish Date</th>
+    <th class="col-sm-1">Id</th>
+    <th class="col-sm-1">Qualified</th>
+    <th class="col-sm-4">Description</th>
+</tr>
+<tr>
+    <td>{{ base_image_info.publish_date |  convertTimestamp }}</td>
+    <td>{{ base_image_info.provider_name }}</td>
+    <td><span class="deployToolTip pointer-cursor {{ base_image_info.qualified | qualifiedIcon }}"></span></td>
+    <td>{{ base_image_info.description }}</td>
+</tr>
+</table>
+{% endif %}

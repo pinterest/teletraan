@@ -1,16 +1,49 @@
 {%load utils %}
+<div class="input-group">
 <select class="form-control" id="host_type" name="hostTypeId" required="true">
 {% for host_type in host_types %}
     {% if curr_host_type and curr_host_type == host_type.id %}
-        <option value="{{ host_type.id }}" selected>{{ host_type | genHostTypeInfo }}</option>
+        <option value="{{ host_type.id }}" selected>{{ host_type.abstract_name }}</option>
     {% else %}
-        <option value="{{ host_type.id }}">{{ host_type | genHostTypeInfo }}</option>
+        <option value="{{ host_type.id }}">{{ host_type.abstract_name }}</option>
     {% endif %}
 {% endfor %}
 </select>
 
+<span class="input-group-btn">
+    <button id="hostTypeDetailsButtonId" class="deployToolTip btn btn-default"
+            type="button" data-toggle="tooltip"
+            title="click to see more host type information">
+        <span class="glyphicon glyphicon-question-sign"></span>
+    </button>
+</span>
+</div>
+
 <script>
+function getHostTypeId() {
+    return $("#host_type option:selected").val();
+}
+
+function loadHostTypeDetails(id) {
+    var host_type_info_url = "/clouds/get_host_type_info/?id=" + id;
+    $.get(host_type_info_url, function(response) {
+        $("#hostTypeDetailsId").html(response);
+    });
+}
+
+$(document).ready(function() {
+    loadHostTypeDetails(getHostTypeId());
+});
+
 $(function () {
+    $("#host_type").change(function() {
+        loadHostTypeDetails(getHostTypeId());
+    });
+
+    $("#hostTypeDetailsButtonId").click(function() {
+        $("#showHostTypeDetailsId").collapse('toggle');
+    });
+
     $('#clusterConfigFormId select').change(function() {
         $('#saveClusterConfigBtnId').removeAttr('disabled');
         $('#resetClusterConfigBtnId').removeAttr('disabled');

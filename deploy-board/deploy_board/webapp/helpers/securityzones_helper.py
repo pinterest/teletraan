@@ -31,3 +31,7 @@ def get_all(request, index, size):
 def get_by_provider_and_basic(request, provider, basic):
     params = [('provider', provider), ('basic', basic)]
     return deploy_client.get("/security_zones/basic", request.teletraan_user_id.token, params=params)
+
+
+def get_by_id(request, security_zone_id):
+    return deploy_client.get("/security_zones/%s" % security_zone_id, request.teletraan_user_id.token)

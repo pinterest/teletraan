@@ -37,8 +37,8 @@ def get_by_name(request, name):
     return deploy_client.get("/base_images/names/%s" % name, request.teletraan_user_id.token)
 
 
-def get_by_id(request, id):
-    return deploy_client.get("/base_images/%s" % id, request.teletraan_user_id.token)
+def get_by_id(request, image_id):
+    return deploy_client.get("/base_images/%s" % image_id, request.teletraan_user_id.token)
 
 
 def get_all_providers(request):

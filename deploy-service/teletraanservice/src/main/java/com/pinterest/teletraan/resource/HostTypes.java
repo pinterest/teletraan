@@ -33,6 +33,7 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
@@ -71,5 +72,11 @@ public class HostTypes {
     public Collection<HostTypeBean> getByProviderAndBasic(@QueryParam("provider") String provider,
                                                           @QueryParam("basic") Optional<Boolean> basic) throws Exception {
         return hostTypeDAO.getByProviderAndBasic(provider, basic.or(true));
+    }
+
+    @GET
+    @Path("/{id : [a-zA-Z0-9\\-_]+}")
+    public HostTypeBean getById(@PathParam("id") String id) throws Exception {
+        return hostTypeDAO.getById(id);
     }
 }

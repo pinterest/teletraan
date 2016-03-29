@@ -1,16 +1,49 @@
 {%load utils %}
+<div class="input-group">
 <select class="form-control" id="security_zone" name="securityZoneId" required="true">
 {% for security_zone in security_zones %}
     {% if curr_security_zone and curr_security_zone == security_zone.id %}
-        <option value="{{ security_zone.id }}" selected>{{ security_zone | genCloudResourceInfo }}</option>
+        <option value="{{ security_zone.id }}" selected>{{ security_zone.abstract_name }}</option>
     {% else %}
-        <option value="{{ security_zone.id }}">{{ security_zone | genCloudResourceInfo  }}</option>
+        <option value="{{ security_zone.id }}">{{ security_zone.abstract_name }}</option>
     {% endif %}
 {% endfor %}
 </select>
 
+<span class="input-group-btn">
+    <button id="securityZoneDetailsButtonId" class="deployToolTip btn btn-default"
+            type="button" data-toggle="tooltip"
+            title="click to see more security zone information">
+        <span class="glyphicon glyphicon-question-sign"></span>
+    </button>
+</span>
+</div>
+
 <script>
+function getSecurityZoneId() {
+    return $("#security_zone option:selected").val();
+}
+
+function loadSecurityZoneDetails(id) {
+    var security_zone_info_url = "/clouds/get_security_zone_info/?id=" + id;
+    $.get(security_zone_info_url, function(response) {
+        $("#securityZoneDetailsId").html(response);
+    });
+}
+
+$(document).ready(function() {
+    loadSecurityZoneDetails(getSecurityZoneId());
+});
+
 $(function () {
+    $("#security_zone").change(function() {
+        loadSecurityZoneDetails(getSecurityZoneId());
+    });
+
+    $("#securityZoneDetailsButtonId").click(function() {
+        $("#showSecurityZoneDetailsId").collapse('toggle');
+    });
+
     $('#clusterConfigFormId select').change(function() {
         $('#saveClusterConfigBtnId').removeAttr('disabled');
         $('#resetClusterConfigBtnId').removeAttr('disabled');

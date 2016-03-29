@@ -872,32 +872,3 @@ def isQualified(qualified):
         return "fa fa-check-circle color-green"
     else:
         return ""
-
-
-@register.filter("genCloudResourceInfo")
-def genCloudResourceInfo(info):
-    result = '{} | {}'.format(info.get('abstract_name'), info.get('provider_name'))
-    if info.get('description'):
-        result += ' ({})'.format(info.get('description'))
-    return result
-
-
-@register.filter("genHostTypeInfo")
-def genHostTypeInfo(info):
-    result = '{} | {}'.format(info.get('abstract_name'), info.get('provider_name'))
-    description = ' ('
-    if info.get('core'):
-        description += '{} cores, '.format(info.get('core'))
-    if info.get('mem'):
-        description += '{} GB memory, '.format(info.get('mem'))
-    if info.get('storage'):
-        description += '{}, '.format(info.get('storage'))
-    if info.get('description'):
-        description += '{}, '.format(info.get('description'))
-    if len(description) > 1:
-        description = description[:-2]
-        description += ')'
-        result += description
-    return result
-
-

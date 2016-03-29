@@ -1,16 +1,49 @@
 {%load utils %}
+<div class="input-group">
 <select class="form-control chosen-select" id="placement_id" name="placementId" required multiple>
 {% for placement in placements %}
     {% if curr_placement_arrays and placement.id in curr_placement_arrays %}
-        <option value="{{ placement.id }}" selected>{{ placement | genCloudResourceInfo }}</option>
+        <option value="{{ placement.id }}" selected>{{ placement.abstract_name }}</option>
     {% else %}
-        <option value="{{ placement.id }}">{{ placement | genCloudResourceInfo }}</option>
+        <option value="{{ placement.id }}">{{ placement.abstract_name }}</option>
     {% endif %}
 {% endfor %}
 </select>
 
+<span class="input-group-btn">
+    <button id="placementDetailsButtonId" class="deployToolTip btn btn-default"
+            type="button" data-toggle="tooltip"
+            title="click to see more placement information">
+        <span class="glyphicon glyphicon-question-sign"></span>
+    </button>
+</span>
+</div>
+
 <script>
+function getPlacementId() {
+    return $("#placement_id option:selected").map(function(){ return this.value }).get().join(",");
+}
+
+function loadPlacementDetails(ids_str) {
+    var placement_info_url = "/clouds/get_placement_infos/?ids_str=" + ids_str;
+    $.get(placement_info_url, function(response) {
+        $("#placementDetailsId").html(response);
+    });
+}
+
+$(document).ready(function() {
+    loadPlacementDetails(getPlacementId());
+});
+
 $(function () {
+    $("#placement_id").change(function() {
+        loadPlacementDetails(getPlacementId());
+    });
+
+    $("#placementDetailsButtonId").click(function() {
+        $("#showPlacementDetailsId").collapse('toggle');
+    });
+
     $(".chosen-select").chosen({"width": "100%"});
     $('#clusterConfigFormId select').change(function() {
         $('#saveClusterConfigBtnId').removeAttr('disabled');

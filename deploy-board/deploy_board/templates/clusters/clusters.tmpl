@@ -10,7 +10,7 @@
                         title="Provider">
                         Cloud Provider
                     </label>
-                    <div class="col-xs-8">
+                    <div class="col-xs-10">
                         <select class="form-control" id="provider" name="provider" required="true">
                             {% for provider in provider_list %}
                                 {% if basic_cluster_info.provider == provider %}
@@ -28,17 +28,18 @@
                         title="Number of hosts for this service">
                     Capacity
                     </label>
-                    <div class="col-xs-8">
+                    <div class="col-xs-10">
                         <input class="form-control" name="capacity" required="true" type="text" value="{{ basic_cluster_info.capacity }}"/>
                     </div>
                 </div>
+
                 <div class="form-group">
                     <label for="imageName" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Image Name">
                         Image Name
                     </label>
-                    <div class="col-xs-3" id="image_name_div_id">
+                    <div class="col-xs-4" id="image_name_div_id">
                     </div>
 
                     <label for="baseImageId" class="deployToolTip control-label col-xs-2"
@@ -46,34 +47,61 @@
                         title="Base Image">
                         Image
                     </label>
-                    <div class="col-xs-3" id="base_image_div_id">
+                    <div class="col-xs-4" id="base_image_div_id">
                     </div>
                 </div>
+                <div class="form-group collapse" id="showBaseImageDetailsId">
+                    <div class="col-xs-2">
+                    </div>
+                    <div class="col-xs-10" id="baseImageDetailsId">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="hostTypeId" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Compute Capability of the host">
                         Host Type
                     </label>
-                    <div class="col-xs-8" id="host_type_div_id">
+                    <div class="col-xs-10" id="host_type_div_id">
                     </div>
                 </div>
+                <div class="form-group collapse" id="showHostTypeDetailsId">
+                    <div class="col-xs-2">
+                    </div>
+                    <div class="col-xs-10" id="hostTypeDetailsId">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="securityZoneId" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Security zone to control inbound/outboud traffic">
                         Security Zone
                     </label>
-                    <div class="col-xs-8" id="security_zone_div_id">
+                    <div class="col-xs-10" id="security_zone_div_id">
                     </div>
                 </div>
+                <div class="form-group collapse" id="showSecurityZoneDetailsId">
+                    <div class="col-xs-2">
+                    </div>
+                    <div class="col-xs-10" id="securityZoneDetailsId">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="placementId" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Placement">
                         Placements
                     </label>
-                    <div class="col-xs-8" id="placement_div_id">
+                    <div class="col-xs-10" id="placement_div_id">
+                    </div>
+                </div>
+                <div class="form-group collapse" id="showPlacementDetailsId">
+                    <div class="col-xs-2">
+                    </div>
+                    <div class="col-xs-10" id="placementDetailsId">
                     </div>
                 </div>
             </fieldset>
