@@ -22,7 +22,7 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.generic import View
 import common
-from helpers import environs_helper
+from helpers import environs_helper, clusters_helper
 
 
 class EnvCapacityConfigView(View):
@@ -31,6 +31,11 @@ class EnvCapacityConfigView(View):
             # return data for ajax calls
             hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
             groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
+            cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
+            if cluster_provider != 'null':
+                cluster_name = '{}-{}'.format(name, stage)
+                groups.remove(cluster_name)
+
             env = environs_helper.get_env_by_stage(request, name, stage)
             html = render_to_string("configs/capacity.tmpl", {
                 "env": env,
@@ -46,6 +51,11 @@ class EnvCapacityConfigView(View):
         stages, env = common.get_all_stages(envs, stage)
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
         groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
+        cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
+        if cluster_provider != 'null':
+            cluster_name = '{}-{}'.format(name, stage)
+            groups.remove(cluster_name)
+
         return render(request, 'configs/capacity.html', {
             "env": env,
             "stages": stages,

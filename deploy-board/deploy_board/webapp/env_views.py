@@ -668,6 +668,13 @@ def get_builds(request, name, stage):
 
 def get_groups(request, name, stage):
     groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
+
+    # Hide cluster group info
+    cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
+    if cluster_provider != 'null':
+        cluster_name = '{}-{}'.format(name, stage)
+        groups.remove(cluster_name)
+
     html = render_to_string('groups/simple_groups.tmpl', {
         "groups": groups,
     })
