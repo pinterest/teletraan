@@ -181,9 +181,7 @@ class EnvLandingView(View):
         groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
         metrics = environs_helper.get_env_metrics_config(request, name, stage)
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
-        cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
-        if cluster_provider == 'null':
-            cluster_provider = None
+        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -198,7 +196,7 @@ class EnvLandingView(View):
                 "groups": groups,
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
-                "cluster_provider": cluster_provider,
+                "basic_cluster_info": basic_cluster_info,
                 "pinterest": IS_PINTEREST,
             })
             showMode = 'complete'
@@ -223,7 +221,7 @@ class EnvLandingView(View):
                 "alarms": alarms,
                 "request_feedback": request_feedback,
                 "groups": groups,
-                "cluster_provider": cluster_provider,
+                "basic_cluster_info": basic_cluster_info,
                 "pinterest": IS_PINTEREST,
             })
 
@@ -670,8 +668,8 @@ def get_groups(request, name, stage):
     groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
 
     # Hide cluster group info
-    cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
-    if cluster_provider != 'null':
+    basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+    if basic_cluster_info:
         cluster_name = '{}-{}'.format(name, stage)
         groups.remove(cluster_name)
 

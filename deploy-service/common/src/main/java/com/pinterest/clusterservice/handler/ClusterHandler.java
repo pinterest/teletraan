@@ -30,7 +30,6 @@ import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.HostDAO;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,10 +166,6 @@ public class ClusterHandler {
             return clusterManager.getHosts(clusterName, hostIds);
         }
         return Collections.emptyList();
-    }
-
-    public String getProviderByClusterName(String clusterName) throws Exception {
-        return clusterDAO.getProviderByClusterName(clusterName);
     }
 
     public ClusterBean createAwsVmCluster(AwsVmBean advancedBean) throws Exception {

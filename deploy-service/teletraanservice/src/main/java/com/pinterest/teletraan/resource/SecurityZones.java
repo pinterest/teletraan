@@ -67,10 +67,9 @@ public class SecurityZones {
     }
 
     @GET
-    @Path("/basic")
-    public Collection<SecurityZoneBean> getByProviderAndBasic(@QueryParam("provider") String provider,
-                                                              @QueryParam("basic") Optional<Boolean> basic) throws Exception {
-        return securityZoneDAO.getByProviderAndBasic(provider, basic.or(true));
+    @Path("/provider/{provider : [a-zA-Z0-9\\-_]+}")
+    public Collection<SecurityZoneBean> getByProvider(@PathParam("provider") String provider) throws Exception {
+        return securityZoneDAO.getByProvider(provider);
     }
 
     @GET

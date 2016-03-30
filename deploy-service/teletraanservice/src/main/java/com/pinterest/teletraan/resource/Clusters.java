@@ -173,14 +173,6 @@ public class Clusters {
         return clusterHandler.getHosts(clusterName, hostIds);
     }
 
-    @GET
-    @Path("/provider")
-    public String getClusterProvider(@PathParam("envName") String envName,
-                                     @PathParam("stageName") String stageName) throws Exception {
-        String clusterName = String.format("%s-%s", envName, stageName);
-        return String.format("\"%s\"", clusterHandler.getProviderByClusterName(clusterName));
-    }
-
     @POST
     @Path("/provider/AWS")
     public void createAdvancedAwsCluster(@Context SecurityContext sc,

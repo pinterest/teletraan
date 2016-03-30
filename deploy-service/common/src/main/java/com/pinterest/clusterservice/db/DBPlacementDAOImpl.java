@@ -31,11 +31,13 @@ import java.util.List;
 public class DBPlacementDAOImpl implements PlacementDAO {
     private static String INSERT_PLACEMENT = "INSERT INTO placements SET %s";
 
+    private static String UPDATE_PLACEMENT = "UPDATE placements SET %s WHERE id=?";
+
     private static String GET_BY_ID = "SELECT * FROM placements WHERE id=?";
 
     private static String GET_ALL = "SELECT * FROM placements ORDER by abstract_name LIMIT ?,?";
 
-    private static String GET_BY_PROVIDER_AND_BASIC = "SELECT * FROM placements WHERE provider=? AND basic=? ORDER by abstract_name";
+    private static String GET_BY_PROVIDER = "SELECT * FROM placements WHERE provider=? ORDER by abstract_name";
 
     private BasicDataSource dataSource;
 
@@ -47,6 +49,14 @@ public class DBPlacementDAOImpl implements PlacementDAO {
     public void insert(PlacementBean bean) throws Exception {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(INSERT_PLACEMENT, setClause.getClause());
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+    }
+
+    @Override
+    public void updateById(String id, PlacementBean bean) throws Exception {
+        SetClause setClause = bean.genSetClause();
+        String clause = String.format(UPDATE_PLACEMENT, setClause.getClause());
+        setClause.addValue(id);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
@@ -65,8 +75,8 @@ public class DBPlacementDAOImpl implements PlacementDAO {
     }
 
     @Override
-    public Collection<PlacementBean> getByProviderAndBasic(String provider, boolean basic) throws Exception {
+    public Collection<PlacementBean> getByProvider(String provider) throws Exception {
         ResultSetHandler<List<PlacementBean>> h = new BeanListHandler<PlacementBean>(PlacementBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_PROVIDER_AND_BASIC, h, provider, basic);
+        return new QueryRunner(dataSource).query(GET_BY_PROVIDER, h, provider);
     }
 }

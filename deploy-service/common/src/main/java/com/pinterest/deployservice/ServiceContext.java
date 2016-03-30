@@ -22,6 +22,7 @@ import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.aws.AwsConfigManager;
 import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.metrics.MetricSource;
+import com.pinterest.clusterservice.aws.AwsManager;
 import com.pinterest.clusterservice.dao.BaseImageDAO;
 import com.pinterest.clusterservice.dao.ClusterDAO;
 import com.pinterest.clusterservice.dao.HostTypeDAO;
@@ -81,6 +82,7 @@ public class ServiceContext {
     private ChatManager chatManager;
     private ExecutorService jobPool;
     private ClusterManager clusterManager;
+    private AwsManager awsManager;
     private AmazonEC2Client ec2Client;
     private AWSCredentials awsCredentials;
     private AutoScaleGroupManager autoScaleGroupManager;
@@ -438,6 +440,14 @@ public class ServiceContext {
 
     public void setClusterManager(ClusterManager clusterManager) {
         this.clusterManager = clusterManager;
+    }
+
+    public AwsManager getAwsManager() {
+        return awsManager;
+    }
+
+    public void setAwsManager(AwsManager awsManager) {
+        this.awsManager = awsManager;
     }
 
     public AWSCredentials getAwsCredentials() {

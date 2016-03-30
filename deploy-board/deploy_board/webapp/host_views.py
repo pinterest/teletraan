@@ -31,9 +31,7 @@ class HostDetailView(View):
         if host and host.get('state') and host.get('state') != 'PENDING_TERMINATE' and host.get('state') != 'TERMINATING' and host.get('state') != 'TERMINATED':
             show_terminate = True
 
-        cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
-        if cluster_provider == 'null':
-            cluster_provider = None
+        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
 
         # TODO deprecated it
         asg = ''
@@ -64,7 +62,7 @@ class HostDetailView(View):
             'host': host,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
-            'cluster_provider': cluster_provider,
+            'basic_cluster_info': basic_cluster_info,
             'asg_group': asg,
             'pinterest': IS_PINTEREST,
         })

@@ -37,10 +37,6 @@ def delete_cluster(request, env_name, stage_name):
     return deploy_client.delete("/envs/%s/%s/clusters" % (env_name, stage_name), request.teletraan_user_id.token)
 
 
-def get_cluster_provider(request, env_name, stage_name):
-    return deploy_client.get("/envs/%s/%s/clusters/provider" % (env_name, stage_name), request.teletraan_user_id.token)
-
-
 def create_advanced_cluster(request, env_name, stage_name, provider, cluster_info):
     return deploy_client.post("/envs/%s/%s/clusters/provider/%s" % (env_name, stage_name, provider),
                               request.teletraan_user_id.token, data=cluster_info)

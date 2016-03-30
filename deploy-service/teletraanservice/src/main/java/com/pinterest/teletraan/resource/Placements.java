@@ -67,10 +67,9 @@ public class Placements {
     }
 
     @GET
-    @Path("/basic")
-    public Collection<PlacementBean> getByProviderAndBasic(@QueryParam("provider") String provider,
-                                                           @QueryParam("basic") Optional<Boolean> basic) throws Exception {
-        return placementDAO.getByProviderAndBasic(provider, basic.or(true));
+    @Path("/provider/{provider : [a-zA-Z0-9\\-_]+}")
+    public Collection<PlacementBean> getByProvider(@PathParam("provider") String provider) throws Exception {
+        return placementDAO.getByProvider(provider);
     }
 
     @GET

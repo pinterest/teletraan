@@ -417,7 +417,8 @@ CREATE TABLE IF NOT EXISTS placements (
     abstract_name   VARCHAR(128)     NOT NULL,
     provider_name   VARCHAR(128)     NOT NULL,
     provider        VARCHAR(128)     NOT NULL,
-    basic           TINYINT(1)       DEFAULT  0,
+    basic           TINYINT(1)       DEFAULT 0,
+    capacity        INT              DEFAULT 0,
     description     TEXT,
     PRIMARY KEY (id)
 );

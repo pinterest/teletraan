@@ -16,6 +16,7 @@ from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.http import HttpResponse
+from django.contrib import messages
 import json
 import logging
 
@@ -76,7 +77,7 @@ def get_image_names(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
-def get_base_images_by_provider_and_basic(request):
+def get_base_images_by_name(request):
     params = request.GET
     base_images = None
     if 'name' in params:
@@ -142,22 +143,16 @@ def get_host_types(request):
     })
 
 
-def get_host_types_by_provider_and_basic(request):
+def get_host_types_by_provider(request):
     params = request.GET
     provider = params['provider']
-    basic = int(params['basic'])
     curr_host_type = None
     if 'curr_host_type' in params:
         curr_host_type = params['curr_host_type']
 
-    host_types = hosttypes_helper.get_by_provider_and_basic(request, provider, True)
+    host_types = hosttypes_helper.get_by_provider(request, provider)
     for host_type in host_types:
         host_type['mem'] = float(host_type['mem']) / 1024
-    if basic == 0:
-        advanced_host_types = hosttypes_helper.get_by_provider_and_basic(request, provider, False)
-        for advanced_host_type in advanced_host_types:
-            advanced_host_type['mem'] = float(advanced_host_type['mem']) / 1024
-            host_types.append(advanced_host_type)
 
     contents = render_to_string("clusters/get_host_type.tmpl", {
         'host_types': host_types,
@@ -208,20 +203,14 @@ def get_security_zones(request):
     })
 
 
-def get_security_zones_by_provider_and_basic(request):
+def get_security_zones_by_provider(request):
     params = request.GET
     provider = params['provider']
-    basic = int(params['basic'])
     curr_security_zone = None
     if 'curr_security_zone' in params:
         curr_security_zone = params['curr_security_zone']
 
-    security_zones = securityzones_helper.get_by_provider_and_basic(request, provider, True)
-    if basic == 0:
-        advanced_security_zones = securityzones_helper.get_by_provider_and_basic(request, provider, False)
-        for advanced_security_zone in advanced_security_zones:
-            security_zones.append(advanced_security_zone)
-
+    security_zones = securityzones_helper.get_by_provider(request, provider)
     contents = render_to_string("clusters/get_security_zone.tmpl", {
         'security_zones': security_zones,
         'curr_security_zone': curr_security_zone,
@@ -269,21 +258,15 @@ def get_placements(request):
     })
 
 
-def get_placements_by_provider_and_basic(request):
+def get_placements_by_provider(request):
     params = request.GET
     provider = params['provider']
-    basic = int(params['basic'])
     curr_placement_arrays = None
     if 'curr_placement' in params:
         curr_placement = params['curr_placement']
         curr_placement_arrays = curr_placement.split(',')
 
-    placements = placements_helper.get_by_provider_and_basic(request, provider, True)
-    if basic == 0:
-        advanced_placements = placements_helper.get_by_provider_and_basic(request, provider, False)
-        for advanced_placement in advanced_placements:
-            placements.append(advanced_placement)
-
+    placements = placements_helper.get_by_provider(request, provider)
     contents = render_to_string("clusters/get_placement.tmpl", {
         'placements': placements,
         'curr_placement_arrays': curr_placement_arrays,
@@ -396,17 +379,13 @@ def get_basic_cluster(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
-    cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
     basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-    advanced_cluster_info = clusters_helper.get_advanced_cluster(request, name, stage, cluster_provider)
 
     html = render_to_string('clusters/clusters.tmpl', {
         'env': env,
         'stages': stages,
         'provider_list': provider_list,
-        'cluster_provider': cluster_provider,
         'basic_cluster_info': basic_cluster_info,
-        'advanced_cluster_info': advanced_cluster_info,
         'csrf_token': get_token(request),
     })
     return HttpResponse(json.dumps(html), content_type="application/json")
@@ -416,19 +395,13 @@ def get_cluster(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
-    cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
-    if cluster_provider == 'null':
-        cluster_provider = None
     basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-    advanced_cluster_info = clusters_helper.get_advanced_cluster(request, name, stage, cluster_provider)
 
     return render(request, 'clusters/clusters.html', {
         'env': env,
         'stages': stages,
         'provider_list': provider_list,
-        'cluster_provider': cluster_provider,
         'basic_cluster_info': basic_cluster_info,
-        'advanced_cluster_info': advanced_cluster_info,
     })
 
 
@@ -463,7 +436,21 @@ def get_advanced_cluster(request):
 def launch_hosts(request, name, stage):
     params = request.POST
     num = int(params['num'])
-    clusters_helper.launch_hosts(request, name, stage, num)
+    basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+    cluster_capacity = 0
+    if basic_cluster_info:
+        placement_id_str = basic_cluster_info.get('placement_id')
+        placement_ids = placement_id_str.split(',')
+        for placement_id in placement_ids:
+            placement_info = placements_helper.get_by_id(request, placement_id)
+            cluster_capacity += placement_info.get('capacity')
+
+    if num < cluster_capacity:
+        clusters_helper.launch_hosts(request, name, stage, num)
+    else:
+        content = 'The placement capacity is full. ' \
+                  'Please contact your friendly Teletraan owners for immediate assistance!'
+        messages.add_message(request, messages.ERROR, content)
     return redirect('/env/{}/{}/'.format(name, stage))
 
 

@@ -29,6 +29,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * provider_name   VARCHAR(128)    NOT NULL,
  * provider        VARCHAR(128)    NOT NULL,
  * basic           TINYINT(1)      DEFAULT  0,
+ * capacity        INT             DEFAULT 0,
  * description     TEXT,
  * PRIMARY KEY (id)
  * );
@@ -39,6 +40,7 @@ public class PlacementBean implements Updatable {
     private String provider_name;
     private CloudProvider provider;
     private Boolean basic;
+    private Integer capacity;
     private String description;
 
     public String getId() {
@@ -81,6 +83,14 @@ public class PlacementBean implements Updatable {
         this.basic = basic;
     }
 
+    public Integer getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(Integer capacity) {
+        this.capacity = capacity;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -97,6 +107,7 @@ public class PlacementBean implements Updatable {
         clause.addColumn("provider_name", provider_name);
         clause.addColumn("provider", provider);
         clause.addColumn("basic", basic);
+        clause.addColumn("capacity", capacity);
         clause.addColumn("description", description);
         return clause;
     }

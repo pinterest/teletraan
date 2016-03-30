@@ -26,5 +26,5 @@ public interface SecurityZoneDAO {
 
     Collection<SecurityZoneBean> getAll(int pageIndex, int pageSize) throws Exception;
 
-    Collection<SecurityZoneBean> getByProviderAndBasic(String provider, boolean basic) throws Exception;
+    Collection<SecurityZoneBean> getByProvider(String provider) throws Exception;
 }

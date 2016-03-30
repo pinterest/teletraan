@@ -31,8 +31,8 @@ class EnvCapacityConfigView(View):
             # return data for ajax calls
             hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
             groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
-            cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
-            if cluster_provider != 'null':
+            basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+            if basic_cluster_info:
                 cluster_name = '{}-{}'.format(name, stage)
                 groups.remove(cluster_name)
 
@@ -51,8 +51,8 @@ class EnvCapacityConfigView(View):
         stages, env = common.get_all_stages(envs, stage)
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
         groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
-        cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
-        if cluster_provider != 'null':
+        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+        if basic_cluster_info:
             cluster_name = '{}-{}'.format(name, stage)
             groups.remove(cluster_name)
 

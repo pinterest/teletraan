@@ -116,23 +116,23 @@
 </div>
 
 <script>
-function loadConfig(provider, basic) {
+function loadConfig(provider) {
     var image_name_url = "/clouds/get_image_names/?provider=" + provider;
     $.get(image_name_url, function(response) {
         $("#image_name_div_id").html(response);
     });
 
-    var host_type_url = "/clouds/get_host_types/?provider=" + provider + "&basic=" + basic;
+    var host_type_url = "/clouds/get_host_types/?provider=" + provider;
     $.get(host_type_url, function(response) {
         $("#host_type_div_id").html(response);
     });
 
-    var security_zone_url = "/clouds/get_security_zones/?provider=" + provider + "&basic=" + basic;
+    var security_zone_url = "/clouds/get_security_zones/?provider=" + provider;
     $.get(security_zone_url, function(response) {
         $("#security_zone_div_id").html(response);
     });
 
-    var placement_url = "/clouds/get_placements/?provider=" + provider + "&basic=" + basic;
+    var placement_url = "/clouds/get_placements/?provider=" + provider;
     $.get(placement_url, function(response) {
         $("#placement_div_id").html(response);
     });
@@ -144,12 +144,12 @@ function getCurrentProvider() {
 }
 
 $(document).ready(function() {
-    loadConfig(getCurrentProvider(), "1");
+    loadConfig(getCurrentProvider());
 });
 
 $(function () {
     $("#provider").change(function() {
-        loadConfig(getCurrentProvider(), "1");
+        loadConfig(getCurrentProvider());
     });
 
     $('#saveClusterConfigBtnId').attr('disabled','disabled');

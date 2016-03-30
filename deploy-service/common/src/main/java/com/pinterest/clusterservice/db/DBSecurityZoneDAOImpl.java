@@ -35,7 +35,7 @@ public class DBSecurityZoneDAOImpl implements SecurityZoneDAO {
 
     private static String GET_ALL = "SELECT * FROM security_zones ORDER by abstract_name LIMIT ?,?";
 
-    private static String GET_BY_PROVIDER_AND_BASIC = "SELECT * FROM security_zones WHERE provider=? AND basic=? ORDER by abstract_name";
+    private static String GET_BY_PROVIDER = "SELECT * FROM security_zones WHERE provider=? ORDER by abstract_name";
 
     private BasicDataSource dataSource;
 
@@ -65,8 +65,8 @@ public class DBSecurityZoneDAOImpl implements SecurityZoneDAO {
     }
 
     @Override
-    public Collection<SecurityZoneBean> getByProviderAndBasic(String provider, boolean basic) throws Exception {
+    public Collection<SecurityZoneBean> getByProvider(String provider) throws Exception {
         ResultSetHandler<List<SecurityZoneBean>> h = new BeanListHandler<SecurityZoneBean>(SecurityZoneBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_PROVIDER_AND_BASIC, h, provider, basic);
+        return new QueryRunner(dataSource).query(GET_BY_PROVIDER, h, provider);
     }
 }

@@ -35,7 +35,7 @@ public class DBHostTypeDAOImpl implements HostTypeDAO {
 
     private static String GET_ALL = "SELECT * FROM host_types ORDER by abstract_name LIMIT ?,?";
 
-    private static String GET_BY_PROVIDER_AND_BASIC = "SELECT * FROM host_types WHERE provider=? AND basic=? ORDER by abstract_name";
+    private static String GET_BY_PROVIDER = "SELECT * FROM host_types WHERE provider=? ORDER by abstract_name";
 
     private BasicDataSource dataSource;
 
@@ -64,8 +64,8 @@ public class DBHostTypeDAOImpl implements HostTypeDAO {
     }
 
     @Override
-    public Collection<HostTypeBean> getByProviderAndBasic(String provider, boolean basic) throws Exception {
+    public Collection<HostTypeBean> getByProvider(String provider) throws Exception {
         ResultSetHandler<List<HostTypeBean>> h = new BeanListHandler<HostTypeBean>(HostTypeBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_PROVIDER_AND_BASIC, h, provider, basic);
+        return new QueryRunner(dataSource).query(GET_BY_PROVIDER, h, provider);
     }
 }

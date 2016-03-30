@@ -28,9 +28,8 @@ def get_all(request, index, size):
     return deploy_client.get("/placements", request.teletraan_user_id.token, params=params)
 
 
-def get_by_provider_and_basic(request, provider, basic):
-    params = [('provider', provider), ('basic', basic)]
-    return deploy_client.get("/placements/basic", request.teletraan_user_id.token, params=params)
+def get_by_provider(request, provider):
+    return deploy_client.get("/placements/provider/%s" % provider, request.teletraan_user_id.token)
 
 
 def get_by_id(request, placement_id):

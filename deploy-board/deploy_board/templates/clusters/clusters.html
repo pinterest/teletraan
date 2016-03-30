@@ -32,7 +32,7 @@
         </a>
     </div>
     <div class="row">
-        {% if cluster_provider %}
+        {% if basic_cluster_info %}
             <button class="deployToolTip btn btn-default btn-block" data-target="#deleteCluster"
             data-toggle="modal" title="Delete Cluster">
             <span class="glyphicon glyphicon-remove-sign"></span> Delete cluster
@@ -52,7 +52,7 @@
 {% include "environs/env_tabs.tmpl" with envTabKind="config/clusters" %}
 
 <div class="panel panel-default">
-{% if not cluster_provider %}
+{% if not basic_cluster_info %}
     {% include "clusters/cluster_creation.tmpl" %}
 {% else %}
     {% include "clusters/clusters.tmpl" %}

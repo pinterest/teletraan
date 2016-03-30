@@ -20,22 +20,22 @@ urlpatterns = [
     url(r'^clouds/create_base_image/$', cluster_view.create_base_image),
     url(r'^clouds/baseimages/$', cluster_view.get_base_images),
     url(r'^clouds/get_image_names/$', cluster_view.get_image_names),
-    url(r'^clouds/get_base_images/$', cluster_view.get_base_images_by_provider_and_basic),
+    url(r'^clouds/get_base_images/$', cluster_view.get_base_images_by_name),
     url(r'^clouds/get_base_image_info/$', cluster_view.get_base_image_info),
 
     url(r'^clouds/create_host_type/$', cluster_view.create_host_type),
     url(r'^clouds/hosttypes/$', cluster_view.get_host_types),
-    url(r'^clouds/get_host_types/$', cluster_view.get_host_types_by_provider_and_basic),
+    url(r'^clouds/get_host_types/$', cluster_view.get_host_types_by_provider),
     url(r'^clouds/get_host_type_info/$', cluster_view.get_host_type_info),
 
     url(r'^clouds/create_security_zone/$', cluster_view.create_security_zone),
     url(r'^clouds/securityzones/$', cluster_view.get_security_zones),
-    url(r'^clouds/get_security_zones/$', cluster_view.get_security_zones_by_provider_and_basic),
+    url(r'^clouds/get_security_zones/$', cluster_view.get_security_zones_by_provider),
     url(r'^clouds/get_security_zone_info/$', cluster_view.get_security_zone_info),
 
     url(r'^clouds/create_placement/$', cluster_view.create_placement),
     url(r'^clouds/placements/$', cluster_view.get_placements),
-    url(r'^clouds/get_placements/$', cluster_view.get_placements_by_provider_and_basic),
+    url(r'^clouds/get_placements/$', cluster_view.get_placements_by_provider),
     url(r'^clouds/get_placement_infos/$', cluster_view.get_placement_infos),
 
     url(r'^clouds/get_advanced_config/$', cluster_view.get_advanced_cluster),

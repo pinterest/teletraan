@@ -20,6 +20,7 @@ import com.pinterest.arcee.aws.DefaultHostInfoDAOImpl;
 import com.pinterest.arcee.aws.EC2HostInfoDAOImpl;
 import com.pinterest.arcee.aws.ReservedInstanceFetcher;
 import com.pinterest.arcee.db.*;
+import com.pinterest.clusterservice.aws.AwsManagerImpl;
 import com.pinterest.clusterservice.db.DBBaseImageDAOImpl;
 import com.pinterest.clusterservice.db.DBClusterDAOImpl;
 import com.pinterest.clusterservice.db.DBHostTypeDAOImpl;
@@ -129,6 +130,7 @@ public class ConfigHelper {
             context.setHostInfoDAO(new EC2HostInfoDAOImpl(ec2Client));
             context.setReservedInstanceInfoDAO(new ReservedInstanceFetcher(ec2Client));
             context.setClusterManager(new AwsVmManager(context.getAwsConfigManager()));
+            context.setAwsManager(new AwsManagerImpl(context.getAwsConfigManager()));
         } else {
             // TODO make sure if aws is null, all the workers related to aws still works
             context.setHostInfoDAO(new DefaultHostInfoDAOImpl());
@@ -339,6 +341,13 @@ public class ConfigHelper {
                 Runnable worker = new SpotAutoScalingScheduler(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled SpotAutoScalingScheduler");
+            }
+
+            if (workerName.equalsIgnoreCase(PlacementCapacityUpdater.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new PlacementCapacityUpdater(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled PlacementCapacityUpdater");
             }
         }
     }

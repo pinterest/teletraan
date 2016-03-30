@@ -68,10 +68,9 @@ public class HostTypes {
     }
 
     @GET
-    @Path("/basic")
-    public Collection<HostTypeBean> getByProviderAndBasic(@QueryParam("provider") String provider,
-                                                          @QueryParam("basic") Optional<Boolean> basic) throws Exception {
-        return hostTypeDAO.getByProviderAndBasic(provider, basic.or(true));
+    @Path("/provider/{provider : [a-zA-Z0-9\\-_]+}")
+    public Collection<HostTypeBean> getByProvider(@PathParam("provider") String provider) throws Exception {
+        return hostTypeDAO.getByProvider(provider);
     }
 
     @GET

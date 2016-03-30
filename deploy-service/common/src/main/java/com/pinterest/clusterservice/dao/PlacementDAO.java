@@ -22,9 +22,11 @@ import java.util.Collection;
 public interface PlacementDAO {
     void insert(PlacementBean bean) throws Exception;
 
+    void updateById(String id, PlacementBean bean) throws Exception;
+
     PlacementBean getById(String id) throws Exception;
 
     Collection<PlacementBean> getAll(int pageIndex, int pageSize) throws Exception;
 
-    Collection<PlacementBean> getByProviderAndBasic(String provider, boolean basic) throws Exception;
+    Collection<PlacementBean> getByProvider(String provider) throws Exception;
 }

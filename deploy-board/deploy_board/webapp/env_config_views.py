@@ -52,8 +52,8 @@ class EnvConfigView(View):
             groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
             if groups:
                 show_remove = False
-                cluster_provider = clusters_helper.get_cluster_provider(request, name, stage)
-                if cluster_provider == 'null':
+                basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+                if not basic_cluster_info:
                     show_cluster_config = False
 
         return render(request, 'configs/env_config.html', {

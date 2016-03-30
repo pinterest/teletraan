@@ -124,23 +124,23 @@
 </div>
 
 <script>
-function loadConfig(provider, basic) {
+function loadConfig(provider) {
     var image_name_url = "/clouds/get_image_names/?provider=" + provider + "&curr_base_image={{ basic_cluster_info.base_image_id }}";
     $.get(image_name_url, function(response) {
         $("#image_name_div_id").html(response);
     });
 
-    var host_type_url = "/clouds/get_host_types/?provider=" + provider + "&basic=" + basic + "&curr_host_type={{ basic_cluster_info.host_type_id }}";
+    var host_type_url = "/clouds/get_host_types/?provider=" + provider + "&curr_host_type={{ basic_cluster_info.host_type_id }}";
     $.get(host_type_url, function(response) {
         $("#host_type_div_id").html(response);
     });
 
-    var security_zone_url = "/clouds/get_security_zones/?provider=" + provider + "&basic=" + basic + "&curr_security_zone={{ basic_cluster_info.security_zone_id }}";
+    var security_zone_url = "/clouds/get_security_zones/?provider=" + provider + "&curr_security_zone={{ basic_cluster_info.security_zone_id }}";
     $.get(security_zone_url, function(response) {
         $("#security_zone_div_id").html(response);
     });
 
-    var placement_url = "/clouds/get_placements/?provider=" + provider + "&basic=" + basic + "&curr_placement={{ basic_cluster_info.placement_id }}";
+    var placement_url = "/clouds/get_placements/?provider=" + provider + "&curr_placement={{ basic_cluster_info.placement_id }}";
     $.get(placement_url, function(response) {
         $("#placement_div_id").html(response);
     });
@@ -151,12 +151,12 @@ function getCurrentProvider() {
 }
 
 $(document).ready(function() {
-    loadConfig(getCurrentProvider(), "1");
+    loadConfig(getCurrentProvider());
 });
 
 $(function () {
     $("#provider").change(function() {
-        loadConfig(getCurrentProvider(), "1");
+        loadConfig(getCurrentProvider());
     });
 
     $('#saveClusterConfigBtnId').attr('disabled','disabled');

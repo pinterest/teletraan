@@ -1373,7 +1373,7 @@ public class DBDAOTest {
         assertEquals(bean2.getStorage(), "512G HDD");
         assertEquals(bean2.getDescription(), "This is a high computing capability machine. $8/hour");
 
-        Collection<HostTypeBean> beans = hostTypeDAO.getByProviderAndBasic(CloudProvider.AWS.toString(), true);
+        Collection<HostTypeBean> beans = hostTypeDAO.getByProvider(CloudProvider.AWS.toString());
         assertEquals(beans.size(), 1);
     }
 
@@ -1395,7 +1395,7 @@ public class DBDAOTest {
         assertTrue(bean2.getBasic());
         assertEquals(bean2.getDescription(), "This network zone is used for web facing service.");
 
-        Collection<SecurityZoneBean> beans = securityZoneDAO.getByProviderAndBasic(CloudProvider.AWS.toString(), true);
+        Collection<SecurityZoneBean> beans = securityZoneDAO.getByProvider(CloudProvider.AWS.toString());
         assertEquals(beans.size(), 1);
     }
 
@@ -1408,6 +1408,7 @@ public class DBDAOTest {
         bean1.setProvider_name("us-east-1");
         bean1.setProvider(CloudProvider.AWS);
         bean1.setBasic(true);
+        bean1.setCapacity(100);
         bean1.setDescription("This is east region datacenter.");
         placementDAO.insert(bean1);
 
@@ -1415,10 +1416,18 @@ public class DBDAOTest {
         assertEquals(bean2.getProvider_name(), "us-east-1");
         assertEquals(bean2.getProvider(), CloudProvider.AWS);
         assertTrue(bean2.getBasic());
+        assertEquals(bean2.getCapacity().intValue(), 100);
         assertEquals(bean2.getDescription(), "This is east region datacenter.");
 
-        Collection<PlacementBean> beans = placementDAO.getByProviderAndBasic(CloudProvider.AWS.toString(), true);
+        PlacementBean updateBean = new PlacementBean();
+        updateBean.setCapacity(200);
+        placementDAO.updateById(id, updateBean);
+        bean2 = placementDAO.getById(id);
+        assertEquals(bean2.getCapacity().intValue(), 200);
+
+        Collection<PlacementBean> beans = placementDAO.getByProvider(CloudProvider.AWS.toString());
         assertEquals(beans.size(), 1);
+
     }
 
     @Test
