@@ -16,11 +16,15 @@
 package com.pinterest.teletraan.worker;
 
 
+import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
+import com.pinterest.arcee.bean.AsgAlarmBean;
 import com.pinterest.arcee.bean.AutoScalingGroupBean;
 import com.pinterest.arcee.bean.AutoScalingRequestBean;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.SpotAutoScalingBean;
+import com.pinterest.arcee.common.AutoScalingConstants;
+import com.pinterest.arcee.dao.AlarmDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.ReservedInstanceInfoDAO;
 import com.pinterest.arcee.dao.SpotAutoScalingDAO;
@@ -29,6 +33,7 @@ import com.pinterest.deployservice.ServiceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,7 +43,9 @@ public class SpotAutoScalingScheduler implements Runnable {
     private GroupInfoDAO groupInfoDAO;
     private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
     private AutoScaleGroupManager autoScaleGroupManager;
+    private AlarmDAO asgAlarmDAO;
     private int spotAutoScalingThreshold;
+    private AlarmManager alarmManager;
 
     public SpotAutoScalingScheduler(ServiceContext serviceContext) {
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
@@ -47,7 +54,30 @@ public class SpotAutoScalingScheduler implements Runnable {
         reservedInstanceInfoDAO = serviceContext.getReservedInstanceInfoDAO();
         autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
         spotAutoScalingThreshold = serviceContext.getSpotAutoScalingThreshold();
+        asgAlarmDAO = serviceContext.getAlarmDAO();
+        alarmManager = serviceContext.getAlarmManager();
         LOG.info(String.format("Set spot auto scaling threshold to %d", spotAutoScalingThreshold));
+    }
+
+    private void processAlarms(String groupName, boolean enableGrow) throws Exception {
+        List<AsgAlarmBean> asgAlarmBeanList = asgAlarmDAO.getAlarmInfosByGroup(groupName);
+        List<String> growAlarmIds = new ArrayList<>();
+        List<String> shrinkAlarmIds = new ArrayList<>();
+        for (AsgAlarmBean asgAlarmBean : asgAlarmBeanList) {
+            if (asgAlarmBean.getAction_type().equals(AutoScalingConstants.ASG_SHRINK)) {
+                shrinkAlarmIds.add(asgAlarmBean.getAlarm_id());
+            } else {
+                growAlarmIds.add(asgAlarmBean.getAlarm_id());
+            }
+        }
+
+        if (enableGrow) {
+            alarmManager.enableAlarm(growAlarmIds, groupName);
+            alarmManager.disableAlarm(shrinkAlarmIds, groupName);
+        } else {
+            alarmManager.enableAlarm(shrinkAlarmIds, groupName);
+            alarmManager.disableAlarm(growAlarmIds, groupName);
+        }
     }
 
     private void processSpotAutoScaling(String clusterName, SpotAutoScalingBean spotAutoScalingBean) throws Exception {
@@ -65,7 +95,7 @@ public class SpotAutoScalingScheduler implements Runnable {
             LOG.info(String.format("Enable scaling up for spot auto scaling group %s. Free RI is: %d (Threshold: %d)", clusterName, freeInstance,
                                    spotAutoScalingThreshold));
             if (!spotAutoScalingBean.getEnable_grow()) {
-                autoScaleGroupManager.enableScalingUpEvent(spotAutoScalingGroupName);
+                processAlarms(spotAutoScalingGroupName, true);
                 SpotAutoScalingBean updatedBean = new SpotAutoScalingBean();
                 updatedBean.setEnable_grow(true);
                 spotAutoScalingDAO.updateSpotAutoScalingGroup(spotAutoScalingGroupName, updatedBean);
@@ -74,7 +104,7 @@ public class SpotAutoScalingScheduler implements Runnable {
             LOG.info(String.format("Disable scaling up for spot auto scaling group %s. Free RI is: %d (Threshold: %d)", clusterName, freeInstance,
                                    spotAutoScalingThreshold));
             if (spotAutoScalingBean.getEnable_grow()) {
-                autoScaleGroupManager.disableScalingUpEvent(spotAutoScalingGroupName);
+                processAlarms(spotAutoScalingGroupName, false);
                 SpotAutoScalingBean updatedBean = new SpotAutoScalingBean();
                 updatedBean.setEnable_grow(false);
                 spotAutoScalingDAO.updateSpotAutoScalingGroup(spotAutoScalingGroupName, updatedBean);

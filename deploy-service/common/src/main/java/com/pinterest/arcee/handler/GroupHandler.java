@@ -697,8 +697,8 @@ public class GroupHandler {
         spotAlarmBean.setGroup_name(spotGroupName);
         spotAlarmBean.setMetric_source(asgAlarmBean.getMetric_source());
         spotAlarmBean.setMetric_name(asgAlarmBean.getMetric_name());
-        if (asgAlarmBean.getComparator().equals("LessThanOrEqualToThreshold")) {
-            spotAlarmBean.setThreshold(asgAlarmBean.getThreshold() * (1 - sensitivity_ratio));
+        if (asgAlarmBean.getComparator().equals("LessThanOrEqualToThreshold")) { // makes spot auto scaling more sensitive
+            spotAlarmBean.setThreshold(asgAlarmBean.getThreshold() * (1 + sensitivity_ratio));
         } else {
             spotAlarmBean.setThreshold(asgAlarmBean.getThreshold() * (1 - sensitivity_ratio));
         }

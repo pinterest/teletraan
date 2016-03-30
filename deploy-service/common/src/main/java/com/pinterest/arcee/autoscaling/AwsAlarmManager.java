@@ -58,16 +58,39 @@ public class AwsAlarmManager implements AlarmManager {
 
         request.setMetricName(asgAlarmBean.getMetric_name());
         request.setThreshold(asgAlarmBean.getThreshold());
-        request.setAlarmName(getAlarmName(asgAlarmBean));
+        request.setAlarmName(getAlarmName(asgAlarmBean.getGroup_name(), asgAlarmBean.getAlarm_id()));
 
         acwClient.putMetricAlarm(request);
+    }
+
+
+    @Override
+    public void enableAlarm(List<String> alarmIds, String groupName) throws Exception {
+        List<String> alarmNames = new ArrayList<>();
+        for (String alarmId : alarmIds) {
+            alarmNames.add(getAlarmName(groupName, alarmId));
+        }
+        EnableAlarmActionsRequest request = new EnableAlarmActionsRequest();
+        request.setAlarmNames(alarmNames);
+        acwClient.enableAlarmActions(request);
+    }
+
+    @Override
+    public void disableAlarm(List<String> alarmIds, String groupName) throws Exception {
+        List<String> alarmNames = new ArrayList<>();
+        for (String alarmId : alarmIds) {
+            alarmNames.add(getAlarmName(groupName, alarmId));
+        }
+        DisableAlarmActionsRequest request = new DisableAlarmActionsRequest();
+        request.setAlarmNames(alarmNames);
+        acwClient.disableAlarmActions(request);
     }
 
     @Override
     public void deleteAlarmFromPolicy(AsgAlarmBean asgAlarmBean) throws Exception {
         DeleteAlarmsRequest request = new DeleteAlarmsRequest();
         List<String> alarmNames = new LinkedList<>();
-        alarmNames.add(getAlarmName(asgAlarmBean));
+        alarmNames.add(getAlarmName(asgAlarmBean.getGroup_name(), asgAlarmBean.getAlarm_id()));
         request.setAlarmNames(alarmNames);
         acwClient.deleteAlarms(request);
     }
@@ -135,8 +158,9 @@ public class AwsAlarmManager implements AlarmManager {
         return metricDataPoints;
     }
 
-    private String getAlarmName(AsgAlarmBean asgAlarmBean) {
-        return String.format("%s-alarm-%s", asgAlarmBean.getGroup_name(), asgAlarmBean.getAlarm_id());
+
+    private String getAlarmName(String groupName, String alarmId) {
+        return String.format("%s-alarm-%s", groupName, alarmId);
     }
 
     private Dimension getDimention(String groupName) {
