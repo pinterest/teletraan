@@ -143,7 +143,7 @@ public class Groups {
         // TODO we need env name or group for this one!
         // Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        List<String> groupNames = provisionHandler.terminateHost(hostId, decreaseSize, operator);
+        List<String> groupNames = provisionHandler.terminateHost(hostId, decreaseSize);
         String configChange = String.format("Instance Id : %s", hostId);
         for (String name : groupNames) {
             configHistoryHandler.updateConfigHistory(name, Constants.TYPE_HOST_TERMINATE, configChange, operator);

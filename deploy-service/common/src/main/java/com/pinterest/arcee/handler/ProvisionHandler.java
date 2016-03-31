@@ -41,50 +41,39 @@ public class ProvisionHandler {
     private HostInfoDAO hostInfoDAO;
     private GroupInfoDAO groupInfoDAO;
     private AutoScaleGroupManager asgDAO;
-    private UtilDAO utilDAO;
 
     public ProvisionHandler(ServiceContext serviceContext) {
         hostDAO = serviceContext.getHostDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         groupInfoDAO = serviceContext.getGroupInfoDAO();
         asgDAO = serviceContext.getAutoScaleGroupManager();
-        utilDAO = serviceContext.getUtilDAO();
     }
 
-    public List<String> terminateHost(String hostId, boolean decreaseSize, String operator) throws Exception {
+    public List<String> terminateHost(String hostId, boolean decreaseSize) throws Exception {
         LOG.info(String.format("Start to terminate the host %s, decrease size %b", hostId, decreaseSize));
         boolean terminateSucceeded = true;
-        String lockName = String.format("PROCESS-HOSTID-%s", hostId);
-        Connection connection = utilDAO.getLock(lockName);
-        if (connection != null) {
-            try {
-                Collection<String> asgIds = asgDAO.instancesInAutoScalingGroup(Arrays.asList(hostId));
-                if (decreaseSize && !asgIds.isEmpty()) {
-                    try {
-                        LOG.info(String.format("Terminate the host %s and decrease fleet size in auto scaling group", hostId));
-                        asgDAO.terminateInstanceInAutoScalingGroup(hostId, decreaseSize);
-                    } catch (Exception ex) {
-                        LOG.error("Failed to terminate instance in autoscaling group", ex);
-                    }
-                } else {
-                    LOG.info(String.format("Terminate the host %s", hostId));
-                    hostInfoDAO.terminateHost(hostId);
+        try {
+            Collection<String> asgIds = asgDAO.instancesInAutoScalingGroup(Arrays.asList(hostId));
+            if (decreaseSize && !asgIds.isEmpty()) {
+                try {
+                    LOG.info(String.format("Terminate the host %s and decrease fleet size in auto scaling group", hostId));
+                    asgDAO.terminateInstanceInAutoScalingGroup(hostId, decreaseSize);
+                } catch (Exception ex) {
+                    LOG.error("Failed to terminate instance in autoscaling group", ex);
                 }
-
-                long current_time = System.currentTimeMillis();
-                HostBean hostBean = new HostBean();
-                hostBean.setState(HostState.TERMINATING);
-                hostBean.setLast_update(current_time);
-                hostDAO.updateHostById(hostId, hostBean);
-            } catch (Exception e) {
-                terminateSucceeded = false;
-                LOG.error("Failed to terminate host {}", hostId, e);
-            } finally {
-                utilDAO.releaseLock(lockName, connection);
+            } else {
+                LOG.info(String.format("Terminate the host %s", hostId));
+                hostInfoDAO.terminateHost(hostId);
             }
-        } else {
+
+            long current_time = System.currentTimeMillis();
+            HostBean hostBean = new HostBean();
+            hostBean.setState(HostState.TERMINATING);
+            hostBean.setLast_update(current_time);
+            hostDAO.updateHostById(hostId, hostBean);
+        } catch (Exception e) {
             terminateSucceeded = false;
-            LOG.warn(String.format("Failed to get lock: %s", lockName));
+            LOG.error("Failed to terminate host {}", hostId, e);
         }
 
         if (!terminateSucceeded) {

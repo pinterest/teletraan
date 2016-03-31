@@ -165,7 +165,7 @@
 |hostId||false|string||
 |createDate||false|integer (int64)||
 |lastUpdateDate||false|integer (int64)||
-|state||false|enum (PROVISIONED, ACTIVE, UNREACHABLE, PENDING_TERMINATE, TERMINATING, TERMINATED)||
+|state||false|enum (PROVISIONED, ACTIVE, PENDING_TERMINATE, TERMINATING, TERMINATED)||
 
 
 ### MetricsConfigBean
@@ -423,10 +423,6 @@
   ACTIVE:
 
        Host is ready to deploy
-
-  UNREACHABLE:
-
-       Host has not ping server for certain time
 
   PENDING_TERMINATE:
 

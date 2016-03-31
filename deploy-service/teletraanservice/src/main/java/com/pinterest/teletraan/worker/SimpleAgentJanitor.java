@@ -72,12 +72,6 @@ public class SimpleAgentJanitor implements Runnable {
             updateBean.setState(AgentState.UNREACHABLE);
             agentDAO.updateAgentById(id, updateBean);
             LOG.info("AgentJanitor marked agent {} as UNREACHABLE.", id);
-
-            // mark the host as unreachable
-            HostBean hostBean = new HostBean();
-            hostBean.setState(HostState.UNREACHABLE);
-            hostDAO.updateHostById(id, hostBean);
-            LOG.info("AgentJanitor marked host {} as UNREACHABLE.", id);
         } catch (Exception e) {
             LOG.error("SimpleAgentJanitor Failed to mark host {} as UNREACHABLE", id, e);
         }

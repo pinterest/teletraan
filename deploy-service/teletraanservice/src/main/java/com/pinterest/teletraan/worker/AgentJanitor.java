@@ -44,7 +44,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private HostInfoDAO hostInfoDAO;
     private HostGroupManager hostGroupDAO;
     private GroupInfoDAO groupInfoDAO;
-    private UtilDAO utilDAO;
     private long maxLaunchLatencyThreshold;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
@@ -53,7 +52,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
         hostInfoDAO = serviceContext.getHostInfoDAO();
         hostGroupDAO = serviceContext.getHostGroupDAO();
         groupInfoDAO = serviceContext.getGroupInfoDAO();
-        utilDAO = serviceContext.getUtilDAO();
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
 
@@ -70,18 +68,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
                     // TODO this lock can be removed, once we move the terminating logic from state to status
                     HostBean host = hostDAO.getHostsByHostId(staleId).get(0);
                     if (host.getState() != HostState.TERMINATING && host.getState() != HostState.PENDING_TERMINATE) {
-                        String lockName = String.format("PROCESS-HOSTID-%s", staleId);
-                        Connection connection = utilDAO.getLock(lockName);
-                        if (connection != null) {
-                            try {
-                                markUnreachableHost(staleId);
-                            } catch (Exception e) {
-                                LOG.error("AgentJanitor Failed to mark host {} as UNREACHABLE", staleId, e);
-                            } finally {
-                                utilDAO.releaseLock(lockName, connection);
-                            }
-                        } else {
-                            LOG.warn(String.format("Failed to get lock: %s", lockName));
+                        try {
+                            markUnreachableHost(staleId);
+                        } catch (Exception e) {
+                            LOG.error("AgentJanitor Failed to mark host {} as UNREACHABLE", staleId,
+                                      e);
                         }
                     }
                 }

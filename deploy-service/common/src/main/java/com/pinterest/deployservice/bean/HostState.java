@@ -20,8 +20,6 @@ package com.pinterest.deployservice.bean;
  *      Host is being provisioned
  * ACTIVE:
  *      Host is ready to deploy
- * UNREACHABLE:
- *      Host has not ping server for certain time
  * PENDING_TERMINATE:
  *      Host is pending terminate
  * TERMINATING:
@@ -32,7 +30,6 @@ package com.pinterest.deployservice.bean;
 public enum HostState {
     PROVISIONED,
     ACTIVE,
-    UNREACHABLE,
     PENDING_TERMINATE,
     TERMINATING,
     TERMINATED

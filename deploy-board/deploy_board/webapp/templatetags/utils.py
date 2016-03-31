@@ -410,19 +410,10 @@ def successRateTip(deploy):
            % (deploy["successTotal"], deploy["total"])
 
 
-@register.filter("hostStateTip")
-def hostStateTip(state):
-    if state == "ACTIVE":
-        return "Host is alive."
-    elif state == "PROVISIONED":
-        return "Host was just added to the fleet."
-    else:
-        return "Host is unreachable from server."
-
 
 @register.filter("hostStateClass")
 def hostStateClass(state):
-    if state == "UNREACHABLE" or state == "PENDING_TERMINATE" or state == "TERMINATING":
+    if state == "PENDING_TERMINATE" or state == "TERMINATING":
         return "danger"
     else:
         return ""
@@ -581,9 +572,6 @@ def agentIcon(agentStats):
 
 @register.filter("hostButton")
 def hostButton(host):
-    if host['state'] == 'UNREACHABLE':
-        return 'btn-danger'
-
     return 'btn-default'
 
 
@@ -594,9 +582,6 @@ def hostIcon(host):
 
     if host['state'] == 'ACTIVE':
         return 'fa-check-square-o'
-
-    if host['state'] == 'UNREACHABLE':
-        return 'fa fa-exclamation'
 
     return 'fa-recycle fa-spin'
 
@@ -609,9 +594,6 @@ def hostTip(host):
 
     if host['state'] == 'ACTIVE':
         return '{}: Host is active and running, click for more information'.format(hostname)
-
-    if host['state'] == 'UNREACHABLE':
-        return '{}: Host is unreachable, please take action'.format(hostname)
 
     return '{}: Host is marked for termination, click for more information'.format(hostname)
 

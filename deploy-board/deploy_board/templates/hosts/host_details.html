@@ -60,7 +60,7 @@
         <td>{{ host.hostId }}</td>
         <td>{{ host.groupName }}</td>
         <td>{{ host.ip }}</td>
-        <td><span class="deployToolTip pointer-cursor" data-toggle="tooltip" title="{{ host.state|hostStateTip }}">{{ host.state }}</span></td>
+        <td><span class="deployToolTip pointer-cursor" data-toggle="tooltip" title="{{ host|hostTip }}">{{ host.state }}</span></td>
         <td>{{ host.createDate|convertTimestamp }}</td>
         <td>{{ host.lastUpdateDate|convertTimestamp }}</td>
     </tr>
