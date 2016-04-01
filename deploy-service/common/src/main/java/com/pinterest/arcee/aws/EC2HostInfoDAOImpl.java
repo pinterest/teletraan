@@ -55,6 +55,10 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
                 request.setInstanceIds(Collections.singletonList(staleId));
                 DescribeInstancesResult result = ec2Client.describeInstances(request);
                 List<Reservation> reservations = result.getReservations();
+                // if the id does not exist in the reservation, consider it as terminated hosts
+                if (reservations.isEmpty()) {
+                    terminatedHosts.add(staleId);
+                }
                 for (Reservation reservation : reservations) {
                     for (Instance instance : reservation.getInstances()) {
                         int stateCode = instance.getState().getCode();
