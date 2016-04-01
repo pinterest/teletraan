@@ -25,9 +25,9 @@ import java.util.Map;
 
 public interface AutoScaleGroupManager {
     //------ Launch Config
-    String createLaunchConfig(GroupBean request) throws Exception;
+    String createLaunchConfig(String groupName, GroupBean request) throws Exception;
 
-    String createSpotLaunchConfig(GroupBean request, String bidPrice) throws Exception;
+    String createSpotLaunchConfig(String groupName, GroupBean request, String bidPrice) throws Exception;
 
     void deleteLaunchConfig(String configId) throws Exception;
 

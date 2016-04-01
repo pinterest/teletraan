@@ -18,6 +18,8 @@ package com.pinterest.arcee.handler;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -152,11 +154,11 @@ public class GroupHandlerTest {
         Long lastUpdate = System.currentTimeMillis();
         groupBean.setLast_update(lastUpdate);
         GroupBean resultGroupBean = generateDefaultBean("test1", "ami-12345", "test2", null, lastUpdate);
-        when(mockAwsManager.createLaunchConfig(resultGroupBean)).thenReturn("test1-1");
+        when(mockAwsManager.createLaunchConfig("test1", resultGroupBean)).thenReturn("test1-1");
         groupHandler.createGroup("test1", groupBean);
 
         ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
-        verify(mockAwsManager, times(1)).createLaunchConfig(argument.capture());
+        verify(mockAwsManager, times(1)).createLaunchConfig(eq("test1"), argument.capture());
 
         GroupBean resultGroupBean2 = generateDefaultBean("test1", "ami-12345", "test2", "test1-1", lastUpdate);
         GroupBean b = argument.getValue();
@@ -197,7 +199,7 @@ public class GroupHandlerTest {
         // verfiy
         GroupBean expectedResultBean = generateDefaultBean("test2", "ami-12345", "test2", "test2-1", lastUpdate);
         expectedResultBean.setChatroom("hello");
-        verify(mockAwsManager, never()).createLaunchConfig(expectedResultBean);
+        verify(mockAwsManager, never()).createLaunchConfig("test2", expectedResultBean);
 
         GroupBean actualResultBean = groupInfoDAO.getGroupInfo("test2");
         assertEquals(actualResultBean.getChatroom(), expectedResultBean.getChatroom());
@@ -219,7 +221,7 @@ public class GroupHandlerTest {
 
         groupHandler.updateLaunchConfig("test3", updatedBean2);
         ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
-        verify(mockAwsManager, times(1)).createLaunchConfig(argument.capture());
+        verify(mockAwsManager, times(1)).createLaunchConfig(eq("test3"), argument.capture());
         GroupBean actualUpdatedBean = argument.getValue();
         assertEquals(actualUpdatedBean.getGroup_name(), "test3");
         assertEquals(actualUpdatedBean.getAsg_status(), ASGStatus.UNKNOWN);
@@ -246,7 +248,7 @@ public class GroupHandlerTest {
         when(mockAwsManager.hasAutoScalingGroup("test4")).thenReturn(Boolean.TRUE);
         groupHandler.updateLaunchConfig("test4", updatedBean);
         ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
-        verify(mockAwsManager, never()).createLaunchConfig(argument.capture());
+        verify(mockAwsManager, never()).createLaunchConfig(eq("test4"), argument.capture());
         verify(mockAwsManager, times(1)).updateSubnet("test4", updatedBean.getSubnets());
     }
 
@@ -265,7 +267,7 @@ public class GroupHandlerTest {
 
         groupHandler.updateLaunchConfig("test6", updatedBean);
         ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
-        verify(mockAwsManager, times(1)).createLaunchConfig(argument.capture());
+        verify(mockAwsManager, times(1)).createLaunchConfig(eq("test6"), argument.capture());
         GroupBean actualUpdatedBean = argument.getValue();
 
         assertEquals(actualUpdatedBean.getGroup_name(), "test6");
@@ -291,12 +293,12 @@ public class GroupHandlerTest {
         GroupBean groupBean1 = generateDefaultBean("group6", "ami-12345", "subnet-6", "config-6", lastUpdate);
         groupInfoDAO.insertGroupInfo(groupBean1);
 
-        when(mockAwsManager.createLaunchConfig(any())).thenReturn("config-7");
+        when(mockAwsManager.createLaunchConfig(eq("group6"), any())).thenReturn("config-7");
         when(mockAwsManager.hasAutoScalingGroup(any())).thenReturn(Boolean.TRUE);
         groupHandler.updateImageId(groupBean1, "ami-123457");
 
         ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
-        verify(mockAwsManager, times(1)).createLaunchConfig(argument.capture());
+        verify(mockAwsManager, times(1)).createLaunchConfig(eq("group6"), argument.capture());
         GroupBean b = argument.getValue();
         assertEquals(b.getImage_id(), "ami-123457");
         assertEquals(b.getInstance_type(), groupBean1.getInstance_type());

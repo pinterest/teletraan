@@ -58,18 +58,18 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
 
     //------ Launch Config
     @Override
-    public String createLaunchConfig(GroupBean request) throws Exception {
-        return createLaunchConfigInternal(request, null);
+    public String createLaunchConfig(String groupName, GroupBean request) throws Exception {
+        return createLaunchConfigInternal(groupName, request, null);
     }
 
     @Override
-    public String createSpotLaunchConfig(GroupBean request, String bidPrice) throws Exception {
-        return createLaunchConfigInternal(request, bidPrice);
+    public String createSpotLaunchConfig(String groupName, GroupBean request, String bidPrice) throws Exception {
+        return createLaunchConfigInternal(groupName, request, bidPrice);
     }
 
 
-    private String createLaunchConfigInternal(GroupBean request, String bidPrice) {
-        String launchConfigId = genLaunchConfigId(request.getGroup_name());
+    private String createLaunchConfigInternal(String groupName, GroupBean request, String bidPrice) {
+        String launchConfigId = genLaunchConfigId(groupName);
         CreateLaunchConfigurationRequest configurationRequest = new CreateLaunchConfigurationRequest();
         configurationRequest.setImageId(request.getImage_id());
         configurationRequest.setKeyName("ops");

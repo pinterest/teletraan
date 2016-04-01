@@ -215,7 +215,7 @@ public class GroupHandler {
     public void createGroup(String groupName, GroupBean requestBean) throws Exception {
         GroupBean defaultBean = generateDefaultGroupBean(groupName);
         GroupBean groupBean = generateUpdatedGroupBean(defaultBean, requestBean);
-        String configId = asgDAO.createLaunchConfig(groupBean);
+        String configId = asgDAO.createLaunchConfig(groupName, groupBean);
         groupBean.setLaunch_config_id(configId);
         groupInfoDAO.insertGroupInfo(groupBean);
     }
@@ -247,9 +247,9 @@ public class GroupHandler {
     private String changeConfig(String groupName, String oldConfig, GroupBean newGroupBean, String bidPrice) throws Exception {
         String newConfig;
         if (bidPrice == null) {
-            newConfig = asgDAO.createLaunchConfig(newGroupBean);
+            newConfig = asgDAO.createLaunchConfig(groupName, newGroupBean);
         } else {
-            newConfig = asgDAO.createSpotLaunchConfig(newGroupBean, bidPrice);
+            newConfig = asgDAO.createSpotLaunchConfig(groupName, newGroupBean, bidPrice);
         }
         asgDAO.changeAutoScalingGroupLaunchConfig(groupName, newConfig);
         asgDAO.deleteLaunchConfig(oldConfig);
@@ -336,7 +336,7 @@ public class GroupHandler {
             // when the group bean is null.
             if (groupBean == null) {
                 groupBean = generateDefaultGroupBean(groupName);
-                String configId = asgDAO.createLaunchConfig(groupBean);
+                String configId = asgDAO.createLaunchConfig(groupName, groupBean);
                 groupBean.setLaunch_config_id(configId);
                 groupInfoDAO.insertGroupInfo(groupBean);
             }
@@ -422,7 +422,7 @@ public class GroupHandler {
         newGroupBean.setGroup_name(spotGroupName);
         String bidPrice = request.getSpotPrice();
         // step 1 create launch config
-        String newConfig = asgDAO.createSpotLaunchConfig(groupBean, bidPrice);
+        String newConfig = asgDAO.createSpotLaunchConfig(spotGroupName, groupBean, bidPrice);
         asgDAO.createAutoScalingGroup(newConfig, generateSpotAutoScalingGroupRequest(spotGroupName, request), groupBean.getSubnets());
         asgDAO.disableScalingUpEvent(spotGroupName);
 
@@ -495,8 +495,9 @@ public class GroupHandler {
             for (SpotAutoScalingBean autoScalingBean : autoScalingGroupBeans) {
                 if (!autoScalingBean.getBid_price().equals(request.getSpotPrice())) {
                     String existingConfig = autoScalingBean.getLaunch_config_id();
-                    String newSpotConfig = asgDAO.createSpotLaunchConfig(groupBean, request.getSpotPrice());
-                    asgDAO.changeAutoScalingGroupLaunchConfig(autoScalingBean.getAsg_name(), newSpotConfig);
+                    String spotAutoScalingName = autoScalingBean.getAsg_name();
+                    String newSpotConfig = asgDAO.createSpotLaunchConfig(spotAutoScalingName, groupBean, request.getSpotPrice());
+                    asgDAO.changeAutoScalingGroupLaunchConfig(spotAutoScalingName, newSpotConfig);
                     asgDAO.deleteLaunchConfig(existingConfig);
 
                     autoScalingBean.setLaunch_config_id(newSpotConfig);
