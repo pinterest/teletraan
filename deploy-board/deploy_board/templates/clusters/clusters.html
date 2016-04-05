@@ -25,13 +25,6 @@
         </a>
     </div>
     <div class="row">
-        <a type="button" class="deployToolTip btn btn-default btn-block"
-           href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity"
-           data-toggle="tooltip" title="Configure capacity">
-           <i class="fa fa-database"></i> Capacity
-        </a>
-    </div>
-    <div class="row">
         {% if basic_cluster_info %}
             <button class="deployToolTip btn btn-default btn-block" data-target="#deleteCluster"
             data-toggle="modal" title="Delete Cluster">

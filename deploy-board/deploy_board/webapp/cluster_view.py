@@ -306,7 +306,7 @@ def create_cluster(request, name, stage):
     if 'assignPublicIp' in params:
         adv_cluster_info['assignPublicIp'] = True
 
-    if 'role' in params:
+    if 'role' in params and params['role'] != '':
         adv_cluster_info['role'] = params['role']
 
     user_data_configs = parse_configs(params)
@@ -413,13 +413,13 @@ def delete_cluster(request, name, stage):
 def get_advanced_cluster(request):
     params = request.GET
     provider = params['provider']
-    basic = int(params['basic'])
+    adv = int(params['adv'])
     name = params['env']
     stage = params['stage']
     cluster_name = '{}-{}'.format(name, stage)
     advanced_cluster_info = None
 
-    if basic == 0 and provider == PROVIDER_AWS:
+    if adv and provider == PROVIDER_AWS:
         advanced_cluster_info = clusters_helper.get_advanced_cluster(request, name, stage, provider)
         if not advanced_cluster_info:
             advanced_cluster_info = {}

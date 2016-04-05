@@ -1,17 +1,17 @@
 {% load utils %}
 <table class="table table-condensed table-striped table-hover">
 <tr>
-    <th class="col-sm-3">Name</th>
-    <th class="col-sm-2">Id</th>
-    <th class="col-sm-2">Capacity</th>
-    <th class="col-sm-5">Description</th>
+    <th class="col-sm-3"><p><i>Name</p></i></th>
+    <th class="col-sm-2"><p><i>Id</p></i></th>
+    <th class="col-sm-2"><p><i>Capacity</p></i></th>
+    <th class="col-sm-5"><p><i>Description</p></i></th>
 </tr>
 {% for placement_info in placement_infos %}
 <tr>
-    <td>{{ placement_info.abstract_name }}</td>
-    <td>{{ placement_info.provider_name }}</td>
-    <td>{{ placement_info.capacity }}</td>
-    <td>{{ placement_info.description }}</td>
+    <td><p><i>{{ placement_info.abstract_name }}</p></i></td>
+    <td><p><i>{{ placement_info.provider_name }}</p></i></td>
+    <td><p><i>{{ placement_info.capacity }}</p></i></td>
+    <td><p><i>{{ placement_info.description }}</p></i></td>
 </tr>
 {% endfor %}
 </table>

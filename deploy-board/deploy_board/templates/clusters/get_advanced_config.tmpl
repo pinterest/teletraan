@@ -2,6 +2,8 @@
 {% if provider == "AWS" %}
 {% if advanced_cluster_info %}
 <div class="form-group">
+</div>
+<div class="form-group">
     <label for="role" class="deployToolTip control-label col-xs-2"
         data-toggle="tooltip"
         title="AWS VM Role">
@@ -104,9 +106,9 @@ $(function () {
         $('#mapConfigFieldSetId').append(
             '<div class="form-group">' +
             '<label for="properties" class="control-label col-xs-2">' + name + '</label>' +
-            '<div class="col-xs-8"><input class="form-control" name="TELETRAAN_' +
+            '<div class="col-xs-6"><input class="form-control" name="TELETRAAN_' +
             name + '" type="text" value="' + value + '"/></div>' +
-            '<div class="col-xs-2">' +
+            '<div class="col-xs-3">' +
             '<button type="button" class="delete_button btn btn-default">Delete</button></div>' +
             '</div>');
     });

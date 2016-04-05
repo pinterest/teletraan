@@ -100,6 +100,24 @@
                     <div class="col-xs-10" id="placementDetailsId">
                     </div>
                 </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading" role="tab" id="headingOne">
+                        <h4 class="panel-title pointer-cursor">
+                            <div id="showAdvanceDivId">
+                            <span class="glyphicon glyphicon-chevron-right"></span>Advanced Settings
+                            </div>
+                            <div id="hideAdvanceDivId" class="hidden">
+                            <span class="glyphicon glyphicon-chevron-down"></span>Advanced Settings
+                            </div>
+                        </h4>
+                    </div>
+                </div>
+
+                <div id="advanceSettingDivId" class="hidden">
+                    <div id="advanced_config_div_id">
+                    </div>
+                </div>
             </fieldset>
             {% csrf_token %}
         </form>
@@ -138,6 +156,15 @@ function loadConfig(provider) {
     });
 }
 
+function loadAdvancedConfig(provider, adv) {
+    var env = "{{ env.envName }}";
+    var stage = "{{ env.stageName }}";
+    var advanced_config_url = "/clouds/get_advanced_config/?provider=" + provider + "&adv=" + adv + "&env=" + env + "&stage=" + stage;
+    $.get(advanced_config_url, function(response) {
+        $("#advanced_config_div_id").html(response);
+    });
+}
+
 function getCurrentProvider() {
     val = $("#provider option:selected").val()
     return $("#provider option:selected").val();
@@ -145,11 +172,31 @@ function getCurrentProvider() {
 
 $(document).ready(function() {
     loadConfig(getCurrentProvider());
+    loadAdvancedConfig(getCurrentProvider(), "0");
 });
 
 $(function () {
     $("#provider").change(function() {
         loadConfig(getCurrentProvider());
+        if ($("#hideAdvanceDivId").is(":hidden")) {
+            loadAdvancedConfig(getCurrentProvider(), "0");
+        } else {
+            loadAdvancedConfig(getCurrentProvider(), "1");
+        }
+    });
+
+    $('#showAdvanceDivId').click(function () {
+        loadAdvancedConfig(getCurrentProvider(), "1");
+        $("#hideAdvanceDivId").removeClass("hidden");
+        $("#advanceSettingDivId").removeClass("hidden");
+        $("#showAdvanceDivId").addClass("hidden");
+    });
+
+    $('#hideAdvanceDivId').click(function () {
+        loadAdvancedConfig(getCurrentProvider(), "0");
+        $("#hideAdvanceDivId").addClass("hidden");
+        $("#advanceSettingDivId").addClass("hidden");
+        $("#showAdvanceDivId").removeClass("hidden");
     });
 
     $('#saveClusterConfigBtnId').attr('disabled','disabled');
