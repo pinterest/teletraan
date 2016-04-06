@@ -964,6 +964,8 @@ def get_failed_hosts(request, name, stage):
     progress = deploys_helper.update_progress(request, name, stage)
     agents_wrapper = agent_report.gen_agent_by_deploy(progress, env['deployId'],
                                                       FAILED_HOST_REPORT)
+    failed_hosts = [agent['hostId'] for agent in agents_wrapper[env['deployId']]]
+    host_ids = ",".join(failed_hosts)
     title = "Failed Hosts"
 
     return render(request, 'environs/env_hosts.html', {
@@ -971,7 +973,9 @@ def get_failed_hosts(request, name, stage):
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,
-        "is_retryable": True
+        "is_retryable": True,
+        "host_ids": host_ids,
+        "pinterest": IS_PINTEREST,
     })
 
 

@@ -30,6 +30,12 @@
             data-toggle="modal" title="Delete Cluster">
             <span class="glyphicon glyphicon-remove-sign"></span> Delete cluster
             </button>
+            <!--- TODO To be implemented
+            <button class="deployToolTip btn btn-default btn-block" data-target="#replaceFleet"
+            data-toggle="modal" title="Replace fleet">
+            <span class="glyphicon glyphicon-random"></span> Replace cluster
+            </button>
+            -->
         {% endif %}
     </div>
 </div>
@@ -53,10 +59,10 @@
 </div>
 
 <!--- delete cluster button dialog-->
-<div class="modal fade" id="deleteCluster" tabindex="-1" role="dialog" aria-labelledby="newInstanceModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteCluster" tabindex="-1" role="dialog" aria-labelledby="deleteClusterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
-            <form id="addInstanceFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/config/delete_cluster/">
+            <form id="deleteClusterFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/config/delete_cluster/">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Delete Cluster Confirm</h4>
@@ -76,5 +82,4 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
-
 {% endblock %}

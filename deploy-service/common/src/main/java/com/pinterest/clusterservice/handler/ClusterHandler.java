@@ -123,35 +123,37 @@ public class ClusterHandler {
         ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
         Collection<String> hostIdsToTerminate = new ArrayList<>(hostIds);
 
-        if (clusterBean.getProvider() == CloudProvider.AWS) {
+        // TODO remove provider check until fully migrate group to cmp
+        ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
+        if (replaceHost) {
+            LOG.info(String.format("Start to replace AWS VM hosts %s from cluster %s", hostIdsToTerminate.toString(), clusterName));
+            clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
+        } else {
             LOG.info(String.format("Start to terminate AWS VM hosts %s from cluster %s", hostIdsToTerminate.toString(), clusterName));
-            ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-            if (replaceHost) {
-                clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
-            } else {
-                // 1. Hosts in asg
-                Collection<String> hostIdsInCluster = clusterManager.getHosts(clusterName, hostIdsToTerminate);
-                clusterManager.terminateHosts(clusterName, hostIdsInCluster, false);
+            // 1. Hosts in asg
+            Collection<String> hostIdsInCluster = clusterManager.getHosts(clusterName, hostIdsToTerminate);
+            clusterManager.terminateHosts(clusterName, hostIdsInCluster, false);
 
+            if (clusterBean != null) {
                 int capacity = Math.max(clusterBean.getCapacity() - hostIdsInCluster.size(), 0);
                 ClusterBean newBean = new ClusterBean();
                 newBean.setCapacity(capacity);
                 newBean.setLast_update(System.currentTimeMillis());
                 clusterDAO.update(clusterName, newBean);
-
-                // 2. Hosts not in asg, it means these hosts are detached from asg
-                hostIdsToTerminate.removeAll(hostIdsInCluster);
-                if (!hostIdsToTerminate.isEmpty()) {
-                    clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
-                }
             }
 
-            for (String hostId : hostIds) {
-                HostBean hostBean = new HostBean();
-                hostBean.setState(HostState.TERMINATING);
-                hostBean.setLast_update(System.currentTimeMillis());
-                hostDAO.updateHostById(hostId, hostBean);
+            // 2. Hosts not in asg, it means these hosts are detached from asg
+            hostIdsToTerminate.removeAll(hostIdsInCluster);
+            if (!hostIdsToTerminate.isEmpty()) {
+                clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
             }
+        }
+
+        for (String hostId : hostIds) {
+            HostBean hostBean = new HostBean();
+            hostBean.setState(HostState.TERMINATING);
+            hostBean.setLast_update(System.currentTimeMillis());
+            hostDAO.updateHostById(hostId, hostBean);
         }
     }
 

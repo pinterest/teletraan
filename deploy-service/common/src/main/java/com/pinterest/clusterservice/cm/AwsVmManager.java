@@ -43,6 +43,7 @@ import java.util.Scanner;
 public class AwsVmManager implements ClusterManager<AwsVmBean> {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AwsVmManager.class);
     private static final String PROCESS_AZREBALANCE = "AZRebalance";
+    private static final String PROCESS_LAUNCH = "Launch";
     private static final String[] NOTIFICATION_TYPE = {
             "autoscaling:EC2_INSTANCE_LAUNCH",
             "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
@@ -82,10 +83,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
     public void createCluster(String clusterName, AwsVmBean bean) throws Exception {
         bean.setLaunchConfigId(createLaunchConfig(clusterName, bean));
         createAutoScalingGroup(clusterName, bean);
-
-        SuspendProcessesRequest suspendProcessesRequest = new SuspendProcessesRequest();
-        suspendProcessesRequest.setAutoScalingGroupName(clusterName);
-        suspendProcessesRequest.setScalingProcesses(Arrays.asList(PROCESS_AZREBALANCE));
+        disableScalingProcesses(clusterName, Arrays.asList(PROCESS_AZREBALANCE));
 
         if (!StringUtils.isEmpty(snsArn)) {
             PutNotificationConfigurationRequest notifRequest = new PutNotificationConfigurationRequest();
@@ -174,9 +172,7 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
     @Override
     public void terminateHosts(String clusterName, Collection<String> hostIds, boolean replaceHost) throws Exception {
         if (replaceHost) {
-            TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest();
-            terminateRequest.setInstanceIds(hostIds);
-            ec2Client.terminateInstances(terminateRequest);
+            termianteEC2Hosts(hostIds);
         } else {
             // Do not replace host and decrease the cluster capacity
             AutoScalingGroup group = getAutoScalingGroup(clusterName);
@@ -185,26 +181,25 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
                 throw new Exception(String.format("Failed to terminate hosts: auto scaling group %s does not exist", clusterName));
             }
 
+            disableScalingProcesses(clusterName, Arrays.asList(PROCESS_LAUNCH));
             int currMinSize = group.getMinSize();
             int currMaxSize = group.getMaxSize();
+            int updatedMinSize = Math.max(currMinSize - hostIds.size(), 0);
             UpdateAutoScalingGroupRequest updateRequest = new UpdateAutoScalingGroupRequest();
             updateRequest.setAutoScalingGroupName(clusterName);
-            updateRequest.setMinSize(Math.max(currMinSize - hostIds.size(), 0));
+            updateRequest.setMinSize(updatedMinSize);
             aasClient.updateAutoScalingGroup(updateRequest);
+            termianteEC2Hosts(hostIds);
 
-            for (String hostId : hostIds) {
-                TerminateInstanceInAutoScalingGroupRequest terminateRequest = new TerminateInstanceInAutoScalingGroupRequest();
-                terminateRequest.setShouldDecrementDesiredCapacity(true);
-                terminateRequest.setInstanceId(hostId);
-                aasClient.terminateInstanceInAutoScalingGroup(terminateRequest);
-            }
-
+            // If the origin min and max size are the same,
+            // assume that people didn't set up autoscaling min/max and keep min/max equal
             if (currMaxSize == currMinSize) {
                 UpdateAutoScalingGroupRequest updateMaxSizeRequest = new UpdateAutoScalingGroupRequest();
                 updateMaxSizeRequest.setAutoScalingGroupName(clusterName);
-                updateMaxSizeRequest.setMaxSize(Math.max(currMaxSize - hostIds.size(), 0));
+                updateMaxSizeRequest.setMaxSize(updatedMinSize);
                 aasClient.updateAutoScalingGroup(updateMaxSizeRequest);
             }
+            enableScalingProcesses(clusterName, Arrays.asList(PROCESS_LAUNCH));
         }
     }
 
@@ -377,6 +372,26 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
             return null;
         }
         return groups.get(0);
+    }
+
+    private void disableScalingProcesses(String groupName, Collection<String> processes) throws Exception {
+        SuspendProcessesRequest request = new SuspendProcessesRequest();
+        request.setScalingProcesses(processes);
+        request.setAutoScalingGroupName(groupName);
+        aasClient.suspendProcesses(request);
+    }
+
+    private void enableScalingProcesses(String groupName, Collection<String> processes) throws Exception {
+        ResumeProcessesRequest request = new ResumeProcessesRequest();
+        request.setAutoScalingGroupName(groupName);
+        request.setScalingProcesses(processes);
+        aasClient.resumeProcesses(request);
+    }
+
+    private void termianteEC2Hosts(Collection<String> hostIds) throws Exception {
+        TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest();
+        terminateRequest.setInstanceIds(hostIds);
+        ec2Client.terminateInstances(terminateRequest);
     }
 
     private void deleteAutoScalingGroup(String clusterName) throws Exception {

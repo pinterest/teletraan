@@ -51,17 +51,27 @@
           {% endfor %}
       </table>
   </div>
+
+<div class="panel-footer clearfix">
     {% if is_retryable %}
-    <div class="panel-footer clearfix">
-        <div class="pull-left">
-            <button id="reset_{{ deployId }}"
-                    class="deployToolTip btn btn-primary" data-toggle="tooltip"
-                    title="Retry the current deploy step on this host.">
-                Retry deploy on all hosts
-            </button>
-        </div>
+    <div class="pull-left">
+        <button id="reset_{{ deployId }}"
+                class="deployToolTip btn btn-primary" data-toggle="tooltip"
+                title="Retry the current deploy step on this host.">
+            Retry deploy on all hosts
+        </button>
     </div>
     {% endif %}
+
+    {% if pinterest and host_ids %}
+    <div class="pull-left">
+        <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
+            data-toggle="modal" title="Terminate all failed hosts">
+        <span class="glyphicon glyphicon-remove"></span> Terminate failed hosts
+        </button>
+    </div>
+    {% endif %}
+</div>
 <script>
     $(function () {
         $('.deployToolTip').tooltip();
@@ -81,3 +91,27 @@
 </script>
 </div>
 {% endfor %}
+
+<div class="modal fade" id="terminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="terminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Host Termination Confirm</h4>
+                </div>
+
+                <div class="modal-body">
+                    <p> Are you sure to terminate the following hosts?</p>
+                    <input class="form-control" name="hostIds" type="text" value="{{ host_ids }}"/>
+                    <input type="hidden" class="checkToReplace" name="checkToReplace" checked>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->

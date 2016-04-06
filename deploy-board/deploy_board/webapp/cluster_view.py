@@ -396,12 +396,15 @@ def get_cluster(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
     basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+    hosts_in_clusters = clusters_helper.get_hosts(request, env['envName'], env['stageName'], [])
+    host_ids = ','.join(hosts_in_clusters)
 
     return render(request, 'clusters/clusters.html', {
         'env': env,
         'stages': stages,
         'provider_list': provider_list,
         'basic_cluster_info': basic_cluster_info,
+        'host_ids': host_ids,
     })
 
 
@@ -455,12 +458,18 @@ def launch_hosts(request, name, stage):
 
 
 def terminate_hosts(request, name, stage):
-    host_name = request.GET.get('host_name')
-    host_id = [request.GET.get('host_id')]
-    params = request.POST
+    get_params = request.GET
+    post_params = request.POST
     replaceHost = False
-    if "checkToReplace" in params:
+    if 'checkToReplace' in post_params:
         replaceHost = True
 
-    clusters_helper.terminate_hosts(request, name, stage, host_id, replaceHost)
-    return redirect('/env/{}/{}/host/{}'.format(name, stage, host_name))
+    host_ids = None
+    if 'host_id' in get_params:
+        host_ids = [get_params.get('host_id')]
+
+    if 'hostIds' in post_params:
+        hosts_str = post_params['hostIds']
+        host_ids = [x.strip() for x in hosts_str.split(',')]
+    clusters_helper.terminate_hosts(request, name, stage, host_ids, replaceHost)
+    return redirect('/env/{}/{}'.format(name, stage))
