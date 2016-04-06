@@ -15,7 +15,7 @@
  */
 package com.pinterest.teletraan.worker;
 
-import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.AutoScalingGroupBean;
 import com.pinterest.arcee.bean.SpotAutoScalingBean;
 import com.pinterest.arcee.dao.SpotAutoScalingDAO;
@@ -40,14 +40,14 @@ public class GroupInfoUpdater implements Runnable {
     private HostDAO hostDAO;
     private HashMap<String, String> tags;
     private MetricSource metricSource;
-    private AutoScaleGroupManager autoScaleGroupManager;
+    private AutoScalingManager autoScalingManager;
     private SpotAutoScalingDAO spotAutoScalingDAO;
 
     public GroupInfoUpdater(ServiceContext context) {
         groupInfoDAO = context.getGroupInfoDAO();
         hostDAO = context.getHostDAO();
         metricSource = context.getMetricSource();
-        autoScaleGroupManager = context.getAutoScaleGroupManager();
+        autoScalingManager = context.getAutoScalingManager();
         spotAutoScalingDAO = context.getSpotAutoScalingDAO();
         tags = new HashMap<>();
         try {
@@ -64,7 +64,8 @@ public class GroupInfoUpdater implements Runnable {
         Long currentTime = System.currentTimeMillis();
         if (!spotAutoScalingBeans.isEmpty()) {
             String spotAutoScalingName = spotAutoScalingBeans.get(0).getAsg_name();
-            AutoScalingGroupBean autoScalingGroupBean = autoScaleGroupManager.getAutoScalingGroupInfoByName(spotAutoScalingName);
+            AutoScalingGroupBean autoScalingGroupBean = autoScalingManager
+                .getAutoScalingGroupInfoByName(spotAutoScalingName);
             if (!autoScalingGroupBean.getStatus().equals(ASGStatus.UNKNOWN)) {
                 Integer spotInstanceCount = autoScalingGroupBean.getInstances().size();
                 groupSize = groupSize - spotInstanceCount;

@@ -17,8 +17,8 @@ package com.pinterest.arcee.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
@@ -29,7 +29,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.pinterest.arcee.autoscaling.AwsAlarmManager;
-import com.pinterest.arcee.autoscaling.AwsAutoScaleGroupManager;
+import com.pinterest.arcee.autoscaling.AwsAutoScalingManager;
+import com.pinterest.arcee.bean.AutoScalingUpdateBean;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.ImageBean;
 import com.pinterest.arcee.bean.SpotAutoScalingBean;
@@ -41,6 +42,7 @@ import com.pinterest.arcee.db.DBAlarmDAOImpl;
 import com.pinterest.arcee.db.DBGroupInfoDAOImpl;
 import com.pinterest.arcee.db.DBImageDAOImpl;
 import com.pinterest.arcee.db.DBSpotAutoScalingDAOImpl;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.dao.GroupDAO;
@@ -80,7 +82,7 @@ public class GroupHandlerTest {
     private static AlarmDAO alarmDAO;
     private static ServiceContext context;
     private static UtilDAO utilDAO;
-    private static AwsAutoScaleGroupManager mockAwsManager;
+    private static AwsAutoScalingManager mockAwsManager;
     private static AwsAlarmManager mockAlarmWatcher;
     private static CMDBHostGroupManager mockCMDBDAO;
     private static GroupHandler groupHandler;
@@ -114,7 +116,7 @@ public class GroupHandlerTest {
 
 
         mockCMDBDAO = mock(CMDBHostGroupManager.class);
-        mockAwsManager = mock(AwsAutoScaleGroupManager.class);
+        mockAwsManager = mock(AwsAutoScalingManager.class);
         mockAlarmWatcher = mock(AwsAlarmManager.class);
         ImageBean imageBean = new ImageBean();
         imageBean.setApp_name("golden_12.04");
@@ -128,7 +130,7 @@ public class GroupHandlerTest {
         context.setGroupInfoDAO(groupInfoDAO);
         context.setUtilDAO(utilDAO);
         context.setAlarmDAO(alarmDAO);
-        context.setAutoScaleGroupManager(mockAwsManager);
+        context.setAutoScalingManager(mockAwsManager);
         context.setAlarmManager(mockAlarmWatcher);
         context.setImageDAO(imageDAO);
         context.setSpotAutoScalingDAO(spotAutoScalingDAO);
@@ -144,36 +146,6 @@ public class GroupHandlerTest {
     public void setUp() throws Exception {
         reset(mockAwsManager);
         reset(mockAlarmWatcher);
-    }
-
-    @Test
-    public void createGroupTest() throws Exception {
-        GroupBean groupBean = new GroupBean();
-        groupBean.setGroup_name("test1");
-        groupBean.setSubnets("test2");
-        Long lastUpdate = System.currentTimeMillis();
-        groupBean.setLast_update(lastUpdate);
-        GroupBean resultGroupBean = generateDefaultBean("test1", "ami-12345", "test2", null, lastUpdate);
-        when(mockAwsManager.createLaunchConfig("test1", resultGroupBean)).thenReturn("test1-1");
-        groupHandler.createGroup("test1", groupBean);
-
-        ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
-        verify(mockAwsManager, times(1)).createLaunchConfig(eq("test1"), argument.capture());
-
-        GroupBean resultGroupBean2 = generateDefaultBean("test1", "ami-12345", "test2", "test1-1", lastUpdate);
-        GroupBean b = argument.getValue();
-        assertEquals(b.getGroup_name(), resultGroupBean2.getGroup_name());
-
-        assertEquals(b.getIam_role(), resultGroupBean2.getIam_role());
-        assertEquals(b.getGroup_name(), resultGroupBean2.getGroup_name());
-        assertEquals(b.getInstance_type(), resultGroupBean2.getInstance_type());
-        assertEquals(b.getUser_data(), resultGroupBean2.getUser_data());
-
-        GroupBean groupBean1 = groupInfoDAO.getGroupInfo("test1");
-        assertEquals(groupBean1.getIam_role(), resultGroupBean2.getIam_role());
-        assertEquals(groupBean1.getGroup_name(), resultGroupBean2.getGroup_name());
-        assertEquals(groupBean1.getInstance_type(), resultGroupBean2.getInstance_type());
-        assertEquals(groupBean1.getUser_data(), resultGroupBean2.getUser_data());
     }
 
     @Test
@@ -196,14 +168,11 @@ public class GroupHandlerTest {
         updatedBean2.setChatroom("hello");
         groupHandler.updateLaunchConfig("test2", updatedBean2);
 
-        // verfiy
+        // verify
         GroupBean expectedResultBean = generateDefaultBean("test2", "ami-12345", "test2", "test2-1", lastUpdate);
         expectedResultBean.setChatroom("hello");
-        verify(mockAwsManager, never()).createLaunchConfig("test2", expectedResultBean);
-
-        GroupBean actualResultBean = groupInfoDAO.getGroupInfo("test2");
-        assertEquals(actualResultBean.getChatroom(), expectedResultBean.getChatroom());
-        assertEquals(actualResultBean.getUser_data(), groupBean.getUser_data());
+        ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
+        verify(mockAwsManager, never()).createLaunchConfig(eq("test2"), argument.capture());
 
     }
 
@@ -220,16 +189,15 @@ public class GroupHandlerTest {
         updatedBean2.setGroup_name("test3");
 
         groupHandler.updateLaunchConfig("test3", updatedBean2);
-        ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
+        ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
         verify(mockAwsManager, times(1)).createLaunchConfig(eq("test3"), argument.capture());
-        GroupBean actualUpdatedBean = argument.getValue();
-        assertEquals(actualUpdatedBean.getGroup_name(), "test3");
-        assertEquals(actualUpdatedBean.getAsg_status(), ASGStatus.UNKNOWN);
-        assertTrue(actualUpdatedBean.getAssign_public_ip());
-        assertEquals(actualUpdatedBean.getIam_role(), "base");
-        assertEquals(actualUpdatedBean.getImage_id(), "ami-12345");
-        assertEquals(actualUpdatedBean.getInstance_type(), "c3.2xlarge");
-        assertEquals(argument.getValue().getUser_data(), Base64.encodeBase64String("#cloud-config\nrole: test3\n".getBytes()));
+        AwsVmBean actualUpdatedBean = argument.getValue();
+
+        assertTrue(actualUpdatedBean.getAssignPublicIp());
+        assertEquals(actualUpdatedBean.getRole(), "base");
+        assertEquals(actualUpdatedBean.getImage(), "ami-12345");
+        assertEquals(actualUpdatedBean.getHostType(), "c3.2xlarge");
+        assertEquals(argument.getValue().getRawUserDataString(), Base64.encodeBase64String("#cloud-config\nrole: test3\n".getBytes()));
     }
 
     @Test
@@ -245,47 +213,20 @@ public class GroupHandlerTest {
         updatedBean.setSubnets("subnet-2");
         updatedBean.setImage_id("ami-12345");
 
-        when(mockAwsManager.hasAutoScalingGroup("test4")).thenReturn(Boolean.TRUE);
+        when(mockAwsManager.getAutoScalingGroupStatus("test4")).thenReturn(ASGStatus.ENABLED);
         groupHandler.updateLaunchConfig("test4", updatedBean);
-        ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
+        ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
+        ArgumentCaptor<AutoScalingUpdateBean> argument2 = ArgumentCaptor.forClass(AutoScalingUpdateBean.class);
         verify(mockAwsManager, never()).createLaunchConfig(eq("test4"), argument.capture());
-        verify(mockAwsManager, times(1)).updateSubnet("test4", updatedBean.getSubnets());
+        verify(mockAwsManager, times(1)).updateAutoScalingGroup(eq("test4"), argument2.capture());
+        AutoScalingUpdateBean updateBean =  argument2.getValue();
+        assertNull(updateBean.getLaunchConfig());
+        assertNull(updateBean.getTerminationPolicy());
+        assertNull(updateBean.getMinSize());
+        assertEquals(updateBean.getSubnets(), "subnet-2");
+
     }
 
-    @Test
-    public void updateBothConfigAndSubnetChangeTest() throws Exception {
-        // update launch config, asg updates
-        Long lastUpdate = System.currentTimeMillis();
-        GroupBean groupBean = generateDefaultBean("test6", "ami-12345", "subnet-3", "config-2", lastUpdate);
-        groupInfoDAO.insertGroupInfo(groupBean);
-
-        GroupBean updatedBean = new GroupBean();
-        updatedBean.setGroup_name("test6");
-        updatedBean.setImage_id("ami-123456");
-        updatedBean.setSubnets("subnet-4");
-        when(mockAwsManager.hasAutoScalingGroup("test6")).thenReturn(Boolean.TRUE);
-
-        groupHandler.updateLaunchConfig("test6", updatedBean);
-        ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
-        verify(mockAwsManager, times(1)).createLaunchConfig(eq("test6"), argument.capture());
-        GroupBean actualUpdatedBean = argument.getValue();
-
-        assertEquals(actualUpdatedBean.getGroup_name(), "test6");
-        assertFalse(actualUpdatedBean.getAssign_public_ip());
-        assertEquals(actualUpdatedBean.getIam_role(), "base");
-        assertEquals(actualUpdatedBean.getImage_id(), "ami-123456");
-        assertEquals(actualUpdatedBean.getUser_data(), Base64.encodeBase64String("#cloud-config\nrole: test6\n".getBytes()));
-
-        verify(mockAwsManager, times(1)).updateSubnet("test6", updatedBean.getSubnets());
-
-        GroupBean resultGroupBean = groupInfoDAO.getGroupInfo("test6");
-        assertEquals(resultGroupBean.getGroup_name(), "test6");
-        assertFalse(resultGroupBean.getAssign_public_ip());
-        assertEquals(resultGroupBean.getIam_role(), "base");
-        assertEquals(resultGroupBean.getImage_id(), "ami-123456");
-        assertEquals(resultGroupBean.getSubnets(), "subnet-4");
-        assertEquals(resultGroupBean.getUser_data(), Base64.encodeBase64String("#cloud-config\nrole: test6\n".getBytes()));
-    }
 
     @Test
     public void updateAMITest() throws Exception {
@@ -294,18 +235,18 @@ public class GroupHandlerTest {
         groupInfoDAO.insertGroupInfo(groupBean1);
 
         when(mockAwsManager.createLaunchConfig(eq("group6"), any())).thenReturn("config-7");
-        when(mockAwsManager.hasAutoScalingGroup(any())).thenReturn(Boolean.TRUE);
+        when(mockAwsManager.getAutoScalingGroupStatus(any())).thenReturn(ASGStatus.ENABLED);
         groupHandler.updateImageId(groupBean1, "ami-123457");
 
-        ArgumentCaptor<GroupBean> argument = ArgumentCaptor.forClass(GroupBean.class);
+        ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
         verify(mockAwsManager, times(1)).createLaunchConfig(eq("group6"), argument.capture());
-        GroupBean b = argument.getValue();
-        assertEquals(b.getImage_id(), "ami-123457");
-        assertEquals(b.getInstance_type(), groupBean1.getInstance_type());
-        assertEquals(b.getSecurity_group(), groupBean1.getSecurity_group());
-        assertEquals(b.getAssign_public_ip(), groupBean1.getAssign_public_ip());
-        assertEquals(b.getIam_role(), groupBean1.getIam_role());
-        assertEquals(b.getUser_data(), groupBean1.getUser_data());
+        AwsVmBean b = argument.getValue();
+        assertEquals(b.getImage(), "ami-123457");
+        assertEquals(b.getHostType(), groupBean1.getInstance_type());
+        assertEquals(b.getSecurityZone(), groupBean1.getSecurity_group());
+        assertEquals(b.getAssignPublicIp(), groupBean1.getAssign_public_ip());
+        assertEquals(b.getRole(), groupBean1.getIam_role());
+        assertEquals(b.getRawUserDataString(), groupBean1.getUser_data());
 
         GroupBean resultGroupBean = groupInfoDAO.getGroupInfo("group6");
         assertEquals(resultGroupBean.getGroup_name(), "group6");
@@ -324,7 +265,7 @@ public class GroupHandlerTest {
         groupBean.setGroup_name(groupName);
         groupBean.setIam_role("base");
         groupBean.setInstance_type("c3.2xlarge");
-        groupBean.setSecurity_group("sg-5fb76336");
+        groupBean.setSecurity_group("s-test");
         groupBean.setImage_id(ami_id);
         groupBean.setSubnets(subnets);
         groupBean.setLaunch_config_id(config);

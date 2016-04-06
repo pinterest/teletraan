@@ -17,10 +17,10 @@ package com.pinterest.teletraan.worker;
 
 
 import com.pinterest.arcee.autoscaling.AlarmManager;
-import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.AsgAlarmBean;
 import com.pinterest.arcee.bean.AutoScalingGroupBean;
-import com.pinterest.arcee.bean.AutoScalingRequestBean;
+import com.pinterest.arcee.bean.AutoScalingUpdateBean;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.SpotAutoScalingBean;
 import com.pinterest.arcee.common.AutoScalingConstants;
@@ -42,17 +42,17 @@ public class SpotAutoScalingScheduler implements Runnable {
     private SpotAutoScalingDAO spotAutoScalingDAO;
     private GroupInfoDAO groupInfoDAO;
     private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
-    private AutoScaleGroupManager autoScaleGroupManager;
+    private AutoScalingManager autoScalingManager;
     private AlarmDAO asgAlarmDAO;
     private int spotAutoScalingThreshold;
     private AlarmManager alarmManager;
 
     public SpotAutoScalingScheduler(ServiceContext serviceContext) {
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
-        autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
+        autoScalingManager = serviceContext.getAutoScalingManager();
         groupInfoDAO = serviceContext.getGroupInfoDAO();
         reservedInstanceInfoDAO = serviceContext.getReservedInstanceInfoDAO();
-        autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
+        autoScalingManager = serviceContext.getAutoScalingManager();
         spotAutoScalingThreshold = serviceContext.getSpotAutoScalingThreshold();
         asgAlarmDAO = serviceContext.getAlarmDAO();
         alarmManager = serviceContext.getAlarmManager();
@@ -113,11 +113,12 @@ public class SpotAutoScalingScheduler implements Runnable {
     }
 
     private void processOne(String clusterName, SpotAutoScalingBean spotAutoScalingBean)  throws Exception {
-        AutoScalingGroupBean autoScalingGroupBean = autoScaleGroupManager.getAutoScalingGroupInfoByName(clusterName);
+        AutoScalingGroupBean autoScalingGroupBean = autoScalingManager
+            .getAutoScalingGroupInfoByName(clusterName);
         List<String> instances = autoScalingGroupBean.getInstances();
         int instanceCount = instances.size();
         String spotAutoScalingGroupName = spotAutoScalingBean.getAsg_name();
-        AutoScalingGroupBean spotAutoScalingGroup = autoScaleGroupManager.getAutoScalingGroupInfoByName(
+        AutoScalingGroupBean spotAutoScalingGroup = autoScalingManager.getAutoScalingGroupInfoByName(
             spotAutoScalingGroupName);
 
         processSpotAutoScaling(clusterName, spotAutoScalingBean);
@@ -132,12 +133,10 @@ public class SpotAutoScalingScheduler implements Runnable {
         LOG.info(String.format("Auto Scaling group: %s current running: %d, current max size: %d, change to target spot max size: %d,  ",
                                clusterName, instanceCount, spotAutoScalingGroup.getMaxSize(), targetSpotAutoScalingGroupMaxSize));
 
-        AutoScalingRequestBean requestBean = new AutoScalingRequestBean();
-        requestBean.setMinSize(0);
-        requestBean.setMaxSize(targetSpotAutoScalingGroupMaxSize);
-        requestBean.setGroupName(spotAutoScalingGroupName);
-        requestBean.setTerminationPolicy(spotAutoScalingGroup.getTerminationPolicy().toString());
-        autoScaleGroupManager.updateAutoScalingGroup(requestBean, null);
+        AutoScalingUpdateBean updateBean = new AutoScalingUpdateBean();
+        updateBean.setMinSize(0);
+        updateBean.setMaxSize(targetSpotAutoScalingGroupMaxSize);
+        autoScalingManager.updateAutoScalingGroup(spotAutoScalingGroupName, updateBean);
     }
 
     public void processBatch() throws Exception {

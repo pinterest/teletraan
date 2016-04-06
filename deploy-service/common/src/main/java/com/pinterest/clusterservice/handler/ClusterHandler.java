@@ -48,6 +48,7 @@ public class ClusterHandler {
     private final HostDAO hostDAO;
     private final AwsConfigManager awsConfigManager;
     private final ClusterMappingHandler clusterMappingHandler;
+    private final ServiceContext serviceContext;
 
     public ClusterHandler(ServiceContext serviceContext) {
         this.agentDAO = serviceContext.getAgentDAO();
@@ -55,11 +56,12 @@ public class ClusterHandler {
         this.hostDAO = serviceContext.getHostDAO();
         this.awsConfigManager = serviceContext.getAwsConfigManager();
         this.clusterMappingHandler = new ClusterMappingHandler(serviceContext);
+        this.serviceContext = serviceContext;
     }
 
     private ClusterManager createClusterManager(CloudProvider provider) {
         if (provider == CloudProvider.AWS && awsConfigManager != null) {
-            return new AwsVmManager(awsConfigManager);
+            return new AwsVmManager(serviceContext);
         } else {
             return new DefaultClusterManager();
         }

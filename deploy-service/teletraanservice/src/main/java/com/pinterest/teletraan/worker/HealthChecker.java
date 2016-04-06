@@ -15,7 +15,7 @@
  */
 package com.pinterest.teletraan.worker;
 
-import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.HealthCheckBean;
 import com.pinterest.arcee.bean.HealthCheckErrorBean;
@@ -68,7 +68,7 @@ public class HealthChecker implements Runnable {
     private final AgentErrorDAO agentErrorDAO;
     private final ImageDAO imageDAO;
     private final UtilDAO utilDAO;
-    private final AutoScaleGroupManager autoScaleGroupManager;
+    private final AutoScalingManager autoScalingManager;
     private final GroupHandler groupHandler;
     private final CommonHandler commonHandler;
     private final ExecutorService jobPool;
@@ -86,7 +86,7 @@ public class HealthChecker implements Runnable {
         agentErrorDAO = serviceContext.getAgentErrorDAO();
         imageDAO = serviceContext.getImageDAO();
         utilDAO = serviceContext.getUtilDAO();
-        autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
+        autoScalingManager = serviceContext.getAutoScalingManager();
         groupHandler = new GroupHandler(serviceContext);
         commonHandler = new CommonHandler(serviceContext);
         jobPool = serviceContext.getJobPool();
@@ -145,10 +145,10 @@ public class HealthChecker implements Runnable {
             if (healthCheckBean.getType() != HealthCheckType.AMI_TRIGGERED) {
                 try {
                     LOG.info("Disable scaling down event for group {}", groupName);
-                    if (!autoScaleGroupManager.isScalingDownEventEnabled(groupName)) {
+                    if (!autoScalingManager.isScalingDownEventEnabled(groupName)) {
                         LOG.info("The asg scaling down event has been disabled for group {}", groupName);
                     } else {
-                        autoScaleGroupManager.disableScalingDownEvent(groupName);
+                        autoScalingManager.disableScalingDownEvent(groupName);
                     }
                 } catch (Exception e) {
                     LOG.error("Failed to disable scaling down event for group {}", groupName, e);
@@ -340,10 +340,10 @@ public class HealthChecker implements Runnable {
                     if (healthCheckBean.getType() != HealthCheckType.AMI_TRIGGERED) {
                         try {
                             LOG.info("Disable scaling down event for group {}", groupName);
-                            if (!autoScaleGroupManager.isScalingDownEventEnabled(groupName)) {
+                            if (!autoScalingManager.isScalingDownEventEnabled(groupName)) {
                                 LOG.info("The asg scaling down event has been disabled for group {}", groupName);
                             } else {
-                                autoScaleGroupManager.disableScalingDownEvent(groupName);
+                                autoScalingManager.disableScalingDownEvent(groupName);
                             }
                         } catch (Exception e) {
                             LOG.error("Failed to disable scaling down event for group {}", groupName, e);
@@ -385,12 +385,12 @@ public class HealthChecker implements Runnable {
             if (healthCheckBean.getType() != HealthCheckType.AMI_TRIGGERED) {
                 try {
                     LOG.info("Start to enable scaling down event for group {}", groupName);
-                    if (autoScaleGroupManager.isScalingDownEventEnabled(groupName)) {
+                    if (autoScalingManager.isScalingDownEventEnabled(groupName)) {
                         LOG.info("The asg scaling down event has been enabled for group {}", groupName);
                     } else {
                         // There should not have ongoing regular health checks
                         // Already check it in HealthCheckInserter
-                        autoScaleGroupManager.enableScalingDownEvent(groupName);
+                        autoScalingManager.enableScalingDownEvent(groupName);
                     }
                 } catch (Exception e) {
                     LOG.error("Failed to enable scaling down event for group {}", groupName, e);
