@@ -45,9 +45,8 @@ NGAPP_B = "ngapp2-B"
 NGAPP_GROUP = "webapp"
 DEFAULT_PAGE_SIZE = 30
 S3_INTERNAL_TOOLS_BUCKET_NAME = "pinterest-internal-tools"
-NGAPP_ROLLBACK_HISTORY = "ngapp2-rollback-history-integ"
-if os.environ.get("ENV_STAGE") == "prod":
-    NGAPP_ROLLBACK_HISTORY = "ngapp2-rollback-history-prod"
+NGAPP_ROLLBACK_HISTORY = "ngapp2-rollback-history"
+NGAPP_ROLLBACK_HISTORY_INTEG = "ngapp2-rollback-history-integ"
 
 
 def get_last_ngapp2_deploy(request, curr_env, stage):
@@ -68,6 +67,13 @@ def get_slack_channel():
         return settings.NGAPP_DEPLOY_CHANNEL
     else:
         return "deploys_local"
+
+
+def get_rollback_history_key():
+    if is_prod():
+        return NGAPP_ROLLBACK_HISTORY
+    else:
+        return NGAPP_ROLLBACK_HISTORY_INTEG
 
 
 def get_ngapp2_compare_deploy_url(start_build_id, end_build_id):
@@ -376,24 +382,30 @@ def get_all_deploys(request):
         summary['build'] = build
         deploy_summaries.append(summary)
 
-    # get the rollback history from S3 between the start_timestamp and end_timestamp from the current page
+    # get the rollback history from S3 between the start_timestamp and end_timestamp
+    #   from the current page, assumed the deploy_summaries is in descend order.
+    #   if it is the first page, set the end_timestamp to now.
     if len(deploy_summaries):
-        start_timestamp = deploy_summaries[0]['deploy']['startDate']
-        end_timestamp = deploy_summaries[-1]['deploy']['startDate']
+        start_timestamp = deploy_summaries[-1]['deploy']['startDate']
+        if index == 1:
+            end_timestamp = time.time() * 1000
+        else:
+            end_timestamp = deploy_summaries[0]['deploy']['startDate']
     else:
         start_timestamp = 0
         end_timestamp = time.time() * 1000
 
     s3 = s3_helper.S3Helper(bucket_name=S3_INTERNAL_TOOLS_BUCKET_NAME)
-    rollbacks = s3.list(NGAPP_ROLLBACK_HISTORY)
+    history_key = get_rollback_history_key()
+    rollbacks = s3.list(history_key)
     for rollback in rollbacks:
-        timestamp = rollback.name[len(NGAPP_ROLLBACK_HISTORY)+1:]
+        timestamp = rollback.name[len(history_key)+1:]
         timestamp = float(timestamp)
         if start_timestamp <= timestamp and timestamp <= end_timestamp:
             summary = json.loads(s3.download_string(rollback.name))
             deploy_summaries.append(summary)
 
-    # order the history by deploy.start_date desc
+    # order the history by deploy.start_date descend
     deploy_summaries.sort(key=lambda summary: summary['deploy']['startDate'], reverse=True)
 
     return render(request, 'ngapp2/ngapp2_history.html', {
@@ -545,10 +557,12 @@ class NgappView(View):
             cmd = [os.path.join(virtual_env, "python"), os.path.join(virtual_env, "ngapp-rollback")]
         else:
             cmd = [os.path.join(os.environ.get("BASE_DIR"), "../integ_test/ngapp2/rollback")]
+
         result = execute(cmd)
+        if result < 0:
+            raise
 
         # record history
-        s3 = s3_helper.S3Helper(bucket_name=S3_INTERNAL_TOOLS_BUCKET_NAME)
         timestamp = time.time() * 1000
         deploy = {"startDate": timestamp,
                   "type": "ROLLBACK",
@@ -563,7 +577,7 @@ class NgappView(View):
         history = {"deploy": deploy,
                    "build": build}
 
-        s3.upload_string("%s/%d" % (NGAPP_ROLLBACK_HISTORY, timestamp), json.dumps(history))
+        s3 = s3_helper.S3Helper(bucket_name=S3_INTERNAL_TOOLS_BUCKET_NAME)
+        history_key = get_rollback_history_key()
+        s3.upload_string("%s/%d" % (history_key, timestamp), json.dumps(history))
 
-        if result < 0:
-            raise
