@@ -210,6 +210,7 @@ public class HotfixStateTransitioner implements Runnable {
                 hotfixId);
         } else if (state == HotfixState.BUILDING) {
             hotBean.setState(HotfixState.SUCCEEDED);
+            state = HotfixState.SUCCEEDED;
 
             // Send chat message
             List<EnvironBean> environBeans = environDAO.getByName(hotBean.getEnv_name());
@@ -233,7 +234,9 @@ public class HotfixStateTransitioner implements Runnable {
         }
 
         // Reset job number and last worked on time, and clean up the error
-        hotBean.setJob_num("");
+        if (state != HotfixState.SUCCEEDED) {
+            hotBean.setJob_num("");
+        }
         hotBean.setError_message("");
         hotBean.setLast_worked_on(System.currentTimeMillis());
 
