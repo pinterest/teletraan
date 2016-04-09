@@ -42,7 +42,7 @@ public class PlacementCapacityUpdater implements Runnable {
         awsManager = serviceContext.getAwsManager();
     }
 
-    public void processBatch() throws Exception {
+    private void processBatch() throws Exception {
         Collection<PlacementBean> placementBeans = placementDAO.getByProvider(CloudProvider.AWS.toString());
         for (PlacementBean bean : placementBeans) {
             LOG.info("Start to process placement {} ", bean.toString());
@@ -69,6 +69,7 @@ public class PlacementCapacityUpdater implements Runnable {
         }
     }
 
+    @Override
     public void run() {
         try {
             LOG.info("Start to run PlacementCapacityUpdater");

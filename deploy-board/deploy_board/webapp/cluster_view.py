@@ -460,10 +460,6 @@ def launch_hosts(request, name, stage):
 def terminate_hosts(request, name, stage):
     get_params = request.GET
     post_params = request.POST
-    replaceHost = False
-    if 'checkToReplace' in post_params:
-        replaceHost = True
-
     host_ids = None
     if 'host_id' in get_params:
         host_ids = [get_params.get('host_id')]
@@ -471,5 +467,19 @@ def terminate_hosts(request, name, stage):
     if 'hostIds' in post_params:
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
-    clusters_helper.terminate_hosts(request, name, stage, host_ids, replaceHost)
+    clusters_helper.terminate_hosts(request, name, stage, host_ids)
+    return redirect('/env/{}/{}'.format(name, stage))
+
+
+def force_terminate_hosts(request, name, stage):
+    get_params = request.GET
+    post_params = request.POST
+    host_ids = None
+    if 'host_id' in get_params:
+        host_ids = [get_params.get('host_id')]
+
+    if 'hostIds' in post_params:
+        hosts_str = post_params['hostIds']
+        host_ids = [x.strip() for x in hosts_str.split(',')]
+    clusters_helper.force_terminate_hosts(request, name, stage, host_ids)
     return redirect('/env/{}/{}'.format(name, stage))

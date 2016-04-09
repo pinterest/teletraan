@@ -63,6 +63,11 @@ public class Clusters {
     private final ClusterHandler clusterHandler;
     private final ConfigHistoryHandler configHistoryHandler;
 
+    public enum HostActionType {
+        TERMINATE,
+        FORCE_TERMINATE
+    }
+
     public Clusters(TeletraanServiceContext context) {
         authorizer = context.getAuthorizer();
         environDAO = context.getEnvironDAO();
@@ -152,16 +157,21 @@ public class Clusters {
                                @PathParam("envName") String envName,
                                @PathParam("stageName") String stageName,
                                @Valid Collection<String> hostIds,
-                               @QueryParam("replaceHost") Optional<Boolean> replaceHost) throws Exception {
+                               @QueryParam("type") String type) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         String clusterName = String.format("%s-%s", envName, stageName);
-        clusterHandler.terminateHosts(clusterName, hostIds, replaceHost.or(true));
+        HostActionType actionType = HostActionType.valueOf(HostActionType.class, type.toUpperCase());
+        if (actionType == HostActionType.FORCE_TERMINATE) {
+            clusterHandler.terminateHosts(clusterName, hostIds);
+        } else {
+            clusterHandler.stopHosts(clusterName, hostIds);
+        }
 
-        String configChange = String.format("hostIds: %s", hostIds.toString());
+        String configChange = String.format("%s hostIds: %s", type, hostIds.toString());
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_HOST_TERMINATE, configChange, operator);
-        LOG.info(String.format("Successfully terminate hosts for %s/%s by %s\nhostIds: %s", envName, stageName, operator, hostIds.toString()));
+        LOG.info(String.format("Successfully schedule to %s hosts for %s/%s by %s\nhostIds: %s", type, envName, stageName, operator, hostIds.toString()));
     }
 
     @GET

@@ -23,7 +23,6 @@ import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HealthCheckDAO;
 import com.pinterest.arcee.handler.HealthCheckHandler;
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.dao.UtilDAO;
 
 import com.google.common.base.Joiner;
@@ -48,7 +47,7 @@ public class HealthCheckInserter implements Runnable {
         healthCheckHandler = new HealthCheckHandler(serviceContext);
     }
 
-    void processEachGroup(String groupName) throws Exception {
+    private void processEachGroup(String groupName) throws Exception {
         GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
         String lockName = String.format("HEALTHCHECK-GROUP-%s", groupName);
         Connection connection = utilDAO.getLock(lockName);
@@ -83,7 +82,7 @@ public class HealthCheckInserter implements Runnable {
         }
     }
 
-    void processBatch() throws Exception {
+    private void processBatch() throws Exception {
         // Get all enabled health check groups
         List<String> groupNames = groupInfoDAO.getEnabledHealthCheckGroupNames();
         Collections.shuffle(groupNames);

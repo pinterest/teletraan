@@ -806,6 +806,108 @@ public class GoalAnalystTest {
     }
 
     @Test
+    public void testNEnvsNReportsNStoppingAgents() throws Exception {
+        EnvironBean envBean1 = genDefaultEnvBean();
+        envBean1.setEnv_id("e1");
+        envBean1.setPriority(DeployPriority.HIGH);
+        envs.put(envBean1.getEnv_id(), envBean1);
+
+        PingReportBean report1 = genDefaultReport();
+        report1.setEnvId("e1");
+        report1.setDeployStage(DeployStage.PRE_RESTART);
+        reports.put(report1.getEnvId(), report1);
+
+        AgentBean agent1 = genDefaultAgent();
+        agent1.setEnv_id("e1");
+        agent1.setState(AgentState.STOP);
+        agents.put(envBean1.getEnv_id(), agent1);
+
+        EnvironBean envBean2 = genDefaultEnvBean();
+        envBean2.setEnv_id("e2");
+        envBean2.setPriority(DeployPriority.LOW);
+        envs.put(envBean2.getEnv_id(), envBean2);
+
+        PingReportBean report2 = genDefaultReport();
+        report2.setEnvId("e2");
+        report2.setDeployStage(DeployStage.SERVING_BUILD);
+        reports.put(report2.getEnvId(), report2);
+
+        AgentBean agent2 = genDefaultAgent();
+        agent2.setEnv_id("e2");
+        agent2.setState(AgentState.STOP);
+        agents.put(envBean2.getEnv_id(), agent2);
+
+        EnvironBean envBean3 = genDefaultEnvBean();
+        envBean3.setEnv_id("e3");
+        envBean3.setPriority(DeployPriority.HIGHER);
+        envs.put(envBean3.getEnv_id(), envBean3);
+
+        PingReportBean report3 = genDefaultReport();
+        report3.setEnvId("e3");
+        report3.setDeployStage(DeployStage.STOPPING);
+        reports.put(report3.getEnvId(), report3);
+
+        AgentBean agent3 = genDefaultAgent();
+        agent3.setEnv_id("e3");
+        agent3.setState(AgentState.STOP);
+        agents.put(agent3.getEnv_id(), agent3);
+
+        EnvironBean envBean22 = genDefaultEnvBean();
+        envBean22.setEnv_id("e22");
+        envBean22.setPriority(DeployPriority.NORMAL);
+        envs.put(envBean22.getEnv_id(), envBean22);
+
+        PingReportBean report22 = genDefaultReport();
+        report22.setEnvId("e22");
+        report22.setDeployStage(DeployStage.POST_RESTART);
+        reports.put(report22.getEnvId(), report22);
+
+        AgentBean agent22 = genDefaultAgent();
+        agent22.setEnv_id("e22");
+        agents.put(agent22.getEnv_id(), agent22);
+
+        EnvironBean envBean23 = genDefaultEnvBean();
+        envBean23.setEnv_id("e23");
+        envBean23.setPriority(DeployPriority.LOWER);
+        envs.put(envBean23.getEnv_id(), envBean23);
+
+        PingReportBean report23 = genDefaultReport();
+        report23.setEnvId("e23");
+        report23.setDeployStage(DeployStage.RESTARTING);
+        reports.put(report23.getEnvId(), report23);
+
+        AgentBean agent23 = genDefaultAgent();
+        agent23.setEnv_id("e23");
+        agents.put(agent23.getEnv_id(), agent23);
+
+        EnvironBean envBean24 = genDefaultEnvBean();
+        envBean24.setEnv_id("e24");
+        envBean24.setPriority(DeployPriority.HIGHER);
+        envs.put(envBean24.getEnv_id(), envBean24);
+
+        PingReportBean report24 = genDefaultReport();
+        report24.setEnvId("e24");
+        report24.setDeployStage(DeployStage.POST_DOWNLOAD);
+        reports.put(report24.getEnvId(), report24);
+
+        AgentBean agent24 = genDefaultAgent();
+        agent24.setEnv_id("e24");
+        agents.put(agent24.getEnv_id(), agent24);
+
+        GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
+        analyst.analysis();
+        assertEquals(analyst.getInstallCandidates().size(), 6);
+
+        List<GoalAnalyst.InstallCandidate> candidates = analyst.getInstallCandidates();
+        assertEquals(candidates.get(0).env.getEnv_id(), "e2");
+        assertEquals(candidates.get(1).env.getEnv_id(), "e1");
+        assertEquals(candidates.get(2).env.getEnv_id(), "e3");
+        assertEquals(candidates.get(3).env.getEnv_id(), "e24");
+        assertEquals(candidates.get(4).env.getEnv_id(), "e22");
+        assertEquals(candidates.get(5).env.getEnv_id(), "e23");
+    }
+
+    @Test
     public void testStoppingStage() throws Exception {
         EnvironBean environBean = genDefaultEnvBean();
         envs.put(environBean.getEnv_id(), environBean);

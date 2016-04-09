@@ -50,7 +50,7 @@ public class LifecycleUpdator implements Runnable {
         autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
     }
 
-    public void processLifecycle(String hookId) throws Exception {
+    private void processLifecycle(String hookId) throws Exception {
         List<AsgLifecycleEventBean> lifecycleEventBeans = asgLifecycleEventDAO.getAsgLifecycleEventByHook(hookId);
         for (AsgLifecycleEventBean lifecycleEventBean : lifecycleEventBeans) {
             String hostId = lifecycleEventBean.getHost_id();
@@ -89,7 +89,7 @@ public class LifecycleUpdator implements Runnable {
         }
     }
 
-    public void processBatch() throws Exception {
+    private void processBatch() throws Exception {
         List<String> hookIds = asgLifecycleEventDAO.getHookIdsFromAsgLifeCycleEvent();
         if (hookIds.isEmpty()) {
             return;

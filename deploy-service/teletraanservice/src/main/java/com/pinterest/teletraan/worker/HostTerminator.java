@@ -16,9 +16,13 @@
 package com.pinterest.teletraan.worker;
 
 import com.pinterest.arcee.dao.HostInfoDAO;
+import com.pinterest.clusterservice.handler.ClusterHandler;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import org.slf4j.Logger;
@@ -29,41 +33,49 @@ import java.util.*;
 
 public class HostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HostTerminator.class);
-    private static final long timeToRetain = 60 * 60 * 1000; // 1 hour
+    private final AgentDAO agentDAO;
     private final HostDAO hostDAO;
     private final HostInfoDAO hostInfoDAO;
     private final UtilDAO utilDAO;
+    private final ClusterHandler clusterHandler;
 
     public HostTerminator(ServiceContext serviceContext) {
+        agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         utilDAO = serviceContext.getUtilDAO();
+        clusterHandler = new ClusterHandler(serviceContext);
     }
 
-    void terminateHost(HostBean host) throws Exception {
-        if ((System.currentTimeMillis() - host.getLast_update()) > timeToRetain) {
-            String hostId = host.getHost_id();
-            LOG.info(String.format("This host %s has been retained for more than 1 hours since it's last updated. Terminate it", hostId));
-            hostInfoDAO.terminateHost(hostId);
+    private void terminateHost(HostBean host) throws Exception {
+        String hostId = host.getHost_id();
+        List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
+        boolean stopSucceeded = true;
+        for (AgentBean agentBean : agentBeans) {
+            if (agentBean.getDeploy_stage() != DeployStage.STOPPED) {
+                stopSucceeded = false;
+            }
+        }
 
-            HostBean hostBean = new HostBean();
-            hostBean.setState(HostState.TERMINATING);
-            hostBean.setLast_update(System.currentTimeMillis());
-            hostDAO.updateHostById(hostId, hostBean);
+        if (stopSucceeded) {
+            LOG.info(String.format("Host %s is stopped. Terminate it.", hostId));
+            String clusterName = host.getGroup_name();
+            clusterHandler.terminateHosts(clusterName, Collections.singletonList(hostId));
         }
     }
 
-    void removeTerminatedHost(HostBean host) throws Exception {
+    private void removeTerminatedHost(HostBean host) throws Exception {
         // Check whether the host state is TERMINATED_CODE on AWS
         String hostId = host.getHost_id();
-        Set<String> terminatedHosts = hostInfoDAO.getTerminatedHosts(new HashSet<>(Arrays.asList(hostId)));
+        Set<String> terminatedHosts = hostInfoDAO.getTerminatedHosts(new HashSet<>(Collections.singletonList(hostId)));
         if (terminatedHosts.contains(hostId)) {
             LOG.info(String.format("Delete %s in host and agent table", hostId));
             hostDAO.deleteAllById(hostId);
+            agentDAO.deleteAllById(hostId);
         }
     }
 
-    public void processBatch() throws Exception {
+    private void processBatch() throws Exception {
         List<HostBean> hosts = hostDAO.getTerminatingHosts();
         Collections.shuffle(hosts);
         for (HostBean host : hosts) {

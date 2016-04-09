@@ -200,7 +200,7 @@ def isProvisioningHost(value):
 
 @register.filter("agentRetryable")
 def agentRetryable(agent):
-    return agent['state'] != 'RESET' and agent['state'] != 'PAUSED_BY_USER'
+    return agent['state'] != 'RESET' and agent['state'] != 'PAUSED_BY_USER' and agent['state'] != 'STOP'
 
 
 @register.filter("agentPausable")

@@ -454,7 +454,7 @@ public class HealthChecker implements Runnable {
         }
     }
 
-    public void processBatch() throws Exception {
+    private void processBatch() throws Exception {
         List<HealthCheckBean> healthCheckBeans = healthCheckDAO.getOngoingHealthChecks();
         if (healthCheckBeans.isEmpty()) {
             return;

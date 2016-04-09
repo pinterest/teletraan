@@ -22,19 +22,13 @@ import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.dao.UtilDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.util.*;
 
 
-/**
- * Launch/Terminate instances handler
- */
 public class ProvisionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ProvisionHandler.class);
     private HostDAO hostDAO;
@@ -47,45 +41,6 @@ public class ProvisionHandler {
         hostInfoDAO = serviceContext.getHostInfoDAO();
         groupInfoDAO = serviceContext.getGroupInfoDAO();
         asgDAO = serviceContext.getAutoScaleGroupManager();
-    }
-
-    public List<String> terminateHost(String hostId, boolean decreaseSize) throws Exception {
-        LOG.info(String.format("Start to terminate the host %s, decrease size %b", hostId, decreaseSize));
-        boolean terminateSucceeded = true;
-        try {
-            Collection<String> asgIds = asgDAO.instancesInAutoScalingGroup(Arrays.asList(hostId));
-            if (decreaseSize && !asgIds.isEmpty()) {
-                try {
-                    LOG.info(String.format("Terminate the host %s and decrease fleet size in auto scaling group", hostId));
-                    asgDAO.terminateInstanceInAutoScalingGroup(hostId, decreaseSize);
-                } catch (Exception ex) {
-                    LOG.error("Failed to terminate instance in autoscaling group", ex);
-                }
-            } else {
-                LOG.info(String.format("Terminate the host %s", hostId));
-                hostInfoDAO.terminateHost(hostId);
-            }
-
-            long current_time = System.currentTimeMillis();
-            HostBean hostBean = new HostBean();
-            hostBean.setState(HostState.TERMINATING);
-            hostBean.setLast_update(current_time);
-            hostDAO.updateHostById(hostId, hostBean);
-        } catch (Exception e) {
-            terminateSucceeded = false;
-            LOG.error("Failed to terminate host {}", hostId, e);
-        }
-
-        if (!terminateSucceeded) {
-            return new ArrayList<>();
-        }
-
-        List<HostBean> hosts = hostDAO.getHostsByHostId(hostId);
-        List<String> groupNames = new ArrayList<>();
-        for (HostBean host : hosts) {
-            groupNames.add(host.getGroup_name());
-        }
-        return groupNames;
     }
 
     public List<String> launchNewInstances(String groupName, int instanceCnt, String subnet, String operator) throws Exception {

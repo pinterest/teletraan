@@ -107,6 +107,15 @@ class GoalAnalyst {
         public int compareTo(InstallCandidate installCandidate) {
             int priority1 = getDeployPriority(env);
             int priority2 = getDeployPriority(installCandidate.env);
+            // STOP has higher priority. If the agent state is STOP, reverse the priority
+            if (updateBean.getState() == AgentState.STOP && installCandidate.updateBean.getState() == AgentState.STOP) {
+                return priority2 - priority1;
+            } else if (updateBean.getState() == AgentState.STOP) {
+                return -1;
+            } else if (installCandidate.updateBean.getState() == AgentState.STOP) {
+                return 1;
+            }
+
             if (priority1 == priority2) {
                 // If same priority, choose the one does not need to wait, or in the middle of deploying already
                 if (needWait && !installCandidate.needWait) {

@@ -63,7 +63,13 @@ def launch_hosts(request, env_name, stage_name, num):
                              params=params)
 
 
-def terminate_hosts(request, env_name, stage_name, host_ids, replace_host):
-    params = [('replaceHost', replace_host)]
+def terminate_hosts(request, env_name, stage_name, host_ids):
+    params = [('type', 'TERMINATE')]
+    return deploy_client.delete("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
+                                data=host_ids, params=params)
+
+
+def force_terminate_hosts(request, env_name, stage_name, host_ids):
+    params = [('type', 'FORCE_TERMINATE')]
     return deploy_client.delete("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
                                 data=host_ids, params=params)

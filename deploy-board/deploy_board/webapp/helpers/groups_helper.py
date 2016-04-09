@@ -151,17 +151,11 @@ def get_system_metrics(request, group_name):
                             request.teletraan_user_id.token)
 
 
-# launch/terminate host
+# launch host
 def launch_instance_in_group(request, group_name, instance_count, subnet):
     params = {"instanceCount": instance_count, "subnet": subnet}
     return deployclient.put("/groups/{}/instances".format(group_name),
                             request.teletraan_user_id.token, params=params)
-
-
-def terminate_host_in_group(request, instance_id, descrease_size):
-    params = {"decreaseSize": descrease_size}
-    return deployclient.delete("/groups/instances/{}".format(instance_id),
-                               request.teletraan_user_id.token, params=params)
 
 
 # detach host

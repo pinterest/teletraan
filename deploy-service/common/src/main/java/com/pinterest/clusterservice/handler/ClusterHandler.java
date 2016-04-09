@@ -25,8 +25,11 @@ import com.pinterest.clusterservice.cm.ClusterManager;
 import com.pinterest.clusterservice.cm.DefaultClusterManager;
 import com.pinterest.clusterservice.dao.ClusterDAO;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,22 +39,25 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 public class ClusterHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ClusterHandler.class);
+    private final AgentDAO agentDAO;
     private final ClusterDAO clusterDAO;
     private final HostDAO hostDAO;
     private final AwsConfigManager awsConfigManager;
     private final ClusterMappingHandler clusterMappingHandler;
 
     public ClusterHandler(ServiceContext serviceContext) {
+        this.agentDAO = serviceContext.getAgentDAO();
         this.clusterDAO = serviceContext.getClusterDAO();
         this.hostDAO = serviceContext.getHostDAO();
         this.awsConfigManager = serviceContext.getAwsConfigManager();
         this.clusterMappingHandler = new ClusterMappingHandler(serviceContext);
     }
 
-    public ClusterManager createClusterManager(CloudProvider provider) {
+    private ClusterManager createClusterManager(CloudProvider provider) {
         if (provider == CloudProvider.AWS && awsConfigManager != null) {
             return new AwsVmManager(awsConfigManager);
         } else {
@@ -119,35 +125,28 @@ public class ClusterHandler {
         clusterDAO.update(clusterName, newBean);
     }
 
-    public void terminateHosts(String clusterName, Collection<String> hostIds, boolean replaceHost) throws Exception {
-        ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
+    public void stopHosts(String clusterName, Collection<String> hostIds) throws Exception {
+        LOG.info(String.format("Start to stop AWS VM hosts %s from cluster %s", hostIds.toString(), clusterName));
+        for (String hostId : hostIds) {
+            AgentBean agentBean = new AgentBean();
+            agentBean.setState(AgentState.STOP);
+            agentBean.setLast_update(System.currentTimeMillis());
+            agentDAO.updateAgentById(hostId, agentBean);
+
+            HostBean hostBean = new HostBean();
+            hostBean.setState(HostState.PENDING_TERMINATE);
+            hostBean.setLast_update(System.currentTimeMillis());
+            hostDAO.updateHostById(hostId, hostBean);
+        }
+    }
+
+    public void terminateHosts(String clusterName, Collection<String> hostIds) throws Exception {
         Collection<String> hostIdsToTerminate = new ArrayList<>(hostIds);
 
         // TODO remove provider check until fully migrate group to cmp
+        LOG.info(String.format("Start to replace AWS VM hosts %s from cluster %s", hostIdsToTerminate.toString(), clusterName));
         ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-        if (replaceHost) {
-            LOG.info(String.format("Start to replace AWS VM hosts %s from cluster %s", hostIdsToTerminate.toString(), clusterName));
-            clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
-        } else {
-            LOG.info(String.format("Start to terminate AWS VM hosts %s from cluster %s", hostIdsToTerminate.toString(), clusterName));
-            // 1. Hosts in asg
-            Collection<String> hostIdsInCluster = clusterManager.getHosts(clusterName, hostIdsToTerminate);
-            clusterManager.terminateHosts(clusterName, hostIdsInCluster, false);
-
-            if (clusterBean != null) {
-                int capacity = Math.max(clusterBean.getCapacity() - hostIdsInCluster.size(), 0);
-                ClusterBean newBean = new ClusterBean();
-                newBean.setCapacity(capacity);
-                newBean.setLast_update(System.currentTimeMillis());
-                clusterDAO.update(clusterName, newBean);
-            }
-
-            // 2. Hosts not in asg, it means these hosts are detached from asg
-            hostIdsToTerminate.removeAll(hostIdsInCluster);
-            if (!hostIdsToTerminate.isEmpty()) {
-                clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
-            }
-        }
+        clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
 
         for (String hostId : hostIds) {
             HostBean hostBean = new HostBean();
@@ -161,13 +160,9 @@ public class ClusterHandler {
         if (hostIds.isEmpty()) {
             return hostDAO.getHostNamesByGroup(clusterName);
         }
-
-        ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
-        if (clusterBean.getProvider() == CloudProvider.AWS) {
-            ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-            return clusterManager.getHosts(clusterName, hostIds);
-        }
-        return Collections.emptyList();
+        
+        ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
+        return clusterManager.getHosts(clusterName, hostIds);
     }
 
     public ClusterBean createAwsVmCluster(AwsVmBean advancedBean) throws Exception {

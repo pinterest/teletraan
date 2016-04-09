@@ -151,10 +151,6 @@ urlpatterns = [
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.resume_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/host/(?P<hostname>[a-zA-Z0-9\-_]+)',
         host_views.HostDetailView.as_view()),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/terminate_host/(?P<hostname>[a-zA-Z0-9\-_]+)',
-        host_views.terminate_host),
-    url(r'^host/(?P<name>[a-zA-Z0-9\-_]+)/terminate/', host_views.terminate_instance),
-    url(r'^host/(?P<name>[a-zA-Z0-9\-_]+)', host_views.get_host_details),
     url(r'^hosts/$', host_views.hosts_list),
 
     # builds related

@@ -34,7 +34,7 @@ public class HealthCheckHostTerminator implements Runnable {
         utilDAO = serviceContext.getUtilDAO();
     }
 
-    public void processBatch() throws Exception {
+    private void processBatch() throws Exception {
         List<HealthCheckBean> healthCheckBeans = healthCheckDAO.getHealthChecksByUnterminatedHosts();
         if (healthCheckBeans.isEmpty()) {
             return;

@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
-import traceback
 import logging
 from helpers import environs_helper, agents_helper
-from helpers import groups_helper, hosts_helper, clusters_helper, environ_hosts_helper
+from helpers import groups_helper, environ_hosts_helper
+from common import is_agent_failed
 from deploy_board.settings import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -31,8 +31,6 @@ class HostDetailView(View):
         if host and host.get('state') and host.get('state') != 'PENDING_TERMINATE' and host.get('state') != 'TERMINATING' and host.get('state') != 'TERMINATED':
             show_terminate = True
 
-        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-
         # TODO deprecated it
         asg = ''
         if host and host.get('groupName'):
@@ -43,7 +41,11 @@ class HostDetailView(View):
         # gather the env name and stage info
         agents = agents_helper.get_agents_by_host(request, hostname)
         agent_wrappers = []
+        show_force_terminate = False
         for agent in agents:
+            if agent.get('deployStage') == 'STOPPING' or agent.get('deployStage') == 'STOPPED':
+                if is_agent_failed(agent):
+                    show_force_terminate = True
             agent_wrapper = {}
             agent_wrapper["agent"] = agent
             envId = agent['envId']
@@ -62,67 +64,10 @@ class HostDetailView(View):
             'host': host,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
-            'basic_cluster_info': basic_cluster_info,
+            'show_force_terminate': show_force_terminate,
             'asg_group': asg,
             'pinterest': IS_PINTEREST,
         })
-
-
-# TODO deprecated it
-def get_host_details(request, name):
-    agents = agents_helper.get_agents_by_host(request, name)
-    hosts = hosts_helper.get_hosts_by_name(request, name)
-    # gather the env name and stage info
-    agent_wrappers = []
-    for agent in agents:
-        agent_wrapper = {}
-        agent_wrapper["agent"] = agent
-        envId = agent['envId']
-        env = environs_helper.get(request, envId)
-        agent_wrapper["env"] = env
-        agent_wrapper["error"] = ""
-        if agent.get('lastErrno', 0) != 0:
-            agent_wrapper["error"] = agents_helper.get_agent_error(request, env['envName'],
-                                                                   env['stageName'], name)
-        agent_wrappers.append(agent_wrapper)
-
-    host_id = ""
-    asgGroup = ""
-    for host in hosts:
-        host_id = host['hostId']
-        group_name = host["groupName"]
-        # TODO Remove this hack
-        if not group_name or group_name == 'NULL':
-            continue
-        group_info = groups_helper.get_group_info(request, group_name)
-        if group_info and group_info["asgStatus"] == "ENABLED":
-            asgGroup = group_name
-            break
-
-    return render(request, 'hosts/host_details.html', {
-        'agent_wrappers': agent_wrappers,
-        'hosts': hosts,
-        'name': name,
-        'hostId': host_id,
-        'show_terminate': True,
-        "asg_group": asgGroup,
-        "pinterest": IS_PINTEREST,
-    })
-
-
-# TODO deprecated it
-def terminate_host(request, name, stage, hostname):
-    hostId = request.GET.get('hostId')
-    params = request.POST
-    decreaseSize = False
-    if "checkToDecrease" in params:
-        decreaseSize = True
-    try:
-        groups_helper.terminate_host_in_group(request, hostId, decreaseSize)
-    except:
-        log.error(traceback.format_exc())
-        raise
-    return redirect('/env/{}/{}/host/{}'.format(name, stage, hostname))
 
 
 def hosts_list(request):
@@ -132,18 +77,3 @@ def hosts_list(request):
 
 def hosts_show(request, build_id):
     return HttpResponse("NOT IMPLEMENTED")
-
-
-# TODO deprecated it
-def terminate_instance(request, name):
-    hostId = request.GET.get('hostId')
-    params = request.POST
-    decreaseSize = False
-    if "checkToDecrease" in params:
-        decreaseSize = True
-    try:
-        groups_helper.terminate_host_in_group(request, hostId, decreaseSize)
-    except:
-        log.error(traceback.format_exc())
-        raise
-    return redirect('/host/{}'.format(name))

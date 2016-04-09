@@ -37,7 +37,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -132,22 +131,6 @@ public class Groups {
             configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_LAUNCH, configChange, operator);
         }
         return instanceIds;
-    }
-
-    @DELETE
-    @Path("/instances/{hostId: [a-zA-Z0-9\\-_]+}")
-    public void terminateInstance(@Context SecurityContext sc,
-        @PathParam("hostId") String hostId,
-        @QueryParam("decreaseSize") Boolean decreaseSize,
-        @QueryParam("groupName") String groupName) throws Exception {
-        // TODO we need env name or group for this one!
-        // Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
-        String operator = sc.getUserPrincipal().getName();
-        List<String> groupNames = provisionHandler.terminateHost(hostId, decreaseSize);
-        String configChange = String.format("Instance Id : %s", hostId);
-        for (String name : groupNames) {
-            configHistoryHandler.updateConfigHistory(name, Constants.TYPE_HOST_TERMINATE, configChange, operator);
-        }
     }
 
     @GET
