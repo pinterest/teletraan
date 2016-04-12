@@ -38,6 +38,7 @@ import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.HTTPClient;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.common.WebhookDataFactory;
+import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
@@ -72,6 +73,7 @@ public class DeployHandler {
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
     private PromoteDAO promoteDAO;
+    private AgentDAO agentDAO;
     private BasicDataSource dataSource;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
@@ -166,6 +168,7 @@ public class DeployHandler {
         environDAO = serviceContext.getEnvironDAO();
         buildDAO = serviceContext.getBuildDAO();
         promoteDAO = serviceContext.getPromoteDAO();
+        agentDAO = serviceContext.getAgentDAO();
         dataSource = serviceContext.getDataSource();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
@@ -239,7 +242,7 @@ public class DeployHandler {
 
         deployBean.setState(DeployState.RUNNING);
         deployBean.setStart_date(now);
-        long total = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
+        long total = agentDAO.getAllByEnv(envBean.getEnv_id()).size();
         deployBean.setSuc_total(0);
         deployBean.setFail_total(0);
         deployBean.setTotal((int) total);

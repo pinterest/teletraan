@@ -222,7 +222,7 @@ public class CommonHandler {
         DeployState oldState = deployBean.getState();
 
         int sucThreshold = envBean.getSuccess_th();
-        long total = environDAO.countTotalCapacity(envId, envBean.getEnv_name(), envBean.getStage_name());
+        long total = agentDAO.getAllByEnv(envId).size();
         LOG.debug("There are total {} agents are expected for env {}", total, envId);
 
         long succeeded = agentDAO.countSucceededAgent(envId, deployId);

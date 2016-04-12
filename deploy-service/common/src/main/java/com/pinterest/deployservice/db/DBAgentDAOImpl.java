@@ -56,7 +56,7 @@ public class DBAgentDAOImpl implements AgentDAO {
                 "WHERE env_id=? AND deploy_stage!=? AND status !='SUCCEEDED' AND status!= 'UNKNOWN' AND first_deploy=1";
     private static final String GET_SUCCEEDED_TOTAL =
         "SELECT COUNT(*) FROM agents " +
-            "WHERE env_id=? AND deploy_id=? AND deploy_stage=? AND state!='PAUSED_BY_USER'";
+            "WHERE env_id=? AND deploy_id=? AND deploy_stage in (?,?) AND state!='PAUSED_BY_USER'";
     private static final String GET_STUCK_TOTAL =
         "SELECT COUNT(*) FROM agents " +
             "WHERE env_id=? AND deploy_id=? AND state='PAUSED_BY_SYSTEM'";
@@ -168,7 +168,7 @@ public class DBAgentDAOImpl implements AgentDAO {
     @Override
     public long countSucceededAgent(String envId, String deployId) throws Exception {
         Long n = new QueryRunner(dataSource).query(GET_SUCCEEDED_TOTAL,
-            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, deployId, DeployStage.SERVING_BUILD.toString());
+            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, deployId, DeployStage.SERVING_BUILD.toString(), DeployStage.STOPPED.toString());
         return n == null ? 0 : n;
     }
 
