@@ -25,6 +25,7 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentStatus;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.common.NotificationJob;
 import com.pinterest.deployservice.dao.*;
 
@@ -54,6 +55,7 @@ public class LaunchLatencyUpdater implements Runnable {
     private AgentDAO agentDAO;
     private GroupInfoDAO groupInfoDAO;
     private NewInstanceReportDAO newInstanceReportDAO;
+    private HostDAO hostDAO;
     private CommonHandler commonHandler;
     private ExecutorService jobPool;
     private MetricSource metricSource;
@@ -100,6 +102,7 @@ public class LaunchLatencyUpdater implements Runnable {
         groupInfoDAO = context.getGroupInfoDAO();
         agentDAO = context.getAgentDAO();
         newInstanceReportDAO = context.getNewInstanceReportDAO();
+        hostDAO = context.getHostDAO();
         commonHandler = new CommonHandler(context);
         metricSource = context.getMetricSource();
         jobPool = context.getJobPool();
@@ -147,11 +150,17 @@ public class LaunchLatencyUpdater implements Runnable {
                 Long currentTime = System.currentTimeMillis();
                 Long launchTime = newInstanceReportBean.getLaunch_time();
                 AgentBean agentBean = agentDAO.getByHostEnvIds(hostId, envId);
+                List<HostBean> hosts = hostDAO.getHostsByHostId(hostId);
 
-                if (agentBean == null) {
+                if (agentBean == null && hosts.isEmpty()) {
+                    // case 0.1 if the host has already been terminated
+                    newInstanceReportDAO.deleteNewInstanceReport(hostId, envId);
+                } else if (agentBean == null) {
                     // case 1, host launched, but deploy agent has not started on the host yet.
-                    LOG.info(String.format("Agents for host id: %s, env id: %s does not exist.", hostId, envId));
-                    if (currentTime - launchTime > launchTimeThreshold && !newInstanceReportBean.getReported()) {
+                    LOG.info(String.format("Agents for host id: %s, env id: %s does not exist.",
+                                           hostId, envId));
+                    if (currentTime - launchTime > launchTimeThreshold && !newInstanceReportBean
+                        .getReported()) {
                         overtimeIds.add(hostId);
                         newInstanceReportDAO.reportNewInstances(hostId, envId);
                     }
