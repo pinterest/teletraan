@@ -77,8 +77,7 @@
                     var data_list2 = response[metric_name2];
                     var data_len = Math.min(data_list1.length,  data_list2.length);
                     for (var j = 0; j < data_len; ++j) {
-                        var d = new Date(0);
-                        d.setMilliseconds(data_list1[j][0]);
+                        var d = new Date(data_list1[j][0]);
                         data.addRow([d, launch_latency_th, data_list1[j][1], data_list2[j][1]]);
                     }
                 }

@@ -1,5 +1,3 @@
-
-
 <script type="text/javascript">
 {% if enable_policy  %}
     {% for alarm_info in alarm_infos %}
@@ -13,10 +11,9 @@
         data.addColumn("datetime", "Date");
         data.addColumn("number", "Group Size");
         {% for group_data in group_size_datum %}
-               var time = "{{ group_data.timestamp }}";
-               var value = parseFloat("{{ group_data.value }}");
-               var d = new Date(0);
-               d.setMilliseconds(time);
+               var time = {{ group_data.timestamp }};
+               var value = parseFloat({{ group_data.value }});
+               var d = new Date(time);
                data.addRow([d, value]);
         {% endfor %}
 
@@ -25,10 +22,9 @@
         spot_data.addColumn("datetime", "Date");
         spot_data.addColumn("number", "Spot Group Size");
         {% for spot_group_data in spot_group_size_datum %}
-               var time = "{{ spot_group_data.timestamp }}";
-               var value = parseFloat("{{ spot_group_data.value }}");
-               var d = new Date(0);
-               d.setMilliseconds(time);
+               var time = {{ spot_group_data.timestamp }};
+               var value = parseFloat({{ spot_group_data.value }});
+               var d = new Date(time);
                spot_data.addRow([d, value]);
         {% endfor %}
         {% endif %}
@@ -69,23 +65,22 @@
 
 
         {% for metric_data in alarm_info.metric_datum %}
-            var time = "{{ metric_data.timestamp }}";
-            var d = new Date(0);
-            d.setMilliseconds(time);
-            var value = parseFloat("{{ metric_data.value }}");
-            var threshold = parseFloat("{{ alarm_info.threshold }}");
+            var time = {{ metric_data.timestamp }};
+            var d = new Date(time);
+            var value = parseFloat({{ metric_data.value }});
+            var threshold = parseFloat({{ alarm_info.threshold }});
 
             {% if alarm_info.actionType2 != "UNKNOWN" %}
-                var threshold2 = parseFloat("{{ alarm_info.threshold2 }}");
+                var threshold2 = parseFloat({{ alarm_info.threshold2 }});
                 extended_data.addRow([d, value, threshold, threshold2]);
             {% else %}
                extended_data.addRow([d, value, threshold]);
             {% endif %}
 
              {% if has_spot_asg %}
-                 var spot_threshold = parseFloat("{{alarm_info.spotThreshold}}");
+                 var spot_threshold = parseFloat({{alarm_info.spotThreshold}});
                  {% if alarm_info.spotActionType2 != "UNKNOWN" %}
-                     var spot_threshold2 = parseFloat("{{alarm_info.spotThreshold2}}");
+                     var spot_threshold2 = parseFloat({{alarm_info.spotThreshold2}});
                      spot_extended_data.addRow([d, value, spot_threshold, spot_threshold2]);
                  {% else %}
                      spot_extended_data.addRow([d, value, spot_threshold]);
@@ -193,10 +188,9 @@
             data.addColumn("datetime", "Date");
             data.addColumn("number", "Group Size");
             {% for group_data in group_size_datum %}
-                var time = "{{ group_data.timestamp }}";
-                var value = parseFloat("{{ group_data.value }}");
-                var d = new Date(0);
-                d.setMilliseconds(time);
+                var time = {{ group_data.timestamp }};
+                var value = parseFloat({{ group_data.value }});
+                var d = new Date(time);
                 data.addRow([d, value]);
             {% endfor %}
 
