@@ -3,9 +3,15 @@
 {% block breadcrumb-items %}
 <ul class="breadcrumb">
     <li><a href="/">Home</a></li>
-    <li><a href="/envs">Environments</a></li>
-    <li><a href="/env/{{ env_name }}/{{ stage_name }}">{{ env_name }} ({{ stage_name }})</a></li>
-    <li class="active">host</li>
+    {% if env_name %}
+        <li><a href="/envs">Environments</a></li>
+        <li><a href="/env/{{ env_name }}/{{ stage_name }}">{{ env_name }} ({{ stage_name }})</a></li>
+    {% elif group_name %}
+        <li><a href="/groups">Groups</a></li>
+        <li><a href="/groups/{{ group_name }}/">{{ group_name }}</a></li>
+    {% else %}
+        <li class="active">host</li>
+    {% endif %}
     <li class="active">{{ hostname }}</li>
 </ul>
 {% endblock %}

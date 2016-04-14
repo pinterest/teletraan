@@ -468,11 +468,10 @@ public class GroupHandler {
         groupBean.setLast_update(System.currentTimeMillis());
         groupInfoDAO.updateGroupInfo(groupName, groupBean);
 
-        if (request.getEnableSpot()) {
+        if (request.getEnableSpot() != null && request.getEnableSpot()) {
             createSpotAutoScalingGroup(groupName, groupBean, request);
         }
     }
-
 
     public void updateAutoScalingGroup(String groupName, AutoScalingRequestBean request) throws Exception {
         GroupBean groupBean = groupInfoDAO.getGroupInfo(request.getGroupName());
