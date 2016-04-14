@@ -216,9 +216,13 @@ class GoalAnalyst {
 
     // What the new agent state should be, if this agent is not chosen to be deploy goal
     AgentState proposeNewAgentState(PingReportBean report, AgentBean agent) {
-        // TODO need to count the fail_count and pause agent when needed
+        AgentStatus status = report.getAgentStatus();
         if (agent != null && agent.getState() == AgentState.STOP) {
             // agent has been explicitly STOP, do not override
+            if (agent.getDeploy_stage() == DeployStage.STOPPING && FATAL_AGENT_STATUSES.contains(status)) {
+                LOG.debug("Agent DeployStage is STPPPING, but report status is {}, propose new agent state as {} ", status, AgentState.PAUSED_BY_SYSTEM);
+                return AgentState.PAUSED_BY_SYSTEM;
+            }
             return AgentState.STOP;
         }
 
@@ -233,7 +237,6 @@ class GoalAnalyst {
             return AgentState.RESET;
         }
 
-        AgentStatus status = report.getAgentStatus();
         if (status == AgentStatus.SUCCEEDED) {
             // Override current agent status record
             LOG.debug("Report status is {}, propose new agent state as {} ",
@@ -480,23 +483,27 @@ class GoalAnalyst {
                 if (agent.getDeploy_stage() != DeployStage.STOPPING) {
                     AgentBean newStopBean = genAgentStopBean(env, agent);
                     installCandidates.add(new InstallCandidate(env, false, newStopBean, report));
-                    LOG.debug("GoalAnalyst - agent state is STOPPING, host {} gracefully shut down the service for env {}", host, envId);
+                    LOG.debug("GoalAnalyst - AgentState is STOP and DeployStage is {}, host {} start to gracefully shut down the service for env {}", agent.getDeploy_stage(), host, envId);
                     return;
                 } else {
-                    if (FATAL_AGENT_STATUSES.contains(agent.getStatus())) {
-                        LOG.debug("GoalAnalyst - AgentState is STOP, but host {} is in {} status, not a goal candidate", host, agent.getStatus());
-                        return;
-                    }
+                    if (report != null) {
+                        if (FATAL_AGENT_STATUSES.contains(report.getAgentStatus())) {
+                            LOG.debug("GoalAnalyst - AgentState is STOP and DeployStage is STOPPING, but host {} is in {} status, not a goal candidate", host, report.getAgentStatus());
+                            return;
+                        }
 
-                    /**
-                     * Case 0.4.3: If agent status SUCCEEDED, move stage to STOPPED, and send NOOP
-                     * If not succeeded, retry
-                     */
-                    if (report != null && report.getAgentStatus() == AgentStatus.SUCCEEDED) {
-                        AgentBean nextStopBean = genNextStopStageBean(report, agent);
-                        installCandidates.add(new InstallCandidate(env, false, nextStopBean, report));
-                    } else {
-                        installCandidates.add(new InstallCandidate(env, false, agent, report));
+                        /**
+                         * Case 0.4.3: If agent status SUCCEEDED, move stage to STOPPED, and send NOOP
+                         * If not succeeded, retry
+                         */
+                        if (report.getAgentStatus() == AgentStatus.SUCCEEDED) {
+                            LOG.debug("GoalAnalyst - host {} STOP successfully, move agent deploy stage to STOPPED", host);
+                            AgentBean nextStopBean = genNextStopStageBean(report, agent);
+                            installCandidates.add(new InstallCandidate(env, false, nextStopBean, report));
+                        } else {
+                            LOG.debug("GoalAnalyst - host {} did not complete gracefully shut down yet", host);
+                            installCandidates.add(new InstallCandidate(env, false, agent, report));
+                        }
                     }
                     return;
                 }
