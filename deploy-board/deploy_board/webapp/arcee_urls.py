@@ -14,7 +14,7 @@
 
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
-import group_view
+import group_view, host_views
 import util_views
 
 urlpatterns = [
@@ -71,6 +71,7 @@ urlpatterns = [
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/delete_asg/$', group_view.delete_asg),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/get_deleted_asg_status/$',
         group_view.get_deleted_asg_status),
+    url(r'^groups/(?P<groupname>[a-zA-Z0-9\-_]+)/host/(?P<hostname>[a-zA-Z0-9\-_]+)', host_views.GroupHostDetailView.as_view()),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/get_launch_config/$',
         group_view.get_launch_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/get_asg_config/$',

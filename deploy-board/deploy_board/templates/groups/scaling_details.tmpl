@@ -1,4 +1,6 @@
 {% load utils %}
+
+{% if activities %}
 <div id="groupInfoId" class="panel panel-default table-responsive">
     <table class="table table-striped table-condensed table-hover">
         <tr>
@@ -34,6 +36,7 @@
        <strong>All Scaling Activities</strong>
     </a>
 </div>
+{% endif %}
 <script>
     $(function() {
         $('.deployActionPanel').on('hidden.bs.collapse shown.bs.collapse', function () {

@@ -525,7 +525,6 @@ def get_group_size(request, group_name):
 
         return HttpResponse(json.dumps({"html": content}), content_type="application/json")
     except:
-        print traceback.format_exc()
         log.error(traceback.format_exc())
 
 
@@ -541,6 +540,7 @@ def get_scaling_activities(request, group_name):
     try:
         scaling_activities = groups_helper.get_scaling_activities(request, group_name,
                                                                   10, "")
+
         content = render_to_string("groups/scaling_details.tmpl", {
             "group_name": group_name,
             "activities": scaling_activities["activities"],
@@ -571,27 +571,28 @@ class ScalingActivityView(View):
 
 def get_more_scaling_activities(request, group_name):
     params = request.GET
-    token = ""
-    if params.get("token"):
-        token = params["token"]
+    token = params.get("token", "")
+    try:
+        scaling_activities_info = groups_helper.get_scaling_activities(request, group_name,
+                                                                       50, token)
+        activities = scaling_activities_info["activities"]
+        next_token = scaling_activities_info["nextToken"]
 
-    scaling_activities_info = groups_helper.get_scaling_activities(request, group_name,
-                                                                   50, "")
-    activities = scaling_activities_info["activities"]
-    next_token = scaling_activities_info["next_token"]
-    if next_token:
-        disableNext = False
-    else:
-        disableNext = True
+        if next_token:
+            disableNext = False
+        else:
+            disableNext = True
 
-    content = render_to_string("groups/scaling_activities.tmpl", {
-        "token": token,
-        "group_name": group_name,
-        "next_token": next_token,
-        "activities": activities,
-        "disableNext": disableNext,
-    })
-    return HttpResponse(json.dumps({"html": content}), content_type="application/json")
+        content = render_to_string("groups/scaling_activities.tmpl", {
+            "token": token,
+            "group_name": group_name,
+            "next_token": next_token,
+            "activities": activities,
+            "disableNext": disableNext,
+        })
+        return HttpResponse(json.dumps({"html": content}), content_type="application/json")
+    except:
+        log.error(traceback.format_exc())
 
 
 def get_config_history(request, group_name):
@@ -728,11 +729,14 @@ class GroupConfigView(View):
 
 class GroupDetailView(View):
     def get(self, request, group_name):
-        asg_status = groups_helper.get_autoscaling_status(request, group_name)
+        autoscaling_summary = groups_helper.get_autoscaling_summary(request, group_name)
+        asg_status = autoscaling_summary.get("status", "UNKNOWN")
+        enable_spot = autoscaling_summary.get("enableSpot", False)
         envs = environs_helper.get_all_envs_by_group(request, group_name)
         scaling_down_event_enabled = groups_helper.get_scaling_down_event_status(request, group_name)
         return render(request, 'groups/group_details.html', {
             "asg_status": asg_status,
+            "enable_spot": enable_spot,
             "group_name": group_name,
             "scaling_down_event_enabled": scaling_down_event_enabled,
             "envs": envs,

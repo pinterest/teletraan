@@ -38,7 +38,7 @@
 
             <td class="col-lg-10">
         {% for host in asg_hosts %}
-           <a type="button" class="deployToolTip btn btn-xs btn-default host-btn">
+           <a type="button" class="deployToolTip btn btn-xs btn-default host-btn" href="/groups/{{group_name}}/host/{{host}}/">
            <small>{{ host }}</small>
            <i class="fa fa-fw fa-check"></i></a>
         {% endfor %}
@@ -61,7 +61,7 @@
 
             <td class="col-lg-10">
         {% for host in spot_asg_hosts %}
-           <a type="button" class="deployToolTip btn btn-xs btn-default host-btn">
+           <a type="button" class="deployToolTip btn btn-xs btn-default host-btn" href="/groups/{{group_name}}/host/{{host}}/">
            <small>{{ host }}</small>
            <i class="fa fa-fw fa-check"></i></a>
         {% endfor %}
@@ -84,7 +84,7 @@
             <td class="col-lg-10">
                 <small>
                     {% for other_host in other_hosts %}
-                        <a type="button" class="deployToolTip btn btn-xs btn-default host-btn"
+                        <a type="button" class="deployToolTip btn btn-xs btn-default host-btn" href="/groups/{{group_name}}/host/{{host}}/"
                            title="">
                            <small>{{ other_host }}</small>
                            <i class="fa fa-fw fa-check"></i>
