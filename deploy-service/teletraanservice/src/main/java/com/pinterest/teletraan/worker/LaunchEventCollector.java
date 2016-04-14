@@ -17,7 +17,7 @@ package com.pinterest.teletraan.worker;
 
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.*;
-import com.pinterest.arcee.autoscaling.AutoScalingManager;
+import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.bean.AsgLifecycleEventBean;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.SpotAutoScalingBean;
@@ -59,7 +59,7 @@ public class LaunchEventCollector implements Runnable {
     private final UtilDAO utilDAO;
     private final SpotAutoScalingDAO spotAutoScalingDAO;
     private final EventMessageParser eventMessageParser;
-    private final AutoScalingManager autoScalingManager;
+    private final AutoScaleGroupManager autoScaleGroupManager;
     private final AmazonSQSClient sqsClient;
 
     public LaunchEventCollector(TeletraanServiceContext context) {
@@ -73,7 +73,7 @@ public class LaunchEventCollector implements Runnable {
         utilDAO = context.getUtilDAO();
         spotAutoScalingDAO = context.getSpotAutoScalingDAO();
         eventMessageParser = new EventMessageParser();
-        autoScalingManager = context.getAutoScalingManager();
+        autoScaleGroupManager = context.getAutoScaleGroupManager();
         sqsClient = new AmazonSQSClient(context.getAwsCredentials());
         sqsClient.setEndpoint(context.getAwsConfigManager().getSqsArn());
     }
@@ -146,8 +146,7 @@ public class LaunchEventCollector implements Runnable {
                 String hostId = eventMessage.getInstanceId();
                 String hookId = eventMessage.getLifecycleHook();
                 LOG.debug(String.format("INSTANCE_LAUNCHING: An instance %s is launching in group %s. Complete lifecycle hook %s", hostId, groupName, hookId));
-                autoScalingManager
-                    .completeLifecycleAction(hookId, eventMessage.getLifecycleToken(), groupName);
+                autoScaleGroupManager.completeLifecycleAction(hookId, eventMessage.getLifecycleToken(), groupName);
 
                 // insert new host
                 HostBean hostBean = new HostBean();

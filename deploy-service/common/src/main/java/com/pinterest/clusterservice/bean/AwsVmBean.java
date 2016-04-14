@@ -32,9 +32,6 @@ public class AwsVmBean {
     private String subnet;
     private Integer minSize;
     private Integer maxSize;
-    private String terminationPolicy;
-    // deprecated
-    private String rawUserDataString;
 
     public String getClusterName() {
         return clusterName;
@@ -123,18 +120,6 @@ public class AwsVmBean {
     public void setMaxSize(Integer maxSize) {
         this.maxSize = maxSize;
     }
-
-    public String getTerminationPolicy() {
-        return terminationPolicy;
-    }
-
-    public void setTerminationPolicy(String terminationPolicy) {
-        this.terminationPolicy = terminationPolicy;
-    }
-
-    public String getRawUserDataString() { return rawUserDataString; }
-
-    public void setRawUserDataString(String rawUserDataString) { this.rawUserDataString = rawUserDataString; }
 
     @Override
     public String toString() {

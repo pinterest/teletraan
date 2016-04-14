@@ -17,11 +17,12 @@ package com.pinterest.teletraan.config;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.arcee.autoscaling.AwsAlarmManager;
-import com.pinterest.arcee.autoscaling.AwsAutoScalingManager;
+import com.pinterest.arcee.autoscaling.AwsAutoScaleGroupManager;
 import com.pinterest.arcee.aws.AwsConfigManager;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -85,8 +86,16 @@ public class AWSFactory {
     }
 
 
-    public AwsAutoScalingManager buildAwsAutoScalingManager() {
-        return new AwsAutoScalingManager(buildAwsConfigManager());
+    public AwsAutoScaleGroupManager buildAwsAutoScalingManager() {
+        AmazonAutoScalingClient aasClient;
+        if (StringUtils.isNotEmpty(id) && StringUtils.isNotEmpty(key)) {
+            AWSCredentials myCredentials = new BasicAWSCredentials(id, key);
+            aasClient = new AmazonAutoScalingClient(myCredentials);
+        } else {
+            LOG.info("AWS credential is missing for creating auto scaling client. Assuming to use IAM role for authentication.");
+            aasClient = new AmazonAutoScalingClient();
+        }
+        return new AwsAutoScaleGroupManager(sns_arn, role_arn, aasClient);
     }
 
     public AwsAlarmManager buildAwsAlarmManager() {

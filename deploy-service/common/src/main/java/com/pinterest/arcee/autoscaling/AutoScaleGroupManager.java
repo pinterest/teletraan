@@ -15,55 +15,36 @@
  */
 package com.pinterest.arcee.autoscaling;
 
-import com.pinterest.arcee.bean.AutoScalingGroupBean;
-import com.pinterest.arcee.bean.ScalingPolicyBean;
-import com.pinterest.arcee.bean.ScalingActivitiesBean;
-import com.pinterest.clusterservice.bean.AwsVmBean;
+import com.pinterest.arcee.bean.*;
 import com.pinterest.deployservice.bean.ASGStatus;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 
-public interface AutoScalingManager {
+public interface AutoScaleGroupManager {
     //------ Launch Config
-    String createLaunchConfig(String groupName, AwsVmBean request) throws Exception;
+    String createLaunchConfig(String groupName, GroupBean request) throws Exception;
 
-    String createSpotLaunchConfig(String groupName, AwsVmBean request, String bidPrice) throws Exception;
+    String createSpotLaunchConfig(String groupName, GroupBean request, String bidPrice) throws Exception;
 
     void deleteLaunchConfig(String configId) throws Exception;
 
-    // Auto scaling group
-    void createAutoScalingGroup(String groupName, AwsVmBean request) throws Exception;
+    void updateSubnet(String groupName, String subnets) throws Exception;
 
-    void deleteAutoScalingGroup(String groupName, boolean detachInstances) throws Exception;
+    void createAutoScalingGroup(String configId, AutoScalingRequestBean request, String subnets) throws Exception;
 
-    void updateAutoScalingGroup(String groupName, AwsVmBean request) throws Exception;
+    void  updateAutoScalingGroup(AutoScalingRequestBean request, String subnets) throws Exception;
 
-    void increaseGroupCapacity(String groupName, int size) throws Exception;
-
-    void decreaseGroupCapacity(String groupName, int size) throws Exception;
-
-    void disableAutoScalingGroup(String groupName) throws Exception;
-
-    void enableAutoScalingGroup(String groupName) throws Exception;
-
-    void disableAutoScalingActions(String groupName, Collection<String> actions) throws Exception;
-
-    void enableAutoScalingActions(String groupName, Collection<String> actions) throws Exception;
-
-    AutoScalingGroupBean getAutoScalingGroupInfoByName(String asgName) throws Exception;
-
-    AwsVmBean getAutoScalingGroupInfo(String groupName) throws Exception;
-
-    ASGStatus getAutoScalingGroupStatus(String groupName) throws Exception;
-
-    Collection<String> getAutoScalingInstances(String groupName, Collection<String> hostIds) throws Exception;
+    void changeAutoScalingGroupLaunchConfig(String groupName, String configId) throws Exception;
 
     //------ Instance
     void addInstancesToAutoScalingGroup(Collection<String> instances, String groupName) throws Exception;
 
     void detachInstancesFromAutoScalingGroup(Collection<String> instances, String groupName, boolean decreaseSize) throws Exception;
+
+    void increaseASGDesiredCapacityBySize(String groupName, int instanceCnt) throws Exception;
 
     void terminateInstanceInAutoScalingGroup(String instanceId, boolean decreaseSize) throws Exception;
 
@@ -73,10 +54,21 @@ public interface AutoScalingManager {
 
     void unprotectInstanceInAutoScalingGroup(Collection<String> instances, String groupName) throws Exception;
 
-    //-- auto scaling policies
+    AutoScalingGroupBean getAutoScalingGroupInfoByName(String asgName) throws Exception;
+
+    boolean hasAutoScalingGroup(String groupName) throws Exception;
+
     void addScalingPolicyToGroup(String groupName, ScalingPolicyBean policyBean) throws Exception;
 
     Map<String, ScalingPolicyBean> getScalingPoliciesForGroup(String groupName) throws Exception;
+
+    void disableAutoScalingGroup(String groupName) throws Exception;
+
+    void enableAutoScalingGroup(String groupName) throws Exception;
+
+    void deleteAutoScalingGroup(String groupName, boolean detachInstances) throws Exception;
+
+    ASGStatus getAutoScalingGroupStatus(String groupName) throws Exception;
 
     ScalingActivitiesBean getScalingActivity(String groupName, int count, String token) throws Exception;
 
@@ -86,6 +78,12 @@ public interface AutoScalingManager {
     void disableScalingDownEvent(String groupName) throws Exception;
 
     void enableScalingDownEvent(String groupName) throws Exception;
+
+    boolean isScalingUpEventEnabled(String groupName) throws Exception;
+
+    void disableScalingUpEvent(String groupName) throws Exception;
+
+    void enableScalingUpEvent(String groupName) throws Exception;
 
     Collection<String> instancesInAutoScalingGroup(Collection<String> instances) throws Exception;
 

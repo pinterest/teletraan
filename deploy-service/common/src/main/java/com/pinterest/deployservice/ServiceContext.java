@@ -18,7 +18,7 @@ package com.pinterest.deployservice;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.pinterest.arcee.autoscaling.AlarmManager;
-import com.pinterest.arcee.autoscaling.AutoScalingManager;
+import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
 import com.pinterest.arcee.aws.AwsConfigManager;
 import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.metrics.MetricSource;
@@ -85,7 +85,7 @@ public class ServiceContext {
     private AwsManager awsManager;
     private AmazonEC2Client ec2Client;
     private AWSCredentials awsCredentials;
-    private AutoScalingManager autoScalingManager;
+    private AutoScaleGroupManager autoScaleGroupManager;
     private MetricSource metricSource;
     private AwsConfigManager awsConfigManager;
 
@@ -370,12 +370,12 @@ public class ServiceContext {
         this.sourceControlManager = sourceControlManager;
     }
 
-    public AutoScalingManager getAutoScalingManager() {
-        return autoScalingManager;
+    public AutoScaleGroupManager getAutoScaleGroupManager() {
+        return autoScaleGroupManager;
     }
 
-    public void setAutoScalingManager(AutoScalingManager autoScalingManager) {
-        this.autoScalingManager = autoScalingManager;
+    public void setAutoScaleGroupManager(AutoScaleGroupManager autoScaleGroupManager) {
+        this.autoScaleGroupManager = autoScaleGroupManager;
     }
 
     public AlarmManager getAlarmManager() {

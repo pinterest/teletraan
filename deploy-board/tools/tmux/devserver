@@ -109,6 +109,26 @@ function tmux_windows() {
 	tmux send-keys -t teletraan:DeployBoard "./run.sh run" C-m
 }
 
+function load_chrome() {
+	# ----------------------
+	# Chrome load Deploy-board
+	# ----------------------
+    DEPLOY_BOARD_URL="http://127.0.0.1:8888/"
+
+	if [[ -n ${CHROME+1} ]]; then
+	    CHROME=$CHROME
+	elif [ /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome ]; then
+		CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+	else
+        echo "Set the CHROME env varriable to launch Deploy-board"
+        echo "export CHROME=/path/here"
+        return
+	fi
+    sleep 3 # give servers a chance to get online before loading deploy-board
+	"${CHROME}" "${DEPLOY_BOARD_URL}" > /dev/null 2>&1
+  
+}
+
 function attach_tmux() {
 	if [[ -z "$TMUX" ]]; then
 	# if not in tmux, attach to the server.
@@ -129,4 +149,5 @@ function attach_tmux() {
 check_dependencies
 start_tmux
 tmux_windows
+load_chrome
 attach_tmux
