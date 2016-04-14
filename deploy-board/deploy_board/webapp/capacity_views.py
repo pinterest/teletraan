@@ -75,6 +75,11 @@ class EnvCapacityConfigView(View):
         groups = []
         if groups_str:
             groups = [x.strip() for x in groups_str.split(',')]
+
+        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+        if basic_cluster_info:
+            cluster_name = '{}-{}'.format(name, stage)
+            groups.append(cluster_name)
         environs_helper.update_env_capacity(request, name, stage, capacity_type="GROUP",
                                             data=groups)
 

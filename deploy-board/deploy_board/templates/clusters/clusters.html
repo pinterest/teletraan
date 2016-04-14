@@ -7,7 +7,7 @@
     <li><a href="/envs">Environments</a></li>
     <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
     <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/config">General Config</a></li>
-    <li class="active">Capacity</li>
+    <li class="active">Cluster Manager</li>
 </ul>
 {% endblock %}
 {% load static %}
@@ -15,7 +15,7 @@
 {% block side-panel-actions %}
 <div class="panel panel-default">
     <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left">Capacity Config</h4>
+        <h4 class="panel-title pull-left">Cluster Manager</h4>
     </div>
 	<div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
