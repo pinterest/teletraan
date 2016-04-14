@@ -15,7 +15,7 @@
  */
 package com.pinterest.arcee.handler;
 
-import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.dao.GroupInfoDAO;
@@ -34,13 +34,13 @@ public class ProvisionHandler {
     private HostDAO hostDAO;
     private HostInfoDAO hostInfoDAO;
     private GroupInfoDAO groupInfoDAO;
-    private AutoScaleGroupManager asgDAO;
+    private AutoScalingManager asgDAO;
 
     public ProvisionHandler(ServiceContext serviceContext) {
         hostDAO = serviceContext.getHostDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         groupInfoDAO = serviceContext.getGroupInfoDAO();
-        asgDAO = serviceContext.getAutoScaleGroupManager();
+        asgDAO = serviceContext.getAutoScalingManager();
     }
 
     public List<String> launchNewInstances(String groupName, int instanceCnt, String subnet, String operator) throws Exception {
@@ -48,7 +48,7 @@ public class ProvisionHandler {
         if (groupBean != null) {
             if (groupBean.getAsg_status() == ASGStatus.ENABLED) {  // AutoScaling is enabled, increase the ASG capacity
                 LOG.info(String.format("Launch %d EC2 instances in AutoScalingGroup %s", instanceCnt, groupName));
-                asgDAO.increaseASGDesiredCapacityBySize(groupName, instanceCnt);
+                asgDAO.increaseGroupCapacity(groupName, instanceCnt);
                 return new ArrayList<>();
             } else if (groupBean.getAsg_status() == ASGStatus.DISABLED) { // AutoScaling is disabled, do nothing
                 LOG.info(String.format("AutoScalingGroup %s is disabled. Prohibit from launching instances", groupName));

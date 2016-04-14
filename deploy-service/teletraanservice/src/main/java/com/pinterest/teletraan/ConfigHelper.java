@@ -120,7 +120,7 @@ public class ConfigHelper {
         // AWS specific DAOs
         AWSFactory awsFactory = configuration.getAwsFactory();
         if (awsFactory != null) {
-            context.setAutoScaleGroupManager(awsFactory.buildAwsAutoScalingManager());
+            context.setAutoScalingManager(awsFactory.buildAwsAutoScalingManager());
             context.setAlarmManager(awsFactory.buildAwsAlarmManager());
             AmazonEC2Client ec2Client = awsFactory.buildEC2Client();
             context.setEc2Client(ec2Client);
@@ -129,7 +129,7 @@ public class ConfigHelper {
             // TODO rename to manager
             context.setHostInfoDAO(new EC2HostInfoDAOImpl(ec2Client));
             context.setReservedInstanceInfoDAO(new ReservedInstanceFetcher(ec2Client));
-            context.setClusterManager(new AwsVmManager(context.getAwsConfigManager()));
+            context.setClusterManager(new AwsVmManager(context));
             context.setAwsManager(new AwsManagerImpl(context.getAwsConfigManager()));
         } else {
             // TODO make sure if aws is null, all the workers related to aws still works

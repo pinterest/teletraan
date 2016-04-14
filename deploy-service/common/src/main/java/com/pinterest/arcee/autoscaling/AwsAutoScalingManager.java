@@ -16,11 +16,17 @@
 package com.pinterest.arcee.autoscaling;
 
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.autoscaling.model.*;
+import com.pinterest.arcee.aws.AwsConfigManager;
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.ASGStatus;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +34,8 @@ import org.slf4j.LoggerFactory;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
-    private static final Logger LOG = LoggerFactory.getLogger(AwsAutoScaleGroupManager.class);
+public class AwsAutoScalingManager implements AutoScalingManager {
+    private static final Logger LOG = LoggerFactory.getLogger(AwsAutoScalingManager.class);
     private static final String PROCESS_ALARMNOTIFICATION = "AlarmNotification";
     private static final String PROCESS_SCHEDULEDACTIONS = "ScheduledActions";
     private static final String PROCESS_LAUNCH = "Launch";
@@ -38,9 +44,16 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     private static final String PROCESS_REPLACEUNHEALTHY = "ReplaceUnhealthy";
     private static final String PROCESS_ADDTOLOADBALANCER = "AddToLoadBalancer";
     private static final String PROCESS_AZREBALANCE = "AZRebalance";
-    private String SNS_TOPIC_ARN;
-    private String ROLE_ARN;
-    private AmazonAutoScalingClient aasClient;
+
+    private final AmazonAutoScalingClient aasClient;
+    private final String ownerId;
+    private final String snsArn;
+    private final String vmKeyName;
+    private final String defaultRole;
+    private final String pinfoEnvironment;
+    private final String roleTemplate;
+    private final String userDataTemplate;
+    private final String roleARN;
 
     private static final  String[] NOTIFICATION_TYPE = {
         "autoscaling:EC2_INSTANCE_LAUNCH",
@@ -50,45 +63,70 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     // http://docs.aws.amazon.com/AutoScaling/latest/APIReference/API_DetachInstances.html
     private static final int MAX_DETACH_INSTANCE_LENGTH = 16;
 
-    public AwsAutoScaleGroupManager(String snsArn, String roleArn, AmazonAutoScalingClient aasClient) {
-        SNS_TOPIC_ARN = snsArn;
-        ROLE_ARN = roleArn;
-        this.aasClient = aasClient;
+    public AwsAutoScalingManager(AwsConfigManager configManager) {
+        if (StringUtils.isNotEmpty(configManager.getId()) && StringUtils.isNotEmpty(configManager.getKey())) {
+            AWSCredentials
+                awsCredentials = new BasicAWSCredentials(configManager.getId(), configManager.getKey());
+            this.aasClient = new AmazonAutoScalingClient(awsCredentials);
+        } else {
+            LOG.debug("AWS credential is missing for creating AWS client. Assuming to use role for authentication.");
+            this.aasClient = new AmazonAutoScalingClient();
+        }
+
+        this.ownerId = configManager.getOwnerId();
+        this.snsArn = configManager.getSnsArn();
+        this.vmKeyName = configManager.getVmKeyName();
+        this.defaultRole = configManager.getDefaultRole();
+        this.pinfoEnvironment = configManager.getPinfoEnvironment();
+        this.roleTemplate = configManager.getRoleTemplate();
+        this.userDataTemplate = configManager.getUserDataTemplate();
+        this.roleARN = configManager.getRoleArn();
     }
 
     //------ Launch Config
     @Override
-    public String createLaunchConfig(String groupName, GroupBean request) throws Exception {
+    public String createLaunchConfig(String groupName, AwsVmBean request) throws Exception {
         return createLaunchConfigInternal(groupName, request, null);
     }
 
     @Override
-    public String createSpotLaunchConfig(String groupName, GroupBean request, String bidPrice) throws Exception {
+    public String createSpotLaunchConfig(String groupName, AwsVmBean request, String bidPrice) throws Exception {
         return createLaunchConfigInternal(groupName, request, bidPrice);
     }
 
-
-    private String createLaunchConfigInternal(String groupName, GroupBean request, String bidPrice) {
+    private String createLaunchConfigInternal(String groupName, AwsVmBean request, String bidPrice) throws Exception {
         String launchConfigId = genLaunchConfigId(groupName);
         CreateLaunchConfigurationRequest configurationRequest = new CreateLaunchConfigurationRequest();
-        configurationRequest.setImageId(request.getImage_id());
-        configurationRequest.setKeyName("ops");
+        configurationRequest.setImageId(request.getImage());
+        configurationRequest.setKeyName(vmKeyName);
         configurationRequest.setLaunchConfigurationName(launchConfigId);
-        configurationRequest.setAssociatePublicIpAddress(request.getAssign_public_ip() != null && request.getAssign_public_ip());
-        if (request.getSecurity_group() != null) {
-            configurationRequest.setSecurityGroups(Arrays.asList(request.getSecurity_group()));
+        configurationRequest.setAssociatePublicIpAddress(request.getAssignPublicIp());
+        if (request.getSecurityZone() != null) {
+            configurationRequest.setSecurityGroups(Arrays.asList(request.getSecurityZone()));
         }
         if (bidPrice != null) {
             configurationRequest.setSpotPrice(bidPrice);
         }
 
-        configurationRequest.setIamInstanceProfile(request.getIam_role());
-        configurationRequest.setInstanceType(request.getInstance_type());
+        if (request.getRole() == null) {
+            configurationRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, defaultRole));
+        } else {
+            configurationRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, request.getRole()));
+        }
+
+        configurationRequest.setInstanceType(request.getHostType());
         InstanceMonitoring monitoring = new InstanceMonitoring();
         // DO NOT enable detailed instance monitoring
         monitoring.setEnabled(false);
         configurationRequest.setInstanceMonitoring(monitoring);
-        configurationRequest.setUserData(request.getUser_data());
+        if (StringUtils.isEmpty(request.getRawUserDataString())) {
+            String userData =
+                transformUserDataConfigToString(groupName, request.getUserDataConfigs());
+            configurationRequest.setUserData(Base64.encodeBase64String(userData.getBytes()));
+        } else {
+            configurationRequest.setUserData(request.getRawUserDataString());
+        }
+
         aasClient.createLaunchConfiguration(configurationRequest);
         return launchConfigId;
     }
@@ -114,13 +152,13 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
 
     @Override
     public void disableAutoScalingGroup(String groupName) throws Exception {
-        disableScalingProcesses(groupName, Arrays.asList(PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS,
+        disableAutoScalingActions(groupName, Arrays.asList(PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS,
                                                          PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_REPLACEUNHEALTHY));
     }
 
     @Override
     public void enableAutoScalingGroup(String groupName) throws Exception {
-        enableScalingProcesses(groupName, Arrays.asList(PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_HEALTHCHECK,
+        enableAutoScalingActions(groupName, Arrays.asList(PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_HEALTHCHECK,
                     PROCESS_REPLACEUNHEALTHY,
                     PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS, PROCESS_ADDTOLOADBALANCER));
     }
@@ -139,7 +177,7 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
             AutoScalingGroup group = groups.get(0);
 
             List<Instance> instances = group.getInstances();
-            List<String> ids = new LinkedList<>();
+            List<String> ids = new ArrayList<>();
             for (Instance instance : instances) {
                 ids.add(instance.getInstanceId());
             }
@@ -171,90 +209,63 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     }
 
     @Override
-    public void updateSubnet(String groupName, String subnets) throws Exception {
-        try {
-            UpdateAutoScalingGroupRequest updateAutoScalingGroupRequest = new UpdateAutoScalingGroupRequest();
-            updateAutoScalingGroupRequest.setAutoScalingGroupName(groupName);
-            updateAutoScalingGroupRequest.setVPCZoneIdentifier(subnets);
-            aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
-        } catch (AmazonServiceException ex) {
-            if (ex.getErrorType() == AmazonServiceException.ErrorType.Client) {
-                LOG.info(String.format("Ignore client error: error code: %s, error message: %s",
-                        ex.getErrorCode(), ex.getErrorMessage()));
-            } else {
-                throw ex;
-            }
-        }
-    }
-
-    @Override
-    public void createAutoScalingGroup(String configId, AutoScalingRequestBean request, String subnets) throws Exception {
+    public void createAutoScalingGroup(String groupName, AwsVmBean request) throws Exception {
         CreateAutoScalingGroupRequest autoScalingGroupRequest = new CreateAutoScalingGroupRequest();
-        autoScalingGroupRequest.setAutoScalingGroupName(request.getGroupName());
-        autoScalingGroupRequest.setVPCZoneIdentifier(subnets);
+        autoScalingGroupRequest.setAutoScalingGroupName(groupName);
+        autoScalingGroupRequest.setVPCZoneIdentifier(request.getSubnet());
         autoScalingGroupRequest.withMinSize(request.getMinSize()).withMaxSize(request.getMaxSize());
-        autoScalingGroupRequest.setLaunchConfigurationName(configId);
+        autoScalingGroupRequest.setLaunchConfigurationName(request.getLaunchConfigId());
         autoScalingGroupRequest.setTerminationPolicies(
-                Arrays.asList(request.getTerminationPolicy()));
+            Arrays.asList(request.getTerminationPolicy()));
         aasClient.createAutoScalingGroup(autoScalingGroupRequest);
 
         LOG.info(String.format("Creating auto scaling group: %s, with min size: %d, max size: %d",
-                request.getGroupName(), request.getMinSize(), request.getMaxSize()));
-        disableScalingProcesses(request.getGroupName(), Arrays.asList(PROCESS_AZREBALANCE));
+                               groupName, request.getMinSize(), request.getMaxSize()));
+        disableAutoScalingActions(groupName, Collections.singletonList(PROCESS_AZREBALANCE));
 
         // setup notificaiton
-        if (!StringUtils.isEmpty(SNS_TOPIC_ARN)) {
+        if (!StringUtils.isEmpty(snsArn)) {
             PutNotificationConfigurationRequest notifRequest = new PutNotificationConfigurationRequest();
-            notifRequest.setAutoScalingGroupName(request.getGroupName());
-            notifRequest.setTopicARN(SNS_TOPIC_ARN);
+            notifRequest.setAutoScalingGroupName(groupName);
+            notifRequest.setTopicARN(snsArn);
             notifRequest.setNotificationTypes(Arrays.asList(NOTIFICATION_TYPE));
             aasClient.putNotificationConfiguration(notifRequest);
         }
     }
 
     @Override
-    public void updateAutoScalingGroup(AutoScalingRequestBean request, String subnets) throws Exception {
+    public void updateAutoScalingGroup(String groupName, AwsVmBean request) throws Exception {
         UpdateAutoScalingGroupRequest updateAutoScalingGroupRequest = new UpdateAutoScalingGroupRequest();
-        updateAutoScalingGroupRequest.setAutoScalingGroupName(request.getGroupName());
-        if (!StringUtils.isEmpty(subnets)) {
-            updateAutoScalingGroupRequest.setVPCZoneIdentifier(subnets);
+        updateAutoScalingGroupRequest.setAutoScalingGroupName(groupName);
+        if (!StringUtils.isEmpty(request.getLaunchConfigId())) {
+            updateAutoScalingGroupRequest.setLaunchConfigurationName(request.getLaunchConfigId());
         }
-        updateAutoScalingGroupRequest.setTerminationPolicies(
-                Arrays.asList(request.getTerminationPolicy()));
-        updateAutoScalingGroupRequest.withMinSize(request.getMinSize()).withMaxSize(
-                request.getMaxSize());
-        aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
-    }
 
-    @Override
-    public void changeAutoScalingGroupLaunchConfig(String groupName, String configId) throws Exception {
-        try {
-            UpdateAutoScalingGroupRequest updateAutoScalingGroupRequest = new UpdateAutoScalingGroupRequest();
-            updateAutoScalingGroupRequest.setAutoScalingGroupName(groupName);
-            updateAutoScalingGroupRequest.setLaunchConfigurationName(configId);
-            aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
-        } catch (AmazonServiceException ex) {
-            if (ex.getErrorType() == AmazonServiceException.ErrorType.Client) {
-                LOG.info(String.format("%s %s", ex.getErrorCode(), ex.getErrorMessage()));
-            } else {
-                throw ex;
-            }
+        if (!StringUtils.isEmpty(request.getSubnet())) {
+            updateAutoScalingGroupRequest.setVPCZoneIdentifier(request.getSubnet());
         }
+
+        if (!StringUtils.isEmpty(request.getTerminationPolicy())) {
+            updateAutoScalingGroupRequest.setTerminationPolicies(
+                Collections.singletonList(request.getTerminationPolicy()));
+        }
+
+        if (request.getMinSize() != null) {
+            updateAutoScalingGroupRequest.setMinSize(request.getMinSize());
+        }
+        if (request.getMaxSize() != null) {
+            updateAutoScalingGroupRequest.setMaxSize(request.getMaxSize());
+        }
+        aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
     }
 
     @Override
     public AutoScalingGroupBean getAutoScalingGroupInfoByName(String groupName) throws Exception {
         AutoScalingGroupBean asgInfo = generateDefaultASGInfo();
-        DescribeAutoScalingGroupsRequest request = new DescribeAutoScalingGroupsRequest();
-        request.setAutoScalingGroupNames(Arrays.asList(groupName));
-        DescribeAutoScalingGroupsResult result = aasClient.describeAutoScalingGroups(request);
-        List<AutoScalingGroup> asgroups = result.getAutoScalingGroups();
-
-        if (asgroups.isEmpty()) {
+        AutoScalingGroup asgroup = getAutoScalingGroup(groupName);
+        if (asgroup == null) {
             return asgInfo;
         }
-
-        AutoScalingGroup asgroup = asgroups.get(0);
         // set autoscaling group status
         List<SuspendedProcess> suspendedProcesses = asgroup.getSuspendedProcesses();
         HashSet<String> processName = new HashSet<>();
@@ -281,6 +292,52 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         }
         return asgInfo;
     }
+
+    @Override
+    public void decreaseGroupCapacity(String groupName, int size) throws Exception {
+        changeGroupCapacity(groupName, size, false);
+    }
+
+    @Override
+    public void increaseGroupCapacity(String groupName, int size) throws Exception {
+        changeGroupCapacity(groupName, size, true);
+    }
+
+    private void changeGroupCapacity(String groupName, int size, boolean increment) throws Exception {
+        AutoScalingGroup group = getAutoScalingGroup(groupName);
+        if (group == null) {
+            return;
+        }
+
+        int currCapacity = group.getDesiredCapacity();
+        int currMinSize = group.getMinSize();
+        int currMaxSize = group.getMaxSize();
+        if (increment) {
+            currCapacity += size;
+            if (currMaxSize == currMinSize) {
+                currMinSize = currCapacity;
+                currMaxSize = currCapacity;
+            } else {
+                currMaxSize = Math.max(currMaxSize, currCapacity);
+            }
+        } else {
+            currCapacity = Math.max(currCapacity - size, 0);
+            if (currMaxSize == currMinSize) {
+                currMinSize = currCapacity;
+                currMaxSize = currCapacity;
+            } else {
+                currMinSize = Math.min(currMinSize, currCapacity);
+            }
+        }
+
+        UpdateAutoScalingGroupRequest updateRequest = new UpdateAutoScalingGroupRequest();
+        updateRequest.setAutoScalingGroupName(groupName);
+        updateRequest.setDesiredCapacity(currCapacity);
+        updateRequest.setMaxSize(currMaxSize);
+        updateRequest.setMinSize(currMinSize);
+        aasClient.updateAutoScalingGroup(updateRequest);
+    }
+
 
     //------ Instances
     @Override
@@ -311,7 +368,7 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     @Override
     public void detachInstancesFromAutoScalingGroup(Collection<String> instances, String groupName, boolean decreaseSize) throws Exception {
         DescribeAutoScalingGroupsRequest request = new DescribeAutoScalingGroupsRequest();
-        request.setAutoScalingGroupNames(Arrays.asList(groupName));
+        request.setAutoScalingGroupNames(Collections.singletonList(groupName));
         DescribeAutoScalingGroupsResult result = aasClient.describeAutoScalingGroups(request);
         List<AutoScalingGroup> groups = result.getAutoScalingGroups();
         if (groups.isEmpty()) {
@@ -364,26 +421,6 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     }
 
     @Override
-    public void increaseASGDesiredCapacityBySize(String groupName, int instanceCnt) throws Exception {
-        DescribeAutoScalingGroupsRequest request = new DescribeAutoScalingGroupsRequest();
-        request.setAutoScalingGroupNames(Arrays.asList(groupName));
-        DescribeAutoScalingGroupsResult result = aasClient.describeAutoScalingGroups(request);
-        List<AutoScalingGroup> groups = result.getAutoScalingGroups();
-        if (groups.isEmpty()) {
-            return;
-        }
-
-        AutoScalingGroup group = groups.get(0);
-        int curCapacity = group.getDesiredCapacity();
-
-        UpdateAutoScalingGroupRequest updateRequest = new UpdateAutoScalingGroupRequest();
-        updateRequest.setAutoScalingGroupName(groupName);
-        updateRequest.setDesiredCapacity(curCapacity + instanceCnt);
-        updateRequest.setMaxSize(Math.max(group.getMaxSize(), curCapacity + instanceCnt));
-        aasClient.updateAutoScalingGroup(updateRequest);
-    }
-
-    @Override
     public void terminateInstanceInAutoScalingGroup(String instanceId, boolean decreaseSize) throws Exception {
         TerminateInstanceInAutoScalingGroupRequest request = new TerminateInstanceInAutoScalingGroupRequest();
         request.setShouldDecrementDesiredCapacity(decreaseSize);
@@ -431,23 +468,12 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     }
 
     @Override
-    public boolean hasAutoScalingGroup(String groupName) throws Exception {
-        return !getAutoScalingGroupStatus(groupName).equals(ASGStatus.UNKNOWN);
-    }
-
-    @Override
     public ASGStatus getAutoScalingGroupStatus(String groupName) throws Exception {
-        DescribeAutoScalingGroupsRequest request = new DescribeAutoScalingGroupsRequest();
-        List<String> groupNames = new ArrayList<>();
-        groupNames.add(groupName);
-        request.setAutoScalingGroupNames(groupNames);
-        DescribeAutoScalingGroupsResult result = aasClient.describeAutoScalingGroups(request);
-        List<AutoScalingGroup> groups = result.getAutoScalingGroups();
-        if (groups.isEmpty()) {
+        AutoScalingGroup group = getAutoScalingGroup(groupName);
+        if (group == null) {
             return ASGStatus.UNKNOWN;
         }
 
-        AutoScalingGroup group = groups.get(0);
         List<SuspendedProcess> suspendedProcesses = group.getSuspendedProcesses();
         HashSet<String> processName = new HashSet<>();
         for (SuspendedProcess process : suspendedProcesses) {
@@ -458,6 +484,21 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         } else {
             return ASGStatus.ENABLED;
         }
+    }
+
+    @Override
+    public Collection<String> getAutoScalingInstances(String groupName, Collection<String> hostIds) throws Exception {
+        Collection<String> asgHostIds = new ArrayList<>();
+        DescribeAutoScalingInstancesRequest asgInstancesRequest = new DescribeAutoScalingInstancesRequest();
+        asgInstancesRequest.setInstanceIds(hostIds);
+        DescribeAutoScalingInstancesResult asgInstancesResult = aasClient.describeAutoScalingInstances(asgInstancesRequest);
+        List<AutoScalingInstanceDetails> instanceDetails = asgInstancesResult.getAutoScalingInstances();
+        for (AutoScalingInstanceDetails instanceDetail : instanceDetails) {
+            if (instanceDetail.getAutoScalingGroupName().equals(groupName)) {
+                asgHostIds.add(instanceDetail.getInstanceId());
+            }
+        }
+        return asgHostIds;
     }
 
     @Override
@@ -497,29 +538,48 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
     }
 
     @Override
-    public boolean isScalingUpEventEnabled(String groupName) throws Exception {
-        return isScalingProcessEnabled(groupName, PROCESS_LAUNCH);
-    }
-
-    @Override
     public void disableScalingDownEvent(String groupName) throws Exception {
-        disableScalingProcesses(groupName, Arrays.asList(PROCESS_TERMINATE));
+        disableAutoScalingActions(groupName, Arrays.asList(PROCESS_TERMINATE));
     }
 
     @Override
     public void enableScalingDownEvent(String groupName) throws Exception {
-        enableScalingProcesses(groupName, Arrays.asList(PROCESS_TERMINATE));
-    }
-
-
-    @Override
-    public void disableScalingUpEvent(String groupName) throws Exception {
-        disableScalingProcesses(groupName, Arrays.asList(PROCESS_LAUNCH));
+        enableAutoScalingActions(groupName, Arrays.asList(PROCESS_TERMINATE));
     }
 
     @Override
-    public void enableScalingUpEvent(String groupName) throws Exception {
-        enableScalingProcesses(groupName, Arrays.asList(PROCESS_LAUNCH));
+    public AwsVmBean getAutoScalingGroupInfo(String groupName) throws Exception {
+        AutoScalingGroup group = getAutoScalingGroup(groupName);
+        if (group == null) {
+            LOG.warn(String.format("Failed to get cluster %s: auto scaling group %s does not exist", groupName, groupName));
+            return null;
+        }
+
+        DescribeLaunchConfigurationsRequest configRequest = new DescribeLaunchConfigurationsRequest();
+        configRequest.setLaunchConfigurationNames(Arrays.asList(group.getLaunchConfigurationName()));
+        DescribeLaunchConfigurationsResult configResult = aasClient.describeLaunchConfigurations(configRequest);
+        List<LaunchConfiguration> configs = configResult.getLaunchConfigurations();
+        if (configs.isEmpty()) {
+            LOG.warn(String.format("Failed to get cluster: Launch config %s does not exist", group.getLaunchConfigurationName()));
+            return null;
+        }
+
+        LaunchConfiguration config = configs.get(0);
+        AwsVmBean awsVmBean = new AwsVmBean();
+        awsVmBean.setClusterName(groupName);
+        awsVmBean.setImage(config.getImageId());
+        awsVmBean.setHostType(config.getInstanceType());
+        awsVmBean.setSecurityZone(config.getSecurityGroups().get(0));
+        awsVmBean.setAssignPublicIp(config.getAssociatePublicIpAddress());
+        awsVmBean.setLaunchConfigId(config.getLaunchConfigurationName());
+        String roleName = config.getIamInstanceProfile();
+        awsVmBean.setRole(roleName.split("/")[1]);
+        String userData = new String(Base64.decodeBase64(config.getUserData()));
+        awsVmBean.setUserDataConfigs(transformUserDataToConfigMap(groupName, userData));
+        awsVmBean.setSubnet(group.getVPCZoneIdentifier());
+        awsVmBean.setMinSize(group.getMinSize());
+        awsVmBean.setMaxSize(group.getMaxSize());
+        return awsVmBean;
     }
 
     private boolean isScalingProcessEnabled(String groupName, String processName) throws Exception {
@@ -541,14 +601,16 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         return true;
     }
 
-    private void disableScalingProcesses(String groupName, Collection<String> processes) throws Exception {
+    @Override
+    public void disableAutoScalingActions(String groupName, Collection<String> processes) throws Exception {
         SuspendProcessesRequest request = new SuspendProcessesRequest();
         request.setScalingProcesses(processes);
         request.setAutoScalingGroupName(groupName);
         aasClient.suspendProcesses(request);
     }
 
-    private void enableScalingProcesses(String groupName, Collection<String> processes) throws Exception {
+    @Override
+    public void enableAutoScalingActions(String groupName, Collection<String> processes) throws Exception {
         ResumeProcessesRequest request = new ResumeProcessesRequest();
         request.setAutoScalingGroupName(groupName);
         request.setScalingProcesses(processes);
@@ -562,8 +624,8 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         request.setLifecycleHookName(String.format("LIFECYCLEHOOK-%s", groupName));
         request.setAutoScalingGroupName(groupName);
         request.setLifecycleTransition("autoscaling:EC2_INSTANCE_TERMINATING");
-        request.setNotificationTargetARN(SNS_TOPIC_ARN);
-        request.setRoleARN(ROLE_ARN);
+        request.setNotificationTargetARN(snsArn);
+        request.setRoleARN(roleARN);
         request.setHeartbeatTimeout(timeout);
         // If reach the timeout limit, ABANDON all the actions to that instances and proceed to terminate it
         request.setDefaultResult(AutoScalingConstants.LIFECYCLE_ACTION_ABANDON);
@@ -597,7 +659,7 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         aasClient.completeLifecycleAction(completeLifecycleActionRequest);
     }
 
-    public List<String> getLifecycleHookIds(String groupName) throws Exception {
+    private List<String> getLifecycleHookIds(String groupName) throws Exception {
         DescribeLifecycleHooksRequest request = new DescribeLifecycleHooksRequest();
         request.setAutoScalingGroupName(groupName);
         DescribeLifecycleHooksResult result = aasClient.describeLifecycleHooks(request);
@@ -624,7 +686,52 @@ public class AwsAutoScaleGroupManager implements AutoScaleGroupManager {
         return String.format("%s-%s", groupName, df.format(date));
     }
 
-    String getScalingPolicyName(String groupName, String scaleType) {
+    private String getScalingPolicyName(String groupName, String scaleType) {
         return String.format("%s_%s_rule", groupName, scaleType.toLowerCase());
+    }
+
+    private String transformUserDataConfigToString(String clusterName, Map<String, String> userDataConfigs) throws Exception {
+        String prefix = String.format(userDataTemplate, clusterName, pinfoEnvironment);
+        StringBuilder resultBuilder = new StringBuilder();
+        resultBuilder.append(prefix);
+        if (userDataConfigs == null) {
+            return resultBuilder.toString();
+        }
+
+        for (Map.Entry<String, String> entry : userDataConfigs.entrySet()) {
+            resultBuilder.append(String.format("\n%s: %s", entry.getKey(), entry.getValue()));
+        }
+        return resultBuilder.toString();
+    }
+
+    private Map<String, String> transformUserDataToConfigMap(String clusterName, String userData) throws Exception {
+        String userDataString = userData.replace(String.format(userDataTemplate, clusterName, pinfoEnvironment), "");
+        Map<String, String> resultMap = new HashMap<>();
+        if (userDataString.length() == 0) {
+            return resultMap;
+        }
+
+        Scanner scanner = new Scanner(userDataString);
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            List<String> config = Arrays.asList(line.split(": "));
+            if (config.size() == 2) {
+                resultMap.put(config.get(0), config.get(1));
+            }
+        }
+        scanner.close();
+        return resultMap;
+    }
+
+    private AutoScalingGroup getAutoScalingGroup(String clusterName) throws Exception {
+        DescribeAutoScalingGroupsRequest asgRequest = new DescribeAutoScalingGroupsRequest();
+        asgRequest.setAutoScalingGroupNames(Collections.singletonList(clusterName));
+        DescribeAutoScalingGroupsResult asgResult = aasClient.describeAutoScalingGroups(asgRequest);
+        List<AutoScalingGroup> groups = asgResult.getAutoScalingGroups();
+        if (groups.isEmpty()) {
+            LOG.warn(String.format("Auto scaling group %s does not exist", clusterName));
+            return null;
+        }
+        return groups.get(0);
     }
 }

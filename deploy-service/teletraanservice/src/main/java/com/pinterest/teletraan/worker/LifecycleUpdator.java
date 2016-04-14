@@ -16,7 +16,7 @@
 package com.pinterest.teletraan.worker;
 
 
-import com.pinterest.arcee.autoscaling.AutoScaleGroupManager;
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.AsgLifecycleEventBean;
 import com.pinterest.arcee.dao.AsgLifecycleEventDAO;
 import com.pinterest.deployservice.ServiceContext;
@@ -39,7 +39,7 @@ public class LifecycleUpdator implements Runnable {
     private final AgentDAO agentDAO;
     private final HostDAO hostDAO;
     private final UtilDAO utilDAO;
-    private final AutoScaleGroupManager autoScaleGroupManager;
+    private final AutoScalingManager autoScalingManager;
 
 
     public LifecycleUpdator(ServiceContext serviceContext) {
@@ -47,7 +47,7 @@ public class LifecycleUpdator implements Runnable {
         agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
         utilDAO = serviceContext.getUtilDAO();
-        autoScaleGroupManager = serviceContext.getAutoScaleGroupManager();
+        autoScalingManager = serviceContext.getAutoScalingManager();
     }
 
     private void processLifecycle(String hookId) throws Exception {
@@ -73,8 +73,8 @@ public class LifecycleUpdator implements Runnable {
 
                     if (stopSucceeded) {
                         LOG.info("Complete lifecycle action for host {}", hostId, tokenId);
-                        autoScaleGroupManager.completeLifecycleAction(hookId, tokenId,
-                                                                      lifecycleEventBean.getGroup_name());
+                        autoScalingManager.completeLifecycleAction(hookId, tokenId,
+                                                                   lifecycleEventBean.getGroup_name());
                         asgLifecycleEventDAO.deleteAsgLifecycleEventById(tokenId);
 
                         HostBean hostBean = new HostBean();

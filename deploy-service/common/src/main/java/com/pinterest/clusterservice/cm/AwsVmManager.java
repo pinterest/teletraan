@@ -15,83 +15,38 @@
  */
 package com.pinterest.clusterservice.cm;
 
-import com.pinterest.arcee.aws.AwsConfigManager;
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.services.autoscaling.model.*;
-import com.amazonaws.services.autoscaling.AmazonAutoScalingClient;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.TerminateInstancesRequest;
+import com.pinterest.deployservice.ServiceContext;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.Collections;
+
 
 public class AwsVmManager implements ClusterManager<AwsVmBean> {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AwsVmManager.class);
-    private static final String PROCESS_AZREBALANCE = "AZRebalance";
     private static final String PROCESS_LAUNCH = "Launch";
-    private static final String[] NOTIFICATION_TYPE = {
-            "autoscaling:EC2_INSTANCE_LAUNCH",
-            "autoscaling:EC2_INSTANCE_LAUNCH_ERROR",
-            "autoscaling:EC2_INSTANCE_TERMINATE",
-            "autoscaling:EC2_INSTANCE_TERMINATE_ERROR"};
-    private AmazonAutoScalingClient aasClient;
     private AmazonEC2Client ec2Client;
-    private String ownerId;
-    private String snsArn;
-    private String vmKeyName;
-    private String defaultRole;
-    private String pinfoEnvironment;
-    private String roleTemplate;
-    private String userDataTemplate;
 
-    public AwsVmManager(AwsConfigManager configManager) {
-        if (StringUtils.isNotEmpty(configManager.getId()) && StringUtils.isNotEmpty(configManager.getKey())) {
-            AWSCredentials awsCredentials = new BasicAWSCredentials(configManager.getId(), configManager.getKey());
-            this.aasClient = new AmazonAutoScalingClient(awsCredentials);
-            this.ec2Client = new AmazonEC2Client(awsCredentials);
-        } else {
-            LOG.debug("AWS credential is missing for creating AWS client. Assuming to use role for authentication.");
-            this.aasClient = new AmazonAutoScalingClient();
-            this.ec2Client = new AmazonEC2Client();
-        }
+    private AutoScalingManager autoScalingManager;
 
-        this.ownerId = configManager.getOwnerId();
-        this.snsArn = configManager.getSnsArn();
-        this.vmKeyName = configManager.getVmKeyName();
-        this.defaultRole = configManager.getDefaultRole();
-        this.pinfoEnvironment = configManager.getPinfoEnvironment();
-        this.roleTemplate = configManager.getRoleTemplate();
-        this.userDataTemplate = configManager.getUserDataTemplate();
+    public AwsVmManager(ServiceContext serviceContext) {
+        autoScalingManager = serviceContext.getAutoScalingManager();
+        ec2Client = serviceContext.getEc2Client();
     }
 
     @Override
     public void createCluster(String clusterName, AwsVmBean bean) throws Exception {
-        bean.setLaunchConfigId(createLaunchConfig(clusterName, bean));
-        createAutoScalingGroup(clusterName, bean);
-        disableScalingProcesses(clusterName, Arrays.asList(PROCESS_AZREBALANCE));
-
-        if (!StringUtils.isEmpty(snsArn)) {
-            PutNotificationConfigurationRequest notifRequest = new PutNotificationConfigurationRequest();
-            notifRequest.setAutoScalingGroupName(clusterName);
-            notifRequest.setTopicARN(snsArn);
-            notifRequest.setNotificationTypes(Arrays.asList(NOTIFICATION_TYPE));
-            aasClient.putNotificationConfiguration(notifRequest);
-        }
+        String launchConfig = autoScalingManager.createLaunchConfig(clusterName, bean);
+        bean.setTerminationPolicy("Default");
+        bean.setLaunchConfigId(launchConfig);
+        autoScalingManager.createAutoScalingGroup(clusterName, bean);
     }
 
     @Override
@@ -106,67 +61,25 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
         newBean.setLaunchConfigId(updateLaunchConfig(clusterName, oldBean, newBean));
         updateAutoScalingGroup(clusterName, newBean);
         if (newBean.getLaunchConfigId() != null) {
-            deleteLaunchConfig(oldBean.getLaunchConfigId());
+            autoScalingManager.deleteLaunchConfig(oldBean.getLaunchConfigId());
         }
     }
 
     @Override
     public AwsVmBean getCluster(String clusterName) throws Exception {
-        AutoScalingGroup group = getAutoScalingGroup(clusterName);
-        if (group == null) {
-            LOG.warn(String.format("Failed to get cluster %s: auto scaling group %s does not exist", clusterName, clusterName));
-            return null;
-        }
-
-        LaunchConfiguration config = getLaunchConfig(group.getLaunchConfigurationName());
-        if (config == null) {
-            LOG.warn(String.format("Failed to get cluster: Launch config %s does not exist", group.getLaunchConfigurationName()));
-            return null;
-        }
-
-        AwsVmBean awsVmBean = new AwsVmBean();
-        awsVmBean.setClusterName(clusterName);
-        awsVmBean.setImage(config.getImageId());
-        awsVmBean.setHostType(config.getInstanceType());
-        awsVmBean.setSecurityZone(config.getSecurityGroups().get(0));
-        awsVmBean.setAssignPublicIp(config.getAssociatePublicIpAddress());
-        awsVmBean.setLaunchConfigId(config.getLaunchConfigurationName());
-        String roleName = config.getIamInstanceProfile();
-        awsVmBean.setRole(roleName.split("/")[1]);
-        String userData = new String(Base64.decodeBase64(config.getUserData()));
-        awsVmBean.setUserDataConfigs(transformUserDataToConfigMap(clusterName, userData));
-        awsVmBean.setSubnet(group.getVPCZoneIdentifier());
-        awsVmBean.setMinSize(group.getMinSize());
-        awsVmBean.setMaxSize(group.getMaxSize());
-        return awsVmBean;
+        return autoScalingManager.getAutoScalingGroupInfo(clusterName);
     }
 
     @Override
     public void deleteCluster(String clusterName) throws Exception {
-        AwsVmBean awsVmBean = getCluster(clusterName);
-        deleteAutoScalingGroup(clusterName);
-        deleteLaunchConfig(awsVmBean.getLaunchConfigId());
+        AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(clusterName);
+        autoScalingManager.deleteAutoScalingGroup(clusterName, true);
+        autoScalingManager.deleteLaunchConfig(awsVmBean.getLaunchConfigId());
     }
 
     @Override
     public void launchHosts(String clusterName, int num) throws Exception {
-        AutoScalingGroup group = getAutoScalingGroup(clusterName);
-        if (group == null) {
-            LOG.error(String.format("Failed to launch hosts: auto scaling group %s does not exist", clusterName));
-            throw new Exception(String.format("Failed to launch hosts: auto scaling group %s does not exist", clusterName));
-        }
-
-        int currMinSize = group.getMinSize();
-        int currMaxSize = group.getMaxSize();
-        UpdateAutoScalingGroupRequest updateRequest = new UpdateAutoScalingGroupRequest();
-        updateRequest.setAutoScalingGroupName(clusterName);
-        updateRequest.setMaxSize(currMaxSize + num);
-        if (currMaxSize == currMinSize) {
-            updateRequest.setMinSize(currMinSize + num);
-        } else {
-            updateRequest.setDesiredCapacity(group.getDesiredCapacity() + num);
-        }
-        aasClient.updateAutoScalingGroup(updateRequest);
+        autoScalingManager.increaseGroupCapacity(clusterName, num);
     }
 
     @Override
@@ -174,268 +87,74 @@ public class AwsVmManager implements ClusterManager<AwsVmBean> {
         if (replaceHost) {
             termianteEC2Hosts(hostIds);
         } else {
-            // Do not replace host and decrease the cluster capacity
-            AutoScalingGroup group = getAutoScalingGroup(clusterName);
-            if (group == null) {
-                LOG.error(String.format("Failed to terminate hosts: auto scaling group %s does not exist", clusterName));
-                throw new Exception(String.format("Failed to terminate hosts: auto scaling group %s does not exist", clusterName));
-            }
-
-            disableScalingProcesses(clusterName, Arrays.asList(PROCESS_LAUNCH));
-            int currMinSize = group.getMinSize();
-            int currMaxSize = group.getMaxSize();
-            int updatedMinSize = Math.max(currMinSize - hostIds.size(), 0);
-            UpdateAutoScalingGroupRequest updateRequest = new UpdateAutoScalingGroupRequest();
-            updateRequest.setAutoScalingGroupName(clusterName);
-            updateRequest.setMinSize(updatedMinSize);
-            aasClient.updateAutoScalingGroup(updateRequest);
+            autoScalingManager.disableAutoScalingActions(clusterName, Collections
+                .singletonList(PROCESS_LAUNCH));
             termianteEC2Hosts(hostIds);
-
-            // If the origin min and max size are the same,
-            // assume that people didn't set up autoscaling min/max and keep min/max equal
-            if (currMaxSize == currMinSize) {
-                UpdateAutoScalingGroupRequest updateMaxSizeRequest = new UpdateAutoScalingGroupRequest();
-                updateMaxSizeRequest.setAutoScalingGroupName(clusterName);
-                updateMaxSizeRequest.setMaxSize(updatedMinSize);
-                aasClient.updateAutoScalingGroup(updateMaxSizeRequest);
-            }
-            enableScalingProcesses(clusterName, Arrays.asList(PROCESS_LAUNCH));
+            autoScalingManager.decreaseGroupCapacity(clusterName, hostIds.size());
+            autoScalingManager
+                .enableAutoScalingActions(clusterName, Collections.singletonList(PROCESS_LAUNCH));
         }
     }
 
     @Override
     public Collection<String> getHosts(String clusterName, Collection<String> hostIds) throws Exception {
-        Collection<String> asgHostIds = new ArrayList<>();
         if (hostIds == null || hostIds.isEmpty()) {
-            AutoScalingGroup group = getAutoScalingGroup(clusterName);
-            if (group == null) {
-                LOG.error(String.format("Failed to get hosts: auto scaling group %s does not exist", clusterName));
-                throw new Exception(String.format("Failed to get hosts: auto scaling group %s does not exist", clusterName));
-            }
-
-            List<Instance> asgInstances = group.getInstances();
-            for (Instance asgInstance : asgInstances) {
-                asgHostIds.add(asgInstance.getInstanceId());
-            }
+           return autoScalingManager.getAutoScalingGroupInfoByName(clusterName).getInstances();
         } else {
-            DescribeAutoScalingInstancesRequest asgInstancesRequest = new DescribeAutoScalingInstancesRequest();
-            asgInstancesRequest.setInstanceIds(hostIds);
-            DescribeAutoScalingInstancesResult asgInstancesResult = aasClient.describeAutoScalingInstances(asgInstancesRequest);
-            List<AutoScalingInstanceDetails> instanceDetails = asgInstancesResult.getAutoScalingInstances();
-            for (AutoScalingInstanceDetails instanceDetail : instanceDetails) {
-                if (instanceDetail.getAutoScalingGroupName().equals(clusterName)) {
-                    asgHostIds.add(instanceDetail.getInstanceId());
-                }
-            }
-        }
-        return asgHostIds;
-    }
-
-    // Launch Config utils
-    private String genLaunchConfigId(String clusterName) {
-        Date date = new Date();
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
-        return String.format("%s-%s", clusterName, df.format(date));
-    }
-
-    private String createLaunchConfig(String clusterName, AwsVmBean awsVmBean) throws Exception {
-        try {
-            CreateLaunchConfigurationRequest configRequest = new CreateLaunchConfigurationRequest();
-            String launchConfigId = genLaunchConfigId(clusterName);
-            configRequest.setLaunchConfigurationName(launchConfigId);
-            configRequest.setKeyName(vmKeyName);
-            configRequest.setImageId(awsVmBean.getImage());
-            configRequest.setInstanceType(awsVmBean.getHostType());
-            configRequest.setSecurityGroups(Arrays.asList(awsVmBean.getSecurityZone()));
-            configRequest.setAssociatePublicIpAddress(awsVmBean.getAssignPublicIp());
-            String userData = transformUserDataConfigToString(clusterName, awsVmBean.getUserDataConfigs());
-            configRequest.setUserData(Base64.encodeBase64String(userData.getBytes()));
-            if (awsVmBean.getRole() == null) {
-                configRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, defaultRole));
-            } else {
-                configRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, awsVmBean.getRole()));
-            }
-            configRequest.setInstanceMonitoring(new InstanceMonitoring().withEnabled(false));
-            aasClient.createLaunchConfiguration(configRequest);
-            return launchConfigId;
-        } catch (AmazonClientException e) {
-            LOG.error(String.format("Failed to create launch config for %s: %s", clusterName, e.getMessage()));
-            throw new Exception(String.format("Failed to create launch config for %s: %s", clusterName, e.getMessage()));
+            return autoScalingManager.getAutoScalingInstances(clusterName, hostIds);
         }
     }
 
     private String updateLaunchConfig(String clusterName, AwsVmBean oldBean, AwsVmBean newBean) throws Exception {
         try {
-            CreateLaunchConfigurationRequest configRequest = new CreateLaunchConfigurationRequest();
-            String launchConfigId = genLaunchConfigId(clusterName);
-            configRequest.setLaunchConfigurationName(launchConfigId);
-            configRequest.setKeyName(vmKeyName);
-            configRequest.setImageId(newBean.getImage() != null ? newBean.getImage() : oldBean.getImage());
-            configRequest.setInstanceType(newBean.getHostType() != null ? newBean.getHostType() : oldBean.getHostType());
-            configRequest.setSecurityGroups(Arrays.asList(newBean.getSecurityZone() != null ? newBean.getSecurityZone() : oldBean.getSecurityZone()));
-            configRequest.setAssociatePublicIpAddress(newBean.getAssignPublicIp() != null ? newBean.getAssignPublicIp() : oldBean.getAssignPublicIp());
-            String userData;
-            if (newBean.getUserDataConfigs() != null) {
-                userData = transformUserDataConfigToString(clusterName, newBean.getUserDataConfigs());
-            } else {
-                userData = transformUserDataConfigToString(clusterName, oldBean.getUserDataConfigs());
-            }
-            configRequest.setUserData(Base64.encodeBase64String(userData.getBytes()));
-
-            if (newBean.getRole() != null) {
-                configRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, newBean.getRole()));
-            } else {
-                configRequest.setIamInstanceProfile(String.format(roleTemplate, ownerId, oldBean.getRole()));
+            if (newBean.getImage() == null) {
+                newBean.setImage(oldBean.getImage());
             }
 
-            configRequest.setInstanceMonitoring(new InstanceMonitoring().withEnabled(false));
-            aasClient.createLaunchConfiguration(configRequest);
-            return launchConfigId;
+            if (newBean.getHostType() == null) {
+                newBean.setHostType(oldBean.getHostType());
+            }
+
+            if (newBean.getSecurityZone() == null) {
+                newBean.setSecurityZone(oldBean.getSecurityZone());
+            }
+
+            if (newBean.getAssignPublicIp() == null) {
+                newBean.setAssignPublicIp(oldBean.getAssignPublicIp());
+            }
+
+            if (newBean.getUserDataConfigs() == null) {
+                newBean.setUserDataConfigs(oldBean.getUserDataConfigs());
+            }
+
+            if (newBean.getRole() == null) {
+                newBean.setRole(oldBean.getRole());
+            }
+
+            return autoScalingManager.createLaunchConfig(clusterName, newBean);
         } catch (AmazonClientException e) {
             LOG.error(String.format("Failed to update launch config for %s: %s", clusterName, e.getMessage()));
             throw new Exception(String.format("Failed to udpate launch config for %s: %s", clusterName, e.getMessage()));
         }
     }
 
-    private LaunchConfiguration getLaunchConfig(String launchConfigId) throws Exception {
-        DescribeLaunchConfigurationsRequest configRequest = new DescribeLaunchConfigurationsRequest();
-        configRequest.setLaunchConfigurationNames(Arrays.asList(launchConfigId));
-        DescribeLaunchConfigurationsResult configResult = aasClient.describeLaunchConfigurations(configRequest);
-        List<LaunchConfiguration> configs = configResult.getLaunchConfigurations();
-        if (configs.isEmpty()) {
-            LOG.warn(String.format("Launch config %s does not exist", launchConfigId));
-            return null;
-        }
-        return configs.get(0);
-    }
-
-    private void deleteLaunchConfig(String launchConfigId) throws Exception {
-        try {
-            DeleteLaunchConfigurationRequest deleteRequest = new DeleteLaunchConfigurationRequest();
-            deleteRequest.setLaunchConfigurationName(launchConfigId);
-            aasClient.deleteLaunchConfiguration(deleteRequest);
-        } catch (AmazonClientException e) {
-            LOG.error(String.format("Failed to delete launch config id %s: %s", launchConfigId, e.getMessage()));
-            throw new Exception(String.format("Failed to delete launch config id %s: %s", launchConfigId, e.getMessage()));
-        }
-    }
-
-    // Auto Scaling Group util
-    private void createAutoScalingGroup(String clusterName, AwsVmBean bean) throws Exception {
-        try {
-            CreateAutoScalingGroupRequest asgRequest = new CreateAutoScalingGroupRequest();
-            asgRequest.setAutoScalingGroupName(clusterName);
-            asgRequest.setLaunchConfigurationName(bean.getLaunchConfigId());
-            asgRequest.setVPCZoneIdentifier(bean.getSubnet());
-            asgRequest.setMinSize(bean.getMinSize());
-            asgRequest.setMaxSize(bean.getMaxSize());
-            aasClient.createAutoScalingGroup(asgRequest);
-        } catch (AmazonClientException e) {
-            LOG.error(String.format("Failed to create auto scaling group %s: %s", clusterName, e.getMessage()));
-            throw new Exception(String.format("Failed to create auto scaling group %s: %s", clusterName, e.getMessage()));
-        }
-    }
-
     private void updateAutoScalingGroup(String clusterName, AwsVmBean newBean) throws Exception {
         try {
-            UpdateAutoScalingGroupRequest updateAsgRequest = new UpdateAutoScalingGroupRequest();
-            updateAsgRequest.setAutoScalingGroupName(clusterName);
-            if (newBean.getSubnet() != null) {
-                updateAsgRequest.setVPCZoneIdentifier(newBean.getSubnet());
-            }
-
-            if (newBean.getMinSize() != null) {
-                updateAsgRequest.setMinSize(newBean.getMinSize());
-            }
-
-            if (newBean.getMaxSize() != null) {
-                updateAsgRequest.setMaxSize(newBean.getMaxSize());
-            }
-
-            if (newBean.getLaunchConfigId() != null) {
-                updateAsgRequest.setLaunchConfigurationName(newBean.getLaunchConfigId());
-            }
-            aasClient.updateAutoScalingGroup(updateAsgRequest);
+            AwsVmBean updateAsgRequest = new AwsVmBean();
+            updateAsgRequest.setSubnet(newBean.getSubnet());
+            updateAsgRequest.setMinSize(newBean.getMinSize());
+            updateAsgRequest.setMaxSize(newBean.getMaxSize());
+            updateAsgRequest.setLaunchConfigId(newBean.getLaunchConfigId());
+            autoScalingManager.updateAutoScalingGroup(clusterName, updateAsgRequest);
         } catch (AmazonClientException e) {
             LOG.error(String.format("Failed to update auto scaling group %s: %s", clusterName, e.getMessage()));
             throw new Exception(String.format("Failed to update auto scaling group %s: %s", clusterName, e.getMessage()));
         }
     }
 
-    private AutoScalingGroup getAutoScalingGroup(String clusterName) throws Exception {
-        DescribeAutoScalingGroupsRequest asgRequest = new DescribeAutoScalingGroupsRequest();
-        asgRequest.setAutoScalingGroupNames(Arrays.asList(clusterName));
-        DescribeAutoScalingGroupsResult asgResult = aasClient.describeAutoScalingGroups(asgRequest);
-        List<AutoScalingGroup> groups = asgResult.getAutoScalingGroups();
-        if (groups.isEmpty()) {
-            LOG.warn(String.format("Auto scaling group %s does not exist", clusterName));
-            return null;
-        }
-        return groups.get(0);
-    }
-
-    private void disableScalingProcesses(String groupName, Collection<String> processes) throws Exception {
-        SuspendProcessesRequest request = new SuspendProcessesRequest();
-        request.setScalingProcesses(processes);
-        request.setAutoScalingGroupName(groupName);
-        aasClient.suspendProcesses(request);
-    }
-
-    private void enableScalingProcesses(String groupName, Collection<String> processes) throws Exception {
-        ResumeProcessesRequest request = new ResumeProcessesRequest();
-        request.setAutoScalingGroupName(groupName);
-        request.setScalingProcesses(processes);
-        aasClient.resumeProcesses(request);
-    }
-
     private void termianteEC2Hosts(Collection<String> hostIds) throws Exception {
         TerminateInstancesRequest terminateRequest = new TerminateInstancesRequest();
         terminateRequest.setInstanceIds(hostIds);
         ec2Client.terminateInstances(terminateRequest);
-    }
-
-    private void deleteAutoScalingGroup(String clusterName) throws Exception {
-        try {
-            DeleteAutoScalingGroupRequest deleteRequest = new DeleteAutoScalingGroupRequest();
-            deleteRequest.setAutoScalingGroupName(clusterName);
-            deleteRequest.setForceDelete(true);
-            aasClient.deleteAutoScalingGroup(deleteRequest);
-        } catch (AmazonClientException e) {
-            LOG.error(String.format("Failed to delete auto scaling group %s: %s", clusterName, e.getMessage()));
-            throw new Exception(String.format("Failed to delete auto scaling group %s: %s", clusterName, e.getMessage()));
-        }
-    }
-
-    private Map<String, String> transformUserDataToConfigMap(String clusterName, String userData) throws Exception {
-        String userDataString = userData.replace(String.format(userDataTemplate, clusterName, pinfoEnvironment), "");
-        Map<String, String> resultMap = new HashMap<>();
-        if (userDataString.length() == 0) {
-            return resultMap;
-        }
-
-        Scanner scanner = new Scanner(userDataString);
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            List<String> config = Arrays.asList(line.split(": "));
-            if (config.size() == 2) {
-                resultMap.put(config.get(0), config.get(1));
-            }
-        }
-        scanner.close();
-        return resultMap;
-    }
-
-    private String transformUserDataConfigToString(String clusterName, Map<String, String> userDataConfigs) throws Exception {
-        String prefix = String.format(userDataTemplate, clusterName, pinfoEnvironment);
-        StringBuilder resultBuilder = new StringBuilder();
-        resultBuilder.append(prefix);
-        if (userDataConfigs == null) {
-            return resultBuilder.toString();
-        }
-
-        for (Map.Entry<String, String> entry : userDataConfigs.entrySet()) {
-            resultBuilder.append(String.format("\n%s: %s", entry.getKey(), entry.getValue()));
-        }
-        return resultBuilder.toString();
     }
 }

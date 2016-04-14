@@ -82,17 +82,6 @@ public class Groups {
         return groupHandler.getEnvGroupNames(start.or(1), size.or(DEFAULT_SIZE));
     }
 
-    @POST
-    @Path("/{groupName: [a-zA-Z0-9\\-_]+}")
-    public void createGroup(@Context SecurityContext sc,
-        @PathParam("groupName") String groupName, GroupBean groupBean) throws Exception {
-        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
-        String operator = sc.getUserPrincipal().getName();
-        groupHandler.createGroup(groupName, groupBean);
-        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_GENERAL, groupBean, operator);
-        LOG.info("Successfully created group {} with config {} by {}", groupName, groupBean, operator);
-    }
-
     @PUT
     @Path("/{groupName: [a-zA-Z0-9\\-_]+}")
     public void updateGroupLaunchConfig(@Context SecurityContext sc,
