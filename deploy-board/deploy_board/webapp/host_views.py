@@ -47,7 +47,7 @@ def get_agent_wrapper(request, hostname):
     return agent_wrappers, show_force_terminate
 
 
-def get_asg_name(host):
+def get_asg_name(request, host):
     asg = ''
     if host and host.get('groupName'):
         group_info = groups_helper.get_group_info(request, host.get('groupName'))
@@ -70,7 +70,7 @@ class GroupHostDetailView(View):
         for host in hosts:
             if host.get('groupName') == groupname:
                 show_host = host
-        asg = get_asg_name(show_host)
+        asg = get_asg_name(request, show_host)
         agent_wrappers, show_force_terminate = get_agent_wrapper(request, hostname)
         return render(request, 'hosts/host_details.html', {
                 'group_name': groupname,
@@ -87,7 +87,7 @@ class HostDetailView(View):
         host = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
         show_terminate = get_show_terminate(host)
         # TODO deprecated it
-        asg = get_asg_name(host)
+        asg = get_asg_name(request, host)
 
         agent_wrappers, show_force_terminate = get_agent_wrapper(request, hostname)
         return render(request, 'hosts/host_details.html', {
