@@ -45,7 +45,7 @@ NGAPP_B = "ngapp2-B"
 NGAPP_GROUP = "webapp"
 DEFAULT_PAGE_SIZE = 30
 S3_INTERNAL_TOOLS_BUCKET_NAME = "pinterest-internal-tools"
-NGAPP_ROLLBACK_HISTORY = "ngapp2-rollback-history"
+NGAPP_ROLLBACK_HISTORY_PROD = "ngapp2-rollback-history-prod"
 NGAPP_ROLLBACK_HISTORY_INTEG = "ngapp2-rollback-history-integ"
 
 
@@ -71,7 +71,7 @@ def get_slack_channel():
 
 def get_rollback_history_key():
     if is_prod():
-        return NGAPP_ROLLBACK_HISTORY
+        return NGAPP_ROLLBACK_HISTORY_PROD
     else:
         return NGAPP_ROLLBACK_HISTORY_INTEG
 
