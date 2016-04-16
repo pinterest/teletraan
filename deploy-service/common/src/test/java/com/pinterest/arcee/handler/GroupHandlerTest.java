@@ -16,11 +16,9 @@
 package com.pinterest.arcee.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -55,7 +53,6 @@ import com.pinterest.deployservice.group.CMDBHostGroupManager;
 
 import com.ibatis.common.jdbc.ScriptRunner;
 import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.AfterClass;
@@ -165,6 +162,7 @@ public class GroupHandlerTest {
         GroupBean updatedBean2 = new GroupBean();
         updatedBean2.setGroup_name("test2");
         updatedBean2.setChatroom("hello");
+        when(mockAwsManager.getAutoScalingGroupStatus("test2")).thenReturn(ASGStatus.UNKNOWN);
         groupHandler.updateLaunchConfig("test2", updatedBean2);
 
         // verify
@@ -186,7 +184,7 @@ public class GroupHandlerTest {
         GroupBean updatedBean2 = new GroupBean();
         updatedBean2.setAssign_public_ip(Boolean.TRUE);
         updatedBean2.setGroup_name("test3");
-
+        when(mockAwsManager.getAutoScalingGroupStatus("test3")).thenReturn(ASGStatus.UNKNOWN);
         groupHandler.updateLaunchConfig("test3", updatedBean2);
         ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
         verify(mockAwsManager, times(1)).createLaunchConfig(eq("test3"), argument.capture());
@@ -224,37 +222,6 @@ public class GroupHandlerTest {
         assertNull(updateBean.getMinSize());
         assertEquals(updateBean.getSubnet(), "subnet-2");
 
-    }
-
-
-    @Test
-    public void updateAMITest() throws Exception {
-        Long lastUpdate = System.currentTimeMillis();
-        GroupBean groupBean1 = generateDefaultBean("group6", "ami-12345", "subnet-6", "config-6", lastUpdate);
-        groupInfoDAO.insertGroupInfo(groupBean1);
-
-        when(mockAwsManager.createLaunchConfig(eq("group6"), any())).thenReturn("config-7");
-        when(mockAwsManager.getAutoScalingGroupStatus(any())).thenReturn(ASGStatus.ENABLED);
-        groupHandler.updateImageId(groupBean1, "ami-123457");
-
-        ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
-        verify(mockAwsManager, times(1)).createLaunchConfig(eq("group6"), argument.capture());
-        AwsVmBean b = argument.getValue();
-        assertEquals(b.getImage(), "ami-123457");
-        assertEquals(b.getHostType(), groupBean1.getInstance_type());
-        assertEquals(b.getSecurityZone(), groupBean1.getSecurity_group());
-        assertEquals(b.getAssignPublicIp(), groupBean1.getAssign_public_ip());
-        assertEquals(b.getRole(), groupBean1.getIam_role());
-        assertEquals(b.getRawUserDataString(), groupBean1.getUser_data());
-
-        GroupBean resultGroupBean = groupInfoDAO.getGroupInfo("group6");
-        assertEquals(resultGroupBean.getGroup_name(), "group6");
-        assertEquals(resultGroupBean.getAsg_status(), groupBean1.getAsg_status());
-        assertEquals(resultGroupBean.getIam_role(), groupBean1.getIam_role());
-        assertEquals(resultGroupBean.getLaunch_config_id(), "config-7");
-        assertEquals(resultGroupBean.getImage_id(), "ami-123457");
-        assertEquals(resultGroupBean.getUser_data(), groupBean1.getUser_data());
-        assertEquals(resultGroupBean.getInstance_type(), groupBean1.getInstance_type());
     }
 
     private GroupBean generateDefaultBean(String groupName, String ami_id, String subnets, String config, Long lastUpdate) {
