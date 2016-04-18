@@ -15,7 +15,6 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.bean.ClusterBean;
 import com.pinterest.clusterservice.handler.ClusterHandler;
 import com.pinterest.deployservice.bean.EnvironBean;
@@ -23,7 +22,6 @@ import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
@@ -36,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.Map;
 
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -59,7 +58,6 @@ public class Clusters {
     private static final Logger LOG = LoggerFactory.getLogger(Clusters.class);
     private final Authorizer authorizer;
     private final EnvironDAO environDAO;
-    private final GroupDAO groupDAO;
     private final ClusterHandler clusterHandler;
     private final ConfigHistoryHandler configHistoryHandler;
 
@@ -71,7 +69,6 @@ public class Clusters {
     public Clusters(TeletraanServiceContext context) {
         authorizer = context.getAuthorizer();
         environDAO = context.getEnvironDAO();
-        groupDAO = context.getGroupDAO();
         clusterHandler = new ClusterHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
     }
@@ -84,10 +81,7 @@ public class Clusters {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        String clusterName = String.format("%s-%s", envName, stageName);
-        clusterBean.setCluster_name(clusterName);
-        clusterHandler.createCluster(clusterBean);
-        groupDAO.addGroupCapacity(envBean.getEnv_id(), clusterName);
+        clusterHandler.createCluster(envName, stageName, clusterBean);
 
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
@@ -102,9 +96,7 @@ public class Clusters {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        String clusterName = String.format("%s-%s", envName, stageName);
-        clusterBean.setCluster_name(clusterName);
-        clusterHandler.updateCluster(clusterName, clusterBean);
+        clusterHandler.updateCluster(envName, stageName, clusterBean);
 
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
@@ -114,8 +106,7 @@ public class Clusters {
     @GET
     public ClusterBean getCluster(@PathParam("envName") String envName,
                                   @PathParam("stageName") String stageName) throws Exception {
-        String clusterName = String.format("%s-%s", envName, stageName);
-        return clusterHandler.getCluster(clusterName);
+        return clusterHandler.getCluster(envName, stageName);
     }
 
     @DELETE
@@ -125,13 +116,32 @@ public class Clusters {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        String clusterName = String.format("%s-%s", envName, stageName);
-        clusterHandler.deleteCluster(clusterName);
-        groupDAO.removeGroupCapacity(envBean.getEnv_id(), clusterName);
+        clusterHandler.deleteCluster(envName, stageName);
 
         String configChange = String.format("delete cluster for %s/%s", envName, stageName);
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_OTHER, configChange, operator);
         LOG.info(String.format("Successfully delete cluster for %s/%s by %s", envName, stageName, operator));
+    }
+
+    @PUT
+    @Path("/configs")
+    public String updateAdvancedConfigs(@Context SecurityContext sc,
+                                      @PathParam("envName") String envName,
+                                      @PathParam("stageName") String stageName,
+                                      @Valid Map<String, String> configs) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        String operator = sc.getUserPrincipal().getName();
+        String configId = clusterHandler.updateAdvancedConfigs(envName, stageName, configs, operator);
+        LOG.info(String.format("Successfully update cluster advanced setting for %s/%s by %s", envName, stageName, operator));
+        return String.format("\"%s\"", configId);
+    }
+
+    @GET
+    @Path("/configs")
+    public Map<String, String> getAdvancedConfigs(@PathParam("envName") String envName,
+                                                  @PathParam("stageName") String stageName) throws Exception {
+        return clusterHandler.getAdvancedConfigs(envName, stageName);
     }
 
     @PUT
@@ -143,8 +153,7 @@ public class Clusters {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        String clusterName = String.format("%s-%s", envName, stageName);
-        clusterHandler.launchHosts(clusterName, num.or(1));
+        clusterHandler.launchHosts(envName, stageName, num.or(1));
 
         String configChange = String.format("launch %d hosts", num.or(1));
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_HOST_LAUNCH, configChange, operator);
@@ -161,12 +170,11 @@ public class Clusters {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        String clusterName = String.format("%s-%s", envName, stageName);
         HostActionType actionType = HostActionType.valueOf(HostActionType.class, type.toUpperCase());
         if (actionType == HostActionType.FORCE_TERMINATE) {
-            clusterHandler.terminateHosts(clusterName, hostIds);
+            clusterHandler.terminateHosts(envName, stageName, hostIds);
         } else {
-            clusterHandler.stopHosts(clusterName, hostIds);
+            clusterHandler.stopHosts(envName, stageName, hostIds);
         }
 
         String configChange = String.format("%s hostIds: %s", type, hostIds.toString());
@@ -176,55 +184,10 @@ public class Clusters {
 
     @GET
     @Path("/hosts")
-    public Collection<String> getHosts(@PathParam("envName") String envName,
-                                @PathParam("stageName") String stageName,
-                                @Valid Collection<String> hostIds) throws Exception {
-        String clusterName = String.format("%s-%s", envName, stageName);
-        return clusterHandler.getHosts(clusterName, hostIds);
-    }
-
-    @POST
-    @Path("/provider/AWS")
-    public void createAdvancedAwsCluster(@Context SecurityContext sc,
-                                         @PathParam("envName") String envName,
-                                         @PathParam("stageName") String stageName,
-                                         @Valid AwsVmBean awsVmBean) throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
-        String operator = sc.getUserPrincipal().getName();
-        String clusterName = String.format("%s-%s", envName, stageName);
-        awsVmBean.setClusterName(clusterName);
-        ClusterBean clusterBean = clusterHandler.createAwsVmCluster(awsVmBean);
-        groupDAO.addGroupCapacity(envBean.getEnv_id(), clusterName);
-
-        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
-        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
-        LOG.info(String.format("Successfully create advanced cluster for %s/%s by %s", envName, stageName, operator));
-    }
-
-    @PUT
-    @Path("/provider/AWS")
-    public void updateAdvancedAwsCluster(@Context SecurityContext sc,
-                                         @PathParam("envName") String envName,
-                                         @PathParam("stageName") String stageName,
-                                         @Valid AwsVmBean awsVmBean) throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
-        String operator = sc.getUserPrincipal().getName();
-        String clusterName = String.format("%s-%s", envName, stageName);
-        awsVmBean.setClusterName(clusterName);
-        ClusterBean clusterBean = clusterHandler.updateAwsVmCluster(clusterName, awsVmBean);
-
-        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
-        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
-        LOG.info(String.format("Successfully update advanced cluster for %s/%s by %s", envName, stageName, operator));
-    }
-
-    @GET
-    @Path("/provider/AWS")
-    public AwsVmBean getAdvancedAwsCluster(@PathParam("envName") String envName,
+    public Collection<String> getHostNames(@PathParam("envName") String envName,
                                            @PathParam("stageName") String stageName) throws Exception {
-        String clusterName = String.format("%s-%s", envName, stageName);
-        return clusterHandler.getAwsVmCluster(clusterName);
+        return clusterHandler.getHostNames(envName, stageName);
     }
+
+
 }

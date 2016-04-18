@@ -23,6 +23,7 @@ from django.template.loader import render_to_string
 from django.views.generic import View
 import common
 from helpers import environs_helper, clusters_helper
+from deploy_board.settings import IS_PINTEREST
 
 
 class EnvCapacityConfigView(View):
@@ -30,12 +31,7 @@ class EnvCapacityConfigView(View):
         if request.is_ajax():
             # return data for ajax calls
             hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
-            groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
-            basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-            if basic_cluster_info:
-                cluster_name = '{}-{}'.format(name, stage)
-                groups.remove(cluster_name)
-
+            groups = common.get_non_cmp_group(request, name, stage)
             env = environs_helper.get_env_by_stage(request, name, stage)
             html = render_to_string("configs/capacity.tmpl", {
                 "env": env,
@@ -50,12 +46,7 @@ class EnvCapacityConfigView(View):
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
-        groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
-        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-        if basic_cluster_info:
-            cluster_name = '{}-{}'.format(name, stage)
-            groups.remove(cluster_name)
-
+        groups = common.get_non_cmp_group(request, name, stage)
         return render(request, 'configs/capacity.html', {
             "env": env,
             "stages": stages,
@@ -76,10 +67,11 @@ class EnvCapacityConfigView(View):
         if groups_str:
             groups = [x.strip() for x in groups_str.split(',')]
 
-        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-        if basic_cluster_info:
-            cluster_name = '{}-{}'.format(name, stage)
-            groups.append(cluster_name)
+        if IS_PINTEREST:
+            basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+            if basic_cluster_info:
+                cluster_name = common.get_cluster_name(name, stage)
+                groups.append(cluster_name)
         environs_helper.update_env_capacity(request, name, stage, capacity_type="GROUP",
                                             data=groups)
 

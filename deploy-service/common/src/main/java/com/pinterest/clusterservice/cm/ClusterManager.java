@@ -15,14 +15,16 @@
  */
 package com.pinterest.clusterservice.cm;
 
+import com.pinterest.clusterservice.bean.ClusterBean;
+
 import java.util.Collection;
 
-public interface ClusterManager<T> {
-    void createCluster(String clusterName, T bean) throws Exception;
+public interface ClusterManager {
+    void createCluster(String clusterName, ClusterBean bean) throws Exception;
 
-    void updateCluster(String clusterName, T bean) throws Exception;
+    void updateCluster(String clusterName, ClusterBean bean) throws Exception;
 
-    T getCluster(String clusterName) throws Exception;
+    ClusterBean getCluster(String clusterName) throws Exception;
 
     void deleteCluster(String clusterName) throws Exception;
 

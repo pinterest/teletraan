@@ -372,6 +372,7 @@ CREATE TABLE IF NOT EXISTS clusters (
     host_type_id         VARCHAR(22),
     security_zone_id     VARCHAR(22),
     placement_id         VARCHAR(128),
+    config_id            VARCHAR(22),
     provider             VARCHAR(64),
     last_update          BIGINT(20)      NOT NULL,
     PRIMARY KEY (cluster_name)

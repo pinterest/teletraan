@@ -17,7 +17,6 @@ package com.pinterest.clusterservice.handler;
 
 
 import com.pinterest.arcee.aws.AwsConfigManager;
-import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.bean.CloudProvider;
 import com.pinterest.clusterservice.bean.ClusterBean;
 import com.pinterest.clusterservice.cm.AwsVmManager;
@@ -27,35 +26,43 @@ import com.pinterest.clusterservice.dao.ClusterDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.handler.DataHandler;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
 
 public class ClusterHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ClusterHandler.class);
+
     private final AgentDAO agentDAO;
     private final ClusterDAO clusterDAO;
+    private final EnvironDAO environDAO;
+    private final GroupDAO groupDAO;
     private final HostDAO hostDAO;
+    private final DataHandler dataHandler;
     private final AwsConfigManager awsConfigManager;
-    private final ClusterMappingHandler clusterMappingHandler;
     private final ServiceContext serviceContext;
 
     public ClusterHandler(ServiceContext serviceContext) {
         this.agentDAO = serviceContext.getAgentDAO();
         this.clusterDAO = serviceContext.getClusterDAO();
+        this.environDAO = serviceContext.getEnvironDAO();
+        this.groupDAO = serviceContext.getGroupDAO();
         this.hostDAO = serviceContext.getHostDAO();
+        this.dataHandler = new DataHandler(serviceContext);
         this.awsConfigManager = serviceContext.getAwsConfigManager();
-        this.clusterMappingHandler = new ClusterMappingHandler(serviceContext);
         this.serviceContext = serviceContext;
     }
 
@@ -67,59 +74,91 @@ public class ClusterHandler {
         }
     }
 
-    public void createCluster(ClusterBean clusterBean) throws Exception {
-        String clusterName = clusterBean.getCluster_name();
-        if (clusterBean.getProvider() == CloudProvider.AWS) {
-            LOG.info(String.format("Start to create AWS VM cluster for %s", clusterName));
-            AwsVmBean awsVmBean = clusterMappingHandler.mappingToDefaultAwsVmBean(clusterBean);
-            ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-            clusterManager.createCluster(clusterName, awsVmBean);
-        }
-
+    public void createCluster(String envName, String stageName, ClusterBean clusterBean) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
+        clusterBean.setCluster_name(clusterName);
         clusterBean.setLast_update(System.currentTimeMillis());
+
+        ClusterManager clusterManager = createClusterManager(clusterBean.getProvider());
+        clusterManager.createCluster(clusterName, clusterBean);
+
         clusterDAO.insert(clusterBean);
+        EnvironBean environBean = environDAO.getByStage(envName, stageName);
+        groupDAO.addGroupCapacity(environBean.getEnv_id(), clusterName);
     }
 
-    public void updateCluster(String clusterName, ClusterBean clusterBean) throws Exception {
-        if (clusterBean.getProvider() == CloudProvider.AWS) {
-            LOG.info(String.format("Start to update AWS VM cluster for %s", clusterName));
-            ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-            AwsVmBean patchBean = (AwsVmBean) clusterManager.getCluster(clusterName);
-            AwsVmBean awsVmBean = clusterMappingHandler.mappingToAwsVmBean(clusterBean, patchBean);
-            clusterManager.updateCluster(clusterName, awsVmBean);
-        }
-
+    public void updateCluster(String envName, String stageName, ClusterBean clusterBean) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
+        clusterBean.setCluster_name(clusterName);
         clusterBean.setLast_update(System.currentTimeMillis());
+
+        ClusterManager clusterManager = createClusterManager(clusterBean.getProvider());
+        clusterManager.updateCluster(clusterName, clusterBean);
+
         clusterDAO.update(clusterName, clusterBean);
     }
 
-    public ClusterBean getCluster(String clusterName) throws Exception {
-        return clusterDAO.getByClusterName(clusterName);
-    }
-
-    public void deleteCluster(String clusterName) throws Exception {
+    public ClusterBean getCluster(String envName, String stageName) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
         ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
-        if (clusterBean.getProvider() == CloudProvider.AWS) {
-            LOG.info(String.format("Start to delete AWS VM cluster %s", clusterName));
-            ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-            clusterManager.deleteCluster(clusterName);
+        if (clusterBean == null) {
+            return null;
         }
 
-        clusterDAO.delete(clusterName);
+        //TODO return clusterBean directly
+        if (StringUtils.isNotEmpty(clusterBean.getConfig_id())) {
+            return clusterBean;
+        }
+
+        ClusterManager clusterManager = createClusterManager(clusterBean.getProvider());
+        return clusterManager.getCluster(clusterName);
     }
 
-    public void launchHosts(String clusterName, int num) throws Exception {
+    public void deleteCluster(String envName, String stageName) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
+        ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
+
+        ClusterManager clusterManager = createClusterManager(clusterBean.getProvider());
+        clusterManager.deleteCluster(clusterName);
+
+        clusterDAO.delete(clusterName);
+        EnvironBean environBean = environDAO.getByStage(envName, stageName);
+        groupDAO.removeGroupCapacity(environBean.getEnv_id(), clusterName);
+    }
+
+    public String updateAdvancedConfigs(String envName, String stageName, Map<String, String> configs, String operator) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
+        ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
+        if (clusterBean == null || clusterBean.getConfig_id() == null) {
+            return dataHandler.insertMap(configs, operator);
+        }
+
+        String configId = clusterBean.getConfig_id();
+        if (configId != null) {
+            dataHandler.updateMap(configId, configs, operator);
+        }
+        return configId;
+    }
+
+    public Map<String, String> getAdvancedConfigs(String envName, String stageName) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
+        ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
+        if (clusterBean == null) {
+            return Collections.emptyMap();
+        }
+        return dataHandler.getMapById(clusterBean.getConfig_id());
+    }
+
+    public void launchHosts(String envName, String stageName, int num) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
         if (num <= 0) {
             LOG.error(String.format("Failed to launch %d hosts to auto scaling group %s: number cannot be negative", num, clusterName));
             throw new Exception(String.format("Failed to launch %d hosts to auto scaling group %s: number cannot be negative", num, clusterName));
         }
 
         ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
-        if (clusterBean.getProvider() == CloudProvider.AWS) {
-            LOG.info(String.format("Start to launch %d AWS VM hosts to cluster %s", num, clusterName));
-            ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-            clusterManager.launchHosts(clusterName, num);
-        }
+        ClusterManager clusterManager = createClusterManager(clusterBean.getProvider());
+        clusterManager.launchHosts(clusterName, num);
 
         ClusterBean newBean = new ClusterBean();
         newBean.setCapacity(clusterBean.getCapacity() + num);
@@ -127,8 +166,9 @@ public class ClusterHandler {
         clusterDAO.update(clusterName, newBean);
     }
 
-    public void stopHosts(String clusterName, Collection<String> hostIds) throws Exception {
-        LOG.info(String.format("Start to stop AWS VM hosts %s from cluster %s", hostIds.toString(), clusterName));
+    public void stopHosts(String envName, String stageName, Collection<String> hostIds) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
+        LOG.info(String.format("Start to gracefully shutdown hosts %s in cluster %s", hostIds.toString(), clusterName));
         for (String hostId : hostIds) {
             AgentBean agentBean = new AgentBean();
             agentBean.setState(AgentState.STOP);
@@ -142,13 +182,15 @@ public class ClusterHandler {
         }
     }
 
-    public void terminateHosts(String clusterName, Collection<String> hostIds) throws Exception {
-        Collection<String> hostIdsToTerminate = new ArrayList<>(hostIds);
+    public void terminateHosts(String envName, String stageName, Collection<String> hostIds) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
+        terminateHostsByClusterName(clusterName, hostIds);
+    }
 
-        // TODO remove provider check until fully migrate group to cmp
-        LOG.info(String.format("Start to replace AWS VM hosts %s from cluster %s", hostIdsToTerminate.toString(), clusterName));
+    public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds) throws Exception {
+        // TODO based on provider to create different factory
         ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-        clusterManager.terminateHosts(clusterName, hostIdsToTerminate, true);
+        clusterManager.terminateHosts(clusterName, hostIds, true);
 
         for (String hostId : hostIds) {
             HostBean hostBean = new HostBean();
@@ -158,86 +200,12 @@ public class ClusterHandler {
         }
     }
 
-    public Collection<String> getHosts(String clusterName, Collection<String> hostIds) throws Exception {
-        if (hostIds.isEmpty()) {
-            return hostDAO.getHostNamesByGroup(clusterName);
-        }
-        
-        ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-        return clusterManager.getHosts(clusterName, hostIds);
+    public Collection<String> getHostNames(String envName, String stageName) throws Exception {
+        String clusterName = getClusterName(envName, stageName);
+        return hostDAO.getHostNamesByGroup(clusterName);
     }
 
-    public ClusterBean createAwsVmCluster(AwsVmBean advancedBean) throws Exception {
-        String clusterName = advancedBean.getClusterName();
-        ClusterBean clusterBean = new ClusterBean();
-        clusterBean.setCluster_name(clusterName);
-        clusterBean.setCapacity(advancedBean.getMaxSize());
-        clusterBean.setBase_image_id(advancedBean.getImage());
-        clusterBean.setHost_type_id(advancedBean.getHostType());
-        clusterBean.setSecurity_zone_id(advancedBean.getSecurityZone());
-        clusterBean.setPlacement_id(advancedBean.getSubnet());
-        clusterBean.setProvider(CloudProvider.AWS);
-        clusterBean.setLast_update(System.currentTimeMillis());
-
-        LOG.info(String.format("Start to create advanced AWS VM cluster for %s", clusterName));
-        AwsVmBean awsVmBean = clusterMappingHandler.mappingToDefaultAwsVmBean(clusterBean);
-        if (StringUtils.isNotEmpty(advancedBean.getRole())) {
-            awsVmBean.setRole(advancedBean.getRole());
-        }
-
-        if (advancedBean.getUserDataConfigs() != null && !advancedBean.getUserDataConfigs().isEmpty()) {
-            awsVmBean.setUserDataConfigs(advancedBean.getUserDataConfigs());
-        }
-
-        if (advancedBean.getAssignPublicIp()) {
-            awsVmBean.setAssignPublicIp(advancedBean.getAssignPublicIp());
-        }
-
-        ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-        clusterManager.createCluster(clusterName, awsVmBean);
-        clusterDAO.insert(clusterBean);
-        return clusterBean;
-    }
-
-    public ClusterBean updateAwsVmCluster(String clusterName, AwsVmBean advancedBean) throws Exception {
-        ClusterBean clusterBean = new ClusterBean();
-        clusterBean.setCluster_name(clusterName);
-        clusterBean.setCapacity(advancedBean.getMaxSize());
-        clusterBean.setBase_image_id(advancedBean.getImage());
-        clusterBean.setHost_type_id(advancedBean.getHostType());
-        clusterBean.setSecurity_zone_id(advancedBean.getSecurityZone());
-        clusterBean.setPlacement_id(advancedBean.getSubnet());
-        clusterBean.setProvider(CloudProvider.AWS);
-        clusterBean.setLast_update(System.currentTimeMillis());
-
-        LOG.info(String.format("Start to update advanced AWS VM cluster for %s", clusterName));
-        ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-        AwsVmBean patchBean = (AwsVmBean) clusterManager.getCluster(clusterName);
-        AwsVmBean awsVmBean = clusterMappingHandler.mappingToAwsVmBean(clusterBean, patchBean);
-        if (StringUtils.isNotEmpty(advancedBean.getRole())) {
-            awsVmBean.setRole(advancedBean.getRole());
-        }
-
-        if (advancedBean.getUserDataConfigs() != null && !advancedBean.getUserDataConfigs().isEmpty()) {
-            awsVmBean.setUserDataConfigs(advancedBean.getUserDataConfigs());
-        }
-
-        if (advancedBean.getAssignPublicIp()) {
-            awsVmBean.setAssignPublicIp(advancedBean.getAssignPublicIp());
-        }
-
-        clusterManager.updateCluster(clusterName, awsVmBean);
-        clusterBean.setLast_update(System.currentTimeMillis());
-        clusterDAO.update(clusterName, clusterBean);
-        return clusterBean;
-    }
-
-    public AwsVmBean getAwsVmCluster(String clusterName) throws Exception {
-        ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-        Object clusterBean = clusterManager.getCluster(clusterName);
-        if (clusterBean == null) {
-            return null;
-        }
-        return (AwsVmBean) clusterBean;
+    private String getClusterName(String envName, String stageName) {
+        return String.format("%s-%s", envName, stageName);
     }
 }

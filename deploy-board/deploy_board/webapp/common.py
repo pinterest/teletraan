@@ -16,7 +16,8 @@
 """Some common functions
 """
 import logging
-from helpers import environs_helper, deploys_helper, builds_helper
+from helpers import environs_helper, deploys_helper, builds_helper, clusters_helper
+from deploy_board.settings import IS_PINTEREST
 
 DEFAULT_BUILD_SIZE = 30
 DEFAULT_COMMITS_SIZE = 30
@@ -192,3 +193,17 @@ def clone_from_stage_name(request, env_name, stage_name, from_env_name, from_sta
         environs_helper.update_env_promotes_config(request, env_name, stage_name, promotes_configs)
 
     return new_stage
+
+
+def get_cluster_name(name, stage):
+    return '{}-{}'.format(name, stage)
+
+
+def get_non_cmp_group(request, name, stage):
+    groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
+    if IS_PINTEREST:
+        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+        if basic_cluster_info:
+            cluster_name = get_cluster_name(name, stage)
+            groups.remove(cluster_name)
+    return groups

@@ -181,7 +181,9 @@ class EnvLandingView(View):
         groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
         metrics = environs_helper.get_env_metrics_config(request, name, stage)
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
-        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+        basic_cluster_info = None
+        if IS_PINTEREST:
+            basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -665,14 +667,7 @@ def get_builds(request, name, stage):
 
 
 def get_groups(request, name, stage):
-    groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
-
-    # Hide cluster group info
-    basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-    if basic_cluster_info:
-        cluster_name = '{}-{}'.format(name, stage)
-        groups.remove(cluster_name)
-
+    groups = common.get_non_cmp_group(request, name, stage)
     html = render_to_string('groups/simple_groups.tmpl', {
         "groups": groups,
     })

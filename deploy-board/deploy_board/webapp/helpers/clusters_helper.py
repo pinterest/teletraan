@@ -37,24 +37,17 @@ def delete_cluster(request, env_name, stage_name):
     return deploy_client.delete("/envs/%s/%s/clusters" % (env_name, stage_name), request.teletraan_user_id.token)
 
 
-def create_advanced_cluster(request, env_name, stage_name, provider, cluster_info):
-    return deploy_client.post("/envs/%s/%s/clusters/provider/%s" % (env_name, stage_name, provider),
-                              request.teletraan_user_id.token, data=cluster_info)
+def update_advanced_configs(request, env_name, stage_name, configs):
+    return deploy_client.put("/envs/%s/%s/clusters/configs" % (env_name, stage_name), request.teletraan_user_id.token,
+                             data=configs)
 
 
-def update_advanced_cluster(request, env_name, stage_name, provider, cluster_info):
-    return deploy_client.put("/envs/%s/%s/clusters/provider/%s" % (env_name, stage_name, provider),
-                             request.teletraan_user_id.token, data=cluster_info)
+def get_advanced_configs(request, env_name, stage_name):
+    return deploy_client.get("/envs/%s/%s/clusters/configs" % (env_name, stage_name), request.teletraan_user_id.token)
 
 
-def get_advanced_cluster(request, env_name, stage_name, provider):
-    return deploy_client.get("/envs/%s/%s/clusters/provider/%s" % (env_name, stage_name, provider),
-                             request.teletraan_user_id.token)
-
-
-def get_hosts(request, env_name, stage_name, host_ids):
-    return deploy_client.get("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
-                             data=host_ids)
+def get_host_names(request, env_name, stage_name):
+    return deploy_client.get("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token)
 
 
 def launch_hosts(request, env_name, stage_name, num):

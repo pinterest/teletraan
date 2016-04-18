@@ -20,7 +20,7 @@ import com.pinterest.clusterservice.bean.ClusterBean;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class DefaultClusterManager implements ClusterManager<ClusterBean> {
+public class DefaultClusterManager implements ClusterManager {
     @Override
     public void createCluster(String clusterName, ClusterBean bean) throws Exception {
     }

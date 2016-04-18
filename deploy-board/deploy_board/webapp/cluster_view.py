@@ -301,77 +301,51 @@ def parse_configs(query_dict):
 
 def create_cluster(request, name, stage):
     params = request.POST
-    cluster_name = '{}-{}'.format(name, stage)
-    adv_cluster_info = {}
-    if 'assignPublicIp' in params:
-        adv_cluster_info['assignPublicIp'] = True
-
-    if 'role' in params and params['role'] != '':
-        adv_cluster_info['role'] = params['role']
+    cluster_info = {}
+    cluster_info['capacity'] = params['capacity']
+    cluster_info['base_image_id'] = params['baseImageId']
+    cluster_info['provider'] = params['provider']
+    cluster_info['host_type_id'] = params['hostTypeId']
+    cluster_info['security_zone_id'] = params['securityZoneId']
+    cluster_info['placement_id'] = ",".join(params.getlist('placementId'))
 
     user_data_configs = parse_configs(params)
-    if user_data_configs:
-        adv_cluster_info['userDataConfigs'] = user_data_configs
+    if 'assignPublicIp' in params:
+        user_data_configs['cmp_public_ip'] = 'yes'
 
-    if adv_cluster_info:
-        adv_cluster_info['clusterName'] = cluster_name
-        adv_cluster_info['image'] = params['baseImageId']
-        adv_cluster_info['hostType'] = params['hostTypeId']
-        adv_cluster_info['securityZone'] = params['securityZoneId']
-        adv_cluster_info['minSize'] = params['capacity']
-        adv_cluster_info['maxSize'] = params['capacity']
-        adv_cluster_info['subnet'] = ",".join(params.getlist('placementId'))
-        if 'assignPublicIp' not in params:
-            adv_cluster_info['assignPublicIp'] = False
-        clusters_helper.create_advanced_cluster(request, name, stage, params['provider'], adv_cluster_info)
+    if 'role' in params and params['role'] != '':
+        user_data_configs['cmp_role'] = params['role']
     else:
-        cluster_info = {}
-        cluster_info['cluster_name'] = cluster_name
-        cluster_info['capacity'] = params['capacity']
-        cluster_info['base_image_id'] = params['baseImageId']
-        cluster_info['provider'] = params['provider']
-        cluster_info['host_type_id'] = params['hostTypeId']
-        cluster_info['security_zone_id'] = params['securityZoneId']
-        cluster_info['placement_id'] = ",".join(params.getlist('placementId'))
-        clusters_helper.create_cluster(request, name, stage, cluster_info)
+        user_data_configs['cmp_role'] = 'base'
+
+    config_id = clusters_helper.update_advanced_configs(request, name, stage, user_data_configs)
+    cluster_info['config_id'] = config_id
+    clusters_helper.create_cluster(request, name, stage, cluster_info)
     return get_basic_cluster(request, name, stage)
 
 
 def update_cluster(request, name, stage):
     params = request.POST
-    cluster_name = '{}-{}'.format(name, stage)
-    adv_cluster_info = {}
-    if 'assignPublicIp' in params:
-        adv_cluster_info['assignPublicIp'] = True
-
-    if 'role' in params:
-        adv_cluster_info['role'] = params['role']
+    cluster_info = {}
+    cluster_info['capacity'] = params['capacity']
+    cluster_info['base_image_id'] = params['baseImageId']
+    cluster_info['provider'] = params['provider']
+    cluster_info['host_type_id'] = params['hostTypeId']
+    cluster_info['security_zone_id'] = params['securityZoneId']
+    cluster_info['placement_id'] = ",".join(params.getlist('placementId'))
+    cluster_info['config_id'] = params['configId']
 
     user_data_configs = parse_configs(params)
-    if user_data_configs:
-        adv_cluster_info['userDataConfigs'] = user_data_configs
+    if 'assignPublicIp' in params:
+        user_data_configs['cmp_public_ip'] = 'yes'
 
-    if adv_cluster_info:
-        adv_cluster_info['clusterName'] = cluster_name
-        adv_cluster_info['image'] = params['baseImageId']
-        adv_cluster_info['hostType'] = params['hostTypeId']
-        adv_cluster_info['securityZone'] = params['securityZoneId']
-        adv_cluster_info['minSize'] = params['capacity']
-        adv_cluster_info['maxSize'] = params['capacity']
-        adv_cluster_info['subnet'] = ",".join(params.getlist('placementId'))
-        if 'assignPublicIp' not in params:
-            adv_cluster_info['assignPublicIp'] = False
-        clusters_helper.update_advanced_cluster(request, name, stage, params['provider'], adv_cluster_info)
-    else:
-        cluster_info = {}
-        cluster_info['cluster_name'] = cluster_name
-        cluster_info['capacity'] = params['capacity']
-        cluster_info['base_image_id'] = params['baseImageId']
-        cluster_info['provider'] = params['provider']
-        cluster_info['host_type_id'] = params['hostTypeId']
-        cluster_info['security_zone_id'] = params['securityZoneId']
-        cluster_info['placement_id'] = ",".join(params.getlist('placementId'))
-        clusters_helper.update_cluster(request, name, stage, cluster_info)
+    if 'role' in params and params['role'] != '':
+        user_data_configs['cmp_role'] = params['role']
+
+    if user_data_configs:
+        clusters_helper.update_advanced_configs(request, name, stage, user_data_configs)
+
+    clusters_helper.update_cluster(request, name, stage, cluster_info)
     return get_basic_cluster(request, name, stage)
 
 
@@ -396,15 +370,12 @@ def get_cluster(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
     basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-    hosts_in_clusters = clusters_helper.get_hosts(request, env['envName'], env['stageName'], [])
-    host_ids = ','.join(hosts_in_clusters)
 
     return render(request, 'clusters/clusters.html', {
         'env': env,
         'stages': stages,
         'provider_list': provider_list,
         'basic_cluster_info': basic_cluster_info,
-        'host_ids': host_ids,
     })
 
 
@@ -419,16 +390,21 @@ def get_advanced_cluster(request):
     adv = int(params['adv'])
     name = params['env']
     stage = params['stage']
-    cluster_name = '{}-{}'.format(name, stage)
     advanced_cluster_info = None
-
-    if adv and provider == PROVIDER_AWS:
-        advanced_cluster_info = clusters_helper.get_advanced_cluster(request, name, stage, provider)
-        if not advanced_cluster_info:
-            advanced_cluster_info = {}
-            advanced_cluster_info['clusterName'] = cluster_name
+    if adv == 1 and provider == PROVIDER_AWS:
+        advanced_cluster_info = {}
+        config_maps = clusters_helper.get_advanced_configs(request, name, stage)
+        if config_maps:
+            if config_maps.get('cmp_role'):
+                advanced_cluster_info['role'] = config_maps.get('cmp_role')
+                config_maps.pop('cmp_role', None)
+            if config_maps.get('cmp_public_ip') == 'yes':
+                advanced_cluster_info['assignPublicIp'] = True
+                config_maps.pop('cmp_public_ip', None)
+            if config_maps:
+                advanced_cluster_info['userDataConfigs'] = config_maps
+        else:
             advanced_cluster_info['role'] = 'base'
-
     contents = render_to_string('clusters/get_advanced_config.tmpl', {
         'provider': provider,
         'advanced_cluster_info': advanced_cluster_info,

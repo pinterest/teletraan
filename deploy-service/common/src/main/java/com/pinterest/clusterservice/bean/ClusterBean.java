@@ -30,6 +30,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * host_type_id         VARCHAR(22),
  * security_zone_id     VARCHAR(22),
  * placement_id         VARCHAR(22),
+ * config_id            VARCHAR(22),
  * provider             VARCHAR(64),
  * last_update          BIGINT(20)      NOT NULL,
  * PRIMARY KEY (cluster_name)
@@ -44,6 +45,7 @@ public class ClusterBean implements Updatable {
     private String host_type_id;
     private String security_zone_id;
     private String placement_id;
+    private String config_id;
     private CloudProvider provider;
     private Long last_update;
 
@@ -95,6 +97,14 @@ public class ClusterBean implements Updatable {
         this.placement_id = placement_id;
     }
 
+    public String getConfig_id() {
+        return config_id;
+    }
+
+    public void setConfig_id(String config_id) {
+        this.config_id = config_id;
+    }
+
     public CloudProvider getProvider() {
         return provider;
     }
@@ -120,6 +130,7 @@ public class ClusterBean implements Updatable {
         clause.addColumn("host_type_id", host_type_id);
         clause.addColumn("security_zone_id", security_zone_id);
         clause.addColumn("placement_id", placement_id);
+        clause.addColumn("config_id", config_id);
         clause.addColumn("provider", provider);
         clause.addColumn("last_update", last_update);
         return clause;
