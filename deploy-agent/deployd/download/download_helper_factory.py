@@ -26,10 +26,9 @@ log = logging.getLogger(__name__)
 class DownloadHelperFactory(object):
 
     @staticmethod
-    def gen_downloader(url):
+    def gen_downloader(url, config):
         url_parse = urlparse(url)
         if url_parse.scheme == 's3':
-            config = Config()
             aws_access_key_id = config.get_aws_access_key()
             aws_secret_access_key = config.get_aws_access_secret()
             if aws_access_key_id is None or aws_secret_access_key is None:

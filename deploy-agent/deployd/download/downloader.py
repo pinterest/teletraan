@@ -35,6 +35,7 @@ class Downloader(object):
         self._build_name = env_name
         self._build = build
         self._url = url
+        self._config = config
 
     def _get_extension(self, url):
         return self._matcher.match(url).group('ext')
@@ -53,7 +54,7 @@ class Downloader(object):
             log.info('Create directory {}.'.format(working_dir))
             os.mkdir(working_dir)
 
-        downloader = DownloadHelperFactory.gen_downloader(self._url)
+        downloader = DownloadHelperFactory.gen_downloader(self._url, self._config)
         if downloader:
             status = downloader.download(local_full_fn)
             if status != Status.SUCCEEDED:
@@ -94,9 +95,8 @@ class Downloader(object):
 def main():
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-f', '--config-file', dest='config_file', default=None,
-                        help="the deploy agent conf file filename path. If none, "
-                             "/etc/deployagent.conf will be used")
+    parser.add_argument('-f', '--config-file', dest='config_file', required=False,
+                        help='the deploy agent config file path.')
     parser.add_argument('-v', '--build-version', dest='build', required=True,
                         help="the current deploying build version for the current environment.")
     parser.add_argument('-u', '--url', dest='url', required=True,

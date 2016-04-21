@@ -184,7 +184,7 @@ class Config(object):
 
     # aws specific configuration
     def get_aws_access_key(self):
-        return self.get_var("aws_access_key_id", None)
+        return self.get_var('aws_access_key_id', None)
 
     def get_aws_access_secret(self):
         return self.get_var('aws_secret_access_key', None)
