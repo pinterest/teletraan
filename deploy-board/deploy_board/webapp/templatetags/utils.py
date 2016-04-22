@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -519,14 +519,14 @@ def agentButton(agentStats):
     agent = agentStats.agent
 
     if agent['state'] == "PAUSED_BY_USER" or agent['state'] == "DELETE" \
-        or agent['state'] == "RESET" or agent['state'] == "STOP":
+        or agent['state'] == "RESET":
         return 'btn-info'
 
-    if is_agent_failed(agent):
+    if is_agent_failed(agent) or agent['state'] == 'UNREACHABLE':
         return 'btn-danger'
 
-    if agent['state'] == "UNREACHABLE":
-        return 'btn-danger'
+    if agent['state'] == 'STOP':
+        return 'btn-warning'
 
     # normal state
     if agent['deployStage'] == "SERVING_BUILD" and agentStats.isCurrent:
@@ -557,8 +557,8 @@ def agentIcon(agentStats):
     if agent['state'] == "UNREACHABLE":
         return 'fa-question'
 
-    if agent['state'] == "STOP":
-        return 'fa-stop'
+    if agent['state'] == 'STOP':
+        return 'fa-recycle fa-spin'
 
     # normal state
     if agent['deployStage'] == "SERVING_BUILD" and agentStats.isCurrent:
@@ -572,6 +572,9 @@ def agentIcon(agentStats):
 
 @register.filter("hostButton")
 def hostButton(host):
+    if host['state'] == 'PENDING_TERMINATE' or host['state'] == 'TERMINATING':
+        return 'btn-warning'
+
     return 'btn-default'
 
 

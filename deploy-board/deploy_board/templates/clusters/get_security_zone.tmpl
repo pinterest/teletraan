@@ -20,26 +20,18 @@
 </div>
 
 <script>
-function getSecurityZoneId() {
-    return $("#security_zone option:selected").val();
-}
-
-function loadSecurityZoneDetails(id) {
-    var security_zone_info_url = "/clouds/get_security_zone_info/?id=" + id;
+function loadSecurityZoneDetails() {
+    var security_zone_info_url = "/clouds/get_security_zone_info/";
     $.get(security_zone_info_url, function(response) {
         $("#securityZoneDetailsId").html(response);
     });
 }
 
 $(document).ready(function() {
-    loadSecurityZoneDetails(getSecurityZoneId());
+    loadSecurityZoneDetails();
 });
 
 $(function () {
-    $("#security_zone").change(function() {
-        loadSecurityZoneDetails(getSecurityZoneId());
-    });
-
     $("#securityZoneDetailsButtonId").click(function() {
         $("#showSecurityZoneDetailsId").collapse('toggle');
     });

@@ -1,4 +1,5 @@
 {%load utils %}
+<div class="input-group">
 <select class="form-control" id="image_name" name="imageName" required="true">
 {% for image_name in image_names %}
     {% if curr_image_name and curr_image_name == image_name %}
@@ -8,6 +9,15 @@
     {% endif %}
 {% endfor %}
 </select>
+
+<span class="input-group-btn">
+    <button id="baseImageDetailsButtonId" class="deployToolTip btn btn-default"
+            type="button" data-toggle="tooltip"
+            title="click to see more base image information">
+        <span class="glyphicon glyphicon-question-sign"></span>
+    </button>
+</span>
+</div>
 
 <script>
 function getCurrentName() {
@@ -21,13 +31,26 @@ function loadImageConfig(name) {
     });
 }
 
+function loadImageDetails(name) {
+    var base_image_info_url = "/clouds/get_base_image_info/?name=" + name;
+    $.get(base_image_info_url, function(response) {
+        $("#baseImageDetailsId").html(response);
+    });
+}
+
 $(document).ready(function() {
     loadImageConfig(getCurrentName());
+    loadImageDetails(getCurrentName());
 });
 
 $(function () {
     $("#image_name").change(function() {
         loadImageConfig(getCurrentName());
+        loadImageDetails(getCurrentName());
+    });
+
+    $("#baseImageDetailsButtonId").click(function() {
+        $("#showBaseImageDetailsId").collapse('toggle');
     });
 
     $('#clusterConfigFormId select').change(function() {

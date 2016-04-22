@@ -20,26 +20,18 @@
 </div>
 
 <script>
-function getPlacementId() {
-    return $("#placement_id option:selected").map(function(){ return this.value }).get().join(",");
-}
-
-function loadPlacementDetails(ids_str) {
-    var placement_info_url = "/clouds/get_placement_infos/?ids_str=" + ids_str;
+function loadPlacementDetails() {
+    var placement_info_url = "/clouds/get_placement_infos/";
     $.get(placement_info_url, function(response) {
         $("#placementDetailsId").html(response);
     });
 }
 
 $(document).ready(function() {
-    loadPlacementDetails(getPlacementId());
+    loadPlacementDetails();
 });
 
 $(function () {
-    $("#placement_id").change(function() {
-        loadPlacementDetails(getPlacementId());
-    });
-
     $("#placementDetailsButtonId").click(function() {
         $("#showPlacementDetailsId").collapse('toggle');
     });

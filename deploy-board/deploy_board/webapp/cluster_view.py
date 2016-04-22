@@ -99,10 +99,9 @@ def get_base_images_by_name(request):
 
 
 def get_base_image_info(request):
-    params = request.GET
-    base_image_info = baseimages_helper.get_by_id(request, params['id'])
+    base_images = baseimages_helper.get_by_name(request, request.GET.get('name'))
     contents = render_to_string("clusters/get_base_image_info.tmpl", {
-        'base_image_info': base_image_info,
+        'base_images': base_images,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
@@ -162,12 +161,13 @@ def get_host_types_by_provider(request):
 
 
 def get_host_type_info(request):
-    params = request.GET
-    host_type_info = hosttypes_helper.get_by_id(request, params['id'])
-    if host_type_info.get('mem'):
-        host_type_info['mem'] = float(host_type_info['mem']) / 1024
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    host_types = hosttypes_helper.get_all(request, index, size)
+    for host_type in host_types:
+        host_type['mem'] = float(host_type['mem']) / 1024
     contents = render_to_string("clusters/get_host_type_info.tmpl", {
-        'host_type_info': host_type_info,
+        'host_types': host_types,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
@@ -219,10 +219,11 @@ def get_security_zones_by_provider(request):
 
 
 def get_security_zone_info(request):
-    params = request.GET
-    security_zone_info = securityzones_helper.get_by_id(request, params['id'])
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    security_zones = securityzones_helper.get_all(request, index, size)
     contents = render_to_string("clusters/get_security_zone_info.tmpl", {
-        'security_zone_info': security_zone_info,
+        'security_zones': security_zones,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
@@ -275,15 +276,11 @@ def get_placements_by_provider(request):
 
 
 def get_placement_infos(request):
-    params = request.GET
-    ids_str = params['ids_str']
-    ids = [x.strip() for x in ids_str.split(',')]
-    placement_infos = []
-    for placement_id in ids:
-        info = placements_helper.get_by_id(request, placement_id)
-        placement_infos.append(info)
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    placements = placements_helper.get_all(request, index, size)
     contents = render_to_string("clusters/get_placement_infos.tmpl", {
-        'placement_infos': placement_infos,
+        'placements': placements,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 

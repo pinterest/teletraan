@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -188,6 +188,18 @@ class EnvLandingView(View):
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
+            if IS_PINTEREST:
+                basic_cluster_info = clusters_helper.get_cluster(request, env['envName'], env['stageName'])
+                if basic_cluster_info and basic_cluster_info.get('capacity'):
+                    hosts_in_cluster = clusters_helper.get_host_names(request, env['envName'], env['stageName'])
+                    num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
+                    for i in range(num_to_fake):
+                        faked_host = {}
+                        faked_host['hostName'] = 'UNKNOWN'
+                        faked_host['hostId'] = 'UNKNOWN'
+                        faked_host['state'] = 'PROVISIONED'
+                        provisioning_hosts.append(faked_host)
+
             response = render(request, 'environs/env_landing.html', {
                 "env": env,
                 "env_promote": env_promote,

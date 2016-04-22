@@ -20,26 +20,18 @@
 </div>
 
 <script>
-function getHostTypeId() {
-    return $("#host_type option:selected").val();
-}
-
-function loadHostTypeDetails(id) {
-    var host_type_info_url = "/clouds/get_host_type_info/?id=" + id;
+function loadHostTypeDetails() {
+    var host_type_info_url = "/clouds/get_host_type_info/";
     $.get(host_type_info_url, function(response) {
         $("#hostTypeDetailsId").html(response);
     });
 }
 
 $(document).ready(function() {
-    loadHostTypeDetails(getHostTypeId());
+    loadHostTypeDetails();
 });
 
 $(function () {
-    $("#host_type").change(function() {
-        loadHostTypeDetails(getHostTypeId());
-    });
-
     $("#hostTypeDetailsButtonId").click(function() {
         $("#showHostTypeDetailsId").collapse('toggle');
     });

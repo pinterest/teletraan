@@ -1,13 +1,15 @@
 {% load utils %}
-{% if security_zone_info %}
 <table class="table table-condensed table-striped table-hover">
 <tr>
+    <th class="col-sm-1"><p><i>Name</p></i></th>
     <th class="col-sm-1"><p><i>Id</p></i></th>
     <th class="col-sm-9"><p><i>Description</p></i></th>
 </tr>
+{% for security_zone_info in security_zones %}
 <tr>
+    <td><p><i>{{ security_zone_info.abstract_name }}</p></i></td>
     <td><p><i>{{ security_zone_info.provider_name }}</p></i></td>
     <td><p><i>{{ security_zone_info.description }}</p></i></td>
 </tr>
+{% endfor %}
 </table>
-{% endif %}

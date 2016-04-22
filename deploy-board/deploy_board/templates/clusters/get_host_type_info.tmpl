@@ -1,19 +1,21 @@
 {% load utils %}
-{% if host_type_info %}
 <table class="table table-condensed table-striped table-hover">
 <tr>
+    <th class="col-sm-1"><p><i>Name</p></i></th>
     <th class="col-sm-1"><p><i>Id</p></i></th>
     <th class="col-sm-1"><p><i>Cores</p></i></th>
     <th class="col-sm-1"><p><i>Memory (GB)</p></i></th>
     <th class="col-sm-2"><p><i>Storage</p></i></th>
     <th class="col-sm-5"><p><i>Description</p></i></th>
 </tr>
+{% for host_type_info in host_types %}
 <tr>
+    <td><p><i>{{ host_type_info.abstract_name }}</p></i></td>
     <td><p><i>{{ host_type_info.provider_name }}</p></i></td>
     <td><p><i>{{ host_type_info.core }}</p></i></td>
     <td><p><i>{{ host_type_info.mem }}</p></i></td>
     <td><p><i>{{ host_type_info.storage }}</p></i></td>
     <td><p><i>{{ host_type_info.description }}</p></i></td>
 </tr>
+{% endfor %}
 </table>
-{% endif %}

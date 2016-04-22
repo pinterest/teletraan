@@ -1,5 +1,4 @@
 {%load utils %}
-<div class="input-group">
 <select class="form-control" id="base_image" name="baseImageId" required="true">
 {% for base_image in base_images %}
     {% if curr_base_image and curr_base_image == base_image.id %}
@@ -10,40 +9,12 @@
 {% endfor %}
 </select>
 
-<span class="input-group-btn">
-    <button id="baseImageDetailsButtonId" class="deployToolTip btn btn-default"
-            type="button" data-toggle="tooltip"
-            title="click to see more base image information">
-        <span class="glyphicon glyphicon-question-sign"></span>
-    </button>
-</span>
-</div>
-
 <script>
 function getBaseImageId() {
     return $("#base_image option:selected").val();
 }
 
-function loadImageDetails(id) {
-    var base_image_info_url = "/clouds/get_base_image_info/?id=" + id;
-    $.get(base_image_info_url, function(response) {
-        $("#baseImageDetailsId").html(response);
-    });
-}
-
-$(document).ready(function() {
-    loadImageDetails(getBaseImageId());
-});
-
 $(function () {
-    $("#base_image").change(function() {
-        loadImageDetails(getBaseImageId());
-    });
-
-    $("#baseImageDetailsButtonId").click(function() {
-        $("#showBaseImageDetailsId").collapse('toggle');
-    });
-
     $('#clusterConfigFormId select').change(function() {
         $('#saveClusterConfigBtnId').removeAttr('disabled');
         $('#resetClusterConfigBtnId').removeAttr('disabled');
