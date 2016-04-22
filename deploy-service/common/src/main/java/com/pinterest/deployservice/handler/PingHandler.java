@@ -439,11 +439,12 @@ public class PingHandler {
         } else {
             goal.setDeployId(deployId);
         }
-        goal.setDeployType(envBean.getDeploy_type());
 
+        goal.setDeployType(envBean.getDeploy_type());
         goal.setEnvId(envBean.getEnv_id());
         goal.setEnvName(envBean.getEnv_name());
         goal.setStageName(envBean.getStage_name());
+        goal.setIsDocker(envBean.getIs_docker());
 
         // TODO optimize the next stage here based on deploy ( some deploy does not have all the stages )
         DeployStage deployStage = updateBean.getDeploy_stage();

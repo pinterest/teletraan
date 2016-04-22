@@ -122,6 +122,8 @@ public class ClusterHandler {
         clusterManager.deleteCluster(clusterName);
 
         clusterDAO.delete(clusterName);
+        dataHandler.deleteData(clusterBean.getConfig_id());
+
         EnvironBean environBean = environDAO.getByStage(envName, stageName);
         groupDAO.removeGroupCapacity(environBean.getEnv_id(), clusterName);
     }

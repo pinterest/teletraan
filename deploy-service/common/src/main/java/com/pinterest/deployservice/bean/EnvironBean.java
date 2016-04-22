@@ -47,10 +47,11 @@ import java.io.Serializable;
  * email_recipients VARCHAR(1024),
  * watch_recipients VARCHAR(1024),
  * metrics_config_id VARCHAR(22),
- * alarm_config_id VARCHAR(22),
- * webhooks_config_id VARCHAR(22),
- * max_deploy_num  INT               NOT NULL,
- * max_deploy_day  INT               NOT NULL,
+ * alarm_config_id     VARCHAR(22),
+ * webhooks_config_id  VARCHAR(22),
+ * max_deploy_num      INT           NOT NULL,
+ * max_deploy_day      INT           NOT NULL,
+ * is_docker           TINYINT(1)    DEFAULT 0,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -138,6 +139,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("maxDeployDay")
     private Integer max_deploy_day;
+
+    @JsonProperty("isDocker")
+    private Boolean is_docker;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -355,6 +359,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.max_deploy_day = max_deploy_day;
     }
 
+    public Boolean getIs_docker() {
+        return is_docker;
+    }
+
+    public void setIs_docker(Boolean is_docker) {
+        this.is_docker = is_docker;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -385,6 +397,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("webhooks_config_id", webhooks_config_id);
         clause.addColumn("max_deploy_num", max_deploy_num);
         clause.addColumn("max_deploy_day", max_deploy_day);
+        clause.addColumn("is_docker", is_docker);
         return clause;
     }
 

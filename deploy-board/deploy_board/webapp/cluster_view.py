@@ -314,10 +314,16 @@ def create_cluster(request, name, stage):
         user_data_configs['cmp_role'] = params['role']
     else:
         user_data_configs['cmp_role'] = 'base'
-
     config_id = clusters_helper.update_advanced_configs(request, name, stage, user_data_configs)
     cluster_info['config_id'] = config_id
     clusters_helper.create_cluster(request, name, stage, cluster_info)
+
+    env_info = {}
+    if 'isDocker' in params:
+        env_info['isDocker'] = True
+    else:
+        env_info['isDocker'] = False
+    environs_helper.update_env_basic_config(request, name, stage, data=env_info)
     return get_basic_cluster(request, name, stage)
 
 
@@ -341,8 +347,14 @@ def update_cluster(request, name, stage):
 
     if user_data_configs:
         clusters_helper.update_advanced_configs(request, name, stage, user_data_configs)
-
     clusters_helper.update_cluster(request, name, stage, cluster_info)
+
+    env_info = {}
+    if 'isDocker' in params:
+        env_info['isDocker'] = True
+    else:
+        env_info['isDocker'] = False
+    environs_helper.update_env_basic_config(request, name, stage, data=env_info)
     return get_basic_cluster(request, name, stage)
 
 

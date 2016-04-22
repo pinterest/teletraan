@@ -31,6 +31,7 @@ public class DeployGoalBean {
     private Map<String, String> agentConfigs;
     private Map<String, String> scriptVariables;
     private Boolean firstDeploy;
+    private Boolean isDocker;
 
     public String getDeployId() {
         return deployId;
@@ -114,6 +115,14 @@ public class DeployGoalBean {
 
     public void setDeployType(DeployType deployType) {
         this.deployType = deployType;
+    }
+
+    public Boolean getIsDocker() {
+        return isDocker;
+    }
+
+    public void setIsDocker(Boolean isDocker) {
+        this.isDocker = isDocker;
     }
 
     @Override

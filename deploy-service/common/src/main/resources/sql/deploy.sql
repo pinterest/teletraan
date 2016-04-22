@@ -28,10 +28,11 @@ CREATE TABLE IF NOT EXISTS environs (
     notify_authors   TINYINT(1),
     watch_recipients VARCHAR(1024),
     metrics_config_id VARCHAR(22),
-    alarm_config_id VARCHAR(22),
-    webhooks_config_id VARCHAR(22),
-    max_deploy_num  INT                 NOT NULL,
-    max_deploy_day  INT                 NOT NULL,
+    alarm_config_id     VARCHAR(22),
+    webhooks_config_id  VARCHAR(22),
+    max_deploy_num      INT           NOT NULL,
+    max_deploy_day      INT           NOT NULL,
+    is_docker           TINYINT(1)    NOT NULL DEFAULT 0,
     PRIMARY KEY   (env_id)
 );
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);

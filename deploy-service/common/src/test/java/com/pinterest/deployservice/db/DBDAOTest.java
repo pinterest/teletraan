@@ -1507,6 +1507,7 @@ public class DBDAOTest {
         envBean.setWatch_recipients("watcher");
         envBean.setMax_deploy_num(5100);
         envBean.setMax_deploy_day(366);
+        envBean.setIs_docker(false);
         return envBean;
     }
 
