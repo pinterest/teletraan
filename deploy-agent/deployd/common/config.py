@@ -125,7 +125,7 @@ class Config(object):
                 return self._configs[var_name]
 
             return self._config_reader.get(self._DEFAULT_CONFIG_SECTION, var_name)
-        except Exception:
+        except:
             if default_value is not None:
                 return default_value
             raise DeployConfigException('{} cannot be found.'.format(var_name))
