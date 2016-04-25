@@ -363,12 +363,14 @@ def get_basic_cluster(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
     basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+    groups = common.get_non_cmp_group(request, name, stage)
 
     html = render_to_string('clusters/clusters.tmpl', {
         'env': env,
         'stages': stages,
         'provider_list': provider_list,
         'basic_cluster_info': basic_cluster_info,
+        'groups': groups,
         'csrf_token': get_token(request),
     })
     return HttpResponse(json.dumps(html), content_type="application/json")
@@ -379,18 +381,29 @@ def get_cluster(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
     basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+    groups = common.get_non_cmp_group(request, name, stage)
 
     return render(request, 'clusters/clusters.html', {
         'env': env,
         'stages': stages,
         'provider_list': provider_list,
         'basic_cluster_info': basic_cluster_info,
+        'groups': groups,
     })
 
 
 def delete_cluster(request, name, stage):
     clusters_helper.delete_cluster(request, name, stage)
     return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
+
+
+def replace_cluster(request, name, stage):
+    params = request.POST
+    if 'migrateClusterCheckbox' in params:
+        clusters_helper.migrate_cluster(request, name, stage, params['sourceCluster'])
+    else:
+        clusters_helper.replace_cluster(request, name, stage)
+    return redirect('/env/{}/{}/'.format(name, stage))
 
 
 def get_advanced_cluster(request):

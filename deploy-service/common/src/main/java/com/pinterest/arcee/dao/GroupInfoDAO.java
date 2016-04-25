@@ -30,20 +30,9 @@ public interface GroupInfoDAO {
 
     GroupBean getGroupInfo(String groupName) throws Exception;
 
-    // get all group information in envs_groups but not in the groups table
-    List<String> getNewGroupNames() throws Exception;
-
     List<String> getExistingGroups(long pageIndex, int pageSize) throws Exception;
 
-    List<String> getToUpdateGroups(long after) throws Exception;
-
     List<GroupBean> getGroupInfoByAppName(String appName) throws Exception;
-
-    List<String> getGroupNamesByHostIdAndASGStatus(String hostName, String asgStatus) throws Exception;
-
-    List<String> getGroupNamesByEnvNameAndASGStatus(String envName, String asgStatus) throws Exception;
-
-    List<GroupBean> getGroupsByEnvNameAndASGStauts(String envName, String asgStatus) throws Exception;
 
     List<String> getEnabledHealthCheckGroupNames() throws Exception;
 }

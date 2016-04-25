@@ -38,7 +38,6 @@ public class AwsAutoScalingManager implements AutoScalingManager {
     private static final Logger LOG = LoggerFactory.getLogger(AwsAutoScalingManager.class);
     private static final String PROCESS_ALARMNOTIFICATION = "AlarmNotification";
     private static final String PROCESS_SCHEDULEDACTIONS = "ScheduledActions";
-    private static final String PROCESS_LAUNCH = "Launch";
     private static final String PROCESS_TERMINATE = "Terminate";
     private static final String PROCESS_HEALTHCHECK = "HealthCheck";
     private static final String PROCESS_REPLACEUNHEALTHY = "ReplaceUnhealthy";
@@ -152,15 +151,16 @@ public class AwsAutoScalingManager implements AutoScalingManager {
 
     @Override
     public void disableAutoScalingGroup(String groupName) throws Exception {
-        disableAutoScalingActions(groupName, Arrays.asList(PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS,
-                                                         PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_REPLACEUNHEALTHY));
+        disableAutoScalingActions(groupName, Arrays.asList(PROCESS_ALARMNOTIFICATION,
+                PROCESS_SCHEDULEDACTIONS, AutoScalingConstants.PROCESS_LAUNCH, PROCESS_TERMINATE,
+                PROCESS_REPLACEUNHEALTHY));
     }
 
     @Override
     public void enableAutoScalingGroup(String groupName) throws Exception {
-        enableAutoScalingActions(groupName, Arrays.asList(PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_HEALTHCHECK,
-                    PROCESS_REPLACEUNHEALTHY,
-                    PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS, PROCESS_ADDTOLOADBALANCER));
+        enableAutoScalingActions(groupName, Arrays.asList(AutoScalingConstants.PROCESS_LAUNCH,
+                PROCESS_TERMINATE, PROCESS_HEALTHCHECK, PROCESS_REPLACEUNHEALTHY,
+                PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS, PROCESS_ADDTOLOADBALANCER));
     }
 
     @Override

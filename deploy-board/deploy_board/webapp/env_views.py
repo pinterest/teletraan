@@ -182,8 +182,10 @@ class EnvLandingView(View):
         metrics = environs_helper.get_env_metrics_config(request, name, stage)
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
         basic_cluster_info = None
+        scheduled_cluster_replacement = False
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+            scheduled_cluster_replacement = clusters_helper.is_scheduled_for_cluster_replacement(request, name, stage)
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -211,6 +213,7 @@ class EnvLandingView(View):
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
                 "basic_cluster_info": basic_cluster_info,
+                'scheduled_cluster_replacement': scheduled_cluster_replacement,
                 "pinterest": IS_PINTEREST,
             })
             showMode = 'complete'
@@ -236,6 +239,7 @@ class EnvLandingView(View):
                 "request_feedback": request_feedback,
                 "groups": groups,
                 "basic_cluster_info": basic_cluster_info,
+                'scheduled_cluster_replacement': scheduled_cluster_replacement,
                 "pinterest": IS_PINTEREST,
             })
 

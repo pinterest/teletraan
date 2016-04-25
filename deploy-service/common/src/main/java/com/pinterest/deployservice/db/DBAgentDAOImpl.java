@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.AgentDAO;
@@ -48,7 +49,9 @@ public class DBAgentDAOImpl implements AgentDAO {
         "SELECT * FROM agents WHERE env_id=? AND first_deploy_time>?";
     private static final String GET_BY_IDS =
         "SELECT * FROM agents WHERE host_id=? AND env_id=?";
-    private static final String GET_DEPLOYING_TOTAL =
+    private static final String GET_NOT_SERVING_TOTAL =
+        "SELECT COUNT(*) FROM agents WHERE env_id=? AND deploy_stage!=? AND state!=?";
+    private static final String GET_DEPLOYING_TOTAL_BY_FIRST_DEPLOY =
         "SELECT COUNT(*) FROM agents " +
             "WHERE env_id=? AND deploy_stage!=? AND state!='PAUSED_BY_USER' AND first_deploy=?";
     private static final String GET_FAILED_FIRST_DEPLOY_TOTAL =
@@ -143,6 +146,13 @@ public class DBAgentDAOImpl implements AgentDAO {
     }
 
     @Override
+    public long countNotServingAgent(String envId) throws Exception {
+        Long n = new QueryRunner(dataSource).query(GET_NOT_SERVING_TOTAL, SingleResultSetHandlerFactory.<Long>newObjectHandler(),
+                envId, DeployStage.SERVING_BUILD.toString(), AgentState.PAUSED_BY_USER.toString());
+        return n == null ? 0 : n;
+    }
+
+    @Override
     public long countDeployingAgent(String envId) throws Exception {
         return countDeployingAgentInternal(envId, 0);
     }
@@ -160,7 +170,7 @@ public class DBAgentDAOImpl implements AgentDAO {
     }
 
     private long countDeployingAgentInternal(String envId, int firstDeploy) throws Exception {
-        Long n = new QueryRunner(dataSource).query(GET_DEPLOYING_TOTAL,
+        Long n = new QueryRunner(dataSource).query(GET_DEPLOYING_TOTAL_BY_FIRST_DEPLOY,
                 SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, DeployStage.SERVING_BUILD.toString(), firstDeploy);
         return n == null ? 0 : n;
     }

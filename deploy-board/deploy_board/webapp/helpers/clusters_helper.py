@@ -37,6 +37,20 @@ def delete_cluster(request, env_name, stage_name):
     return deploy_client.delete("/envs/%s/%s/clusters" % (env_name, stage_name), request.teletraan_user_id.token)
 
 
+def migrate_cluster(request, env_name, stage_name, source):
+    params = [('source', source), ('type', 'MIGRATE')]
+    return deploy_client.put("/envs/%s/%s/clusters/replacement" % (env_name, stage_name), request.teletraan_user_id.token, params=params)
+
+
+def replace_cluster(request, env_name, stage_name):
+    params = [('source', ''), ('type', 'REPLACE')]
+    return deploy_client.put("/envs/%s/%s/clusters/replacement" % (env_name, stage_name), request.teletraan_user_id.token, params=params)
+
+
+def is_scheduled_for_cluster_replacement(request, env_name, stage_name):
+    return deploy_client.get("/envs/%s/%s/clusters/replacement" % (env_name, stage_name), request.teletraan_user_id.token)
+
+
 def update_advanced_configs(request, env_name, stage_name, configs):
     return deploy_client.put("/envs/%s/%s/clusters/configs" % (env_name, stage_name), request.teletraan_user_id.token,
                              data=configs)

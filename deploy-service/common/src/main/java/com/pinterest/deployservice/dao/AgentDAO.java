@@ -46,6 +46,8 @@ public interface AgentDAO {
 
     void deleteAllById(String hostId) throws Exception;
 
+    long countNotServingAgent(String envId) throws Exception;
+
     // return how many agents are deploying for this env, regardless of deployId
     long countDeployingAgent(String envId) throws Exception;
 

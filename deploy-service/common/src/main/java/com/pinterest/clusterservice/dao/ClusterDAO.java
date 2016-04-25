@@ -25,6 +25,4 @@ public interface ClusterDAO {
     void delete(String clusterName) throws Exception;
 
     ClusterBean getByClusterName(String clusterName) throws Exception;
-
-    String getProviderByClusterName(String clusterName) throws Exception;
 }

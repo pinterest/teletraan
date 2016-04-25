@@ -1,0 +1,9 @@
+UPDATES
+=================
+ALTER TABLE hosts ADD COLUMN can_retire  TINYINT(1)   NOT NULL DEFAULT 0;
+ALTER TABLE hosts ADD COLUMN can_replace TINYINT(1)   NOT NULL DEFAULT 1;
+
+Rollback
+===========================
+ALTER TABLE hosts DROP COLUMN can_retire;
+ALTER TABLE hosts DROP COLUMN can_replace;

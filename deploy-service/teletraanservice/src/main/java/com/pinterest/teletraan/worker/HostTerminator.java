@@ -60,7 +60,7 @@ public class HostTerminator implements Runnable {
         if (stopSucceeded) {
             LOG.info(String.format("Host %s is stopped. Terminate it.", hostId));
             String clusterName = host.getGroup_name();
-            clusterHandler.terminateHostsByClusterName(clusterName, Collections.singletonList(hostId));
+            clusterHandler.terminateHostsByClusterName(clusterName, Collections.singletonList(hostId), host.getCan_replace());
         }
     }
 

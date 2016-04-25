@@ -30,12 +30,11 @@
             data-toggle="modal" title="Delete Cluster">
             <span class="glyphicon glyphicon-remove-sign"></span> Delete cluster
             </button>
-            <!--- TODO To be implemented
-            <button class="deployToolTip btn btn-default btn-block" data-target="#replaceFleet"
-            data-toggle="modal" title="Replace fleet">
+
+            <button class="deployToolTip btn btn-default btn-block" data-target="#replaceCluster"
+            data-toggle="modal" title="Replace Cluster">
             <span class="glyphicon glyphicon-random"></span> Replace cluster
             </button>
-            -->
         {% endif %}
     </div>
 </div>
@@ -82,4 +81,46 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<!--- replace cluster button dialog-->
+<div class="modal fade" id="replaceCluster" tabindex="-1" role="dialog" aria-labelledby="replaceClusterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form id="replaceClusterFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/config/replace_cluster/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Cluster Replacement Confirm</h4>
+                </div>
+                <div class="modal-body" id="newMetricModal">
+                <div class="alert alert-danger">
+                    Are you sure to <strong>Replace</strong> all hosts in cluster?<br>
+                    {% if groups %}
+                        or <br>
+                        <input type="checkbox" class="checkToChoose" name="migrateClusterCheckbox"> Check to choose a group to migrate to this env
+                        <div class="migrateClusterDiv">
+                        <select class="form-control" name="sourceCluster">
+                        {% for group in groups %}
+                            <option value={{ group }}>{{ group }}</option>
+                        {% endfor %}
+                        </select>
+                        </div>
+                     {% endif %}
+                </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Replace</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script>
+$('input.checkToChoose').change(function(){
+    if ($(this).is(':checked')) $(this).next('div.migrateClusterDiv').show();
+    else $('div.migrateClusterDiv').hide();
+}).change();
+</script>
 {% endblock %}

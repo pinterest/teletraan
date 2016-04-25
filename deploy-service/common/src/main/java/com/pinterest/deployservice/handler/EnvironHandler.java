@@ -402,36 +402,31 @@ public class EnvironHandler {
         // TODO consider to transition and get agent status in one transaction for consistency
         commonHandler.transitionDeployState(envBean.getDeploy_id(), envBean);
         List<AgentBean> agentBeans = agentDAO.getAllByEnv(envBean.getEnv_id());
-
         long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
         Set<String> capacityHosts = new HashSet<>();
         if (capacityTotal > agentBeans.size()) {
-            // we only consider the missing hosts if there is a hint
+            // Capacity hosts = newly provisioned host + agents
             List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
             capacityHosts.addAll(capacityHostList);
         }
 
         DeployProgressBean progress = new DeployProgressBean();
-        List<AgentBean> agents = new ArrayList<>(agentBeans.size());
         for (AgentBean agentBean : agentBeans) {
-            agents.add(agentBean);
-            // yep, we've seen it
             if (!capacityHosts.isEmpty()) {
                 capacityHosts.remove(agentBean.getHost_name());
             }
         }
 
         List<HostBean> newHosts = new ArrayList<>();
-        for (Iterator<String> iterator = capacityHosts.iterator(); iterator.hasNext(); ) {
-            HostBean hostBean = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), iterator.next());
+        for (String hostName : capacityHosts) {
+            HostBean hostBean = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), hostName);
             if (hostBean != null) {
-                iterator.remove();
                 newHosts.add(hostBean);
             }
         }
 
-        progress.setMissingHosts(new ArrayList<>(capacityHosts));
-        progress.setAgents(agents);
+        progress.setMissingHosts(new ArrayList<>(environDAO.getMissingHosts(envBean.getEnv_id())));
+        progress.setAgents(agentBeans);
         progress.setProvisioningHosts(newHosts);
         return progress;
     }
@@ -445,29 +440,6 @@ public class EnvironHandler {
     }
 
     public List<String> getMissingHosts(EnvironBean envBean) throws Exception {
-        List<AgentBean> agentBeans = agentDAO.getAllByEnv(envBean.getEnv_id());
-        long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(),
-                envBean.getStage_name());
-        Set<String> capacityHosts = new HashSet<>();
-        if (capacityTotal > agentBeans.size()) {
-            // we only consider the missing hosts if there is a hint
-            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
-            capacityHosts.addAll(capacityHostList);
-        }
-
-        // Remove hosts agent has seen
-        for (AgentBean agentBean : agentBeans) {
-            if (!capacityHosts.isEmpty()) {
-                capacityHosts.remove(agentBean.getHost_name());
-            }
-        }
-
-        for (Iterator<String> iterator = capacityHosts.iterator(); iterator.hasNext(); ) {
-            HostBean hostBean = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), iterator.next());
-            if (hostBean != null) {
-                iterator.remove();
-            }
-        }
-        return new ArrayList<>(capacityHosts);
+        return new ArrayList<>(environDAO.getMissingHosts(envBean.getEnv_id()));
     }
 }

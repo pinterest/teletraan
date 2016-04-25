@@ -286,6 +286,13 @@
 {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
 {% include "environs/site_health.tmpl" with metricsKind="service" %}
 
+{% if scheduled_cluster_replacement %}
+<div class="alert alert-danger" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> Cluster Replacement is in progress
+</div>
+{% endif %}
+
 {% if messages %}
     {% for message in messages %}
         {% if message.level == 40 %}

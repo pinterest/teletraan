@@ -30,4 +30,6 @@ public class AutoScalingConstants {
     public final static String LIFECYCLE_ACTION_CONTINUE = "CONTINUE";
     public final static String LIFECYCLE_ACTION_ABANDON = "ABANDON";
     public final static long LIFECYCLE_TIMEOUT = 600;
+
+    public static final String PROCESS_LAUNCH = "Launch";
 }
