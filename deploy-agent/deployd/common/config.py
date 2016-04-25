@@ -96,6 +96,8 @@ class Config(object):
             os.environ['STAGE_NAME'] = deploy_status.report.stageName
         if deploy_status.first_deploy:
             os.environ['FIRST_DEPLOY'] = str(deploy_status.first_deploy)
+        if deploy_status.is_docker:
+            os.environ['IS_DOCKER'] = str(deploy_status.is_docker)
         os.environ['TARGET'] = self.get_target()
 
         # export script var to environment

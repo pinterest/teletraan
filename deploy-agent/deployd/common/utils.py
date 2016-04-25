@@ -104,7 +104,7 @@ def run_prereqs(config):
         if respect_puppet and \
            puppet_file_path is not None and \
            not os.path.exists(puppet_file_path):
-            log.info("Waiting for first puppet run.")
+            print("Waiting for first puppet run.")
             sys.exit(0)
 
     ensure_dirs(config)

@@ -106,6 +106,7 @@ class DeployStatus(object):
     first_deploy = None
     op_code = OpCode.NOOP
     script_variables = None
+    is_docker = None
 
     def __init__(self, response=None, json_value=None):
         if response:
@@ -133,8 +134,8 @@ class DeployStatus(object):
         self.report.envName = deploy_goal.envName
         self.report.status = AgentStatus.UNKNOWN
         self.report.stageName = deploy_goal.stageName
-
         self.first_deploy = deploy_goal.firstDeploy
+        self.is_docker = deploy_goal.isDocker
 
         if deploy_goal.build:
             build = deploy_goal.build

@@ -28,6 +28,7 @@ class DeployGoal(object):
         self.config = None
         self.scriptVariables = None
         self.firstDeploy = None
+        self.isDocker = None
 
         if jsonValue:
             self.deployId = jsonValue.get('deployId')
@@ -47,12 +48,13 @@ class DeployGoal(object):
             self.config = jsonValue.get('agentConfigs')
             self.scriptVariables = jsonValue.get('scriptVariables')
             self.firstDeploy = jsonValue.get('firstDeploy')
+            self.isDocker = jsonValue.get('isDocker')
 
     def __str__(self):
         return "DeployGoal(deployId={}, envId={}, envName={}, stageName={}, " \
                "deployStage={}, build={}, deployAlias={}, agentConfig={}," \
-               "scriptVariables={}, firstDeploy={})".format(self.deployId, self.envId, self.envName,
+               "scriptVariables={}, firstDeploy={}, isDocker={})".format(self.deployId, self.envId, self.envName,
                                                             self.stageName, self.deployStage,
                                                             self.build, self.deployAlias,
                                                             self.config, self.scriptVariables,
-                                                            self.firstDeploy)
+                                                            self.firstDeploy, self.isDocker)
