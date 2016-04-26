@@ -18,7 +18,6 @@ package com.pinterest.clusterservice.db;
 import com.pinterest.clusterservice.bean.ClusterBean;
 import com.pinterest.clusterservice.dao.ClusterDAO;
 import com.pinterest.deployservice.bean.SetClause;
-import com.pinterest.deployservice.db.SingleResultSetHandlerFactory;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
@@ -34,8 +33,6 @@ public class DBClusterDAOImpl implements ClusterDAO {
     private static String DELETE_CLUSTER_CONFIG = "DELETE FROM clusters WHERE cluster_name=?";
 
     private static String GET_CLUSTER_CONFIG = "SELECT * FROM clusters WHERE cluster_name=?";
-
-    private static final String GET_PROVIDER_BY_CLUSTERNAME = "SELECT provider FROM clusters WHERE cluster_name=?";
 
     private BasicDataSource dataSource;
 
@@ -67,10 +64,5 @@ public class DBClusterDAOImpl implements ClusterDAO {
     public ClusterBean getByClusterName(String clusterName) throws Exception {
         ResultSetHandler<ClusterBean> h = new BeanHandler<ClusterBean>(ClusterBean.class);
         return new QueryRunner(dataSource).query(GET_CLUSTER_CONFIG, h, clusterName);
-    }
-
-    @Override
-    public String getProviderByClusterName(String clusterName) throws Exception {
-        return new QueryRunner(dataSource).query(GET_PROVIDER_BY_CLUSTERNAME, SingleResultSetHandlerFactory.<String>newObjectHandler(), clusterName);
     }
 }

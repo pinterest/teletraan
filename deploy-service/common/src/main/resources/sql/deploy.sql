@@ -113,6 +113,8 @@ CREATE TABLE IF NOT EXISTS hosts (
     create_date     BIGINT              NOT NULL,
     last_update     BIGINT              NOT NULL,
     state           VARCHAR(32)         NOT NULL,
+    can_retire      TINYINT(1)          NOT NULL DEFAULT 0,
+    can_replace     TINYINT(1)          NOT NULL DEFAULT 1,
     PRIMARY KEY    (host_id, group_name)
 );
 CREATE UNIQUE INDEX rev_group_host_idx ON hosts (group_name, host_name);

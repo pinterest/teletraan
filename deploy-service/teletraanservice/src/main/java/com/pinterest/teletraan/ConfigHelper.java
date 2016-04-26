@@ -349,6 +349,13 @@ public class ConfigHelper {
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled PlacementCapacityUpdater");
             }
+
+            if (workerName.equalsIgnoreCase(ClusterMigrator.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new ClusterMigrator(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled ClusterMigrator");
+            }
         }
     }
 

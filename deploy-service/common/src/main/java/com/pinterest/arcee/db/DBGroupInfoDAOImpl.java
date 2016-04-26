@@ -37,24 +37,9 @@ public class DBGroupInfoDAOImpl implements GroupInfoDAO {
 
     private static final String GET_GROUP_INFO_BY_NAME = "SELECT * FROM groups WHERE group_name=?;";
 
-    private static final String GET_NEW_GROUP_INFO = "SELECT DISTINCT group_name FROM groups_and_envs WHERE group_name NOT IN (SELECT group_name FROM groups)";
-
     private static final String GET_GROUP_NAMES = "SELECT DISTINCT group_name FROM groups LIMIT ?,?;";
 
-    private static final String GET_TO_UPDATE_GROUPS_NAME = "SELECT group_name FROM groups WHERE last_update<?";
-
     private static final String GET_GROUP_INFO_BY_APP_NAME = "SELECT groups.* FROM groups INNER JOIN images ON groups.image_id=images.id WHERE images.app_name=?";
-
-    private static final String GET_GROUPNAMES_BY_HOSTID_AND_ASGSTATUS =
-        "SELECT g.group_name FROM groups g INNER JOIN hosts h ON h.group_name = g.group_name WHERE h.host_id=? AND g.asg_status=?";
-
-    private static final String GET_GROUPNAMES_BY_ENVNAME_AND_ASGSTATUS =
-        "SELECT g.group_name FROM groups g INNER JOIN (SELECT ge.group_name FROM groups_and_envs ge INNER JOIN environs e ON e.env_id = ge.env_id and e.env_name=?)" +
-            " gee ON gee.group_name = g.group_name and g.asg_status=?;";
-
-    private static final String GET_GROUPS_BY_ENVNAME_AND_ASGSTATUS =
-        "SELECT g.* FROM groups g INNER JOIN (SELECT ge.group_name FROM groups_and_envs ge INNER JOIN environs e ON e.env_id = ge.env_id and e.env_name=?)" +
-            " gee ON gee.group_name = g.group_name and g.asg_status=?;";
 
     private static final String GET_ENABLED_HEALTHCHECK_GROUP_NAMES = "SELECT DISTINCT group_name FROM groups WHERE healthcheck_state=1";
 
@@ -104,38 +89,9 @@ public class DBGroupInfoDAOImpl implements GroupInfoDAO {
     }
 
     @Override
-    public List<String> getToUpdateGroups(long after) throws Exception {
-        return new QueryRunner(dataSource).query(GET_TO_UPDATE_GROUPS_NAME,
-                SingleResultSetHandlerFactory.<String>newListObjectHandler(), after);
-    }
-
-    @Override
-    public List<String> getNewGroupNames() throws Exception {
-        return new QueryRunner(dataSource).query(GET_NEW_GROUP_INFO, SingleResultSetHandlerFactory.<String>newListObjectHandler());
-    }
-
-    @Override
     public List<GroupBean> getGroupInfoByAppName(String appName) throws Exception {
         ResultSetHandler<List<GroupBean>> h = new BeanListHandler<GroupBean>(GroupBean.class);
         return new QueryRunner(dataSource).query(GET_GROUP_INFO_BY_APP_NAME, h, appName);
-    }
-
-    @Override
-    public List<String> getGroupNamesByHostIdAndASGStatus(String hostId, String asgStatus) throws Exception {
-        return new QueryRunner(dataSource).query(GET_GROUPNAMES_BY_HOSTID_AND_ASGSTATUS,
-            SingleResultSetHandlerFactory.<String>newListObjectHandler(), hostId, asgStatus);
-    }
-
-    @Override
-    public List<String> getGroupNamesByEnvNameAndASGStatus(String envName, String asgStatus) throws Exception {
-        return new QueryRunner(dataSource).query(GET_GROUPNAMES_BY_ENVNAME_AND_ASGSTATUS,
-            SingleResultSetHandlerFactory.<String>newListObjectHandler(), envName, asgStatus);
-    }
-
-    @Override
-    public List<GroupBean> getGroupsByEnvNameAndASGStauts(String envName, String asgStatus) throws Exception {
-        ResultSetHandler<List<GroupBean>> h = new BeanListHandler<>(GroupBean.class);
-        return new QueryRunner(dataSource).query(GET_GROUPS_BY_ENVNAME_AND_ASGSTATUS, h, envName, asgStatus);
     }
 
     @Override

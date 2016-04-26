@@ -40,14 +40,17 @@ public class DBHostDAOImpl implements HostDAO {
             "host_name=CASE WHEN host_name IS NULL THEN ? WHEN host_name=host_id THEN ? ELSE host_name END, " +
             "ip=CASE WHEN ip IS NULL THEN ? ELSE ip END";
     private static final String DELETE_HOST_BY_ID = "DELETE FROM hosts WHERE host_id=?";
+    private static final String UPDATE_HOST_BY_GROUP = "UPDATE hosts SET %s WHERE group_name=?";
     private static final String REMOVE_HOST_FROM_GROUP = "DELETE FROM hosts WHERE host_id=? AND group_name=?";
     private static final String GET_HOSTS_BY_GROUP = "SELECT * FROM hosts WHERE group_name=? ORDER BY host_name LIMIT ?,?";
     private static final String GET_GROUP_SIZE = "SELECT COUNT(host_id) FROM hosts WHERE group_name=?";
     private static final String GET_ALL_HOSTS_BY_GROUP = "SELECT * FROM hosts WHERE group_name=? AND state!='TERMINATING'";
+    private static final String GET_ACTIVE_AND_RETIRED_HOSTS_BY_GROUP = "SELECT * FROM hosts WHERE group_name=? AND can_retire=1 AND state not in (?, ?)";
     private static final String GET_HOST_BY_NAME = "SELECT * FROM hosts WHERE host_name=?";
     private static final String GET_HOST_BY_HOSTID = "SELECT * FROM hosts WHERE host_id=?";
     private static final String GET_HOSTS_BY_STATES = "SELECT * FROM hosts WHERE state in (?, ?) GROUP BY host_id";
     private static final String GET_GROUP_NAMES_BY_HOST = "SELECT group_name FROM hosts WHERE host_name=?";
+    private static final String GET_RETIRED_GROUP_NAMES = "SELECT DISTINCT group_name FROM hosts WHERE can_retire=1 AND state not in (?, ?)";
     private static final String GET_STALE_ENV_HOST = "SELECT DISTINCT hosts.* FROM hosts INNER JOIN hosts_and_envs ON hosts.host_name=hosts_and_envs.host_name WHERE hosts.last_update<?";
     private static final String GET_HOST_NAMES_BY_GROUP = "SELECT host_name FROM hosts WHERE group_name=?";
     private static final String GET_HOST_IDS_BY_GROUP = "SELECT host_id FROM hosts WHERE group_name=?";
@@ -55,7 +58,6 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_HOST_BY_ENVID_AND_HOSTID = "SELECT DISTINCT e.* FROM hosts e INNER JOIN groups_and_envs ge ON ge.group_name = e.group_name WHERE ge.env_id=? AND e.host_id=?";
     private static final String GET_HOST_BY_ENVID_AND_HOSTNAME1 = "SELECT hs.* FROM hosts hs INNER JOIN groups_and_envs ge ON ge.group_name = hs.group_name WHERE ge.env_id=? AND hs.host_name=?";
     private static final String GET_HOST_BY_ENVID_AND_HOSTNAME2 = "SELECT hs.* FROM hosts hs INNER JOIN hosts_and_envs he ON he.host_name = hs.host_name WHERE he.env_id=? AND he.host_name=?";
-
     private BasicDataSource dataSource;
 
     public DBHostDAOImpl(BasicDataSource dataSource) {
@@ -191,10 +193,25 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
+    public Collection<HostBean> getActiveAndRetiredHostsByGroup(String groupName) throws Exception {
+        ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
+        return new QueryRunner(dataSource).query(GET_ACTIVE_AND_RETIRED_HOSTS_BY_GROUP, h, groupName,
+                HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString());
+    }
+
+    @Override
     public void updateHostById(String id, HostBean bean) throws Exception {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(UPDATE_HOST_BY_ID, setClause.getClause());
         setClause.addValue(id);
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+    }
+
+    @Override
+    public void updateHostByGroup(String groupName, HostBean bean) throws Exception {
+        SetClause setClause = bean.genSetClause();
+        String clause = String.format(UPDATE_HOST_BY_GROUP, setClause.getClause());
+        setClause.addValue(groupName);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
@@ -218,5 +235,11 @@ public class DBHostDAOImpl implements HostDAO {
             return new QueryRunner(dataSource).query(GET_HOST_BY_ENVID_AND_HOSTNAME2, h, envId, hostName);
         }
         return hostBean;
+    }
+
+    @Override
+    public Collection<String> getRetiredGroupNames() throws Exception {
+        return new QueryRunner(dataSource).query(GET_RETIRED_GROUP_NAMES, SingleResultSetHandlerFactory.<String>newListObjectHandler(),
+                HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString());
     }
 }

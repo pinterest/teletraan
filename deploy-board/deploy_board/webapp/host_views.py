@@ -28,11 +28,7 @@ def get_agent_wrapper(request, hostname):
     # gather the env name and stage info
     agents = agents_helper.get_agents_by_host(request, hostname)
     agent_wrappers = []
-    show_force_terminate = False
     for agent in agents:
-        if agent.get('deployStage') == 'STOPPING' or agent.get('deployStage') == 'STOPPED':
-            if is_agent_failed(agent):
-                show_force_terminate = True
         agent_wrapper = {}
         agent_wrapper["agent"] = agent
         envId = agent['envId']
@@ -44,7 +40,7 @@ def get_agent_wrapper(request, hostname):
                                                                    agent_env['stageName'], hostname)
         agent_wrappers.append(agent_wrapper)
 
-    return agent_wrappers, show_force_terminate
+    return agent_wrappers
 
 
 def get_asg_name(request, host):
@@ -71,7 +67,7 @@ class GroupHostDetailView(View):
             if host.get('groupName') == groupname:
                 show_host = host
         asg = get_asg_name(request, show_host)
-        agent_wrappers, show_force_terminate = get_agent_wrapper(request, hostname)
+        agent_wrappers = get_agent_wrapper(request, hostname)
         return render(request, 'hosts/host_details.html', {
                 'group_name': groupname,
                 'hostname': hostname,
@@ -86,10 +82,12 @@ class HostDetailView(View):
     def get(self, request, name, stage, hostname):
         host = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
         show_terminate = get_show_terminate(host)
+        show_force_terminate = False
+        if host and not show_terminate:
+            show_force_terminate = True
         # TODO deprecated it
         asg = get_asg_name(request, host)
-
-        agent_wrappers, show_force_terminate = get_agent_wrapper(request, hostname)
+        agent_wrappers = get_agent_wrapper(request, hostname)
         return render(request, 'hosts/host_details.html', {
             'env_name': name,
             'stage_name': stage,

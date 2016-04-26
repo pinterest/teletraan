@@ -18,6 +18,7 @@ package com.pinterest.clusterservice.cm;
 import com.google.common.base.Joiner;
 
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
+import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.bean.BaseImageBean;
 import com.pinterest.clusterservice.bean.ClusterBean;
@@ -50,7 +51,6 @@ import java.util.Map;
 
 public class AwsVmManager implements ClusterManager {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AwsVmManager.class);
-    private static final String PROCESS_LAUNCH = "Launch";
     private static final String DEFAULT_TERMINATION_POLICY = "Default";
     private static final String ROLE_KEY = "cmp_role";
     private static final String PUBLIC_KEY = "cmp_public_ip";
@@ -140,15 +140,16 @@ public class AwsVmManager implements ClusterManager {
     @Override
     public void terminateHosts(String clusterName, Collection<String> hostIds, boolean replaceHost) throws Exception {
         LOG.info(String.format("Start to terminate AWS hosts %s in cluster %s", hostIds.toString(), clusterName));
-        if (replaceHost) {
+        AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(clusterName);
+        if (replaceHost || (awsVmBean == null)) {
             termianteEC2Hosts(hostIds);
         } else {
-            autoScalingManager.disableAutoScalingActions(clusterName, Collections
-                .singletonList(PROCESS_LAUNCH));
+            autoScalingManager.disableAutoScalingActions(clusterName,
+                    Collections.singletonList(AutoScalingConstants.PROCESS_LAUNCH));
             termianteEC2Hosts(hostIds);
             autoScalingManager.decreaseGroupCapacity(clusterName, hostIds.size());
-            autoScalingManager
-                .enableAutoScalingActions(clusterName, Collections.singletonList(PROCESS_LAUNCH));
+            autoScalingManager.enableAutoScalingActions(clusterName,
+                    Collections.singletonList(AutoScalingConstants.PROCESS_LAUNCH));
         }
     }
 

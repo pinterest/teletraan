@@ -45,9 +45,12 @@ public interface EnvironDAO {
 
     List<String> getOverrideHosts(String envId, String envName, String envStage) throws Exception;
 
+    // Capacity Total = number of newly provisioned hosts + number of agents
     long countTotalCapacity(String envId, String envName, String envStage) throws Exception;
 
     List<String> getTotalCapacityHosts(String envId, String envName, String envStage) throws Exception;
+
+    Collection<String> getMissingHosts(String envId) throws Exception;
 
     List<EnvironBean> getEnvsByHost(String host) throws Exception;
 
@@ -57,5 +60,4 @@ public interface EnvironDAO {
 
     // Return all
     List<String> getAllEnvIds() throws Exception;
-
 }

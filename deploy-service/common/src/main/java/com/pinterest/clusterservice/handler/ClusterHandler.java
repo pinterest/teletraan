@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class ClusterHandler {
@@ -74,6 +75,10 @@ public class ClusterHandler {
         }
     }
 
+    private String getClusterName(String envName, String stageName) {
+        return String.format("%s-%s", envName, stageName);
+    }
+
     public void createCluster(String envName, String stageName, ClusterBean clusterBean) throws Exception {
         String clusterName = getClusterName(envName, stageName);
         clusterBean.setCluster_name(clusterName);
@@ -100,18 +105,7 @@ public class ClusterHandler {
 
     public ClusterBean getCluster(String envName, String stageName) throws Exception {
         String clusterName = getClusterName(envName, stageName);
-        ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
-        if (clusterBean == null) {
-            return null;
-        }
-
-        //TODO return clusterBean directly
-        if (StringUtils.isNotEmpty(clusterBean.getConfig_id())) {
-            return clusterBean;
-        }
-
-        ClusterManager clusterManager = createClusterManager(clusterBean.getProvider());
-        return clusterManager.getCluster(clusterName);
+        return clusterDAO.getByClusterName(clusterName);
     }
 
     public void deleteCluster(String envName, String stageName) throws Exception {
@@ -126,6 +120,32 @@ public class ClusterHandler {
 
         EnvironBean environBean = environDAO.getByStage(envName, stageName);
         groupDAO.removeGroupCapacity(environBean.getEnv_id(), clusterName);
+    }
+
+    public void replaceCluster(String envName, String stageName, String source) throws Exception {
+        HostBean hostBean = new HostBean();
+        hostBean.setCan_retire(true);
+        hostBean.setLast_update(System.currentTimeMillis());
+        if (source == null) {
+            String clusterName = getClusterName(envName, stageName);
+            hostBean.setCan_replace(true);
+            hostDAO.updateHostByGroup(clusterName, hostBean);
+        } else {
+            hostBean.setCan_replace(false);
+            hostDAO.updateHostByGroup(source, hostBean);
+        }
+    }
+
+    public boolean isScheduledForClusterReplacement(String envName, String stageName) throws Exception {
+        Collection<String> retiredGroupNames = hostDAO.getRetiredGroupNames();
+        EnvironBean environBean = environDAO.getByStage(envName, stageName);
+        List<String> clusters = groupDAO.getCapacityGroups(environBean.getEnv_id());
+        for (String clusterName : clusters) {
+            if (retiredGroupNames.contains(clusterName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String updateAdvancedConfigs(String envName, String stageName, Map<String, String> configs, String operator) throws Exception {
@@ -186,13 +206,13 @@ public class ClusterHandler {
 
     public void terminateHosts(String envName, String stageName, Collection<String> hostIds) throws Exception {
         String clusterName = getClusterName(envName, stageName);
-        terminateHostsByClusterName(clusterName, hostIds);
+        terminateHostsByClusterName(clusterName, hostIds, true);
     }
 
-    public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds) throws Exception {
+    public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds, boolean canReplace) throws Exception {
         // TODO based on provider to create different factory
         ClusterManager clusterManager = createClusterManager(CloudProvider.AWS);
-        clusterManager.terminateHosts(clusterName, hostIds, true);
+        clusterManager.terminateHosts(clusterName, hostIds, canReplace);
 
         for (String hostId : hostIds) {
             HostBean hostBean = new HostBean();
@@ -205,9 +225,5 @@ public class ClusterHandler {
     public Collection<String> getHostNames(String envName, String stageName) throws Exception {
         String clusterName = getClusterName(envName, stageName);
         return hostDAO.getHostNamesByGroup(clusterName);
-    }
-
-    private String getClusterName(String envName, String stageName) {
-        return String.format("%s-%s", envName, stageName);
     }
 }

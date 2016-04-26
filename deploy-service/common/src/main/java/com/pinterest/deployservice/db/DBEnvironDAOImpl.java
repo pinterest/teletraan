@@ -61,12 +61,12 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "SELECT COUNT(DISTINCT host_name) FROM (" +
             "SELECT h.host_name FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=? " +
             "UNION DISTINCT " +
-            "SELECT he.host_name FROM hosts_and_envs he WHERE he.env_id=?) x";
+            "SELECT hh.host_name FROM hosts hh INNER JOIN hosts_and_envs he WHERE hh.host_name=he.host_name AND he.env_id=?) x";
     private static final String GET_HOSTS_BY_CAPACITY =
         "SELECT DISTINCT host_name FROM (" +
             "SELECT h.host_name FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=? " +
             "UNION DISTINCT " +
-            "SELECT he.host_name FROM hosts_and_envs he WHERE he.env_id=?) x";
+            "SELECT hh.host_name FROM hosts hh INNER JOIN hosts_and_envs he WHERE hh.host_name=he.host_name AND he.env_id=?) x";
     private static final String GET_OVERRIDE_HOSTS_BY_CAPACITY =
         "SELECT DISTINCT h.host_name FROM hosts h " +
             "INNER JOIN " +
@@ -78,6 +78,7 @@ public class DBEnvironDAOImpl implements EnvironDAO {
             "   ON hes.env_id = e.env_id " +
             "   WHERE e.env_name=? and e.stage_name!=?) hs " +
             "ON h.host_name=hs.host_name";
+    private static final String GET_MISSING_HOSTS = "SELECT * FROM hosts_and_envs he WHERE he.env_id=? AND NOT EXISTS (SELECT 1 FROM hosts h WHERE h.host_name = he.host_name);";
     private static final String GET_CURRENT_DEPLOY_IDS =
         "SELECT deploy_id FROM environs WHERE env_state='NORMAL' AND deploy_id IS NOT NULL";
     private static final String GET_ALL_ENV_IDS =
@@ -179,6 +180,12 @@ public class DBEnvironDAOImpl implements EnvironDAO {
             totalHosts.removeAll(new HashSet<String>(overrideHosts));
         }
         return totalHosts;
+    }
+
+
+    @Override
+    public Collection<String> getMissingHosts(String envId) throws Exception {
+        return new QueryRunner(dataSource).query(GET_MISSING_HOSTS, SingleResultSetHandlerFactory.<String>newListObjectHandler(), envId);
     }
 
     @Override

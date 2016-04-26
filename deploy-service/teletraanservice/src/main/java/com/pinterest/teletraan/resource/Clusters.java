@@ -61,9 +61,14 @@ public class Clusters {
     private final ClusterHandler clusterHandler;
     private final ConfigHistoryHandler configHistoryHandler;
 
-    public enum HostActionType {
+    private enum HostActionType {
         TERMINATE,
         FORCE_TERMINATE
+    }
+
+    private enum ClusterActionType {
+        REPLACE,
+        MIGRATE
     }
 
     public Clusters(TeletraanServiceContext context) {
@@ -121,6 +126,36 @@ public class Clusters {
         String configChange = String.format("delete cluster for %s/%s", envName, stageName);
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_OTHER, configChange, operator);
         LOG.info(String.format("Successfully delete cluster for %s/%s by %s", envName, stageName, operator));
+    }
+
+    @PUT
+    @Path("/replacement")
+    public void replaceCluster(@Context SecurityContext sc,
+                               @PathParam("envName") String envName,
+                               @PathParam("stageName") String stageName,
+                               @QueryParam("type") String type,
+                               @QueryParam("source") String source) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        String operator = sc.getUserPrincipal().getName();
+        ClusterActionType actionType = ClusterActionType.valueOf(ClusterActionType.class, type.toUpperCase());
+        String configChange;
+        if (actionType == ClusterActionType.MIGRATE) {
+            clusterHandler.replaceCluster(envName, stageName, source);
+            configChange = String.format("migrate cluster from %s for %s/%s", source, envName, stageName);
+        } else {
+            clusterHandler.replaceCluster(envName, stageName, null);
+            configChange = String.format("replace cluster for %s/%s", envName, stageName);
+        }
+        LOG.info(String.format("Successfully %s by %s", configChange, operator));
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_OTHER, configChange, operator);
+    }
+
+    @GET
+    @Path("/replacement")
+    public boolean isScheduledForClusterReplacement(@PathParam("envName") String envName,
+                                                    @PathParam("stageName") String stageName) throws Exception {
+        return clusterHandler.isScheduledForClusterReplacement(envName, stageName);
     }
 
     @PUT

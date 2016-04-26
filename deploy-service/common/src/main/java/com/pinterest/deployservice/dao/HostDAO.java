@@ -37,6 +37,8 @@ public interface HostDAO {
 
     void updateHostById(String hostId, HostBean hostBean) throws Exception;
 
+    void updateHostByGroup(String groupName, HostBean bean) throws Exception;
+
     void deleteById(String hostId) throws Exception;
 
     void deleteAllById(String id) throws Exception;
@@ -51,6 +53,8 @@ public interface HostDAO {
 
     List<HostBean> getAllActiveHostsByGroup(String groupName) throws Exception;
 
+    Collection<HostBean> getActiveAndRetiredHostsByGroup(String groupName) throws Exception;
+
     List<HostBean> getHostsByHostId(String hostId) throws Exception;
 
     List<HostBean> getTerminatingHosts() throws Exception;
@@ -62,4 +66,6 @@ public interface HostDAO {
     HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception;
 
     HostBean getByEnvIdAndHostName(String envId, String hostName) throws Exception;
+
+    Collection<String> getRetiredGroupNames() throws Exception;
 }
