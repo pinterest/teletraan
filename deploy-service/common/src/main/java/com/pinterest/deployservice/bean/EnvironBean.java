@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
- *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,10 @@
 package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.pinterest.deployservice.common.Constants;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
 
@@ -52,6 +54,7 @@ import java.io.Serializable;
  * max_deploy_num      INT           NOT NULL,
  * max_deploy_day      INT           NOT NULL,
  * is_docker           TINYINT(1)    DEFAULT 0,
+ * max_parallel_deploy_percentage TINYINT(1)
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -142,6 +145,10 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("isDocker")
     private Boolean is_docker;
+
+    @Range(min = 0, max = 100)
+    @JsonProperty("maxParallelDeployPercentage")
+    private Integer max_parallel_deploy_percentage;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -367,6 +374,15 @@ public class EnvironBean implements Updatable, Serializable {
         this.is_docker = is_docker;
     }
 
+    public Integer getMax_parallel_deploy_percentage() {
+        return max_parallel_deploy_percentage;
+    }
+
+    public void setMax_parallel_deploy_percentage(Integer max_parallel_deploy_percentage) {
+        this.max_parallel_deploy_percentage = max_parallel_deploy_percentage;
+    }
+
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -398,6 +414,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("max_deploy_num", max_deploy_num);
         clause.addColumn("max_deploy_day", max_deploy_day);
         clause.addColumn("is_docker", is_docker);
+        clause.addColumn("max_parallel_deploy_percentage", max_parallel_deploy_percentage);
         return clause;
     }
 
@@ -405,4 +422,5 @@ public class EnvironBean implements Updatable, Serializable {
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
+
 }

@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,6 +30,7 @@ class EnvConfigView(View):
     def get(self, request, name, stage):
         if request.is_ajax():
             env = environs_helper.get_env_by_stage(request, name, stage)
+            environs_helper.set_final_max_parallel(env)
             html = render_to_string('configs/env_config.tmpl', {
                 "env": env,
                 "csrf_token": get_token(request),
@@ -51,12 +52,23 @@ class EnvConfigView(View):
             if groups:
                 show_remove = False
 
+        environs_helper.set_final_max_parallel(env)
+
         return render(request, 'configs/env_config.html', {
             "env": env,
             "stages": stages,
             "show_remove": show_remove,
             "pinterest": IS_PINTEREST,
         })
+
+    def _set_parallel(self, data, query_dict):
+        input = query_dict["maxParallelHosts"]
+        if input.endswith('%'):
+            data["maxParallelDeployPercentage"] = int(input.strip('%'))
+            data["maxParallel"] = 0
+        else:
+            data["maxParallel"] = int(query_dict["maxParallelHosts"])
+            data["maxParallelDeployPercentage"] = 0
 
     def post(self, request, name, stage):
         query_dict = request.POST
@@ -65,7 +77,7 @@ class EnvConfigView(View):
             data["notifyAuthors"] = True
         else:
             data["notifyAuthors"] = False
-        data["maxParallel"] = int(query_dict["maxParallelHosts"])
+        self._set_parallel(data, query_dict)
         data["priority"] = query_dict["priority"]
         data["stuckThreshold"] = int(query_dict["stuckThreshold"])
         data["successThreshold"] = float(query_dict["successThreshold"]) * 100

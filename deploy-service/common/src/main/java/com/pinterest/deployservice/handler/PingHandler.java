@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
- *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -100,22 +100,22 @@ public class PingHandler {
 
         if (serviceContext.isBuildCacheEnabled()) {
             buildCache = CacheBuilder.from(serviceContext.getBuildCacheSpec().replace(";", ","))
-                .build(new CacheLoader<String, BuildBean>() {
-                    @Override
-                    public BuildBean load(String buildId) throws Exception {
-                        return buildDAO.getById(buildId);
-                    }
-                });
+                    .build(new CacheLoader<String, BuildBean>() {
+                        @Override
+                        public BuildBean load(String buildId) throws Exception {
+                            return buildDAO.getById(buildId);
+                        }
+                    });
         }
 
         if (serviceContext.isDeployCacheEnabled()) {
             deployCache = CacheBuilder.from(serviceContext.getDeployCacheSpec().replace(";", ","))
-                .build(new CacheLoader<String, DeployBean>() {
-                    @Override
-                    public DeployBean load(String deployId) throws Exception {
-                        return deployDAO.getById(deployId);
-                    }
-                });
+                    .build(new CacheLoader<String, DeployBean>() {
+                        @Override
+                        public DeployBean load(String deployId) throws Exception {
+                            return deployDAO.getById(deployId);
+                        }
+                    });
         }
     }
 
@@ -128,7 +128,7 @@ public class PingHandler {
     void updateHosts(PingRequestBean pingRequest) throws Exception {
         hostDAO.insertOrUpdate(pingRequest.getHostName(), pingRequest.getHostIp(),
                 pingRequest.getHostId(), HostState.ACTIVE.toString(), pingRequest.getGroups());
-        
+
         List<String> recordedGroups = hostDAO.getGroupNamesByHost(pingRequest.getHostName());
         Set<String> groups = pingRequest.getGroups();
         for (String recordedGroup : recordedGroups) {
@@ -195,7 +195,9 @@ public class PingHandler {
         // TODO use ecache to optimize
         // Make sure we do not exceed allowed number of concurrent active deploying agent
         String envId = envBean.getEnv_id();
-        long parallelThreshold = envBean.getMax_parallel();
+        long totalHosts = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(),
+                envBean.getStage_name());
+        long parallelThreshold = this.getFinalMaxParallelCount(envBean, totalHosts);
 
         try {
             long totalActiveagents = agentDAO.countDeployingAgent(envId);
@@ -248,7 +250,7 @@ public class PingHandler {
             String envName = entry.getKey();
             if (groupEnvMap.containsKey(envName)) {
                 LOG.debug("Found conflict env for host {}: {}/{} and {}/{}, choose the former since it is associated with host directly.",
-                    host, envName, envBean.getStage_name(), envName, groupEnvMap.get(envName).getStage_name());
+                        host, envName, envBean.getStage_name(), envName, groupEnvMap.get(envName).getStage_name());
                 groupEnvMap.remove(envName);
             }
         }
@@ -269,7 +271,7 @@ public class PingHandler {
             if (envs.containsKey(envName)) {
                 // In theory, such conflict should've already been avoid by frontend/UI etc.
                 LOG.error("Found conflict env for host {}: {}/{} and {}/{}, will ignore {}/{} for now. Please correct the wrong deploy configure.",
-                    host, envName, envBean.getStage_name(), envName, envs.get(envName).getStage_name(), envName, envs.get(envName).getStage_name());
+                        host, envName, envBean.getStage_name(), envName, envs.get(envName).getStage_name(), envName, envs.get(envName).getStage_name());
             } else {
                 envs.put(envName, envBean);
             }
@@ -342,7 +344,7 @@ public class PingHandler {
         List<EnvironBean> groupEnvs = environDAO.getEnvsByGroups(groups);
         Map<String, EnvironBean> envs = convergeEnvs(hostName, hostEnvs, groupEnvs);
         LOG.debug("Found the following envs {} associated with host {} and group {}.",
-            envs.keySet(), hostName, groups);
+                envs.keySet(), hostName, groups);
 
         // Find all agent records for this host, convert to envId based map
         List<AgentBean> agentBeans = agentDAO.getByHost(hostName);
@@ -370,11 +372,11 @@ public class PingHandler {
                     response = generateInstallResponse(installCandidate);
                 } else {
                     LOG.debug("Host {} for env {} needs to wait for its turn to install.",
-                        hostName, updateBean.getEnv_id());
+                            hostName, updateBean.getEnv_id());
                 }
             } else {
                 LOG.debug("Host {} is in the middle of deploy, no need to wait, updateBean = {}",
-                    hostName, updateBean);
+                        hostName, updateBean);
                 // Update the updateBeans to use the updateBean instead
                 updateBeans.put(updateBean.getEnv_id(), updateBean);
                 response = generateInstallResponse(installCandidate);
@@ -516,5 +518,53 @@ public class PingHandler {
         goal.setFirstDeploy(false);
         response.setDeployGoal(goal);
         return response;
+    }
+
+
+    private static boolean isApplicable(Integer val) {
+        return val != null && val > 0;
+    }
+
+    /**
+     * Get the parallel count for execution. There are two configs can have effect. The maxParallel that specifies
+     * how many hosts and maxParallelPercentage that specifies the percentage of the Hosts. In common cases, there
+     * should be only one of them be effective as the UI and Bean update clear the other (Set to 0) when you set one.
+     * The rules are simple:
+     * 1. If only one of them is set, use that.
+     * 2. If both of them are set, use the minimum value
+     * @param environBean
+     * @param totalHosts
+     * @return The maximum parallel count the system respects
+     * @throws Exception
+     */
+    public final static int getFinalMaxParallelCount(EnvironBean environBean, long totalHosts) throws Exception {
+
+        int ret = Constants.DEFAULT_MAX_PARALLEL_HOSTS;
+        LOG.info("Get final maximum parallel count for total capactiy {}", totalHosts);
+        boolean numIsApplicable = isApplicable(environBean.getMax_parallel());
+        boolean percentageIsApplicable = isApplicable(environBean.getMax_parallel_deploy_percentage());
+
+        if (!numIsApplicable && percentageIsApplicable) {
+            ret = (int) (totalHosts * environBean.getMax_parallel_deploy_percentage() / 100);
+            LOG.info("Max parallel count {} is decided by percentage solely. Percentage is {}",
+                    ret,
+                    environBean.getMax_parallel_deploy_percentage());
+        } else if (!percentageIsApplicable && numIsApplicable) {
+            ret = environBean.getMax_parallel();
+            LOG.info("Max parallel count {} is decided by number of host solely.", ret);
+        } else if (numIsApplicable && percentageIsApplicable) {
+            ret = Math.min(environBean.getMax_parallel(),
+                    (int) (totalHosts * environBean.getMax_parallel_deploy_percentage() / 100));
+            LOG.info("Max parallel count {} is decided by combing host {} and percentage {}.",
+                    ret, environBean.getMax_parallel(), environBean.getMax_parallel_deploy_percentage());
+        }
+
+        //Ensure the value falls into the range making sense
+        if (ret <= 0) {
+            ret = 1;
+        } else if (ret > totalHosts) {
+            ret = (int) totalHosts;
+        }
+        return ret;
     }
 }

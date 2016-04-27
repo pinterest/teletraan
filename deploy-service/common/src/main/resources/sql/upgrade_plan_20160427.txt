@@ -1,0 +1,7 @@
+UPDATES
+=================
+ALTER TABLE environs ADD COLUMN max_parallel_deploy_percentage TINYINT(1)    NOT NULL DEFAULT 0;
+
+Rollback
+===========================
+ALTER TABLE environs DROP COLUMN max_parallel_deploy_percentage;

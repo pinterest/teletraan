@@ -7,13 +7,16 @@
                 <div class="form-group">
                     <label for="maxParallelHosts" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
-                        title="Maximum number of hosts allowed to deploy at the same time">
-                        Maximum Hosts
+                        title="Maximum number (or percentage) of hosts allowed to deploy at the same time">
+                        Maximum Deploys In Parallel
                     </label>
 
                     <div class="col-xs-4">
-                        <input class="form-control" name="maxParallelHosts" required="true"
-                               type="text" value="{{ env.maxParallel }}"/>
+                        <div class="input-group">
+                            <input class="form-control" name="maxParallelHosts" required="true"
+                               type="text" value="{{ env.finalParallel }}"/>
+                            <span class="input-group-addon">eg. 5 or 20%</span>
+                        </div>
                     </div>
                     <label for="successThreshold" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
@@ -24,7 +27,7 @@
                     <div class="col-xs-4">
                         <div class="input-group">
                         <input class="form-control" name="successThreshold" required="true"
-                               type="text" value="{{ env.successThreshold|convertSuccThreshold }}"/>
+                               type="text" value="{{ env.successThreshold|convertSuccThreshold }}"/> 
                         <span class="input-group-addon">%</span>
                         </div>
                     </div>
