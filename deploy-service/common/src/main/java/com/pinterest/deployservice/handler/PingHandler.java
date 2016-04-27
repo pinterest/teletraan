@@ -561,8 +561,18 @@ public class PingHandler {
 
         //Ensure the value falls into the range making sense
         if (ret <= 0) {
+            LOG.warn("Unexpected ret value {}. Max parallel:{} Max parallel percentage:{} TotalHosts:{}",
+                    ret,
+                    environBean.getMax_parallel(),
+                    environBean.getMax_parallel_pct(),
+                    totalHosts);
             ret = 1;
         } else if (ret > totalHosts) {
+            LOG.warn("Unexpected ret value {}. Max parallel:{} Max parallel percentage:{} TotalHosts:{}",
+                    ret,
+                    environBean.getMax_parallel(),
+                    environBean.getMax_parallel_pct(),
+                    totalHosts);
             ret = (int) totalHosts;
         }
         return ret;
