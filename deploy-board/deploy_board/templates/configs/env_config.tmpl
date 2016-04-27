@@ -8,14 +8,28 @@
                     <label for="maxParallelHosts" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Maximum number (or percentage) of hosts allowed to deploy at the same time">
-                        Maximum Deploys In Parallel
+                        Maximum Parallel Number
                     </label>
 
-                    <div class="col-xs-4">
+                    <div class="col-xs-2">                      
                         <div class="input-group">
-                            <input class="form-control" name="maxParallelHosts" required="true"
-                               type="text" value="{{ env.finalParallel }}"/>
-                            <span class="input-group-addon">eg. 5 or 20%</span>
+                            <span class="input-group-addon">
+                                <input type="radio" name="maxParallel" value="Number"
+                                    {% ifequal env.showNumber True%}checked{% endifequal %} >
+                            </span>
+                                <input type="text" id="maxParallelValue" name="maxParallelValue" class="form-control" 
+                                    value="{% ifequal env.showNumber True%}{{env.maxParallel}}{% endifequal %}">
+                        </div>
+                    </div>
+                    <div class="col-xs-2">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <input type="radio" name="maxParallel" value="Percentage"
+                                    {% ifequal env.showNumber False%}checked{% endifequal %}>
+                            </span>
+                            <input type="text" id="maxParallelPctValue" name="maxParallelPctValue" class="form-control" 
+                                    value="{% ifequal env.showNumber False %}{{ env.maxParallelPct }}{% endifequal %}">
+                            <span class="input-group-addon">%</span>
                         </div>
                     </div>
                     <label for="successThreshold" class="deployToolTip control-label col-xs-2"
@@ -269,6 +283,15 @@
                     $("#envConfigId").parent().html(data.html);
                 }
             });
+        });
+
+       $('input:radio[name=maxParallel]').change(function() {
+            if (this.value == 'Number') {
+                $('#maxParallelPctValue').attr('value','');   
+            }
+            else if (this.value == 'Percentage') {
+                 $('#maxParallelValue').attr('value', '');   
+            }
         });
     });
 </script>

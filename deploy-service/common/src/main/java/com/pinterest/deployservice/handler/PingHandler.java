@@ -195,11 +195,11 @@ public class PingHandler {
         // TODO use ecache to optimize
         // Make sure we do not exceed allowed number of concurrent active deploying agent
         String envId = envBean.getEnv_id();
-        long totalHosts = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(),
-                envBean.getStage_name());
-        long parallelThreshold = this.getFinalMaxParallelCount(envBean, totalHosts);
+        long totalNonFirstDeployAgents = agentDAO.countNonFirstDeployingAgent(envId);
+        long parallelThreshold = this.getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents);
 
         try {
+            //Note: This count already excludes first deploy agents
             long totalActiveagents = agentDAO.countDeployingAgent(envId);
             if (totalActiveagents >= parallelThreshold) {
                 LOG.debug("There are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalActiveagents, envId, host);
@@ -540,23 +540,23 @@ public class PingHandler {
     public final static int getFinalMaxParallelCount(EnvironBean environBean, long totalHosts) throws Exception {
 
         int ret = Constants.DEFAULT_MAX_PARALLEL_HOSTS;
-        LOG.info("Get final maximum parallel count for total capactiy {}", totalHosts);
+        LOG.debug("Get final maximum parallel count for total capactiy {}", totalHosts);
         boolean numIsApplicable = isApplicable(environBean.getMax_parallel());
-        boolean percentageIsApplicable = isApplicable(environBean.getMax_parallel_deploy_percentage());
+        boolean percentageIsApplicable = isApplicable(environBean.getMax_parallel_pct());
 
         if (!numIsApplicable && percentageIsApplicable) {
-            ret = (int) (totalHosts * environBean.getMax_parallel_deploy_percentage() / 100);
-            LOG.info("Max parallel count {} is decided by percentage solely. Percentage is {}",
+            ret = (int) (totalHosts * environBean.getMax_parallel_pct() / 100);
+            LOG.debug("Max parallel count {} is decided by percentage solely. Percentage is {}",
                     ret,
-                    environBean.getMax_parallel_deploy_percentage());
+                    environBean.getMax_parallel_pct());
         } else if (!percentageIsApplicable && numIsApplicable) {
             ret = environBean.getMax_parallel();
-            LOG.info("Max parallel count {} is decided by number of host solely.", ret);
+            LOG.debug("Max parallel count {} is decided by number of host solely.", ret);
         } else if (numIsApplicable && percentageIsApplicable) {
             ret = Math.min(environBean.getMax_parallel(),
-                    (int) (totalHosts * environBean.getMax_parallel_deploy_percentage() / 100));
-            LOG.info("Max parallel count {} is decided by combing host {} and percentage {}.",
-                    ret, environBean.getMax_parallel(), environBean.getMax_parallel_deploy_percentage());
+                    (int) (totalHosts * environBean.getMax_parallel_pct() / 100));
+            LOG.debug("Max parallel count {} is decided by combing host {} and percentage {}.",
+                    ret, environBean.getMax_parallel(), environBean.getMax_parallel_pct());
         }
 
         //Ensure the value falls into the range making sense

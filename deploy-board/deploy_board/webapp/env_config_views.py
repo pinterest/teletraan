@@ -30,7 +30,7 @@ class EnvConfigView(View):
     def get(self, request, name, stage):
         if request.is_ajax():
             env = environs_helper.get_env_by_stage(request, name, stage)
-            environs_helper.set_final_max_parallel(env)
+            environs_helper.set_active_max_parallel(env)
             html = render_to_string('configs/env_config.tmpl', {
                 "env": env,
                 "csrf_token": get_token(request),
@@ -52,7 +52,7 @@ class EnvConfigView(View):
             if groups:
                 show_remove = False
 
-        environs_helper.set_final_max_parallel(env)
+        environs_helper.set_active_max_parallel(env)
 
         return render(request, 'configs/env_config.html', {
             "env": env,
@@ -62,13 +62,16 @@ class EnvConfigView(View):
         })
 
     def _set_parallel(self, data, query_dict):
-        input = query_dict["maxParallelHosts"]
-        if input.endswith('%'):
-            data["maxParallelDeployPercentage"] = int(input.strip('%'))
+        input = query_dict["maxParallel"]
+        if input == "Number" and query_dict["maxParallelValue"] :
+            data["maxParallelPct"] = 0
+            data["maxParallel"] = int(query_dict["maxParallelValue"])
+        elif input == "Percentage" and query_dict["maxParallelPctValue"]:
             data["maxParallel"] = 0
+            data["maxParallelPct"] = int(query_dict["maxParallelPctValue"])
         else:
-            data["maxParallel"] = int(query_dict["maxParallelHosts"])
-            data["maxParallelDeployPercentage"] = 0
+            raise ValueError("Invalid Input for Maximum Parallel Number. input:{}".format(input))
+
 
     def post(self, request, name, stage):
         query_dict = request.POST

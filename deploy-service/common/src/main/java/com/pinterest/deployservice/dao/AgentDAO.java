@@ -63,4 +63,7 @@ public interface AgentDAO {
 
     // return how many agent state is PAUSED_BY_SYSTEM, or stuck/failed
     long countStuckAgent(String envId, String deployId) throws Exception;
+
+    // return how many agents that are not first time deploy for the environment
+    long countNonFirstDeployingAgent(String envId) throws Exception;
 }

@@ -24,7 +24,7 @@ public class PingHandlerTest {
 
         //Only percentage set
         bean.setMax_parallel(null);
-        bean.setMax_parallel_deploy_percentage(20);
+        bean.setMax_parallel_pct(20);
         Assert.assertEquals(1, PingHandler.getFinalMaxParallelCount(bean, 1));
         Assert.assertEquals(2, PingHandler.getFinalMaxParallelCount(bean, 10));
         Assert.assertEquals(20, PingHandler.getFinalMaxParallelCount(bean, 100));

@@ -60,6 +60,8 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String GET_STUCK_TOTAL =
         "SELECT COUNT(*) FROM agents " +
             "WHERE env_id=? AND deploy_id=? AND state='PAUSED_BY_SYSTEM'";
+    private static final String GET_NON_FIRST_TIME_DEPLOY_TOTAL =
+            "SELECT COUNT(*) FROM agents WHERE env_id=? AND first_deploy=0";
     private static final String GET_TOTAL =
         "SELECT COUNT(*) FROM agents WHERE env_id=? AND state!='PAUSED_BY_USER'";
     private static final String RESET_FAILED_AGENTS =
@@ -183,6 +185,13 @@ public class DBAgentDAOImpl implements AgentDAO {
     public long countAgentByEnv(String envId) throws Exception {
         Long n = new QueryRunner(dataSource).query(GET_TOTAL,
             SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId);
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long countNonFirstDeployingAgent(String envId) throws Exception{
+        Long n = new QueryRunner(dataSource).query(GET_NON_FIRST_TIME_DEPLOY_TOTAL,
+                SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId);
         return n == null ? 0 : n;
     }
 }

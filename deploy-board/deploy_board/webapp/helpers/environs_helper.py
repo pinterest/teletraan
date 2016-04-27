@@ -168,10 +168,8 @@ def get_config_history(request, env_name, stage_name, index, size):
                             request.teletraan_user_id.token, params=params)
 
 
-def set_final_max_parallel(env):
-    max_parallel_hosts = int(env['maxParallel'])
-    max_parallel_pecentage = int(env['maxParallelDeployPercentage'])
+def set_active_max_parallel(env):
+    max_parallel_pecentage = int(env['maxParallelPct'])
+    env['showNumber'] = True
     if max_parallel_pecentage > 0:
-        env['finalParallel'] = "{0:.0f}%".format(max_parallel_pecentage)
-    else:
-        env['finalParallel'] = str(max_parallel_hosts) if max_parallel_hosts > 0 else "1"
+        env['showNumber'] = False
