@@ -100,7 +100,7 @@ public class CommonHandler {
                 LOG.info("Start to work on FinishNotifyJob for deploy {}", deployBean.getDeploy_id());
                 sendMessage();
                 sendDeployEvents(deployBean, newPartialDeployBean, envBean);
-                LOG.info("Completed NoitfyJob for deploy {}", deployBean.getDeploy_id());
+                LOG.info("Completed NotifyJob for deploy {}", deployBean.getDeploy_id());
             } catch (Throwable t) {
                 LOG.error("FinishNotifyJob job failed for deploy !" + deployBean.getDeploy_id(), t);
             }
