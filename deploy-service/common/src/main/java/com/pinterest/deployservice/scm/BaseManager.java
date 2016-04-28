@@ -40,7 +40,7 @@ public abstract class BaseManager implements SourceControlManager {
             startSha = Constants.DEFAULT_BRANCH_NAME;
         }
 
-        // get a special reference commit firts
+        // get a special reference commit first
         List<CommitBean> fullCommits = new ArrayList<>();
         Queue<CommitBean> commits = new LinkedList<>();
         Queue<CommitBean> referenceCommits = new LinkedList<>();
