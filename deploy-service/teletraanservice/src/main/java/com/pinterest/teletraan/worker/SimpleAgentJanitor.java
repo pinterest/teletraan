@@ -35,7 +35,7 @@ import java.util.*;
  * Housekeeping on stuck and dead agents
  * <p>
  * if an agent has not ping server for certain time, we will cross check with
- * authoritive source to confirm if the host is terminated, and set agent status
+ * authoritative source to confirm if the host is terminated, and set agent status
  * accordingly
  */
 public class SimpleAgentJanitor implements Runnable {
