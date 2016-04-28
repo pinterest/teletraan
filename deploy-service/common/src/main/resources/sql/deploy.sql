@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS environs (
     max_deploy_num      INT           NOT NULL,
     max_deploy_day      INT           NOT NULL,
     is_docker           TINYINT(1)    NOT NULL DEFAULT 0,
+    max_parallel_pct    TINYINT(1), 
     PRIMARY KEY   (env_id)
 );
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);

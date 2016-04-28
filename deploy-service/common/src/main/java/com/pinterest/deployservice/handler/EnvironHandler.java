@@ -78,6 +78,16 @@ public class EnvironHandler {
             }
         }
 
+        //If the update contains either max parallel number or percentage. We clear the other by set
+        //to 0. Note: the null value of bean won't propagate to the database
+        if(envBean.getMax_parallel() != null && envBean.getMax_parallel_pct()==null){
+            envBean.setMax_parallel_pct(0);
+        }
+
+        if(envBean.getMax_parallel() == null && envBean.getMax_parallel_pct()!=null){
+            envBean.setMax_parallel(0);
+        }
+
         envBean.setLast_operator(operator);
         envBean.setLast_update(System.currentTimeMillis());
     }
