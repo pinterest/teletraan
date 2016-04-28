@@ -523,7 +523,7 @@ public class PingHandler {
             }
         }
 
-        // Pass step specfic agent configurations
+        // Pass step specific agent configurations
         Map<String, String> configs = null;
         String agentConfigId = envBean.getAdv_config_id();
         if (agentConfigId != null) {
