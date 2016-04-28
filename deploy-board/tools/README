@@ -11,7 +11,7 @@ To pump test data into Teletraan server:
 ./run.sh create_env.py
 ./run.sh create_deploy.py
 
-To run agent_simulator, which simulates 100 agents run forever, will install any new deply
+To run agent_simulator, which simulates 100 agents run forever, will install any new deploy
 successfully. You will need to create an env on the server, and add a group into env capacity,
 pass this group name when run the simulator
 ===========================================================

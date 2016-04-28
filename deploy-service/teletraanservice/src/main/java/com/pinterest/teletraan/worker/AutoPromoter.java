@@ -283,15 +283,15 @@ public class AutoPromoter implements Runnable {
             if (deployBean == null) {
                 return true;
             }
-            Date lastDeloyDate = new Date(deployBean.getStart_date());
-            Date nextDeployDate = cronExpression.getNextValidTimeAfter(lastDeloyDate);
+            Date lastDeployDate = new Date(deployBean.getStart_date());
+            Date nextDeployDate = cronExpression.getNextValidTimeAfter(lastDeployDate);
             // Only run the cron deploy when the current date is equal or after the scheduled deploy date
             // since last deploy.
             //
             // If current date is before the next scheduled deploy date since last deploy, return false.
             if (date.before(nextDeployDate)) {
                 LOG.info(String.format("The next scheduled deploy after last deploy %tc is %tc, now is: %tc",
-                    nextDeployDate, lastDeloyDate, date));
+                    nextDeployDate, lastDeployDate, date));
                 return false;
             } else {
                 return true;
