@@ -410,8 +410,9 @@ public class HealthChecker implements Runnable {
                         if (connection != null) {
                             try {
                                 groupBean.setImage_id(healthCheckBean.getAmi_id());
+                                String userData = new String(Base64.decodeBase64(groupBean.getUser_data()));
+                                groupBean.setUser_data(userData);
                                 groupHandler.updateLaunchConfig(groupName, groupBean);
-
                                 newImageBean.setQualified(true);
                                 imageDAO.insertOrUpdate(newImageBean);
                             } catch (Exception ex) {
