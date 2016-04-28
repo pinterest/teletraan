@@ -21,7 +21,7 @@ public enum PromoteFailPolicy {
      */
     CONTINUE,
     /*
-     * Auto prmote is disabled, leave the failed deploy in place
+     * Auto promote is disabled, leave the failed deploy in place
      */
     DISABLE,
     /*
