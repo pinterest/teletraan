@@ -82,7 +82,7 @@ public class DeployJanitor implements Job {
         try {
             schedulerContext = context.getScheduler().getContext();
         } catch (SchedulerException e) {
-            LOG.error("Cannot retrive job context!", e);
+            LOG.error("Cannot retrieve job context!", e);
             return;
         }
 
