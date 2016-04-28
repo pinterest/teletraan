@@ -122,7 +122,7 @@ db:
 
 #
 # Chat application settings: by default is disabled.
-# Uncomment the following to allow Teletran send deploy state changes notify and other
+# Uncomment the following to allow Teletraan send deploy state changes notify and other
 # informations to chatrooms. See documentations for more details.
 # Currently Teletraan supports Slack and Hipchat
 #

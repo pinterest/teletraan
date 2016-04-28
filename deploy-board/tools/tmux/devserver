@@ -91,7 +91,7 @@ function start_tmux() {
 }
 
 function tmux_windows() {
-	echo "Starting Teletran Processes ... one moment please ..."
+	echo "Starting Teletraan Processes ... one moment please ..."
 
 	# ----------------------
 	# Teletraan Local Server
