@@ -14,7 +14,7 @@
                     <div class="col-xs-2">                      
                         <div class="input-group">
                             <span class="input-group-addon">
-                                <input type="radio" name="maxParallel" value="Number"
+                                <input type="radio" name="maxParallel" value="Number" id="maxParallelRadio"
                                     {% ifequal env.showNumber True%}checked{% endifequal %} >
                             </span>
                                 <input type="text" id="maxParallelValue" name="maxParallelValue" class="form-control" 
@@ -24,7 +24,7 @@
                     <div class="col-xs-2">
                         <div class="input-group">
                             <span class="input-group-addon">
-                                <input type="radio" name="maxParallel" value="Percentage"
+                                <input type="radio" name="maxParallel" value="Percentage" id="maxParallelPctRadio"
                                     {% ifequal env.showNumber False%}checked{% endifequal %}>
                             </span>
                             <input type="text" id="maxParallelPctValue" name="maxParallelPctValue" class="form-control" 
@@ -285,7 +285,7 @@
             });
         });
 
-       $('input:radio[name=maxParallel]').change(function() {
+        $('input:radio[name=maxParallel]').change(function() {
             if (this.value == 'Number') {
                 $('#maxParallelPctValue').attr('value','');   
             }
@@ -293,5 +293,17 @@
                  $('#maxParallelValue').attr('value', '');   
             }
         });
+
+        $('#maxParallelValue').keyup(function(){
+            $('#maxParallelRadio').prop('checked', true)
+            $('#maxParallelPctValue').attr('value',''); 
+
+        });
+
+        $('#maxParallelPctValue').keyup(function(){
+            $('#maxParallelPctRadio').prop('checked', true)
+            $('#maxParallelValue').attr('value', ''); 
+        });
+
     });
 </script>
