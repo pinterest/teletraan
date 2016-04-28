@@ -192,7 +192,7 @@ public class CommonHandler {
         List<String> watchers = Arrays.asList(watcherStr.split(","));
         for (String watcher : watchers) {
             try {
-                // TODO verify that send to peoper actually works
+                // TODO verify that send to operator actually works
                 chatManager.sendToUser(operator, watcher.trim(), message, color);
             } catch (Exception e) {
                 LOG.error(String.format("Failed to send message '%s' to watcher %s",
