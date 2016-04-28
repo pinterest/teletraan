@@ -296,7 +296,7 @@ class DeployAgent(object):
         if (self._envs is None) or (self._envs.get(env_name) is None):
             self._envs[env_name] = DeployStatus()
 
-        # update deploy_status from response for the environemnt
+        # update deploy_status from response for the environment
         self._envs[env_name].update_by_response(response)
 
         # update script varibales

@@ -139,7 +139,7 @@ public class Environs {
             response = Response.class)
     public Response create(
             @Context SecurityContext sc,
-            @ApiParam(value = "Environemnt object to create in database", required = true)@Valid EnvironBean environBean) throws Exception {
+            @ApiParam(value = "Environment object to create in database", required = true)@Valid EnvironBean environBean) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         String envName = environBean.getEnv_name();
         List<EnvironBean> environBeans = environDAO.getByName(envName);

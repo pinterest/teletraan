@@ -105,7 +105,7 @@ Creates a new environment given an environment object
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|BodyParameter|body|Environemnt object to create in database|true|EnvironBean||
+|BodyParameter|body|Environment object to create in database|true|EnvironBean||
 
 
 ##### Responses
