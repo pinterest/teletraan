@@ -194,7 +194,7 @@ class DeployAgent(object):
             if curr_stage == DeployStage.DOWNLOADING:
                 return self._executor.run_cmd(self.get_download_script(deploy_goal=deploy_goal))
             elif curr_stage == DeployStage.STAGING:
-                log.info("set up symbolink for the package: {}".format(deploy_goal.deployId))
+                log.info("set up symlink for the package: {}".format(deploy_goal.deployId))
                 return self._executor.run_cmd(self.get_staging_script())
             else:
                 return self._executor.execute_command(curr_stage)
