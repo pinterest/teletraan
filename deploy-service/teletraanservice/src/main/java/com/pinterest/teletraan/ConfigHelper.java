@@ -111,7 +111,7 @@ public class ConfigHelper {
          unit - the time unit for the keepAliveTime argument
          workQueue - the queue to use for holding tasks before they are executed. This queue will hold only the Runnable tasks submitted by the execute method.
          */
-        // TODO make the thread configrable
+        // TODO make the thread configurable
         ExecutorService jobPool = new ThreadPoolExecutor(1, 10, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         context.setJobPool(jobPool);
 
