@@ -27,7 +27,7 @@ import java.text.SimpleDateFormat;
 
 public class CommonUtils {
     /**
-     * TODO figure out how to use guava to achive this
+     * TODO figure out how to use guava to achieve this
      *
      * @return base64 encoded shorten UUID, e.g. 11YozyYYTvKmuUXpRDvoJA
      */
