@@ -299,7 +299,7 @@ class DeployAgent(object):
         # update deploy_status from response for the environment
         self._envs[env_name].update_by_response(response)
 
-        # update script varibales
+        # update script variables
         if deploy_goal.scriptVariables:
             log.info('Start to generate script variables for deploy: {}'.
             format(deploy_goal.deployId))

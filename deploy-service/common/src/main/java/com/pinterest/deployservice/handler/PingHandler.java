@@ -519,7 +519,7 @@ public class PingHandler {
             if (scriptConfigId != null) {
                 Map<String, String> variables = dataHandler.getMapById(scriptConfigId);
                 goal.setScriptVariables(variables);
-                LOG.debug("Add script varibles {} to goal at {} stage", variables, updateBean.getDeploy_stage());
+                LOG.debug("Add script variables {} to goal at {} stage", variables, updateBean.getDeploy_stage());
             }
         }
 
