@@ -113,7 +113,7 @@ public class SimpleAgentJanitor implements Runnable {
             minStaleHostIds.add(host.getHost_id());
         }
         if (!minStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found following hosts (Explicite capacity) excceeded minStaleThreshold: ",
+            LOG.info("AgentJanitor found following hosts (Explicite capacity) exceeded minStaleThreshold: ",
                 minStaleHostIds);
             processStaleHosts(minStaleHostIds, false);
         }
@@ -144,12 +144,12 @@ public class SimpleAgentJanitor implements Runnable {
         }
 
         if (!maxStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found the following hosts excceeded maxStaleThreshold: ",
+            LOG.info("AgentJanitor found the following hosts exceeded maxStaleThreshold: ",
                 maxStaleHostIds);
             processStaleHosts(maxStaleHostIds, true);
         }
         if (!minStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found the following hosts excceeded minStaleThreshold: ",
+            LOG.info("AgentJanitor found the following hosts exceeded minStaleThreshold: ",
                 minStaleHostIds);
             processStaleHosts(minStaleHostIds, false);
         }
