@@ -352,7 +352,7 @@ public class PingHandler {
         String hostId = pingRequest.getHostId();
         if (StringUtils.isEmpty(hostId)) {
             LOG.error("Missing host id in request: ", pingRequest);
-            throw new DeployInternalException("Missing host id in PingReqest");
+            throw new DeployInternalException("Missing host id in PingRequest");
         }
 
         if (StringUtils.isEmpty(pingRequest.getHostName())) {
