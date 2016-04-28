@@ -42,7 +42,7 @@ def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
     Similar to utils.decorators.retry() but customized slightly for operations tools.
 
     :param ExceptionToCheck: the exception to check. may be a tuple of
-        excpetions to check
+        exceptions to check
     :type ExceptionToCheck: Exception or tuple
     :param tries: number of times to try (not retry) before giving up
     :type tries: int
