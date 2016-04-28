@@ -391,7 +391,7 @@ public class EnvironHandler {
         }
         */
 
-        // TODO make the following transcational
+        // TODO make the following transactional
         environDAO.delete(envId);
         promoteDAO.delete(envId);
         if (envBean.getAdv_config_id() != null) {
