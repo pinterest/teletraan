@@ -106,7 +106,7 @@ db:
 # Source Code Management settings: by default is disabled.
 # Uncomment the following to get better UI support, such as showing commit info,
 # deploy diffs and etc. See documentations for more details.
-# Currently Teletraan supports Github and Phabricator. Uncommment one of the
+# Currently Teletraan supports Github and Phabricator. Uncomment one of the
 # following sections to enable the SCM support.
 #
 #scm:
