@@ -268,11 +268,11 @@ public class CommonHandler {
         long succeeded = agentDAO.countSucceededAgent(envId, deployId);
         LOG.debug("Among them, {} agents are succeeded", succeeded);
 
-        long stucked = agentDAO.countStuckAgent(envId, deployId);
-        LOG.debug("Among them, {} agents are stuck", stucked);
+        long stuck = agentDAO.countStuckAgent(envId, deployId);
+        LOG.debug("Among them, {} agents are stuck", stuck);
 
         newDeployBean.setSuc_total((int) succeeded);
-        newDeployBean.setFail_total((int) stucked);
+        newDeployBean.setFail_total((int) stuck);
         newDeployBean.setTotal((int) total);
         newDeployBean.setState(oldState);
         newDeployBean.setLast_update(System.currentTimeMillis());
@@ -301,9 +301,9 @@ public class CommonHandler {
             return;
         }
 
-        if (stucked * 10000 > (10000 - sucThreshold) * total) {
+        if (stuck * 10000 > (10000 - sucThreshold) * total) {
             newDeployBean.setState(DeployState.FAILING);
-            LOG.info("Set deploy {} as FAILING since {} agents are stuck.", deployId, stucked);
+            LOG.info("Set deploy {} as FAILING since {} agents are stuck.", deployId, stuck);
             return;
         }
 
