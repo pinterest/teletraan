@@ -575,7 +575,7 @@ class GoalAnalyst {
                         return;
                     } else {
                         /**
-                         * TODO how do we make sure to NOT interupt this deploy
+                         * TODO how do we make sure to NOT interrupt this deploy
                          * Case 1.4: This is the case we retry deploy step, or just simply record
                          * the statue while agent is still working on the same stage ( status=UNKNOWN ).
                          * We allow agent to retry either because user explicitly set AgentState to RESET, or the
