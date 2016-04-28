@@ -299,7 +299,7 @@
 
        Normal state
 
-  PAUSED_BY_STSTEM:
+  PAUSED_BY_SYSTEM:
 
        Agent being paused by system automatically
 
