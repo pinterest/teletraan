@@ -21,7 +21,7 @@ import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -39,7 +39,7 @@ public class Utils {
         String stageName) throws Exception {
         EnvironBean environBean = environDAO.getByStage(envName, stageName);
         if (environBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND,
                 String.format("Environment %s/%s does not exist.", envName, stageName));
         }
         return environBean;
@@ -48,7 +48,7 @@ public class Utils {
     public static EnvironBean getEnvStage(EnvironDAO environDAO, String envId) throws Exception {
         EnvironBean environBean = environDAO.getById(envId);
         if (environBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND,
                 String.format("Environment %s does not exist.", envId));
         }
         return environBean;
@@ -67,7 +67,7 @@ public class Utils {
                     sc.getUserPrincipal().getName(), environBean.getEnv_name(), role);
             }
         }
-        throw new TeletaanInternalException(Response.Status.FORBIDDEN, "Not authorized!");
+        throw new TeletraanInternalException(Response.Status.FORBIDDEN, "Not authorized!");
     }
 
     public static void authorizeGroup(EnvironDAO environDAO, String groupName,
@@ -97,7 +97,7 @@ public class Utils {
     public static DeployBean getDeploy(DeployDAO deployDAO, String deployId) throws Exception {
         DeployBean deployBean = deployDAO.getById(deployId);
         if (deployBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND,
                 String.format("Deploy %s does not exist.", deployId));
         }
         return deployBean;

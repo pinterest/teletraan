@@ -24,7 +24,7 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
@@ -92,7 +92,7 @@ public class Builds {
             @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
         }
         return buildBean;
     }
@@ -107,7 +107,7 @@ public class Builds {
         @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
         }
 
         BuildTagsManager manager = new BuildTagsManagerImpl(this.tagDAO);
@@ -124,7 +124,7 @@ public class Builds {
 
 
         if (StringUtils.isEmpty(scmCommit) && StringUtils.isEmpty(buildName)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+            throw new TeletraanInternalException(Response.Status.BAD_REQUEST,
                 "Require either commit id or build name in the request.");
         }
 
@@ -146,7 +146,7 @@ public class Builds {
         @QueryParam("after") Long after) throws Exception {
 
         if (StringUtils.isEmpty(buildName) && StringUtils.isEmpty(scmCommit)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+            throw new TeletraanInternalException(Response.Status.BAD_REQUEST,
                 "Require either commit or build name in the request.");
         }
 
@@ -219,7 +219,7 @@ public class Builds {
         authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.OPERATOR);
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
         }
         buildDAO.delete(id);
         LOG.info("{} successfully deleted build {}", sc.getUserPrincipal().getName(), id);

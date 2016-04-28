@@ -28,7 +28,7 @@ import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -136,7 +136,7 @@ public class EnvStages {
                 tagBean.setValue(TagValue.DISABLE_ENV);
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new TeletraanInternalException(Response.Status.BAD_REQUEST, "No action found.");
         }
 
         tagBean.setTarget_id(envBean.getEnv_id());

@@ -17,7 +17,7 @@ package com.pinterest.teletraan.security;
 
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -56,7 +56,7 @@ public class TokenAuthFilter implements ContainerRequestFilter {
                 securityContext = authenticate(context);
             } catch (Exception e) {
                 LOG.info("Authentication failed. Reason: " + e.getMessage());
-                throw new TeletaanInternalException(Response.Status.UNAUTHORIZED,
+                throw new TeletraanInternalException(Response.Status.UNAUTHORIZED,
                         "Failed to authenticate user. " + e.getMessage());
             }
             context.setSecurityContext(securityContext);

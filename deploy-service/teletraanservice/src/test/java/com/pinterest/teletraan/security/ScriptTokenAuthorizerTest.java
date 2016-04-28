@@ -19,7 +19,7 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.bean.TokenRolesBean;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -87,7 +87,7 @@ public class ScriptTokenAuthorizerTest {
     private void checkNegative(TokenRolesBean bean, Resource resource, Role role) throws Exception {
         try {
             authorizer.checkAPITokenPermission(bean, resource, role);
-        } catch (TeletaanInternalException e) {
+        } catch (TeletraanInternalException e) {
             // expected
             return;
         }

@@ -29,7 +29,7 @@ import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import com.pinterest.teletraan.security.OpenAuthorizer;
 import io.swagger.annotations.*;
@@ -92,7 +92,7 @@ public class Environs {
             @ApiParam(value = "Environment id", required = true)@PathParam("id") String id) throws Exception {
         EnvironBean environBean = environDAO.getById(id);
         if (environBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND,
                 String.format("Environment %s does not exist.", id));
         }
         return environBean;
@@ -129,7 +129,7 @@ public class Environs {
             return environDAO.getEnvsByGroups(Arrays.asList(groupName));
         }
 
-        throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Require either environment name or group name in the request.");
+        throw new TeletraanInternalException(Response.Status.BAD_REQUEST, "Require either environment name or group name in the request.");
     }
 
     @POST
@@ -182,7 +182,7 @@ public class Environs {
                 tagBean.setValue(TagValue.DISABLE_ENV);
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new TeletraanInternalException(Response.Status.BAD_REQUEST, "No action found.");
         }
 
         tagBean.setTarget_type(TagTargetType.TELETRAAN);

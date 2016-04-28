@@ -24,7 +24,7 @@ import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 
 import io.swagger.annotations.Api;
@@ -124,7 +124,7 @@ public class EnvDeploys {
                 newDeployId = deployHandler.promote(envBean, fromDeployId, description, operator);
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new TeletraanInternalException(Response.Status.BAD_REQUEST, "No action found.");
         }
 
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_ACTION, actionType.toString(), operator);
