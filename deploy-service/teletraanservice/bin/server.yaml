@@ -43,7 +43,7 @@ logging:
 
 #
 # Mysql connection config. By default, we use the real mysql as the backend.
-# Note: the embeded mysql is for demo or test purpose only. Use the official Mysql
+# Note: the embedded mysql is for demo or test purpose only. Use the official Mysql
 # installs for production usage.
 #
 db:
