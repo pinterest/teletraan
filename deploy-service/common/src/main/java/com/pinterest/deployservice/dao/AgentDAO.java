@@ -36,7 +36,7 @@ public interface AgentDAO {
 
     void delete(String hostId, String envId) throws Exception;
 
-    // TODO refector this
+    // TODO refactor this
     List<AgentBean> getByHost(String hostName) throws Exception;
 
     List<AgentBean> getByHostId(String hostId) throws Exception;
