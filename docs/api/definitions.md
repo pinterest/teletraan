@@ -277,7 +277,7 @@
 
      Deploy has not completed yet
 
-  OUSTANDING:
+  OUTSTANDING:
 
      Deploy has not completed yet
 
