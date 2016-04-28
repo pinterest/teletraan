@@ -421,7 +421,7 @@ public class GoalAnalystTest {
         assertEquals(candidate.updateBean.getLast_err_no(), new Integer(100));
     }
 
-    // Case 1.4: failed on current step, noneretryable, but agent RESET,
+    // Case 1.4: failed on current step, nonretryable, but agent RESET,
     // give it one more chance, start from beginning
     @Test
     public void test1Env1ReportStageFailButReset() throws Exception {
@@ -721,7 +721,7 @@ public class GoalAnalystTest {
         report9.setErrorCode(100);
         reports.put(report9.getEnvId(), report9);
 
-        // Case 1.4: failed on current step, noneretryable, but agent RESET,
+        // Case 1.4: failed on current step, nonretryable, but agent RESET,
         // give it one more chance, candidate
         EnvironBean envBean11 = genDefaultEnvBean();
         envBean11.setEnv_id("e11");
