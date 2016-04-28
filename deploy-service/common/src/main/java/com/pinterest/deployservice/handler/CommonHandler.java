@@ -71,7 +71,7 @@ public class CommonHandler {
             try {
                 message = generateMessage(buildId, envBean, state, deployBean);
             } catch (Exception e) {
-                LOG.error("Failed to genereate message", e);
+                LOG.error("Failed to generate message", e);
                 return;
             }
 
