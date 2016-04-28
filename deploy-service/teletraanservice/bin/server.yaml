@@ -164,7 +164,7 @@ workers:
       period: 30
 
   # AutoPromoter provides the Auto Deploy support. It finds the deploy
-  # cadidates from preceeding stage and promote them to next stages.
+  # candidates from preceeding stage and promote them to next stages.
   - name: AutoPromoter
     properties:
       initialDelay: 20
