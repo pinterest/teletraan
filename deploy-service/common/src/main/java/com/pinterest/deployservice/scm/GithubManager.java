@@ -58,8 +58,8 @@ public class GithubManager extends BaseManager {
     }
 
     private long getDate(Map<String, Object> jsonMap) {
-        Map<String, Object> commiterMap = (Map<String, Object>) jsonMap.get("committer");
-        String dateGMTStr = (String) commiterMap.get("date");
+        Map<String, Object> committerMap = (Map<String, Object>) jsonMap.get("committer");
+        String dateGMTStr = (String) committerMap.get("date");
         DateTimeFormatter parser = ISODateTimeFormat.dateTimeNoMillis();
         DateTime dt = parser.parseDateTime(dateGMTStr);
         return dt.getMillis();
