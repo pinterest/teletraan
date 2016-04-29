@@ -279,21 +279,8 @@ public class GroupHandler {
     public GroupBean getGroupInfoByClusterName(String clusterName) throws Exception {
         GroupBean oldBean = groupInfoDAO.getGroupInfo(clusterName);
         if (oldBean == null) {
-            String processLockName = String.format("CREATE-%s", clusterName);
-            Connection connection = utilDAO.getLock(processLockName);
-            if (connection == null) {
-                LOG.error("Failed to grab CREATE_GROUP_INFO_LOCK for group = {}. This means someone else is holding it, exiting", clusterName);
-                return new GroupBean();
-            }
-            try {
-                updateLaunchConfigInternal(null, clusterName);
-                oldBean = groupInfoDAO.getGroupInfo(clusterName);
-            } catch (Exception ex) {
-                LOG.error("Failed to generate config for group", ex);
-                return new GroupBean();
-            } finally {
-                utilDAO.releaseLock(processLockName, connection);
-            }
+            updateLaunchConfigInternal(null, clusterName);
+            oldBean = groupInfoDAO.getGroupInfo(clusterName);
         }
 
         String launchConfigId = oldBean.getLaunch_config_id();
@@ -348,20 +335,40 @@ public class GroupHandler {
 
     // TODO used for migration only
     private String updateLaunchConfigInternal(GroupBean oldBean, String clusterName) throws Exception {
-        if (oldBean != null) {
-            String userData = new String(Base64.decodeBase64(oldBean.getUser_data()));
-            oldBean.setUser_data(userData);
-            String launchConfigId = changeConfig(clusterName, oldBean, null);
-            GroupBean newBean = new GroupBean();
-            newBean.setLaunch_config_id(launchConfigId);
-            groupInfoDAO.updateGroupInfo(clusterName, newBean);
-            return launchConfigId;
-        } else {
-            GroupBean groupBean = generateDefaultGroupBean(clusterName);
-            String launchConfigId = changeConfig(clusterName, groupBean, null);
-            groupBean.setLaunch_config_id(launchConfigId);
-            groupInfoDAO.insertGroupInfo(groupBean);
-            return launchConfigId;
+        String processLockName = String.format("CREATE-%s", clusterName);
+        Connection connection = utilDAO.getLock(processLockName);
+        if (connection == null) {
+            LOG.error("Failed to grab CREATE_GROUP_INFO_LOCK for group = {}. This means someone else is holding it, exiting", clusterName);
+            return null;
+        }
+        try {
+            if (oldBean != null) {
+                if (!oldBean.getUser_data().contains("#cloud-config")) {
+                    String userData = new String(Base64.decodeBase64(oldBean.getUser_data()));
+                    oldBean.setUser_data(userData);
+                }
+
+                if (oldBean.getIam_role().contains("/")) {
+                    oldBean.setIam_role(oldBean.getIam_role().split("/")[1]);
+                }
+
+                String launchConfigId = changeConfig(clusterName, oldBean, null);
+                GroupBean newBean = new GroupBean();
+                newBean.setLaunch_config_id(launchConfigId);
+                groupInfoDAO.updateGroupInfo(clusterName, newBean);
+                return launchConfigId;
+            } else {
+                GroupBean groupBean = generateDefaultGroupBean(clusterName);
+                String launchConfigId = changeConfig(clusterName, groupBean, null);
+                groupBean.setLaunch_config_id(launchConfigId);
+                groupInfoDAO.insertGroupInfo(groupBean);
+                return launchConfigId;
+            }
+        } catch (Exception ex) {
+            LOG.error("Failed to generate config for group", ex);
+            return null;
+        } finally {
+            utilDAO.releaseLock(processLockName, connection);
         }
     }
 
@@ -943,8 +950,16 @@ public class GroupHandler {
             requestBean.setHealthcheck_state(groupBean.getHealthcheck_state());
         }
 
+        if (requestBean.getHealthcheck_period() == null) {
+            requestBean.setHealthcheck_period(groupBean.getHealthcheck_period());
+        }
+
         if (requestBean.getLifecycle_state() == null) {
             requestBean.setLifecycle_state(groupBean.getLifecycle_state());
+        }
+
+        if (requestBean.getLifecycle_timeout() == null) {
+            requestBean.setLifecycle_timeout(groupBean.getLifecycle_timeout());
         }
 
         return requestBean;
