@@ -589,7 +589,11 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         awsVmBean.setAssignPublicIp(config.getAssociatePublicIpAddress());
         awsVmBean.setLaunchConfigId(config.getLaunchConfigurationName());
         String roleName = config.getIamInstanceProfile();
-        awsVmBean.setRole(roleName.split("/")[1]);
+        if (roleName.contains("/")) {
+            awsVmBean.setRole(roleName.split("/")[1]);
+        } else {
+            awsVmBean.setRole(roleName);
+        }
         String userData = new String(Base64.decodeBase64(config.getUserData()));
         awsVmBean.setRawUserDataString(userData);
         return awsVmBean;

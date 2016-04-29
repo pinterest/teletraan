@@ -343,12 +343,16 @@ public class GroupHandler {
         }
         try {
             if (oldBean != null) {
-                if (!oldBean.getUser_data().contains("#cloud-config")) {
+                if (oldBean.getUser_data() == null) {
+                    oldBean.setUser_data(String.format("#cloud-config\nrole: %s\n", clusterName));
+                } else if (!oldBean.getUser_data().contains("#cloud-config")) {
                     String userData = new String(Base64.decodeBase64(oldBean.getUser_data()));
                     oldBean.setUser_data(userData);
                 }
 
-                if (oldBean.getIam_role().contains("/")) {
+                if (oldBean.getIam_role() == null) {
+                    oldBean.setIam_role(AutoScalingConstants.DEFAULT_IAM_ROLE);
+                } else if (oldBean.getIam_role().contains("/")) {
                     oldBean.setIam_role(oldBean.getIam_role().split("/")[1]);
                 }
 
