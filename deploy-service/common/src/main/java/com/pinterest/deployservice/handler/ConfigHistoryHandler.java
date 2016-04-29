@@ -131,8 +131,6 @@ public class ConfigHistoryHandler {
                 if (type.equals(Constants.TYPE_ASG_GENERAL)) {
                     GroupBean newBean = gson.fromJson(configChange, GroupBean.class);
                     newBean.setGroup_name(groupName);
-                    String userData = new String(Base64.decodeBase64(newBean.getUser_data()));
-                    newBean.setUser_data(userData);
                     groupHandler.updateLaunchConfig(groupName, newBean);
                     updateConfigHistory(groupName, type, newBean, operator);
                 } else if (type.equals(Constants.TYPE_ASG_SCALING)) {

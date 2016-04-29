@@ -53,7 +53,6 @@ import com.pinterest.deployservice.group.CMDBHostGroupManager;
 
 import com.ibatis.common.jdbc.ScriptRunner;
 import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -163,6 +162,9 @@ public class GroupHandlerTest {
         updatedBean2.setGroup_name("test2");
         updatedBean2.setChatroom("hello");
         when(mockAwsManager.getAutoScalingGroupStatus("test2")).thenReturn(ASGStatus.UNKNOWN);
+
+        AwsVmBean awsVmBean = generateDefaultAwsVmBean("test2", "ami-12345", "test2", "test2-1");
+        when(mockAwsManager.getLaunchConfigInfo("test2-1")).thenReturn(awsVmBean);
         groupHandler.updateLaunchConfig("test2", updatedBean2);
 
         // verify
@@ -185,16 +187,20 @@ public class GroupHandlerTest {
         updatedBean2.setAssign_public_ip(Boolean.TRUE);
         updatedBean2.setGroup_name("test3");
         when(mockAwsManager.getAutoScalingGroupStatus("test3")).thenReturn(ASGStatus.UNKNOWN);
+
+        AwsVmBean awsVmBean = generateDefaultAwsVmBean("test3", "ami-12345", "test2", null);
+        when(mockAwsManager.getLaunchConfigInfo(null)).thenReturn(awsVmBean);
         groupHandler.updateLaunchConfig("test3", updatedBean2);
         ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
-        verify(mockAwsManager, times(1)).createLaunchConfig(eq("test3"), argument.capture());
+        // getLaunchConfigInfo will call update launch config if configid is null
+        verify(mockAwsManager, times(2)).createLaunchConfig(eq("test3"), argument.capture());
         AwsVmBean actualUpdatedBean = argument.getValue();
 
         assertTrue(actualUpdatedBean.getAssignPublicIp());
         assertEquals(actualUpdatedBean.getRole(), "base");
         assertEquals(actualUpdatedBean.getImage(), "ami-12345");
         assertEquals(actualUpdatedBean.getHostType(), "c3.2xlarge");
-        assertEquals(argument.getValue().getRawUserDataString(), Base64.encodeBase64String("#cloud-config\nrole: test3\n".getBytes()));
+        assertEquals(argument.getValue().getRawUserDataString(), "#cloud-config\nrole: test3\n");
     }
 
     @Test
@@ -211,6 +217,9 @@ public class GroupHandlerTest {
         updatedBean.setImage_id("ami-12345");
 
         when(mockAwsManager.getAutoScalingGroupStatus("test4")).thenReturn(ASGStatus.ENABLED);
+
+        AwsVmBean awsVmBean = generateDefaultAwsVmBean("test4", "ami-12345", "subnet-1", "config-1");
+        when(mockAwsManager.getLaunchConfigInfo("config-1")).thenReturn(awsVmBean);
         groupHandler.updateLaunchConfig("test4", updatedBean);
         ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
         ArgumentCaptor<AwsVmBean> argument2 = ArgumentCaptor.forClass(AwsVmBean.class);
@@ -237,9 +246,22 @@ public class GroupHandlerTest {
         groupBean.setLaunch_config_id(config);
         groupBean.setLaunch_latency_th(600);
         groupBean.setLast_update(lastUpdate);
-        groupBean.setUser_data(Base64.encodeBase64String(String.format("#cloud-config\nrole: %s\n", groupName).getBytes()));
+        groupBean.setUser_data(String.format("#cloud-config\nrole: %s\n", groupName));
         groupBean.setHealthcheck_state(false);
         groupBean.setLifecycle_state(false);
         return groupBean;
+    }
+
+    private AwsVmBean generateDefaultAwsVmBean(String clusterName, String image, String subnets, String configId) {
+        AwsVmBean awsVmBean = new AwsVmBean();
+        awsVmBean.setAssignPublicIp(false);
+        awsVmBean.setRole("base");
+        awsVmBean.setHostType("c3.2xlarge");
+        awsVmBean.setSecurityZone("s-test");
+        awsVmBean.setImage(image);
+        awsVmBean.setSubnet(subnets);
+        awsVmBean.setLaunchConfigId(configId);
+        awsVmBean.setRawUserDataString(String.format("#cloud-config\nrole: %s\n", clusterName));
+        return awsVmBean;
     }
 }

@@ -24,8 +24,9 @@ import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.common.DeployInternalException;
-
 import com.pinterest.deployservice.bean.HostState;
+
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +41,15 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
     private static final int TERMINATED_CODE = 48;
     private static final int STOPPED_CODE = 80;
     private static final String RUNNING_CODE = "16";
+    private final String vmKeyName;
+    private final String ownerId;
+    private final String roleTemplate;
 
-    public EC2HostInfoDAOImpl(AmazonEC2Client client) {
+    public EC2HostInfoDAOImpl(AmazonEC2Client client, AwsConfigManager configManager) {
         this.ec2Client = client;
+        this.vmKeyName = configManager.getVmKeyName();
+        this.ownerId = configManager.getOwnerId();
+        this.roleTemplate = configManager.getRoleTemplate();
     }
 
     @Override
@@ -99,12 +106,14 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
         RunInstancesRequest request = new RunInstancesRequest();
         request.setImageId(groupBean.getImage_id());
         request.setInstanceType(groupBean.getInstance_type());
-        request.setKeyName("ops");
+        request.setKeyName(vmKeyName);
         request.setSecurityGroupIds(Arrays.asList(groupBean.getSecurity_group()));
         request.setSubnetId(subnet);
-        request.setUserData(groupBean.getUser_data());
+        String userData = Base64.encodeBase64String(groupBean.getUser_data().getBytes());
+        request.setUserData(userData);
         IamInstanceProfileSpecification iamRole = new IamInstanceProfileSpecification();
-        iamRole.setArn(groupBean.getIam_role());
+        String role = String.format(roleTemplate, ownerId, groupBean.getIam_role());
+        iamRole.setArn(role);
         request.setIamInstanceProfile(iamRole);
         request.setMinCount(instanceCnt);
         request.setMaxCount(instanceCnt);

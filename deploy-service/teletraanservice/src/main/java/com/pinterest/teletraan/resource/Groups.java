@@ -97,7 +97,7 @@ public class Groups {
     @GET
     @Path("/{groupName: [a-zA-Z0-9\\-_]+}")
     public GroupBean get(@PathParam("groupName") String groupName) throws Exception {
-        return groupHandler.getLaunchConfig(groupName);
+        return groupHandler.getGroupInfoByClusterName(groupName);
     }
 
     @GET

@@ -120,11 +120,10 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         monitoring.setEnabled(false);
         configurationRequest.setInstanceMonitoring(monitoring);
         if (StringUtils.isEmpty(request.getRawUserDataString())) {
-            String userData =
-                transformUserDataConfigToString(groupName, request.getUserDataConfigs());
+            String userData = transformUserDataConfigToString(groupName, request.getUserDataConfigs());
             configurationRequest.setUserData(Base64.encodeBase64String(userData.getBytes()));
         } else {
-            configurationRequest.setUserData(request.getRawUserDataString());
+            configurationRequest.setUserData(Base64.encodeBase64String(request.getRawUserDataString().getBytes()));
         }
 
         aasClient.createLaunchConfiguration(configurationRequest);
@@ -548,25 +547,42 @@ public class AwsAutoScalingManager implements AutoScalingManager {
     }
 
     @Override
-    public AwsVmBean getAutoScalingGroupInfo(String groupName) throws Exception {
-        AutoScalingGroup group = getAutoScalingGroup(groupName);
-        if (group == null) {
-            LOG.warn(String.format("Failed to get cluster %s: auto scaling group %s does not exist", groupName, groupName));
+    public AwsVmBean getAutoScalingGroupInfo(String clusterName) throws Exception {
+        AutoScalingGroup autoScalingGroup = getAutoScalingGroup(clusterName);
+        if (autoScalingGroup == null) {
+            LOG.warn(String.format("Failed to get cluster %s: auto scaling group %s does not exist", clusterName, clusterName));
             return null;
         }
 
+        AwsVmBean launchConfigInfo = getLaunchConfigInfo(autoScalingGroup.getLaunchConfigurationName());
+        AwsVmBean awsVmBean = new AwsVmBean();
+        awsVmBean.setClusterName(clusterName);
+        awsVmBean.setImage(launchConfigInfo.getImage());
+        awsVmBean.setHostType(launchConfigInfo.getHostType());
+        awsVmBean.setSecurityZone(launchConfigInfo.getSecurityZone());
+        awsVmBean.setAssignPublicIp(launchConfigInfo.getAssignPublicIp());
+        awsVmBean.setLaunchConfigId(launchConfigInfo.getLaunchConfigId());
+        awsVmBean.setRole(launchConfigInfo.getRole());
+        awsVmBean.setUserDataConfigs(transformUserDataToConfigMap(clusterName, launchConfigInfo.getRawUserDataString()));
+        awsVmBean.setSubnet(autoScalingGroup.getVPCZoneIdentifier());
+        awsVmBean.setMinSize(autoScalingGroup.getMinSize());
+        awsVmBean.setMaxSize(autoScalingGroup.getMaxSize());
+        return awsVmBean;
+    }
+
+    @Override
+    public AwsVmBean getLaunchConfigInfo(String launchConfigId) throws Exception {
         DescribeLaunchConfigurationsRequest configRequest = new DescribeLaunchConfigurationsRequest();
-        configRequest.setLaunchConfigurationNames(Arrays.asList(group.getLaunchConfigurationName()));
+        configRequest.setLaunchConfigurationNames(Arrays.asList(launchConfigId));
         DescribeLaunchConfigurationsResult configResult = aasClient.describeLaunchConfigurations(configRequest);
         List<LaunchConfiguration> configs = configResult.getLaunchConfigurations();
         if (configs.isEmpty()) {
-            LOG.warn(String.format("Failed to get cluster: Launch config %s does not exist", group.getLaunchConfigurationName()));
+            LOG.error(String.format("Failed to get cluster: Launch config %s does not exist", launchConfigId));
             return null;
         }
 
         LaunchConfiguration config = configs.get(0);
         AwsVmBean awsVmBean = new AwsVmBean();
-        awsVmBean.setClusterName(groupName);
         awsVmBean.setImage(config.getImageId());
         awsVmBean.setHostType(config.getInstanceType());
         awsVmBean.setSecurityZone(config.getSecurityGroups().get(0));
@@ -575,10 +591,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         String roleName = config.getIamInstanceProfile();
         awsVmBean.setRole(roleName.split("/")[1]);
         String userData = new String(Base64.decodeBase64(config.getUserData()));
-        awsVmBean.setUserDataConfigs(transformUserDataToConfigMap(groupName, userData));
-        awsVmBean.setSubnet(group.getVPCZoneIdentifier());
-        awsVmBean.setMinSize(group.getMinSize());
-        awsVmBean.setMaxSize(group.getMaxSize());
+        awsVmBean.setRawUserDataString(userData);
         return awsVmBean;
     }
 

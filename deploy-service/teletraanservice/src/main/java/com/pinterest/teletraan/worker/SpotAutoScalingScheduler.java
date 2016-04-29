@@ -27,6 +27,7 @@ import com.pinterest.arcee.dao.AlarmDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.ReservedInstanceInfoDAO;
 import com.pinterest.arcee.dao.SpotAutoScalingDAO;
+import com.pinterest.arcee.handler.GroupHandler;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.ServiceContext;
 
@@ -46,6 +47,7 @@ public class SpotAutoScalingScheduler implements Runnable {
     private AlarmDAO asgAlarmDAO;
     private int spotAutoScalingThreshold;
     private AlarmManager alarmManager;
+    private GroupHandler groupHandler;
 
     public SpotAutoScalingScheduler(ServiceContext serviceContext) {
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
@@ -56,6 +58,7 @@ public class SpotAutoScalingScheduler implements Runnable {
         spotAutoScalingThreshold = serviceContext.getSpotAutoScalingThreshold();
         asgAlarmDAO = serviceContext.getAlarmDAO();
         alarmManager = serviceContext.getAlarmManager();
+        groupHandler = new GroupHandler(serviceContext);
         LOG.info(String.format("Set spot auto scaling threshold to %d", spotAutoScalingThreshold));
     }
 
@@ -81,7 +84,7 @@ public class SpotAutoScalingScheduler implements Runnable {
     }
 
     private void processSpotAutoScaling(String clusterName, SpotAutoScalingBean spotAutoScalingBean) throws Exception {
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(clusterName);
+        GroupBean groupBean = groupHandler.getGroupInfoByClusterName(clusterName);
         if (groupBean == null) {
             return;
         }

@@ -35,16 +35,18 @@ public class ProvisionHandler {
     private HostInfoDAO hostInfoDAO;
     private GroupInfoDAO groupInfoDAO;
     private AutoScalingManager asgDAO;
+    private GroupHandler groupHandler;
 
     public ProvisionHandler(ServiceContext serviceContext) {
         hostDAO = serviceContext.getHostDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         groupInfoDAO = serviceContext.getGroupInfoDAO();
         asgDAO = serviceContext.getAutoScalingManager();
+        groupHandler = new GroupHandler(serviceContext);
     }
 
     public List<String> launchNewInstances(String groupName, int instanceCnt, String subnet, String operator) throws Exception {
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
+        GroupBean groupBean = groupHandler.getGroupInfoByClusterName(groupName);
         if (groupBean != null) {
             if (groupBean.getAsg_status() == ASGStatus.ENABLED) {  // AutoScaling is enabled, increase the ASG capacity
                 LOG.info(String.format("Launch %d EC2 instances in AutoScalingGroup %s", instanceCnt, groupName));

@@ -54,7 +54,9 @@ public interface AutoScalingManager {
 
     AutoScalingGroupBean getAutoScalingGroupInfoByName(String asgName) throws Exception;
 
-    AwsVmBean getAutoScalingGroupInfo(String groupName) throws Exception;
+    AwsVmBean getAutoScalingGroupInfo(String clusterName) throws Exception;
+
+    AwsVmBean getLaunchConfigInfo(String launchConfigId) throws Exception;
 
     ASGStatus getAutoScalingGroupStatus(String groupName) throws Exception;
 

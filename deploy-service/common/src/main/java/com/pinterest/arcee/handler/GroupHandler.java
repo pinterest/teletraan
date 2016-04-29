@@ -109,9 +109,10 @@ public class GroupHandler {
                 } else {
                     GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
                     if (groupBean != null) {
-                        groupBean.setAsg_status(ASGStatus.UNKNOWN);
-                        groupBean.setLast_update(System.currentTimeMillis());
-                        groupInfoDAO.updateGroupInfo(groupName, groupBean);
+                        GroupBean newBean = new GroupBean();
+                        newBean.setAsg_status(ASGStatus.UNKNOWN);
+                        newBean.setLast_update(System.currentTimeMillis());
+                        groupInfoDAO.updateGroupInfo(groupName, newBean);
                     }
                 }
             } catch (Exception t) {
@@ -275,8 +276,97 @@ public class GroupHandler {
         }
     }
 
+    public GroupBean getGroupInfoByClusterName(String clusterName) throws Exception {
+        GroupBean oldBean = groupInfoDAO.getGroupInfo(clusterName);
+        if (oldBean == null) {
+            String processLockName = String.format("CREATE-%s", clusterName);
+            Connection connection = utilDAO.getLock(processLockName);
+            if (connection == null) {
+                LOG.error("Failed to grab CREATE_GROUP_INFO_LOCK for group = {}. This means someone else is holding it, exiting", clusterName);
+                return new GroupBean();
+            }
+            try {
+                updateLaunchConfigInternal(null, clusterName);
+                oldBean = groupInfoDAO.getGroupInfo(clusterName);
+            } catch (Exception ex) {
+                LOG.error("Failed to generate config for group", ex);
+                return new GroupBean();
+            } finally {
+                utilDAO.releaseLock(processLockName, connection);
+            }
+        }
+
+        String launchConfigId = oldBean.getLaunch_config_id();
+        // TODO use for migration
+        if (launchConfigId == null) {
+            launchConfigId = updateLaunchConfigInternal(oldBean, clusterName);
+        }
+
+        AwsVmBean awsVmBean = asgDAO.getLaunchConfigInfo(launchConfigId);
+        if (awsVmBean == null) {
+            launchConfigId = updateLaunchConfigInternal(oldBean, clusterName);
+            awsVmBean = asgDAO.getLaunchConfigInfo(launchConfigId);
+        }
+        
+        GroupBean groupBean = new GroupBean();
+        if (oldBean.getChatroom() != null) {
+            groupBean.setChatroom(oldBean.getChatroom());
+        }
+
+        if (oldBean.getWatch_recipients() != null) {
+            groupBean.setWatch_recipients(oldBean.getWatch_recipients());
+        }
+
+        if (oldBean.getPager_recipients() != null) {
+            groupBean.setPager_recipients(oldBean.getPager_recipients());
+        }
+
+        if (oldBean.getAsg_status() != null) {
+            groupBean.setAsg_status(oldBean.getAsg_status());
+        }
+
+        if (oldBean.getSubnets() != null) {
+            groupBean.setSubnets(oldBean.getSubnets());
+        }
+
+        groupBean.setGroup_name(clusterName);
+        groupBean.setImage_id(awsVmBean.getImage());
+        groupBean.setInstance_type(awsVmBean.getHostType());
+        groupBean.setSecurity_group(awsVmBean.getSecurityZone());
+        groupBean.setAssign_public_ip(awsVmBean.getAssignPublicIp());
+        groupBean.setLaunch_config_id(awsVmBean.getLaunchConfigId());
+        groupBean.setIam_role(awsVmBean.getRole());
+        groupBean.setUser_data(awsVmBean.getRawUserDataString());
+        groupBean.setLaunch_latency_th(oldBean.getLaunch_latency_th());
+        groupBean.setHealthcheck_period(oldBean.getHealthcheck_period());
+        groupBean.setHealthcheck_state(oldBean.getHealthcheck_state());
+        groupBean.setLifecycle_state(oldBean.getLifecycle_state());
+        groupBean.setLifecycle_timeout(oldBean.getLifecycle_timeout());
+        groupBean.setLast_update(oldBean.getLast_update());
+        return groupBean;
+    }
+
+    // TODO used for migration only
+    private String updateLaunchConfigInternal(GroupBean oldBean, String clusterName) throws Exception {
+        if (oldBean != null) {
+            String userData = new String(Base64.decodeBase64(oldBean.getUser_data()));
+            oldBean.setUser_data(userData);
+            String launchConfigId = changeConfig(clusterName, oldBean, null);
+            GroupBean newBean = new GroupBean();
+            newBean.setLaunch_config_id(launchConfigId);
+            groupInfoDAO.updateGroupInfo(clusterName, newBean);
+            return launchConfigId;
+        } else {
+            GroupBean groupBean = generateDefaultGroupBean(clusterName);
+            String launchConfigId = changeConfig(clusterName, groupBean, null);
+            groupBean.setLaunch_config_id(launchConfigId);
+            groupInfoDAO.insertGroupInfo(groupBean);
+            return launchConfigId;
+        }
+    }
+
     public void updateLaunchConfig(String groupName, GroupBean newGroupBean) throws Exception {
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
+        GroupBean groupBean = getGroupInfoByClusterName(groupName);
         if (groupBean == null) {
             groupBean = generateDefaultGroupBean(groupName);
         }
@@ -329,43 +419,9 @@ public class GroupHandler {
         }
     }
 
-    // try to get group bean from db. create a default one if it does not exist
-    public GroupBean getLaunchConfig(String groupName) throws Exception {
-        LOG.info("Start to get launch config for: {}", groupName);
-        String processLockName = String.format("CREATE-%s", groupName);
-        Connection connection = utilDAO.getLock(processLockName);
-        if (connection == null) {
-            LOG.error("Failed to grab CREATE_GROUP_INFO_LOCK for group = {}. This means someone else is holding it, exiting", groupName);
-            // return empty bean, which required the client to wait.
-            return new GroupBean();
-        }
-        try {
-            GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
-            // create default group bean and default launch configuration only
-            // when the group bean is null.
-            if (groupBean == null) {
-                groupBean = generateDefaultGroupBean(groupName);
-                String configId = asgDAO.createLaunchConfig(groupName, generateVmBean(groupName, groupBean));
-                groupBean.setLaunch_config_id(configId);
-                groupInfoDAO.insertGroupInfo(groupBean);
-            }
-
-            if (!StringUtils.isEmpty(groupBean.getUser_data())) {
-                groupBean.setUser_data(new String(Base64.decodeBase64(groupBean.getUser_data())));
-            }
-
-            return groupBean;
-        } catch (Exception ex) {
-            LOG.error("Failed to generate config for group", ex);
-            return new GroupBean();
-        } finally {
-            utilDAO.releaseLock(processLockName, connection);
-        }
-    }
-
     public void disableAutoScalingGroup(String groupName) throws Exception {
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
         asgDAO.disableAutoScalingGroup(groupName);
+        GroupBean groupBean = new GroupBean();
         groupBean.setAsg_status(ASGStatus.DISABLED);
         groupBean.setLast_update(System.currentTimeMillis());
         groupInfoDAO.updateGroupInfo(groupName, groupBean);
@@ -377,8 +433,8 @@ public class GroupHandler {
     }
 
     public void enableAutoScalingGroup(String groupName) throws Exception {
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
         asgDAO.enableAutoScalingGroup(groupName);
+        GroupBean groupBean = new GroupBean();
         groupBean.setAsg_status(ASGStatus.ENABLED);
         groupBean.setLast_update(System.currentTimeMillis());
         groupInfoDAO.updateGroupInfo(groupName, groupBean);
@@ -422,10 +478,14 @@ public class GroupHandler {
     }
 
     public void createAutoScalingGroup(String groupName, AutoScalingRequestBean request) throws Exception {
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
+        GroupBean groupBean = getGroupInfoByClusterName(groupName);
         if (groupBean == null) {
-            LOG.error(String.format("Failed to get group information from database for group: %s", groupName));
             return;
+        }
+
+        if (groupBean.getSubnets() == null) {
+            LOG.error(String.format("Failed to create auto scaling group for %s: empty subnets ", groupName));
+            throw new Exception(String.format("Failed to create auto scaling group for %s: empty subnets ", groupName));
         }
 
         AwsVmBean updateBean = generateInternalAutoScalingRequest(groupBean, request, false);
@@ -450,9 +510,10 @@ public class GroupHandler {
             asgDAO.createAutoScalingGroup(groupName, updateBean);
         }
 
-        groupBean.setAsg_status(ASGStatus.ENABLED);
-        groupBean.setLast_update(System.currentTimeMillis());
-        groupInfoDAO.updateGroupInfo(groupName, groupBean);
+        GroupBean newBean = new GroupBean();
+        newBean.setAsg_status(ASGStatus.ENABLED);
+        newBean.setLast_update(System.currentTimeMillis());
+        groupInfoDAO.updateGroupInfo(groupName, newBean);
 
         if (request.getEnableSpot() != null && request.getEnableSpot()) {
             createSpotAutoScalingGroup(groupName, groupBean, request);
@@ -479,7 +540,7 @@ public class GroupHandler {
     }
 
     public void updateAutoScalingGroup(String groupName, AutoScalingRequestBean request) throws Exception {
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
+        GroupBean groupBean = getGroupInfoByClusterName(groupName);
         if (groupBean == null) {
             return;
         }
@@ -829,7 +890,7 @@ public class GroupHandler {
         groupBean.setLaunch_latency_th(AutoScalingConstants.DEFAULT_LAUNCH_LATENCY_THRESHOLD);
         groupBean.setIam_role(AutoScalingConstants.DEFAULT_IAM_ROLE);
         groupBean.setAssign_public_ip(false);
-        groupBean.setUser_data(Base64.encodeBase64String(String.format("#cloud-config\nrole: %s\n", groupName).getBytes()));
+        groupBean.setUser_data(String.format("#cloud-config\nrole: %s\n", groupName));
         groupBean.setAsg_status(ASGStatus.UNKNOWN);
         groupBean.setHealthcheck_state(false);
         groupBean.setHealthcheck_period(HealthCheckConstants.HEALTHCHECK_PERIOD);
@@ -871,7 +932,7 @@ public class GroupHandler {
         if (requestBean.getUser_data() == null) {
             requestBean.setUser_data(groupBean.getUser_data());
         } else {
-            requestBean.setUser_data(Base64.encodeBase64String(requestBean.getUser_data().getBytes()));
+            requestBean.setUser_data(requestBean.getUser_data());
         }
 
         if (requestBean.getAsg_status() == null) {

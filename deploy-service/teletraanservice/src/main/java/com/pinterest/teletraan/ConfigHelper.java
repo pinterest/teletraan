@@ -127,7 +127,7 @@ public class ConfigHelper {
             // TODO we should just use AwsConfigManager and get rid of the above 3
             context.setAwsConfigManager(awsFactory.buildAwsConfigManager());
             // TODO rename to manager
-            context.setHostInfoDAO(new EC2HostInfoDAOImpl(ec2Client));
+            context.setHostInfoDAO(new EC2HostInfoDAOImpl(ec2Client, context.getAwsConfigManager()));
             context.setReservedInstanceInfoDAO(new ReservedInstanceFetcher(ec2Client));
             context.setClusterManager(new AwsVmManager(context));
             context.setAwsManager(new AwsManagerImpl(context.getAwsConfigManager()));

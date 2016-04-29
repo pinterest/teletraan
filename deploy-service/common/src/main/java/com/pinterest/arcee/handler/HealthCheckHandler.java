@@ -48,6 +48,7 @@ public class HealthCheckHandler {
     private GroupInfoDAO groupInfoDAO;
     private EnvironDAO environDAO;
     private ImageDAO imageDAO;
+    private GroupHandler groupHandler;
 
     public HealthCheckHandler(ServiceContext serviceContext) {
         healthCheckDAO = serviceContext.getHealthCheckDAO();
@@ -55,6 +56,7 @@ public class HealthCheckHandler {
         groupInfoDAO = serviceContext.getGroupInfoDAO();
         environDAO = serviceContext.getEnvironDAO();
         imageDAO = serviceContext.getImageDAO();
+        groupHandler = new GroupHandler(serviceContext);
     }
 
     String addNewHealthCheckRecord(String groupName, String envId, String amiId, String deployId, HealthCheckType type) throws Exception {
@@ -95,7 +97,7 @@ public class HealthCheckHandler {
                 return new ArrayList<>();
             }
 
-            GroupBean group = groupInfoDAO.getGroupInfo(groupName);
+            GroupBean group = groupHandler.getGroupInfoByClusterName(groupName);
             if (!group.getHealthcheck_state()) {
                 LOG.info("Health check isn't enabled yet");
                 return new ArrayList<>();

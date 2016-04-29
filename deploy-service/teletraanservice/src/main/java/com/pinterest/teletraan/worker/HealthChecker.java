@@ -44,7 +44,6 @@ import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.CommonHandler;
 import com.pinterest.deployservice.common.NotificationJob;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -409,10 +408,10 @@ public class HealthChecker implements Runnable {
                         Connection connection = utilDAO.getLock(lockName);
                         if (connection != null) {
                             try {
-                                groupBean.setImage_id(healthCheckBean.getAmi_id());
-                                String userData = new String(Base64.decodeBase64(groupBean.getUser_data()));
-                                groupBean.setUser_data(userData);
-                                groupHandler.updateLaunchConfig(groupName, groupBean);
+                                GroupBean newBean = new GroupBean();
+                                newBean.setImage_id(healthCheckBean.getAmi_id());
+                                groupHandler.updateLaunchConfig(groupName, newBean);
+
                                 newImageBean.setQualified(true);
                                 imageDAO.insertOrUpdate(newImageBean);
                             } catch (Exception ex) {
@@ -437,7 +436,7 @@ public class HealthChecker implements Runnable {
     }
 
     private void processHealthCheck(HealthCheckBean healthCheckBean) throws Exception {
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(healthCheckBean.getGroup_name());
+        GroupBean groupBean = groupHandler.getGroupInfoByClusterName(healthCheckBean.getGroup_name());
         if (shouldTimeoutHealthCheck(healthCheckBean, groupBean)) {
             return;
         }
