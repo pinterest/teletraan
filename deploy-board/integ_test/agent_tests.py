@@ -103,9 +103,9 @@ class TestPings(unittest.TestCase):
         env = environs_helper.get_env_by_stage(commons.REQUEST, envName, stageName)
         deploy = deploys_helper.get(commons.REQUEST, env["deployId"])
         if deploy['state'] == 'SUCCEEDING':
-            print "Deploy has compelted successfully!"
+            print "Deploy has completed successfully!"
             return True
-        print "Deploy has not compelted yet, success rate is %d/%d" % (deploy['successTotal'],
+        print "Deploy has not completed yet, success rate is %d/%d" % (deploy['successTotal'],
                                                                        deploy['total'])
         return False
 
