@@ -586,7 +586,7 @@ public class PingHandler {
     public final static int getFinalMaxParallelCount(EnvironBean environBean, long totalHosts) throws Exception {
 
         int ret = Constants.DEFAULT_MAX_PARALLEL_HOSTS;
-        LOG.debug("Get final maximum parallel count for total capactiy {}", totalHosts);
+        LOG.debug("Get final maximum parallel count for total capacity {}", totalHosts);
         boolean numIsApplicable = isApplicable(environBean.getMax_parallel());
         boolean percentageIsApplicable = isApplicable(environBean.getMax_parallel_pct());
 
