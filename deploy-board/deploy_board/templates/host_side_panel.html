@@ -7,8 +7,8 @@
 {% if show_terminate %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
-            data-toggle="modal" title="Terminate Host">
-        <span class="glyphicon glyphicon-remove"></span> Terminate Host
+            data-toggle="modal" title="Gracefully shutdown the service and terminate the host">
+        <span class="glyphicon glyphicon-off"></span> Terminate Host
     </button>
 </div>
 
@@ -21,7 +21,13 @@
                     <h4 class="modal-title">Host Termination Confirm</h4>
                 </div>
                 <div class="modal-body">
-                    <p> Are you sure to terminate {{ host.hostName }}?</p>
+                    <p> Are you sure to gracefully shutdown the service and then terminate {{ host.hostName }}?</p>
+                    {% if is_unreachable %}
+                        <div class="alert alert-warning" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <strong>Warning!</strong> This host is unreachable. It cannot be gracefully shut down.
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>

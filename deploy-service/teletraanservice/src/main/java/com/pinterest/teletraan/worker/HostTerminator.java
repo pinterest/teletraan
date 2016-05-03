@@ -48,6 +48,11 @@ public class HostTerminator implements Runnable {
     }
 
     private void terminateHost(HostBean host) throws Exception {
+        // if host is terminated before stopping successfully, delete record directly
+        if (removeTerminatedHost(host)) {
+            return;
+        }
+
         String hostId = host.getHost_id();
         List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
         boolean stopSucceeded = true;
@@ -64,7 +69,7 @@ public class HostTerminator implements Runnable {
         }
     }
 
-    private void removeTerminatedHost(HostBean host) throws Exception {
+    private boolean removeTerminatedHost(HostBean host) throws Exception {
         // Check whether the host state is TERMINATED_CODE on AWS
         String hostId = host.getHost_id();
         Set<String> terminatedHosts = hostInfoDAO.getTerminatedHosts(new HashSet<>(Collections.singletonList(hostId)));
@@ -72,7 +77,9 @@ public class HostTerminator implements Runnable {
             LOG.info(String.format("Delete %s in host and agent table", hostId));
             hostDAO.deleteAllById(hostId);
             agentDAO.deleteAllById(hostId);
+            return true;
         }
+        return false;
     }
 
     private void processBatch() throws Exception {
