@@ -61,5 +61,5 @@ public interface HostDAO {
 
     HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception;
 
-    HostBean getByEnvIdAndHostName(String envId, String hostName) throws Exception;
+    Collection<HostBean> getByEnvIdAndHostName(String envId, String hostName) throws Exception;
 }

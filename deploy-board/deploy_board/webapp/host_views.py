@@ -45,35 +45,41 @@ def get_agent_wrapper(request, hostname):
     return agent_wrappers, is_unreachable
 
 
-def get_asg_name(request, host):
-    asg = ''
-    if host and host.get('groupName'):
-        group_info = groups_helper.get_group_info(request, host.get('groupName'))
-        if group_info and group_info["asgStatus"] == "ENABLED":
-            asg = host.get('groupName')
-    return asg
+# TODO deprecated it
+def get_asg_name(request, hosts):
+    for host in hosts:
+        if host and host.get('groupName'):
+            group_info = groups_helper.get_group_info(request, host.get('groupName'))
+            if group_info and group_info["asgStatus"] == "ENABLED":
+                return host.get('groupName')
+    return None
 
 
-def get_show_terminate(host):
-    if host and host.get('state') and host.get('state') != 'PENDING_TERMINATE' and host.get('state') != 'TERMINATING' and host.get('state') != 'TERMINATED':
-        return True
-    else:
-        return False
+def get_show_terminate(hosts):
+    for host in hosts:
+        if host and host.get('state') and host.get('state') != 'PENDING_TERMINATE' and host.get('state') != 'TERMINATING' and host.get('state') != 'TERMINATED':
+            return True
+    return False
+
+
+def get_host_id(hosts):
+    if hosts:
+        return hosts[0].get('hostId')
+    return None
 
 
 class GroupHostDetailView(View):
     def get(self, request, groupname, hostname):
         hosts = hosts_helper.get_hosts_by_name(request, hostname)
-        show_host = None
-        for host in hosts:
-            if host.get('groupName') == groupname:
-                show_host = host
-        asg = get_asg_name(request, show_host)
+        host_id = get_host_id(hosts)
+        asg = get_asg_name(request, hosts)
+
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         return render(request, 'hosts/host_details.html', {
             'group_name': groupname,
             'hostname': hostname,
-            'host': show_host,
+            'hosts': hosts,
+            'host_id': host_id,
             'agent_wrappers': agent_wrappers,
             'asg_group': asg,
             'is_unreachable': is_unreachable,
@@ -83,18 +89,17 @@ class GroupHostDetailView(View):
 
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
-        host = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
-        show_terminate = get_show_terminate(host)
-
-        # TODO deprecated it
-        asg = get_asg_name(request, host)
-
+        hosts = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
+        host_id = get_host_id(hosts)
+        show_terminate = get_show_terminate(hosts)
+        asg = get_asg_name(request, hosts)
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         return render(request, 'hosts/host_details.html', {
             'env_name': name,
             'stage_name': stage,
             'hostname': hostname,
-            'host': host,
+            'hosts': hosts,
+            'host_id': host_id,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
             'show_force_terminate': True,

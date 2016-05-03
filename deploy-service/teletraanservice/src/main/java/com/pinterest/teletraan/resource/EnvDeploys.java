@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -178,6 +179,6 @@ public class EnvDeploys {
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName)
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        return environHandler.getMissingHosts(envBean);
+        return new ArrayList<>(environDAO.getMissingHosts(envBean.getEnv_id()));
     }
 }

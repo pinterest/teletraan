@@ -15,13 +15,13 @@
 <div class="modal fade" id="terminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="terminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/terminate_hosts/?host_id={{ host.hostId }}">
+            <form id="terminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/terminate_hosts/?host_id={{ host_id }}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Host Termination Confirm</h4>
                 </div>
                 <div class="modal-body">
-                    <p> Are you sure to gracefully shutdown the service and then terminate {{ host.hostName }}?</p>
+                    <p> Are you sure to gracefully shutdown the service and then terminate {{ hostname }}?</p>
                     {% if is_unreachable %}
                         <div class="alert alert-warning" role="alert">
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
@@ -40,7 +40,7 @@
 </div><!-- /.modal -->
 {% endif %}
 
-{% if show_force_terminate  %}
+{% if hosts and show_force_terminate  %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block" data-target="#forceTerminateHost"
             data-toggle="modal" title="Force Terminate Host">
@@ -51,13 +51,13 @@
 <div class="modal fade" id="forceTerminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="forceTerminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/force_terminate_hosts/?host_id={{ host.hostId }}">
+            <form id="forceTerminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/force_terminate_hosts/?host_id={{ host_id }}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Host Termination Confirm</h4>
                 </div>
                 <div class="modal-body">
-                    <p> Are you sure to force terminate {{ host.hostName }}?</p>
+                    <p> Are you sure to force terminate {{ hostname }}?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
@@ -85,13 +85,13 @@
      aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="detachHostForm" class="form-horizontal" method="post" role="form" action="/groups/{{ asg_group }}/detach_host/?hostId={{ host.hostId }}">
+            <form id="detachHostForm" class="form-horizontal" method="post" role="form" action="/groups/{{ asg_group }}/detach_host/?hostId={{ host_id }}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Detach Confirm</h4>
                 </div>
                 <div class="modal-body">
-                    <p> Are you sure to detach {{ host.hostName }} from {{ asg_group }}?</p>
+                    <p> Are you sure to detach {{ hostname }} from {{ asg_group }}?</p>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="detachInstanceBtnId">Detach</button>

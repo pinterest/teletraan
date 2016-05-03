@@ -211,12 +211,12 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public HostBean getByEnvIdAndHostName(String envId, String hostName) throws Exception {
-        ResultSetHandler<HostBean> h = new BeanHandler<>(HostBean.class);
-        HostBean hostBean = new QueryRunner(dataSource).query(GET_HOST_BY_ENVID_AND_HOSTNAME1, h, envId, hostName);
-        if (hostBean == null) {
+    public Collection<HostBean> getByEnvIdAndHostName(String envId, String hostName) throws Exception {
+        ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
+        Collection<HostBean> hostBeans = new QueryRunner(dataSource).query(GET_HOST_BY_ENVID_AND_HOSTNAME1, h, envId, hostName);
+        if (hostBeans.isEmpty()) {
             return new QueryRunner(dataSource).query(GET_HOST_BY_ENVID_AND_HOSTNAME2, h, envId, hostName);
         }
-        return hostBean;
+        return hostBeans;
     }
 }

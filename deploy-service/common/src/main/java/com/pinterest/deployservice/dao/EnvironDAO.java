@@ -49,6 +49,8 @@ public interface EnvironDAO {
 
     List<String> getTotalCapacityHosts(String envId, String envName, String envStage) throws Exception;
 
+    Collection<String> getMissingHosts(String envId) throws Exception;
+
     List<EnvironBean> getEnvsByHost(String host) throws Exception;
 
     List<EnvironBean> getEnvsByGroups(Collection<String> groups) throws Exception;

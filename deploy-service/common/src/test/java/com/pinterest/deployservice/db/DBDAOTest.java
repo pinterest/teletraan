@@ -555,7 +555,8 @@ public class DBDAOTest {
         assertEquals(groupDAO.getCapacityHosts("env-1").size(), 2);
         assertEquals(groupDAO.getCapacityGroups("env-1").size(), 2);
         assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 0);
-        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 2);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 0);
+        assertEquals(environDAO.getMissingHosts("env-1").size(), 2);
         ArrayList<String> groupNames = new ArrayList<>();
         groupNames.add("group1");
         assertEquals(environDAO.getEnvsByGroups(groupNames).size(), 1);
@@ -569,7 +570,7 @@ public class DBDAOTest {
         assertEquals(groupDAO.getCapacityHosts("env-1").size(), 1);
         assertEquals(groupDAO.getCapacityGroups("env-1").size(), 1);
         assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 0);
-        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 1);
+        assertEquals(environDAO.getMissingHosts("env-1").size(), 1);
 
         // Added 2 hosts to group1 and group2
         Set<String> groups = new HashSet<>(Arrays.asList("group1", "group2"));
@@ -579,35 +580,36 @@ public class DBDAOTest {
         List<HostBean> hostBeans = hostDAO.getHostsByHostId("id-123435");
         assertEquals(hostBeans.get(0).getState(), HostState.TERMINATING);
 
-        // Total capacity for env-1 should be 3, host1, host-1(group1), host-2(group2)
+        // Total capacity for env-1 should be 2, host-1(group1), host-2(group2) and one missing host1
         assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 0);
-        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 3);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 2);
+        assertEquals(environDAO.getMissingHosts("env-1").size(), 1);
         List<String> totalHosts = environDAO.getTotalCapacityHosts("env-1", "s-1", "prod");
-        assertEquals(totalHosts.size(), 3);
-        assertTrue(totalHosts.containsAll(Arrays.asList("host-1", "host-2", "host1")));
+        assertEquals(totalHosts.size(), 2);
+        assertTrue(totalHosts.containsAll(Arrays.asList("host-1", "host-2")));
 
         // Now, override host-1 with env2
         groupDAO.addHostCapacity("env-2", "host-1");
 
         // override hosts should be 1, host-1
-        // Total capacity for env1 should be 2, host1, host-2
+        // Total capacity for env1 should be 1, host-2
         assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 1);
-        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 2);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 1);
         List<String> totalHosts2 = environDAO.getTotalCapacityHosts("env-1", "s-1", "prod");
-        assertEquals(totalHosts2.size(), 2);
+        assertEquals(totalHosts2.size(), 1);
         assertFalse(totalHosts2.contains("hosts-1"));
 
         // ineffective override (noise), add host-2 override on env-1
         // override hosts should be 1, host-1
-        // Total capacity for env1 still is 2, host1, host-2
+        // Total capacity for env1 still is 1, host-2
         groupDAO.addHostCapacity("env-1", "host-2"); // noise
         assertEquals(environDAO.getOverrideHosts("env-1", "s-1", "prod").size(), 1);
-        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 2);
+        assertEquals(environDAO.countTotalCapacity("env-1", "s-1", "prod"), 1);
         List<String> totalHosts3 = environDAO.getTotalCapacityHosts("env-1", "s-1", "prod");
-        assertEquals(totalHosts3.size(), 2);
-        assertTrue(totalHosts3.containsAll(Arrays.asList("host-2", "host1")));
+        assertEquals(totalHosts3.size(), 1);
+        assertTrue(totalHosts3.containsAll(Arrays.asList("host-2")));
 
-        // env-1 : host1, group1
+        // env-1 : group1
         // env-2 : host-1,
         List<EnvironBean> envs = environDAO.getEnvsByHost("host-1");
         assertEquals(envs.size(), 1);
@@ -679,8 +681,11 @@ public class DBDAOTest {
 
         // test hosts_and_envs
         groupDAO.addHostCapacity("e-3", "host-3");
+        assertEquals(environDAO.getMissingHosts("e-3").size(), 1);
+
         Set<String> groups2 = new HashSet<>(Arrays.asList("new_group"));
         hostDAO.insertOrUpdate("host-3", "3.3.3.3", "id-3", HostState.TERMINATING.toString(), groups2);
+        assertEquals(environDAO.getMissingHosts("e-3").size(), 0);
         List<HostBean> hostBeans2 = hostDAO.getStaleEnvHosts(System.currentTimeMillis() + 100);
         assertEquals(hostBeans2.size(), 1);
         HostBean hostBean2 = hostBeans2.get(0);
@@ -688,12 +693,12 @@ public class DBDAOTest {
         assertEquals(hostBean2.getHost_name(), "host-3");
         assertEquals(hostBean2.getIp(), "3.3.3.3");
 
-        HostBean hostBean3 = hostDAO.getByEnvIdAndHostName("e-3", "host-3");
-        assertEquals(hostBean3.getHost_name(), "host-3");
+        Collection<HostBean> hostBean3 = hostDAO.getByEnvIdAndHostName("e-3", "host-3");
+        assertEquals(hostBean3.iterator().next().getHost_name(), "host-3");
 
         groupDAO.addGroupCapacity("e-3", "new_group");
         hostBean3 = hostDAO.getByEnvIdAndHostName("e-3", "host-3");
-        assertEquals(hostBean3.getHost_name(), "host-3");
+        assertEquals(hostBean3.iterator().next().getHost_name(), "host-3");
         groupDAO.removeGroupCapacity("e-3", "new_group");
 
         // test host insert

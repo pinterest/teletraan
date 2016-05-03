@@ -71,7 +71,7 @@ public class EnvHosts {
             value = "Get host details for stage and host name",
             notes = "Returns a host given an environment, stage and host name",
             response = HostBean.class)
-    public HostBean getHostByHostName(
+    public Collection<HostBean> getHostByHostName(
             @ApiParam(value = "Environment name", required = true) @PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName") String stageName,
             @ApiParam(value = "Host name", required = true) @PathParam("hostName") String hostName) throws Exception {
