@@ -304,6 +304,10 @@ public class GroupHandler {
             groupBean.setWatch_recipients(oldBean.getWatch_recipients());
         }
 
+        if (oldBean.getEmail_recipients() != null) {
+            groupBean.setEmail_recipients(oldBean.getEmail_recipients());
+        }
+
         if (oldBean.getPager_recipients() != null) {
             groupBean.setPager_recipients(oldBean.getPager_recipients());
         }
