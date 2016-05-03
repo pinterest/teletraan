@@ -2,7 +2,6 @@
 {% load static %}
 <div class="row">
 <ul class="list-group">
-    <a href="/ngapp2/deploy/" class="list-group-item">ngapp2</a>
     {% for envName in envNames %}
     {% if envName != "ngapp2-B" and envName != "ngapp2-A" %}
     <a href="/env/{{ envName }}/" class="list-group-item">{{ envName }}</a>
