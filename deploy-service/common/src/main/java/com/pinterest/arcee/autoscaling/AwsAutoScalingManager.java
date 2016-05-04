@@ -174,7 +174,6 @@ public class AwsAutoScalingManager implements AutoScalingManager {
                 return;
             }
             AutoScalingGroup group = groups.get(0);
-
             List<Instance> instances = group.getInstances();
             List<String> ids = new ArrayList<>();
             for (Instance instance : instances) {
@@ -391,9 +390,12 @@ public class AwsAutoScalingManager implements AutoScalingManager {
     }
 
     @Override
-    public boolean isInstanceProtected(String instances, String groupName) throws Exception {
-        DescribeAutoScalingInstancesResult result = aasClient.describeAutoScalingInstances();
+    public boolean isInstanceProtected(String instance) throws Exception {
+        DescribeAutoScalingInstancesRequest request = new DescribeAutoScalingInstancesRequest();
+        request.setInstanceIds(Collections.singletonList(instance));
+        DescribeAutoScalingInstancesResult result = aasClient.describeAutoScalingInstances(request);
         if (result.getAutoScalingInstances().isEmpty()) {
+            LOG.error(String.format("Failed to find any instances details for  %s", instance));
             return false;
         }
         AutoScalingInstanceDetails details = result.getAutoScalingInstances().get(0);

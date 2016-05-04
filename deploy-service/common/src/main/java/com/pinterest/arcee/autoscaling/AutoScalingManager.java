@@ -69,7 +69,7 @@ public interface AutoScalingManager {
 
     void terminateInstanceInAutoScalingGroup(String instanceId, boolean decreaseSize) throws Exception;
 
-    boolean isInstanceProtected(String instances, String groupName) throws Exception;
+    boolean isInstanceProtected(String instances) throws Exception;
 
     void protectInstanceInAutoScalingGroup(Collection<String> instances, String groupName) throws Exception;
 

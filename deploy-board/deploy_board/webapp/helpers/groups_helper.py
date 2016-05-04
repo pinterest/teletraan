@@ -158,12 +158,23 @@ def launch_instance_in_group(request, group_name, instance_count, subnet):
                             request.teletraan_user_id.token, params=params)
 
 
-# detach host
-def detach_instance_in_group(request, group_name, instance_ids):
-    params = {"type": "detach"}
+def protect_instance_in_group(request, group_name, instance_ids):
+    return instance_action_in_group(request, group_name, instance_ids, "protect")
+
+
+def unprotect_instance_in_group(request, group_name, instance_ids):
+    return instance_action_in_group(request, group_name, instance_ids, "unprotect")
+
+
+def instance_action_in_group(request, group_name, instance_ids, action):
+    params = {"type": action}
     return deployclient.post("/groups/{}/autoscaling/instances/action".format(group_name),
                              request.teletraan_user_id.token, params=params, data=instance_ids)
 
+
+def is_instance_protected(request, group_name, instance_id):
+    return deployclient.get("/groups/{}/autoscaling/instance/protection".format(group_name),
+                            request.teletraan_user_id.token, data=instance_id)
 
 # config history
 def get_config_history(request, group_name, index, size):

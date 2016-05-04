@@ -93,6 +93,10 @@ class HostDetailView(View):
         host_id = get_host_id(hosts)
         show_terminate = get_show_terminate(hosts)
         asg = get_asg_name(request, hosts)
+        is_protected = False
+        if asg:
+            is_protected = groups_helper.is_instance_protected(request, asg, [host_id])
+
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         return render(request, 'hosts/host_details.html', {
             'env_name': name,
@@ -106,6 +110,7 @@ class HostDetailView(View):
             'asg_group': asg,
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
+            'instance_protected': is_protected,
         })
 
 
