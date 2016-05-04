@@ -15,11 +15,6 @@
  */
 package com.pinterest.deployservice.db;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.arcee.dao.*;
@@ -40,51 +35,10 @@ import com.pinterest.clusterservice.db.DBClusterDAOImpl;
 import com.pinterest.clusterservice.db.DBHostTypeDAOImpl;
 import com.pinterest.clusterservice.db.DBPlacementDAOImpl;
 import com.pinterest.clusterservice.db.DBSecurityZoneDAOImpl;
-import com.pinterest.deployservice.bean.ASGStatus;
-import com.pinterest.deployservice.bean.AcceptanceStatus;
-import com.pinterest.deployservice.bean.AcceptanceType;
-import com.pinterest.deployservice.bean.AgentBean;
-import com.pinterest.deployservice.bean.AgentErrorBean;
-import com.pinterest.deployservice.bean.AgentState;
-import com.pinterest.deployservice.bean.AgentStatus;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.ConfigHistoryBean;
-import com.pinterest.deployservice.bean.DataBean;
-import com.pinterest.deployservice.bean.DeployBean;
-import com.pinterest.deployservice.bean.DeployFilterBean;
-import com.pinterest.deployservice.bean.DeployPriority;
-import com.pinterest.deployservice.bean.DeployQueryResultBean;
-import com.pinterest.deployservice.bean.DeployStage;
-import com.pinterest.deployservice.bean.DeployState;
-import com.pinterest.deployservice.bean.DeployType;
-import com.pinterest.deployservice.bean.EnvState;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.GroupRolesBean;
-import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.bean.PromoteBean;
-import com.pinterest.deployservice.bean.PromoteType;
-import com.pinterest.deployservice.bean.RatingBean;
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
-import com.pinterest.deployservice.bean.TokenRolesBean;
-import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
-import com.pinterest.deployservice.dao.AgentDAO;
-import com.pinterest.deployservice.dao.AgentErrorDAO;
-import com.pinterest.deployservice.dao.BuildDAO;
-import com.pinterest.deployservice.dao.ConfigHistoryDAO;
-import com.pinterest.deployservice.dao.DataDAO;
-import com.pinterest.deployservice.dao.DeployDAO;
-import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.dao.GroupDAO;
-import com.pinterest.deployservice.dao.GroupRolesDAO;
-import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.dao.PromoteDAO;
-import com.pinterest.deployservice.dao.RatingDAO;
-import com.pinterest.deployservice.dao.TokenRolesDAO;
-import com.pinterest.deployservice.dao.UserRolesDAO;
+import com.pinterest.deployservice.dao.*;
 
 import com.ibatis.common.jdbc.ScriptRunner;
 import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
@@ -105,6 +59,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.Assert.*;
 
 
 public class DBDAOTest {
@@ -140,6 +96,7 @@ public class DBDAOTest {
     private static SecurityZoneDAO securityZoneDAO;
     private static PlacementDAO placementDAO;
     private static SpotAutoScalingDAO spotAutoScalingDAO;
+    private static TagDAO tagDAO;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -185,6 +142,7 @@ public class DBDAOTest {
         securityZoneDAO = new DBSecurityZoneDAOImpl(DATASOURCE);
         placementDAO = new DBPlacementDAOImpl(DATASOURCE);
         spotAutoScalingDAO = new DBSpotAutoScalingDAOImpl(DATASOURCE);
+        tagDAO = new DBTagDAOImpl(DATASOURCE);
     }
 
     @AfterClass
@@ -391,6 +349,18 @@ public class DBDAOTest {
 
         List<BuildBean> buildBeans4 = buildDAO.getByName("sss-1", "branch-1", 1, 2);
         assertEquals(buildBeans4.size(), 2);
+
+        List<BuildBean> allBuildBeans = buildDAO.getBuildsFromIds(Arrays.asList("b-1","b-2","b-22"));
+        assertEquals(3, allBuildBeans.size());
+
+        allBuildBeans = buildDAO.getBuildsFromIds(Arrays.asList("b-1","b-2","Not There"));
+        assertEquals(2, allBuildBeans.size());
+
+        allBuildBeans = buildDAO.getBuildsFromIds(Arrays.asList("Not There"));
+        assertEquals(0, allBuildBeans.size());
+
+        allBuildBeans = buildDAO.getBuildsFromIds(new ArrayList<>());
+        assertEquals(0, allBuildBeans.size());
 
         buildDAO.delete("b-1");
         buildDAO.delete("b-2");
@@ -1489,6 +1459,34 @@ public class DBDAOTest {
 
     }
 
+    @Test
+    public void testTagDAO() throws Exception{
+        TagBean tag = genTagBean("BadBuild","6ACEB0D","Build","TestEnv",
+                genDefaultBuildInfoBean("b-3", "sss-1", "c-1", "r-1", System.currentTimeMillis()));
+        tagDAO.insert(tag);
+        TagBean tag2 = tagDAO.getById(tag.getId());
+        assertNotNull(tag2);
+        assertEquals(tag.getTarget_id(),tag2.getTarget_id());
+        assertTrue(tag2.getIs_active());
+        BuildBean embededBean = tag2.deserializeTagMetaInfo(BuildBean.class);
+        assertEquals("b-3", embededBean.getBuild_id());
+
+        List<TagBean> targetList = tagDAO.getByTargetId(tag.getTarget_id());
+        assertEquals(1,targetList.size());
+        targetList = tagDAO.getByTargetName(tag.getTarget_name(), TagTargetType.Build);
+        assertEquals(1,targetList.size());
+
+        tagDAO.delete(tag.getId());
+        tag2 = tagDAO.getById(tag.getId());
+        assertNotNull(tag2);
+        assertFalse(tag2.getIs_active());
+        targetList = tagDAO.getByTargetId(tag.getTarget_id());
+        assertEquals(0,targetList.size());
+        targetList = tagDAO.getByTargetName(tag.getTarget_name(), TagTargetType.Build);
+        assertEquals(0,targetList.size());
+
+    }
+
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {
         EnvironBean envBean = new EnvironBean();
         envBean.setEnv_id(envId);
@@ -1587,5 +1585,19 @@ public class DBDAOTest {
         dataBean.setTimestamp(System.currentTimeMillis());
         dataBean.setData(data);
         return dataBean;
+    }
+
+    private TagBean genTagBean(String val, String target_id, String target_type,
+                               String target_name, Object meta_info){
+        TagBean bean = new TagBean();
+        bean.setId(CommonUtils.getBase64UUID());
+        bean.setCreated_date(System.currentTimeMillis());
+        bean.setOperator("johndoe");
+        bean.setValue(TagValue.BadBuild);
+        bean.setTarget_id(target_id);
+        bean.setTarget_type(TagTargetType.Build);
+        bean.setTarget_name(target_name);
+        bean.serializeTagMetaInfo(meta_info);
+        return bean;
     }
 }

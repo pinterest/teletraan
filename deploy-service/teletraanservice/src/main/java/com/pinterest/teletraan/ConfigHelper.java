@@ -91,6 +91,7 @@ public class ConfigHelper {
         context.setSecurityZoneDAO(new DBSecurityZoneDAOImpl(dataSource));
         context.setPlacementDAO(new DBPlacementDAOImpl(dataSource));
         context.setSpotAutoScalingDAO(new DBSpotAutoScalingDAOImpl(dataSource));
+        context.setTagDAO(new DBTagDAOImpl(dataSource));
 
         // TODO Arcee specific
         context.setAlarmDAO(new DBAlarmDAOImpl(dataSource));

@@ -134,6 +134,8 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         Clusters clusters = new Clusters(context);
         environment.jersey().register(clusters);
 
+        environment.jersey().register(new Tags(context));
+
         // TODO Arcee specific
         if (configuration.getAwsFactory() != null) {
             Groups groups = new Groups(context);

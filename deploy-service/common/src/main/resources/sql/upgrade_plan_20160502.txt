@@ -1,0 +1,23 @@
+UPDATES
+=================
+CREATE TABLE IF NOT EXISTS tags (
+  id VARCHAR(30) NOT NULL,
+  value VARCHAR(30) NOT NULL,
+  target_type varchar(30) NOT NULL,
+  target_id varchar(64) NOT NULL,
+  target_name varchar(64),
+  operator varchar(64) NOT NULL,
+  created_date bigint(20) NOT NULL,
+  comments varchar(256),
+  meta_info text,
+  is_active bit default 1,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+ CREATE INDEX target_id_idx ON tags(target_id, is_active);
+ CREATE INDEX target_name_idx ON tags(target_name, created_date, is_active);
+ CREATE INDEX type_idx ON tags(target_type, is_active);
+
+
+ Rollback
+ ===========================
+ DROP TABLE tags;

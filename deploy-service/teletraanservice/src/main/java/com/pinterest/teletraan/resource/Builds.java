@@ -103,19 +103,13 @@ public class Builds {
         @QueryParam("before") Long before,
         @QueryParam("after") Long after) throws Exception {
 
-        if (!StringUtils.isEmpty(scmCommit)) {
-            return buildDAO.getByCommit7(StringUtils.substring(scmCommit, 0, 7), pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
+
+        if(StringUtils.isEmpty(scmCommit) && StringUtils.isEmpty(buildName)) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                    "Require either commit id or build name in the request.");
         }
 
-        if (!StringUtils.isEmpty(buildName)) {
-            if (before != null && after != null) {
-                return buildDAO.getByNameDate(buildName, scmBranch, before, after);
-            } else {
-                return buildDAO.getByName(buildName, scmBranch, pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
-            }
-        }
-
-        throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Require either commit id or build name in the request.");
+        return buildDAO.get(scmCommit,buildName,scmBranch,pageIndex,pageSize,before,after);
     }
 
     @POST

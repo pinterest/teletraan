@@ -2,8 +2,6 @@ CREATE DATABASE IF NOT EXISTS deploy;
 
 USE deploy;
 
-set storage_engine = InnoDB;
-
 CREATE TABLE IF NOT EXISTS environs (
     env_id        VARCHAR(22)         NOT NULL,
     env_name      VARCHAR(64)         NOT NULL,
@@ -35,7 +33,7 @@ CREATE TABLE IF NOT EXISTS environs (
     is_docker           TINYINT(1)    NOT NULL DEFAULT 0,
     max_parallel_pct    TINYINT(1), 
     PRIMARY KEY   (env_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);
 
 CREATE TABLE IF NOT EXISTS promotes (
@@ -50,7 +48,7 @@ CREATE TABLE IF NOT EXISTS promotes (
     last_operator   VARCHAR(64)         NOT NULL,
     last_update     BIGINT              NOT NULL,
     PRIMARY KEY     (env_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*
 Arbitrary text data table, leave the application to interprate the text
@@ -63,7 +61,7 @@ CREATE TABLE IF NOT EXISTS datas (
     timestamp     BIGINT              NOT NULL,
     data          TEXT                NOT NULL,
     PRIMARY KEY   (data_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS deploys (
     deploy_id     VARCHAR(22)         NOT NULL,
@@ -83,7 +81,7 @@ CREATE TABLE IF NOT EXISTS deploys (
     acc_status    VARCHAR(32)         NOT NULL,
     from_deploy   VARCHAR(22),
     PRIMARY KEY   (deploy_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX deploy_env_idx ON deploys (env_id);
 CREATE INDEX deploy_build_idx ON deploys (build_id);
 
@@ -104,7 +102,7 @@ CREATE TABLE IF NOT EXISTS hotfixes (
     error_message   VARCHAR(2048),
     last_worked_on  BIGINT          NOT NULL,
     PRIMARY KEY    (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS hosts (
     host_id         VARCHAR(64)         NOT NULL,
@@ -115,7 +113,7 @@ CREATE TABLE IF NOT EXISTS hosts (
     last_update     BIGINT              NOT NULL,
     state           VARCHAR(32)         NOT NULL,
     PRIMARY KEY    (host_id, group_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX rev_group_host_idx ON hosts (group_name, host_name);
 CREATE INDEX hosts_host_name_idx ON hosts (host_name);
 CREATE INDEX hosts_state_idx ON hosts (state);
@@ -140,7 +138,7 @@ CREATE TABLE IF NOT EXISTS agents (
     first_deploy_time     BIGINT,
     stage_start_date     BIGINT,
     PRIMARY KEY    (host_id, env_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX agent_env_idx ON agents (env_id, host_name);
 CREATE INDEX agent_name_idx ON agents (host_name);
 CREATE INDEX agent_stage_idx ON agents (env_id,deploy_stage);
@@ -154,14 +152,14 @@ CREATE TABLE IF NOT EXISTS agent_errors (
     env_id      VARCHAR(22)         NOT NULL,
     error_msg   TEXT                NOT NULL,
     PRIMARY KEY (host_name, env_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /* Associate individual hosts to env */
 CREATE TABLE IF NOT EXISTS hosts_and_envs (
     host_name   VARCHAR(64)         NOT NULL,
     env_id      VARCHAR(22)         NOT NULL,
     PRIMARY KEY (host_name, env_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX rev_host_env_idx ON hosts_and_envs (env_id, host_name);
 
 /* Associate groups to env */
@@ -169,7 +167,7 @@ CREATE TABLE IF NOT EXISTS groups_and_envs (
     group_name  VARCHAR(64)         NOT NULL,
     env_id      VARCHAR(22)         NOT NULL,
     PRIMARY KEY (group_name, env_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX rev_group_env_idx ON groups_and_envs (env_id, group_name);
 
 CREATE TABLE IF NOT EXISTS builds (
@@ -188,7 +186,7 @@ CREATE TABLE IF NOT EXISTS builds (
     publisher        VARCHAR(64),
     scm_info         VARCHAR(512),
     PRIMARY KEY    (build_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX build_name_idx ON builds (build_name, scm_branch, publish_date);
 CREATE INDEX build_commit_idx ON builds (scm_commit_7);
 
@@ -198,7 +196,7 @@ CREATE TABLE IF NOT EXISTS global_envs (
     last_operator VARCHAR(64)         NOT NULL,
     last_update   BIGINT              NOT NULL,
     PRIMARY KEY   (env_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS user_ratings (
     rating_id  VARCHAR(22)     NOT NULL,
@@ -207,7 +205,7 @@ CREATE TABLE IF NOT EXISTS user_ratings (
     feedback   VARCHAR(4096),
     timestamp  BIGINT          NOT NULL,
     PRIMARY KEY (rating_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS groups (
     group_name          VARCHAR(64)     NOT NULL,
@@ -231,7 +229,7 @@ CREATE TABLE IF NOT EXISTS groups (
     lifecycle_state     TINYINT(1)      NOT NULL DEFAULT 0,
     lifecycle_timeout   BIGINT          NOT NULL DEFAULT 600,
     PRIMARY KEY (group_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS asg_alarms (
     alarm_id            VARCHAR(64)        NOT NULL,
@@ -245,7 +243,7 @@ CREATE TABLE IF NOT EXISTS asg_alarms (
     last_update         BIGINT             NOT NULL,
     from_aws_metric       TINYINT(1)         NOT NULL DEFAULT 0,
     PRIMARY KEY (alarm_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS config_history (
     config_id           VARCHAR(64)     NOT NULL,
@@ -255,7 +253,7 @@ CREATE TABLE IF NOT EXISTS config_history (
     type                VARCHAR(64)     NOT NULL,
     config_change       VARCHAR(8192)   NOT NULL,
     PRIMARY KEY (config_id, change_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS users_and_roles (
     user_name     VARCHAR(64)     NOT NULL,
@@ -263,7 +261,7 @@ CREATE TABLE IF NOT EXISTS users_and_roles (
     resource_type VARCHAR(16)     NOT NULL,
     role          VARCHAR(22)     NOT NULL,
     PRIMARY KEY (resource_id, resource_type, user_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tokens_and_roles (
     script_name   VARCHAR(64)   NOT NULL,
@@ -273,7 +271,7 @@ CREATE TABLE IF NOT EXISTS tokens_and_roles (
     role          VARCHAR(22)   NOT NULL,
     expire_date BIGINT          NOT NULL,
     PRIMARY KEY (resource_id, resource_type, script_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX tokens_and_roles_token_idx ON tokens_and_roles (token);
 
 
@@ -284,7 +282,7 @@ CREATE TABLE IF NOT EXISTS images (
     publish_date     BIGINT              NOT NULL,
     qualified        TINYINT(1)          NOT NULL DEFAULT 0,
     PRIMARY KEY    (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS groups_and_roles (
   group_name    VARCHAR(64)     NOT NULL,
@@ -292,7 +290,7 @@ CREATE TABLE IF NOT EXISTS groups_and_roles (
   resource_type VARCHAR(16)     NOT NULL,
   role          VARCHAR(22)     NOT NULL,
   PRIMARY KEY (resource_id, resource_type, group_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS health_checks (
     id                      VARCHAR(64)      NOT NULL,
@@ -313,7 +311,7 @@ CREATE TABLE IF NOT EXISTS health_checks (
     start_time              BIGINT           NOT NULL,
     last_worked_on          BIGINT           NOT NULL,
     PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS healthcheck_errors (
     id                  VARCHAR(64)         NOT NULL,
@@ -327,7 +325,7 @@ CREATE TABLE IF NOT EXISTS healthcheck_errors (
     agent_start_date    BIGINT              NOT NULL,
     agent_last_update   BIGINT              NOT NULL,
     PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS new_instances_reports (
     host_id              VARCHAR(64)        NOT NULL,
@@ -335,7 +333,7 @@ CREATE TABLE IF NOT EXISTS new_instances_reports (
     launch_time          BIGINT,
     reported             TINYINT            NOT NULL DEFAULT 0,
     PRIMARY KEY (host_id, env_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS asg_lifecycle_events (
     token_id       VARCHAR(128)  NOT NULL,
@@ -344,7 +342,7 @@ CREATE TABLE IF NOT EXISTS asg_lifecycle_events (
     host_id        VARCHAR(64)   NOT NULL,
     start_date     BIGINT        NOT NULL,
     PRIMARY KEY (token_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS lending_activities (
     id          VARCHAR(32)   NOT NULL,
@@ -353,7 +351,7 @@ CREATE TABLE IF NOT EXISTS lending_activities (
     reason      VARCHAR(1024) NOT NULL,
     update_time  BIGINT       NOT NULL,
     PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS managing_groups (
     group_name          VARCHAR(32) NOT NULL,
@@ -365,7 +363,7 @@ CREATE TABLE IF NOT EXISTS managing_groups (
     lent_size           INT         NOT NULL,
     last_activity_time  BIGINT      NOT NULL,
     PRIMARY KEY (group_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS clusters (
     cluster_name         VARCHAR(128)    NOT NULL,
@@ -378,7 +376,7 @@ CREATE TABLE IF NOT EXISTS clusters (
     provider             VARCHAR(64),
     last_update          BIGINT(20)      NOT NULL,
     PRIMARY KEY (cluster_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS base_images (
     id              VARCHAR(22)      NOT NULL,
@@ -390,7 +388,7 @@ CREATE TABLE IF NOT EXISTS base_images (
     description     TEXT,
     publish_date    BIGINT(20)       NOT NULL,
     PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS host_types (
     id              VARCHAR(22)      NOT NULL,
@@ -403,7 +401,7 @@ CREATE TABLE IF NOT EXISTS host_types (
     storage         VARCHAR(128),
     description     TEXT,
     PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS security_zones (
     id              VARCHAR(22)      NOT NULL,
@@ -413,7 +411,7 @@ CREATE TABLE IF NOT EXISTS security_zones (
     basic           TINYINT(1)       DEFAULT  0,
     description     TEXT,
     PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS placements (
     id              VARCHAR(22)      NOT NULL,
@@ -424,7 +422,7 @@ CREATE TABLE IF NOT EXISTS placements (
     capacity        INT              DEFAULT 0,
     description     TEXT,
     PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS spot_auto_scaling_groups (
    asg_name         VARCHAR(128)     NOT NULL,
@@ -435,5 +433,23 @@ CREATE TABLE IF NOT EXISTS spot_auto_scaling_groups (
    sensitivity_ratio DOUBLE          NOT NULL DEFAULT 0.1,
    enable_grow       TINYINT(1)      NOT NULL DEFAULT 0,
    PRIMARY KEY (asg_name)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX asg_cluster_idx ON spot_auto_scaling_groups (cluster_name);
+
+
+CREATE TABLE IF NOT EXISTS tags (
+  id VARCHAR(30) NOT NULL,
+  value VARCHAR(30) NOT NULL,
+  target_type varchar(30) NOT NULL,
+  target_id varchar(64) NOT NULL,
+  target_name varchar(64),
+  operator varchar(64) NOT NULL,
+  created_date bigint(20) NOT NULL,
+  comments varchar(256),
+  meta_info text,
+  is_active bit default 1,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+ CREATE INDEX target_id_idx ON tags(target_id, is_active);
+ CREATE INDEX target_name_idx ON tags(target_name, created_date, is_active);
+ CREATE INDEX type_idx ON tags(target_type, is_active);
