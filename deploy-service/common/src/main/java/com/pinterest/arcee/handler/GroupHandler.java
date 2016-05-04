@@ -880,6 +880,15 @@ public class GroupHandler {
         asgDAO.unprotectInstanceInAutoScalingGroup(runningIds, groupName);
     }
 
+    public Boolean isInstanceProtected(String groupName, String instanceId) throws Exception {
+        List<String> runningIds = hostInfoDAO.getRunningInstances(Collections.singletonList(instanceId));
+        if (runningIds.isEmpty()) {
+            LOG.info("Instances {} are not running. Cannot attach to group {}", instanceId, groupName);
+            return false;
+        }
+        return asgDAO.isInstanceProtected(instanceId);
+    }
+
     public void detachInstanceFromAutoScalingGroup(List<String> instanceIds, String groupName) throws Exception {
         Collection<String> runningIds = asgDAO.getAutoScalingInstances(groupName, instanceIds);
 

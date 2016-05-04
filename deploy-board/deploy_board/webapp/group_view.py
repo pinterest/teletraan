@@ -826,18 +826,17 @@ def add_instance(request, group_name):
     return redirect('/groups/{}'.format(group_name))
 
 
-# Detach/Attach instances from asg
-def detach_instance_from_asg(request, group_name):
+def instance_action_in_asg(request, group_name):
     host_id = request.GET.get("hostId", "")
+    action = request.GET.get("action", "")
     host_ids = []
     host_ids.append(host_id)
     try:
-        groups_helper.detach_instance_in_group(request, group_name, host_ids)
+        groups_helper.instance_action_in_group(request, group_name, host_ids, action)
     except:
         log.error(traceback.format_exc())
         raise
     return redirect('/groups/{}'.format(group_name))
-
 
 # Health Check related
 def get_health_check_activities(request, group_name):

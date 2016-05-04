@@ -50,7 +50,7 @@ urlpatterns = [
 
     # instances related
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/add_instance/$', group_view.add_instance),
-    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/detach_host/', group_view.detach_instance_from_asg),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/instance_action/', group_view.instance_action_in_asg),
 
     # health check related
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/health_check_activities/$', group_view.get_health_check_activities),

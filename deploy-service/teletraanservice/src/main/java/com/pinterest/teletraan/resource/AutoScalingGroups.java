@@ -249,13 +249,24 @@ public class AutoScalingGroups {
             groupHandler.protectInstancesInAutoScalingGroup(instanceIds, groupName);
             String configChange = String.format("Protect instances %s from terminating in group %s.", instanceIds.toString(), groupName);
             configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_PROTECTION, configChange, operator);
+            return;
         } else if (actionType == InstancesActionType.UNPROTECT) {
             groupHandler.unprotectInstancesInAutoScalingGroup(instanceIds, groupName);
             String configChange = String.format("Unprotect instances %s from terminating in group %s.", instanceIds.toString(), groupName);
             configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_UNPROTECTION, configChange, operator);
+            return;
         }
 
         throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Unknown action type: %s", type));
+    }
+
+    @GET
+    @Path("/instance/protection")
+    public Boolean instanceProtection(@Context SecurityContext sc, @Valid List<String> hostIds,
+                                     @PathParam("groupName") String groupName,
+                                     @QueryParam("name") String name) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        return groupHandler.isInstanceProtected(groupName, hostIds.get(0));
     }
 
     @GET
