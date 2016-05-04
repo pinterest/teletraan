@@ -153,6 +153,7 @@ def get_recent_envs(request):
     names = getRecentEnvNames(request)
     html = render_to_string('environs/simple_envs.tmpl', {
         "envNames": names,
+        "isPinterest": IS_PINTEREST,
     })
     return HttpResponse(html)
 
