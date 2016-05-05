@@ -30,11 +30,31 @@
             data-toggle="modal" title="Delete Cluster">
             <span class="glyphicon glyphicon-remove-sign"></span> Delete cluster
             </button>
-            <!--- TODO To be implemented
-            <button class="deployToolTip btn btn-default btn-block" data-target="#replaceFleet"
-            data-toggle="modal" title="Replace fleet">
+            <!-- disable for now
+            {% if basic_cluster_info|canReplaceCluster %}
+            <button class="deployToolTip btn btn-default btn-block" data-target="#enableReplacement"
+            data-toggle="modal" title="Click to Schedule cluster replacement">
             <span class="glyphicon glyphicon-random"></span> Replace cluster
             </button>
+            {% elif basic_cluster_info.state == "REPLACE" %}
+                <button class="deployToolTip btn btn-default btn-block" data-target="#pauseReplacement"
+                data-toggle="modal" title="Click to pause cluster replacement">
+                <span class="glyphicon glyphicon-pause"></span> PAUSE
+                </button>
+                <button class="deployToolTip btn btn-default btn-block" data-target="#cancelReplacement"
+                data-toggle="modal" title="Click to cancel cluster replacement">
+                <span class="glyphicon glyphicon-step-backward"></span> Cancel
+                </button>
+            {% elif basic_cluster_info.state == "PAUSE" %}
+                <button class="deployToolTip btn btn-default btn-block" data-target="#resumeReplacement"
+                data-toggle="modal" title="Click to resume cluster replacement">
+                <span class="glyphicon glyphicon-play"></span> Resume
+                </button>
+                <button class="deployToolTip btn btn-default btn-block" data-target="#cancelReplacement"
+                data-toggle="modal" title="Click to cancel cluster replacement">
+                <span class="glyphicon glyphicon-step-backward"></span> Cancel
+                </button>
+            {% endif %}
             -->
         {% endif %}
     </div>
@@ -47,6 +67,13 @@
 {% endblock %}
 
 {% block main %}
+{% if not basic_cluster_info|canReplaceCluster %}
+    <div class="alert alert-info">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
+        You cannot update this page unless you cancel cluster replacement.
+    </div>
+{% endif %}
 
 {% include "environs/env_tabs.tmpl" with envTabKind="config/clusters" %}
 
@@ -76,6 +103,94 @@
                 <div class="modal-footer">
                     <button id="addMetricBtnId" type="submit" class="btn btn-primary">Delete</button>
                     <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!--- enable replacement button dialog-->
+<div class="modal fade" id="enableReplacement" tabindex="-1" role="dialog" aria-labelledby="enableReplacementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form id="enableReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/enable_replacement/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Cluster Replacement Confirm</h4>
+                </div>
+                <div class="modal-body" id="newMetricModal">
+                     Are you sure to <strong>REPLACE</strong> every host in this cluster?
+                </div>
+                <div class="modal-footer">
+                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Replace</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!--- pause replacement button dialog-->
+<div class="modal fade" id="pauseReplacement" tabindex="-1" role="dialog" aria-labelledby="pauseReplacementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form id="pauseReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/pause_replacement/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Pause Replacement Confirm</h4>
+                </div>
+                <div class="modal-body" id="newMetricModal">
+                 Are you sure to pause cluster replacement?
+                </div>
+                <div class="modal-footer">
+                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">PAUSE</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!--- resume replacement button dialog-->
+<div class="modal fade" id="resumeReplacement" tabindex="-1" role="dialog" aria-labelledby="resumeReplacementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form id="resumeReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/resume_replacement/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Resume Replacement Confirm</h4>
+                </div>
+                <div class="modal-body" id="newMetricModal">
+                    Are you sure to resume cluster replacement?
+                </div>
+                <div class="modal-footer">
+                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Resume</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!--- cancel replacement button dialog-->
+<div class="modal fade" id="cancelReplacement" tabindex="-1" role="dialog" aria-labelledby="cancelReplacementModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form id="cancelReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/cancel_replacement/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Cancel Replacement Confirm</h4>
+                </div>
+                <div class="modal-body" id="newMetricModal">
+                     Are you sure to cancel cluster replacement?
+                </div>
+                <div class="modal-footer">
+                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Yes</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">No</button>
                 </div>
                 {% csrf_token %}
             </form>

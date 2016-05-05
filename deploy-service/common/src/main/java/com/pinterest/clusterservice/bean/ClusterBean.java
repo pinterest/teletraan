@@ -32,6 +32,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * placement_id         VARCHAR(22),
  * config_id            VARCHAR(22),
  * provider             VARCHAR(64),
+ * state                VARCHAR(32),
  * last_update          BIGINT(20)      NOT NULL,
  * PRIMARY KEY (cluster_name)
  );
@@ -47,6 +48,7 @@ public class ClusterBean implements Updatable {
     private String placement_id;
     private String config_id;
     private CloudProvider provider;
+    private ClusterState state;
     private Long last_update;
 
     public String getCluster_name() {
@@ -113,6 +115,14 @@ public class ClusterBean implements Updatable {
         this.provider = provider;
     }
 
+    public ClusterState getState() {
+        return state;
+    }
+
+    public void setState(ClusterState state) {
+        this.state = state;
+    }
+
     public Long getLast_update() {
         return last_update;
     }
@@ -132,6 +142,7 @@ public class ClusterBean implements Updatable {
         clause.addColumn("placement_id", placement_id);
         clause.addColumn("config_id", config_id);
         clause.addColumn("provider", provider);
+        clause.addColumn("state", state);
         clause.addColumn("last_update", last_update);
         return clause;
     }

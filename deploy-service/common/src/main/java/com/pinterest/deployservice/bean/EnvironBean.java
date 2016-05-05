@@ -53,8 +53,9 @@ import java.io.Serializable;
  * max_deploy_num      INT           NOT NULL,
  * max_deploy_day      INT           NOT NULL,
  * is_docker           TINYINT(1)    DEFAULT 0,
- * max_parallel_pct TINYINT(1),
+ * max_parallel_pct    TINYINT(1)    NOT NULL DEFAULT 0,
  * state               VARCHAR(32)         NOT NULL,
+ * max_parallel_rp     INT           NOT NULL DEFAULT 1,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -152,6 +153,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("state")
     private EnvironState state;
+
+    @JsonProperty("maxParallelRp")
+    private Integer max_parallel_rp;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -393,6 +397,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.state = state;
     }
 
+    public Integer getMax_parallel_rp() {
+        return max_parallel_rp;
+    }
+
+    public void setMax_parallel_rp(Integer max_parallel_rp) {
+        this.max_parallel_rp = max_parallel_rp;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -426,6 +438,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("is_docker", is_docker);
         clause.addColumn("max_parallel_pct", max_parallel_pct);
         clause.addColumn("state", state);
+        clause.addColumn("max_parallel_rp", max_parallel_rp);
         return clause;
     }
 

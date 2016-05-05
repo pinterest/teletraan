@@ -242,7 +242,7 @@ public class DeployHandler {
 
         deployBean.setState(DeployState.RUNNING);
         deployBean.setStart_date(now);
-        long total = agentDAO.getAllByEnv(envBean.getEnv_id()).size();
+        long total = agentDAO.countAgentByEnv(envBean.getEnv_id());
         deployBean.setSuc_total(0);
         deployBean.setFail_total(0);
         deployBean.setTotal((int) total);

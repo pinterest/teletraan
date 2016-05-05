@@ -38,3 +38,4 @@ DROP TABLE IF EXISTS tags;
 DROP TABLE IF EXISTS tokens_and_roles;
 DROP TABLE IF EXISTS user_ratings;
 DROP TABLE IF EXISTS users_and_roles;
+DROP TABLE IF EXISTS cluster_upgrade_events;

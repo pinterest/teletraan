@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.db;
 
+import com.pinterest.deployservice.bean.AgentStatus;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.SetClause;
@@ -34,6 +35,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String DELETE_ALL_BY_ID = "DELETE hosts, agents, agent_errors FROM hosts LEFT JOIN agents ON hosts.host_id=agents.host_id " +
             "LEFT JOIN agent_errors ON agents.host_name=agent_errors.host_name WHERE hosts.host_id=?";
     private static final String UPDATE_HOST_BY_ID = "UPDATE hosts SET %s WHERE host_id=?";
+    private static final String UPDATE_HOST_BY_GROUP = "UPDATE hosts SET %s WHERE group_name=?";
     private static final String INSERT_HOST_TEMPLATE = "INSERT INTO hosts SET %s ON DUPLICATE KEY UPDATE %s";
     private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, " +
             "state=IF(state!='%s' AND state!='%s', VALUES(state), state), " +
@@ -55,6 +57,11 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_HOST_BY_ENVID_AND_HOSTID = "SELECT DISTINCT e.* FROM hosts e INNER JOIN groups_and_envs ge ON ge.group_name = e.group_name WHERE ge.env_id=? AND e.host_id=?";
     private static final String GET_HOST_BY_ENVID_AND_HOSTNAME1 = "SELECT hs.* FROM hosts hs INNER JOIN groups_and_envs ge ON ge.group_name = hs.group_name WHERE ge.env_id=? AND hs.host_name=?";
     private static final String GET_HOST_BY_ENVID_AND_HOSTNAME2 = "SELECT hs.* FROM hosts hs INNER JOIN hosts_and_envs he ON he.host_name = hs.host_name WHERE he.env_id=? AND he.host_name=?";
+    private static final String GET_RETIRED_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE can_retire=1 AND group_name=? AND state not in (?,?)";
+    private static final String GET_RETIRED_AND_FAILED_HOSTIDS_BY_GROUP =
+            "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire=1 AND h.group_name=? AND h.state not in (?,?) and a.status not in (?,?)";
+    private static final String GET_FAILED_HOSTIDS_BY_GROUP =
+            "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.group_name=? AND h.state not in (?,?) and a.status not in (?,?)";
 
     private BasicDataSource dataSource;
 
@@ -199,6 +206,14 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
+    public void updateHostByGroup(String groupName, HostBean bean) throws Exception {
+        SetClause setClause = bean.genSetClause();
+        String clause = String.format(UPDATE_HOST_BY_GROUP, setClause.getClause());
+        setClause.addValue(groupName);
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+    }
+
+    @Override
     public Collection<HostBean> getHostsByEnvId(String envId) throws Exception {
         ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
         return new QueryRunner(dataSource).query(GET_HOSTS_BY_ENVID, h, envId, envId);
@@ -218,5 +233,28 @@ public class DBHostDAOImpl implements HostDAO {
             return new QueryRunner(dataSource).query(GET_HOST_BY_ENVID_AND_HOSTNAME2, h, envId, hostName);
         }
         return hostBeans;
+    }
+
+    @Override
+    public Collection<String> getRetiredHostIdsByGroup(String groupName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_RETIRED_HOSTIDS_BY_GROUP,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
+                HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString());
+    }
+
+    @Override
+    public Collection<String> getRetiredAndFailedHostIdsByGroup(String groupName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_RETIRED_AND_FAILED_HOSTIDS_BY_GROUP,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
+                HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
+                AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
+    }
+
+    @Override
+    public Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_FAILED_HOSTIDS_BY_GROUP,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
+                HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
+                AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
     }
 }

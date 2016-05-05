@@ -18,12 +18,15 @@ package com.pinterest.clusterservice.db;
 import com.pinterest.clusterservice.bean.ClusterBean;
 import com.pinterest.clusterservice.dao.ClusterDAO;
 import com.pinterest.deployservice.bean.SetClause;
-import com.pinterest.deployservice.db.SingleResultSetHandlerFactory;
 
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+
+import java.util.Collection;
+import java.util.List;
 
 public class DBClusterDAOImpl implements ClusterDAO {
 
@@ -35,7 +38,7 @@ public class DBClusterDAOImpl implements ClusterDAO {
 
     private static String GET_CLUSTER_CONFIG = "SELECT * FROM clusters WHERE cluster_name=?";
 
-    private static final String GET_PROVIDER_BY_CLUSTERNAME = "SELECT provider FROM clusters WHERE cluster_name=?";
+    private static String GET_CLUSTER_BY_STATE = "SELECT * FROM clusters WHERE state=?";
 
     private BasicDataSource dataSource;
 
@@ -70,7 +73,8 @@ public class DBClusterDAOImpl implements ClusterDAO {
     }
 
     @Override
-    public String getProviderByClusterName(String clusterName) throws Exception {
-        return new QueryRunner(dataSource).query(GET_PROVIDER_BY_CLUSTERNAME, SingleResultSetHandlerFactory.<String>newObjectHandler(), clusterName);
+    public Collection<ClusterBean> getByState(String state) throws Exception {
+        ResultSetHandler<List<ClusterBean>> h = new BeanListHandler<ClusterBean>(ClusterBean.class);
+        return new QueryRunner(dataSource).query(GET_CLUSTER_BY_STATE, h, state);
     }
 }

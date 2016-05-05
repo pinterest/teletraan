@@ -32,6 +32,10 @@ public class DBAgentDAOImpl implements AgentDAO {
         "UPDATE agents SET %s WHERE host_id=? AND env_id=?";
     private static final String UPDATE_AGENT_BY_ID_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=?";
+    private static final String RESET_FAILED_AGENTS =
+        "UPDATE agents SET state='RESET' " +
+        "WHERE env_id=? AND deploy_id=? AND " +
+        "status!='SUCCEEDED' AND status!='UNKNOWN' AND state!='RESET'";
     private static final String INSERT_OR_UPDATE_AGENT_TEMPLATE =
         "INSERT INTO agents SET %s ON DUPLICATE KEY UPDATE %s";
     private static final String DELETE_AGENT =
@@ -61,13 +65,9 @@ public class DBAgentDAOImpl implements AgentDAO {
         "SELECT COUNT(*) FROM agents " +
             "WHERE env_id=? AND deploy_id=? AND state='PAUSED_BY_SYSTEM'";
     private static final String GET_NON_FIRST_TIME_DEPLOY_TOTAL =
-            "SELECT COUNT(*) FROM agents WHERE env_id=? AND first_deploy=0";
-    private static final String GET_TOTAL =
-        "SELECT COUNT(*) FROM agents WHERE env_id=? AND state!='PAUSED_BY_USER'";
-    private static final String RESET_FAILED_AGENTS =
-        "UPDATE agents SET state='RESET' " +
-            "WHERE env_id=? AND deploy_id=? AND " +
-            "status!='SUCCEEDED' AND status!='UNKNOWN' AND state!='RESET'";
+        "SELECT COUNT(*) FROM agents WHERE env_id=? AND first_deploy=0";
+    private static final String COUNT_ALL_AGENT_BY_ENV = "SELECT COUNT(*) FROM agents WHERE env_id=?";
+    private static final String COUNT_SERVING_TOTAL = "SELECT COUNT(*) FROM agents WHERE env_id=? AND deploy_stage=?";
 
     private BasicDataSource dataSource;
 
@@ -183,7 +183,7 @@ public class DBAgentDAOImpl implements AgentDAO {
 
     @Override
     public long countAgentByEnv(String envId) throws Exception {
-        Long n = new QueryRunner(dataSource).query(GET_TOTAL,
+        Long n = new QueryRunner(dataSource).query(COUNT_ALL_AGENT_BY_ENV,
             SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId);
         return n == null ? 0 : n;
     }
@@ -192,6 +192,13 @@ public class DBAgentDAOImpl implements AgentDAO {
     public long countNonFirstDeployingAgent(String envId) throws Exception{
         Long n = new QueryRunner(dataSource).query(GET_NON_FIRST_TIME_DEPLOY_TOTAL,
                 SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId);
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long countServingTotal(String envId) throws Exception {
+        Long n = new QueryRunner(dataSource).query(COUNT_SERVING_TOTAL, SingleResultSetHandlerFactory.<Long>newObjectHandler(),
+                envId, DeployStage.SERVING_BUILD.toString());
         return n == null ? 0 : n;
     }
 }

@@ -471,3 +471,23 @@ def force_terminate_hosts(request, name, stage):
         host_ids = [x.strip() for x in hosts_str.split(',')]
     clusters_helper.force_terminate_hosts(request, name, stage, host_ids)
     return redirect('/env/{}/{}'.format(name, stage))
+
+
+def enable_cluster_replacement(request, name, stage):
+    clusters_helper.enable_cluster_replacement(request, name, stage)
+    return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
+
+
+def pause_cluster_replacement(request, name, stage):
+    clusters_helper.pause_cluster_replacement(request, name, stage)
+    return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
+
+
+def resume_cluster_replacement(request, name, stage):
+    clusters_helper.resume_cluster_replacement(request, name, stage)
+    return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
+
+
+def cancel_cluster_replacement(request, name, stage):
+    clusters_helper.cancel_cluster_replacement(request, name, stage)
+    return redirect('/env/{}/{}/config/clusters/'.format(name, stage))

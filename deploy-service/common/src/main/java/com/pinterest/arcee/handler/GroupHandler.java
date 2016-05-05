@@ -284,14 +284,13 @@ public class GroupHandler {
         }
 
         String launchConfigId = oldBean.getLaunch_config_id();
-        // TODO use for migration
-        if (launchConfigId == null) {
+        AwsVmBean awsVmBean = asgDAO.getAutoScalingGroupInfo(clusterName);
+        if (launchConfigId == null && awsVmBean == null) {
             launchConfigId = updateLaunchConfigInternal(oldBean, clusterName);
         }
 
-        AwsVmBean awsVmBean = asgDAO.getLaunchConfigInfo(launchConfigId);
         if (awsVmBean == null) {
-            launchConfigId = updateLaunchConfigInternal(oldBean, clusterName);
+            // Auto scaling group has not enabled yet
             awsVmBean = asgDAO.getLaunchConfigInfo(launchConfigId);
         }
         
@@ -312,11 +311,9 @@ public class GroupHandler {
             groupBean.setPager_recipients(oldBean.getPager_recipients());
         }
 
-        if (oldBean.getAsg_status() != null) {
-            groupBean.setAsg_status(oldBean.getAsg_status());
-        }
-
-        if (oldBean.getSubnets() != null) {
+        if (awsVmBean.getSubnet() != null) {
+            groupBean.setSubnets(awsVmBean.getSubnet());
+        } else if (oldBean.getSubnets() != null) {
             groupBean.setSubnets(oldBean.getSubnets());
         }
 
@@ -328,6 +325,7 @@ public class GroupHandler {
         groupBean.setLaunch_config_id(awsVmBean.getLaunchConfigId());
         groupBean.setIam_role(awsVmBean.getRole());
         groupBean.setUser_data(awsVmBean.getRawUserDataString());
+        groupBean.setAsg_status(asgDAO.getAutoScalingGroupStatus(clusterName));
         groupBean.setLaunch_latency_th(oldBean.getLaunch_latency_th());
         groupBean.setHealthcheck_period(oldBean.getHealthcheck_period());
         groupBean.setHealthcheck_state(oldBean.getHealthcheck_state());

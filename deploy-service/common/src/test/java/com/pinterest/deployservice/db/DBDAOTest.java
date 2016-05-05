@@ -75,6 +75,7 @@ public class DBDAOTest {
     private static HostTypeDAO hostTypeDAO;
     private static SecurityZoneDAO securityZoneDAO;
     private static PlacementDAO placementDAO;
+    private static ClusterUpgradeEventDAO clusterUpgradeEventDAO;
     private static SpotAutoScalingDAO spotAutoScalingDAO;
     private static TagDAO tagDAO;
 
@@ -121,6 +122,7 @@ public class DBDAOTest {
         hostTypeDAO = new DBHostTypeDAOImpl(DATASOURCE);
         securityZoneDAO = new DBSecurityZoneDAOImpl(DATASOURCE);
         placementDAO = new DBPlacementDAOImpl(DATASOURCE);
+        clusterUpgradeEventDAO = new DBClusterUpgradeEventDAOImpl(DATASOURCE);
         spotAutoScalingDAO = new DBSpotAutoScalingDAOImpl(DATASOURCE);
         tagDAO = new DBTagDAOImpl(DATASOURCE);
     }
@@ -389,7 +391,6 @@ public class DBDAOTest {
         assertEquals(total, 2);
         long total_failed = agentDAO.countFailedFirstDeployingAgent("e-12");
         assertEquals(total_failed, 1);
-
     }
 
     @Test
@@ -675,6 +676,40 @@ public class DBDAOTest {
 
         List<HostBean> hostBeans5 = hostDAO.getTerminatingHosts();
         assertEquals(hostBeans5.size(), 2);
+
+        // Test can retire hosts
+        HostBean hostBean6 = new HostBean();
+        hostBean6.setHost_name("i-11");
+        hostBean6.setHost_id("i-11");
+        hostBean6.setGroup_name("retire-group");
+        hostBean6.setCreate_date(currentTime);
+        hostBean6.setLast_update(currentTime);
+        hostBean6.setState(HostState.ACTIVE);
+        hostBean6.setCan_retire(true);
+        hostDAO.insert(hostBean6);
+
+        hostBean6.setHost_name("i-12");
+        hostBean6.setHost_id("i-12");
+        hostDAO.insert(hostBean6);
+
+        HostBean hostBean7 = new HostBean();
+        hostBean7.setHost_name("i-13");
+        hostBean7.setHost_id("i-13");
+        hostBean7.setGroup_name("retire-group");
+        hostBean7.setCreate_date(currentTime);
+        hostBean7.setLast_update(currentTime);
+        hostBean7.setState(HostState.TERMINATING);
+        hostBean7.setCan_retire(true);
+        hostDAO.insert(hostBean7);
+
+        Collection<String> retiredHostBeanIds = hostDAO.getRetiredHostIdsByGroup("retire-group");
+        assertEquals(retiredHostBeanIds.size(), 2);
+
+        AgentBean agentBean1 = genDefaultAgentBean("i-11", "i-11", "e-1", "d-1", DeployStage.RESTARTING);
+        agentBean1.setStatus(AgentStatus.AGENT_FAILED);
+        agentDAO.insertOrUpdate(agentBean1);
+        Collection<String> retiredAndFailedHostIds = hostDAO.getRetiredAndFailedHostIdsByGroup("retire-group");
+        assertEquals(retiredAndFailedHostIds.size(), 1);
     }
 
     @Test
@@ -1472,6 +1507,43 @@ public class DBDAOTest {
         assertEquals(0, tagDAO.getByValue(TagValue.GOOD_BUILD).size());
     }
 
+    @Test
+    public void testClusterUpgradeEventDAO() throws Exception {
+        ClusterUpgradeEventBean bean = new ClusterUpgradeEventBean();
+        bean.setId("id-1");
+        bean.setCluster_name("sample-env-canary");
+        bean.setEnv_id("env-1");
+        bean.setState(ClusterUpgradeEventState.INIT);
+        bean.setStatus(ClusterUpgradeEventStatus.UNKNOWN);
+        bean.setStart_time(System.currentTimeMillis());
+        bean.setState_start_time(System.currentTimeMillis());
+        bean.setLast_worked_on(System.currentTimeMillis());
+        clusterUpgradeEventDAO.insertClusterUpgradeEvent(bean);
+
+        ClusterUpgradeEventBean bean1 = clusterUpgradeEventDAO.getById("id-1");
+        assertEquals("sample-env-canary", bean1.getCluster_name());
+        assertEquals("env-1", bean1.getEnv_id());
+        assertEquals(ClusterUpgradeEventState.INIT, bean1.getState());
+        assertEquals(ClusterUpgradeEventStatus.UNKNOWN, bean1.getStatus());
+        assertNull(bean1.getHost_ids());
+        assertNull(bean1.getError_message());
+
+        ClusterUpgradeEventBean updateBean = new ClusterUpgradeEventBean();
+        updateBean.setState(ClusterUpgradeEventState.REPLACING);
+        updateBean.setHost_ids("host-1,host-2,host-3");
+        updateBean.setLast_worked_on(System.currentTimeMillis());
+        updateBean.setError_message("This is error msg");
+        clusterUpgradeEventDAO.updateById("id-1", updateBean);
+
+        bean1 = clusterUpgradeEventDAO.getById("id-1");
+        assertEquals(ClusterUpgradeEventState.REPLACING, bean1.getState());
+        assertEquals("host-1,host-2,host-3", bean1.getHost_ids());
+        assertEquals("This is error msg", bean1.getError_message());
+
+        Collection<ClusterUpgradeEventBean> beans = clusterUpgradeEventDAO.getOngoingEvents();
+        assertEquals(beans.size(), 1);
+    }
+
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {
         EnvironBean envBean = new EnvironBean();
         envBean.setEnv_id(envId);
@@ -1496,7 +1568,9 @@ public class DBDAOTest {
         envBean.setMax_deploy_num(5100);
         envBean.setMax_deploy_day(366);
         envBean.setIs_docker(false);
+        envBean.setMax_parallel_pct(0);
         envBean.setState(EnvironState.NORMAL);
+        envBean.setMax_parallel_rp(1);
         return envBean;
     }
 

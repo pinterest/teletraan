@@ -66,3 +66,27 @@ def force_terminate_hosts(request, env_name, stage_name, host_ids):
     params = [('type', 'FORCE_TERMINATE')]
     return deploy_client.delete("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
                                 data=host_ids, params=params)
+
+
+def enable_cluster_replacement(request, env_name, stage_name):
+    params = [('actionType', 'REPLACE')]
+    return deploy_client.put("/envs/%s/%s/clusters/actions" % (env_name, stage_name), request.teletraan_user_id.token,
+                             params=params)
+
+
+def pause_cluster_replacement(request, env_name, stage_name):
+    params = [('actionType', 'PAUSE_REPLACE')]
+    return deploy_client.put("/envs/%s/%s/clusters/actions" % (env_name, stage_name), request.teletraan_user_id.token,
+                             params=params)
+
+
+def resume_cluster_replacement(request, env_name, stage_name):
+    params = [('actionType', 'RESUME_REPLACE')]
+    return deploy_client.put("/envs/%s/%s/clusters/actions" % (env_name, stage_name), request.teletraan_user_id.token,
+                             params=params)
+
+
+def cancel_cluster_replacement(request, env_name, stage_name):
+    params = [('actionType', 'CANCEL_REPLACE')]
+    return deploy_client.put("/envs/%s/%s/clusters/actions" % (env_name, stage_name), request.teletraan_user_id.token,
+                             params=params)

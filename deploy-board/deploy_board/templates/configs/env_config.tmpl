@@ -194,6 +194,18 @@
                             {% endfor %}
                         </select>
                     </div>
+
+                    <label for="maxParallelRp" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Maximum number of hosts are allowed to be replaced at the same time
+                        when doing cluster upgrading">
+                        Maximum Replaceable Host
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="maxParallelRp" required="true"
+                               type="text" value="{{ env.maxParallelRp }}"/>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="description" class="deployToolTip control-label col-xs-2"

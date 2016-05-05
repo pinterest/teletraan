@@ -32,6 +32,7 @@ public class AwsVmBean {
     private String subnet;
     private Integer minSize;
     private Integer maxSize;
+    private Integer curSize;
     private String terminationPolicy;
     // deprecated
     private String rawUserDataString;
@@ -122,6 +123,14 @@ public class AwsVmBean {
 
     public void setMaxSize(Integer maxSize) {
         this.maxSize = maxSize;
+    }
+
+    public Integer getCurSize() {
+        return curSize;
+    }
+
+    public void setCurSize(Integer curSize) {
+        this.curSize = curSize;
     }
 
     public String getTerminationPolicy() {
