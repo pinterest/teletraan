@@ -18,13 +18,11 @@ package com.pinterest.deployservice.buildtags;
 
 
 import com.pinterest.deployservice.bean.*;
-import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * The Manager class that is responsible for managing the build tags
@@ -33,13 +31,11 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(BuildTagsManagerImpl.class);
     private TagDAO tagDAO;
-    private EnvironDAO environDAO;
 
     private HashMap<String, List<BuildTagBean>> currentTags = new HashMap<>();
 
-    public BuildTagsManagerImpl(TagDAO t, EnvironDAO env) {
+    public BuildTagsManagerImpl(TagDAO t) {
         this.tagDAO = t;
-        this.environDAO = env;
     }
 
     @Override
@@ -50,7 +46,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
         List<BuildTagBean> ret = new ArrayList<>();
 
         for (BuildBean build : builds) {
-            LOG.debug("Get effective tags for build {}", build.getBuild_id());
+            LOG.debug("Get effective tags for build name {}", build.getBuild_name());
             ret.add(new BuildTagBean(build, getEffectiveBuildTag(build)));
         }
 
@@ -61,7 +57,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
         if (!this.currentTags.containsKey(build.getBuild_name())) {
             LOG.debug("Retrieve Tag List for build {}", build.getBuild_name());
             this.currentTags.put(build.getBuild_name(),
-                    createFromTagBean(tagDAO.getByTargetName(build.getBuild_name(), TagTargetType.Build)));
+                    createFromTagBean(tagDAO.getByTargetIdAndType(build.getBuild_name(), TagTargetType.BUILD)));
         }
 
         return getEffectiveBuildTag(this.currentTags.get(build.getBuild_name()), build);
@@ -127,9 +123,5 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
             }
         });
         return ret;
-    }
-
-    private boolean shouldInhertTagFromParentCommit(TagBean tag){
-        return tag.getValue() == TagValue.BadBuild || tag.getValue() == TagValue.GoodBuild;
     }
 }

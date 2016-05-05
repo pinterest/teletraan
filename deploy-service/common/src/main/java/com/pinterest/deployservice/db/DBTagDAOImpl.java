@@ -19,6 +19,7 @@ package com.pinterest.deployservice.db;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
+import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.dao.TagDAO;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
@@ -31,48 +32,62 @@ import java.util.List;
 
 public class DBTagDAOImpl implements TagDAO {
 
-    private static final String INSERT_TAG_TEMPLATE =
-            "INSERT INTO tags SET %s";
+    private static final String INSERT_TAG_TEMPLATE = "INSERT INTO tags SET %s";
 
-    private static final String DELETE_TAG_TEMPLATE = "UPDATE tags SET is_active=0 WHERE id=?";
+    private static final String DELETE_TAG_TEMPLATE = "DELETE FROM tags WHERE id=?";
 
     private static final String GET_TAG_BY_ID_TEMPLATE = "SELECT * FROM tags WHERE id =?";
 
-    private static final String GET_TAG_BY_TARGET_ID_TEMPLATE = "SELECT * FROM tags WHERE target_id=? AND "
-                                    +"is_active=1 ORDER BY created_date DESC";
+    private static final String GET_TAG_BY_TARGET_ID_TEMPLATE =
+        "SELECT * FROM tags WHERE target_id=? ORDER BY created_date DESC";
 
-    private static final String GET_TAG_BY_TARGET_NAME_ENV_TYPE_TEMPLATE = "SELECT * FROM tags WHERE target_name=? AND "
-            +" target_type=? AND is_active=1 ORDER BY created_date DESC";
+    private static final String GET_TAG_BY_VALUE = "SELECT * FROM tags WHERE value=?";
+
+    private static final String GET_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE =
+        "SELECT * FROM tags WHERE target_id=? AND "
+            + " target_type=? ORDER BY created_date DESC";
 
     private BasicDataSource basicDataSource;
 
-    public DBTagDAOImpl(BasicDataSource source){this.basicDataSource = source;}
+    public DBTagDAOImpl(BasicDataSource source) {
+        this.basicDataSource = source;
+    }
 
-    public void insert(TagBean tagInfo) throws Exception{
+    public void insert(TagBean tagInfo) throws Exception {
         SetClause setClause = tagInfo.genSetClause();
         String clause = String.format(INSERT_TAG_TEMPLATE, setClause.getClause());
         new QueryRunner(basicDataSource).update(clause, setClause.getValueArray());
     }
 
-    public void delete(String id) throws Exception{
-        new QueryRunner(basicDataSource).update(DELETE_TAG_TEMPLATE,id);
+    public void delete(String id) throws Exception {
+        new QueryRunner(basicDataSource).update(DELETE_TAG_TEMPLATE, id);
     }
 
     @Override
     public TagBean getById(String id) throws Exception {
-        return new QueryRunner(basicDataSource).query(GET_TAG_BY_ID_TEMPLATE,
-                new BeanHandler<>(TagBean.class), id);
+        return new QueryRunner(basicDataSource)
+            .query(GET_TAG_BY_ID_TEMPLATE, new BeanHandler<>(TagBean.class), id);
     }
 
     @Override
-    public List<TagBean> getByTargetId(String target_id) throws Exception{
+    public List<TagBean> getByTargetId(String target_id) throws Exception {
         ResultSetHandler<List<TagBean>> h = new BeanListHandler<TagBean>(TagBean.class);
         return new QueryRunner(basicDataSource).query(GET_TAG_BY_TARGET_ID_TEMPLATE, h, target_id);
     }
 
     @Override
-    public List<TagBean> getByTargetName(String target_name, TagTargetType target_type) throws Exception{
+    public List<TagBean> getByTargetIdAndType(String target_id, TagTargetType target_type)
+        throws Exception {
         ResultSetHandler<List<TagBean>> h = new BeanListHandler<TagBean>(TagBean.class);
-        return new QueryRunner(basicDataSource).query(GET_TAG_BY_TARGET_NAME_ENV_TYPE_TEMPLATE, h, target_name, target_type.toString());
+        return new QueryRunner(basicDataSource)
+            .query(GET_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE, h, target_id, target_type.toString());
+    }
+
+    @Override
+    public List<TagBean> getByValue(TagValue value) throws Exception{
+        ResultSetHandler<List<TagBean>> h = new BeanListHandler<TagBean>(TagBean.class);
+        return new QueryRunner(basicDataSource)
+            .query(GET_TAG_BY_VALUE, h, value.toString());
+
     }
 }

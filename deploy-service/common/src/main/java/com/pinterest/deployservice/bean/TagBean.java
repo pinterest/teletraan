@@ -27,16 +27,14 @@ import java.beans.Transient;
  * `value` varchar(30) NOT NULL,
  * `target_type` varchar(30) NOT NULL,
  * `target_id` varchar(64) NOT NULL,
- * `target_name` varchar(64),
  * `operator` varchar(64) NOT NULL,
  * `created_date` bigint(20) NOT NULL
  * `comments` varchar(256),
  * `meta_info` text,
- * `is_active` bit default 1,
  * PRIMARY KEY tag_infosKEY (`id`),
- * INDEX `target_id_idx` (`target_id`, `is_active`),
- * INDEX `target_name_idx` (`target_name`, `is_active`),
- * INDEX `type_idx` (`target_type`, `is_active`)
+ * INDEX `tags_target_id_idx` (`target_id`, `is_active`),
+ * INDEX `tags_target_name_idx` (`target_name`, `is_active`),
+ * INDEX `tags_type_idx` (`target_type`, `is_active`)
  * ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
  */
 public class TagBean implements Updatable {
@@ -55,9 +53,6 @@ public class TagBean implements Updatable {
     @JsonProperty("targetId")
     private String target_id;
 
-    @JsonProperty("tagTargetName")
-    private String target_name;
-
     @JsonProperty("operator")
     private String operator;
 
@@ -69,9 +64,6 @@ public class TagBean implements Updatable {
 
     @JsonProperty("metaInfo")
     private String meta_info;
-
-    @JsonProperty("isActive")
-    private Boolean is_active;
 
     public String getId() {
         return id;
@@ -105,14 +97,6 @@ public class TagBean implements Updatable {
         this.target_id = target_id;
     }
 
-    public String getTarget_name() {
-        return target_name;
-    }
-
-    public void setTarget_name(String target_name) {
-        this.target_name = target_name;
-    }
-
     public String getOperator() {
         return operator;
     }
@@ -141,13 +125,6 @@ public class TagBean implements Updatable {
         this.meta_info = meta_info;
     }
 
-    public Boolean getIs_active() {
-        return is_active;
-    }
-
-    public void setIs_active(Boolean is_active) {
-        this.is_active = is_active;
-    }
 
     @Transient
     public <T> T deserializeTagMetaInfo(Class<T> theClass) {
@@ -166,12 +143,10 @@ public class TagBean implements Updatable {
         clause.addColumn("value", this.value.toString());
         clause.addColumn("target_type", this.target_type.toString());
         clause.addColumn("target_id", this.target_id);
-        clause.addColumn("target_name", this.target_name);
         clause.addColumn("operator", this.operator);
         clause.addColumn("created_date", this.created_date);
         clause.addColumn("comments",this.comments);
         clause.addColumn("meta_info", this.meta_info);
-        clause.addColumn("is_active", this.is_active);
         return clause;
     }
 

@@ -18,6 +18,6 @@ package com.pinterest.deployservice.bean;
 
 
 public enum TagValue {
-    BadBuild, //This tag means the build is known bad
-    GoodBuild, //This tag means the build is known good
+    BAD_BUILD, //This tag means the build is known bad
+    GOOD_BUILD, //This tag means the build is known good
 }

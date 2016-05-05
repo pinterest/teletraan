@@ -17,11 +17,6 @@
 package com.pinterest.deployservice.bean;
 
 
-import com.pinterest.deployservice.exceptions.InvalidInputException;
-import org.apache.commons.lang.StringUtils;
-
-import java.util.List;
-
 /**
  * A wrapper class combining build and tag. It serves two purpose:
  * 1. An in memory representation of a Tagging build.
@@ -29,11 +24,9 @@ import java.util.List;
  * but put the tagging info on the builds
  */
 public class BuildTagBean {
-
-
     private TagBean tag;
-    private BuildBean build;
 
+    private BuildBean build;
 
     public BuildBean getBuild() {
         return build;
@@ -51,27 +44,14 @@ public class BuildTagBean {
         this.tag = tag;
     }
 
-
     public BuildTagBean(BuildBean build, TagBean tag) {
         this.build = build;
         this.tag = tag;
     }
 
     public static BuildTagBean createFromTagBean(TagBean tag) throws Exception {
-
-        if (tag.getTarget_type() != TagTargetType.Build) {
-            throw new InvalidInputException(TagTargetType.Build.toString(), tag.getTarget_type().toString());
-        }
-
-
         BuildBean build = tag.deserializeTagMetaInfo(BuildBean.class);
-
-        if (!StringUtils.equals(build.getBuild_id(), tag.getTarget_id())) {
-            throw new InvalidInputException(build.getBuild_id(), tag.getTarget_id());
-        }
-
 
         return new BuildTagBean(build, tag);
     }
-
 }

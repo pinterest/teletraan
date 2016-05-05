@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- * <p>
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * <p>
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,50 +34,45 @@ public class DBBuildDAOImpl implements BuildDAO {
 
     private static final int DEFAULT_SIZE = 100;
 
-    private static final String INSERT_BUILD_TEMPLATE =
-            "INSERT INTO builds SET %s";
-    private static final String DELETE_BUILD =
-            "DELETE FROM builds WHERE build_id=?";
-    private static final String GET_BUILD_BY_ID =
-            "SELECT * FROM builds WHERE build_id=?";
+    private static final String INSERT_BUILD_TEMPLATE = "INSERT INTO builds SET %s";
+    private static final String DELETE_BUILD = "DELETE FROM builds WHERE build_id=?";
+    private static final String GET_BUILD_BY_ID = "SELECT * FROM builds WHERE build_id=?";
     private static final String GET_BUILDS_BY_COMMIT_7 =
-            "SELECT * FROM builds WHERE scm_commit_7=? ORDER BY publish_date DESC LIMIT ?,?";
+        "SELECT * FROM builds WHERE scm_commit_7=? ORDER BY publish_date DESC LIMIT ?,?";
     private static final String GET_LATEST_BUILD_BY_NAME =
-            "SELECT * FROM builds WHERE build_name=? ORDER BY publish_date DESC LIMIT 1";
+        "SELECT * FROM builds WHERE build_name=? ORDER BY publish_date DESC LIMIT 1";
     private static final String GET_LATEST_BUILD_BY_NAME_2 =
-            "SELECT * FROM builds WHERE build_name=? AND scm_branch=? ORDER BY publish_date DESC LIMIT 1";
+        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? ORDER BY publish_date DESC LIMIT 1";
     private static final String GET_BUILDS_BY_NAME =
-            "SELECT * FROM builds WHERE build_name=? " +
-                    "ORDER BY publish_date DESC LIMIT ?,?";
+        "SELECT * FROM builds WHERE build_name=? " + "ORDER BY publish_date DESC LIMIT ?,?";
     private static final String GET_BUILDS_BY_NAME_2 =
-            "SELECT * FROM builds WHERE build_name=? AND scm_branch=? " +
-                    "ORDER BY publish_date DESC LIMIT ?,?";
+        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? "
+            + "ORDER BY publish_date DESC LIMIT ?,?";
     private static final String GET_BUILD_NAMES =
-            "SELECT DISTINCT build_name FROM builds WHERE build_name LIKE ? ORDER BY build_name ASC LIMIT ?,?";
+        "SELECT DISTINCT build_name FROM builds WHERE build_name LIKE ? ORDER BY build_name ASC LIMIT ?,?";
     private static final String GET_BRANCHES =
-            "SELECT DISTINCT scm_branch FROM builds WHERE build_name=?";
+        "SELECT DISTINCT scm_branch FROM builds WHERE build_name=?";
     private static final String GET_BUILD_NAMES2 =
-            "SELECT DISTINCT build_name FROM builds ORDER BY build_name ASC LIMIT ?,?";
+        "SELECT DISTINCT build_name FROM builds ORDER BY build_name ASC LIMIT ?,?";
     private static final String GET_BUILDS_BY_NAME_X =
-            "SELECT * FROM builds WHERE build_name=? AND " +
-                    "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
+        "SELECT * FROM builds WHERE build_name=? AND "
+            + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
     private static final String GET_BUILDS_BY_NAME_X_2 =
-            "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND " +
-                    "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
+        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND "
+            + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
     private static final String GET_ACCEPTED_BUILDS_TEMPLATE =
-            "SELECT * FROM builds WHERE build_name='%s' AND publish_date>%d ORDER BY publish_date DESC LIMIT %d";
+        "SELECT * FROM builds WHERE build_name='%s' AND publish_date>%d ORDER BY publish_date DESC LIMIT %d";
     private static final String GET_ACCEPTED_BUILDS_TEMPLATE2 =
-            "SELECT * FROM builds WHERE build_name='%s' AND scm_branch='%s' AND publish_date>%d ORDER BY publish_date DESC LIMIT %d";
-    private static final String GET_ALL_BUILD_NAMES =
-            "SELECT DISTINCT build_name FROM builds";
+        "SELECT * FROM builds WHERE build_name='%s' AND scm_branch='%s' AND publish_date>%d ORDER BY publish_date DESC LIMIT %d";
+    private static final String GET_ALL_BUILD_NAMES = "SELECT DISTINCT build_name FROM builds";
     private static final String GET_TOTAL_BY_NAME =
-            "SELECT COUNT(*) FROM builds WHERE build_name=?";
-    private static final String GET_LIST_OF_BUILDS_BY_IDs = "" +
-            "SELECT * FROM builds where build_id IN (%s)";
+        "SELECT COUNT(*) FROM builds WHERE build_name=?";
+    private static final String GET_LIST_OF_BUILDS_BY_IDs =
+        "" + "SELECT * FROM builds where build_id IN (%s)";
 
     private static final String DELETE_UNUSED_BUILDS =
-            "DELETE FROM builds WHERE build_name=? AND publish_date<? " +
-                    "AND NOT EXISTS (SELECT 1 FROM deploys WHERE deploys.build_id = builds.build_id) ORDER BY publish_date ASC LIMIT ?";
+        "DELETE FROM builds WHERE build_name=? AND publish_date<? "
+            + "AND NOT EXISTS (SELECT 1 FROM deploys WHERE deploys.build_id = builds.build_id) ORDER BY publish_date ASC LIMIT ?";
 
 
     private BasicDataSource dataSource;
@@ -203,23 +198,21 @@ public class DBBuildDAOImpl implements BuildDAO {
     }
 
     @Override
-    public List<BuildBean> get(String scmCommit,
-                               String buildName,
-                               String scmBranch,
-                               Optional<Integer> pageIndex,
-                               Optional<Integer> pageSize,
-                               Long before,
-                               Long after) throws Exception {
+    public List<BuildBean> get(String scmCommit, String buildName, String scmBranch,
+        Optional<Integer> pageIndex, Optional<Integer> pageSize, Long before, Long after)
+        throws Exception {
 
         if (!StringUtils.isEmpty(scmCommit)) {
-            return this.getByCommit7(StringUtils.substring(scmCommit, 0, 7), pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
+            return this.getByCommit7(StringUtils.substring(scmCommit, 0, 7), pageIndex.or(1),
+                pageSize.or(DEFAULT_SIZE));
         }
 
         if (!StringUtils.isEmpty(buildName)) {
             if (before != null && after != null) {
                 return this.getByNameDate(buildName, scmBranch, before, after);
             } else {
-                return this.getByName(buildName, scmBranch, pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
+                return this
+                    .getByName(buildName, scmBranch, pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
             }
         }
 

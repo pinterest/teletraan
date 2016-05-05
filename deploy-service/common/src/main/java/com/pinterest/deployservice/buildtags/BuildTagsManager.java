@@ -18,11 +18,8 @@ package com.pinterest.deployservice.buildtags;
 
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.BuildTagBean;
-import com.pinterest.deployservice.bean.DeployBean;
-import com.pinterest.deployservice.bean.TagBean;
 
 import java.util.List;
-import java.util.Map;
 
 public interface BuildTagsManager {
     List<BuildTagBean> getEffectiveTagsWithBuilds(List<BuildBean> builds) throws Exception;

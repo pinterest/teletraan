@@ -17,6 +17,7 @@
 package com.pinterest.deployservice.bean;
 
 public enum TagTargetType {
-    Build,
-    Environment
+    BUILD,
+    ENVIRONMENT,
+    TELETRAAN
 }

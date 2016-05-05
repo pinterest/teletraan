@@ -18,13 +18,21 @@ package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
+import com.pinterest.deployservice.bean.TagValue;
 
 import java.util.List;
 
 public interface TagDAO {
     void insert(TagBean bean) throws Exception;
+
     void delete(String id) throws Exception;
+
     TagBean getById(String id) throws Exception;
+
     List<TagBean> getByTargetId(String target_id) throws Exception;
-    List<TagBean> getByTargetName(String target_name, TagTargetType target_type) throws Exception;
+
+    List<TagBean> getByTargetIdAndType(String target_name, TagTargetType target_type)
+        throws Exception;
+
+    List<TagBean> getByValue(TagValue value) throws Exception;
 }

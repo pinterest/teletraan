@@ -14,11 +14,15 @@
  * limitations under the License.
  */
 
-package com.pinterest.deployservice.exceptions;
+package com.pinterest.deployservice.handler;
 
+import com.pinterest.deployservice.bean.TagBean;
 
-public class InvalidInputException extends Exception {
-    public InvalidInputException(String expected, String actual) {
-        super(String.format("Invalid input. Expected: [%s] Actual: [%s]", expected, actual));
-    }
+import javax.ws.rs.core.SecurityContext;
+
+/**
+ * An common handler class for handling different type of tags
+ */
+public abstract class TagHandler {
+    public abstract TagBean createTag(TagBean tag, SecurityContext sc) throws Exception;
 }

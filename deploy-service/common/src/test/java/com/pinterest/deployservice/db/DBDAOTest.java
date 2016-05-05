@@ -53,12 +53,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -1461,30 +1456,35 @@ public class DBDAOTest {
 
     @Test
     public void testTagDAO() throws Exception{
-        TagBean tag = genTagBean("BadBuild","6ACEB0D","Build","TestEnv",
+        TagBean tag = genTagBean(TagValue.BAD_BUILD,"TestEnv","BUILD",
                 genDefaultBuildInfoBean("b-3", "sss-1", "c-1", "r-1", System.currentTimeMillis()));
         tagDAO.insert(tag);
         TagBean tag2 = tagDAO.getById(tag.getId());
         assertNotNull(tag2);
         assertEquals(tag.getTarget_id(),tag2.getTarget_id());
-        assertTrue(tag2.getIs_active());
         BuildBean embededBean = tag2.deserializeTagMetaInfo(BuildBean.class);
         assertEquals("b-3", embededBean.getBuild_id());
 
         List<TagBean> targetList = tagDAO.getByTargetId(tag.getTarget_id());
         assertEquals(1,targetList.size());
-        targetList = tagDAO.getByTargetName(tag.getTarget_name(), TagTargetType.Build);
+        targetList = tagDAO.getByTargetIdAndType(tag.getTarget_id(), TagTargetType.BUILD);
         assertEquals(1,targetList.size());
 
         tagDAO.delete(tag.getId());
         tag2 = tagDAO.getById(tag.getId());
-        assertNotNull(tag2);
-        assertFalse(tag2.getIs_active());
+        assertNull(tag2);
         targetList = tagDAO.getByTargetId(tag.getTarget_id());
         assertEquals(0,targetList.size());
-        targetList = tagDAO.getByTargetName(tag.getTarget_name(), TagTargetType.Build);
+        targetList = tagDAO.getByTargetIdAndType(tag.getTarget_id(), TagTargetType.BUILD);
         assertEquals(0,targetList.size());
 
+        tagDAO.insert(genTagBean(TagValue.BAD_BUILD,"env1","BUILD",new HashMap<String,String>()));
+        tagDAO.insert(genTagBean(TagValue.BAD_BUILD,"env1", "BUILD",new HashMap<String,String>()));
+        tagDAO.insert(genTagBean(TagValue.BAD_BUILD,"env1","BUILD",new HashMap<String,String>()));
+        tagDAO.insert(genTagBean(TagValue.BAD_BUILD,"env1","BUILD",new HashMap<String,String>()));
+
+        assertEquals(4, tagDAO.getByValue(TagValue.BAD_BUILD).size());
+        assertEquals(0, tagDAO.getByValue(TagValue.GOOD_BUILD).size());
     }
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {
@@ -1587,16 +1587,14 @@ public class DBDAOTest {
         return dataBean;
     }
 
-    private TagBean genTagBean(String val, String target_id, String target_type,
-                               String target_name, Object meta_info){
+    private TagBean genTagBean(TagValue val, String target_id, String target_type, Object meta_info){
         TagBean bean = new TagBean();
         bean.setId(CommonUtils.getBase64UUID());
         bean.setCreated_date(System.currentTimeMillis());
         bean.setOperator("johndoe");
-        bean.setValue(TagValue.BadBuild);
+        bean.setValue(TagValue.BAD_BUILD);
         bean.setTarget_id(target_id);
-        bean.setTarget_type(TagTargetType.Build);
-        bean.setTarget_name(target_name);
+        bean.setTarget_type(TagTargetType.BUILD);
         bean.serializeTagMetaInfo(meta_info);
         return bean;
     }
