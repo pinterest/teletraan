@@ -23,11 +23,7 @@ import com.pinterest.arcee.aws.AwsConfigManager;
 import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.metrics.MetricSource;
 import com.pinterest.clusterservice.aws.AwsManager;
-import com.pinterest.clusterservice.dao.BaseImageDAO;
-import com.pinterest.clusterservice.dao.ClusterDAO;
-import com.pinterest.clusterservice.dao.HostTypeDAO;
-import com.pinterest.clusterservice.dao.PlacementDAO;
-import com.pinterest.clusterservice.dao.SecurityZoneDAO;
+import com.pinterest.clusterservice.dao.*;
 import com.pinterest.clusterservice.cm.ClusterManager;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.dao.*;
@@ -74,10 +70,9 @@ public class ServiceContext {
     private HostTypeDAO hostTypeDAO;
     private SecurityZoneDAO securityZoneDAO;
     private PlacementDAO placementDAO;
+    private ClusterUpgradeEventDAO clusterUpgradeEventDAO;
     private SpotAutoScalingDAO spotAutoScalingDAO;
     private PasConfigDAO pasConfigDAO;
-
-
     private TagDAO tagDAO;
 
     private String serviceStage;
@@ -352,6 +347,14 @@ public class ServiceContext {
 
     public void setPlacementDAO(PlacementDAO placementDAO) {
         this.placementDAO = placementDAO;
+    }
+
+    public ClusterUpgradeEventDAO getClusterUpgradeEventDAO() {
+        return clusterUpgradeEventDAO;
+    }
+
+    public void setClusterUpgradeEventDAO(ClusterUpgradeEventDAO clusterUpgradeEventDAO) {
+        this.clusterUpgradeEventDAO = clusterUpgradeEventDAO;
     }
 
     public SpotAutoScalingDAO getSpotAutoScalingDAO() { return spotAutoScalingDAO; }

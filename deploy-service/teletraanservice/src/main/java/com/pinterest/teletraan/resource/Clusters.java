@@ -24,12 +24,14 @@ import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 
 import com.google.common.base.Optional;
 
 import io.swagger.annotations.Api;
 
+import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,6 +50,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/clusters")
@@ -61,7 +64,14 @@ public class Clusters {
     private final ClusterHandler clusterHandler;
     private final ConfigHistoryHandler configHistoryHandler;
 
-    public enum HostActionType {
+    public enum ActionType {
+        REPLACE,
+        PAUSE_REPLACE,
+        RESUME_REPLACE,
+        CANCEL_REPLACE
+    }
+
+    private enum HostActionType {
         TERMINATE,
         FORCE_TERMINATE
     }
@@ -121,6 +131,37 @@ public class Clusters {
         String configChange = String.format("delete cluster for %s/%s", envName, stageName);
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_OTHER, configChange, operator);
         LOG.info(String.format("Successfully delete cluster for %s/%s by %s", envName, stageName, operator));
+    }
+
+    @PUT
+    @Path("/actions")
+    public void replaceCluster(@Context SecurityContext sc,
+                               @PathParam("envName") String envName,
+                               @PathParam("stageName") String stageName,
+                               @NotEmpty @QueryParam("actionType") ActionType actionType) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        String operator = sc.getUserPrincipal().getName();
+        switch (actionType) {
+            case REPLACE:
+                clusterHandler.replaceCluster(envName, stageName);
+                break;
+            case PAUSE_REPLACE:
+                clusterHandler.pauseReplace(envName, stageName);
+                break;
+            case RESUME_REPLACE:
+                clusterHandler.enableReplace(envName, stageName);
+                break;
+            case CANCEL_REPLACE:
+                clusterHandler.cancelReplace(envName, stageName);
+                break;
+            default:
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+        }
+
+        String configChange = String.format("%s cluster replacement for %s/%s", actionType, envName, stageName);
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_OTHER, configChange, operator);
+        LOG.info(String.format("Successfully %s cluster replacement for %s/%s by %s", actionType, envName, stageName, operator));
     }
 
     @PUT

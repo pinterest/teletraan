@@ -15,7 +15,7 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.pinterest.arcee.autoscaling.AutoScalingManager;
+
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.dao.PasConfigDAO;
 import com.pinterest.arcee.handler.GroupHandler;
@@ -39,7 +39,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 
 @Path("/v1/groups/{groupName: [a-zA-Z0-9\\-_]+}/autoscaling")
@@ -75,7 +74,6 @@ public class AutoScalingGroups {
         authorizer = context.getAuthorizer();
         awsAutoScalingManager = context.getAutoScalingManager();
         pasConfigDAO = context.getPasConfigDAO();
-
     }
 
 

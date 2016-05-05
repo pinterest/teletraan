@@ -17,6 +17,7 @@ package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.AgentBean;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -66,4 +67,6 @@ public interface AgentDAO {
 
     // return how many agents that are not first time deploy for the environment
     long countNonFirstDeployingAgent(String envId) throws Exception;
+
+    long countServingTotal(String envId) throws Exception;
 }

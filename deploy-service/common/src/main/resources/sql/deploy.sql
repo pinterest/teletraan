@@ -32,9 +32,10 @@ CREATE TABLE IF NOT EXISTS environs (
     max_deploy_num      INT           NOT NULL,
     max_deploy_day      INT           NOT NULL,
     is_docker           TINYINT(1)    NOT NULL DEFAULT 0,
-    max_parallel_pct    TINYINT(1),
+    max_parallel_pct    TINYINT(1)    NOT NULL DEFAULT 0,
     state               VARCHAR(32)   NOT NULL,
     cluster_name        VARCHAR(128),
+    max_parallel_rp     INT           NOT NULL DEFAULT 1,
     PRIMARY KEY   (env_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);
@@ -115,6 +116,7 @@ CREATE TABLE IF NOT EXISTS hosts (
     create_date     BIGINT              NOT NULL,
     last_update     BIGINT              NOT NULL,
     state           VARCHAR(32)         NOT NULL,
+    can_retire      TINYINT(1)          NOT NULL DEFAULT 0,
     PRIMARY KEY    (host_id, group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX rev_group_host_idx ON hosts (group_name, host_name);
@@ -368,6 +370,7 @@ CREATE TABLE IF NOT EXISTS clusters (
     placement_id         VARCHAR(128),
     config_id            VARCHAR(22),
     provider             VARCHAR(64),
+    state                VARCHAR(32),
     last_update          BIGINT(20)      NOT NULL,
     PRIMARY KEY (cluster_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -430,7 +433,6 @@ CREATE TABLE IF NOT EXISTS spot_auto_scaling_groups (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX asg_cluster_idx ON spot_auto_scaling_groups (cluster_name);
 
-
 CREATE TABLE IF NOT EXISTS tags (
   id VARCHAR(30) NOT NULL,
   value VARCHAR(30) NOT NULL,
@@ -454,3 +456,17 @@ CREATE TABLE IF NOT EXISTS tags (
     pas_state VARCHAR(32) NOT NULL,
     PRIMARY KEY (group_name)
  ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS cluster_upgrade_events (
+    id                      VARCHAR(64)      NOT NULL,
+    cluster_name            VARCHAR(128)     NOT NULL,
+    env_id                  VARCHAR(22)      NOT NULL,
+    state                   VARCHAR(64)      NOT NULL,
+    status                  VARCHAR(32)      NOT NULL,
+    host_ids                TEXT,
+    start_time              BIGINT           NOT NULL,
+    state_start_time        BIGINT           NOT NULL,
+    last_worked_on          BIGINT           NOT NULL,
+    error_message           TEXT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
