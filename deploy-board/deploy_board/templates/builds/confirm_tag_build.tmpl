@@ -1,0 +1,36 @@
+{% load utils %}
+<div class="modal fade" id="tagBuildConfirmId" tabindex="-1" role="dialog"
+     aria-labelledby="tagConfirm" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title">Confirm Tag As {{tag|availableBuildTag}}</h4>
+      </div>
+      <form id="confirmTagFormId" method="POST" role="form" class="form-horizontal"
+            action="tags/">
+      <div class="modal-body">
+        Are you sure to tag  <a href="/builds/{{ build.id }}">{{ build|branchAndCommit }}</a> as {{tag|availableBuildTag}}?
+        {% csrf_token %}
+        <div class="row">
+        <div class="form-group">
+          <input name="tag_value" type="hidden" value="{{tag|availableBuildTag}}" />
+          <input class="form-control" name="comments" type="text" required="true"
+                 placeholder="Please put additional comments here" value=""/>
+        </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <input type="submit" value="Confirm" class="btn btn-primary">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+      </div>
+      </form>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+<script>
+    $('#confirmTagFormId').submit(function () {
+        $(this).find('button[type=submit]').prop('disabled', 'disabled');
+        $(this).find('button[type=submit]').text('Promoting...');
+    });
+</script>

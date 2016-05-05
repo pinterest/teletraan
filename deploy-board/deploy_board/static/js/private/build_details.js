@@ -1,5 +1,4 @@
-/*
- * Copyright 2016 Pinterest, Inc.
+/* Copyright 2016 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +13,13 @@
  * limitations under the License.
  */
 
-package com.pinterest.deployservice.buildtags;
+$(document).ready(function() {
 
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.BuildTagBean;
-import com.pinterest.deployservice.bean.TagBean;
-
-import java.util.List;
-
-public interface BuildTagsManager {
-    List<BuildTagBean> getEffectiveTagsWithBuilds(List<BuildBean> builds) throws Exception;
-    TagBean getEffectiveBuildTag(BuildBean build) throws  Exception;
-}
+    if ($('#buildErrorMsg').length > 0) {
+        $('#errorBannerId').append($('#buildErrorMsg').text());
+        $('#errorBannerId').show();
+    }
+    $('#tagBuildButton').click(function() {
+        $('#tagBuildConfirmId').modal();
+    });
+});

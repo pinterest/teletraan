@@ -131,11 +131,11 @@ public class BuildTagsManagerImplTest {
         return ret;
     }
 
-    private BuildTagBean genBuildTagBean(BuildBean build, TagValue value) {
+    private BuildTagBean genBuildTagBean(BuildBean build, TagValue value) throws Exception{
         return new BuildTagBean(build, genTagOnBuild(build, value));
     }
 
-    private TagBean genTagOnBuild(BuildBean build, TagValue value) {
+    private TagBean genTagOnBuild(BuildBean build, TagValue value) throws Exception {
         TagBean tag = new TagBean();
         tag.setId(CommonUtils.getBase64UUID());
         tag.setTarget_id(build.getBuild_name());

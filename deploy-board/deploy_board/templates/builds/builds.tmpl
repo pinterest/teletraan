@@ -7,24 +7,34 @@
         <th>Repo</th>
         <th>More Info</th>
         <th>Details</th>
+        <th>Tag</th>
     </tr>
-    {% for build in builds %}
+    {% for buildInfo in builds %}
     <tr>
-        <td>{{ build.publishDate|convertTimestamp }}</td>
-        <td><a class="deployToolTip" href="{{ build.commitInfo }}"
-               title="Click to see commit in {{ build.type }}">
-            <i class="{{ build|commitIcon }}"></i> {{ build.commitShort }}
+        <td>{{ buildInfo.build.publishDate|convertTimestamp }}</td>
+        <td><a class="deployToolTip" href="{{ buildInfo.build.commitInfo }}"
+               title="Click to see commit in {{ buildInfo.build.type }}">
+            <i class="{{ buildInfo.build|commitIcon }}"></i> {{ buildInfo.build.commitShort }}
         </a>
         </td>
-        <td>{{ build.branch }}</td>
-        <td>{{ build.repo }}</td>
+        <td>{{ buildInfo.build.branch }}</td>
+        <td>{{ buildInfo.build.repo }}</td>
         <td><a class="deployToolTip" data-toggle="tooltip"
                title="Click to see the details of publish job info"
-               href='{{ build.publishInfo }}'><i class="fa fa-wrench"></i></a>
+               href='{{ buildInfo.build.publishInfo }}'><i class="fa fa-wrench"></i></a>
             <a class="deployToolTip" data-toggle="tooltip" title="Click to download the build"
-               href='{{ build.artifactUrl }}'><i class="fa fa-cloud-download"></i></a>
+               href='{{ buildInfo.build.artifactUrl }}'><i class="fa fa-cloud-download"></i></a>
         </td>
-        <td><a href="/builds/{{ build.id }}">view</a></td>
+        <td><a href="/builds/{{ buildInfo.build.id }}">view</a></td>
+        <td>
+              {% if buildInfo.tag %}
+                {%if buildInfo.tag.value == "BAD_BUILD" %}
+                  <span class="label label-danger">{{buildInfo.tag.value}}</span>
+                {%elif buildInfo.tag|tagBuildId == buildInfo.build.id %}
+                  <span class="label label-success">{{buildInfo.tag.value}}</span>
+                {% endif %}
+              {% endif %}
+        </td>
     </tr>
     {% endfor%}
 </table>

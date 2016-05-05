@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
@@ -39,7 +40,7 @@ import java.beans.Transient;
  */
 public class TagBean implements Updatable {
 
-    private static final Gson gson = new Gson();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     @JsonProperty("id")
     private String id;
@@ -127,13 +128,13 @@ public class TagBean implements Updatable {
 
 
     @Transient
-    public <T> T deserializeTagMetaInfo(Class<T> theClass) {
-        return gson.fromJson(this.getMeta_info(), theClass);
+    public <T> T deserializeTagMetaInfo(Class<T> theClass) throws Exception{
+        return mapper.readValue(this.getMeta_info(), theClass);
     }
 
     @Transient
-    public void serializeTagMetaInfo(Object object) {
-        this.setMeta_info(gson.toJson(object));
+    public void serializeTagMetaInfo(Object object) throws Exception{
+        this.setMeta_info(mapper.writeValueAsString(object));
     }
 
     @Override

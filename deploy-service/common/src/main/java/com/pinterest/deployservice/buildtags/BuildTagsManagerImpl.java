@@ -53,6 +53,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
         return ret;
     }
 
+    @Override
     public TagBean getEffectiveBuildTag(BuildBean build) throws Exception {
         if (!this.currentTags.containsKey(build.getBuild_name())) {
             LOG.debug("Retrieve Tag List for build {}", build.getBuild_name());
