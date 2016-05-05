@@ -897,3 +897,10 @@ def get_available_tag(tag):
             build = json.loads(meta_info)
             return build["id"]
     return None
+
+
+@register.filter("canReplaceCluster")
+def canReplaceCluster(cluster):
+    if cluster and cluster.get('state') and cluster.get('state') != 'NORMAL':
+        return False
+    return True

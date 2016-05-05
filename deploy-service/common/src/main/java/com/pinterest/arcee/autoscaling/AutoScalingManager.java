@@ -99,4 +99,6 @@ public interface AutoScalingManager {
     void deleteLifecycleHook(String groupName) throws Exception;
 
     void completeLifecycleAction(String hookId, String tokenId, String groupName) throws Exception;
+
+    String transformUserDataConfigToString(String clusterName, Map<String, String> userDataConfigs) throws Exception;
 }

@@ -23,6 +23,7 @@ import com.pinterest.arcee.db.*;
 import com.pinterest.clusterservice.aws.AwsManagerImpl;
 import com.pinterest.clusterservice.db.DBBaseImageDAOImpl;
 import com.pinterest.clusterservice.db.DBClusterDAOImpl;
+import com.pinterest.clusterservice.db.DBClusterUpgradeEventDAOImpl;
 import com.pinterest.clusterservice.db.DBHostTypeDAOImpl;
 import com.pinterest.clusterservice.db.DBPlacementDAOImpl;
 import com.pinterest.clusterservice.db.DBSecurityZoneDAOImpl;
@@ -90,6 +91,7 @@ public class ConfigHelper {
         context.setHostTypeDAO(new DBHostTypeDAOImpl(dataSource));
         context.setSecurityZoneDAO(new DBSecurityZoneDAOImpl(dataSource));
         context.setPlacementDAO(new DBPlacementDAOImpl(dataSource));
+        context.setClusterUpgradeEventDAO(new DBClusterUpgradeEventDAOImpl(dataSource));
         context.setSpotAutoScalingDAO(new DBSpotAutoScalingDAOImpl(dataSource));
         context.setTagDAO(new DBTagDAOImpl(dataSource));
 
@@ -349,6 +351,13 @@ public class ConfigHelper {
                 Runnable worker = new PlacementCapacityUpdater(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled PlacementCapacityUpdater");
+            }
+
+            if (workerName.equalsIgnoreCase(ClusterReplacer.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new ClusterReplacer(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled ClusterReplacer");
             }
         }
     }

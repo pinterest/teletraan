@@ -93,6 +93,7 @@ class EnvConfigView(View):
         data["watchRecipients"] = query_dict["watch_recipients"]
         data["maxDeployNum"] = int(query_dict["maxDeployNum"])
         data["maxDeployDay"] = int(query_dict["maxDeployDay"])
+        data["maxParallelRp"] = int(query_dict["maxParallelRp"])
 
         environs_helper.update_env_basic_config(request, name, stage, data=data)
         return self.get(request, name, stage)

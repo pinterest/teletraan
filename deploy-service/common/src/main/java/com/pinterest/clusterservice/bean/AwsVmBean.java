@@ -60,6 +60,9 @@ public class AwsVmBean {
     private Integer maxSize;
 
     @JsonIgnore
+    private Integer curSize;
+
+    @JsonIgnore
     private String launchConfigId;
 
     @JsonIgnore
@@ -154,6 +157,14 @@ public class AwsVmBean {
 
     public void setMaxSize(Integer maxSize) {
         this.maxSize = maxSize;
+    }
+
+    public Integer getCurSize() {
+        return curSize;
+    }
+
+    public void setCurSize(Integer curSize) {
+        this.curSize = curSize;
     }
 
     public String getTerminationPolicy() {

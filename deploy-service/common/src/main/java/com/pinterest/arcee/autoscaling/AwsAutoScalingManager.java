@@ -36,9 +36,6 @@ import java.util.*;
 
 public class AwsAutoScalingManager implements AutoScalingManager {
     private static final Logger LOG = LoggerFactory.getLogger(AwsAutoScalingManager.class);
-    private static final String PROCESS_ALARMNOTIFICATION = "AlarmNotification";
-    private static final String PROCESS_SCHEDULEDACTIONS = "ScheduledActions";
-    private static final String PROCESS_LAUNCH = "Launch";
     private static final String PROCESS_TERMINATE = "Terminate";
     private static final String PROCESS_HEALTHCHECK = "HealthCheck";
     private static final String PROCESS_REPLACEUNHEALTHY = "ReplaceUnhealthy";
@@ -148,18 +145,23 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         }
     }
 
-
     @Override
     public void disableAutoScalingGroup(String groupName) throws Exception {
-        disableAutoScalingActions(groupName, Arrays.asList(PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS,
-                                                         PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_REPLACEUNHEALTHY));
+        disableAutoScalingActions(groupName,
+                Arrays.asList(AutoScalingConstants.PROCESS_ALARMNOTIFICATION,
+                        AutoScalingConstants.PROCESS_SCHEDULEDACTIONS,
+                        AutoScalingConstants.PROCESS_LAUNCH,
+                        PROCESS_TERMINATE, PROCESS_REPLACEUNHEALTHY));
     }
 
     @Override
     public void enableAutoScalingGroup(String groupName) throws Exception {
-        enableAutoScalingActions(groupName, Arrays.asList(PROCESS_LAUNCH, PROCESS_TERMINATE, PROCESS_HEALTHCHECK,
-                    PROCESS_REPLACEUNHEALTHY,
-                    PROCESS_ALARMNOTIFICATION, PROCESS_SCHEDULEDACTIONS, PROCESS_ADDTOLOADBALANCER));
+        enableAutoScalingActions(groupName,
+                Arrays.asList(AutoScalingConstants.PROCESS_LAUNCH,
+                        AutoScalingConstants.PROCESS_SCHEDULEDACTIONS,
+                        AutoScalingConstants.PROCESS_ALARMNOTIFICATION,
+                        PROCESS_TERMINATE, PROCESS_HEALTHCHECK,
+                        PROCESS_REPLACEUNHEALTHY, PROCESS_ADDTOLOADBALANCER));
     }
 
     @Override
@@ -270,7 +272,8 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         for (SuspendedProcess process : suspendedProcesses) {
             processName.add(process.getProcessName());
         }
-        if (processName.contains(PROCESS_ALARMNOTIFICATION) && processName.contains(PROCESS_SCHEDULEDACTIONS)) {
+        if (processName.contains(AutoScalingConstants.PROCESS_ALARMNOTIFICATION) &&
+                processName.contains(AutoScalingConstants.PROCESS_SCHEDULEDACTIONS)) {
             asgInfo.setStatus(ASGStatus.DISABLED);
         } else {
             asgInfo.setStatus(ASGStatus.ENABLED);
@@ -481,7 +484,8 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         for (SuspendedProcess process : suspendedProcesses) {
             processName.add(process.getProcessName());
         }
-        if (processName.contains(PROCESS_ALARMNOTIFICATION) && processName.contains(PROCESS_SCHEDULEDACTIONS)) {
+        if (processName.contains(AutoScalingConstants.PROCESS_ALARMNOTIFICATION) &&
+                processName.contains(AutoScalingConstants.PROCESS_SCHEDULEDACTIONS)) {
             return ASGStatus.DISABLED;
         } else {
             return ASGStatus.ENABLED;
@@ -567,7 +571,8 @@ public class AwsAutoScalingManager implements AutoScalingManager {
 
         AwsVmBean awsVmBean = new AwsVmBean();
 
-        if (processName.contains(PROCESS_ALARMNOTIFICATION) && processName.contains(PROCESS_SCHEDULEDACTIONS)) {
+        if (processName.contains(AutoScalingConstants.PROCESS_ALARMNOTIFICATION) &&
+                processName.contains(AutoScalingConstants.PROCESS_SCHEDULEDACTIONS)) {
             awsVmBean.setAsgStatus(ASGStatus.DISABLED);
         } else {
             awsVmBean.setAsgStatus(ASGStatus.ENABLED);
@@ -584,6 +589,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         awsVmBean.setSubnet(autoScalingGroup.getVPCZoneIdentifier());
         awsVmBean.setMinSize(autoScalingGroup.getMinSize());
         awsVmBean.setMaxSize(autoScalingGroup.getMaxSize());
+        awsVmBean.setCurSize(autoScalingGroup.getDesiredCapacity());
         awsVmBean.setTerminationPolicy(autoScalingGroup.getTerminationPolicies().get(0));
         awsVmBean.setRawUserDataString(launchConfigInfo.getRawUserDataString());
         return awsVmBean;
@@ -695,6 +701,21 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         aasClient.completeLifecycleAction(completeLifecycleActionRequest);
     }
 
+    @Override
+    public String transformUserDataConfigToString(String clusterName, Map<String, String> userDataConfigs) throws Exception {
+        String prefix = String.format(userDataTemplate, clusterName, pinfoEnvironment);
+        StringBuilder resultBuilder = new StringBuilder();
+        resultBuilder.append(prefix);
+        if (userDataConfigs == null) {
+            return resultBuilder.toString();
+        }
+
+        for (Map.Entry<String, String> entry : userDataConfigs.entrySet()) {
+            resultBuilder.append(String.format("\n%s: %s", entry.getKey(), entry.getValue()));
+        }
+        return resultBuilder.toString();
+    }
+
     private List<String> getLifecycleHookIds(String groupName) throws Exception {
         DescribeLifecycleHooksRequest request = new DescribeLifecycleHooksRequest();
         request.setAutoScalingGroupName(groupName);
@@ -724,20 +745,6 @@ public class AwsAutoScalingManager implements AutoScalingManager {
 
     private String getScalingPolicyName(String groupName, String scaleType) {
         return String.format("%s_%s_rule", groupName, scaleType.toLowerCase());
-    }
-
-    private String transformUserDataConfigToString(String clusterName, Map<String, String> userDataConfigs) throws Exception {
-        String prefix = String.format(userDataTemplate, clusterName, pinfoEnvironment);
-        StringBuilder resultBuilder = new StringBuilder();
-        resultBuilder.append(prefix);
-        if (userDataConfigs == null) {
-            return resultBuilder.toString();
-        }
-
-        for (Map.Entry<String, String> entry : userDataConfigs.entrySet()) {
-            resultBuilder.append(String.format("\n%s: %s", entry.getKey(), entry.getValue()));
-        }
-        return resultBuilder.toString();
     }
 
     private Map<String, String> transformUserDataToConfigMap(String clusterName, String userData) throws Exception {

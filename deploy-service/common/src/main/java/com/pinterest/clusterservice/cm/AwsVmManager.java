@@ -19,6 +19,7 @@ import com.google.common.base.Joiner;
 
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.dao.HostInfoDAO;
+import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.bean.BaseImageBean;
 import com.pinterest.clusterservice.bean.ClusterBean;
@@ -31,12 +32,11 @@ import com.pinterest.clusterservice.dao.HostTypeDAO;
 import com.pinterest.clusterservice.dao.PlacementDAO;
 import com.pinterest.clusterservice.dao.SecurityZoneDAO;
 import com.pinterest.deployservice.ServiceContext;
-
-import com.amazonaws.AmazonClientException;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.handler.DataHandler;
 
+import com.amazonaws.AmazonClientException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
@@ -50,7 +50,6 @@ import java.util.Map;
 
 public class AwsVmManager implements ClusterManager {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AwsVmManager.class);
-    private static final String PROCESS_LAUNCH = "Launch";
     private static final String DEFAULT_TERMINATION_POLICY = "Default";
     private static final String ROLE_KEY = "cmp_role";
     private static final String PUBLIC_KEY = "cmp_public_ip";
@@ -157,12 +156,12 @@ public class AwsVmManager implements ClusterManager {
         if (replaceHost) {
             hostInfoDAO.terminateHosts(hostIds);
         } else {
-            autoScalingManager.disableAutoScalingActions(clusterName, Collections
-                .singletonList(PROCESS_LAUNCH));
+            autoScalingManager.disableAutoScalingActions(clusterName,
+                Collections.singletonList(AutoScalingConstants.PROCESS_LAUNCH));
             hostInfoDAO.terminateHosts(hostIds);
             autoScalingManager.decreaseGroupCapacity(clusterName, hostIds.size());
-            autoScalingManager
-                .enableAutoScalingActions(clusterName, Collections.singletonList(PROCESS_LAUNCH));
+            autoScalingManager.enableAutoScalingActions(clusterName,
+                Collections.singletonList(AutoScalingConstants.PROCESS_LAUNCH));
         }
     }
 
