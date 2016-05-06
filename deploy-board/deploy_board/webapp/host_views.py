@@ -47,11 +47,12 @@ def get_agent_wrapper(request, hostname):
 
 # TODO deprecated it
 def get_asg_name(request, hosts):
-    for host in hosts:
-        if host and host.get('groupName'):
-            group_info = groups_helper.get_group_info(request, host.get('groupName'))
-            if group_info and group_info["asgStatus"] == "ENABLED":
-                return host.get('groupName')
+    if IS_PINTEREST:
+        for host in hosts:
+            if host and host.get('groupName'):
+                group_info = groups_helper.get_group_info(request, host.get('groupName'))
+                if group_info and group_info["asgStatus"] == "ENABLED":
+                    return host.get('groupName')
     return None
 
 
@@ -106,7 +107,7 @@ class HostDetailView(View):
             'host_id': host_id,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
-            'show_force_terminate': True,
+            'show_force_terminate': IS_PINTEREST,
             'asg_group': asg,
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
