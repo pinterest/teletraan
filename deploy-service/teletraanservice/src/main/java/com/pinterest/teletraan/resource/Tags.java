@@ -63,6 +63,10 @@ public class Tags {
 
     @GET
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
+    @ApiOperation(
+        value = "Get tags with a given id",
+        notes = "Return a TagBean objects",
+        response = TagBean.class)
     public TagBean getById(@PathParam("id") String id)
         throws Exception {
         TagBean ret = tagDAO.getById(id);
