@@ -17,10 +17,7 @@ package com.pinterest.deployservice.dao;
 
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.DeployBean;
-import org.apache.commons.lang.StringUtils;
 
-import javax.ws.rs.QueryParam;
 import java.util.Collection;
 import java.util.List;
 
@@ -61,11 +58,7 @@ public interface BuildDAO {
     // Get all unused builds whose publish time is before timeThreshold
     void deleteUnusedBuilds(String buildName, long timeThreshold, long numOfBuilds) throws Exception;
 
-    List<BuildBean> get(String scmCommit,
-                        String buildName,
-                        String scmBranch,
-                        Optional<Integer> pageIndex,
-                        Optional<Integer> pageSize,
-                        Long before,
-                        Long after) throws Exception;
+    List<BuildBean> get(String scmCommit, String buildName, String scmBranch,
+        Optional<Integer> pageIndex, Optional<Integer> pageSize, Long before, Long after)
+        throws Exception;
 }

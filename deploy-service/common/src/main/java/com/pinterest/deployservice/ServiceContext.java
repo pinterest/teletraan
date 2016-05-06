@@ -543,7 +543,6 @@ public class ServiceContext {
 
     public int getSpotAutoScalingThreshold() { return spotAutoScalingThreshold; }
 
-
     public TagDAO getTagDAO() {
         return tagDAO;
     }
