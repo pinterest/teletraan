@@ -24,5 +24,5 @@ import javax.ws.rs.core.SecurityContext;
  * An common handler class for handling different type of tags
  */
 public abstract class TagHandler {
-    public abstract TagBean createTag(TagBean tag, SecurityContext sc) throws Exception;
+    public abstract TagBean createTag(TagBean tag, String operator) throws Exception;
 }

@@ -25,7 +25,7 @@
         </a>
     </div>
     <div class="row">
-        {% if basic_cluster_info %}
+        {% if basic_cluster_info and env|isEnvEnabled %}
             <button class="deployToolTip btn btn-default btn-block" data-target="#deleteCluster"
             data-toggle="modal" title="Delete Cluster">
             <span class="glyphicon glyphicon-remove-sign"></span> Delete cluster

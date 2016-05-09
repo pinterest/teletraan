@@ -213,7 +213,8 @@ public class AutoPromoter implements Runnable {
 
     void processOnce(String envId) throws Exception {
         EnvironBean currEnvBean = environDAO.getById(envId);
-        if (currEnvBean == null || currEnvBean.getEnv_state() != EnvState.NORMAL) {
+        if (currEnvBean == null || currEnvBean.getEnv_state() != EnvState.NORMAL ||
+                currEnvBean.getState() != EnvironState.NORMAL) {
             LOG.info("Env {} has just been disabled or paused or deleted, bail out!", envId);
             return;
         }

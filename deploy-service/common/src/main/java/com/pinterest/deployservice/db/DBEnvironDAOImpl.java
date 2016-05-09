@@ -37,6 +37,8 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "UPDATE environs SET %s WHERE env_id=?";
     private static final String UPDATE_ENV_BY_STAGE_TEMPLATE =
         "UPDATE environs SET %s WHERE env_name=? AND stage_name=?";
+    private static final String UPDATE_ALL =
+        "UPDATE environs SET %s";
     private static final String GET_ENV_BY_ID =
         "SELECT * FROM environs WHERE env_id=?";
     private static final String GET_ENV_BY_NAME =
@@ -112,6 +114,13 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         String clause = String.format(UPDATE_ENV_BY_STAGE_TEMPLATE, setClause.getClause());
         setClause.addValue(envName);
         setClause.addValue(envStage);
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+    }
+
+    @Override
+    public void updateAll(EnvironBean bean) throws Exception {
+        SetClause setClause = bean.genSetClause();
+        String clause = String.format(UPDATE_ALL, setClause.getClause());
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 

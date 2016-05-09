@@ -23,6 +23,7 @@
            <i class="fa fa-flash"></i> Current Deployment
         </a>
     </div>
+    {% if env|isEnvEnabled %}
 	<div class="row">
         <button id="envAddStageBtnId" type="button" class="deployToolTip btn btn-default btn-block"
                 data-toggle="modal" data-target="#addStageModalId"
@@ -30,6 +31,7 @@
             <span class="glyphicon glyphicon-plus"></span> Add Stage
         </button>
     </div>
+    {% endif %}
     {% if show_remove %}
 	<div class="row">
         <button id="envRemoveStageBtnId" type="button" class="deployToolTip btn btn-default btn-block"
@@ -113,7 +115,74 @@
           <span class="glyphicon glyphicon-user"></span> Admin Panel
       </a>
   </div>
+    {% if env|isEnvEnabled %}
+    <div class="row">
+    <button type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="modal" data-target="#disableConfirmModelId"
+            title="Disable new environment changes to avoid people make any new config and deploy changes">
+    <span class="glyphicon glyphicon-ban-circle"></span> Disable
+    </button>
+    </div>
+    {% else %}
+    <div class="row">
+    <button type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="modal" data-target="#enableConfirmModelId"
+            title="Allow environment changes">
+    <span class="glyphicon glyphicon-ok-circle"></span> Enable
+    </button>
+    </div>
+    {% endif %}
 </div>
+
+<div class="modal fade" id="disableConfirmModelId" tabindex="-1" role="dialog"
+     aria-labelledby="disableconfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="disableConfigFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/disable/">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Disable Confirm</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure to disable new deploy and configuration changes for {{ env.envName }} ({{ env.stageName }})?</p>
+                <textarea type="text" class="form-control" name="description" id="description"
+                          row="2" placeholder="simple description" required>
+                </textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="addMetricBtnId" type="submit" class="btn btn-primary">Disable</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+            {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="enableConfirmModelId" tabindex="-1" role="dialog"
+     aria-labelledby="enableconfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="disableConfigFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/enable/">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Enable Confirm</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure to allow all new configuration and deploy changes for {{ env.envName }} ({{ env.stageName }})?</p>
+                <textarea type="text" class="form-control" name="description" id="description"
+                          row="2" placeholder="simple description" required>
+                </textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="addMetricBtnId" type="submit" class="btn btn-primary">Enable</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+            {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 {% include "environs/new_stage_modal.tmpl" with envName=env.envName %}
 {% include "environs/remove_stage_modal.tmpl" with envName=env.envName stageName=env.stageName %}

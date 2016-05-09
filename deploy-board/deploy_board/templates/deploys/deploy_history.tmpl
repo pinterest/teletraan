@@ -81,6 +81,7 @@
                         title="Show all the new commits since last deploy">
                         <span class="glyphicon glyphicon-zoom-in"></span> Show Commits
                     </a>
+                    {% if env|isEnvEnabled %}
                     {% if stages|length > 1 %}
                     <a href="/env/{{ env.envName }}/{{ env.stageName }}/promote/{{ deploy_summary.deploy.id }}"
                        type="button" class="deployToolTip btn btn-default btn-sm" data-toggle="tooltip"
@@ -101,6 +102,7 @@
                        title="Create a hotfix based on this deployment">
                        <span class="glyphicon glyphicon-fire"></span> Patch It
                     </a>
+                    {% endif %}
                     {% endif %}
                 </div>
             </td>

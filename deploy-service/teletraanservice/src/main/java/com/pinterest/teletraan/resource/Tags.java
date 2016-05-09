@@ -20,8 +20,6 @@ import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.common.CommonUtils;
-import com.pinterest.deployservice.dao.BuildDAO;
-import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.handler.BuildTagHandler;
 import com.pinterest.deployservice.handler.TagHandler;
@@ -46,15 +44,11 @@ import java.util.List;
 public class Tags {
     private static final Logger LOG = LoggerFactory.getLogger(Tags.class);
     private final TagDAO tagDAO;
-    private final BuildDAO buildDAO;
-    private final EnvironDAO environDAO;
     private final HashMap<TagTargetType, TagHandler> handlers = new HashMap<>();
 
     public Tags(TeletraanServiceContext context)
     {
         this.tagDAO = context.getTagDAO();
-        this.buildDAO = context.getBuildDAO();
-        this.environDAO = context.getEnvironDAO();
         this.handlers.put(TagTargetType.BUILD, new BuildTagHandler(context));
     }
 
@@ -83,7 +77,7 @@ public class Tags {
         value = "Get tags applied on a target id",
         notes = "Return a list of TagBean objects",
         response = List.class)
-    public List<TagBean> getByTargetId(@PathParam("targetId") String targetId) throws Exception {
+    public List<TagBean> getByTargetId(@PathParam("id") String targetId) throws Exception {
 
         if (StringUtils.isEmpty(targetId)) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
@@ -91,6 +85,20 @@ public class Tags {
         }
 
         return tagDAO.getByTargetId(targetId);
+    }
+
+    @GET
+    @Path("/targets/{id : [a-zA-Z0-9\\-_]+}/latest")
+    @ApiOperation(
+            value = "Get tags applied on a target id",
+            notes = "Return a list of TagBean objects",
+            response = List.class)
+    public TagBean getLatestByTargetId(@PathParam("id") String targetId) throws Exception {
+        if (StringUtils.isEmpty(targetId)) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                    "Require at least one of targetId, targetType, value specified in the request.");
+        }
+        return tagDAO.getLatestByTargetId(targetId);
     }
 
 
@@ -125,11 +133,11 @@ public class Tags {
         response = Response.class)
     public Response create(@Context SecurityContext sc,
         @ApiParam(value = "Tag object", required = true) @Valid TagBean tag) throws Exception {
-
+        String operator = sc.getUserPrincipal().getName();
         TagBean retEntity = new TagBean();
         if (handlers.containsKey(tag.getTarget_type())) {
             LOG.debug("Found handler for target type {}", tag.getTarget_type().toString());
-            retEntity = handlers.get(tag.getTarget_type()).createTag(tag, sc);
+            retEntity = handlers.get(tag.getTarget_type()).createTag(tag, operator);
         } else {
             LOG.debug("No handler found for target type {}. Use default",
                 tag.getTarget_type().toString());
@@ -137,11 +145,10 @@ public class Tags {
             //At current time, ignore the target id object existence test. The
             //handler should do that.
             tag.setId(CommonUtils.getBase64UUID());
-            tag.setOperator(sc.getUserPrincipal().getName());
+            tag.setOperator(operator);
             tag.setCreated_date(System.currentTimeMillis());
             tagDAO.insert(tag);
-            LOG.info("{} successfully created tag {}", sc.getUserPrincipal().getName(),
-                tag.getId());
+            LOG.info("{} successfully created tag {}", operator, tag.getId());
 
             retEntity = tagDAO.getById(tag.getId());
         }

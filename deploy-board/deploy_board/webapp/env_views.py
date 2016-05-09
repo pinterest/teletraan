@@ -26,8 +26,8 @@ import agent_report
 import common
 import random
 import json
-from helpers import builds_helper, environs_helper, groups_helper, \
-    agents_helper, ratings_helper, deploys_helper, systems_helper, environ_hosts_helper, clusters_helper
+from helpers import builds_helper, environs_helper, groups_helper, agents_helper, ratings_helper, deploys_helper, \
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper
 import math
 from dateutil.parser import parse
 import calendar
@@ -56,13 +56,14 @@ class EnvListView(View):
         index = int(request.GET.get('page_index', '1'))
         size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
         names = environs_helper.get_all_env_names(request, index=index, size=size)
-
+        envs_tag = tags_helper.get_latest_by_targe_id(request, 'TELETRAAN')
         return render(request, 'environs/envs_landing.html', {
             "names": names,
             "pageIndex": index,
             "pageSize": DEFAULT_PAGE_SIZE,
             "disablePrevious": index <= 1,
             "disableNext": len(names) < DEFAULT_PAGE_SIZE,
+            "envs_tag": envs_tag,
         })
 
 
@@ -182,6 +183,7 @@ class EnvLandingView(View):
         groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
         metrics = environs_helper.get_env_metrics_config(request, name, stage)
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
+        env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
@@ -212,6 +214,7 @@ class EnvLandingView(View):
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
                 "basic_cluster_info": basic_cluster_info,
+                "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
             })
             showMode = 'complete'
@@ -237,6 +240,7 @@ class EnvLandingView(View):
                 "request_feedback": request_feedback,
                 "groups": groups,
                 "basic_cluster_info": basic_cluster_info,
+                "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
             })
 
@@ -558,13 +562,14 @@ def search_envs(request, filter):
 
     if len(names) == 1:
         return redirect('/env/%s/' % names[0])
-
+    envs_tag = tags_helper.get_latest_by_targe_id(request, 'TELETRAAN')
     return render(request, 'environs/envs_landing.html', {
         "names": names,
         "pageIndex": 1,
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": True,
         "disableNext": True,
+        "envs_tag": envs_tag,
     })
 
 
@@ -844,6 +849,34 @@ def pause(request, name, stage):
 def resume(request, name, stage):
     deploys_helper.resume(request, name, stage)
     return redirect('/env/%s/%s/deploy' % (name, stage))
+
+
+def enable_env_change(request, name, stage):
+    params = request.POST
+    description = params.get('description')
+    environs_helper.enable_env_changes(request, name, stage, description)
+    return redirect('/env/%s/%s/deploy' % (name, stage))
+
+
+def disable_env_change(request, name, stage):
+    params = request.POST
+    description = params.get('description')
+    environs_helper.disable_env_changes(request, name, stage, description)
+    return redirect('/env/%s/%s/deploy' % (name, stage))
+
+
+def enable_all_env_change(request):
+    params = request.POST
+    description = params.get('description')
+    environs_helper.enable_all_env_changes(request, description)
+    return redirect('/envs/')
+
+
+def disable_all_env_change(request):
+    params = request.POST
+    description = params.get('description')
+    environs_helper.disable_all_env_changes(request, description)
+    return redirect('/envs/')
 
 
 # get all reachable hosts
@@ -1304,3 +1337,11 @@ def add_instance(request, name, stage):
         log.error(traceback.format_exc())
         raise
     return redirect('/env/{}/{}/deploy'.format(name, stage))
+
+
+def get_tag_message(request):
+    envs_tag = tags_helper.get_latest_by_targe_id(request, 'TELETRAAN')
+    html = render_to_string('environs/tag_message.tmpl', {
+        'envs_tag': envs_tag,
+    })
+    return HttpResponse(html)

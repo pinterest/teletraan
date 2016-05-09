@@ -857,3 +857,15 @@ def isQualified(qualified):
         return "fa fa-check-circle color-green"
     else:
         return ""
+
+
+@register.filter("isEnvEnabled")
+def isEnvEnabled(env):
+    return env['state'] == 'NORMAL'
+
+
+@register.filter("isDisabledEnvTag")
+def isDisabledEnvTag(env_tag):
+    if env_tag and env_tag.get('value') == "DISABLE_ENV":
+        return True
+    return False

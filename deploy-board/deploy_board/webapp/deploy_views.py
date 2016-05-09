@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,7 @@ from django.shortcuts import render
 from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from helpers import builds_helper, deploys_helper, environs_helper
+from helpers import builds_helper, deploys_helper, environs_helper, tags_helper
 
 
 DEFAULT_PAGE_SIZE = 30
@@ -48,9 +48,11 @@ def _get_ongoing_deploys(request, index, size):
 
 
 def get_landing_page(request):
+    envs_tag = tags_helper.get_latest_by_targe_id(request, 'TELETRAAN')
     metrics = SITE_METRICS_CONFIGS
     return render(request, 'landing.html', {
         "metrics": metrics,
+        'envs_tag': envs_tag,
     })
 
 

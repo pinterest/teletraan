@@ -27,8 +27,6 @@ import com.pinterest.deployservice.dao.TagDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.core.SecurityContext;
-
 
 public class BuildTagHandler extends TagHandler {
 
@@ -41,14 +39,14 @@ public class BuildTagHandler extends TagHandler {
         this.buildDAO = context.getBuildDAO();
     }
 
-    @Override public TagBean createTag(TagBean tag, SecurityContext sc) throws Exception {
+    @Override public TagBean createTag(TagBean tag, String operator) throws Exception {
         BuildBean build = this.buildDAO.getById(tag.getTarget_id());
         if (build != null) {
             tag.setTarget_id(build.getBuild_name());
             tag.setId(CommonUtils.getBase64UUID());
             tag.setTarget_type(TagTargetType.BUILD);
             tag.serializeTagMetaInfo(build);
-            tag.setOperator(sc.getUserPrincipal().getName());
+            tag.setOperator(operator);
             tag.setCreated_date(System.currentTimeMillis());
 
             tagDAO.insert(tag);

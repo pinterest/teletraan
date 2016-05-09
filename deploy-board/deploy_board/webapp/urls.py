@@ -44,6 +44,9 @@ urlpatterns = [
     url(r'^envs/search/(?P<filter>[a-zA-Z0-9\-_]+)/$', env_views.search_envs),
     url(r'^envs/search/$', env_views.EnvListView.as_view()),
     url(r'^envs/$', env_views.EnvListView.as_view()),
+    url(r'^envs/enable/$', env_views.enable_all_env_change),
+    url(r'^envs/disable/$', env_views.disable_all_env_change),
+    url(r'^envs/get_tag_message/$', env_views.get_tag_message),
 
     # env related
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/add_stage/$', env_views.post_add_stage),
@@ -80,6 +83,8 @@ urlpatterns = [
         env_views.get_builds),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/groups/$',
         env_views.get_groups),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/enable/$', env_views.enable_env_change),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/disable/$', env_views.disable_env_change),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/restart/$', env_views.restart),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause/$', env_views.pause),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume/$', env_views.resume),

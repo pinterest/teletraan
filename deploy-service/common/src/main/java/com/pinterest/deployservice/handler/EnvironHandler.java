@@ -328,6 +328,34 @@ public class EnvironHandler {
         return envBean.getEnv_id();
     }
 
+    public void enable(EnvironBean envBean, String operator) throws Exception {
+        EnvironBean updateBean = new EnvironBean();
+        updateBean.setState(EnvironState.NORMAL);
+        updateStage(envBean, updateBean, operator);
+    }
+
+    public void disable(EnvironBean envBean, String operator) throws Exception {
+        EnvironBean updateBean = new EnvironBean();
+        updateBean.setState(EnvironState.DISABLED);
+        updateStage(envBean, updateBean, operator);
+    }
+
+    public void enableAll(String operator) throws Exception {
+        EnvironBean updateBean = new EnvironBean();
+        updateBean.setState(EnvironState.NORMAL);
+        updateBean.setLast_operator(operator);
+        updateBean.setLast_update(System.currentTimeMillis());
+        environDAO.updateAll(updateBean);
+    }
+
+    public void disableAll(String operator) throws Exception {
+        EnvironBean updateBean = new EnvironBean();
+        updateBean.setState(EnvironState.DISABLED);
+        updateBean.setLast_operator(operator);
+        updateBean.setLast_update(System.currentTimeMillis());
+        environDAO.updateAll(updateBean);
+    }
+
     /**
      * A stage is only allowed to be deleted when there is no host and group capacity, e.g.
      * all the agents had been instructed to delete its env ( stop service and delete status etc.)

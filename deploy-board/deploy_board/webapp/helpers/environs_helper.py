@@ -173,3 +173,26 @@ def set_active_max_parallel(env):
     env['showNumber'] = True
     if max_parallel_pecentage > 0:
         env['showNumber'] = False
+
+
+def enable_all_env_changes(request, description):
+    params = [("actionType", "ENABLE"), ("description", description)]
+    return deployclient.post("/envs/actions", request.teletraan_user_id.token, params=params)
+
+
+def disable_all_env_changes(request, description):
+    params = [("actionType", "DISABLE"), ("description", description)]
+    return deployclient.post("/envs/actions", request.teletraan_user_id.token, params=params)
+
+
+def enable_env_changes(request, env_name, stage_name, description):
+    params = [("actionType", "ENABLE"), ("description", description)]
+    return deployclient.post("/envs/%s/%s/actions" % (env_name, stage_name), request.teletraan_user_id.token,
+                             params=params)
+
+
+def disable_env_changes(request, env_name, stage_name, description):
+    params = [("actionType", "DISABLE"), ("description", description)]
+    return deployclient.post("/envs/%s/%s/actions" % (env_name, stage_name), request.teletraan_user_id.token,
+                             params=params)
+

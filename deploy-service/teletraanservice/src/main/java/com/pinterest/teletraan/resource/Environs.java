@@ -19,10 +19,15 @@ import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.bean.TagBean;
+import com.pinterest.deployservice.bean.TagTargetType;
+import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
+import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
+import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
@@ -30,6 +35,7 @@ import com.pinterest.teletraan.security.OpenAuthorizer;
 import io.swagger.annotations.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,11 +56,17 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Environs {
+    public enum ActionType {
+        ENABLE,
+        DISABLE
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(Environs.class);
     private final static int DEFAULT_INDEX = 1;
     private final static int DEFAULT_SIZE = 30;
     private EnvironDAO environDAO;
     private EnvironHandler environHandler;
+    private TagHandler tagHandler;
     private UserRolesDAO userRolesDAO;
     private final Authorizer authorizer;
 
@@ -64,6 +76,7 @@ public class Environs {
     public Environs(TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
+        tagHandler = new EnvTagHandler(context);
         userRolesDAO = context.getUserRolesDAO();
         authorizer = context.getAuthorizer();
     }
@@ -143,5 +156,31 @@ public class Environs {
         URI buildUri = ub.path(environBean.getEnv_name()).path(environBean.getStage_name()).build();
         environBean = environDAO.getById(id);
         return Response.created(buildUri).entity(environBean).build();
+    }
+
+    @POST
+    @Path("/actions")
+    public void action(@Context SecurityContext sc,
+                       @NotEmpty @QueryParam("actionType") ActionType actionType,
+                       @NotEmpty @QueryParam("description") String description) throws Exception {
+        String operator = sc.getUserPrincipal().getName();
+        TagBean tagBean = new TagBean();
+        switch (actionType) {
+            case ENABLE:
+                environHandler.enableAll(operator);
+                tagBean.setValue(TagValue.ENABLE_ENV);
+                break;
+            case DISABLE:
+                environHandler.disableAll(operator);
+                tagBean.setValue(TagValue.DISABLE_ENV);
+                break;
+            default:
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+        }
+
+        tagBean.setTarget_type(TagTargetType.TELETRAAN);
+        tagBean.setComments(description);
+        tagHandler.createTag(tagBean, operator);
+        LOG.info(String.format("Successfully updated actions %s for all envs by %s", actionType, operator));
     }
 }

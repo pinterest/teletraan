@@ -11,13 +11,13 @@
                         Maximum Parallel Number
                     </label>
 
-                    <div class="col-xs-2">                      
+                    <div class="col-xs-2">
                         <div class="input-group">
                             <span class="input-group-addon">
                                 <input type="radio" name="maxParallel" value="Number" id="maxParallelRadio"
                                     {% ifequal env.showNumber True%}checked{% endifequal %} >
                             </span>
-                                <input type="text" id="maxParallelValue" name="maxParallelValue" class="form-control" 
+                                <input type="text" id="maxParallelValue" name="maxParallelValue" class="form-control"
                                     value="{% ifequal env.showNumber True%}{{env.maxParallel}}{% endifequal %}">
                         </div>
                     </div>
@@ -27,7 +27,7 @@
                                 <input type="radio" name="maxParallel" value="Percentage" id="maxParallelPctRadio"
                                     {% ifequal env.showNumber False%}checked{% endifequal %}>
                             </span>
-                            <input type="text" id="maxParallelPctValue" name="maxParallelPctValue" class="form-control" 
+                            <input type="text" id="maxParallelPctValue" name="maxParallelPctValue" class="form-control"
                                     value="{% ifequal env.showNumber False %}{{ env.maxParallelPct }}{% endifequal %}">
                             <span class="input-group-addon">%</span>
                         </div>
@@ -41,7 +41,7 @@
                     <div class="col-xs-4">
                         <div class="input-group">
                         <input class="form-control" name="successThreshold" required="true"
-                               type="text" value="{{ env.successThreshold|convertSuccThreshold }}"/> 
+                               type="text" value="{{ env.successThreshold|convertSuccThreshold }}"/>
                         <span class="input-group-addon">%</span>
                         </div>
                     </div>
@@ -218,10 +218,12 @@
                 data-loading-text="Reloading...">
             <span class="glyphicon glyphicon-refresh"></span> Reload
         </button>
+        {% if env|isEnvEnabled %}
         <button id="saveEnvConfigBtnId" class="btn btn-primary"
                 data-loading-text="Saving...">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
+        {% endif %}
     </div>
 </div>
 <script>
@@ -287,22 +289,22 @@
 
         $('input:radio[name=maxParallel]').change(function() {
             if (this.value == 'Number') {
-                $('#maxParallelPctValue').attr('value','');   
+                $('#maxParallelPctValue').attr('value','');
             }
             else if (this.value == 'Percentage') {
-                 $('#maxParallelValue').attr('value', '');   
+                 $('#maxParallelValue').attr('value', '');
             }
         });
 
         $('#maxParallelValue').keyup(function(){
             $('#maxParallelRadio').prop('checked', true)
-            $('#maxParallelPctValue').attr('value',''); 
+            $('#maxParallelPctValue').attr('value','');
 
         });
 
         $('#maxParallelPctValue').keyup(function(){
             $('#maxParallelPctRadio').prop('checked', true)
-            $('#maxParallelValue').attr('value', ''); 
+            $('#maxParallelValue').attr('value', '');
         });
 
     });

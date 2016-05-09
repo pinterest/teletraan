@@ -11,6 +11,37 @@
 </ul>
 {% endblock %}
 
+{% block side-panel %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Environments</h4>
+    </div>
+	<div class="row">
+        <a href="/envs" type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip" title="List all the environments">
+            <span class="fa fa-list-ol"></span> All Environments
+        </a>
+    </div>
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Recent Environments</h4>
+    </div>
+    <div id="recentEnvsId">
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#recentEnvsId').load('/envs/recent/');
+
+        $('#allEnvBtnId').click(function () {
+            window.location = "/envs/";
+        });
+    });
+</script>
+{% endblock %}
+
 {% block main %}
 <div class="panel panel-default">
     <div class="panel-heading clearfix">

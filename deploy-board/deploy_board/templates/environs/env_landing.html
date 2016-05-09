@@ -22,6 +22,7 @@
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Current Deploy</h4>
     </div>
+    {% if env|isEnvEnabled %}
 	<div class="row">
         <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/"
             type="button" class="deployToolTip btn btn-default btn-block"
@@ -55,6 +56,8 @@
         </a>
     </div>
     {% endif %}
+    {% endif %}
+    {% endif %}
     <!--div class="row">
         <a href="/builds/{{ env.envName }}/{{ env.stageName }}/start_build/" type="button" class="deployToolTip btn btn-default btn-block"
            data-toggle="tooltip" title="Create a private build for current environment">
@@ -62,6 +65,7 @@
            </a>
     </div-->
 
+    {% if has_deploy %}
 	<div class="row">
         <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_commits/"
            type="button" class="deployToolTip btn btn-default btn-block"
@@ -85,7 +89,7 @@
             <span class="glyphicon glyphicon-cog"></span> Configure
         </a>
     </div>
-    {% if pinterest %}
+    {% if pinterest and env|isEnvEnabled %}
     <div class="row">
         <button id="addNewInstancesBtnId" class="deployToolTip btn btn-default btn-block"
                 data-target="#launchHostModalId" data-toggle="modal" title="Launch new hosts">
@@ -258,30 +262,41 @@
 
 {% if pinterest %}
 <script>
-    $(document).ready(function() {
-        var selected_value = $("#group_name option:selected").val();
-        var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
-        $.get(config_url, function(response) {
-            $("#config_div_id").html(response);
-        });
+function loadGroupConfig() {
+    var selected_value = $("#group_name option:selected").val();
+    var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
+    $.get(config_url, function(response) {
+        $("#config_div_id").html(response);
     });
+}
+$(document).ready(function() {
+    loadGroupConfig();
+});
 
-    $(function () {
-        $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
-
-        $("#group_name").change(function() {
-            var selected_value = $("#group_name option:selected").val();
-            var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
-            $.get(config_url, function(response) {
-                $("#config_div_id").html(response);
-            });
-        });
+$(function () {
+    loadDetails();
+    $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
+    $("#group_name").change(function() {
+        loadGroupConfig();
     });
+});
 </script>
 {% endif %}
+
 {% endblock %}
 
 {% block main %}
+
+{% if not env|isEnvEnabled %}
+{% if env_tag.value == "DISABLE_ENV" %}
+<div class="alert alert-warning" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is disabled by {{ env_tag.operator }} due to
+    {{ env_tag.comments }} on {{ env_tag.createdDate|convertTimestamp }}.<br>
+    You cannot make any new configuration and deploy changes until this environment is enabled.
+</div>
+{% endif %}
+{% endif %}
 
 {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
 {% include "environs/site_health.tmpl" with metricsKind="service" %}
@@ -324,7 +339,7 @@
                 </a>
             </h4>
             <div class="btn-group pull-right">
-                {% if has_deploy %}
+                {% if has_deploy and env|isEnvEnabled %}
                 <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback"
                     type="button" class="deployToolTip btn btn-primary btn-sm"
                     title="Rollback to a previous deploy">

@@ -47,6 +47,9 @@ public class DBTagDAOImpl implements TagDAO {
         "SELECT * FROM tags WHERE target_id=? AND "
             + " target_type=? ORDER BY created_date DESC";
 
+    private static final String GET_LATEST_TAG_BY_TARGET_ID =
+        "SELECT * FROM tags WHERE target_id=? ORDER BY created_date DESC LIMIT 0,1";
+
     private BasicDataSource basicDataSource;
 
     public DBTagDAOImpl(BasicDataSource source) {
@@ -89,5 +92,11 @@ public class DBTagDAOImpl implements TagDAO {
         return new QueryRunner(basicDataSource)
             .query(GET_TAG_BY_VALUE, h, value.toString());
 
+    }
+
+    @Override
+    public TagBean getLatestByTargetId(String targetId) throws Exception {
+        return new QueryRunner(basicDataSource).query(GET_LATEST_TAG_BY_TARGET_ID,
+                new BeanHandler<>(TagBean.class), targetId);
     }
 }

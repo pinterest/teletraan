@@ -31,6 +31,8 @@ public interface EnvironDAO {
 
     void update(String envName, String envStage, EnvironBean bean) throws Exception;
 
+    void updateAll(EnvironBean bean) throws Exception;
+
     UpdateStatement genUpdateStatement(String envId, EnvironBean bean);
 
     void delete(String envId) throws Exception;
