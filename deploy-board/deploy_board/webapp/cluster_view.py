@@ -66,13 +66,16 @@ def get_image_names(request):
     provider = params['provider']
     image_names = baseimages_helper.get_image_names(request, provider)
     curr_image_name = None
+    curr_base_image = None
     if 'curr_base_image' in params:
-        image = baseimages_helper.get_by_id(request, params['curr_base_image'])
+        curr_base_image = params['curr_base_image']
+        image = baseimages_helper.get_by_id(request, curr_base_image)
         curr_image_name = image.get('abstract_name')
 
     contents = render_to_string("clusters/get_image_name.tmpl", {
         'image_names': image_names,
         'curr_image_name': curr_image_name,
+        'curr_base_image': curr_base_image,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 

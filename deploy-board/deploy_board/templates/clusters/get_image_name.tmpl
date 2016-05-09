@@ -25,14 +25,14 @@ function getCurrentName() {
 }
 
 function loadImageConfig(name) {
-    var base_image_url = "/clouds/get_base_images/?name=" + name;
+    var base_image_url = "/clouds/get_base_images/?name=" + name + "&curr_base_image={{ curr_base_image }}";
     $.get(base_image_url, function(response) {
         $("#base_image_div_id").html(response);
     });
 }
 
 function loadImageDetails(name) {
-    var base_image_info_url = "/clouds/get_base_image_info/?name=" + name;
+    var base_image_info_url = "/clouds/get_base_image_info/?name=" + name + "&curr_base_image={{ curr_base_image }}";
     $.get(base_image_info_url, function(response) {
         $("#baseImageDetailsId").html(response);
     });
