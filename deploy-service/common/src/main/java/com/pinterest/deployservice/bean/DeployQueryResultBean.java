@@ -15,18 +15,28 @@
  */
 package com.pinterest.deployservice.bean;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
+import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class DeployQueryResultBean {
     private List<DeployBean> deploys;
+    private Map<String, TagBean> deployTags;
     private Long total;
     private Boolean truncated;
 
-    public DeployQueryResultBean(List<DeployBean> deploys, Long total, Boolean truncated) {
+    public DeployQueryResultBean(List<DeployBean> deploys, Long total, Boolean truncated)  {
+        this(deploys,total,new HashMap<String,TagBean>(), truncated);
+    }
+
+    public DeployQueryResultBean(List<DeployBean> deploys, Long total, Map<String, TagBean> deployTags, Boolean truncated) {
         this.deploys = deploys;
         this.total = total;
+        this.deployTags = deployTags;
         this.truncated = truncated;
     }
 
@@ -41,6 +51,8 @@ public class DeployQueryResultBean {
     public Long getTotal() {
         return total;
     }
+
+    public Map<String, TagBean> getDeployTags() { return deployTags; }
 
 
     @Override

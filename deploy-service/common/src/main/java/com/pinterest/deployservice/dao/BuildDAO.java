@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
- *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,9 +15,10 @@
  */
 package com.pinterest.deployservice.dao;
 
+import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.DeployBean;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -49,9 +50,15 @@ public interface BuildDAO {
     // Return all distinct build names
     List<String> getAllBuildNames() throws Exception;
 
+    List<BuildBean> getBuildsFromIds(Collection<String> ids) throws Exception;
+
     // Get total number of builds by build name
     long countBuildsByName(String buildName) throws Exception;
 
     // Get all unused builds whose publish time is before timeThreshold
     void deleteUnusedBuilds(String buildName, long timeThreshold, long numOfBuilds) throws Exception;
+
+    List<BuildBean> get(String scmCommit, String buildName, String scmBranch,
+        Optional<Integer> pageIndex, Optional<Integer> pageSize, Long before, Long after)
+        throws Exception;
 }

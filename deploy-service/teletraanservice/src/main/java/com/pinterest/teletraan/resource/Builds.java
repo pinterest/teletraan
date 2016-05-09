@@ -16,11 +16,12 @@
 package com.pinterest.teletraan.resource;
 
 import com.google.common.base.Optional;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.buildtags.BuildTagsManager;
+import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
@@ -40,7 +41,7 @@ import java.util.List;
 @Api(tags = "Builds")
 @SwaggerDefinition(
         tags = {
-                @Tag(name = "Builds", description = "Build information APIs"),
+                @Tag(name = "Builds", description = "BUILD information APIs"),
         }
 )
 @Produces(MediaType.APPLICATION_JSON)
@@ -49,6 +50,7 @@ public class Builds {
     private static final Logger LOG = LoggerFactory.getLogger(Builds.class);
     private final static int DEFAULT_SIZE = 100;
     private BuildDAO buildDAO;
+    private TagDAO tagDAO;
     private SourceControlManager sourceControlManager;
     private final Authorizer authorizer;
 
@@ -57,6 +59,7 @@ public class Builds {
 
     public Builds(TeletraanServiceContext context) throws Exception {
         buildDAO = context.getBuildDAO();
+        tagDAO = context.getTagDAO();
         sourceControlManager = context.getSourceControlManager();
         authorizer = context.getAuthorizer();
     }
@@ -75,7 +78,7 @@ public class Builds {
             notes = "Returns a list of the repository branches associated with a given build name",
             response = String.class, responseContainer = "List")
     public List<String> getBranches(
-            @ApiParam(value = "Build name", required = true)@PathParam("name") String buildName) throws Exception {
+            @ApiParam(value = "BUILD name", required = true)@PathParam("name") String buildName) throws Exception {
         return buildDAO.getBranches(buildName);
     }
 
@@ -86,36 +89,53 @@ public class Builds {
             notes = "Returns a build object given a build id",
             response = BuildBean.class)
     public BuildBean get(
-            @ApiParam(value = "Build id", required = true)@PathParam("id") String id) throws Exception {
+            @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("Build %s does not exist.", id));
+            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
         }
         return buildBean;
     }
 
     @GET
     public List<BuildBean> get(@QueryParam("commit") String scmCommit,
-        @QueryParam("name") String buildName,
-        @QueryParam("branch") String scmBranch,
+        @QueryParam("name") String buildName, @QueryParam("branch") String scmBranch,
         @QueryParam("pageIndex") Optional<Integer> pageIndex,
-        @QueryParam("pageSize") Optional<Integer> pageSize,
-        @QueryParam("before") Long before,
+        @QueryParam("pageSize") Optional<Integer> pageSize, @QueryParam("before") Long before,
         @QueryParam("after") Long after) throws Exception {
 
-        if (!StringUtils.isEmpty(scmCommit)) {
-            return buildDAO.getByCommit7(StringUtils.substring(scmCommit, 0, 7), pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
+
+        if (StringUtils.isEmpty(scmCommit) && StringUtils.isEmpty(buildName)) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                "Require either commit id or build name in the request.");
         }
 
-        if (!StringUtils.isEmpty(buildName)) {
-            if (before != null && after != null) {
-                return buildDAO.getByNameDate(buildName, scmBranch, before, after);
-            } else {
-                return buildDAO.getByName(buildName, scmBranch, pageIndex.or(1), pageSize.or(DEFAULT_SIZE));
-            }
+        return buildDAO.get(scmCommit, buildName, scmBranch, pageIndex, pageSize, before, after);
+    }
+
+
+    @GET
+    @Path("/names/{name : [a-zA-Z0-9\\-_]+}/tags")
+    @ApiOperation(
+        value = "Get build info along with the build tag info for a given build name",
+        notes = "Return a bean object containing the build and the build tag",
+        response = BuildTagBean.class
+    )
+    public List<BuildTagBean> getBuildsWithTags(@PathParam("name") String buildName, @QueryParam("branch") String scmBranch,
+        @QueryParam("pageIndex") Optional<Integer> pageIndex,
+        @QueryParam("pageSize") Optional<Integer> pageSize, @QueryParam("before") Long before,
+        @QueryParam("after") Long after) throws Exception {
+
+        if (StringUtils.isEmpty(buildName)) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                "Require build name in the request.");
         }
 
-        throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Require either commit id or build name in the request.");
+        List<BuildBean> builds =
+            buildDAO.get("", buildName, scmBranch, pageIndex, pageSize, before, after);
+
+        BuildTagsManager manager = new BuildTagsManagerImpl(this.tagDAO);
+        return manager.getEffectiveTagsWithBuilds(builds);
     }
 
     @POST
@@ -125,7 +145,7 @@ public class Builds {
             response = Response.class)
     public Response publish(
             @Context SecurityContext sc,
-            @ApiParam(value = "Build object", required = true)@Valid BuildBean buildBean) throws Exception {
+            @ApiParam(value = "BUILD object", required = true)@Valid BuildBean buildBean) throws Exception {
         if (StringUtils.isEmpty(buildBean.getScm())) {
             buildBean.setScm(sourceControlManager.getType());
         }
@@ -168,18 +188,19 @@ public class Builds {
         return Response.created(buildUri).entity(buildBean).build();
     }
 
+
     @DELETE
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
-            value = "Delete a build",
-            notes = "Deletes a build given a build id")
+        value = "Delete a build",
+        notes = "Deletes a build given a build id")
     public void delete(
-            @Context SecurityContext sc,
-            @ApiParam(value = "Build id", required = true)@PathParam("id") String id) throws Exception {
+        @Context SecurityContext sc,
+        @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
         authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.OPERATOR);
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("Build %s does not exist.", id));
+            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
         }
         buildDAO.delete(id);
         LOG.info("{} successfully deleted build {}", sc.getUserPrincipal().getName(), id);

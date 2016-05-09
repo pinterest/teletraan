@@ -76,6 +76,9 @@ public class ServiceContext {
     private PlacementDAO placementDAO;
     private SpotAutoScalingDAO spotAutoScalingDAO;
 
+
+    private TagDAO tagDAO;
+
     private String serviceStage;
     private MailManager mailManager;
     private SourceControlManager sourceControlManager;
@@ -539,4 +542,12 @@ public class ServiceContext {
     }
 
     public int getSpotAutoScalingThreshold() { return spotAutoScalingThreshold; }
+
+    public TagDAO getTagDAO() {
+        return tagDAO;
+    }
+
+    public void setTagDAO(TagDAO tagDAO) {
+        this.tagDAO = tagDAO;
+    }
 }
