@@ -12,6 +12,7 @@
         </h4>
     </div>
     <div class="row">
+        {% if env|isEnvEnabled %}
         <ul class="list-group">
             {% for buildInfo in builds %}
             <a href="/env/{{ env.envName }}/{{ env.stageName }}/build/{{ buildInfo.build.id }}"
@@ -25,7 +26,7 @@
                         <span class="label label-danger">{{buildInfo.tag.value}}</span>
                     {% elif buildInfo.tag|tagBuildId == buildInfo.build.id %}
                         <span class="label label-success">{{buildInfo.tag.value}}</span>
-                    {% endif %}               
+                    {% endif %}
                 {% endif %}
             </a>
             {% endfor%}
@@ -33,6 +34,7 @@
                class="list-group-item">More builds...
             </a>
         </ul>
+        {% endif %}
     </div>
 </div>
 <script>
