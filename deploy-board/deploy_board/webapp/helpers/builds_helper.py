@@ -56,7 +56,7 @@ def get_commit(request, repo, sha):
 
 def get_builds_and_tags(request, **kwargs):
     params = deploy_client.gen_params(kwargs);
-    return deploy_client.get("/builds/tags",request.teletraan_user_id, params=params)
+    return deploy_client.get("/builds/tags",request.teletraan_user_id.token, params=params)
 
 def get_build_and_tag(request, id):
     return deploy_client.get("/builds/{0}/tags".format(id), request.teletraan_user_id.token)
@@ -67,4 +67,4 @@ def set_build_tag(request, tag):
 
 
 def del_build_tag(request, id):
-    return deploy_client.delete("/tags/{0}/".format(id), request.teletraan_user_id)
+    return deploy_client.delete("/tags/{0}/".format(id), request.teletraan_user_id.token)
