@@ -15,6 +15,7 @@
 # -*- coding: utf-8 -*-
 """Helper functions for template translate
 """
+import json
 from django.conf import settings
 from django import template
 from datetime import datetime, timedelta
@@ -25,6 +26,7 @@ import logging
 from deploy_board.webapp.agent_report import UNKNOWN_HOSTS_CODE, PROVISION_HOST_CODE
 from deploy_board.webapp.common import is_agent_failed, BUILD_STAGE
 from deploy_board.webapp.helpers import environs_helper
+from deploy_board.webapp.helpers.tags_helper import TagValue
 
 register = template.Library()
 logger = logging.getLogger(__name__)
@@ -148,8 +150,10 @@ _HEALTH_TYPE_TO_ICONS = {
 # convert epoch (in milliseconds) to time
 @register.filter("convertTimestamp")
 def convertTimestamp(timestamp):
-    # return datetime.fromtimestamp(timestamp / 1000).strftime('%Y-%m-%d %H:%M:%S')
-    temp_time = datetime.fromtimestamp(timestamp / 1000, pytz.timezone('America/Los_Angeles'))
+    # return datetime.fromtimestamp(timestamp / 1000).strftime('%Y-%m-%d
+    # %H:%M:%S')
+    temp_time = datetime.fromtimestamp(
+        timestamp / 1000, pytz.timezone('America/Los_Angeles'))
     return temp_time.strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -161,15 +165,19 @@ def computeDuration(timestamp):
 
 @register.filter("computeElapsedTime")
 def computeElapsedTime(deploy):
-    delta = timedelta(milliseconds=(deploy['lastUpdateDate'] - deploy['startDate']))
+    delta = timedelta(
+        milliseconds=(deploy['lastUpdateDate'] - deploy['startDate']))
     return str(delta - timedelta(microseconds=delta.microseconds))
 
 
 @register.filter("deployDurationTip")
 def deployDurationTip(deploy):
-    tip = "Deploy was started on %s(-08:00)." % convertTimestamp(deploy['startDate'])
+    tip = "Deploy was started on %s(-08:00)." % convertTimestamp(
+        deploy['startDate'])
     if deploy['successDate']:
-        tip = tip + " First succeeded on %s(-08:00)." % convertTimestamp(deploy['successDate'])
+        tip = tip + \
+            " First succeeded on %s(-08:00)." % convertTimestamp(
+                deploy['successDate'])
     return tip
 
 
@@ -410,7 +418,6 @@ def successRateTip(deploy):
            % (deploy["successTotal"], deploy["total"])
 
 
-
 @register.filter("hostStateClass")
 def hostStateClass(state):
     if state == "PENDING_TERMINATE" or state == "TERMINATING":
@@ -519,7 +526,7 @@ def agentButton(agentStats):
     agent = agentStats.agent
 
     if agent['state'] == "PAUSED_BY_USER" or agent['state'] == "DELETE" \
-        or agent['state'] == "RESET":
+            or agent['state'] == "RESET":
         return 'btn-info'
 
     if is_agent_failed(agent) or agent['state'] == 'UNREACHABLE':
@@ -633,7 +640,7 @@ def jenkinsIcon(current_status):
 def isInstalling(agentStats):
     agent = agentStats.agent
     if agent['state'] == "PAUSED_BY_USER" or agent['state'] == "PAUSED_BY_SYSTEM" or \
-                    agent['state'] == "DELETE" or agent['state'] == "STOP":
+            agent['state'] == "DELETE" or agent['state'] == "STOP":
         return False
     return agent['deployStage'] != "SERVING_BUILD"
 
@@ -813,14 +820,16 @@ def healthTypeIcon(type):
 
 @register.filter("computeElapsedTimeForHealthCheck")
 def computeElapsedTimeForHealthCheck(check):
-    delta = timedelta(milliseconds=(check['last_worked_on'] - check['start_time']))
+    delta = timedelta(
+        milliseconds=(check['last_worked_on'] - check['start_time']))
     return str(delta - timedelta(microseconds=delta.microseconds))
 
 
 @register.filter("computeLaunchLatencyForHealthCheck")
 def computeLaunchLatencyForHealthCheck(check):
     if check.get('host_launch_time') and check.get('deploy_complete_time'):
-        delta = timedelta(milliseconds=(check['deploy_complete_time'] - check['host_launch_time']))
+        delta = timedelta(
+            milliseconds=(check['deploy_complete_time'] - check['host_launch_time']))
         return str(delta - timedelta(microseconds=delta.microseconds))
     else:
         return str(0)
@@ -829,7 +838,8 @@ def computeLaunchLatencyForHealthCheck(check):
 @register.filter("computeDeployLatencyForHealthCheck")
 def computeDeployLatencyForHealthCheck(check):
     if check.get('deploy_start_time') and check.get('deploy_complete_time'):
-        delta = timedelta(milliseconds=(check['deploy_complete_time'] - check['deploy_start_time']))
+        delta = timedelta(
+            milliseconds=(check['deploy_complete_time'] - check['deploy_start_time']))
         return str(delta - timedelta(microseconds=delta.microseconds))
     else:
         return str(0)
@@ -869,3 +879,21 @@ def isDisabledEnvTag(env_tag):
     if env_tag and env_tag.get('value') == "DISABLE_ENV":
         return True
     return False
+
+
+@register.filter("availableBuildTag")
+def get_available_tag(tag):
+    if tag is not None and tag["value"] == TagValue.BAD_BUILD:
+        return "Good"
+    else:
+        return "Bad"
+
+
+@register.filter("tagBuildId")
+def get_available_tag(tag):
+    if tag is not None:
+        meta_info = tag.get("metaInfo", None)
+        if meta_info is not None:
+            build = json.loads(meta_info)
+            return build["id"]
+    return None

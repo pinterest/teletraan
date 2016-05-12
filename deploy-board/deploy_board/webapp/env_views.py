@@ -388,11 +388,12 @@ def _gen_deploy_summary(request, deploys, for_env=None):
             env = for_env
         else:
             env = environs_helper.get(request, deploy['envId'])
-        build = builds_helper.get_build(request, deploy['buildId'])
+        build_with_tag = builds_helper.get_build_and_tag(request, deploy['buildId'])
         summary = {}
         summary['deploy'] = deploy
         summary['env'] = env
-        summary['build'] = build
+        summary['build'] = build_with_tag['build']
+        summary['buildTag'] = build_with_tag['tag']
         deploy_summaries.append(summary)
     return deploy_summaries
 
@@ -668,11 +669,11 @@ def get_builds(request, name, stage):
     # return only the new builds
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', common.DEFAULT_BUILD_SIZE))
-    builds = builds_helper.get_builds(request, name=env['buildName'], pageIndex=index,
+    builds = builds_helper.get_builds_and_tags(request, name=env['buildName'], pageIndex=index,
                                       pageSize=size)
     new_builds = []
     for build in builds:
-        if build['publishDate'] > current_publish_date:
+        if build['build']['publishDate'] > current_publish_date:
             new_builds.append(build)
 
     html = render_to_string('builds/simple_builds.tmpl', {
@@ -698,7 +699,7 @@ def deploy_build(request, name, stage, build_id):
     if env.get('deployId'):
         current_deploy = deploys_helper.get(request, env['deployId'])
         current_build = builds_helper.get_build(request, current_deploy['buildId'])
-    build = builds_helper.get_build(request, build_id)
+    build = builds_helper.get_build_and_tag(request, build_id)
     builds = [build]
     scm_url = systems_helper.get_scm_url(request)
 
@@ -716,7 +717,7 @@ def deploy_build(request, name, stage, build_id):
 
 def deploy_commit(request, name, stage, commit):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    builds = builds_helper.get_builds(request, commit=commit)
+    builds = builds_helper.get_builds_and_tags(request, commit=commit)
     current_build = None
     if env.get('deployId'):
         deploy = deploys_helper.get(request, env['deployId'])
@@ -775,10 +776,13 @@ def rollback(request, name, stage):
     commit = None
     build_id = None
     for deploy in deploys:
-        build = builds_helper.get_build(request, deploy['buildId'])
+        build_info = builds_helper.get_build_and_tag(request, deploy['buildId'])
+        build = build_info["build"]
+        tag = build_info.get("tag", None)
         summary = {}
         summary['deploy'] = deploy
         summary['build'] = build
+        summary['tag'] = tag
         if not to_deploy_id and deploy['state'] == 'SUCCEEDED':
             to_deploy_id = deploy['id']
         if to_deploy_id and to_deploy_id == deploy['id']:
@@ -1063,22 +1067,31 @@ def get_pred_deploys(request, name, stage):
     return HttpResponse(html)
 
 
-def warn_no_succ_deploy_in_pred(request, name, stage, buildId):
-    """ Returns a warning message if a build doesn't have a successful deploy on the preceding stage.
+def warn_for_deploy(request, name, stage, buildId):
+    """ Returns a warning message if:
+    1. The build has been tagged as build build
+    2. a build doesn't have a successful deploy on the preceding stage.
 
     TODO: we would have call backend twice since the getAllDeploys call does not support filtering on multiple states;
     Also, getAllDeploys return all deploys with commits after the specific commit, it would be good if there is options
     to return the exact matched deploys.
     """
+    build_info = builds_helper.get_build_and_tag(request, buildId)
+    build = build_info["build"]
+    tag = build_info.get("tag")
+
+    if tag is not None and tag["value"] == tags_helper.TagValue.BAD_BUILD:
+        html = render_to_string('warn_deploy_bad_build.tmpl', {
+            'tag': tag,
+        })
+        return HttpResponse(html)
+
     env_promote = environs_helper.get_env_promotes_config(request, name, stage)
     pred_stage = env_promote.get('predStageName')
-
     if not pred_stage or pred_stage == BUILD_STAGE:
         return HttpResponse("")
 
     pred_env = environs_helper.get_env_by_stage(request, name, pred_stage)
-
-    build = builds_helper.get_build(request, buildId)
 
     filter = {}
     filter['envId'] = [pred_env['id']]

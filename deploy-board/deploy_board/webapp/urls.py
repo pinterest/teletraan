@@ -77,8 +77,8 @@ urlpatterns = [
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pred_deploys/$',
         env_views.get_pred_deploys),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/'
-        r'(?P<buildId>[a-zA-Z0-9\-_]+)/warn_no_succ_deploy_in_pred/$',
-        env_views.warn_no_succ_deploy_in_pred),
+        r'(?P<buildId>[a-zA-Z0-9\-_]+)/warn_for_deploy/$',
+        env_views.warn_for_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/builds/$',
         env_views.get_builds),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/groups/$',
@@ -166,6 +166,7 @@ urlpatterns = [
         build_views.list_build_branches),
     url(r'^builds/names/$', build_views.get_build_names),
     url(r'^builds/(?P<id>[a-zA-Z0-9\-_]+)/$', build_views.get_build),
+    url(r'^builds/(?P<id>[a-zA-Z0-9\-_]+)/tags/$', build_views.tag_build),
     url(r'^builds/$', build_views.builds_landing),
 
     # Commits related

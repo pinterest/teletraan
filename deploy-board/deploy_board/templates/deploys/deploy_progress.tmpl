@@ -1,6 +1,6 @@
 {% load utils %}
 {% load static %}
-{% with deploy=report.currentDeployStat.deploy build=report.currentDeployStat.build %}
+{% with deploy=report.currentDeployStat.deploy build=report.currentDeployStat.build tag=report.currentDeployStat.buildTag %}
 {% include "deploys/deploy_progress_summary.tmpl" %}
 
 {% if report.showMode != "simple" %}

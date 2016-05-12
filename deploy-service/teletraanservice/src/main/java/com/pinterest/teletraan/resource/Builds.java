@@ -98,6 +98,24 @@ public class Builds {
     }
 
     @GET
+    @Path("/{id : [a-zA-Z0-9\\-_]+}/tags")
+    @ApiOperation(
+        value = "Get build info with its tags",
+        notes = "Returns a build object given a build id",
+        response = BuildTagBean.class)
+    public BuildTagBean getWithTag(
+        @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
+        BuildBean buildBean = buildDAO.getById(id);
+        if (buildBean == null) {
+            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
+        }
+
+        BuildTagsManager manager = new BuildTagsManagerImpl(this.tagDAO);
+
+        return new BuildTagBean(buildBean, manager.getEffectiveBuildTag(buildBean));
+    }
+
+    @GET
     public List<BuildBean> get(@QueryParam("commit") String scmCommit,
         @QueryParam("name") String buildName, @QueryParam("branch") String scmBranch,
         @QueryParam("pageIndex") Optional<Integer> pageIndex,
@@ -115,24 +133,25 @@ public class Builds {
 
 
     @GET
-    @Path("/names/{name : [a-zA-Z0-9\\-_]+}/tags")
+    @Path("/tags")
     @ApiOperation(
         value = "Get build info along with the build tag info for a given build name",
         notes = "Return a bean object containing the build and the build tag",
         response = BuildTagBean.class
     )
-    public List<BuildTagBean> getBuildsWithTags(@PathParam("name") String buildName, @QueryParam("branch") String scmBranch,
+    public List<BuildTagBean> getBuildsWithTags(@QueryParam("commit") String scmCommit,
+        @QueryParam("name") String buildName, @QueryParam("branch") String scmBranch,
         @QueryParam("pageIndex") Optional<Integer> pageIndex,
         @QueryParam("pageSize") Optional<Integer> pageSize, @QueryParam("before") Long before,
         @QueryParam("after") Long after) throws Exception {
 
-        if (StringUtils.isEmpty(buildName)) {
+        if (StringUtils.isEmpty(buildName) && StringUtils.isEmpty(scmCommit)) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                "Require build name in the request.");
+                "Require either commit or build name in the request.");
         }
 
         List<BuildBean> builds =
-            buildDAO.get("", buildName, scmBranch, pageIndex, pageSize, before, after);
+            buildDAO.get(scmCommit, buildName, scmBranch, pageIndex, pageSize, before, after);
 
         BuildTagsManager manager = new BuildTagsManagerImpl(this.tagDAO);
         return manager.getEffectiveTagsWithBuilds(builds);

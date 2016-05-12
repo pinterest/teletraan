@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS tags (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
  CREATE INDEX tags_target_id_idx ON tags(target_id, target_type, created_date);
  CREATE INDEX tags_value_target_type_idx ON tags(value, target_type, created_date);
- CREATE INDEX tags_target_type_idx ON tags(target_type, created_date)
+ CREATE INDEX tags_target_type_idx ON tags(target_type, created_date);
 
  Rollback
  ===========================

@@ -15,34 +15,19 @@
  */
 package com.pinterest.deployservice.db;
 
+import com.ibatis.common.jdbc.ScriptRunner;
+import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.db.*;
-import com.pinterest.clusterservice.bean.CloudProvider;
-import com.pinterest.clusterservice.bean.ClusterBean;
-import com.pinterest.clusterservice.bean.HostTypeBean;
-import com.pinterest.clusterservice.bean.BaseImageBean;
-import com.pinterest.clusterservice.bean.SecurityZoneBean;
-import com.pinterest.clusterservice.bean.PlacementBean;
-import com.pinterest.clusterservice.dao.ClusterDAO;
-import com.pinterest.clusterservice.dao.HostTypeDAO;
-import com.pinterest.clusterservice.dao.BaseImageDAO;
-import com.pinterest.clusterservice.dao.SecurityZoneDAO;
-import com.pinterest.clusterservice.dao.PlacementDAO;
-import com.pinterest.clusterservice.db.DBBaseImageDAOImpl;
-import com.pinterest.clusterservice.db.DBClusterDAOImpl;
-import com.pinterest.clusterservice.db.DBHostTypeDAOImpl;
-import com.pinterest.clusterservice.db.DBPlacementDAOImpl;
-import com.pinterest.clusterservice.db.DBSecurityZoneDAOImpl;
+import com.pinterest.clusterservice.bean.*;
+import com.pinterest.clusterservice.dao.*;
+import com.pinterest.clusterservice.db.*;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.*;
-
-import com.ibatis.common.jdbc.ScriptRunner;
-import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
-
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.junit.AfterClass;
@@ -1588,7 +1573,8 @@ public class DBDAOTest {
         return dataBean;
     }
 
-    private TagBean genTagBean(TagValue val, String target_id, String target_type, Object meta_info){
+    private TagBean genTagBean(TagValue val, String target_id, String target_type, Object meta_info)
+        throws Exception {
         TagBean bean = new TagBean();
         bean.setId(CommonUtils.getBase64UUID());
         bean.setCreated_date(System.currentTimeMillis());

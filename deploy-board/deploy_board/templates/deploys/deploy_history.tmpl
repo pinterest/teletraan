@@ -54,6 +54,13 @@
             <td>
                 <a href="/builds/{{ deploy_summary.build.id }}">
                     {{ deploy_summary.build|branchAndCommit }}</a>
+                {% if deploy_summary.buildTag %}
+                     {%if deploy_summary.buildTag.value == "BAD_BUILD" %}
+                        <span class="label label-danger">{{deploy_summary.buildTag.value}}</span>
+                     {%elif deploy_summary.buildTag|tagBuildId == deploy_summary.build.id %}
+                        <span class="label label-success">{{deploy_summary.buildTag.value}}</span>
+                     {% endif %}
+                {% endif %}
             </td>
             <td>{{ deploy_summary.deploy.operator }}</td>
             <td><a href="/deploy/{{ deploy_summary.deploy.id }}">Details</a></td>

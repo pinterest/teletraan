@@ -21,6 +21,7 @@
                 </div>
                 <div class="modal-body">
                     <div id="confirmDeployModalPrecedingDeployWarningId">
+                        Warning
                     </div>
                     <div class="form-group">
                         <label for="description"
@@ -79,7 +80,7 @@
         $('#confirmDeployModalPrecedingDeployWarningId').load(
             '/env/{{ env.envName }}/{{ env.stageName }}/'
             + $('#confirmBuildIdInputId').val()
-            + '/warn_no_succ_deploy_in_pred/'
+            + '/warn_for_deploy/'
         );
     });
 </script>

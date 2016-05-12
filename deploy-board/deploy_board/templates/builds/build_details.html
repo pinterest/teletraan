@@ -11,14 +11,22 @@
 {% load utils %}
 
 {% block main %}
-
+<input id="hiddenCommit7" type=hidden value="{{ build.commitShort}}" />
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="panel-title">Build Details</h4>
     </div>
     <div class="panel-body table-responsive">
     {% include "builds/build_details.tmpl" %}
+        <br/>
+        <div id="buildsTagging">
+            <button type="button" id="tagBuildButton" class="btn btn-primary btn-sm pull-right">
+                Mark Build As {{ tag|availableBuildTag }}
+            </button>
+        </div>
     </div>
 </div>
+
+{% include "builds/confirm_tag_build.tmpl"%}
 
 {% endblock %}

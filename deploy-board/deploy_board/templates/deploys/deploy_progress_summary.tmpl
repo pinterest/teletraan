@@ -1,5 +1,6 @@
 {% load utils %}
 {% load static %}
+<script type="text/javascript" src="{% static "js/private/env_landing.js"%}"></script>
 <div class="panel panel-default table-responsive">
   <table class="table table-striped table-condensed table-hover">
     <tr>
@@ -19,6 +20,14 @@
            href="/builds/{{ build.id }}">
            {{ build|branchAndCommit }}
         </a>
+        {% if tag %}
+          {%if tag.value == "BAD_BUILD" %}
+            <span class="label label-danger">{{tag.value}}</span>
+            <div id="envErrorMsg" style="display: none;">The environment is running on a bad build tagged by {{tag.operator}} on {{ tag.createdDate|convertTimestamp }}</div>
+          {%elif tag|tagBuildId == build.id %}
+            <span class="label label-success">{{tag.value}}</span>
+          {% endif %}
+        {% endif %}
     </td>
     <td>
         <span class="deployToolTip pointer-cursor glyphicon {{ deploy.type|deployTypeIcon }}"
