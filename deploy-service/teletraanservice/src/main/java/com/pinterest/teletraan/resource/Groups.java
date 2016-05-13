@@ -18,11 +18,13 @@ package com.pinterest.teletraan.resource;
 
 import com.google.common.base.Optional;
 import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.arcee.bean.GroupInfoBean;
 import com.pinterest.arcee.bean.HealthCheckBean;
 import com.pinterest.arcee.bean.HealthCheckErrorBean;
 import com.pinterest.arcee.handler.GroupHandler;
 import com.pinterest.arcee.handler.HealthCheckHandler;
 import com.pinterest.arcee.handler.ProvisionHandler;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.ConfigHistoryBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.Role;
@@ -84,19 +86,44 @@ public class Groups {
 
     @PUT
     @Path("/{groupName: [a-zA-Z0-9\\-_]+}")
-    public void updateGroupLaunchConfig(@Context SecurityContext sc,
-        @PathParam("groupName") String groupName, GroupBean groupBean) throws Exception {
+    public void updateCluster(@Context SecurityContext sc,
+        @PathParam("groupName") String groupName, AwsVmBean awsVmBean) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        groupHandler.updateLaunchConfig(groupName, groupBean);
+        groupHandler.updateCluster(groupName, awsVmBean);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_LAUNCH, awsVmBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_LAUNCH, operator);
+        LOG.info("Successfully updated group {} with config {} by {}", groupName, awsVmBean, operator);
+    }
+
+    @PUT
+    @Path("/{groupName: [a-zA-Z0-9\\-_]+}/config")
+    public void updateGroupInfo(@Context SecurityContext sc, @PathParam("groupName") String groupName,
+                                GroupBean groupBean)  throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        String operator = sc.getUserPrincipal().getName();
+        groupHandler.updateGroupInfo(groupName, groupBean);
         configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_GENERAL, groupBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_GENERAL, operator);
         LOG.info("Successfully updated group {} with config {} by {}", groupName, groupBean, operator);
     }
 
+
+    @POST
+    @Path("/{groupName: [a-zA-Z0-9\\-_]+}")
+    public void createCluster(@Context SecurityContext sc,
+                              @PathParam("groupName") String groupName, AwsVmBean awsVmBean) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        String operator = sc.getUserPrincipal().getName();
+        groupHandler.createCluster(groupName, awsVmBean);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_GENERAL, awsVmBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_GENERAL, operator);
+        LOG.info("Successfully updated group {} with config {} by {}", groupName, awsVmBean, operator);
+    }
+
     @GET
     @Path("/{groupName: [a-zA-Z0-9\\-_]+}")
-    public GroupBean get(@PathParam("groupName") String groupName) throws Exception {
+    public GroupInfoBean get(@PathParam("groupName") String groupName) throws Exception {
         return groupHandler.getGroupInfoByClusterName(groupName);
     }
 
@@ -114,7 +141,7 @@ public class Groups {
         @NotEmpty @QueryParam("subnet") String subnet) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        List<String> instanceIds = provisionHandler.launchNewInstances(groupName, instanceCnt.or(1), subnet, operator);
+        List<String> instanceIds = provisionHandler.launchNewInstances(groupName, instanceCnt.or(1), subnet);
         if (!instanceIds.isEmpty()) {
             String configChange = String.format("%s", instanceIds);
             configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_LAUNCH, configChange, operator);

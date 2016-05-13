@@ -1,0 +1,77 @@
+{% extends 'environs/env_base.html' %}
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/groups/">Groups</a></li>
+    <li><a href="/groups/{{ group_name }}/">{{ group_name }}</a></li>
+    <li>Config</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+{% include "groups/group_side_panel.html" %}
+</div>
+
+
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+{% if asg_cluster %}
+<div id="launchConfigPid" class="panel panel-default">
+
+</div>
+
+<div id="showAsgConfigPDivId" class="hidden">
+    <div id="asgConfigPid" class="panel panel-default">
+    {% include "groups/asg_config.tmpl" %}
+    </div>
+    <div id="scalingPolicyPid" class="panel panel-default">
+    {% include "groups/asg_policy.tmpl" %}
+    </div>
+
+    <div id="alarmMetricPid" class="panel panel-default">
+    {% include "groups/asg_metrics.tmpl" %}
+    </div>
+</div>
+<script>
+$(function() {
+    $.get('/groups/{{ group_name }}/autoscaling/get_launch_config/', function(response){
+        $('#launchConfigPid').html(response);
+    });
+
+    {% if not asg_status|needConfigLoading %}
+        $("#showAsgConfigPDivId").removeClass("hidden");
+        $.get('/groups/{{ group_name }}/autoscaling/get_asg_config/', function(response) {
+            $('#asgConfigPid').html(response);
+        });
+        $.get('/groups/{{ group_name }}/autoscaling/get_asg_policy/', function(response) {
+            $('#scalingPolicyPid').html(response);
+        });
+        $.get('/groups/{{ group_name }}/autoscaling/get_metrics/', function(response) {
+            $('#alarmMetricPid').html(response);
+        });
+    {% endif %}
+});
+
+</script>
+
+{% else %}
+<div id="createLaunchConfigPid" class="panel panel-default">
+
+</div>
+<script>
+    $.get('/groups/{{ group_name }}/autoscaling/create_launch_config/', function(response){
+        $('#createLaunchConfigPid').html(response);
+    });
+</script>
+{% endif %}
+{% endblock %}

@@ -148,7 +148,7 @@ public class GroupHandlerTest {
         Long lastUpdate = System.currentTimeMillis();
 
         GroupBean groupBean = generateDefaultBean("test2", "ami-12345", "test2", "test2-1", lastUpdate);
-        groupInfoDAO.insertGroupInfo(groupBean);
+        groupInfoDAO.insertOrUpdateGroupInfo("test2", groupBean);
         SpotAutoScalingBean spotAutoScalingBean = new SpotAutoScalingBean();
         spotAutoScalingBean.setAsg_name("test2-spot");
         spotAutoScalingBean.setBid_price("0.6");
@@ -165,7 +165,7 @@ public class GroupHandlerTest {
 
         AwsVmBean awsVmBean = generateDefaultAwsVmBean("test2", "ami-12345", "test2", "test2-1");
         when(mockAwsManager.getLaunchConfigInfo("test2-1")).thenReturn(awsVmBean);
-        groupHandler.updateLaunchConfig("test2", updatedBean2);
+        groupHandler.updateGroupInfo("test2", updatedBean2);
 
         // verify
         GroupBean expectedResultBean = generateDefaultBean("test2", "ami-12345", "test2", "test2-1", lastUpdate);
@@ -175,78 +175,11 @@ public class GroupHandlerTest {
 
     }
 
-    @Test
-    public void updateLaunchConfigTest() throws Exception {
-        // update launch config, no asg updates
-        Long lastUpdate = System.currentTimeMillis();
-
-        GroupBean updatedBean = generateDefaultBean("test3", "ami-12345", "test2", null, lastUpdate);
-        groupInfoDAO.insertGroupInfo(updatedBean);
-
-        GroupBean updatedBean2 = new GroupBean();
-        updatedBean2.setAssign_public_ip(Boolean.TRUE);
-        updatedBean2.setGroup_name("test3");
-        when(mockAwsManager.getAutoScalingGroupStatus("test3")).thenReturn(ASGStatus.UNKNOWN);
-
-        AwsVmBean awsVmBean = generateDefaultAwsVmBean("test3", "ami-12345", "test2", null);
-        when(mockAwsManager.getLaunchConfigInfo(null)).thenReturn(awsVmBean);
-        groupHandler.updateLaunchConfig("test3", updatedBean2);
-        ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
-        // getLaunchConfigInfo will call update launch config if configid is null
-        verify(mockAwsManager, times(2)).createLaunchConfig(eq("test3"), argument.capture());
-        AwsVmBean actualUpdatedBean = argument.getValue();
-
-        assertTrue(actualUpdatedBean.getAssignPublicIp());
-        assertEquals(actualUpdatedBean.getRole(), "base");
-        assertEquals(actualUpdatedBean.getImage(), "ami-12345");
-        assertEquals(actualUpdatedBean.getHostType(), "c3.2xlarge");
-        assertEquals(argument.getValue().getRawUserDataString(), "#cloud-config\nrole: test3\n");
-    }
-
-    @Test
-    public void updateSubnetConfigChange() throws Exception {
-        // no launch config update, asg updates
-        Long lastUpdat = System.currentTimeMillis();
-        GroupBean groupBean = generateDefaultBean("test4", "ami-12345", "subnet-1", "config-1", lastUpdat);
-        groupInfoDAO.insertGroupInfo(groupBean);
-
-        GroupBean updatedBean = new GroupBean();
-        updatedBean.setGroup_name("test4");
-        updatedBean.setUser_data("#cloud-config\nrole: test4\n");
-        updatedBean.setSubnets("subnet-2");
-        updatedBean.setImage_id("ami-12345");
-
-        when(mockAwsManager.getAutoScalingGroupStatus("test4")).thenReturn(ASGStatus.ENABLED);
-
-        AwsVmBean awsVmBean = generateDefaultAwsVmBean("test4", "ami-12345", "subnet-1", "config-1");
-        when(mockAwsManager.getLaunchConfigInfo("config-1")).thenReturn(awsVmBean);
-        groupHandler.updateLaunchConfig("test4", updatedBean);
-        ArgumentCaptor<AwsVmBean> argument = ArgumentCaptor.forClass(AwsVmBean.class);
-        ArgumentCaptor<AwsVmBean> argument2 = ArgumentCaptor.forClass(AwsVmBean.class);
-        verify(mockAwsManager, never()).createLaunchConfig(eq("test4"), argument.capture());
-        verify(mockAwsManager, times(1)).updateAutoScalingGroup(eq("test4"), argument2.capture());
-        AwsVmBean updateBean =  argument2.getValue();
-        assertNull(updateBean.getLaunchConfigId());
-        assertNull(updateBean.getTerminationPolicy());
-        assertNull(updateBean.getMinSize());
-        assertEquals(updateBean.getSubnet(), "subnet-2");
-
-    }
-
     private GroupBean generateDefaultBean(String groupName, String ami_id, String subnets, String config, Long lastUpdate) {
         GroupBean groupBean = new GroupBean();
-        groupBean.setAsg_status(ASGStatus.UNKNOWN);
-        groupBean.setAssign_public_ip(false);
         groupBean.setGroup_name(groupName);
-        groupBean.setIam_role("base");
-        groupBean.setInstance_type("c3.2xlarge");
-        groupBean.setSecurity_group("s-test");
-        groupBean.setImage_id(ami_id);
-        groupBean.setSubnets(subnets);
-        groupBean.setLaunch_config_id(config);
         groupBean.setLaunch_latency_th(600);
         groupBean.setLast_update(lastUpdate);
-        groupBean.setUser_data(String.format("#cloud-config\nrole: %s\n", groupName));
         groupBean.setHealthcheck_state(false);
         groupBean.setLifecycle_state(false);
         return groupBean;

@@ -50,17 +50,6 @@ def group_landing(request):
     })
 
 
-def create_group(request):
-    params = request.POST
-    group_name = params["group_name"]
-    try:
-        groups_helper.create_group(request, group_name)
-    except:
-        log.error(traceback.format_exc())
-        raise
-    return redirect("/groups/{}/".format(group_name))
-
-
 def get_system_specs(request):
     instance_types = specs_helper.get_instance_types(request)
     security_groups = specs_helper.get_security_groups(request)
@@ -73,25 +62,51 @@ def get_system_specs(request):
 def get_launch_config(request, group_name):
     try:
         group_info = groups_helper.get_group_info(request, group_name)
-        if group_info and group_info.get("subnets"):
-            group_info["subnetArrays"] = group_info["subnets"].split(',')
-        if group_info and not group_info.get("asgStatus"):
-            group_info["asgStatus"] = "UNKNOWN"
-        if group_info and group_info.get("launchLatencyTh"):
-            group_info["launchLatencyTh"] = group_info.get("launchLatencyTh") / 60
-        if group_info and group_info.get("healthcheckPeriod"):
-            group_info["healthcheckPeriod"] = group_info.get("healthcheckPeriod") / 60
-        if group_info and group_info.get("lifecycleTimeout"):
-            group_info["lifecycleTimeout"] = group_info.get("lifecycleTimeout") / 60
+        launch_config = group_info.get("launchInfo")
 
+        if launch_config and launch_config.get("subnets"):
+            launch_config["subnetArrays"] = launch_config["subnets"].split(',')
         appNames = images_helper.get_all_app_names(request)
         appNames = sorted(appNames)
-        curr_image = images_helper.get_image_by_id(request, group_info["imageId"])
-        html = render_to_string('groups/group_config.tmpl', {
+        curr_image = images_helper.get_image_by_id(request, launch_config["imageId"])
+        html = render_to_string('groups/launch_config.tmpl', {
             "group_name": group_name,
             "app_names": appNames,
-            "config": group_info,
+            "config": launch_config,
             "curr_image": curr_image,
+            "csrf_token": get_token(request),
+        })
+    except:
+        log.error(traceback.format_exc())
+        raise
+    return HttpResponse(json.dumps(html), content_type="application/json")
+
+
+def get_group_config_internal(group_config):
+    if group_config:
+        if group_config.get("launchLatencyTh"):
+            group_config["launchLatencyTh"] = group_config.get("launchLatencyTh") / 60
+        if group_config.get("healthcheckPeriod"):
+            group_config["healthcheckPeriod"] = group_config.get("healthcheckPeriod") / 60
+        if group_config.get("lifecycleTimeout"):
+            group_config["lifecycleTimeout"] = group_config.get("lifecycleTimeout") / 60
+        return group_config
+    else:
+        group_config = {}
+        group_config["launchLatencyTh"] = 10
+        group_config["healthcheckPeriod"] = 10
+        group_config["lifecycleTimeout"] = 10
+        return group_config
+
+
+def get_group_config(request, group_name):
+    try:
+        group_info = groups_helper.get_group_info(request, group_name)
+        group_config = group_info.get("groupInfo")
+        group_config = get_group_config_internal(group_config)
+        html = render_to_string('groups/group_config.tmpl', {
+            "group_name": group_name,
+            "config": group_config,
             "csrf_token": get_token(request),
         })
     except:
@@ -104,52 +119,72 @@ def update_launch_config(request, group_name):
     try:
         params = request.POST
         launchRequest = {}
-        launchRequest["groupName"] = group_name
         launchRequest["instanceType"] = params["instanceType"]
         launchRequest["securityGroup"] = params["securityGroup"]
         launchRequest["imageId"] = params["imageId"]
         launchRequest["userData"] = params["userData"]
-        launchRequest["chatroom"] = params["chatroom"]
-        launchRequest["watchRecipients"] = params["watch_recipients"]
-        launchRequest["emailRecipients"] = params["email_recipients"]
-        launchRequest["pagerRecipients"] = params["pager_recipients"]
-        launchRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
-        launchRequest["iamRole"] = params["iam_role"]
+        launchRequest["iamRole"] = params["iamRole"]
         launchRequest["subnets"] = ",".join(params.getlist("subnets"))
-        launchRequest["asgStatus"] = params["asg_status"]
 
         if params["assignPublicIP"] == "True":
             launchRequest["assignPublicIp"] = True
         else:
             launchRequest["assignPublicIp"] = False
-
-        if "healthcheck_state" in params:
-            launchRequest["healthcheckState"] = True
-        else:
-            launchRequest["healthcheckState"] = False
-        launchRequest["healthcheckPeriod"] = int(params["healthcheck_period"]) * 60
-
-        if "lifecycle_state" in params:
-            launchRequest["lifecycleState"] = True
-        else:
-            launchRequest["lifecycleState"] = False
-        launchRequest["lifecycleTimeout"] = int(params["lifecycle_timeout"]) * 60
-        groups_helper.update_group_info(request, group_name,  launchRequest)
+        groups_helper.update_launch_config(request, group_name, launchRequest)
         return get_launch_config(request, group_name)
     except:
         log.error(traceback.format_exc())
         raise
 
 
-def gen_asg_setting(request, group_name):
-    asg = groups_helper.get_autoscaling(request, group_name)
-    policies = groups_helper.TerminationPolicy
-    content = render_to_string("groups/create_asg_modal.tmpl", {
-        "asg": asg,
-        "group_name": group_name,
-        "policies": policies,
-        "csrf_token": get_token(request)})
-    return HttpResponse(content)
+def create_launch_config(request, group_name):
+    try:
+        params = request.POST
+        launchRequest = {}
+        launchRequest["minSize"] = int(params["minSize"])
+        launchRequest["maxSize"] = int(params["maxSize"])
+        launchRequest["instanceType"] = params["instanceType"]
+        launchRequest["securityGroup"] = params["securityGroup"]
+        launchRequest["imageId"] = params["imageId"]
+        launchRequest["userData"] = params["userData"]
+        launchRequest["iamRole"] = params["iamRole"]
+        launchRequest["subnets"] = ",".join(params.getlist("subnets"))
+        if params["assignPublicIP"] == "True":
+            launchRequest["assignPublicIp"] = True
+        else:
+            launchRequest["assignPublicIp"] = False
+        groups_helper.create_launch_config(request, group_name, launchRequest)
+        return redirect("/groups/{}/config".format(group_name))
+    except:
+        log.error(traceback.format_exc())
+        raise
+
+
+def update_group_config(request, group_name):
+    try:
+        params = request.POST
+        groupRequest = {}
+        groupRequest["chatroom"] = params["chatroom"]
+        groupRequest["watchRecipients"] = params["watch_recipients"]
+        groupRequest["emailRecipients"] = params["email_recipients"]
+        groupRequest["pagerRecipients"] = params["pager_recipients"]
+        groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
+        if "healthcheck_state" in params:
+            groupRequest["healthcheckState"] = True
+        else:
+            groupRequest["healthcheckState"] = False
+        groupRequest["healthcheckPeriod"] = int(params["healthcheck_period"]) * 60
+
+        if "lifecycle_state" in params:
+            groupRequest["lifecycleState"] = True
+        else:
+            groupRequest["lifecycleState"] = False
+        groupRequest["lifecycleTimeout"] = int(params["lifecycle_timeout"]) * 60
+        groups_helper.update_group_info(request, group_name, groupRequest)
+        return get_group_config(request, group_name)
+    except:
+        log.error(traceback.format_exc())
+        raise
 
 
 def disable_asg(request, group_name):
@@ -182,6 +217,7 @@ def get_asg_config(request, group_name):
     asg_summary = groups_helper.get_autoscaling_summary(request, group_name)
     instances = groups_helper.get_group_instances(request, group_name)
     group_info = groups_helper.get_group_info(request, group_name)
+    launch_config = group_info.get("launchInfo")
     group_size = len(instances)
     policies = groups_helper.TerminationPolicy
     if asg_summary.get("spotRatio", None):
@@ -193,7 +229,7 @@ def get_asg_config(request, group_name):
         "asg": asg_summary,
         "group_size": group_size,
         "terminationPolicies": policies,
-        "instanceType": group_info.get("instanceType"),
+        "instanceType": launch_config.get("instanceType"),
         "csrf_token": get_token(request),
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -390,6 +426,7 @@ def add_alarms(request, group_name):
 def get_group_info(request, group_name):
     try:
         group_info = groups_helper.get_group_info(request, group_name)
+        launch_config = group_info.get("launchInfo")
         asgs = groups_helper.get_autoscaling(request, group_name)
         spot_asg = None
         nonspot_asg = None
@@ -428,17 +465,17 @@ def get_group_info(request, group_name):
         asg_host_names.extend(nonspot_asg_instances)
         spot_asg_host_names.extend(spot_asg_instances)
 
-        if group_info["asgStatus"] == "DISABLED":
+        if launch_config["asgStatus"] == "DISABLED":
             asg_status_str = "Disabled"
-        elif group_info["asgStatus"] == "ENABLED":
+        elif launch_config["asgStatus"] == "ENABLED":
             asg_status_str = "Enabled"
         else:
             asg_status_str = "Not Enabled"
         group_size = len(asg_host_names) + len(non_asg_host_names) + len(spot_asg_host_names)
         spot_size = len(spot_asg_host_names)
         content = render_to_string("groups/group_info.tmpl", {
-            "instance_type": group_info["instanceType"],
-            "security_group": group_info["securityGroup"],
+            "instance_type": launch_config["instanceType"],
+            "security_group": launch_config["securityGroup"],
             "group_name": group_name,
             "fleet_size": group_size,
             "spot_size": spot_size,
@@ -661,6 +698,7 @@ def get_configs(request):
     params = request.GET
     groupName = params["group_name"]
     config = groups_helper.get_group_info(request, groupName)
+    config = config.get("launchInfo")
     empty_config = False
     if not config.get("instanceType") or not config.get("securityGroup") \
             or not config.get("imageId") or not config.get("userData") or not config.get("subnets"):
@@ -719,10 +757,25 @@ class GenerateDiff(diff_match_patch):
 
 class GroupConfigView(View):
     def get(self, request, group_name):
-        asg_status = groups_helper.get_autoscaling_status(request, group_name)
-
+        asg_cluster = groups_helper.get_group_info(request, group_name)
+        appNames = images_helper.get_all_app_names(request)
+        appNames = sorted(appNames)
+        if asg_cluster:
+            asg_vm_info = asg_cluster.get("launchInfo")
+            if asg_vm_info and asg_vm_info.get("subnets"):
+                 asg_vm_info["subnetArrays"] = asg_vm_info["subnets"].split(',')
+            group_info = asg_cluster.get("groupInfo")
+            curr_image = images_helper.get_image_by_id(request, asg_vm_info["imageId"])
+            group_info = get_group_config_internal(group_info)
+        else:
+            asg_vm_info = None
+            group_info = None
+            curr_image = None
         return render(request, 'groups/asg_config.html', {
-            "asg_status": asg_status,
+            "asg_vm_config": asg_vm_info,
+            "app_names": appNames,
+            "curr_image": curr_image,
+            "group_config": group_info,
             "group_name": group_name,
         })
 

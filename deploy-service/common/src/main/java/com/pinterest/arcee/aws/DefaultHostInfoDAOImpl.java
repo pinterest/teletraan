@@ -17,6 +17,7 @@ package com.pinterest.arcee.aws;
 
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.dao.HostInfoDAO;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.HostBean;
 
 import java.util.Collections;
@@ -35,7 +36,7 @@ public class DefaultHostInfoDAOImpl implements HostInfoDAO {
     }
 
     @Override
-    public List<HostBean> launchEC2Instances(GroupBean groupBean, int instanceCnt, String subnet) {
+    public List<HostBean> launchEC2Instances(AwsVmBean groupBean, int instanceCnt, String subnet) {
         return null;
     }
 

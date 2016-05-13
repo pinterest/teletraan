@@ -89,12 +89,21 @@ def get_autoscaling_status(request, group_name):
                             request.teletraan_user_id.token)
 
 
+def create_launch_config(request, group_name, asg_info):
+    return deployclient.post("/groups/{}/".format(group_name), request.teletraan_user_id.token, data=asg_info)
+
+
 def get_group_info(request, group_name):
     return deployclient.get("/groups/{}".format(group_name), request.teletraan_user_id.token)
 
 
-def update_group_info(request, group_name, group_info):
+def update_launch_config(request, group_name, group_info):
     return deployclient.put("/groups/{}/".format(group_name), request.teletraan_user_id.token,
+                            data=group_info)
+
+
+def update_group_info(request, group_name, group_info):
+    return deployclient.put("/groups/{}/config".format(group_name), request.teletraan_user_id.token,
                             data=group_info)
 
 

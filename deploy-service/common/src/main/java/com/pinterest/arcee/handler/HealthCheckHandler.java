@@ -17,6 +17,7 @@ package com.pinterest.arcee.handler;
 
 
 import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.arcee.bean.GroupInfoBean;
 import com.pinterest.arcee.bean.HealthCheckBean;
 import com.pinterest.arcee.bean.HealthCheckErrorBean;
 import com.pinterest.arcee.bean.HealthCheckState;
@@ -27,6 +28,7 @@ import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HealthCheckDAO;
 import com.pinterest.arcee.dao.HealthCheckErrorDAO;
 import com.pinterest.arcee.dao.ImageDAO;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.common.CommonUtils;
@@ -97,7 +99,10 @@ public class HealthCheckHandler {
                 return new ArrayList<>();
             }
 
-            GroupBean group = groupHandler.getGroupInfoByClusterName(groupName);
+            GroupInfoBean groupInfo = groupHandler.getGroupInfoByClusterName(groupName);
+            GroupBean group = groupInfo.getGroupBean();
+            AwsVmBean awsVmBean = groupInfo.getAwsVmBean();
+
             if (!group.getHealthcheck_state()) {
                 LOG.info("Health check isn't enabled yet");
                 return new ArrayList<>();
@@ -107,12 +112,12 @@ public class HealthCheckHandler {
             if (StringUtils.isEmpty(healthCheckBean.getEnv_id())) {
                 List<EnvironBean> envs = environDAO.getEnvsByGroups(Arrays.asList(groupName));
                 for (EnvironBean env : envs) {
-                    String id = addNewHealthCheckRecord(groupName, env.getEnv_id(), group.getImage_id(), env.getDeploy_id(), healthCheckBean.getType());
+                    String id = addNewHealthCheckRecord(groupName, env.getEnv_id(), awsVmBean.getImage(), env.getDeploy_id(), healthCheckBean.getType());
                     healthCheckIds.add(id);
                 }
             } else {
                 EnvironBean env = environDAO.getById(healthCheckBean.getEnv_id());
-                String id = addNewHealthCheckRecord(groupName, env.getEnv_id(), group.getImage_id(), env.getDeploy_id(), healthCheckBean.getType());
+                String id = addNewHealthCheckRecord(groupName, env.getEnv_id(), awsVmBean.getImage(), env.getDeploy_id(), healthCheckBean.getType());
                 healthCheckIds.add(id);
             }
             return healthCheckIds;

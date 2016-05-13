@@ -17,6 +17,7 @@ package com.pinterest.teletraan.worker;
 
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.arcee.bean.GroupInfoBean;
 import com.pinterest.arcee.bean.HealthCheckBean;
 import com.pinterest.arcee.bean.HealthCheckErrorBean;
 import com.pinterest.arcee.bean.HealthCheckState;
@@ -24,12 +25,12 @@ import com.pinterest.arcee.bean.HealthCheckStatus;
 import com.pinterest.arcee.bean.HealthCheckType;
 import com.pinterest.arcee.bean.ImageBean;
 import com.pinterest.arcee.common.HealthCheckConstants;
-import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HealthCheckDAO;
 import com.pinterest.arcee.dao.HealthCheckErrorDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.arcee.dao.ImageDAO;
 import com.pinterest.arcee.handler.GroupHandler;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentErrorBean;
@@ -60,7 +61,6 @@ public class HealthChecker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HealthChecker.class);
     private final HealthCheckDAO healthCheckDAO;
     private final HealthCheckErrorDAO healthCheckErrorDAO;
-    private final GroupInfoDAO groupInfoDAO;
     private final HostInfoDAO hostInfoDAO;
     private final HostDAO hostDAO;
     private final AgentDAO agentDAO;
@@ -78,7 +78,6 @@ public class HealthChecker implements Runnable {
     public HealthChecker(ServiceContext serviceContext) {
         healthCheckDAO = serviceContext.getHealthCheckDAO();
         healthCheckErrorDAO = serviceContext.getHealthCheckErrorDAO();
-        groupInfoDAO = serviceContext.getGroupInfoDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         hostDAO = serviceContext.getHostDAO();
         agentDAO = serviceContext.getAgentDAO();
@@ -202,17 +201,19 @@ public class HealthChecker implements Runnable {
      */
     private void processInitState(HealthCheckBean healthCheckBean, GroupBean groupBean) throws Exception {
         String groupName = groupBean.getGroup_name();
+        AwsVmBean awsVmBean = groupHandler.getCluster(groupName);
         LOG.info("Start to launch instance for group {} and healthCheck id {} at health check state {}",
             groupName, healthCheckBean.getId(), healthCheckBean.getState().toString());
 
         // Randomly pick a subnet to launch instance to
-        List<String> subnets = Arrays.asList(groupBean.getSubnets().split(","));
+        List<String> subnets = Arrays.asList(awsVmBean.getSubnet().split(","));
         Collections.shuffle(subnets);
         String subnet = subnets.get(0);
 
         LOG.info("Start to launch instance with AMI ID {} to Subnet {} for group {}", healthCheckBean.getAmi_id(), subnet, groupName);
-        groupBean.setImage_id(healthCheckBean.getAmi_id());
-        List<HostBean> hosts = hostInfoDAO.launchEC2Instances(groupBean, 1, subnet);
+        awsVmBean.setImage(healthCheckBean.getAmi_id());
+
+        List<HostBean> hosts = hostInfoDAO.launchEC2Instances(awsVmBean, 1, subnet);
         if (hosts.isEmpty()) {
             LOG.error("Failed to launch instance with AMI ID {} to Subnet {} for group {}", healthCheckBean.getAmi_id(), subnet, groupName);
             String subject = String.format("Health Check Warning - Launch Instance Failed in group <%s>", groupName);
@@ -252,7 +253,7 @@ public class HealthChecker implements Runnable {
         String hostId = healthCheckBean.getHost_id();
 
         // Check on AWS to make sure the instance is running
-        List<String> runningIds = hostInfoDAO.getRunningInstances(Arrays.asList(hostId));
+        List<String> runningIds = hostInfoDAO.getRunningInstances(Collections.singletonList(hostId));
         if (runningIds.isEmpty()) {
             succeeded = false;
 
@@ -376,7 +377,9 @@ public class HealthChecker implements Runnable {
      */
     private void processCompletingState(HealthCheckBean healthCheckBean, GroupBean groupBean) throws Exception {
         String groupName = groupBean.getGroup_name();
-        LOG.info("Start to terminate instance for group {} and healthCheck id {} at health check state {}",
+        AwsVmBean awsVmBean = groupHandler.getCluster(groupName);
+        LOG.info("Start to terminate instance for group {} and healthCheck id {} at health c"
+                 + "heck state {}",
             groupName, healthCheckBean.getId(), healthCheckBean.getState().toString());
 
         if (healthCheckBean.getStatus() == HealthCheckStatus.QUALIFIED) {
@@ -401,17 +404,16 @@ public class HealthChecker implements Runnable {
                 try {
                     // Make sure the publish date of new image id is newer than current
                     ImageBean newImageBean = imageDAO.getById(healthCheckBean.getAmi_id());
-                    ImageBean currImageBean = imageDAO.getById(groupBean.getImage_id());
+                    ImageBean currImageBean = imageDAO.getById(awsVmBean.getImage());
                     if (newImageBean.getPublish_date() > currImageBean.getPublish_date()) {
                         LOG.info("Update launch config with ami id {} for group {}", healthCheckBean.getAmi_id(), groupName);
                         String lockName = String.format("UPDATEAMI-%s", groupName);
                         Connection connection = utilDAO.getLock(lockName);
                         if (connection != null) {
                             try {
-                                GroupBean newBean = new GroupBean();
-                                newBean.setImage_id(healthCheckBean.getAmi_id());
-                                groupHandler.updateLaunchConfig(groupName, newBean);
-
+                                AwsVmBean newAwsVmBeam = new AwsVmBean();
+                                newAwsVmBeam.setImage(healthCheckBean.getAmi_id());
+                                groupHandler.updateCluster(groupName, awsVmBean);
                                 newImageBean.setQualified(true);
                                 imageDAO.insertOrUpdate(newImageBean);
                             } catch (Exception ex) {
@@ -436,7 +438,10 @@ public class HealthChecker implements Runnable {
     }
 
     private void processHealthCheck(HealthCheckBean healthCheckBean) throws Exception {
-        GroupBean groupBean = groupHandler.getGroupInfoByClusterName(healthCheckBean.getGroup_name());
+        GroupInfoBean groupInfoBean = groupHandler.getGroupInfoByClusterName(healthCheckBean.getGroup_name());
+        AwsVmBean awsVmBean = groupInfoBean.getAwsVmBean();
+        GroupBean groupBean = groupInfoBean.getGroupBean();
+
         if (shouldTimeoutHealthCheck(healthCheckBean, groupBean)) {
             return;
         }

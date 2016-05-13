@@ -19,6 +19,8 @@ import util_views
 
 urlpatterns = [
     # auto scaling alarms endpoint
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/create_group/$',
+        group_view.create_launch_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/add_metrics/$',
         group_view.add_alarms),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_metrics/$',
@@ -61,10 +63,8 @@ urlpatterns = [
 
     # groups related
     url(r'^groups/$', group_view.group_landing),
-    url(r'^groups/create_groups/$', group_view.create_group),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/config/$', group_view.GroupConfigView.as_view()),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/envs/', group_view.get_envs),
-    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/gen_asg_setting', group_view.gen_asg_setting),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/disable_asg/$', group_view.disable_asg),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/resume_asg/$', group_view.resume_asg),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/create_asg/$', group_view.create_asg),
@@ -80,8 +80,12 @@ urlpatterns = [
         group_view.get_policy),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/get_metrics/$',
         group_view.get_alarms),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/create_launch_config/$',
+        group_view.create_launch_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_launch_config/$',
         group_view.update_launch_config),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_group_config/$',
+        group_view.update_group_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_config/$',
         group_view.update_asg_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_policy/$',

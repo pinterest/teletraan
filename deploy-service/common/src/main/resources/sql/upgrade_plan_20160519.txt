@@ -1,0 +1,23 @@
+UPDATES
+=================
+ALTER TABLE groups DROP COLUMN launch_config_id,
+                   DROP COLUMN instance_type,
+                   DROP COLUMN image_id,
+                   DROP COLUMN security_group,
+                   DROP COLUMN subnets,
+                   DROP COLUMN user_data,
+                   DROP COLUMN iam_role,
+                   DROP COLUMN assign_public_ip,
+                   DROP COLUMN asg_status;
+
+Rollback
+===========================
+ALTER TABLE groups ADD COLUMN launch_config_id VARCHAR(81) NOT NULL,
+                   ADD COLUMN instance_type  VARCHAR(64),
+                   ADD COLUMN image_idVARCHAR(128),
+                   ADD COLUMN security_group VARCHAR(128),
+                   ADD COLUMN subnets VARCHAR(128),
+                   ADD COLUMN user_data TEXT,
+                   ADD COLUMN iam_role VARCHAR(128),
+                   ADD COLUMN assign_public_ip TINYINT NOT NULL DEFAULT 0,
+                   ADD COLUMN VARCHAR(64);

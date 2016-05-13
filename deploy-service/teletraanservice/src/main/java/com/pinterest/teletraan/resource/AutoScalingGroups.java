@@ -75,16 +75,6 @@ public class AutoScalingGroups {
 
     }
 
-    @POST
-    public void createAutoScalingGroup(@Context SecurityContext sc,
-        @PathParam("groupName") String groupName,
-        @Valid AutoScalingRequestBean request) throws Exception {
-        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
-        String operator = sc.getUserPrincipal().getName();
-        groupHandler.createAutoScalingGroup(groupName, request);
-        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING, request, operator);
-        LOG.info("Successfully created auto scaling on group {}", groupName);
-    }
 
     @DELETE
     public void deleteAutoScalingGroup(@Context SecurityContext sc,

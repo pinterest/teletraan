@@ -16,6 +16,7 @@
 package com.pinterest.arcee.dao;
 
 import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.HostBean;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public interface HostInfoDAO {
 
     void terminateHost(String hostId) throws Exception;
 
-    List<HostBean> launchEC2Instances(GroupBean groupBean, int instanceCnt, String subnet) throws Exception;
+    List<HostBean> launchEC2Instances(AwsVmBean awsVmBean, int instanceCnt, String subnet) throws Exception;
 
     List<String> getRunningInstances(List<String> runningIds) throws Exception;
 }
