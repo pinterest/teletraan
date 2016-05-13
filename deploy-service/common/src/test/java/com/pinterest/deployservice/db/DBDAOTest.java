@@ -782,34 +782,19 @@ public class DBDAOTest {
         // Insert test
         GroupBean groupBean = new GroupBean();
         groupBean.setGroup_name("deploy-test");
-        groupBean.setLaunch_config_id("abcd");
         groupBean.setLast_update(System.currentTimeMillis());
         groupBean.setChatroom("#lo");
         groupBean.setEmail_recipients("lo@pinterest.com");
         groupBean.setPager_recipients("lo@pinterest.com");
-        groupBean.setImage_id("ami-057cbb6e|golden_12.04");
-        String userData = String.format("#cloud-config\nrole: deploy-test\n");
-        groupBean.setUser_data(userData);
-        groupBean.setSubnets("subnet-a6cf71ff");
-        groupBean.setAssign_public_ip(true);
-        groupBean.setIam_role("test");
-        groupBean.setAsg_status(ASGStatus.UNKNOWN);
         groupBean.setHealthcheck_state(true);
         groupBean.setHealthcheck_period(10L);
-        groupInfoDAO.insertGroupInfo(groupBean);
+        groupInfoDAO.insertOrUpdateGroupInfo("deploy-test", groupBean);
         GroupBean gBean = groupInfoDAO.getGroupInfo("deploy-test");
         assertEquals(gBean.getGroup_name(), "deploy-test");
         assertEquals(gBean.getChatroom(), "#lo");
         assertEquals(gBean.getPager_recipients(), "lo@pinterest.com");
         assertEquals(gBean.getLaunch_latency_th(), Integer.valueOf(AutoScalingConstants.DEFAULT_LAUNCH_LATENCY_THRESHOLD));
         assertNull(gBean.getWatch_recipients());
-        assertNull(gBean.getSecurity_group());
-        assertNull(gBean.getInstance_type());
-        assertEquals(gBean.getIam_role(), "test");
-        assertTrue(gBean.getAssign_public_ip());
-        assertEquals(gBean.getImage_id(), "ami-057cbb6e|golden_12.04");
-        assertEquals(gBean.getUser_data(), userData);
-        assertEquals(gBean.getSubnets(), "subnet-a6cf71ff");
         assertTrue(gBean.getHealthcheck_state());
         List<String> groups = groupDAO.getExistingGroups(1, 10);
         assertEquals(groups.size(), 1);
@@ -820,19 +805,11 @@ public class DBDAOTest {
         // Update test
         groupBean.setWatch_recipients("lo");
         groupBean.setLaunch_latency_th(300);
-        groupBean.setSecurity_group("vpc-intranet-admin-tools");
-        groupBean.setInstance_type("x3.2xlarge");
-        groupBean.setIam_role(AutoScalingConstants.DEFAULT_IAM_ROLE);
-        groupBean.setAsg_status(ASGStatus.ENABLED);
         groupBean.setLifecycle_state(true);
         groupInfoDAO.updateGroupInfo("deploy-test", groupBean);
         gBean = groupInfoDAO.getGroupInfo("deploy-test");
         assertEquals(gBean.getWatch_recipients(), "lo");
         assertEquals(gBean.getLaunch_latency_th(), Integer.valueOf(300));
-        assertEquals(gBean.getSecurity_group(), "vpc-intranet-admin-tools");
-        assertEquals(gBean.getInstance_type(), "x3.2xlarge");
-        assertEquals(gBean.getIam_role(), AutoScalingConstants.DEFAULT_IAM_ROLE);
-        assertEquals(gBean.getAsg_status(), ASGStatus.ENABLED);
         assertTrue(gBean.getLifecycle_state());
     }
 

@@ -16,25 +16,57 @@
 package com.pinterest.clusterservice.bean;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.pinterest.deployservice.bean.ASGStatus;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import java.util.Map;
 
 public class AwsVmBean {
+    @JsonIgnore
     private String clusterName;
+
+    @JsonProperty("imageId")
     private String image;
+
+    @JsonProperty("instanceType")
     private String hostType;
+
+    @JsonProperty("securityGroup")
     private String securityZone;
+
+    @JsonProperty("assignPublicIp")
     private Boolean assignPublicIp;
-    private String launchConfigId;
+
+    @JsonProperty("iamRole")
     private String role;
-    private Map<String, String> userDataConfigs;
+
+    @JsonProperty("subnets")
     private String subnet;
-    private Integer minSize;
-    private Integer maxSize;
-    private String terminationPolicy;
+
+    @JsonProperty("asgStatus")
+    private ASGStatus asgStatus;
+
     // deprecated
+    @JsonProperty("userData")
     private String rawUserDataString;
+
+    @JsonProperty("minSize")
+    private Integer minSize;
+
+    @JsonProperty("maxSize")
+    private Integer maxSize;
+
+    @JsonIgnore
+    private String launchConfigId;
+
+    @JsonIgnore
+    private Map<String, String> userDataConfigs;
+
+    @JsonIgnore
+    private String terminationPolicy;
 
     public String getClusterName() {
         return clusterName;
@@ -135,6 +167,10 @@ public class AwsVmBean {
     public String getRawUserDataString() { return rawUserDataString; }
 
     public void setRawUserDataString(String rawUserDataString) { this.rawUserDataString = rawUserDataString; }
+
+    public ASGStatus getAsgStatus() { return asgStatus; }
+
+    public void setAsgStatus(ASGStatus asgStatus) { this.asgStatus = asgStatus; }
 
     @Override
     public String toString() {

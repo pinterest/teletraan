@@ -24,7 +24,7 @@ public interface GroupInfoDAO {
 
     void updateGroupInfo(String groupName, GroupBean groupBean) throws Exception;
 
-    void insertGroupInfo(GroupBean groupBean) throws Exception;
+    void insertOrUpdateGroupInfo(String groupName, GroupBean groupBean) throws Exception;
 
     void removeGroup(String groupName) throws Exception;
 

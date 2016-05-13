@@ -51,7 +51,7 @@ def get_asg_name(request, hosts):
         for host in hosts:
             if host and host.get('groupName'):
                 group_info = groups_helper.get_group_info(request, host.get('groupName'))
-                if group_info and group_info["asgStatus"] == "ENABLED":
+                if group_info and group_info.get("launchInfo") and group_info.get("launchInfo")["asgStatus"] == "ENABLED":
                     return host.get('groupName')
     return None
 
@@ -75,6 +75,8 @@ class GroupHostDetailView(View):
         host_id = get_host_id(hosts)
         asg = get_asg_name(request, hosts)
 
+        show_terminate = get_show_terminate(hosts)
+        show_warning_message = not show_terminate
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         return render(request, 'hosts/host_details.html', {
             'group_name': groupname,
@@ -82,6 +84,7 @@ class GroupHostDetailView(View):
             'hosts': hosts,
             'host_id': host_id,
             'agent_wrappers': agent_wrappers,
+            'show_warning_terminate': show_warning_message,
             'asg_group': asg,
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
@@ -93,6 +96,7 @@ class HostDetailView(View):
         hosts = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
         host_id = get_host_id(hosts)
         show_terminate = get_show_terminate(hosts)
+        show_warning_message = not show_terminate
         asg = get_asg_name(request, hosts)
         is_protected = False
         if asg:
@@ -107,6 +111,7 @@ class HostDetailView(View):
             'host_id': host_id,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
+            'show_warning_message': show_warning_message,
             'show_force_terminate': IS_PINTEREST,
             'asg_group': asg,
             'is_unreachable': is_unreachable,

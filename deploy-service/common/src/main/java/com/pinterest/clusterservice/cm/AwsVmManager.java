@@ -76,18 +76,26 @@ public class AwsVmManager implements ClusterManager {
 
     @Override
     public void createCluster(String clusterName, ClusterBean clusterBean) throws Exception {
-        LOG.info(String.format("Start to create AWS cluster for %s", clusterName));
         AwsVmBean awsVmBean = mappingToAwsVmBean(clusterBean);
+        createCluster(clusterName, awsVmBean);
+    }
+
+    @Override
+    public void updateCluster(String clusterName, ClusterBean clusterBean) throws Exception {
+        AwsVmBean newBean = mappingToAwsVmBean(clusterBean);
+        updateCluster(clusterName, newBean);
+    }
+
+    public void createCluster(String clusterName, AwsVmBean awsVmBean) throws Exception {
+        LOG.info(String.format("Start to create AWS cluster for %s", clusterName));
         String launchConfig = autoScalingManager.createLaunchConfig(clusterName, awsVmBean);
         awsVmBean.setTerminationPolicy(DEFAULT_TERMINATION_POLICY);
         awsVmBean.setLaunchConfigId(launchConfig);
         autoScalingManager.createAutoScalingGroup(clusterName, awsVmBean);
     }
 
-    @Override
-    public void updateCluster(String clusterName, ClusterBean clusterBean) throws Exception {
+    public void updateCluster(String clusterName, AwsVmBean newBean) throws Exception {
         LOG.info(String.format("Start to update AWS cluster for %s", clusterName));
-        AwsVmBean newBean = mappingToAwsVmBean(clusterBean);
         AwsVmBean oldBean = autoScalingManager.getAutoScalingGroupInfo(clusterName);
         if (oldBean == null) {
             LOG.error(String.format("Autoscaling group %s does not exist. Cannot update cluster", clusterName));

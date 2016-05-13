@@ -84,12 +84,12 @@ public class SpotAutoScalingScheduler implements Runnable {
     }
 
     private void processSpotAutoScaling(String clusterName, SpotAutoScalingBean spotAutoScalingBean) throws Exception {
-        GroupBean groupBean = groupHandler.getGroupInfoByClusterName(clusterName);
-        if (groupBean == null) {
+        AwsVmBean awsVmBean = groupHandler.getCluster(clusterName);
+        if (awsVmBean == null) {
             return;
         }
 
-        String instanceType = groupBean.getInstance_type();
+        String instanceType = awsVmBean.getHostType();
         int reservedInstanceCount = reservedInstanceInfoDAO.getReservedInstanceCount(instanceType);
         int runningReservedInstanceCount = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
         int freeInstance = reservedInstanceCount - runningReservedInstanceCount;

@@ -8,17 +8,9 @@
     </a>
 </div>
 
-{% if asg_status == "UNKNOWN" %}
-<div class="row">
-    <button class="deployToolTip btn btn-default btn-block"
-                data-toggle="modal" data-target="#createAutoScalingModalId"
-                title="Enable the auto scaling group" id="createAutoScalingBtnId">
-        <span class="glyphicon glyphicon-play"></span> Create Auto Scaling
-    </button>
-</div>
-{% endif %}
 
-{% if asg_status == "DISABLED" %}
+
+{% if asg_vm_config and asg_vm_config.asgStatus == "DISABLED" %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block"
                 data-toggle="modal" data-target="#resumeAutoScalingModalId"
@@ -26,7 +18,7 @@
         <span class="glyphicon glyphicon-play"></span> Enable Auto Scaling
     </button>
 </div>
-{% elif asg_status == "ENABLED" %}
+{% elif asg_vm_config and asg_vm_config.asgStatus == "ENABLED" %}
     <div class="row">
     <button class="deployToolTip btn btn-default btn-block"
                 data-toggle="modal" data-target="#disableAutoScalingModalId"
@@ -36,7 +28,7 @@
 </div>
 {% endif %}
 
-{% if asg_status != "UNKNOWN" %}
+{% if asg_vm_config and asg_vm_config.asg_status != "UNKNOWN" %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block" data-target="#deleteAutoScalingModalId"
             data-toggle="modal" title="Delete auto scaling group">
@@ -51,7 +43,7 @@
     </a>
 </div>
 
-{% if asg_status|hasScalingActivities %}
+{% if asg_vm_config.asg_status|hasScalingActivities %}
 <div class="row">
     <a type="button" href="/groups/{{ group_name }}/scaling_activities/"
             class="deployToolTip btn btn-default btn-block"
@@ -61,7 +53,7 @@
 </div>
 {% endif %}
 
-{% if asg_status != "UNKNOWN" %}
+{% if asg_vm_config.asg_status != "UNKNOWN" %}
 <div class="row">
     <a type="button" href="/groups/{{ group_name }}/health_check_activities/"
             class="deployToolTip btn btn-default btn-block"
@@ -157,10 +149,6 @@
 
 <script>
 $(function() {
-   $("#createAutoScalingBtnId").click(function() {
-       $("#createASGDivId").load("/groups/{{ group_name }}/gen_asg_setting/");
-   });
-
    $("#deleteAutoScalingBtnId").click(function() {
        if ($("#deleteAutoScalingModalId #delete_instances")[0].checked) {
            $.get('/groups/{{ group_name }}/delete_asg/?delete=1', function(response) {

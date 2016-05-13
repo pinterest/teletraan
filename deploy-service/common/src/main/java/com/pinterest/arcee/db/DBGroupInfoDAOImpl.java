@@ -29,7 +29,7 @@ import java.util.List;
 
 public class DBGroupInfoDAOImpl implements GroupInfoDAO {
 
-    private static final String INSERT_GROUP_INFO = "INSERT INTO groups SET %s;";
+    private static final String INSERT_GROUP_INFO = "INSERT INTO groups SET %s ON DUPLICATE KEY UPDATE %s";
 
     private static final String UPDATE_GROUP_INFO = "UPDATE groups SET %s WHERE group_name=?;";
 
@@ -76,12 +76,14 @@ public class DBGroupInfoDAOImpl implements GroupInfoDAO {
     }
 
     @Override
-    public void insertGroupInfo(GroupBean groupBean) throws Exception {
+    public void insertOrUpdateGroupInfo(String groupName, GroupBean groupBean) throws Exception {
         if (groupBean.getLast_update() == null) {
             groupBean.setLast_update(System.currentTimeMillis());
         }
+        groupBean.setGroup_name(groupName);
         SetClause setClause = groupBean.genSetClause();
-        String clause = String.format(INSERT_GROUP_INFO, setClause.getClause());
+        String clause = String.format(INSERT_GROUP_INFO, setClause.getClause(),
+                                      GroupBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 

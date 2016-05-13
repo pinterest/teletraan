@@ -46,6 +46,7 @@ public class Constants {
     public static final String CONFIG_TYPE_GROUP = "ASG Config Change";
     public static final String CONFIG_TYPE_ENV = "Deploy Env Config Change";
 
+    public static final String TYPE_ASG_LAUNCH = "Asg Launch Config";
     public static final String TYPE_ASG_GENERAL = "Asg General Config";
     public static final String TYPE_ASG_SCALING = "Asg Scaling Group";
     public static final String TYPE_ASG_POLICY = "Asg Scaling Policy";

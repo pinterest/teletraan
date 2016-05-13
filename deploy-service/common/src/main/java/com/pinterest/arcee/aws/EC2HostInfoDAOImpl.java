@@ -20,7 +20,9 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.*;
 
+import com.pinterest.arcee.autoscaling.AwsAutoScalingManager;
 import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.common.DeployInternalException;
@@ -102,17 +104,17 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
     }
 
     @Override
-    public List<HostBean> launchEC2Instances(GroupBean groupBean, int instanceCnt, String subnet) throws Exception {
+    public List<HostBean> launchEC2Instances(AwsVmBean awsVmBean, int instanceCnt, String subnet) throws Exception {
         RunInstancesRequest request = new RunInstancesRequest();
-        request.setImageId(groupBean.getImage_id());
-        request.setInstanceType(groupBean.getInstance_type());
+        request.setImageId(awsVmBean.getImage());
+        request.setInstanceType(awsVmBean.getHostType());
         request.setKeyName(vmKeyName);
-        request.setSecurityGroupIds(Arrays.asList(groupBean.getSecurity_group()));
+        request.setSecurityGroupIds(Arrays.asList(awsVmBean.getSecurityZone()));
         request.setSubnetId(subnet);
-        String userData = Base64.encodeBase64String(groupBean.getUser_data().getBytes());
+        String userData = Base64.encodeBase64String(awsVmBean.getRawUserDataString().getBytes());
         request.setUserData(userData);
         IamInstanceProfileSpecification iamRole = new IamInstanceProfileSpecification();
-        String role = String.format(roleTemplate, ownerId, groupBean.getIam_role());
+        String role = String.format(roleTemplate, ownerId, awsVmBean.getRole());
         iamRole.setArn(role);
         request.setIamInstanceProfile(iamRole);
         request.setMinCount(instanceCnt);
@@ -128,7 +130,7 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
                 host.setHost_name(instance.getInstanceId());
                 host.setHost_id(instance.getInstanceId());
                 host.setIp(instance.getPrivateIpAddress());
-                host.setGroup_name(groupBean.getGroup_name());
+                host.setGroup_name(awsVmBean.getClusterName());
                 host.setState(HostState.PROVISIONED);
                 host.setCreate_date(instance.getLaunchTime().getTime());
                 host.setLast_update(instance.getLaunchTime().getTime());

@@ -16,6 +16,8 @@
 package com.pinterest.arcee.handler;
 
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
+import com.pinterest.arcee.autoscaling.AwsAutoScalingManager;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.dao.GroupInfoDAO;
@@ -33,40 +35,39 @@ public class ProvisionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ProvisionHandler.class);
     private HostDAO hostDAO;
     private HostInfoDAO hostInfoDAO;
-    private GroupInfoDAO groupInfoDAO;
-    private AutoScalingManager asgDAO;
-    private GroupHandler groupHandler;
+    private AutoScalingManager autoScalingManager;
 
     public ProvisionHandler(ServiceContext serviceContext) {
         hostDAO = serviceContext.getHostDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
-        groupInfoDAO = serviceContext.getGroupInfoDAO();
-        asgDAO = serviceContext.getAutoScalingManager();
-        groupHandler = new GroupHandler(serviceContext);
+        autoScalingManager = serviceContext.getAutoScalingManager();
     }
 
-    public List<String> launchNewInstances(String groupName, int instanceCnt, String subnet, String operator) throws Exception {
-        GroupBean groupBean = groupHandler.getGroupInfoByClusterName(groupName);
-        if (groupBean != null) {
-            if (groupBean.getAsg_status() == ASGStatus.ENABLED) {  // AutoScaling is enabled, increase the ASG capacity
-                LOG.info(String.format("Launch %d EC2 instances in AutoScalingGroup %s", instanceCnt, groupName));
-                asgDAO.increaseGroupCapacity(groupName, instanceCnt);
-                return new ArrayList<>();
-            } else if (groupBean.getAsg_status() == ASGStatus.DISABLED) { // AutoScaling is disabled, do nothing
-                LOG.info(String.format("AutoScalingGroup %s is disabled. Prohibit from launching instances", groupName));
-                return new ArrayList<>();
-            } else {   // No ASG for this group, directly launch EC2 instances
-                LOG.info(String.format("Launch %d EC2 instances in group %s and subnet %s", instanceCnt, groupName, subnet));
-                List<HostBean> hosts = hostInfoDAO.launchEC2Instances(groupBean, instanceCnt, subnet);
-                List<String> hostIds = new ArrayList<>();
-                for (HostBean host : hosts) {
-                    LOG.debug(String.format("An new instance %s has been launched in group %s", host.getHost_id(), groupName));
-                    hostIds.add(host.getHost_id());
-                    hostDAO.insert(host);
-                }
-                return hostIds;
+    public List<String> launchNewInstances(String groupName, int instanceCnt, String subnet) throws Exception {
+        AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(groupName);
+        ASGStatus asgStatus = awsVmBean.getAsgStatus();
+        if (asgStatus == ASGStatus.ENABLED) {  // AutoScaling is enabled, increase the ASG capacity
+            LOG.info(String.format("Launch %d EC2 instances in AutoScalingGroup %s", instanceCnt,
+                                   groupName));
+            autoScalingManager.increaseGroupCapacity(groupName, instanceCnt);
+            return new ArrayList<>();
+        } else if (asgStatus == ASGStatus.DISABLED) { // AutoScaling is disabled, do nothing
+            LOG.info(String.format(
+                "AutoScalingGroup %s is disabled. Prohibit from launching instances", groupName));
+            return new ArrayList<>();
+        } else {   // No ASG for this group, directly launch EC2 instances
+            LOG.info(String.format("Launch %d EC2 instances in group %s and subnet %s", instanceCnt,
+                                   groupName, subnet));
+            List<HostBean> hosts = hostInfoDAO.launchEC2Instances(awsVmBean, instanceCnt, subnet);
+            List<String> hostIds = new ArrayList<>();
+            for (HostBean host : hosts) {
+                LOG.debug(String.format("An new instance %s has been launched in group %s",
+                                        host.getHost_id(), groupName));
+                hostIds.add(host.getHost_id());
+                hostDAO.insert(host);
             }
+            return hostIds;
         }
-        return new ArrayList<>();
+
     }
 }

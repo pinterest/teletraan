@@ -25,7 +25,7 @@
 
 {% block main %}
 
-{% if hosts and not show_terminate %}
+{% if hosts and show_warning_terminate %}
 <div class="alert alert-danger" role="alert">
     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
     <strong>Warning!</strong> {{ hostname }} has been marked for termination.

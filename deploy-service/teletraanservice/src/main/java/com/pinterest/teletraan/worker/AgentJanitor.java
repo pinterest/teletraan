@@ -16,6 +16,7 @@
 package com.pinterest.teletraan.worker;
 
 
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.dao.GroupInfoDAO;
@@ -173,11 +174,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
             maxStaleHostIds.toString(), minStaleHostIds.toString());
         processStaleHosts(minStaleHostIds, false);
         processStaleHosts(maxStaleHostIds, true);
-
-        // we don't check CMDB for auto scaling group
-        if (groupBean != null && groupBean.getAsg_status() != null && groupBean.getAsg_status() == ASGStatus.ENABLED) {
-            return;
-        }
 
         // Check the instance is not launched from Teletraan/Autoscaling
         Set<String> ids = cmdbReportedHosts.keySet();

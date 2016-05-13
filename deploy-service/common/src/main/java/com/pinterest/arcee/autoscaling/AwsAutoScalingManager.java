@@ -167,7 +167,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         // step 1: get the auto scaling instances information
         if (detachInstances) {
             DescribeAutoScalingGroupsRequest request = new DescribeAutoScalingGroupsRequest();
-            request.setAutoScalingGroupNames(Arrays.asList(groupName));
+            request.setAutoScalingGroupNames(Collections.singletonList(groupName));
             DescribeAutoScalingGroupsResult result = aasClient.describeAutoScalingGroups(request);
             List<AutoScalingGroup> groups = result.getAutoScalingGroups();
             if (groups.isEmpty()) {
@@ -214,7 +214,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         autoScalingGroupRequest.withMinSize(request.getMinSize()).withMaxSize(request.getMaxSize());
         autoScalingGroupRequest.setLaunchConfigurationName(request.getLaunchConfigId());
         autoScalingGroupRequest.setTerminationPolicies(
-            Arrays.asList(request.getTerminationPolicy()));
+            Collections.singletonList(request.getTerminationPolicy()));
         aasClient.createAutoScalingGroup(autoScalingGroupRequest);
 
         LOG.info(String.format("Creating auto scaling group: %s, with min size: %d, max size: %d",
@@ -558,7 +558,21 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         }
 
         AwsVmBean launchConfigInfo = getLaunchConfigInfo(autoScalingGroup.getLaunchConfigurationName());
+
+        List<SuspendedProcess> suspendedProcesses = autoScalingGroup.getSuspendedProcesses();
+        HashSet<String> processName = new HashSet<>();
+        for (SuspendedProcess process : suspendedProcesses) {
+            processName.add(process.getProcessName());
+        }
+
         AwsVmBean awsVmBean = new AwsVmBean();
+
+        if (processName.contains(PROCESS_ALARMNOTIFICATION) && processName.contains(PROCESS_SCHEDULEDACTIONS)) {
+            awsVmBean.setAsgStatus(ASGStatus.DISABLED);
+        } else {
+            awsVmBean.setAsgStatus(ASGStatus.ENABLED);
+        }
+
         awsVmBean.setClusterName(clusterName);
         awsVmBean.setImage(launchConfigInfo.getImage());
         awsVmBean.setHostType(launchConfigInfo.getHostType());
@@ -570,6 +584,8 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         awsVmBean.setSubnet(autoScalingGroup.getVPCZoneIdentifier());
         awsVmBean.setMinSize(autoScalingGroup.getMinSize());
         awsVmBean.setMaxSize(autoScalingGroup.getMaxSize());
+        awsVmBean.setTerminationPolicy(autoScalingGroup.getTerminationPolicies().get(0));
+        awsVmBean.setRawUserDataString(launchConfigInfo.getRawUserDataString());
         return awsVmBean;
     }
 

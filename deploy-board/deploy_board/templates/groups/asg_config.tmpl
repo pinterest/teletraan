@@ -105,7 +105,7 @@
                     <div class="col-xs-4">
                         <div class="input-group">
                         <input class="form-control" name="spotRatio" required="true" id="spotRatio"
-                               type="text" value="{{ asg.spotRatio }}"/>
+                               type="text" value="{{ asg.spotRatio|default_if_none:'' }}"/>
                         <span class="input-group-addon">%</span>
                         </div>
                     </div>
@@ -116,7 +116,7 @@
               <div class="col-xs-4">
                 <div class="input-group">
                     <input class="form-control" name="sensitivityRatio" required="true"
-                           type="text" value="{{ asg.sensitivityRatio }}"/>
+                           type="text" value="{{ asg.sensitivityRatio|default_if_none:'' }}"/>
                     <span class="input-group-addon">%</span>
                 </div>
               </div>
