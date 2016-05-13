@@ -138,6 +138,10 @@ public class EnvironHandler {
         if (envBean.getMax_deploy_day() == null) {
             envBean.setMax_deploy_day(Constants.DEFAULT_DEPLOY_DAY);
         }
+
+        if (envBean.getState() == null) {
+            envBean.setState(EnvironState.NORMAL);
+        }
     }
 
     void updatePromoteBeanDefault(PromoteBean promoteBean) throws Exception {
