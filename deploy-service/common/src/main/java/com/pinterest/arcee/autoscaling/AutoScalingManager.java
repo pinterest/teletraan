@@ -15,6 +15,7 @@
  */
 package com.pinterest.arcee.autoscaling;
 
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
 import com.pinterest.arcee.bean.AutoScalingGroupBean;
 import com.pinterest.arcee.bean.ScalingPolicyBean;
 import com.pinterest.arcee.bean.ScalingActivitiesBean;
@@ -61,6 +62,8 @@ public interface AutoScalingManager {
     ASGStatus getAutoScalingGroupStatus(String groupName) throws Exception;
 
     Collection<String> getAutoScalingInstances(String groupName, Collection<String> hostIds) throws Exception;
+
+    AutoScalingGroup getAutoScalingGroup(String clusterName) throws Exception;
 
     //------ Instance
     void addInstancesToAutoScalingGroup(Collection<String> instances, String groupName) throws Exception;

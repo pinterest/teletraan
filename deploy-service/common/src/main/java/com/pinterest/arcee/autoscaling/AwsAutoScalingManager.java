@@ -742,7 +742,8 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         return resultMap;
     }
 
-    private AutoScalingGroup getAutoScalingGroup(String clusterName) throws Exception {
+    @Override
+    public AutoScalingGroup getAutoScalingGroup(String clusterName) throws Exception {
         DescribeAutoScalingGroupsRequest asgRequest = new DescribeAutoScalingGroupsRequest();
         asgRequest.setAutoScalingGroupNames(Collections.singletonList(clusterName));
         DescribeAutoScalingGroupsResult asgResult = aasClient.describeAutoScalingGroups(asgRequest);
