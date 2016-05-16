@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS environs (
     deploy_type   VARCHAR(32),
     max_parallel  INT                 NOT NULL,
     priority      VARCHAR(16)         NOT NULL,
+    system_priority INT,
     stuck_th      INT                 NOT NULL,
     success_th    INT                 NOT NULL,
     adv_config_id VARCHAR(22),
