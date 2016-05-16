@@ -38,6 +38,7 @@ import java.io.Serializable;
  * deploy_type   VARCHAR(32),
  * max_parallel  INT                 NOT NULL,
  * priority      VARCHAR(16)         NOT NULL,
+ * system_priority  INT,
  * stuck_th      INT                 NOT NULL,
  * success_th    INT                 NOT NULL,
  * adv_config_id VARCHAR(22),
@@ -98,6 +99,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("priority")
     private DeployPriority priority;
+
+    @JsonProperty("systemPriority")
+    private Integer system_priority;
 
     @JsonProperty("stuckThreshold")
     private Integer stuck_th;
@@ -309,6 +313,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.priority = priority;
     }
 
+    public Integer getSystem_priority() {
+        return system_priority;
+    }
+
+    public void setSystem_priority(Integer system_priority) {
+        this.system_priority = system_priority;
+    }
+
     public AcceptanceType getAccept_type() {
         return accept_type;
     }
@@ -420,6 +432,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("deploy_type", deploy_type);
         clause.addColumn("max_parallel", max_parallel);
         clause.addColumn("priority", priority);
+        clause.addColumn("system_priority", system_priority);
         clause.addColumn("stuck_th", stuck_th);
         clause.addColumn("success_th", success_th);
         clause.addColumn("adv_config_id", adv_config_id);
