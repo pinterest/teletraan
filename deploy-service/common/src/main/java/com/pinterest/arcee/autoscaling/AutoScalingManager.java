@@ -63,7 +63,6 @@ public interface AutoScalingManager {
 
     Collection<String> getAutoScalingInstances(String groupName, Collection<String> hostIds) throws Exception;
 
-    AutoScalingGroup getAutoScalingGroup(String clusterName) throws Exception;
 
     //------ Instance
     void addInstancesToAutoScalingGroup(Collection<String> instances, String groupName) throws Exception;

@@ -278,6 +278,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
 
         asgInfo.setMinSize(asgroup.getMinSize());
         asgInfo.setMaxSize(asgroup.getMaxSize());
+        asgInfo.setDesiredCapacity(asgroup.getDesiredCapacity());
         // TODO this is dangerous that we are using the same value of TerminationPolicy
         String policy = asgroup.getTerminationPolicies().isEmpty() ? "Default" : new String(asgroup.getTerminationPolicies().get(0).getBytes());
         asgInfo.setTerminationPolicy(AutoScalingTerminationPolicy.valueOf(AutoScalingTerminationPolicy.class, policy));
@@ -742,8 +743,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         return resultMap;
     }
 
-    @Override
-    public AutoScalingGroup getAutoScalingGroup(String clusterName) throws Exception {
+    private AutoScalingGroup getAutoScalingGroup(String clusterName) throws Exception {
         DescribeAutoScalingGroupsRequest asgRequest = new DescribeAutoScalingGroupsRequest();
         asgRequest.setAutoScalingGroupNames(Collections.singletonList(clusterName));
         DescribeAutoScalingGroupsResult asgResult = aasClient.describeAutoScalingGroups(asgRequest);

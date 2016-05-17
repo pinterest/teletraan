@@ -55,6 +55,17 @@ public class AutoScalingSummaryBean {
     @JsonProperty("sensitivityRatio")
     private Double sensitivityRatio;
 
+    @JsonProperty("desiredCapacity")
+    private int desiredCapacity;
+
+    public int getDesiredCapacity() {
+        return desiredCapacity;
+    }
+
+    public void setDesiredCapacity(int desiredCapacity) {
+        this.desiredCapacity = desiredCapacity;
+    }
+
     public int getMinSize() { return minSize; }
 
     public void setMinSize(int minSize) { this.minSize = minSize; }

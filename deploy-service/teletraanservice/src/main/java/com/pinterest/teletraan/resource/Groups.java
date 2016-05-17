@@ -229,6 +229,6 @@ public class Groups {
     @Path("/{groupName: [a-zA-Z0-9\\-_]+}/capacity/desired")
     public int getDesiredCapacityByGroup(@Context SecurityContext sc,
                                          @PathParam("groupName") String groupName) throws Exception {
-        return awsAutoScalingManager.getAutoScalingGroup(groupName).getDesiredCapacity();
+        return groupHandler.getAutoScalingSummaryByName(groupName).getDesiredCapacity();
     }
 }
