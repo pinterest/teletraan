@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.handler.GroupHandler;
 import com.pinterest.deployservice.bean.ASGStatus;
@@ -37,6 +38,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 @Path("/v1/groups/{groupName: [a-zA-Z0-9\\-_]+}/autoscaling")
@@ -62,12 +64,15 @@ public class AutoScalingGroups {
     private GroupHandler groupHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private final Authorizer authorizer;
+    private AutoScalingManager awsAutoScalingManager;
 
     public AutoScalingGroups(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         groupHandler = new GroupHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         authorizer = context.getAuthorizer();
+        awsAutoScalingManager = context.getAutoScalingManager();
+
     }
 
     @POST
@@ -310,5 +315,12 @@ public class AutoScalingGroups {
         }
 
         throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Unknow action type:%s", type));
+    }
+
+    @GET
+    @Path("/policy")
+    public Map<String, ScalingPolicyBean> getGroupPolicy(@Context SecurityContext sc,
+                                                         @PathParam("groupName") String groupName) throws Exception {
+        return awsAutoScalingManager.getScalingPoliciesForGroup(groupName);
     }
 }
