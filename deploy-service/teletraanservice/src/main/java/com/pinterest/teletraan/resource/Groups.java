@@ -17,9 +17,11 @@ package com.pinterest.teletraan.resource;
 
 
 import com.google.common.base.Optional;
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.HealthCheckBean;
 import com.pinterest.arcee.bean.HealthCheckErrorBean;
+import com.pinterest.arcee.bean.ScalingPolicyBean;
 import com.pinterest.arcee.handler.GroupHandler;
 import com.pinterest.arcee.handler.HealthCheckHandler;
 import com.pinterest.arcee.handler.ProvisionHandler;
@@ -43,6 +45,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
+import java.util.Map;
 
 @Path("/v1/groups")
 @Produces(MediaType.APPLICATION_JSON)
@@ -65,6 +68,7 @@ public class Groups {
     private EnvironDAO environDAO;
     private HealthCheckHandler healthCheckHandler;
     private final Authorizer authorizer;
+    private AutoScalingManager awsAutoScalingManager;
 
     public Groups(TeletraanServiceContext context) {
         groupHandler = new GroupHandler(context);
@@ -73,6 +77,7 @@ public class Groups {
         healthCheckHandler = new HealthCheckHandler(context);
         environDAO = context.getEnvironDAO();
         authorizer = context.getAuthorizer();
+        awsAutoScalingManager = context.getAutoScalingManager();
     }
 
     @GET
@@ -211,5 +216,19 @@ public class Groups {
         groupBean.setHealthcheck_state(enableHealthCheck);
         configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_GENERAL, groupBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_GENERAL, operator);
+    }
+
+    @GET
+    @Path("/{groupName: [a-zA-Z0-9\\-_]+}/policy")
+    public Map<String, ScalingPolicyBean> getGroupPolicy(@Context SecurityContext sc,
+                                                         @PathParam("groupName") String groupName) throws Exception {
+        return awsAutoScalingManager.getScalingPoliciesForGroup(groupName);
+    }
+
+    @GET
+    @Path("/{groupName: [a-zA-Z0-9\\-_]+}/capacity/desired")
+    public int getDesiredCapacityByGroup(@Context SecurityContext sc,
+                                         @PathParam("groupName") String groupName) throws Exception {
+        return groupHandler.getAutoScalingSummaryByName(groupName).getDesiredCapacity();
     }
 }

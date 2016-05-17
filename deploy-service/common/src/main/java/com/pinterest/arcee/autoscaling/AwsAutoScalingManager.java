@@ -278,6 +278,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
 
         asgInfo.setMinSize(asgroup.getMinSize());
         asgInfo.setMaxSize(asgroup.getMaxSize());
+        asgInfo.setDesiredCapacity(asgroup.getDesiredCapacity());
         // TODO this is dangerous that we are using the same value of TerminationPolicy
         String policy = asgroup.getTerminationPolicies().isEmpty() ? "Default" : new String(asgroup.getTerminationPolicies().get(0).getBytes());
         asgInfo.setTerminationPolicy(AutoScalingTerminationPolicy.valueOf(AutoScalingTerminationPolicy.class, policy));
