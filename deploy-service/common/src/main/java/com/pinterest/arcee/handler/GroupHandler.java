@@ -657,6 +657,7 @@ public class GroupHandler {
         autoScalingSummaryBean.setMinSize(asgInfo.getMinSize());
         autoScalingSummaryBean.setMaxSize(asgInfo.getMaxSize());
         autoScalingSummaryBean.setEnableSpot(false);
+        autoScalingSummaryBean.setDesiredCapacity(asgInfo.getDesiredCapacity());
         if (asgInfo.getStatus() == ASGStatus.UNKNOWN) {
             return autoScalingSummaryBean;
         }

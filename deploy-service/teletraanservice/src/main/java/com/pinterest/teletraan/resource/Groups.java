@@ -64,7 +64,7 @@ public class Groups {
     private ProvisionHandler provisionHandler;
     private EnvironDAO environDAO;
     private HealthCheckHandler healthCheckHandler;
-    private final Authorizer authorizer;
+    private final Authorizer authorizer;;
 
     public Groups(TeletraanServiceContext context) {
         groupHandler = new GroupHandler(context);
