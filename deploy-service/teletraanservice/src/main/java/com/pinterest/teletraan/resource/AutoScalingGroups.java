@@ -316,11 +316,4 @@ public class AutoScalingGroups {
 
         throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Unknow action type:%s", type));
     }
-
-    @GET
-    @Path("/policy")
-    public Map<String, ScalingPolicyBean> getGroupPolicy(@Context SecurityContext sc,
-                                                         @PathParam("groupName") String groupName) throws Exception {
-        return awsAutoScalingManager.getScalingPoliciesForGroup(groupName);
-    }
 }
