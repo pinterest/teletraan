@@ -55,6 +55,7 @@ import java.io.Serializable;
  * is_docker           TINYINT(1)    DEFAULT 0,
  * max_parallel_pct TINYINT(1),
  * state               VARCHAR(32)         NOT NULL,
+ * cluster_name  VARCHAR(128)
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -152,6 +153,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("state")
     private EnvironState state;
+
+    @JsonProperty("clusterName")
+    private String cluster_name;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -393,6 +397,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.state = state;
     }
 
+    public String getCluster_name() {
+        return cluster_name;
+    }
+
+    public void setCluster_name(String cluster_name) {
+        this.cluster_name = cluster_name;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -426,6 +438,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("is_docker", is_docker);
         clause.addColumn("max_parallel_pct", max_parallel_pct);
         clause.addColumn("state", state);
+        clause.addColumn("cluster_name", cluster_name);
         return clause;
     }
 
