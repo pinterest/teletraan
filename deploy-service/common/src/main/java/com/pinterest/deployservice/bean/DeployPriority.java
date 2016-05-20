@@ -16,7 +16,7 @@
 package com.pinterest.deployservice.bean;
 
 public enum DeployPriority {
-    NORMAL(30), HIGH(20), LOW(40), HIGHER(10), LOWER(60);
+    NORMAL(3000), HIGH(2000), LOW(4000), HIGHER(1000), LOWER(5000);
 
     private final int value;
 
