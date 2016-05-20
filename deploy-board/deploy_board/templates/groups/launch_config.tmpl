@@ -143,13 +143,16 @@
     </div>
 </div>
 <script>
-    $(document).ready(function() {
+    function getImageId() {
         var selected_value = $("#app_name option:selected").val();
         var ami_url = "/aws_info/get_ami_ids/?app_name=" + selected_value + "&curr_image_id={{ config.imageId }}";
         $.get(ami_url, function(response) {
-                $("#image_id_div_id").html(response);
+            $("#image_id_div_id").html(response);
         });
+    }
 
+    $(document).ready(function() {
+        getImageId();
         $.get("/specs/get_sgs/?curr_sg={{config.securityGroup}}", function(response) {
             $("#sg_id_div_id").html(response);
         });
@@ -164,6 +167,10 @@
     });
 
     $(function () {
+        $("#app_name").change(function() {
+            getImageId();
+        });
+
         $(".chosen-select").chosen({"width": "100%"});
         $('#saveLaunchConfigBtnId').attr('disabled','disabled');
         $('#resetLaunchConfigBtnId').attr('disabled','disabled');
@@ -187,8 +194,6 @@
             $('#saveLaunchConfigBtnId').removeAttr('disabled');
             $('#resetLaunchConfigBtnId').removeAttr('disabled');
         });
-
-
 
         $('#saveLaunchConfigBtnId').click(function () {
             var btn = $(this);
@@ -229,14 +234,6 @@
                     btn.button('reset');
                     $("#launchConfigId").parent().html(data);
                 }
-            });
-        });
-
-        $("#app_name").change(function() {
-            var selected_value = $("#app_name option:selected").val();
-            var myurl = "/aws_info/get_ami_ids/?app_name=" + selected_value + "&curr_image_id={{ config.imageId }}";
-            $.get(myurl, function(response) {
-                $("#image_id_div_id").html(response);
             });
         });
     });
