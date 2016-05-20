@@ -29,11 +29,13 @@ import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.DataHandler;
+import com.pinterest.deployservice.handler.EnvironHandler;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -51,6 +53,7 @@ public class ClusterHandler {
     private final EnvironDAO environDAO;
     private final GroupDAO groupDAO;
     private final HostDAO hostDAO;
+    private final EnvironHandler environHandler;
     private final DataHandler dataHandler;
     private final AwsConfigManager awsConfigManager;
     private final ServiceContext serviceContext;
@@ -61,6 +64,7 @@ public class ClusterHandler {
         this.environDAO = serviceContext.getEnvironDAO();
         this.groupDAO = serviceContext.getGroupDAO();
         this.hostDAO = serviceContext.getHostDAO();
+        this.environHandler = new EnvironHandler(serviceContext);
         this.dataHandler = new DataHandler(serviceContext);
         this.awsConfigManager = serviceContext.getAwsConfigManager();
         this.serviceContext = serviceContext;
@@ -85,6 +89,10 @@ public class ClusterHandler {
         clusterDAO.insert(clusterBean);
         EnvironBean environBean = environDAO.getByStage(envName, stageName);
         groupDAO.addGroupCapacity(environBean.getEnv_id(), clusterName);
+
+        EnvironBean updateEnvBean = new EnvironBean();
+        updateEnvBean.setCluster_name(clusterName);
+        environHandler.updateStage(environBean, updateEnvBean, Constants.SYSTEM_OPERATOR);
     }
 
     public void updateCluster(String envName, String stageName, ClusterBean clusterBean) throws Exception {
@@ -126,6 +134,10 @@ public class ClusterHandler {
 
         EnvironBean environBean = environDAO.getByStage(envName, stageName);
         groupDAO.removeGroupCapacity(environBean.getEnv_id(), clusterName);
+
+        EnvironBean updateEnvBean = new EnvironBean();
+        updateEnvBean.setCluster_name("");
+        environHandler.updateStage(environBean, updateEnvBean, Constants.SYSTEM_OPERATOR);
     }
 
     public String updateAdvancedConfigs(String envName, String stageName, Map<String, String> configs, String operator) throws Exception {
