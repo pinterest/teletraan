@@ -31,14 +31,11 @@ import com.pinterest.arcee.bean.ScalingPolicyBean;
 import com.pinterest.arcee.bean.SpotAutoScalingBean;
 import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.arcee.common.HealthCheckConstants;
-<<<<<<< HEAD
 import com.pinterest.arcee.dao.*;
-=======
 import com.pinterest.arcee.dao.AlarmDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.arcee.dao.SpotAutoScalingDAO;
->>>>>>> Refactoring auto scaling code
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.cm.AwsVmManager;
 import com.pinterest.deployservice.ServiceContext;
@@ -47,7 +44,6 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.handler.CommonHandler;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -77,12 +73,9 @@ public class GroupHandler {
     private GroupInfoDAO groupInfoDAO;
     private SpotAutoScalingDAO spotAutoScalingDAO;
     private ExecutorService jobPool;
-<<<<<<< HEAD
     private CommonHandler commonHandler;
     private PasConfigDAO pasConfigDAO;
-=======
     private AwsVmManager awsVmManager;
->>>>>>> Refactoring auto scaling code
 
     public GroupHandler(ServiceContext serviceContext) {
         asgDAO = serviceContext.getAutoScalingManager();
@@ -94,12 +87,9 @@ public class GroupHandler {
         jobPool = serviceContext.getJobPool();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
-<<<<<<< HEAD
         commonHandler = new CommonHandler(serviceContext);
         pasConfigDAO = serviceContext.getPasConfigDAO();
-=======
         awsVmManager = new AwsVmManager(serviceContext);
->>>>>>> Refactoring auto scaling code
     }
 
     private final class DeleteAutoScalingJob implements Callable<Void> {
@@ -375,7 +365,6 @@ public class GroupHandler {
         jobPool.submit(new CreateSpotAutoScalingGroupJob(clusterName, spotAutoScalingBean));
     }
 
-<<<<<<< HEAD
     public void createNewPredictiveAutoScalingEntry(String groupName) throws Exception {
         PasConfigBean pasConfigBean = new PasConfigBean();
         pasConfigBean.setGroup_name(groupName);
@@ -429,9 +418,6 @@ public class GroupHandler {
 
         createNewPredictiveAutoScalingEntry(groupName);
     }
-
-=======
->>>>>>> Refactoring auto scaling code
 
     private AwsVmBean generateInternalAutoScalingRequest(AwsVmBean groupBean, AutoScalingRequestBean requestBean, boolean spotFleet) throws Exception {
         String launchConfig = groupBean.getLaunchConfigId();

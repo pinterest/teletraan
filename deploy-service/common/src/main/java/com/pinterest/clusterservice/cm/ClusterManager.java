@@ -16,6 +16,7 @@
 package com.pinterest.clusterservice.cm;
 
 import com.pinterest.clusterservice.bean.ClusterBean;
+import com.pinterest.deployservice.bean.HostBean;
 
 import java.util.Collection;
 
@@ -28,7 +29,7 @@ public interface ClusterManager {
 
     void deleteCluster(String clusterName) throws Exception;
 
-    void launchHosts(String clusterName, int num) throws Exception;
+    Collection<HostBean> launchHosts(String clusterName, int num, boolean launchInAsg) throws Exception;
 
     void terminateHosts(String clusterName, Collection<String> hostIds, boolean replaceHost) throws Exception;
 

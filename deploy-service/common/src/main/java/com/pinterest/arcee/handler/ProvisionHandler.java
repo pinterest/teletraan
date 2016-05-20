@@ -16,15 +16,13 @@
 package com.pinterest.arcee.handler;
 
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
-import com.pinterest.arcee.autoscaling.AwsAutoScalingManager;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.ASGStatus;
-import com.pinterest.arcee.bean.GroupBean;
-import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.dao.HostDAO;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,19 +44,15 @@ public class ProvisionHandler {
     public List<String> launchNewInstances(String groupName, int instanceCnt, String subnet) throws Exception {
         AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(groupName);
         ASGStatus asgStatus = awsVmBean.getAsgStatus();
-        if (asgStatus == ASGStatus.ENABLED) {  // AutoScaling is enabled, increase the ASG capacity
+        if (asgStatus != ASGStatus.UNKNOWN) {
             LOG.info(String.format("Launch %d EC2 instances in AutoScalingGroup %s", instanceCnt,
-                                   groupName));
+                    groupName));
             autoScalingManager.increaseGroupCapacity(groupName, instanceCnt);
-            return new ArrayList<>();
-        } else if (asgStatus == ASGStatus.DISABLED) { // AutoScaling is disabled, do nothing
-            LOG.info(String.format(
-                "AutoScalingGroup %s is disabled. Prohibit from launching instances", groupName));
             return new ArrayList<>();
         } else {   // No ASG for this group, directly launch EC2 instances
             LOG.info(String.format("Launch %d EC2 instances in group %s and subnet %s", instanceCnt,
                                    groupName, subnet));
-            List<HostBean> hosts = hostInfoDAO.launchEC2Instances(awsVmBean, instanceCnt, subnet);
+            Collection<HostBean> hosts = hostInfoDAO.launchHosts(awsVmBean, instanceCnt, subnet);
             List<String> hostIds = new ArrayList<>();
             for (HostBean host : hosts) {
                 LOG.debug(String.format("An new instance %s has been launched in group %s",
@@ -68,6 +62,5 @@ public class ProvisionHandler {
             }
             return hostIds;
         }
-
     }
 }

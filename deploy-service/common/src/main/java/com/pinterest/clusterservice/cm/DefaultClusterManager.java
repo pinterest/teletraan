@@ -16,9 +16,11 @@
 package com.pinterest.clusterservice.cm;
 
 import com.pinterest.clusterservice.bean.ClusterBean;
+import com.pinterest.deployservice.bean.HostBean;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 public class DefaultClusterManager implements ClusterManager {
     @Override
@@ -39,7 +41,8 @@ public class DefaultClusterManager implements ClusterManager {
     }
 
     @Override
-    public void launchHosts(String clusterName, int num) throws Exception {
+    public Collection<HostBean> launchHosts(String clusterName, int num, boolean launchInAsg) throws Exception {
+        return Collections.emptyList();
     }
 
     @Override

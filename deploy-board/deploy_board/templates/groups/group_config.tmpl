@@ -4,6 +4,7 @@
     <div class="container-fluid">
         <form id="groupConfigIdFormId" class="form-horizontal" role="form">
             <fieldset id="envConfigFieldSetId">
+                {% if not is_cmp %}
                 <div class="form-group">
                     <label for="chatroom" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
@@ -45,8 +46,8 @@
                         <input class="form-control" name="pager_recipients" required="false"
                                type="text" value="{{ config.pagerRecipients | default_if_none:'' }}"/>
                     </div>
-
                 </div>
+                {% endif %}
                 <div class="form-group">
                     <label for="healthcheck_state" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"

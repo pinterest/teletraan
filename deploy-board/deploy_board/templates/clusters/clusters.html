@@ -26,6 +26,12 @@
     </div>
     <div class="row">
         {% if basic_cluster_info and env|isEnvEnabled %}
+            <a type="button" class="deployToolTip btn btn-default btn-block"
+            href="/groups/{{ env.clusterName }}/config/"
+            data-toggle="tooltip" title="Advanced auto scaling configuration page">
+            <i class="fa fa-cloud"></i> Auto Scaling Setting
+            </a>
+
             <button class="deployToolTip btn btn-default btn-block" data-target="#deleteCluster"
             data-toggle="modal" title="Delete Cluster">
             <span class="glyphicon glyphicon-remove-sign"></span> Delete cluster

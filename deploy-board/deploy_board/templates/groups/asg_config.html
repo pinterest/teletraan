@@ -26,9 +26,11 @@
 {% block main %}
 
 {% if asg_vm_config %}
+    {% if not is_cmp %}
     <div id="launchConfigPid" class="panel panel-default">
     {% include "groups/launch_config.tmpl" with config=asg_vm_config  %}
     </div>
+    {% endif %}
     <div id="groupConfigPid" class="panel panel-default">
     {% include "groups/group_config.tmpl" with config=group_config %}
     </div>

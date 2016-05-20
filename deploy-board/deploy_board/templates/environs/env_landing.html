@@ -98,6 +98,16 @@
         </button>
     </div>
     {% endif %}
+    {% if basic_cluster_info %}
+    <div class="row">
+        <a href="/groups/{{ env.clusterName }}/"
+           type="button" class="deployToolTip btn btn-default btn-block"
+           data-toggle="tooltip"
+           title="Show auto scaling statistics">
+            <span class="glyphicon glyphicon-cloud"></span> Auto Scaling
+        </a>
+    </div>
+    {% endif %}
 </div>
 
 {% if pinterest %}
@@ -213,7 +223,7 @@
                     <div class="modal-body" id="newMetricModal">
                         <div class="form-group">
                             <label class="deployToolTip control-label text-center col-xs-6">
-                                Number of instances to launch:
+                                Number of hosts to launch:
                             </label>
                             <div class="col-md-6">
                                 <input class="form-control" name="instanceCnt" required="true" type="text" value=""/>
@@ -222,7 +232,7 @@
 
                         <div class="form-group">
                             <label for="groupName" class="deployToolTip control-label col-xs-6">
-                                Choose a group to launch instances to:
+                                Choose a group to launch hosts to:
                             </label>
                             <div class ="col-md-6">
                                 <select class="form-control" id="group_name" name="groupName" required="true">

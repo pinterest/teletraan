@@ -50,10 +50,10 @@ public class HealthCheckHostTerminator implements Runnable {
                     if (bean.getStatus() == HealthCheckStatus.QUALIFIED || System.currentTimeMillis() - bean.getHost_launch_time() > timeToRetain) {
                         LOG.info(String.format("Start to terminate health check instance %s", hostId));
 
-                        List<String> runningIds = hostInfoDAO.getRunningInstances(Arrays.asList(hostId));
+                        List<String> runningIds = hostInfoDAO.getRunningInstances(Collections.singletonList(hostId));
                         if (!runningIds.isEmpty()) {
                             LOG.info(String.format("This host %s is still running. Terminate it", hostId));
-                            hostInfoDAO.terminateHost(hostId);
+                            hostInfoDAO.terminateHosts(Collections.singletonList(hostId));
 
                             HostBean hostBean = new HostBean();
                             hostBean.setState(HostState.TERMINATING);

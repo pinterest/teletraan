@@ -17,6 +17,8 @@ package com.pinterest.clusterservice.handler;
 
 
 import com.pinterest.arcee.aws.AwsConfigManager;
+import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.clusterservice.bean.CloudProvider;
 import com.pinterest.clusterservice.bean.ClusterBean;
 import com.pinterest.clusterservice.cm.AwsVmManager;
@@ -52,6 +54,7 @@ public class ClusterHandler {
     private final ClusterDAO clusterDAO;
     private final EnvironDAO environDAO;
     private final GroupDAO groupDAO;
+    private final GroupInfoDAO groupInfoDAO;
     private final HostDAO hostDAO;
     private final EnvironHandler environHandler;
     private final DataHandler dataHandler;
@@ -63,6 +66,7 @@ public class ClusterHandler {
         this.clusterDAO = serviceContext.getClusterDAO();
         this.environDAO = serviceContext.getEnvironDAO();
         this.groupDAO = serviceContext.getGroupDAO();
+        this.groupInfoDAO = serviceContext.getGroupInfoDAO();
         this.hostDAO = serviceContext.getHostDAO();
         this.environHandler = new EnvironHandler(serviceContext);
         this.dataHandler = new DataHandler(serviceContext);
@@ -79,7 +83,7 @@ public class ClusterHandler {
     }
 
     public void createCluster(String envName, String stageName, ClusterBean clusterBean) throws Exception {
-        String clusterName = getClusterName(envName, stageName);
+        String clusterName = String.format("%s-%s", envName, stageName);
         clusterBean.setCluster_name(clusterName);
         clusterBean.setLast_update(System.currentTimeMillis());
 
@@ -93,6 +97,12 @@ public class ClusterHandler {
         EnvironBean updateEnvBean = new EnvironBean();
         updateEnvBean.setCluster_name(clusterName);
         environHandler.updateStage(environBean, updateEnvBean, Constants.SYSTEM_OPERATOR);
+
+        // Create a default advanced group bean
+        GroupBean groupBean = new GroupBean();
+        groupBean.setGroup_name(clusterName);
+        groupBean.setLast_update(System.currentTimeMillis());
+        groupInfoDAO.insertOrUpdateGroupInfo(clusterName, groupBean);
     }
 
     public void updateCluster(String envName, String stageName, ClusterBean clusterBean) throws Exception {
@@ -108,18 +118,7 @@ public class ClusterHandler {
 
     public ClusterBean getCluster(String envName, String stageName) throws Exception {
         String clusterName = getClusterName(envName, stageName);
-        ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
-        if (clusterBean == null) {
-            return null;
-        }
-
-        //TODO return clusterBean directly
-        if (StringUtils.isNotEmpty(clusterBean.getConfig_id())) {
-            return clusterBean;
-        }
-
-        ClusterManager clusterManager = createClusterManager(clusterBean.getProvider());
-        return clusterManager.getCluster(clusterName);
+        return clusterDAO.getByClusterName(clusterName);
     }
 
     public void deleteCluster(String envName, String stageName) throws Exception {
@@ -172,7 +171,7 @@ public class ClusterHandler {
 
         ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
         ClusterManager clusterManager = createClusterManager(clusterBean.getProvider());
-        clusterManager.launchHosts(clusterName, num);
+        clusterManager.launchHosts(clusterName, num, true);
 
         ClusterBean newBean = new ClusterBean();
         newBean.setCapacity(clusterBean.getCapacity() + num);
@@ -219,7 +218,8 @@ public class ClusterHandler {
         return hostDAO.getHostNamesByGroup(clusterName);
     }
 
-    private String getClusterName(String envName, String stageName) {
-        return String.format("%s-%s", envName, stageName);
+    private String getClusterName(String envName, String stageName) throws Exception {
+        EnvironBean environBean = environDAO.getByStage(envName, stageName);
+        return environBean.getCluster_name();
     }
 }

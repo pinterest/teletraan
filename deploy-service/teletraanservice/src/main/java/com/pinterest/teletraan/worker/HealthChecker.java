@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -213,7 +214,7 @@ public class HealthChecker implements Runnable {
         LOG.info("Start to launch instance with AMI ID {} to Subnet {} for group {}", healthCheckBean.getAmi_id(), subnet, groupName);
         awsVmBean.setImage(healthCheckBean.getAmi_id());
 
-        List<HostBean> hosts = hostInfoDAO.launchEC2Instances(awsVmBean, 1, subnet);
+        Collection<HostBean> hosts = hostInfoDAO.launchHosts(awsVmBean, 1, subnet);
         if (hosts.isEmpty()) {
             LOG.error("Failed to launch instance with AMI ID {} to Subnet {} for group {}", healthCheckBean.getAmi_id(), subnet, groupName);
             String subject = String.format("Health Check Warning - Launch Instance Failed in group <%s>", groupName);
@@ -223,7 +224,7 @@ public class HealthChecker implements Runnable {
             return;
         }
 
-        HostBean host = hosts.get(0);
+        HostBean host = hosts.iterator().next();
         LOG.info("Successfully launched host id {} for group {}", host.getHost_id(), groupName);
         try {
             hostDAO.insert(host);
