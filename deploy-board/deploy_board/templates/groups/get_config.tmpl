@@ -1,19 +1,6 @@
 {% load utils %}
 <input type="hidden" name="asgStatus" value="{{ asgStatus }}" />
-{% if asgStatus == 'ENABLED' %}
-    <div class="alert alert-info" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <strong>Note:</strong> {{ groupName }} is a Auto Scaling group.  It automatically balanced the number of instances in different zones.
-    </div>
-{% elif asgStatus = 'DISABLED' %}
-    <div class="alert alert-danger" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <strong>Warning!</strong> The Auto Scaling group is disabled. Please go to  <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">group config</a> to enable it before launching new hosts.
-    </div>
-    <script>
-        document.getElementById("addMetricBtnId").disabled = true;
-    </script>
-{% else %}
+{% if asgStatus == 'UNKNOWN' %}
     {% if empty_config %}
         <div class="alert alert-danger" role="alert">
             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>

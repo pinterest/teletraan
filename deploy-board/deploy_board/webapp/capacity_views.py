@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -70,7 +70,7 @@ class EnvCapacityConfigView(View):
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
             if basic_cluster_info:
-                cluster_name = common.get_cluster_name(name, stage)
+                cluster_name = common.get_cluster_name(request, name, stage)
                 groups.append(cluster_name)
         environs_helper.update_env_capacity(request, name, stage, capacity_type="GROUP",
                                             data=groups)

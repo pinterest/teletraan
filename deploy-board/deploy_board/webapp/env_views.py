@@ -1319,23 +1319,14 @@ def add_instance(request, name, stage):
     instanceCnt = int(params["instanceCnt"])
     subnet = ""
     try:
-        if asgStatus == 'ENABLED':
-            groups_helper.launch_instance_in_group(request, groupName, instanceCnt,
-                                                                 subnet)
-            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
-                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
-                      'to check new hosts information.'.format(instanceCnt, groupName, groupName)
+        if asgStatus != 'UNKNOWN':
+            groups_helper.launch_instance_in_group(request, groupName, instanceCnt, subnet)
+            content = 'Capacity increased by {}'.format(instanceCnt)
             messages.add_message(request, messages.SUCCESS, content)
-        elif asgStatus == 'DISABLED':
-            content = 'This Auto Scaling Group {} is disabled.' \
-                      ' Please go to <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
-                      ' to enable it.'.format(groupName, groupName)
-            messages.add_message(request, messages.ERROR, content)
         else:
             if "subnet" in params:
                 subnet = params["subnet"]
-            instanceIds = groups_helper.launch_instance_in_group(request, groupName, instanceCnt,
-                                                                 subnet)
+            instanceIds = groups_helper.launch_instance_in_group(request, groupName, instanceCnt, subnet)
             if len(instanceIds) > 0:
                 content = '{} instances have been launched to group {} (instance ids: {})' \
                     .format(instanceCnt, groupName, instanceIds)

@@ -30,7 +30,6 @@ import com.pinterest.arcee.bean.ScalingPoliciesBean;
 import com.pinterest.arcee.bean.ScalingPolicyBean;
 import com.pinterest.arcee.bean.SpotAutoScalingBean;
 import com.pinterest.arcee.common.AutoScalingConstants;
-import com.pinterest.arcee.common.HealthCheckConstants;
 import com.pinterest.arcee.dao.AlarmDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
@@ -43,7 +42,6 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.handler.CommonHandler;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

@@ -15,10 +15,10 @@
  */
 package com.pinterest.arcee.dao;
 
-import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.HostBean;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -29,9 +29,9 @@ import java.util.Set;
 public interface HostInfoDAO {
     Set<String> getTerminatedHosts(Set<String> ids) throws Exception;
 
-    void terminateHost(String hostId) throws Exception;
+    void terminateHosts(Collection<String> hostIds) throws Exception;
 
-    List<HostBean> launchEC2Instances(AwsVmBean awsVmBean, int instanceCnt, String subnet) throws Exception;
+    Collection<HostBean> launchHosts(AwsVmBean awsVmBean, int num, String subnet) throws Exception;
 
     List<String> getRunningInstances(List<String> runningIds) throws Exception;
 }

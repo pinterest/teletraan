@@ -20,8 +20,6 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.*;
 
-import com.pinterest.arcee.autoscaling.AwsAutoScalingManager;
-import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.arcee.dao.HostInfoDAO;
@@ -92,38 +90,44 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
     }
 
     @Override
-    public void terminateHost(String hostId) throws Exception {
+    public void terminateHosts(Collection<String> hostIds) throws Exception {
         TerminateInstancesRequest request = new TerminateInstancesRequest();
-        request.setInstanceIds(Arrays.asList(hostId));
+        request.setInstanceIds(hostIds);
         try {
             ec2Client.terminateInstances(request);
         } catch (AmazonClientException ex) {
-            LOG.error(String.format("Failed to call aws terminateInstances whem terminating host %s", hostId), ex);
-            throw new DeployInternalException(String.format("Failed to call aws terminateInstances whem terminating host %s", hostId), ex);
+            LOG.error(String.format("Failed to call aws terminateInstances when terminating host %s", hostIds.toString()), ex);
+            throw new DeployInternalException(String.format("Failed to call aws terminateInstances when terminating host %s", hostIds), ex);
         }
     }
 
     @Override
-    public List<HostBean> launchEC2Instances(AwsVmBean awsVmBean, int instanceCnt, String subnet) throws Exception {
+    public Collection<HostBean> launchHosts(AwsVmBean awsVmBean, int num, String subnet) throws Exception {
         RunInstancesRequest request = new RunInstancesRequest();
         request.setImageId(awsVmBean.getImage());
         request.setInstanceType(awsVmBean.getHostType());
+        request.setMinCount(num);
+        request.setMaxCount(num);
         request.setKeyName(vmKeyName);
-        request.setSecurityGroupIds(Arrays.asList(awsVmBean.getSecurityZone()));
-        request.setSubnetId(subnet);
+        request.setSecurityGroupIds(Collections.singletonList(awsVmBean.getSecurityZone()));
         String userData = Base64.encodeBase64String(awsVmBean.getRawUserDataString().getBytes());
         request.setUserData(userData);
         IamInstanceProfileSpecification iamRole = new IamInstanceProfileSpecification();
         String role = String.format(roleTemplate, ownerId, awsVmBean.getRole());
         iamRole.setArn(role);
         request.setIamInstanceProfile(iamRole);
-        request.setMinCount(instanceCnt);
-        request.setMaxCount(instanceCnt);
+        if (subnet == null) {
+            // TODO based on subnet capacity to choose
+            Collection<String> subnetIds = Arrays.asList(awsVmBean.getSubnet().split(","));
+            request.setSubnetId(subnetIds.iterator().next());
+        } else {
+            request.setSubnetId(subnet);
+        }
 
-        List<HostBean> newHosts = new ArrayList<>();
+        Collection<HostBean> newHosts = new ArrayList<>();
         try {
             RunInstancesResult result = ec2Client.runInstances(request);
-            List<Instance> instances = result.getReservation().getInstances();
+            Collection<Instance> instances = result.getReservation().getInstances();
             LOG.info("Launch instances {}", instances.toString());
             for (Instance instance : instances) {
                 HostBean host = new HostBean();

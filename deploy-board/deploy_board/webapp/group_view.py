@@ -23,7 +23,7 @@ import json
 import logging
 import traceback
 
-from helpers import environs_helper
+from helpers import environs_helper, clusters_helper
 from helpers import images_helper, groups_helper
 from helpers import specs_helper
 from helpers import autoscaling_metrics_helper
@@ -104,9 +104,16 @@ def get_group_config(request, group_name):
         group_info = groups_helper.get_group_info(request, group_name)
         group_config = group_info.get("groupInfo")
         group_config = get_group_config_internal(group_config)
+        is_cmp = False
+        envs = environs_helper.get_all_envs_by_group(request, group_name)
+        for env in envs:
+            basic_cluster_info = clusters_helper.get_cluster(request, env.get('envName'), env.get('stageName'))
+            if basic_cluster_info:
+                is_cmp = True
         html = render_to_string('groups/group_config.tmpl', {
             "group_name": group_name,
             "config": group_config,
+            "is_cmp": is_cmp,
             "csrf_token": get_token(request),
         })
     except:
@@ -164,10 +171,10 @@ def update_group_config(request, group_name):
     try:
         params = request.POST
         groupRequest = {}
-        groupRequest["chatroom"] = params["chatroom"]
-        groupRequest["watchRecipients"] = params["watch_recipients"]
-        groupRequest["emailRecipients"] = params["email_recipients"]
-        groupRequest["pagerRecipients"] = params["pager_recipients"]
+        groupRequest["chatroom"] = params.get("chatroom")
+        groupRequest["watchRecipients"] = params.get("watch_recipients")
+        groupRequest["emailRecipients"] = params.get("email_recipients")
+        groupRequest["pagerRecipients"] = params.get("pager_recipients")
         groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
         if "healthcheck_state" in params:
             groupRequest["healthcheckState"] = True
@@ -760,6 +767,7 @@ class GroupConfigView(View):
         asg_cluster = groups_helper.get_group_info(request, group_name)
         appNames = images_helper.get_all_app_names(request)
         appNames = sorted(appNames)
+        is_cmp = False
         if asg_cluster:
             asg_vm_info = asg_cluster.get("launchInfo")
             if asg_vm_info and asg_vm_info.get("subnets"):
@@ -767,6 +775,11 @@ class GroupConfigView(View):
             group_info = asg_cluster.get("groupInfo")
             curr_image = images_helper.get_image_by_id(request, asg_vm_info["imageId"])
             group_info = get_group_config_internal(group_info)
+            envs = environs_helper.get_all_envs_by_group(request, group_name)
+            for env in envs:
+                basic_cluster_info = clusters_helper.get_cluster(request, env.get('envName'), env.get('stageName'))
+                if basic_cluster_info:
+                    is_cmp = True
         else:
             asg_vm_info = None
             group_info = None
@@ -777,6 +790,7 @@ class GroupConfigView(View):
             "curr_image": curr_image,
             "group_config": group_info,
             "group_name": group_name,
+            "is_cmp": is_cmp
         })
 
 

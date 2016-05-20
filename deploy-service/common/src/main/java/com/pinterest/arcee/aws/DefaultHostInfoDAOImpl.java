@@ -20,6 +20,7 @@ import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.HostBean;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -31,13 +32,12 @@ public class DefaultHostInfoDAOImpl implements HostInfoDAO {
     }
 
     @Override
-    public void terminateHost(String hostId) {
-
+    public void terminateHosts(Collection<String> hostIds) throws Exception {
     }
 
     @Override
-    public List<HostBean> launchEC2Instances(AwsVmBean groupBean, int instanceCnt, String subnet) {
-        return null;
+    public Collection<HostBean> launchHosts(AwsVmBean awsVmBean, int num, String subnet) throws Exception {
+        return Collections.emptyList();
     }
 
     @Override
