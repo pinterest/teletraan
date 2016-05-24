@@ -1,63 +1,91 @@
 {% load utils %}
-<input type="hidden" name="asgStatus" value="{{ asgStatus }}" />
-{% if asgStatus == 'UNKNOWN' %}
-    {% if empty_config %}
-        <div class="alert alert-danger" role="alert">
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <strong>Warning!</strong> Please update the <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">Group Launch Configuration</a> before launching instances!
+{% if not config %}
+<div class="alert alert-danger" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> Please update the <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">Group Launch Configuration</a> before launching hosts!
+</div>
+{% else %}
+    <input type="hidden" name="asgStatus" value="{{ config.asgStatus }}" />
+    {% if config.asgStatus == 'UNKNOWN' %}
+    <div class="row">
+        <label for="subnet" class="deployToolTip control-label col-xs-6">
+            Choose a subnet to launch to:
+        </label>
+        <div class="deployToolTip control-label col-md-6">
+            <select class="form-control" name="subnet">
+                {% for subnet in subnets %}
+                    {% if subnet.id in config.subnetArrays %}
+                        <option value="{{ subnet.id }}">{{ subnet | genSubnetIdZone }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
         </div>
+    </div>
+
+    <div class="row">
+        <label for="instanceType" class="deployToolTip control-label col-xs-6">
+            Instance Type:
+        </label>
+        <div class="deployToolTip control-label col-md-6">
+            <p>{{ config.instanceType }} </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <label for="securityGroup" class="deployToolTip control-label col-xs-6">
+            Security Group:
+        </label>
+        <div class="deployToolTip control-label col-md-6">
+            {% for group in security_groups %}
+                {% if config.securityGroup == group.id %}
+                    <p>{{ group.info.name }} </p>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="row">
+        <label for="imsageId" class="deployToolTip control-label col-xs-6">
+            Image Id:
+        </label>
+        <div class="deployToolTip control-label col-md-6">
+            <p>{{ config.imageId }} </p>
+        </div>
+    </div>
+
+    <div class="row">
+        <label for="userData" class="deployToolTip control-label col-xs-6">
+            User Data:
+        </label>
+        <div class="deployToolTip control-label col-md-6">
+            <p>{{ config.userData | safe}} </p>
+        </div>
+    </div>
     {% else %}
-        <div class="row">
+    <div class="row">
+        <input type="checkbox" class="checkToCustomize" name="customSubnet"> Check to specify a subnet
+        (or let Teletraan choose)
+        <div class="chooseSubnet" hidden>
             <label for="subnet" class="deployToolTip control-label col-xs-6">
                 Choose a subnet to launch to:
             </label>
             <div class="deployToolTip control-label col-md-6">
-                <select class="form-control" name="subnet">
-                    {% for subnet in subnets %}
-                        {% if subnet.id in config.subnetArrays %}
-                            <option value="{{ subnet.id }}">{{ subnet | genSubnetIdZone }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-        <div class="row">
-            <label for="instanceType" class="deployToolTip control-label col-xs-6">
-                Instance Type:
-            </label>
-            <div class="deployToolTip control-label col-md-6">
-                <p>{{ config.instanceType }} </p>
-            </div>
-        </div>
-
-        <div class="row">
-            <label for="securityGroup" class="deployToolTip control-label col-xs-6">
-                Security Group:
-            </label>
-            <div class="deployToolTip control-label col-md-6">
-                {% for group in security_groups %}
-                    {% if config.securityGroup == group.id %}
-                        <p>{{ group.info.name }} </p>
+            <select class="form-control" name="subnet">
+                {% for subnet in subnets %}
+                    {% if subnet.id in config.subnetArrays %}
+                        <option value="{{ subnet.id }}">{{ subnet | genSubnetIdZone }}</option>
                     {% endif %}
                 {% endfor %}
+            </select>
             </div>
         </div>
-
-        <div class="row">
-            <label for="imsageId" class="deployToolTip control-label col-xs-6">
-                Image Id:
-            </label>
-            <div class="deployToolTip control-label col-md-6">
-                <p>{{ config.imageId }} </p>
-            </div>
-        </div>
-
-        <div class="row">
-            <label for="userData" class="deployToolTip control-label col-xs-6">
-                User Data:
-            </label>
-            <div class="deployToolTip control-label col-md-6">
-                <p>{{ config.userData | safe}} </p>
-            </div>
-        </div>
+    </div>
     {% endif %}
 {% endif %}
+
+<script>
+   $('input.checkToCustomize').change(function(){
+        if ($(this).is(':checked')) $(this).next('div.chooseSubnet').show();
+        else $('div.chooseSubnet').hide();
+    }).change();
+</script>

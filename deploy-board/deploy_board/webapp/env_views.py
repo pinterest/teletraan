@@ -1314,29 +1314,33 @@ def compare_deploys_2(request, name, stage):
 
 def add_instance(request, name, stage):
     params = request.POST
-    groupName = params["groupName"]
-    asgStatus = params["asgStatus"]
-    instanceCnt = int(params["instanceCnt"])
-    subnet = ""
+    groupName = params['groupName']
+    num = int(params['instanceCnt'])
+    subnet = None
+    asg_status = params['asgStatus']
+    launch_in_asg = True
+    if 'subnet' in params:
+        subnet = params['subnet']
+        if asg_status == 'UNKNOWN':
+            launch_in_asg = False
+        elif 'customSubnet' in params:
+            launch_in_asg = False
     try:
-        if asgStatus != 'UNKNOWN':
-            groups_helper.launch_instance_in_group(request, groupName, instanceCnt, subnet)
-            content = 'Capacity increased by {}'.format(instanceCnt)
-            messages.add_message(request, messages.SUCCESS, content)
-        else:
-            if "subnet" in params:
-                subnet = params["subnet"]
-            instanceIds = groups_helper.launch_instance_in_group(request, groupName, instanceCnt, subnet)
-            if len(instanceIds) > 0:
-                content = '{} instances have been launched to group {} (instance ids: {})' \
-                    .format(instanceCnt, groupName, instanceIds)
+        if not launch_in_asg:
+            host_ids = groups_helper.launch_instance_in_group(request, groupName, num, subnet)
+            if len(host_ids) > 0:
+                content = '{} hosts have been launched to group {} (host ids: {})'.format(num, groupName, host_ids)
                 messages.add_message(request, messages.SUCCESS, content)
             else:
-                content = 'Failed to launch instances to group {}. Please make sure the' \
+                content = 'Failed to launch hosts to group {}. Please make sure the' \
                           ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
                           ' is correct. If you have any question, please contact your friendly Teletraan owners' \
                           ' for immediate assistance!'.format(groupName, groupName)
                 messages.add_message(request, messages.ERROR, content)
+        else:
+            groups_helper.launch_instance_in_group(request, groupName, num, None)
+            content = 'Capacity increased by {}'.format(num)
+            messages.add_message(request, messages.SUCCESS, content)
     except:
         log.error(traceback.format_exc())
         raise

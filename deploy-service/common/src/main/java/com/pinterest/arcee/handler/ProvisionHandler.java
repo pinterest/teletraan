@@ -17,7 +17,6 @@ package com.pinterest.arcee.handler;
 
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.clusterservice.bean.AwsVmBean;
-import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
@@ -41,19 +40,17 @@ public class ProvisionHandler {
         autoScalingManager = serviceContext.getAutoScalingManager();
     }
 
-    public List<String> launchNewInstances(String groupName, int instanceCnt, String subnet) throws Exception {
+    public Collection<String> launchHosts(String groupName, int instanceCnt, String subnet) throws Exception {
         AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(groupName);
-        ASGStatus asgStatus = awsVmBean.getAsgStatus();
-        if (asgStatus != ASGStatus.UNKNOWN) {
-            LOG.info(String.format("Launch %d EC2 instances in AutoScalingGroup %s", instanceCnt,
-                    groupName));
+        if (subnet == null) {
+            LOG.info(String.format("Launch %d EC2 instances in AutoScalingGroup %s", instanceCnt, groupName));
             autoScalingManager.increaseGroupCapacity(groupName, instanceCnt);
             return new ArrayList<>();
         } else {   // No ASG for this group, directly launch EC2 instances
             LOG.info(String.format("Launch %d EC2 instances in group %s and subnet %s", instanceCnt,
                                    groupName, subnet));
             Collection<HostBean> hosts = hostInfoDAO.launchHosts(awsVmBean, instanceCnt, subnet);
-            List<String> hostIds = new ArrayList<>();
+            Collection<String> hostIds = new ArrayList<>();
             for (HostBean host : hosts) {
                 LOG.debug(String.format("An new instance %s has been launched in group %s",
                                         host.getHost_id(), groupName));

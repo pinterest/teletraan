@@ -44,6 +44,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+
+import java.util.Collection;
 import java.util.List;
 
 @Path("/v1/groups")
@@ -135,13 +137,13 @@ public class Groups {
 
     @PUT
     @Path("/{groupName: [a-zA-Z0-9\\-_]+}/instances")
-    public List<String> launchNewInstances(@Context SecurityContext sc,
-        @PathParam("groupName") String groupName,
-        @QueryParam("instanceCount") Optional<Integer> instanceCnt,
-        @NotEmpty @QueryParam("subnet") String subnet) throws Exception {
+    public Collection<String> launchHosts(@Context SecurityContext sc,
+                                          @PathParam("groupName") String groupName,
+                                          @QueryParam("instanceCount") Optional<Integer> instanceCnt,
+                                          @QueryParam("subnet") String subnet) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        List<String> instanceIds = provisionHandler.launchNewInstances(groupName, instanceCnt.or(1), subnet);
+        Collection<String> instanceIds = provisionHandler.launchHosts(groupName, instanceCnt.or(1), subnet);
         if (!instanceIds.isEmpty()) {
             String configChange = String.format("%s", instanceIds);
             configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_LAUNCH, configChange, operator);

@@ -285,7 +285,6 @@ $(document).ready(function() {
 });
 
 $(function () {
-    loadDetails();
     $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
     $("#group_name").change(function() {
         loadGroupConfig();

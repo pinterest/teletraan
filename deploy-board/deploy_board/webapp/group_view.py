@@ -704,27 +704,22 @@ def config_rollback(request, group_name):
 def get_configs(request):
     params = request.GET
     groupName = params["group_name"]
-    config = groups_helper.get_group_info(request, groupName)
-    config = config.get("launchInfo")
-    empty_config = False
-    if not config.get("instanceType") or not config.get("securityGroup") \
-            or not config.get("imageId") or not config.get("userData") or not config.get("subnets"):
-        empty_config = True
-
-    instance_types, sorted_subnets, sorted_sgs = get_system_specs(request)
-    if config and config.get("subnets"):
-        config["subnetArrays"] = config["subnets"].split(',')
-
-    if config and config.get("userData"):
-        config["userData"] = config["userData"].replace("\n", "<br>")
+    group_info = groups_helper.get_group_info(request, groupName)
+    sorted_subnets = None
+    sorted_sgs = None
+    config = None
+    if group_info:
+        config = group_info.get("launchInfo")
+        instance_types, sorted_subnets, sorted_sgs = get_system_specs(request)
+        if config:
+            config["subnetArrays"] = config["subnets"].split(',')
+            config["userData"] = config["userData"].replace("\n", "<br>")
 
     contents = render_to_string('groups/get_config.tmpl', {
         "groupName": groupName,
-        "empty_config": empty_config,
         "subnets": sorted_subnets,
         "security_groups": sorted_sgs,
         "config": config,
-        "asgStatus": config["asgStatus"],
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
@@ -857,36 +852,34 @@ def get_subnets_settings(request):
 # Instances Provision
 def add_instance(request, group_name):
     params = request.POST
-    asgStatus = params["asgStatus"]
-    instanceCnt = int(params["instanceCnt"])
-    subnet = ""
+    num = int(params["instanceCnt"])
+    subnet = None
+    asg_status = params['asgStatus']
+    launch_in_asg = True
+    if 'subnet' in params:
+        subnet = params['subnet']
+        if asg_status == 'UNKNOWN':
+            launch_in_asg = False
+        elif 'customSubnet' in params:
+            launch_in_asg = False
     try:
-        if asgStatus == 'ENABLED':
-            groups_helper.launch_instance_in_group(request, group_name, instanceCnt, subnet)
-            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
-                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
-                      'to check new hosts information.'.format(instanceCnt, group_name, group_name)
-            messages.add_message(request, messages.SUCCESS, content)
-        elif asgStatus == 'DISABLED':
-            content = 'This Auto Scaling Group {} is disabled.' \
-                      ' Please go to <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
-                      ' to enable it.'.format(group_name, group_name)
-            messages.add_message(request, messages.ERROR, content)
-        else:
-            if "subnet" in params:
-                subnet = params["subnet"]
-            instanceIds = groups_helper.launch_instance_in_group(request, group_name, instanceCnt,
-                                                                 subnet)
-            if len(instanceIds) > 0:
-                content = '{} instances have been launched to group {} (instance ids: {})' \
-                    .format(instanceCnt, group_name, instanceIds)
+        if not launch_in_asg:
+            host_ids = groups_helper.launch_instance_in_group(request, group_name, num, subnet)
+            if len(host_ids) > 0:
+                content = '{} hosts have been launched to group {} (host ids: {})'.format(num, group_name, host_ids)
                 messages.add_message(request, messages.SUCCESS, content)
             else:
-                content = 'Failed to launch instances to group {}. Please make sure the' \
+                content = 'Failed to launch hosts to group {}. Please make sure the' \
                           ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
                           ' is correct. If you have any question, please contact your friendly Teletraan owners' \
                           ' for immediate assistance!'.format(group_name, group_name)
                 messages.add_message(request, messages.ERROR, content)
+        else:
+            groups_helper.launch_instance_in_group(request, group_name, num, None)
+            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
+                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
+                      'to check new hosts information.'.format(num, group_name, group_name)
+            messages.add_message(request, messages.SUCCESS, content)
     except:
         log.error(traceback.format_exc())
         raise
@@ -904,6 +897,7 @@ def instance_action_in_asg(request, group_name):
         log.error(traceback.format_exc())
         raise
     return redirect('/groups/{}'.format(group_name))
+
 
 # Health Check related
 def get_health_check_activities(request, group_name):
