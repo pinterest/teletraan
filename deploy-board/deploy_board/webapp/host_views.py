@@ -84,7 +84,7 @@ class GroupHostDetailView(View):
             'hosts': hosts,
             'host_id': host_id,
             'agent_wrappers': agent_wrappers,
-            'show_warning_terminate': show_warning_message,
+            'show_warning_message': show_warning_message,
             'asg_group': asg,
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
