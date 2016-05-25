@@ -21,12 +21,6 @@ echo "Install python and related tools..."
 apt-get install -y python python-pip python-virtualenv python-dev
 echo "Successfully installed python"
 
-echo "Install mysql..."
-export DEBIAN_FRONTEND=noninteractive
-apt-get install -q -y mysql-server mysql-client
-mysql -u root < /home/vagrant/teletraan/deploy-service/common/src/main/resources/sql/deploy.sql
-echo "Successfully installed mysql"
-
 echo "Successfully completed Teletraan dependencies install!"
 
-su -c "source /home/vagrant/teletraan/deploy-sentinel/demo_run_vagrant.sh" vagrant
+su -c "source /home/vagrant/teletraan/deploy-sentinel/demo_run.sh" vagrant
