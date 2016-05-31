@@ -26,7 +26,7 @@ public interface PlacementDAO {
 
     PlacementBean getById(String id) throws Exception;
 
-    PlacementBean getByProviderName(String providerName) throws Exception;
+    PlacementBean getByProviderAndAbstractName(String provider, String abstractName) throws Exception;
 
     Collection<PlacementBean> getAll(int pageIndex, int pageSize) throws Exception;
 

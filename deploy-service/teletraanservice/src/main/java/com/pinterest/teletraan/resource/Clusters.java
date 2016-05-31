@@ -15,7 +15,7 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.pinterest.clusterservice.bean.ClusterBean;
+import com.pinterest.clusterservice.bean.ClusterInfoBean;
 import com.pinterest.clusterservice.handler.ClusterHandler;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
@@ -36,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.Map;
 
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -87,13 +86,13 @@ public class Clusters {
     public void createCluster(@Context SecurityContext sc,
                               @PathParam("envName") String envName,
                               @PathParam("stageName") String stageName,
-                              @Valid ClusterBean clusterBean) throws Exception {
+                              @Valid  ClusterInfoBean clusterInfoBean) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        clusterHandler.createCluster(envName, stageName, clusterBean);
+        clusterHandler.createCluster(envName, stageName, clusterInfoBean, operator);
 
-        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterInfoBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
         LOG.info(String.format("Successfully create cluster for %s/%s by %s", envName, stageName, operator));
     }
@@ -102,20 +101,20 @@ public class Clusters {
     public void updateCluster(@Context SecurityContext sc,
                               @PathParam("envName") String envName,
                               @PathParam("stageName") String stageName,
-                              @Valid ClusterBean clusterBean) throws Exception {
+                              @Valid ClusterInfoBean clusterInfoBean) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
-        clusterHandler.updateCluster(envName, stageName, clusterBean);
+        clusterHandler.updateCluster(envName, stageName, clusterInfoBean, operator);
 
-        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterBean, operator);
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, clusterInfoBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_CLUSTER, operator);
         LOG.info(String.format("Successfully update cluster for %s/%s by %s", envName, stageName, operator));
     }
 
     @GET
-    public ClusterBean getCluster(@PathParam("envName") String envName,
-                                  @PathParam("stageName") String stageName) throws Exception {
+    public ClusterInfoBean getCluster(@PathParam("envName") String envName,
+                                      @PathParam("stageName") String stageName) throws Exception {
         return clusterHandler.getCluster(envName, stageName);
     }
 
@@ -162,27 +161,6 @@ public class Clusters {
         String configChange = String.format("%s cluster replacement for %s/%s", actionType, envName, stageName);
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_OTHER, configChange, operator);
         LOG.info(String.format("Successfully %s cluster replacement for %s/%s by %s", actionType, envName, stageName, operator));
-    }
-
-    @PUT
-    @Path("/configs")
-    public String updateAdvancedConfigs(@Context SecurityContext sc,
-                                      @PathParam("envName") String envName,
-                                      @PathParam("stageName") String stageName,
-                                      @Valid Map<String, String> configs) throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
-        String operator = sc.getUserPrincipal().getName();
-        String configId = clusterHandler.updateAdvancedConfigs(envName, stageName, configs, operator);
-        LOG.info(String.format("Successfully update cluster advanced setting for %s/%s by %s", envName, stageName, operator));
-        return String.format("\"%s\"", configId);
-    }
-
-    @GET
-    @Path("/configs")
-    public Map<String, String> getAdvancedConfigs(@PathParam("envName") String envName,
-                                                  @PathParam("stageName") String stageName) throws Exception {
-        return clusterHandler.getAdvancedConfigs(envName, stageName);
     }
 
     @PUT

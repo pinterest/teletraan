@@ -1,5 +1,5 @@
 {% load utils %}
-{% include "panel_heading.tmpl" with panel_title="Advanced Cluster Manager" panel_body_id="clusterConfigId" direction="down" %}
+{% include "panel_heading.tmpl" with panel_title="Cluster Manager" panel_body_id="clusterConfigId" direction="down" %}
 <div id="clusterConfigId" class="collapse in panel-body">
     <div class="container-fluid">
         <form id="clusterConfigFormId" class="form-horizontal" role="form">
@@ -13,7 +13,11 @@
                     <div class="col-xs-10">
                         <select class="form-control" id="provider" name="provider" required="true">
                             {% for provider in provider_list %}
-                                <option value="{{ provider }}">{{ provider }}</option>
+                                {% if basic_cluster_info.provider == provider %}
+                                    <option value="{{ provider }}" selected>{{ provider }}</option>
+                                {% else %}
+                                    <option value="{{ provider }}">{{ provider }}</option>
+                                {% endif %}
                             {% endfor %}
                         </select>
                     </div>
@@ -22,10 +26,10 @@
                     <label for="capacity" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Number of hosts for this service">
-                        Capacity
+                    Capacity
                     </label>
                     <div class="col-xs-4">
-                        <input class="form-control" name="capacity" required="true" type="text" value=""/>
+                        <input class="form-control" name="capacity" required="true" type="text" value="{{ basic_cluster_info.capacity }}"/>
                     </div>
 
                     <label for="isDocker" class="deployToolTip control-label col-xs-2"
@@ -35,7 +39,7 @@
                     </label>
                     <div class="col-xs-4">
                         <div class="input-group">
-                        {% if env.isDocker %}
+                        {% if basic_cluster_info.isDocker %}
                             <input class="" id="is_docker" name="isDocker" type="checkbox" value="" checked>
                         {% else %}
                             <input class="" id="is_docker" name="isDocker" type="checkbox" value="">
@@ -45,22 +49,33 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="imageName" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="Image Name">
-                        Image Name
-                    </label>
-                    <div class="col-xs-4" id="image_name_div_id">
-                    </div>
-
                     <label for="baseImageId" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Base Image">
                         Image
                     </label>
-                    <div class="col-xs-4" id="base_image_div_id">
+                    <div class="col-xs-10" id="base_image_div_id">
+                        <div class="input-group">
+                        <select class="form-control" id="base_image" name="baseImageId" required="true">
+                        {% for base_image in base_images %}
+                            {% if base_image == basic_cluster_info.baseImageId %}
+                                <option value="{{ base_image.id }}" selected>{{ base_image.provider_name }}</option>
+                            {% else %}
+                                <option value="{{ base_image.id }}">{{ base_image.provider_name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+                        <span class="input-group-btn">
+                            <button id="baseImageDetailsButtonId" class="deployToolTip btn btn-default"
+                                    type="button" data-toggle="tooltip"
+                                    title="click to see more base image information">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                            </button>
+                        </span>
+                        </div>
                     </div>
                 </div>
+
                 <div class="form-group collapse" id="showBaseImageDetailsId">
                     <div class="col-xs-2">
                     </div>
@@ -77,6 +92,7 @@
                     <div class="col-xs-10" id="host_type_div_id">
                     </div>
                 </div>
+
                 <div class="form-group collapse" id="showHostTypeDetailsId">
                     <div class="col-xs-2">
                     </div>
@@ -115,7 +131,7 @@
                     <div class="col-xs-10" id="placementDetailsId">
                     </div>
                 </div>
-
+                <input type="hidden" name="configId" value="{{ basic_cluster_info.config_id }}">
                 <div id="advanced_config_div_id">
                 </div>
             </fieldset>
@@ -126,43 +142,64 @@
 
 <div class="panel-footer clearfix">
     <div class="pull-right">
+        <button type="button" id="resetClusterConfigBtnId" class="btn btn-default"
+                data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        {% if env|isEnvEnabled %}
         <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary"
                 data-loading-text="Saving...">
-            <span class="glyphicon glyphicon-floppy-save"></span> Create
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
+        {% endif %}
     </div>
 </div>
 
 <script>
 function loadConfig(provider) {
-    var image_name_url = "/clouds/get_image_names/?provider=" + provider + "&env={{ env.envName }}" + "&stage={{ env.stageName }}";
+    var image_name_url = "/clouds/get_image_names/?provider=" + provider + "&env={{ env.envName }}" + "&stage={{ env.stageName }}" + "&curr_base_image={{ basic_cluster_info.baseImageId }}";
     $.get(image_name_url, function(response) {
         $("#image_name_div_id").html(response);
     });
 
-    var host_type_url = "/clouds/get_host_types/?provider=" + provider;
+    var host_type_url = "/clouds/get_host_types/?provider=" + provider + "&curr_host_type={{ basic_cluster_info.hostType }}";
     $.get(host_type_url, function(response) {
         $("#host_type_div_id").html(response);
     });
 
-    var security_zone_url = "/clouds/get_security_zones/?provider=" + provider;
+    var security_zone_url = "/clouds/get_security_zones/?provider=" + provider + "&curr_security_zone={{ basic_cluster_info.securityZone }}";
     $.get(security_zone_url, function(response) {
         $("#security_zone_div_id").html(response);
     });
 
-    var placement_url = "/clouds/get_placements/?provider=" + provider;
+    var placement_url = "/clouds/get_placements/?provider=" + provider + "&curr_placement={{ basic_cluster_info.placement }}";
     $.get(placement_url, function(response) {
         $("#placement_div_id").html(response);
     });
 }
 
+function loadAdvancedConfig(provider, image_name) {
+    var advanced_config_url = "/clouds/get_advanced_config/?provider=" + provider + "&env={{ env.envName }}" + "&stage={{ env.stageName }}"+ "&image_name=" + image_name;
+    $.get(advanced_config_url, function(response) {
+        $("#advanced_config_div_id").html(response);
+    });
+}
+
 function getCurrentProvider() {
-    val = $("#provider option:selected").val()
     return $("#provider option:selected").val();
+}
+
+function loadImageDetails(name) {
+    var base_image_info_url = "/clouds/get_base_image_info/?name=" + name;
+    $.get(base_image_info_url, function(response) {
+        $("#baseImageDetailsId").html(response);
+    });
 }
 
 $(document).ready(function() {
     loadConfig(getCurrentProvider());
+    loadImageDetails("CMP-DOCKER");
+    loadAdvancedConfig(getCurrentProvider(), "CMP-DOCKER");
 });
 
 $(function () {
@@ -170,29 +207,34 @@ $(function () {
         loadConfig(getCurrentProvider());
     });
 
+    $("#baseImageDetailsButtonId").click(function() {
+        $("#showBaseImageDetailsId").collapse('toggle');
+    });
+
     $('#saveClusterConfigBtnId').attr('disabled','disabled');
+
+    $('#resetClusterConfigBtnId').attr('disabled','disabled');
 
     $('#clusterConfigFormId input').keyup(function() {
         $('#saveClusterConfigBtnId').removeAttr('disabled');
-    });
-
-    $('#clusterConfigFormId textarea').keyup(function() {
-        $('#saveClusterConfigBtnId').removeAttr('disabled');
+        $('#resetClusterConfigBtnId').removeAttr('disabled');
     });
 
     $('#clusterConfigFormId select').change(function() {
         $('#saveClusterConfigBtnId').removeAttr('disabled');
+        $('#resetClusterConfigBtnId').removeAttr('disabled');
     });
 
     $('#clusterConfigFormId input').change(function() {
         $('#saveClusterConfigBtnId').removeAttr('disabled');
+        $('#resetClusterConfigBtnId').removeAttr('disabled');
     });
 
     $('#saveClusterConfigBtnId').click(function () {
         var btn = $(this);
         $.ajax({
             type: 'POST',
-            url: '/env/{{ env.envName }}/{{ env.stageName }}/config/create_cluster/',
+            url: '/env/{{ env.envName }}/{{ env.stageName }}/config/update_cmp_cluster/',
             data: $("#clusterConfigFormId").serialize(),
             dataType: 'json',
             beforeSend: function () {
@@ -211,6 +253,21 @@ $(function () {
             error: function (data) {
                 $('#errorBannerId').append(data.responseText);
                 $('#errorBannerId').show();
+            }
+        });
+    });
+
+    $('#resetClusterConfigBtnId').click(function () {
+        var btn = $(this);
+        $.ajax({
+            type: 'GET',
+            url: '/env/{{ env.envName }}/{{ env.stageName }}/config/get_cmp_cluster/',
+            beforeSend: function () {
+                btn.button('loading');
+            },
+            success: function (data) {
+                btn.button('reset');
+                $("#clusterConfigId").parent().html(data);
             }
         });
     });

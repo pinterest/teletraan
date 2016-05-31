@@ -33,11 +33,9 @@ import com.pinterest.clusterservice.dao.PlacementDAO;
 import com.pinterest.clusterservice.dao.SecurityZoneDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.handler.DataHandler;
 
 import com.amazonaws.AmazonClientException;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
@@ -51,8 +49,8 @@ import java.util.Map;
 public class AwsVmManager implements ClusterManager {
     private static final org.slf4j.Logger LOG = LoggerFactory.getLogger(AwsVmManager.class);
     private static final String DEFAULT_TERMINATION_POLICY = "Default";
-    private static final String ROLE_KEY = "cmp_role";
-    private static final String PUBLIC_KEY = "cmp_public_ip";
+    private static final String ROLE_KEY = "aws_role";
+    private static final String PUBLIC_KEY = "assign_public_ip";
     private final BaseImageDAO baseImageDAO;
     private final ClusterDAO clusterDAO;
     private final HostTypeDAO hostTypeDAO;
@@ -111,23 +109,7 @@ public class AwsVmManager implements ClusterManager {
 
     @Override
     public ClusterBean getCluster(String clusterName) throws Exception {
-        ClusterBean clusterBean = clusterDAO.getByClusterName(clusterName);
-        if (StringUtils.isEmpty(clusterBean.getConfig_id())) {
-            AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(clusterName);
-            Map<String, String> resultMap = new HashMap<>(awsVmBean.getUserDataConfigs());
-            resultMap.put(ROLE_KEY, awsVmBean.getRole());
-            if (awsVmBean.getAssignPublicIp()) {
-                resultMap.put(PUBLIC_KEY, "yes");
-            }
-
-            String configId = dataHandler.insertMap(resultMap, Constants.SYSTEM_OPERATOR);
-            clusterBean.setConfig_id(configId);
-            clusterBean.setLast_update(System.currentTimeMillis());
-            clusterDAO.update(clusterName, clusterBean);
-            LOG.info(String.format("Update configs for cluster %s", clusterName));
-        }
-
-        return clusterBean;
+        return clusterDAO.getByClusterName(clusterName);
     }
 
     @Override
@@ -223,9 +205,7 @@ public class AwsVmManager implements ClusterManager {
 
     private AwsVmBean mappingToAwsVmBean(ClusterBean clusterBean) throws Exception {
         String clusterName = clusterBean.getCluster_name();
-        ClusterBean oldBean = clusterDAO.getByClusterName(clusterName);
         AwsVmBean awsVmBean = new AwsVmBean();
-
         if (clusterBean.getBase_image_id() != null) {
             BaseImageBean baseImageBean = baseImageDAO.getById(clusterBean.getBase_image_id());
             if (baseImageBean == null) {
@@ -233,9 +213,6 @@ public class AwsVmManager implements ClusterManager {
                 throw new Exception(String.format("Failed to create cluster %s: invalid image %s", clusterName, clusterBean.getBase_image_id()));
             }
             awsVmBean.setImage(baseImageBean.getProvider_name());
-        } else if (oldBean == null) {
-            LOG.error(String.format("Failed to create cluster %s: null image", clusterName));
-            throw new Exception(String.format("Failed to create cluster %s: null image", clusterName));
         }
 
         if (clusterBean.getHost_type_id() != null) {
@@ -245,9 +222,6 @@ public class AwsVmManager implements ClusterManager {
                 throw new Exception(String.format("Failed to create cluster %s: invalid host type %s", clusterName, clusterBean.getHost_type_id()));
             }
             awsVmBean.setHostType(hostTypeBean.getProvider_name());
-        } else if (oldBean == null) {
-            LOG.error(String.format("Failed to create cluster %s: null host type", clusterName));
-            throw new Exception(String.format("Failed to create cluster %s: null host type", clusterName));
         }
 
         if (clusterBean.getSecurity_zone_id() != null) {
@@ -257,9 +231,6 @@ public class AwsVmManager implements ClusterManager {
                 throw new Exception(String.format("Failed to create cluster %s: invalid security zone %s", clusterName, clusterBean.getSecurity_zone_id()));
             }
             awsVmBean.setSecurityZone(securityZoneBean.getProvider_name());
-        } else if (oldBean == null) {
-            LOG.error(String.format("Failed to create cluster %s: null security zone", clusterName));
-            throw new Exception(String.format("Failed to create cluster %s: null security zone", clusterName));
         }
 
         if (clusterBean.getPlacement_id() != null) {
@@ -276,9 +247,6 @@ public class AwsVmManager implements ClusterManager {
                 throw new Exception(String.format("Failed to create cluster %s: invalid placement %s", clusterName, clusterBean.getSecurity_zone_id()));
             }
             awsVmBean.setSubnet(Joiner.on(",").join(placementNames));
-        } else if (oldBean == null) {
-            LOG.error(String.format("Failed to create cluster %s: null placement", clusterName));
-            throw new Exception(String.format("Failed to create cluster %s: null placement", clusterName));
         }
 
         String configId = clusterBean.getConfig_id();
@@ -288,7 +256,7 @@ public class AwsVmManager implements ClusterManager {
                 awsVmBean.setRole(configMaps.get(ROLE_KEY));
             }
 
-            if (configMaps.containsKey(PUBLIC_KEY)) {
+            if (configMaps.containsKey(PUBLIC_KEY) && configMaps.get(PUBLIC_KEY).toLowerCase().equals("true")) {
                 awsVmBean.setAssignPublicIp(true);
             } else {
                 awsVmBean.setAssignPublicIp(false);
@@ -300,13 +268,7 @@ public class AwsVmManager implements ClusterManager {
                     resultMap.put(entry.getKey(), entry.getValue());
                 }
             }
-
-            if (!resultMap.isEmpty()) {
-                awsVmBean.setUserDataConfigs(resultMap);
-            }
-        } else if (oldBean == null) {
-            LOG.error(String.format("Failed to create cluster %s: empty config id", clusterName));
-            throw new Exception(String.format("Failed to create cluster %s: empty config id", clusterName));
+            awsVmBean.setUserDataConfigs(resultMap);
         }
 
         if (clusterBean.getCapacity() != null) {

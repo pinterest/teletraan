@@ -45,6 +45,8 @@ public interface EnvironDAO {
 
     EnvironBean getByStage(String envName, String envStage) throws Exception;
 
+    EnvironBean getByCluster(String clusterName) throws Exception;
+
     List<String> getOverrideHosts(String envId, String envName, String envStage) throws Exception;
 
     long countTotalCapacity(String envId, String envName, String envStage) throws Exception;

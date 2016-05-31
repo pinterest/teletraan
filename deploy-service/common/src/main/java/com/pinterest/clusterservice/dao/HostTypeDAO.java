@@ -24,6 +24,8 @@ public interface HostTypeDAO {
 
     HostTypeBean getById(String id) throws Exception;
 
+    HostTypeBean getByProviderAndAbstractName(String provider, String abstractName) throws Exception;
+
     Collection<HostTypeBean> getAll(int pageIndex, int pageSize) throws Exception;
 
     Collection<HostTypeBean> getByProvider(String provider) throws Exception;

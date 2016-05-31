@@ -17,6 +17,7 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
+from deploy_board.settings import IS_PINTEREST
 import json
 import logging
 
@@ -64,6 +65,8 @@ def get_base_images(request):
 def get_image_names(request):
     params = request.GET
     provider = params['provider']
+    env_name = params['env']
+    stage_name = params['stage']
     image_names = baseimages_helper.get_image_names(request, provider)
     curr_image_name = None
     curr_base_image = None
@@ -76,6 +79,9 @@ def get_image_names(request):
         'image_names': image_names,
         'curr_image_name': curr_image_name,
         'curr_base_image': curr_base_image,
+        'provider': provider,
+        'env_name': env_name,
+        'stage_name': stage_name,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
@@ -299,66 +305,102 @@ def parse_configs(query_dict):
     return configs
 
 
-def create_cluster(request, name, stage):
+def get_default_cmp_configs(name, stage):
+    config_map = {}
+    config_map['aws_role'] = 'base'
+    config_map['cmp_group'] = 'CMP,{}-{}'.format(name, stage)
+    config_map['pinfo_environment'] = 'prod'
+    config_map['pinfo_team'] = 'cloudeng'
+    config_map['pinfo_role'] = 'cmp_docker'
+    return config_map
+
+
+def parse_cluster_info(request):
     params = request.POST
     cluster_info = {}
     cluster_info['capacity'] = params['capacity']
-    cluster_info['base_image_id'] = params['baseImageId']
+    cluster_info['baseImageId'] = params['baseImageId']
     cluster_info['provider'] = params['provider']
-    cluster_info['host_type_id'] = params['hostTypeId']
-    cluster_info['security_zone_id'] = params['securityZoneId']
-    cluster_info['placement_id'] = ",".join(params.getlist('placementId'))
-
-    user_data_configs = parse_configs(params)
-    if 'assignPublicIp' in params:
-        user_data_configs['cmp_public_ip'] = 'yes'
-
-    if 'role' in params and params['role'] != '':
-        user_data_configs['cmp_role'] = params['role']
-    else:
-        user_data_configs['cmp_role'] = 'base'
-    config_id = clusters_helper.update_advanced_configs(request, name, stage, user_data_configs)
-    cluster_info['config_id'] = config_id
-    clusters_helper.create_cluster(request, name, stage, cluster_info)
-
-    env_info = {}
+    cluster_info['hostType'] = params['hostTypeId']
+    cluster_info['securityZone'] = params['securityZoneId']
+    cluster_info['placement'] = ",".join(params.getlist('placementId'))
     if 'isDocker' in params:
-        env_info['isDocker'] = True
+        cluster_info['isDocker'] = True
     else:
-        env_info['isDocker'] = False
-    environs_helper.update_env_basic_config(request, name, stage, data=env_info)
+        cluster_info['isDocker'] = False
+    return cluster_info
+
+
+def create_cmp_cluster(request, name, stage):
+    params = request.POST
+    cluster_info = parse_cluster_info(request)
+    config_map = get_default_cmp_configs(name, stage)
+    user_data_configs = parse_configs(params)
+    config_map.update(user_data_configs)
+    cluster_info['configs'] = config_map
+    clusters_helper.create_cluster(request, name, stage, cluster_info)
+    return get_cmp_cluster(request, name, stage)
+
+
+def create_cluster(request, name, stage):
+    params = request.POST
+    cluster_info = parse_cluster_info(request)
+    user_data_configs = parse_configs(params)
+    cluster_info['configs'] = user_data_configs
+    clusters_helper.create_cluster(request, name, stage, cluster_info)
     return get_basic_cluster(request, name, stage)
+
+
+def update_cmp_cluster(request, name, stage):
+    params = request.POST
+    cluster_info = parse_cluster_info(request)
+    config_map = get_default_cmp_configs(name, stage)
+    user_data_configs = parse_configs(params)
+    config_map.update(user_data_configs)
+    cluster_info['configs'] = user_data_configs
+    clusters_helper.update_cluster(request, name, stage, cluster_info)
+    return get_cmp_cluster(request, name, stage)
 
 
 def update_cluster(request, name, stage):
     params = request.POST
-    cluster_info = {}
-    cluster_info['capacity'] = params['capacity']
-    cluster_info['base_image_id'] = params['baseImageId']
-    cluster_info['provider'] = params['provider']
-    cluster_info['host_type_id'] = params['hostTypeId']
-    cluster_info['security_zone_id'] = params['securityZoneId']
-    cluster_info['placement_id'] = ",".join(params.getlist('placementId'))
-    cluster_info['config_id'] = params['configId']
-
+    cluster_info = parse_cluster_info(request)
     user_data_configs = parse_configs(params)
-    if 'assignPublicIp' in params:
-        user_data_configs['cmp_public_ip'] = 'yes'
-
-    if 'role' in params and params['role'] != '':
-        user_data_configs['cmp_role'] = params['role']
-
-    if user_data_configs:
-        clusters_helper.update_advanced_configs(request, name, stage, user_data_configs)
+    cluster_info['configs'] = user_data_configs
     clusters_helper.update_cluster(request, name, stage, cluster_info)
-
-    env_info = {}
-    if 'isDocker' in params:
-        env_info['isDocker'] = True
-    else:
-        env_info['isDocker'] = False
-    environs_helper.update_env_basic_config(request, name, stage, data=env_info)
     return get_basic_cluster(request, name, stage)
+
+
+def get_new_cmp_cluster(request, name, stage):
+    envs = environs_helper.get_all_env_stages(request, name)
+    stages, env = common.get_all_stages(envs, stage)
+    provider_list = baseimages_helper.get_all_providers(request)
+    base_images = baseimages_helper.get_by_name(request, "CMP-DOCKER")
+    html = render_to_string('clusters/cmp_cluster_creation.tmpl', {
+        'env': env,
+        'stages': stages,
+        'provider_list': provider_list,
+        'base_images': base_images,
+        'csrf_token': get_token(request),
+    })
+    return HttpResponse(json.dumps(html), content_type="application/json")
+
+
+def get_cmp_cluster(request, name, stage):
+    envs = environs_helper.get_all_env_stages(request, name)
+    stages, env = common.get_all_stages(envs, stage)
+    provider_list = baseimages_helper.get_all_providers(request)
+    basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+    base_images = baseimages_helper.get_by_name(request, "CMP-DOCKER")
+    html = render_to_string('clusters/cmp_cluster.tmpl', {
+        'env': env,
+        'stages': stages,
+        'provider_list': provider_list,
+        'basic_cluster_info': basic_cluster_info,
+        'base_images': base_images,
+        'csrf_token': get_token(request),
+    })
+    return HttpResponse(json.dumps(html), content_type="application/json")
 
 
 def get_basic_cluster(request, name, stage):
@@ -382,12 +424,27 @@ def get_cluster(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
     basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+    adv = False
+    is_cmp = False
+    if basic_cluster_info:
+        base_image_id = basic_cluster_info.get('baseImageId')
+        base_image = baseimages_helper.get_by_id(request, base_image_id)
+        if base_image.get('abstract_name') != 'CMP-DOCKER':
+            adv = True
+        else:
+            is_cmp = True
+
+    params = request.GET
+    if params.get('adv'):
+        adv = params.get('adv')
 
     return render(request, 'clusters/clusters.html', {
         'env': env,
         'stages': stages,
         'provider_list': provider_list,
         'basic_cluster_info': basic_cluster_info,
+        'adv': adv,
+        'is_cmp': is_cmp,
     })
 
 
@@ -396,30 +453,49 @@ def delete_cluster(request, name, stage):
     return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
 
 
+def get_aws_config_name_list_by_image(image_name):
+    config_map = {}
+    config_map['aws_role'] = 'base'
+    config_map['assign_public_ip'] = 'true'
+    if IS_PINTEREST:
+        config_map['pinfo_environment'] = 'prod'
+        config_map['raid'] = 'true'
+        if image_name == 'CMP-DOCKER':
+            config_map['pinfo_role'] = 'cmp_docker'
+            config_map['pinfo_team'] = 'cloudeng'
+        else:
+            config_map['pinfo_role'] = ''
+            config_map['pinfo_team'] = ''
+    return config_map
+
+
 def get_advanced_cluster(request):
     params = request.GET
     provider = params['provider']
-    adv = int(params['adv'])
     name = params['env']
     stage = params['stage']
-    advanced_cluster_info = None
-    if adv == 1 and provider == PROVIDER_AWS:
-        advanced_cluster_info = {}
-        config_maps = clusters_helper.get_advanced_configs(request, name, stage)
-        if config_maps:
-            if config_maps.get('cmp_role'):
-                advanced_cluster_info['role'] = config_maps.get('cmp_role')
-                config_maps.pop('cmp_role', None)
-            if config_maps.get('cmp_public_ip') == 'yes':
-                advanced_cluster_info['assignPublicIp'] = True
-                config_maps.pop('cmp_public_ip', None)
-            if config_maps:
-                advanced_cluster_info['userDataConfigs'] = config_maps
+    image_name = params['image_name']
+    config_list = None
+    advanced_cluster_info = {}
+    if provider == PROVIDER_AWS:
+        config_list = get_aws_config_name_list_by_image(image_name)
+        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+        if not basic_cluster_info:
+            if image_name != 'CMP-DOCKER':
+                advanced_cluster_info['aws_role'] = 'base'
         else:
-            advanced_cluster_info['role'] = 'base'
+            if image_name != 'CMP-DOCKER':
+                advanced_cluster_info = basic_cluster_info.get('configs')
+            else:
+                cmp_configs = get_default_cmp_configs(name, stage)
+                advanced_cluster_info = basic_cluster_info.get('configs')
+                for key, value in cmp_configs.iteritems():
+                    if advanced_cluster_info.get(key) == value:
+                        advanced_cluster_info.pop(key)
     contents = render_to_string('clusters/get_advanced_config.tmpl', {
         'provider': provider,
         'advanced_cluster_info': advanced_cluster_info,
+        'config_list': config_list,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
