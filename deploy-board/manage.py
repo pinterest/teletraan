@@ -47,7 +47,7 @@ if __name__ == "__main__":
     #os.environ.setdefault("OAUTH_DOMAIN", <YOUR_DOMAIN>)
     #os.environ.setdefault("OAUTH_CLIENT_TYPE", <CLIENT_TYPE>)
     #os.environ.setdefault("OAUTH_USER_INFO_URI", <USER_INFO_URL>)
-    #os.environ.setdefault("ACCESS_TOKEN_URL", <ACCESS_TOKEN_URL>)
+    #os.environ.setdefault("OAUTH_ACCESS_TOKEN_URL", <ACCESS_TOKEN_URL>)
     #os.environ.setdefault("OAUTH_AUTHORIZE_URL", <OAUTH_AUTH_URL>)
     #os.environ.setdefault("OAUTH_DEFAULT_SCOPE", <DEFAULT_SCOP>)
     # Key for user response, which key is associated with the username in the response. Emails are parsed for prefix.
