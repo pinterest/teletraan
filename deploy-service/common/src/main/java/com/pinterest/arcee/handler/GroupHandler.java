@@ -37,6 +37,8 @@ import com.pinterest.arcee.dao.AlarmDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.arcee.dao.SpotAutoScalingDAO;
+import com.pinterest.arcee.common.HealthCheckConstants;
+import com.pinterest.arcee.dao.*;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.cm.AwsVmManager;
 import com.pinterest.deployservice.ServiceContext;
@@ -77,6 +79,8 @@ public class GroupHandler {
     private CommonHandler commonHandler;
     private PasConfigDAO pasConfigDAO;
     private AwsVmManager awsVmManager;
+    private CommonHandler commonHandler;
+    private PasConfigDAO pasConfigDAO;
 
     public GroupHandler(ServiceContext serviceContext) {
         asgDAO = serviceContext.getAutoScalingManager();
@@ -91,6 +95,8 @@ public class GroupHandler {
         commonHandler = new CommonHandler(serviceContext);
         pasConfigDAO = serviceContext.getPasConfigDAO();
         awsVmManager = new AwsVmManager(serviceContext);
+        commonHandler = new CommonHandler(serviceContext);
+        pasConfigDAO = serviceContext.getPasConfigDAO();
     }
 
     private final class DeleteAutoScalingJob implements Callable<Void> {

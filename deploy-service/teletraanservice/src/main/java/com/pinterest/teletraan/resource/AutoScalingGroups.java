@@ -352,4 +352,20 @@ public class AutoScalingGroups {
         groupHandler.deleteScheduledActionFromAutoScalingGroup(groupName, actionId);
         LOG.info(String.format("Successfully deleted scheduled action %s for group %s", actionId, groupName));
     }
+
+    @POST
+    @Path("/pas")
+    public void updatePasConfig(@Context SecurityContext sc,
+                                @PathParam("groupName") String groupName,
+                                @Valid PasConfigBean request) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        pasConfigDAO.updatePasConfig(request);
+    }
+
+    @GET
+    @Path("/pas")
+    public PasConfigBean getPasConfig(@Context SecurityContext sc,
+                                      @PathParam("groupName") String groupName) throws Exception {
+        return pasConfigDAO.getPasConfig(groupName);
+    }
 }

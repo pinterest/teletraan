@@ -25,6 +25,7 @@
 
 {% block main %}
 
+
 {% if asg_vm_config %}
     {% if not is_cmp %}
     <div id="launchConfigPid" class="panel panel-default">
@@ -43,6 +44,11 @@
     <div id="pasConfigPid" class="panel panel-default">
         {% include "groups/pase_config.tmpl" %}
     </div>
+
+
+<div id="asgConfigPid" class="panel panel-default">
+{% include "groups/asg_config.tmpl" %}
+</div>
 
 <script>
 $(function() {

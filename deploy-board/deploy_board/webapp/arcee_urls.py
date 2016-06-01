@@ -102,4 +102,8 @@ urlpatterns = [
         group_view.add_scheduled_actions),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_scheduled_actions/$',
         group_view.update_scheduled_actions),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_pas_config/$',
+        group_view.update_pas_config),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/get_pas_config/$',
+        group_view.get_pas_config),
 ]

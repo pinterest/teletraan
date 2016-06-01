@@ -261,3 +261,11 @@ def get_scheduled_actions(request, group_name):
 def delete_scheduled_action(request, group_name, action_id):
     return deployclient.delete("/groups/{}/autoscaling/schedules/{}".format(group_name, action_id),
                                request.teletraan_user_id.token)
+
+def update_pas_config(request, pas_config):
+    return deployclient.post("/groups/{}/autoscaling/pas".format(pas_config["group_name"]),
+                             request.teletraan_user_id.token, data=pas_config)
+
+
+def get_pas_config(request, group_name):
+    return deployclient.get("/groups/{}/autoscaling/pas".format(group_name, request.teletraan_user_id))
