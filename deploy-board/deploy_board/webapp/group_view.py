@@ -231,12 +231,17 @@ def get_asg_config(request, group_name):
         asg_summary["spotRatio"] *= 100
     if asg_summary.get("sensitivityRatio", None):
         asg_summary["sensitivityRatio"] *= 100
+    scheduled_actions = groups_helper.get_scheduled_actions(request, group_name)
+    time_based_asg = False
+    if len(scheduled_actions) > 0:
+        time_based_asg = True
     content = render_to_string("groups/asg_config.tmpl", {
         "group_name": group_name,
         "asg": asg_summary,
         "group_size": group_size,
         "terminationPolicies": policies,
         "instanceType": launch_config.get("instanceType"),
+        "time_based_asg": time_based_asg,
         "csrf_token": get_token(request),
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -959,3 +964,60 @@ def enable_scaling_down_event(request, group_name):
 def disable_scaling_down_event(request, group_name):
     groups_helper.disable_scaling_down_event(request, group_name)
     return redirect('/groups/{}'.format(group_name))
+
+
+def add_scheduled_actions(request, group_name):
+    params = request.POST
+    try:
+        schedule_action = {}
+        schedule_action['clusterName'] = group_name
+        schedule_action['schedule'] = params['schedule']
+        schedule_action['capacity'] = params['capacity']
+        groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
+    except:
+        log.error(traceback.format_exc())
+    return redirect("/groups/{}/config/".format(group_name))
+
+
+def get_scheduled_actions(request, group_name):
+    scheduled_actions = groups_helper.get_scheduled_actions(request, group_name)
+    content = render_to_string("groups/asg_schedules.tmpl", {
+        'group_name': group_name,
+        'scheduled_actions': scheduled_actions,
+        'csrf_token': get_token(request),
+    })
+    return HttpResponse(json.dumps(content), content_type="application/json")
+
+
+def delete_scheduled_actions(request, group_name):
+    params = request.POST
+    action_id = params['action_id']
+    groups_helper.delete_scheduled_action(request, group_name, action_id)
+    return get_scheduled_actions(request, group_name)
+
+
+def _parse_actions_configs(query_data, group_name):
+    page_data = dict(query_data.lists())
+    configs = []
+    for key, value in page_data.iteritems():
+        if not value:
+            continue
+        if key.startswith('TELETRAAN_'):
+            action_info = {}
+            action_id = key[len('TELETRAAN_'):]
+            action_info["actionId"] = action_id
+            action_info["schedule"] = page_data["schedule_{}".format(action_id)][0]
+            action_info["capacity"] = page_data["capacity_{}".format(action_id)][0]
+            action_info["clusterName"] = group_name
+            configs.append(action_info)
+    return configs
+
+
+def update_scheduled_actions(request, group_name):
+    try:
+        configs = _parse_actions_configs(request.POST, group_name)
+        groups_helper.add_scheduled_actions(request, group_name, configs)
+        return get_scheduled_actions(request, group_name)
+    except:
+        log.error(traceback.format_exc())
+        return HttpResponse(json.dumps({'content': ""}), content_type="application/json")

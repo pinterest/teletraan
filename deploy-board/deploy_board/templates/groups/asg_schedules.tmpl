@@ -1,0 +1,230 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title="Scheduled Actions" panel_body_id="asSchedulesId" direction="down" %}
+<div id="asSchedulesId" class="collapse in panel-body">
+{% for scheduled_action in scheduled_actions %}
+<div class="container-fluid">
+    <form id="asSchedulesIdFormId" class="form-horizontal" role="form">
+        <fieldset id="envConfigFieldSetId">
+            <div class="form-group">
+                <input type="hidden" name="TELETRAAN_{{ scheduled_action.actionId }}" value="TELETRAAN_{{ scheduled_action.actionId }}">
+                <label for="schedule" class="deployToolTip control-label col-xs-2" data-toggle="tooltip"
+                    title="Crontab like expression to control when to update to certain capacity">
+                    Schedule
+                </label>
+                <div class="col-xs-4">
+                    <div class="input-group">
+                        <input class="form-control" name="schedule_{{ scheduled_action.actionId }}" required="true" id="schedule"
+                               type="text" value="{{ scheduled_action.schedule }}"/>
+                        <span class="input-group-btn">
+                            <button id="cronExpressionId" class="deployToolTip btn btn-default" type="button"
+                                    data-toggle="tooltip" title="click for more information on cron expression">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                            </button>
+                        </span>
+                    </div>
+                </div>
+
+                <label for="capacity" class="deployToolTip control-label col-xs-2"
+                    data-toggle="tooltip" title="The total number of hosts in this group">
+                    Capacity
+                </label>
+                <div class="col-xs-3">
+                    <input class="form-control" name="capacity_{{ scheduled_action.actionId }}" required="true" id="capacity"
+                           type="text" value="{{ scheduled_action.capacity }}"/>
+                </div>
+
+                <div>
+                    <button id="deleteItem_{{ scheduled_action.actionId }}" type="button" style="float:left; margin-left:6px;"
+                            class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
+                </div>
+            </div>
+        </fieldset>
+        {% csrf_token %}
+    </form>
+</div>
+<script>
+$(function() {
+    $('#deleteItem_{{ scheduled_action.actionId }}').click(function () {
+        var btn = $(this);
+        $.ajax({
+            type: 'POST',
+            url: '/groups/{{ group_name }}/autoscaling/delete_scheduled_actions/',
+            data: {'csrfmiddlewaretoken': '{{csrf_token}}',
+                   'action_id': '{{ scheduled_action.actionId }}'},
+            datatype: 'json',
+            beforeSend: function () {
+                btn.button('loading');
+            },
+            success: function (data) {
+                btn.button('reset');
+                $("#asSchedulesId").parent().html(data);
+            }
+        });
+    });
+});
+</script>
+{% endfor %}
+</div>
+
+<div class="form-group collapse" id="cronExpressionDetailsId">
+    <div class="col-xs-2"></div>
+    <div class="col-xs-10">
+        This field follows the syntax of cron (with minor differences).
+        Specifically, each line consists of 6 fields separated by whitespace:
+        <pre>SECOND MINUTE HOUR DOM MONTH DOW</pre>
+        <table class="table table-condensed table-striped table-hover">
+            <tr><td>SECOND</td><td>Seconds within the minute (0 - 59)</td></tr>
+            <tr><td>MINUTE</td><td>Minutes within the hour (0 – 59)</td></tr>
+            <tr><td>HOUR</td><td>The hour of the day (0 – 23)</td></tr>
+            <tr><td>DOM</td><td>The day of the month (1 – 31)</td></tr>
+            <tr><td>MONTH</td><td>The month (1 – 12)</td></tr>
+            <tr><td>DOW</td><td>The day of the week (0–7) where 0 and 7 are Sunday.</td></tr>
+        </table>
+        <ul>
+            <li><strong>*</strong>  - ("all values") - used to select all values within a field. For example, "" in the minute field means *"every minute".</li>
+            <li><strong>?</strong> - ("no specific value") - useful when you need to specify something in one
+            of the two fields in which the character is allowed, but not the other. For example,
+            if I want my trigger to fire on a particular day of the month (say, the 10th),
+            but don't care what day of the week that happens to be, I would put "10" in
+            the day-of-month field, and "?" in the day-of-week field. See the examples below for clarification.</li>
+
+            <li><strong>-</strong> - used to specify ranges. For example, "10-12" in the hour field means "the hours 10, 11 and 12". </li>
+            <li><strong>,</strong> - used to specify additional values. For example, "MON,WED,FRI" in the day-of-week field means
+            "the days Monday, Wednesday, and Friday".</li>
+            <li><strong>/</strong> - used to specify increments. For example, "0/15" in the seconds field means "the seconds 0, 15, 30, and 45".
+            And "5/15" in the seconds field means "the seconds 5, 20, 35, and 50". You can also specify '/'
+            after the '' character - in this case '' is equivalent to having '0' before the '/'. '1/3'
+            in the day-of-month field means "fire every 3 days starting on the first day of the month". </li>
+        </ul>
+        <p>Examples:</p>
+        <pre>
+        # every fifteen minutes (at :0, :15, :30, :45)
+        * 0/15 * * * ?
+        # Fire at 10:15:00am every day
+        0 15 10 * * ?
+        </pre>
+     </div>
+</div>
+
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="resetAsSchedulesBtnId" class="btn btn-default" data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button id="saveAsSchedulesBtnId" class="btn btn-primary" data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+        <button id="addNewSchedulesBtnId" class="btn btn-primary" data-loading-text="Creating...">
+                Add Actions
+        </button>
+    </div>
+</div>
+
+<!----- Added new scheduled action dialog -->
+<div class="modal fade" id="newActionsModalId" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="newEntryFormId" class="form-horizontal" method="post" role="form" action="/groups/{{ group_name }}/autoscaling/add_scheduled_actions/">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="newEnvModalLabel">Add New Scheduled Action</h4>
+            </div>
+            <div class="modal-body" id="newMetricModal">
+                <div class="form-group">
+                    <label for="schedule" class="deployToolTip control-label col-xs-2" data-toggle="tooltip"
+                        title="Crontab like expression to control when to update to certain capacity">
+                        Schedule
+                    </label>
+                    <div class="col-xs-4">
+                        <input class="form-control" name="schedule" required="true" id="schedule" type="text" value=""/>
+                    </div>
+
+                    <label for="capacity" class="deployToolTip control-label col-xs-2" data-toggle="tooltip"
+                        title="The total number of hosts in this group">
+                        Capacity
+                    </label>
+                    <div class="col-xs-4">
+                        <input class="form-control" name="capacity" required="true" id="capacity" type="text" value=""/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="addMetricBtnId" type="submit" class="btn btn-primary">Add</button>
+                <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+            {% csrf_token %}
+        </div>
+    </div>
+</div>
+
+<script>
+$("#cronExpressionId").click(function() {
+    $("#cronExpressionDetailsId").collapse('toggle');
+
+});
+
+$(function () {
+    $('#saveAsSchedulesBtnId').attr('disabled','disabled');
+    $('#resetAsSchedulesBtnId').attr('disabled','disabled');
+
+    $('#asSchedulesIdFormId input').keyup(function() {
+        $('#saveAsSchedulesBtnId').removeAttr('disabled');
+        $('#resetAsSchedulesBtnId').removeAttr('disabled');
+    });
+
+    $('#asSchedulesIdFormId input').change(function() {
+        $('#saveAsSchedulesBtnId').removeAttr('disabled');
+        $('#resetAsSchedulesBtnId').removeAttr('disabled');
+    });
+
+    $('#addNewSchedulesBtnId').click(function () {
+        $('#newActionsModalId').modal()
+        $('#saveAsSchedulesBtnId').removeAttr('disabled');
+        $('#resetAsSchedulesBtnId').removeAttr('disabled');
+    });
+
+    $('#saveAsSchedulesBtnId').click(function () {
+        var btn = $(this);
+        $.ajax({
+            type: 'POST',
+            url: '/groups/{{ group_name }}/autoscaling/update_scheduled_actions/',
+            data: $(':input').serializeArray(),
+            dataType: 'json',
+            beforeSend: function () {
+                btn.button('loading');
+            },
+            success: function (data) {
+                if(data != null && data.success == false) {
+                    $('#errorBannerId').append(data.error);
+                    $('#errorBannerId').show();
+                } else {
+                    $("#asMetricsId").parent().html(data);
+                    $('#errorBannerId').empty().hide();
+                }
+                btn.button('reset');
+            },
+            error: function (data) {
+                $('#errorBannerId').append(data.responseText);
+                $('#errorBannerId').show();
+            }
+        });
+    });
+
+    $('#resetAsSchedulesBtnId').click(function () {
+        var btn = $(this);
+        $.ajax({
+            type: 'GET',
+            url: '/groups/{{ group_name }}/autoscaling/get_scheduled_actions/',
+            beforeSend: function () {
+                btn.button('loading');
+            },
+            success: function (data) {
+                btn.button('reset');
+                $("#asSchedulesId").parent().html(data);
+            }
+        });
+    });
+});
+</script>

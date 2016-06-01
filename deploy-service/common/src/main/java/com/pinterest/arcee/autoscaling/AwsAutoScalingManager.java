@@ -425,14 +425,6 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         aasClient.setInstanceProtection(setInstanceProtectionRequest);
     }
 
-    @Override
-    public void terminateInstanceInAutoScalingGroup(String instanceId, boolean decreaseSize) throws Exception {
-        TerminateInstanceInAutoScalingGroupRequest request = new TerminateInstanceInAutoScalingGroupRequest();
-        request.setShouldDecrementDesiredCapacity(decreaseSize);
-        request.setInstanceId(instanceId);
-        aasClient.terminateInstanceInAutoScalingGroup(request);
-    }
-
     //------ Scaling Policy
     @Override
     public void addScalingPolicyToGroup(String groupName, ScalingPolicyBean policyBean) throws Exception {
@@ -699,6 +691,46 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         // CONTINUE action will allow asg proceed to terminate instances earlier than timeout limit
         completeLifecycleActionRequest.setLifecycleActionResult(AutoScalingConstants.LIFECYCLE_ACTION_CONTINUE);
         aasClient.completeLifecycleAction(completeLifecycleActionRequest);
+    }
+
+    @Override
+    public void putScheduledAction(String clusterName, AsgScheduleBean asgScheduleBean) throws Exception {
+        PutScheduledUpdateGroupActionRequest actionRequest = new PutScheduledUpdateGroupActionRequest();
+        actionRequest.setAutoScalingGroupName(clusterName);
+        actionRequest.setRecurrence(asgScheduleBean.getSchedule());
+        actionRequest.setDesiredCapacity(asgScheduleBean.getCapacity());
+        Date date = new Date();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HHmmss");
+        String actionName = asgScheduleBean.getActionId() == null ?
+                String.format("%s-action-%s", clusterName, df.format(date)) : asgScheduleBean.getActionId();
+        actionRequest.setScheduledActionName(actionName);
+        aasClient.putScheduledUpdateGroupAction(actionRequest);
+    }
+
+    @Override
+    public Collection<AsgScheduleBean> getScheduledActions(String clusterName) throws Exception {
+        DescribeScheduledActionsRequest actionsRequest = new DescribeScheduledActionsRequest();
+        actionsRequest.setAutoScalingGroupName(clusterName);
+        DescribeScheduledActionsResult actionsResult = aasClient.describeScheduledActions(actionsRequest);
+        Collection<ScheduledUpdateGroupAction> scheduledUpdateGroupActions = actionsResult.getScheduledUpdateGroupActions();
+        Collection<AsgScheduleBean> asgScheduleBeans = new ArrayList<>();
+        for (ScheduledUpdateGroupAction scheduledUpdateGroupAction : scheduledUpdateGroupActions) {
+            AsgScheduleBean asgScheduleBean = new AsgScheduleBean();
+            asgScheduleBean.setClusterName(scheduledUpdateGroupAction.getAutoScalingGroupName());
+            asgScheduleBean.setActionId(scheduledUpdateGroupAction.getScheduledActionName());
+            asgScheduleBean.setCapacity(scheduledUpdateGroupAction.getDesiredCapacity());
+            asgScheduleBean.setSchedule(scheduledUpdateGroupAction.getRecurrence());
+            asgScheduleBeans.add(asgScheduleBean);
+        }
+        return asgScheduleBeans;
+    }
+
+    @Override
+    public void deleteScheduledAction(String clusterName, String actionId) throws Exception {
+        DeleteScheduledActionRequest actionRequest = new DeleteScheduledActionRequest();
+        actionRequest.setAutoScalingGroupName(clusterName);
+        actionRequest.setScheduledActionName(actionId);
+        aasClient.deleteScheduledAction(actionRequest);
     }
 
     @Override

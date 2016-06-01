@@ -90,4 +90,12 @@ urlpatterns = [
         group_view.update_asg_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_policy/$',
         group_view.update_policy),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/get_scheduled_actions/$',
+        group_view.get_scheduled_actions),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/delete_scheduled_actions/$',
+        group_view.delete_scheduled_actions),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/add_scheduled_actions/$',
+        group_view.add_scheduled_actions),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_scheduled_actions/$',
+        group_view.update_scheduled_actions),
 ]

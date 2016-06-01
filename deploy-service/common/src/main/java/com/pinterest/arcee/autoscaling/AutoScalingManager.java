@@ -15,7 +15,7 @@
  */
 package com.pinterest.arcee.autoscaling;
 
-import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
+import com.pinterest.arcee.bean.AsgScheduleBean;
 import com.pinterest.arcee.bean.AutoScalingGroupBean;
 import com.pinterest.arcee.bean.ScalingPolicyBean;
 import com.pinterest.arcee.bean.ScalingActivitiesBean;
@@ -63,13 +63,10 @@ public interface AutoScalingManager {
 
     Collection<String> getAutoScalingInstances(String groupName, Collection<String> hostIds) throws Exception;
 
-
     //------ Instance
     void addInstancesToAutoScalingGroup(Collection<String> instances, String groupName) throws Exception;
 
     void detachInstancesFromAutoScalingGroup(Collection<String> instances, String groupName, boolean decreaseSize) throws Exception;
-
-    void terminateInstanceInAutoScalingGroup(String instanceId, boolean decreaseSize) throws Exception;
 
     boolean isInstanceProtected(String instances) throws Exception;
 
@@ -99,6 +96,13 @@ public interface AutoScalingManager {
     void deleteLifecycleHook(String groupName) throws Exception;
 
     void completeLifecycleAction(String hookId, String tokenId, String groupName) throws Exception;
+
+    //--------- Time based auto scaling
+    void putScheduledAction(String clusterName, AsgScheduleBean asgScheduleBean) throws Exception;
+
+    Collection<AsgScheduleBean> getScheduledActions(String clusterName) throws Exception;
+
+    void deleteScheduledAction(String clusterName, String actionId) throws Exception;
 
     String transformUserDataConfigToString(String clusterName, Map<String, String> userDataConfigs) throws Exception;
 }

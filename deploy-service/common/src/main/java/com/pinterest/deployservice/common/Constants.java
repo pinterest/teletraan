@@ -51,6 +51,7 @@ public class Constants {
     public static final String TYPE_ASG_SCALING = "Asg Scaling Group";
     public static final String TYPE_ASG_POLICY = "Asg Scaling Policy";
     public static final String TYPE_ASG_ALARM = "Asg Scaling Alarm";
+    public static final String TYPE_ASG_SCHEDULE = "Asg Scheduled Action";
     public static final String TYPE_ASG_SCALING_ACTION = "Asg Scaling Action";
 
     public static final String TYPE_ENV_GENERAL = "Env General Config";

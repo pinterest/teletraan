@@ -134,11 +134,6 @@ def update_alarms(request, group_name, alarm_infos):
                             request.teletraan_user_id.token, data=alarm_infos)
 
 
-def create_alarms(request, group_name, alarm_infos):
-    return deployclient.post("/groups/{}/autoscaling/alarms".format(group_name),
-                             request.teletraan_user_id.token, data=alarm_infos)
-
-
 def delete_alarm(request, group_name, alarm_id):
     return deployclient.delete("/groups/{}/autoscaling/alarms/{}".format(group_name, alarm_id),
                                request.teletraan_user_id.token)
@@ -242,3 +237,18 @@ def enable_scaling_down_event(request, group_name):
 def disable_scaling_down_event(request, group_name):
     return deployclient.post("/groups/{}/autoscaling/event/scalingdown/action".format(group_name),
                              request.teletraan_user_id.token, params={"type": "disable"})
+
+
+# time based auto scaling
+def add_scheduled_actions(request, group_name, schedule_actions):
+    return deployclient.post("/groups/{}/autoscaling/schedules".format(group_name),
+                             request.teletraan_user_id.token, data=schedule_actions)
+
+
+def get_scheduled_actions(request, group_name):
+    return deployclient.get("/groups/{}/autoscaling/schedules".format(group_name), request.teletraan_user_id.token)
+
+
+def delete_scheduled_action(request, group_name, action_id):
+    return deployclient.delete("/groups/{}/autoscaling/schedules/{}".format(group_name, action_id),
+                               request.teletraan_user_id.token)

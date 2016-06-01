@@ -19,6 +19,7 @@ package com.pinterest.arcee.handler;
 import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.AsgAlarmBean;
+import com.pinterest.arcee.bean.AsgScheduleBean;
 import com.pinterest.arcee.bean.AutoScalingGroupBean;
 import com.pinterest.arcee.bean.AutoScalingRequestBean;
 import com.pinterest.arcee.bean.AutoScalingSummaryBean;
@@ -751,5 +752,20 @@ public class GroupHandler {
         GroupBean bean = new GroupBean();
         bean.setHealthcheck_state(state);
         groupInfoDAO.updateGroupInfo(groupName, bean);
+    }
+
+    public void putScheduledActionsToAutoScalingGroup(String clusterName, Collection<AsgScheduleBean> asgScheduleBeans) throws Exception {
+        for (AsgScheduleBean asgScheduleBean : asgScheduleBeans) {
+            LOG.info(String.format("Start to add scheduled actions to %s: %s", clusterName, asgScheduleBean.toString()));
+            asgDAO.putScheduledAction(clusterName, asgScheduleBean);
+        }
+    }
+
+    public Collection<AsgScheduleBean> getScheduledActionsByAutoScalingGroup(String clusterName) throws Exception {
+        return asgDAO.getScheduledActions(clusterName);
+    }
+
+    public void deleteScheduledActionFromAutoScalingGroup(String clusterName, String actionId) throws Exception {
+        asgDAO.deleteScheduledAction(clusterName, actionId);
     }
 }
