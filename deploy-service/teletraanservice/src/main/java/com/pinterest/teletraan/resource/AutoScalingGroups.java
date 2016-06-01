@@ -38,6 +38,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -322,5 +323,33 @@ public class AutoScalingGroups {
     public PasConfigBean getPasConfig(@Context SecurityContext sc,
                                       @PathParam("groupName") String groupName) throws Exception {
         return pasConfigDAO.getPasConfig(groupName);
+    }
+
+    @POST
+    @Path("/schedules")
+    public void putScheduledActionsToAutoScalingGroup(@Context SecurityContext sc,
+                                                      @PathParam("groupName") String groupName,
+                                                      @Valid Collection<AsgScheduleBean> asgScheduleBeans) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        String operator = sc.getUserPrincipal().getName();
+        groupHandler.putScheduledActionsToAutoScalingGroup(groupName, asgScheduleBeans);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCHEDULE, asgScheduleBeans, operator);
+        LOG.info(String.format("Successfully added scheduled actions %s to group %s", asgScheduleBeans, groupName));
+    }
+
+    @GET
+    @Path("/schedules")
+    public Collection<AsgScheduleBean> getScheduledActionsByAutoScalingGroup(@PathParam("groupName") String groupName) throws Exception {
+        return groupHandler.getScheduledActionsByAutoScalingGroup(groupName);
+    }
+
+    @DELETE
+    @Path(("/schedules/{actionId: [a-zA-Z0-9\\-_]+}"))
+    public void deleteScheduledActionFromAutoScalingGroup(@Context SecurityContext sc,
+                                                          @PathParam("groupName") String groupName,
+                                                          @PathParam("actionId") String actionId) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        groupHandler.deleteScheduledActionFromAutoScalingGroup(groupName, actionId);
+        LOG.info(String.format("Successfully deleted scheduled action %s for group %s", actionId, groupName));
     }
 }
