@@ -17,6 +17,7 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.*;
+import com.pinterest.arcee.dao.PasConfigDAO;
 import com.pinterest.arcee.handler.GroupHandler;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.bean.Role;
@@ -65,6 +66,7 @@ public class AutoScalingGroups {
     private ConfigHistoryHandler configHistoryHandler;
     private final Authorizer authorizer;
     private AutoScalingManager awsAutoScalingManager;
+    private PasConfigDAO pasConfigDAO;
 
     public AutoScalingGroups(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
@@ -72,6 +74,7 @@ public class AutoScalingGroups {
         configHistoryHandler = new ConfigHistoryHandler(context);
         authorizer = context.getAuthorizer();
         awsAutoScalingManager = context.getAutoScalingManager();
+        pasConfigDAO = context.getPasConfigDAO();
 
     }
 
@@ -315,5 +318,21 @@ public class AutoScalingGroups {
         }
 
         throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Unknow action type:%s", type));
+    }
+
+    @POST
+    @Path("/pas")
+    public void updatePasConfig(@Context SecurityContext sc,
+                                @PathParam("groupName") String groupName,
+                                @Valid PasConfigBean request) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        pasConfigDAO.updatePasConfig(request);
+    }
+
+    @GET
+    @Path("/pas")
+    public PasConfigBean getPasConfig(@Context SecurityContext sc,
+                                      @PathParam("groupName") String groupName) throws Exception {
+        return pasConfigDAO.getPasConfig(groupName);
     }
 }

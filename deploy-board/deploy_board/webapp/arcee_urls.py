@@ -86,4 +86,8 @@ urlpatterns = [
         group_view.update_asg_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_policy/$',
         group_view.update_policy),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_pas_config/$',
+        group_view.update_pas_config),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/get_pas_config/$',
+        group_view.get_pas_config),
 ]

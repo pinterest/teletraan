@@ -75,6 +75,7 @@ public class ServiceContext {
     private SecurityZoneDAO securityZoneDAO;
     private PlacementDAO placementDAO;
     private SpotAutoScalingDAO spotAutoScalingDAO;
+    private PasConfigDAO pasConfigDAO;
 
 
     private TagDAO tagDAO;
@@ -104,6 +105,14 @@ public class ServiceContext {
 
     private String quboleAuthentication;
     private int spotAutoScalingThreshold;
+
+    public PasConfigDAO getPasConfigDAO() {
+        return pasConfigDAO;
+    }
+
+    public void setPasConfigDAO(PasConfigDAO pasConfigDAO) {
+        this.pasConfigDAO = pasConfigDAO;
+    }
 
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;
