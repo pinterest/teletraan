@@ -89,7 +89,6 @@
         $('#savePASConfigBtnId').click(function () {
             var btn = $(this);
             var data = $("#pasConfigIdFormId").serialize();
-            console.log(data);
             $.ajax({
                 type: 'POST',
                 url: '/groups/{{ group_name }}/autoscaling/update_pas_config/',
