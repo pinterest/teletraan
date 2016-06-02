@@ -80,7 +80,6 @@ public class GroupHandler {
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
         pasConfigDAO = serviceContext.getPasConfigDAO();
         awsVmManager = new AwsVmManager(serviceContext);
-        pasConfigDAO = serviceContext.getPasConfigDAO();
     }
 
     private final class DeleteAutoScalingJob implements Callable<Void> {
@@ -360,7 +359,7 @@ public class GroupHandler {
     public void createNewPredictiveAutoScalingEntry(String groupName) throws Exception {
         PasConfigBean pasConfigBean = new PasConfigBean();
         pasConfigBean.setGroup_name(groupName);
-        pasConfigBean.setPas_state("DISABLED");
+        pasConfigBean.setPas_state(PasState.DISABLED);
         pasConfigBean.setMetric("");
         pasConfigBean.setThroughput(0);
         pasConfigDAO.insertPasConfig(pasConfigBean);

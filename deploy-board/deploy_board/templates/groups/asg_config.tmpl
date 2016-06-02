@@ -179,7 +179,17 @@
 <div id="scalingPolicyPid"></div>
 <div id="alarmMetricPid"></div>
 
+<div id="pasConfigPid" class="panel panel-default">
+    {% include "groups/pase_config.tmpl" %}
+</div>
+
 <script>
+$(function() {
+    $.get('/groups/{{ group_name }}/autoscaling/get_pas_config/', function (response) {
+        $('#pasConfigPid').html(response);
+    });
+});
+
 function loadAsgScheduledActions() {
     $("#scheduledActionsPid").addClass("panel panel-default");
     var asg_policy_url = "/groups/{{ group_name }}/autoscaling/get_scheduled_actions/";

@@ -24,7 +24,7 @@ public class PasConfigBean implements Updatable {
 
     @NotEmpty
     @JsonProperty("pas_state")
-    private String pas_state;
+    private PasState pas_state;
 
     private Long last_updated;
 
@@ -60,11 +60,11 @@ public class PasConfigBean implements Updatable {
         this.metric = metric;
     }
 
-    public String getPas_state() {
+    public PasState getPas_state() {
         return pas_state;
     }
 
-    public void setPas_state(String pas_state) {
+    public void setPas_state(PasState pas_state) {
         this.pas_state = pas_state;
     }
 

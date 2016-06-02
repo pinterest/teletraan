@@ -448,15 +448,6 @@ CREATE TABLE IF NOT EXISTS tags (
  CREATE INDEX tags_value_target_type_idx ON tags(value, target_type, created_date);
  CREATE INDEX tags_target_type_idx ON tags(target_type, created_date)
 
- CREATE TABLE IF NOT EXISTS pas_configs (
-    group_name VARCHAR(64) NOT NULL,
-    throughput INT,
-    metric VARCHAR(512),
-    last_updated BIGINT NOT NULL,
-    pas_state VARCHAR(32) NOT NULL,
-    PRIMARY KEY (group_name)
- ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE IF NOT EXISTS cluster_upgrade_events (
     id                      VARCHAR(64)      NOT NULL,
     cluster_name            VARCHAR(128)     NOT NULL,
