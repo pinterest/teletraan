@@ -18,23 +18,16 @@ package com.pinterest.arcee.handler;
 
 import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
-import com.pinterest.arcee.bean.AsgAlarmBean;
-import com.pinterest.arcee.bean.AsgScheduleBean;
-import com.pinterest.arcee.bean.AutoScalingGroupBean;
-import com.pinterest.arcee.bean.AutoScalingRequestBean;
-import com.pinterest.arcee.bean.AutoScalingSummaryBean;
-import com.pinterest.arcee.bean.GroupBean;
-import com.pinterest.arcee.bean.GroupInfoBean;
-import com.pinterest.arcee.bean.PolicyType;
-import com.pinterest.arcee.bean.ScalingActivitiesBean;
-import com.pinterest.arcee.bean.ScalingPoliciesBean;
-import com.pinterest.arcee.bean.ScalingPolicyBean;
-import com.pinterest.arcee.bean.SpotAutoScalingBean;
+import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
+import com.pinterest.arcee.common.HealthCheckConstants;
+import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.dao.AlarmDAO;
 import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.arcee.dao.SpotAutoScalingDAO;
+import com.pinterest.arcee.common.HealthCheckConstants;
+import com.pinterest.arcee.dao.*;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.cm.AwsVmManager;
 import com.pinterest.deployservice.ServiceContext;
@@ -73,6 +66,7 @@ public class GroupHandler {
     private SpotAutoScalingDAO spotAutoScalingDAO;
     private ExecutorService jobPool;
     private AwsVmManager awsVmManager;
+    private PasConfigDAO pasConfigDAO;
 
     public GroupHandler(ServiceContext serviceContext) {
         asgDAO = serviceContext.getAutoScalingManager();
@@ -84,7 +78,9 @@ public class GroupHandler {
         jobPool = serviceContext.getJobPool();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
+        pasConfigDAO = serviceContext.getPasConfigDAO();
         awsVmManager = new AwsVmManager(serviceContext);
+        pasConfigDAO = serviceContext.getPasConfigDAO();
     }
 
     private final class DeleteAutoScalingJob implements Callable<Void> {
@@ -275,6 +271,7 @@ public class GroupHandler {
 
     public void createCluster(String groupName, AwsVmBean newAwsVmBean) throws Exception {
         awsVmManager.createCluster(groupName, newAwsVmBean);
+        createNewPredictiveAutoScalingEntry(groupName);
     }
 
     public AwsVmBean getCluster(String clusterName) throws Exception {
@@ -360,6 +357,14 @@ public class GroupHandler {
         jobPool.submit(new CreateSpotAutoScalingGroupJob(clusterName, spotAutoScalingBean));
     }
 
+    public void createNewPredictiveAutoScalingEntry(String groupName) throws Exception {
+        PasConfigBean pasConfigBean = new PasConfigBean();
+        pasConfigBean.setGroup_name(groupName);
+        pasConfigBean.setPas_state("DISABLED");
+        pasConfigBean.setMetric("");
+        pasConfigBean.setThroughput(0);
+        pasConfigDAO.insertPasConfig(pasConfigBean);
+    }
 
     private AwsVmBean generateInternalAutoScalingRequest(AwsVmBean groupBean, AutoScalingRequestBean requestBean, boolean spotFleet) throws Exception {
         String launchConfig = groupBean.getLaunchConfigId();

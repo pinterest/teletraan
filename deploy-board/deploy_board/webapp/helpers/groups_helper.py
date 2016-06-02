@@ -239,6 +239,15 @@ def disable_scaling_down_event(request, group_name):
                              request.teletraan_user_id.token, params={"type": "disable"})
 
 
+def update_pas_config(request, pas_config):
+    return deployclient.post("/groups/{}/autoscaling/pas".format(pas_config["group_name"]),
+                             request.teletraan_user_id.token, data=pas_config)
+
+
+def get_pas_config(request, group_name):
+    return deployclient.get("/groups/{}/autoscaling/pas".format(group_name, request.teletraan_user_id))
+
+
 # time based auto scaling
 def add_scheduled_actions(request, group_name, schedule_actions):
     return deployclient.post("/groups/{}/autoscaling/schedules".format(group_name),

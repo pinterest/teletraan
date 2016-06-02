@@ -122,6 +122,38 @@ def get_group_config(request, group_name):
     return HttpResponse(json.dumps(html), content_type="application/json")
 
 
+def update_pas_config(request, group_name):
+    try:
+        params = request.POST
+        data = {}
+        data['group_name'] = group_name
+        data["metric"] = params["metric"]
+        data["throughput"] = params["throughput"]
+        if "pas_state" in params:
+            data["pas_state"] = "enabled"
+        else:
+            data["pas_state"] = "disabled"
+
+        groups_helper.update_pas_config(request, data)
+        return get_pas_config(request, group_name)
+    except:
+        log.error(traceback.format_exc())
+        raise
+
+
+def get_pas_config(request, group_name):
+    try:
+        pas_config = groups_helper.get_pas_config(request, group_name)
+        html = render_to_string('groups/pase_config.tmpl', {
+            "group_name": group_name,
+            "pas_config": pas_config
+        })
+    except:
+        log.error(traceback.format_exc())
+        raise
+    return HttpResponse(json.dumps(html), content_type="application/json")
+
+
 def update_launch_config(request, group_name):
     try:
         params = request.POST
@@ -784,12 +816,16 @@ class GroupConfigView(View):
             asg_vm_info = None
             group_info = None
             curr_image = None
+
+        pas_config = groups_helper.get_pas_config(request, group_name)
+
         return render(request, 'groups/asg_config.html', {
             "asg_vm_config": asg_vm_info,
             "app_names": appNames,
             "curr_image": curr_image,
             "group_config": group_info,
             "group_name": group_name,
+            "pas_config": pas_config,
             "is_cmp": is_cmp
         })
 

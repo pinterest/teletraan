@@ -25,6 +25,7 @@
 
 {% block main %}
 
+
 {% if asg_vm_config %}
     {% if not is_cmp %}
     <div id="launchConfigPid" class="panel panel-default">
@@ -39,6 +40,16 @@
     <div id="asgConfigPid" class="panel panel-default">
         {% include "groups/asg_config.tmpl" %}
     </div>
+
+    <div id="pasConfigPid" class="panel panel-default">
+        {% include "groups/pase_config.tmpl" %}
+    </div>
+
+
+<div id="asgConfigPid" class="panel panel-default">
+{% include "groups/asg_config.tmpl" %}
+</div>
+
 <script>
 $(function() {
     $.get('/groups/{{ group_name }}/autoscaling/get_launch_config/', function(response){
@@ -47,6 +58,10 @@ $(function() {
 
     $.get('/groups/{{ group_name }}/autoscaling/get_asg_config/', function(response) {
         $('#asgConfigPid').html(response);
+    });
+
+    $.get('/groups/{{ group_name }}/autoscaling/get_pas_config/', function(response){
+        $('#pasConfigPid').html(response);
     });
 });
 
