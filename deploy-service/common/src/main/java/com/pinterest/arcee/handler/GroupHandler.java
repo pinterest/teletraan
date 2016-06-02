@@ -18,18 +18,7 @@ package com.pinterest.arcee.handler;
 
 import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
-import com.pinterest.arcee.bean.AsgAlarmBean;
-import com.pinterest.arcee.bean.AsgScheduleBean;
-import com.pinterest.arcee.bean.AutoScalingGroupBean;
-import com.pinterest.arcee.bean.AutoScalingRequestBean;
-import com.pinterest.arcee.bean.AutoScalingSummaryBean;
-import com.pinterest.arcee.bean.GroupBean;
-import com.pinterest.arcee.bean.GroupInfoBean;
-import com.pinterest.arcee.bean.PolicyType;
-import com.pinterest.arcee.bean.ScalingActivitiesBean;
-import com.pinterest.arcee.bean.ScalingPoliciesBean;
-import com.pinterest.arcee.bean.ScalingPolicyBean;
-import com.pinterest.arcee.bean.SpotAutoScalingBean;
+import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.arcee.common.HealthCheckConstants;
 import com.pinterest.arcee.dao.*;
@@ -76,10 +65,7 @@ public class GroupHandler {
     private GroupInfoDAO groupInfoDAO;
     private SpotAutoScalingDAO spotAutoScalingDAO;
     private ExecutorService jobPool;
-    private CommonHandler commonHandler;
-    private PasConfigDAO pasConfigDAO;
     private AwsVmManager awsVmManager;
-    private CommonHandler commonHandler;
     private PasConfigDAO pasConfigDAO;
 
     public GroupHandler(ServiceContext serviceContext) {
@@ -92,10 +78,8 @@ public class GroupHandler {
         jobPool = serviceContext.getJobPool();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
-        commonHandler = new CommonHandler(serviceContext);
         pasConfigDAO = serviceContext.getPasConfigDAO();
         awsVmManager = new AwsVmManager(serviceContext);
-        commonHandler = new CommonHandler(serviceContext);
         pasConfigDAO = serviceContext.getPasConfigDAO();
     }
 
@@ -302,7 +286,7 @@ public class GroupHandler {
         List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(clusterName);
         for (SpotAutoScalingBean spotAutoScalingBean : spotAutoScalingBeans) {
             String spotGroupName = spotAutoScalingBean.getAsg_name();
-            updateLifeCycle(spotGroupName, existingGroupBean,  groupbean);
+            updateLifeCycle(spotGroupName, existingGroupBean, groupbean);
         }
     }
 
@@ -357,6 +341,7 @@ public class GroupHandler {
         updatedVmBean.setMaxSize((int)(request.getMaxSize() * request.getSpotRatio()));
 
         asgDAO.createAutoScalingGroup(spotGroupName, updatedVmBean);
+        createNewPredictiveAutoScalingEntry(clusterName);
 
         // step 2 update datebase with the launch config
         SpotAutoScalingBean spotAutoScalingBean = new SpotAutoScalingBean();
@@ -381,50 +366,6 @@ public class GroupHandler {
         pasConfigDAO.insertPasConfig(pasConfigBean);
     }
 
-    public void createAutoScalingGroup(String groupName, AutoScalingRequestBean request) throws Exception {
-        GroupBean groupBean = getGroupInfoByClusterName(groupName);
-        if (groupBean == null) {
-            return;
-        }
-
-        if (groupBean.getSubnets() == null) {
-            LOG.error(String.format("Failed to create auto scaling group for %s: empty subnets ", groupName));
-            throw new Exception(String.format("Failed to create auto scaling group for %s: empty subnets ", groupName));
-        }
-
-        AwsVmBean updateBean = generateInternalAutoScalingRequest(groupBean, request, false);
-        if (request.isAttachInstances()) {
-            List<String> ids = hostDAO.getHostIdsByGroup(groupName);
-            LOG.info(String.format("Fetched %d instances from host table.", ids.size()));
-            if (ids.isEmpty()) {
-                asgDAO.createAutoScalingGroup(groupName, updateBean);
-            } else {
-                try {
-                    int minSize = request.getMinSize();
-                    updateBean.setMinSize(Math.max(updateBean.getMinSize() - ids.size(), 0));
-                    updateBean.setMaxSize(Math.max(ids.size(), updateBean.getMaxSize()));
-                    LOG.debug(String.format("create auto scaling group with launch Id: %s", updateBean.getLaunchConfigId()));
-                    asgDAO.createAutoScalingGroup(groupName, updateBean);
-                    jobPool.submit(new AttachInstanceToGroupJob(groupName, request, ids, minSize, groupBean.getSubnets()));
-                } catch (Exception ex) {
-                    LOG.error("Failed to create auto scaling group {}.", groupName, ex);
-                }
-            }
-        } else {
-            asgDAO.createAutoScalingGroup(groupName, updateBean);
-        }
-
-        GroupBean newBean = new GroupBean();
-        newBean.setAsg_status(ASGStatus.ENABLED);
-        newBean.setLast_update(System.currentTimeMillis());
-        groupInfoDAO.updateGroupInfo(groupName, newBean);
-
-        if (request.getEnableSpot() != null && request.getEnableSpot()) {
-            createSpotAutoScalingGroup(groupName, groupBean, request);
-        }
-
-        createNewPredictiveAutoScalingEntry(groupName);
-    }
 
     private AwsVmBean generateInternalAutoScalingRequest(AwsVmBean groupBean, AutoScalingRequestBean requestBean, boolean spotFleet) throws Exception {
         String launchConfig = groupBean.getLaunchConfigId();

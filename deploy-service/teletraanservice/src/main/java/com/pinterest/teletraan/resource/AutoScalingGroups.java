@@ -65,7 +65,6 @@ public class AutoScalingGroups {
     private GroupHandler groupHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private final Authorizer authorizer;
-    private AutoScalingManager awsAutoScalingManager;
     private PasConfigDAO pasConfigDAO;
 
     public AutoScalingGroups(TeletraanServiceContext context) {
@@ -73,7 +72,6 @@ public class AutoScalingGroups {
         groupHandler = new GroupHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         authorizer = context.getAuthorizer();
-        awsAutoScalingManager = context.getAutoScalingManager();
         pasConfigDAO = context.getPasConfigDAO();
     }
 
@@ -353,19 +351,4 @@ public class AutoScalingGroups {
         LOG.info(String.format("Successfully deleted scheduled action %s for group %s", actionId, groupName));
     }
 
-    @POST
-    @Path("/pas")
-    public void updatePasConfig(@Context SecurityContext sc,
-                                @PathParam("groupName") String groupName,
-                                @Valid PasConfigBean request) throws Exception {
-        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
-        pasConfigDAO.updatePasConfig(request);
-    }
-
-    @GET
-    @Path("/pas")
-    public PasConfigBean getPasConfig(@Context SecurityContext sc,
-                                      @PathParam("groupName") String groupName) throws Exception {
-        return pasConfigDAO.getPasConfig(groupName);
-    }
 }
