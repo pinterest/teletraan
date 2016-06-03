@@ -45,6 +45,7 @@ if OAUTH_ENABLED_STR == "OFF":
     OAUTH_ENABLED = False
 else:
     OAUTH_ENABLED = True
+    OAUTH_PROVIDER = os.getenv("OAUTH_PROVIDER", "pinadmin")
     OAUTH_CLIENT_ID = os.getenv("OAUTH_CLIENT_ID")
     OAUTH_CLIENT_SECRET = os.getenv("OAUTH_CLIENT_SECRET")
     OAUTH_CALLBACK = os.getenv("OAUTH_CALLBACK")

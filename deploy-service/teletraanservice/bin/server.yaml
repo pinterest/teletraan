@@ -75,6 +75,9 @@ db:
   # OAuth provider url
   #userDataUrl: https://auth.pinadmin.com/api/me/
 
+  # OAuth provider - either pinadmin (internal) or googlev2
+  # oauthProvider: pinadmin
+
   # Optional. token cache
   #tokenCacheSpec: maximumSize=1000,expireAfterWrite=10m
 

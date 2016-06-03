@@ -125,7 +125,12 @@ def login_authorized(request):
         data = oauth.handle_oauth2_response(code, state, session=request.session)
         user_name = oauth.oauth_data(user_info_uri=settings.OAUTH_USER_INFO_URI,
                                      key=settings.OAUTH_USERNAME_INFO_KEY,
-                                     session=request.session)['username']
+                                     session=request.session)
+        # Google Returns the username as a string directly. Pinadmin returns an array.
+        if(settings.OAUTH_PROVIDER == "pinadmin"):
+            user_name = user_name['username']
+        
+
     except OAuthException as e:
         # failed to login for some reason, do something
         logger.error(traceback.format_exc())

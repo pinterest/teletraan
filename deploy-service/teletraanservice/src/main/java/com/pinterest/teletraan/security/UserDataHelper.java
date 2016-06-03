@@ -32,14 +32,16 @@ import java.util.*;
 public class UserDataHelper {
     private String userDataUrl;
     private String groupDataUrl;
+    private String oauthProvider;
     private LoadingCache<String, UserSecurityContext> tokenCache;
     private TeletraanServiceContext context;
     private static final Logger LOG = LoggerFactory.getLogger(UserDataHelper.class);
 
-    public UserDataHelper(String userDataUrl, String groupDataUrl, String tokenCacheSpec, TeletraanServiceContext context) {
+    public UserDataHelper(String userDataUrl, String groupDataUrl, String tokenCacheSpec, String oauthProvider, TeletraanServiceContext context) {
         this.userDataUrl = userDataUrl;
         this.groupDataUrl = groupDataUrl;
         this.context = context;
+        this.oauthProvider = oauthProvider;
         if (!StringUtils.isEmpty(tokenCacheSpec)) {
             tokenCache = CacheBuilder.from(tokenCacheSpec)
                 .build(new CacheLoader<String, UserSecurityContext>() {
@@ -82,8 +84,15 @@ public class UserDataHelper {
         Map<String, String> params = ImmutableMap.of("access_token", token);
         String jsonPayload = httpClient.get(userDataUrl, params, null, 3);
         JsonObject jsonObject = new JsonParser().parse(jsonPayload).getAsJsonObject();
-        jsonObject = jsonObject.getAsJsonObject("user");
-        String user = jsonObject.get("username").getAsString();
+        final String user;
+        if (oauthProvider.equals("googlev2")){
+            String email = jsonObject.getAsJsonPrimitive("email").getAsString();
+            user = email.split("@")[0];
+        } else { 
+            // fall back to pinadmin
+            jsonObject = jsonObject.getAsJsonObject("user");
+            user = jsonObject.get("username").getAsString();
+        } 
         LOG.info("Retrieved username " + user + " from token.");
         return user;
     }

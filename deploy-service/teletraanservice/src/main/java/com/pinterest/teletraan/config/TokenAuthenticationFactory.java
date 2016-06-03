@@ -30,6 +30,9 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
     private String userDataUrl;
 
     @JsonProperty
+    private String oauthProvider;
+
+    @JsonProperty
     private String groupDataUrl;
 
     @JsonProperty
@@ -59,8 +62,12 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
         this.groupDataUrl = groupDataUrl;
     }
 
+    public String getOauthProvider() {
+        return this.oauthProvider;
+    }
+
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
-        return new TokenAuthFilter(userDataUrl, groupDataUrl, tokenCacheSpec, context);
+        return new TokenAuthFilter(userDataUrl, groupDataUrl, tokenCacheSpec, oauthProvider, context);
     }
 }

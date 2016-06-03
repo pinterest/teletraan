@@ -41,8 +41,8 @@ public class TokenAuthFilter implements ContainerRequestFilter {
 
     private UserDataHelper userDataHelper;
 
-    public TokenAuthFilter(String userDataUrl, String groupDataUrl, String tokenCacheSpec, TeletraanServiceContext context) throws Exception {
-        userDataHelper = new UserDataHelper(userDataUrl, groupDataUrl, tokenCacheSpec, context);
+    public TokenAuthFilter(String userDataUrl, String groupDataUrl, String tokenCacheSpec, String oauthProvider, TeletraanServiceContext context) throws Exception {
+        userDataHelper = new UserDataHelper(userDataUrl, groupDataUrl, tokenCacheSpec, oauthProvider, context);
     }
 
     @Override
