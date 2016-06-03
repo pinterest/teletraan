@@ -56,7 +56,7 @@ if __name__ == "__main__":
     #os.environ.setdefault("OAUTH_DEFAULT_SCOPE", "<DEFAULT_SCOPE>")
     #os.environ.setdefault("OAUTH_CLIENT_SECRET", "<SECRET_KEY>")    
     # Key for user response, which key is associated with the username in the response. Emails are parsed for prefix.
-    #os.environ.setdefault("OAUTH_USERNAME_INFO_KEY", "<USERNAME_KEY>"")
+    #os.environ.setdefault("OAUTH_USERNAME_INFO_KEY", "<USERNAME_KEY>")
 
     from django.core.management import execute_from_command_line
     execute_from_command_line(sys.argv)
