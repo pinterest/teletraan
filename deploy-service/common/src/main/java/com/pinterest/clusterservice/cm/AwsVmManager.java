@@ -174,7 +174,7 @@ public class AwsVmManager implements ClusterManager {
         }
     }
 
-    private String updateLaunchConfig(String clusterName, AwsVmBean oldBean, AwsVmBean newBean) throws Exception {
+    public String updateLaunchConfig(String clusterName, AwsVmBean oldBean, AwsVmBean newBean) throws Exception {
         try {
             if (newBean.getImage() == null) {
                 newBean.setImage(oldBean.getImage());

@@ -53,7 +53,7 @@
   </div>
 
 <div class="panel-footer clearfix">
-    {% if is_retryable %}
+    {% if is_retryable and host_ids %}
     <div class="pull-left">
         <button id="reset_{{ deployId }}"
                 class="deployToolTip btn btn-primary" data-toggle="tooltip"

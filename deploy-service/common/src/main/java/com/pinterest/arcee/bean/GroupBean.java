@@ -77,6 +77,13 @@ public class GroupBean implements Updatable, Cloneable {
     @JsonProperty("lifecycleTimeout")
     private Long lifecycle_timeout;
 
+    // the following two fields are used for backward compatible.
+    @JsonIgnore
+    private String launch_config_id;
+
+    @JsonProperty("subnets")
+    private String subnets;
+
 
     public String getGroup_name() { return group_name; }
 
@@ -122,6 +129,13 @@ public class GroupBean implements Updatable, Cloneable {
 
     public void setLifecycle_timeout(Long lifecycle_timeout) { this.lifecycle_timeout = lifecycle_timeout; }
 
+    public String getLaunch_config_id() { return launch_config_id; }
+
+    public void setLaunch_config_id(String launch_config_id) { this.launch_config_id = launch_config_id; }
+
+    public String getSubnets() { return subnets; }
+
+    public void setSubnets(String subnets) { this.subnets = subnets; }
 
     @Override
     public SetClause genSetClause() {
@@ -137,6 +151,8 @@ public class GroupBean implements Updatable, Cloneable {
         clause.addColumn("healthcheck_period", healthcheck_period);
         clause.addColumn("lifecycle_state", lifecycle_state);
         clause.addColumn("lifecycle_timeout", lifecycle_timeout);
+        clause.addColumn("launch_config_id", launch_config_id);
+        clause.addColumn("subnets", subnets);
         return clause;
     }
 
@@ -151,7 +167,9 @@ public class GroupBean implements Updatable, Cloneable {
         "healthcheck_state=VALUES(healthcheck_state)," +
         "healthcheck_period=VALUES(healthcheck_period)," +
         "lifecycle_state=VALUES(lifecycle_state)," +
-        "lifecycle_timeout=VALUES(lifecycle_timeout)";
+        "lifecycle_timeout=VALUES(lifecycle_timeout)," +
+        "launch_config_id=VALUES(launch_config_id)," +
+        "subnets=VALUES(subnets)";
 
     @Override
     public String toString() {
@@ -172,6 +190,8 @@ public class GroupBean implements Updatable, Cloneable {
         groupBean.setHealthcheck_period(healthcheck_period);
         groupBean.setLifecycle_state(lifecycle_state);
         groupBean.setLifecycle_timeout(lifecycle_timeout);
+        groupBean.setLaunch_config_id(launch_config_id);
+        groupBean.setSubnets(subnets);
         return groupBean;
     }
 }
