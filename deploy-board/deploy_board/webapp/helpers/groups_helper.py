@@ -245,7 +245,7 @@ def update_pas_config(request, pas_config):
 
 
 def get_pas_config(request, group_name):
-    return deployclient.get("/groups/{}/autoscaling/pas".format(group_name, request.teletraan_user_id))
+    return deployclient.get("/groups/{}/autoscaling/pas".format(group_name), request.teletraan_user_id)
 
 
 # time based auto scaling
