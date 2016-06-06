@@ -19,6 +19,7 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.dao.PasConfigDAO;
 import com.pinterest.arcee.handler.GroupHandler;
+import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.common.Constants;
@@ -75,6 +76,16 @@ public class AutoScalingGroups {
         pasConfigDAO = context.getPasConfigDAO();
     }
 
+    @POST
+    public void createAutoScalingGroup(@Context SecurityContext sc,
+                                       @PathParam("groupName") String groupName,
+                                       @Valid AwsVmBean request) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        String operator = sc.getUserPrincipal().getName();
+        groupHandler.createAutoScalingGroup(groupName, request);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING, request, operator);
+        LOG.info("Successfully created auto scaling on group {}", groupName);
+    }
 
     @DELETE
     public void deleteAutoScalingGroup(@Context SecurityContext sc,
@@ -292,13 +303,13 @@ public class AutoScalingGroups {
         String operator = sc.getUserPrincipal().getName();
         if (actionType == AutoScalingActionType.ENABLE) {
             groupHandler.enableScalingDownEvent(groupName);
-            String configChange = String.format("Enable Scaling Down event");
+            String configChange = "Enable Scaling Down event";
             configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING_ACTION, configChange, operator);
             LOG.info("Successfully enabled scaling down on group {}", groupName);
             return;
         } else if (actionType == AutoScalingActionType.DISABLE) {
             groupHandler.disableScalingDownEvent(groupName);
-            String configChange = String.format("Disable Scaling Down event");
+            String configChange = "Disable Scaling Down event";
             configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_SCALING_ACTION, configChange, operator);
             LOG.info("Successfully disabled scaling down on group {}", groupName);
             return;
