@@ -84,15 +84,15 @@ public class UserDataHelper {
         Map<String, String> params = ImmutableMap.of("access_token", token);
         String jsonPayload = httpClient.get(userDataUrl, params, null, 3);
         JsonObject jsonObject = new JsonParser().parse(jsonPayload).getAsJsonObject();
-        final String user;
-        if (oauthProvider.equals("googlev2")){
-            String email = jsonObject.getAsJsonPrimitive("email").getAsString();
-            user = email.split("@")[0];
-        } else { 
-            // fall back to pinadmin
-            jsonObject = jsonObject.getAsJsonObject("user");
-            user = jsonObject.get("username").getAsString();
-        } 
+        String user;
+        switch(oauthProvider) {
+            case "pinadmin": {
+                user = jsonObject.getAsJsonObject("user").get("username").getAsString();
+            }
+            default: {
+                user = jsonObject.getAsJsonPrimitive("email").getAsString().split("@")[0];
+            }
+        }
         LOG.info("Retrieved username " + user + " from token.");
         return user;
     }
