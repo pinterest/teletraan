@@ -796,7 +796,9 @@ public class GroupHandler {
 
     public AwsVmBean getGroupInfo(GroupBean groupBean) throws Exception {
         AwsVmBean awsVmBean = asgDAO.getLaunchConfigInfo(groupBean.getLaunch_config_id());
-        awsVmBean.setSubnet(groupBean.getSubnets());
+        if (groupBean.getSubnets() != null) {
+            awsVmBean.setSubnet(groupBean.getSubnets());
+        }
         awsVmBean.setAsgStatus(ASGStatus.UNKNOWN);
         return awsVmBean;
     }
