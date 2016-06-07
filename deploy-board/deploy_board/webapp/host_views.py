@@ -88,6 +88,7 @@ class GroupHostDetailView(View):
             'asg_group': asg,
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
+            'host_information_url': TELETRAN_HOST_INFORMATION_URL,
         })
 
 
