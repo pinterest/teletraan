@@ -813,10 +813,12 @@ class GroupConfigView(View):
         is_cmp = False
         if asg_cluster:
             asg_vm_info = asg_cluster.get("launchInfo")
-            if asg_vm_info and asg_vm_info.get("subnets"):
-                 asg_vm_info["subnetArrays"] = asg_vm_info["subnets"].split(',')
+            curr_image = None
+            if asg_vm_info:
+                curr_image = images_helper.get_image_by_id(request, asg_vm_info["imageId"])
+                if asg_vm_info.get("subnets"):
+                    asg_vm_info["subnetArrays"] = asg_vm_info["subnets"].split(',')
             group_info = asg_cluster.get("groupInfo")
-            curr_image = images_helper.get_image_by_id(request, asg_vm_info["imageId"])
             group_info = get_group_config_internal(group_info)
             envs = environs_helper.get_all_envs_by_group(request, group_name)
             for env in envs:
