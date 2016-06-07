@@ -81,10 +81,11 @@ def get_all_builds(request):
     current_build = None
     if current_build_id:
         current_build = builds_helper.get_build_and_tag(request, current_build_id)
+        current_build = current_build.get('build')
 
     html = render_to_string('builds/pick_a_build.tmpl', {
         "builds": builds,
-        "current_build": current_build['build'],
+        "current_build": current_build,
         "scm_url": scm_url,
         "buildName": name,
         "branch": branch,
