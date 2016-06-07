@@ -19,6 +19,7 @@ import logging
 from helpers import environs_helper, agents_helper
 from helpers import groups_helper, environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import TELETRAN_HOST_INFORMATION_URL
 
 log = logging.getLogger(__name__)
 
