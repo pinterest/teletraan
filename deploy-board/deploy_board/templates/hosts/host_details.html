@@ -73,6 +73,10 @@
     </tr>
     {% endfor %}
 </table>
+    {% if IS_PINTEREST == true %}
+    <span>For complete host details, </span>
+    <a href = "http://cmdb.pinadmin.com:8080/ui/getinstance/{{ hosts.0.hostId }}">click here</a>
+    {% endif %}
 </div>
 
 </div>
