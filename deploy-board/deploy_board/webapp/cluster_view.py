@@ -357,7 +357,7 @@ def update_cmp_cluster(request, name, stage):
     config_map = get_default_cmp_configs(name, stage)
     user_data_configs = parse_configs(params)
     config_map.update(user_data_configs)
-    cluster_info['configs'] = user_data_configs
+    cluster_info['configs'] = config_map
     clusters_helper.update_cluster(request, name, stage, cluster_info)
     return get_cmp_cluster(request, name, stage)
 
