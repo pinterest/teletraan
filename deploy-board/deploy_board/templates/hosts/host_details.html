@@ -73,6 +73,10 @@
     </tr>
     {% endfor %}
 </table>
+    {% if pinterest %}
+    <span>For complete host details, </span>
+    <a href = {{ host_information_url }}/ui/getinstance/{{ host_id }}">click here</a>
+    {% endif %}
 </div>
 
 </div>

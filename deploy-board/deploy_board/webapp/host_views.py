@@ -18,7 +18,7 @@ from django.views.generic import View
 import logging
 from helpers import environs_helper, agents_helper
 from helpers import groups_helper, environ_hosts_helper, hosts_helper
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import IS_PINTEREST, TELETRAN_HOST_INFORMATION_URL
 
 log = logging.getLogger(__name__)
 
@@ -116,6 +116,7 @@ class HostDetailView(View):
             'asg_group': asg,
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
+            'host_information_url': TELETRAN_HOST_INFORMATION_URL,
             'instance_protected': is_protected,
         })
 
