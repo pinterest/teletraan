@@ -128,23 +128,23 @@
                                type="text" value="{{ env_promote.delay }}"/>
                     </div>
                     
-                    <!-- <label for="promoteDisablePolicy" class="deployToolTip control-label col-xs-2"
+                    <label for="promoteOverridePolicy" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
-                        title="Should we disable auto deploy if there are manual deploys override the auto deploys">
-                        Disable Policy
+                        title="Should we override current deploy with new one">
+                        Override Policy
                     </label>
                     <div class ="col-xs-4">
-                        <select class="form-control" name="promoteDisablePolicy">
-                            {% get_promote_disable_policies as disablePolicies %}
-                            {% for disablePolicy in disablePolicies %}
-                            {% if env_promote.disablePolicy == disablePolicy %}
-                            <option value="{{ disablePolicy }}" selected="selected">{{ disablePolicy }}</option>
+                        <select class="form-control" name="promoteOverridePolicy">
+                            {% get_promote_override_policies as overridePolicies %}
+                            {% for overridePolicy in overridePolicies %}
+                            {% if env_promote.overridePolicy == overridePolicy %}
+                            <option value="{{ overridePolicy }}" selected="selected">{{ overridePolicy }}</option>
                             {% else %}
-                            <option value="{{ disablePolicy }}">{{ disablePolicy }}</option>
+                            <option value="{{ overridePolicy }}">{{ overridePolicy }}</option>
                             {% endif %}>
                             {% endfor %}
                         </select>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="form-group collapse" id="cronExpressionDetailsId">
                     <div class="col-xs-2">
