@@ -1,0 +1,187 @@
+#
+# Dropwizard server configs. refer
+# http://www.dropwizard.io/0.9.1/docs/manual/configuration.html
+# for details.
+#
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081
+  requestLog:
+    appenders:
+      - type: file
+        threshold: ALL
+        archive: false
+        currentLogFilename: /tmp/teletraan/access.log
+        timeZone: UTC
+
+#
+# Logging settings. refer
+# http://www.dropwizard.io/0.9.1/docs/manual/configuration.html
+# for details.
+#
+logging:
+  level: INFO
+  loggers:
+    "com.pinterest.teletraan": DEBUG
+    "com.pinterest.deployservice": DEBUG
+  appenders:
+    - type: file
+      timeZone: UTC
+      threshold: DEBUG
+      archive: false
+      currentLogFilename: /tmp/teletraan/service.log
+
+#
+# Mysql connection config. By default, we use the real mysql as the backend.
+# Note: the embeded mysql is for demo or test purpose only. Use the official Mysql
+# installs for production usage.
+#
+db:
+  # DB backend type. Allowed values are: embedded, mysql.
+  type: mysql
+
+  # Mysql instance configurations
+  host: localhost
+  port: 3306
+  userName: root
+  password:
+
+  # Connection pool size string, in the format of
+  # initialSize:maxActive:maxIdle:minIdle.
+  pool: 10:50:20:5
+
+  # Uncomment the following to use the embedded mysql.
+  #type: embedded
+
+  # Optional - embedded mysql working directory. This is for embedded mysql only,
+  # default is /tmp/teletraan/db.
+  # Sometimes when the embedded mysql failed to start for whatever the reasons,
+  # delete the working dir often resolve the issue.
+  #workDir: /tmp/teletraan/db
+
+# AWS integration
+aws:
+  id: AKIAIC6DEVFBBN2Y4XMA
+  key: 5u7NfcYxsBUuswnyQ2dqIpcZBdGZsdg15t2h1EyM
+  vpc_id: vpc-4ea63725
+  owner_id: 998131032990
+  sqs_arn: https://sqs.us-east-1.amazonaws.com/998131032990/local-autoscaling-notification
+  sns_arn: arn:aws:sns:us-east-1:998131032990:local-autoscaling-tracking
+  role_arn: arn:aws:iam::998131032990:role/Teletraan 
+  vm_keyname: ops
+  default_role: base
+  pinfo_environment: prod
+  role_template: arn:aws:iam::%s:instance-profile/%s
+  user_data_template: "#cloud-config\ncmp_group: %s\npinfo_environment:  %s\npinfo_team: cloudeng\npinfo_role: cmp_docker"
+
+# Metric source settings
+metric:
+  type: statsboard
+  url: http://localhost:18126
+  readUrl: https://statsboard.pinadmin.com
+
+#
+# OAuth based Authentication: by default is disabled.
+#
+#authentication:
+  # Authentication type: allowed values are token, anonymous. The Token based authentication
+  # follows the OAuth 2.0 protocol. See documentations for more details.
+  # Note: anonymous authentication is the same as disable authentication all together
+  #type: token
+
+  # OAuth provider url
+  #userDataUrl: https://auth.pinadmin.com/api/me/
+
+  # Optional. token cache
+  #tokenCacheSpec: maximumSize=1000,expireAfterWrite=10m
+
+#
+# Token based Authorization: by default is disabled.
+#
+#authorization:
+  # Authorization type: allowed values are role, open. See documentations for more details.
+  # Note: open authorization is the same as disable authorization all together
+  #type: role
+
+  # Optional. token cache
+  #roleCacheSpec: maximumSize=10000, expireAfterAccess=10m
+
+#
+# Source Code Management settings: by default is disabled.
+# Uncomment the following to get better UI support, such as showing commit info,
+# deploy diffs and etc. See documentations for more details.
+# Currently Teletraan supports Github and Phabricator. Uncommment one of the
+# following sections to enable the SCM support.
+#
+#scm:
+  #type: github
+  #token:
+  #apiPrefix: https://api.github.com
+  #urlPrefix: https://github.com
+
+  #type: phabricator
+  #urlPrefix: https://phabricator.sample.com
+  #arc: /usr/local/bin/arc
+  #arcrc: /root/.arcrc
+
+#
+# Chat application settings: by default is disabled.
+# Uncomment the following to allow Teletran send deploy state changes notify and other
+# informations to chatrooms. See documentations for more details.
+# Currently Teletraan supports Slack and Hipchat
+#
+#chat:
+  #type: slack
+  #url: https://hooks.slack.com/services/....
+
+  #type: hipchat
+  #token:
+
+#
+# Email notify settings
+# Uncomment the following if needs to send config changes and deploy state changes
+# through emails. Currently Teletraan could only work with localhost SMTP service.
+#
+#email:
+  #type: smtp
+  #adminAddress: x@y.com
+
+#
+# Miscellaneous settings of the system
+#
+system:
+  # Teletraan needs to refer Deploy Dashboard url in its notify etc.
+  dashboardUrl: http://localhost:8888
+
+#
+# Worker settings: disable all the workers if you do not want to run
+# workers together with the service. See documentations for more details.
+#
+workers:
+  # StateTransitioner looks for active deploys, set deploy status and
+  # transition deploys to their next states.
+  - name: StateTransitioner
+    properties:
+      initialDelay: 10
+      period: 30
+
+  # AutoPromoter provides the Auto Deploy support. It finds the deploy
+  # cadidates from preceeding stage and promote them to next stages.
+  - name: AutoPromoter
+    properties:
+      initialDelay: 20
+      period: 30
+
+  - name: SpotAutoScalingScheduler
+    properties:
+      initialDelay: 0
+      period: 5
+
+  - name: LaunchEventCollector
+    properties:
+      initialDelay: 0
+      period: 5
