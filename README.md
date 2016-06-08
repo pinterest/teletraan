@@ -28,7 +28,4 @@ Check out [Integrate with Teletraan](https://github.com/pinterest/teletraan/wiki
 
 ### Help
 
-If you have forked teletraan before and now does not work anymore ( Teletraan repo has been made private for a period of time on 6/8/2016 accidently), then you need to:
-#### First, rename your old teletraan repo on github. then refork. the new repo should magically connect to your local repo
-
 If you have any questions or comments, you can reach us at teletraan-users@googlegroups.com.
