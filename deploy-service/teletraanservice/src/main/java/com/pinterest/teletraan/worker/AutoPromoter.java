@@ -236,10 +236,21 @@ public class AutoPromoter implements Runnable {
             currDeployBean = deployDAO.getById(deployId);
         }
 
+        if (currDeployBean != null) {
+            if (promoteBean.getOverride_policy == PromoteOverridePolicy.NO_OVERRIDE) {
+            // do not override! 
+                return;
+            } else if (promoteBean.getOverride_policy == PromoteOverridePolicy.WARNING) {
+                
+            }
+        }
+                
+
         if (!isCurrentDeployRetirable(envId, currDeployBean)) {
             LOG.debug("Env {} current deploy is not ready to be retired, bail out!", envId);
             return;
         }
+
         // check if there is a currDeployBean -> ask if they would like to continue
         
 
