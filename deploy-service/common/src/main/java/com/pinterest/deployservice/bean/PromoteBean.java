@@ -65,6 +65,9 @@ public class PromoteBean implements Updatable, Serializable {
     @JsonProperty("failPolicy")
     private PromoteFailPolicy fail_policy;
 
+    @JsonProperty("overridePolicy")
+    private OverridePolicy override_policy;
+
     public String getEnv_id() {
         return env_id;
     }
@@ -145,6 +148,15 @@ public class PromoteBean implements Updatable, Serializable {
         this.fail_policy = fail_policy;
     }
 
+    public PromoteOverridePolicy getOverride_policy() {
+        return override_policy;
+    }
+
+    public void setOverride_policy(PromoteOverridePolicy override_policy) {
+        this.override_policy = override_policy;
+    }
+
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -158,6 +170,7 @@ public class PromoteBean implements Updatable, Serializable {
         clause.addColumn("delay", delay);
         clause.addColumn("disable_policy", disable_policy);
         clause.addColumn("fail_policy", fail_policy);
+        clause.addColumn("override_policy", override_policy);
         return clause;
     }
 

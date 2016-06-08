@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS promotes (
     delay           INT                 NOT NULL DEFAULT 0,
     disable_policy  VARCHAR(32)         NOT NULL,
     fail_policy     VARCHAR(32)         NOT NULL,
+    override_policy VARCHAR(32)         NOT NULL,
     last_operator   VARCHAR(64)         NOT NULL,
     last_update     BIGINT              NOT NULL,
     PRIMARY KEY     (env_id)

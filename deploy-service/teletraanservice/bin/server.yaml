@@ -63,6 +63,27 @@ db:
   # delete the working dir often resolve the issue.
   #workDir: /tmp/teletraan/db
 
+# AWS integration
+aws:
+  id: AKIAIC6DEVFBBN2Y4XMA
+  key: 5u7NfcYxsBUuswnyQ2dqIpcZBdGZsdg15t2h1EyM
+  vpc_id: vpc-4ea63725
+  owner_id: 998131032990
+  sqs_arn: https://sqs.us-east-1.amazonaws.com/998131032990/local-autoscaling-notification
+  sns_arn: arn:aws:sns:us-east-1:998131032990:local-autoscaling-tracking
+  role_arn: arn:aws:iam::998131032990:role/Teletraan 
+  vm_keyname: ops
+  default_role: base
+  pinfo_environment: prod
+  role_template: arn:aws:iam::%s:instance-profile/%s
+  user_data_template: "#cloud-config\ncmp_group: %s\npinfo_environment:  %s\npinfo_team: cloudeng\npinfo_role: cmp_docker"
+
+# Metric source settings
+metric:
+  type: statsboard
+  url: http://localhost:18126
+  readUrl: https://statsboard.pinadmin.com
+
 #
 # OAuth based Authentication: by default is disabled.
 #
@@ -155,10 +176,12 @@ workers:
       initialDelay: 20
       period: 30
 
-  # AgentJanitor cleans up any obsoleted hosts or agents records
-  - name: SimpleAgentJanitor
+  - name: SpotAutoScalingScheduler
     properties:
-      initialDelay: 30
-      period: 300
-      minStaleHostThreshold: 150
-      maxStaleHostThreshold: 600
+      initialDelay: 0
+      period: 5
+
+  - name: LaunchEventCollector
+    properties:
+      initialDelay: 0
+      period: 5
