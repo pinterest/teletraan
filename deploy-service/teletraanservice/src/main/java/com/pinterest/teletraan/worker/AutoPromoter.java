@@ -240,6 +240,8 @@ public class AutoPromoter implements Runnable {
             LOG.debug("Env {} current deploy is not ready to be retired, bail out!", envId);
             return;
         }
+        // check if there is a currDeployBean -> ask if they would like to continue
+        
 
         // Special case when deploy failed, apply promote fail policy here
         if (isDeployFailed(currDeployBean)) {

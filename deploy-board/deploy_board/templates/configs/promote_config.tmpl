@@ -127,6 +127,24 @@
                         <input class="form-control" name="promoteDelay" required="false"
                                type="text" value="{{ env_promote.delay }}"/>
                     </div>
+                    
+                    <!-- <label for="promoteDisablePolicy" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Should we disable auto deploy if there are manual deploys override the auto deploys">
+                        Disable Policy
+                    </label>
+                    <div class ="col-xs-4">
+                        <select class="form-control" name="promoteDisablePolicy">
+                            {% get_promote_disable_policies as disablePolicies %}
+                            {% for disablePolicy in disablePolicies %}
+                            {% if env_promote.disablePolicy == disablePolicy %}
+                            <option value="{{ disablePolicy }}" selected="selected">{{ disablePolicy }}</option>
+                            {% else %}
+                            <option value="{{ disablePolicy }}">{{ disablePolicy }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div> -->
                 </div>
                 <div class="form-group collapse" id="cronExpressionDetailsId">
                     <div class="col-xs-2">
