@@ -164,6 +164,10 @@ public class EnvironHandler {
         if (promoteBean.getFail_policy() == null) {
             promoteBean.setFail_policy(Constants.DEFAULT_PROMOTE_FAIL_POLICY);
         }
+
+        if (promoteBean.getOverride_policy() == null) {
+            promoteBean.setOverride_policy(Constants.DEFAULT_PROMOTE_OVERRIDE_POLICY);
+        }
     }
 
     public String createEnvStage(EnvironBean envBean, String operator) throws Exception {
@@ -290,6 +294,7 @@ public class EnvironHandler {
         promote.setDelay(Constants.DEFAULT_PROMOTE_DELAY_MINUTES);
         promote.setDisable_policy(Constants.DEFAULT_PROMOTE_DISABLE_POLICY);
         promote.setFail_policy(Constants.DEFAULT_PROMOTE_FAIL_POLICY);
+        promote.setOverride_policy(Constants.DEFAULT_PROMOTE_OVERRIDE_POLICY);
         return promote;
     }
 

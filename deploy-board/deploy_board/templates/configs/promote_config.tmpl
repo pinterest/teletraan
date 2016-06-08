@@ -127,6 +127,24 @@
                         <input class="form-control" name="promoteDelay" required="false"
                                type="text" value="{{ env_promote.delay }}"/>
                     </div>
+                    
+                    <label for="promoteOverridePolicy" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Should we override current deploy with new one">
+                        Override Policy
+                    </label>
+                    <div class ="col-xs-4">
+                        <select class="form-control" name="promoteOverridePolicy">
+                            {% get_promote_override_policies as overridePolicies %}
+                            {% for overridePolicy in overridePolicies %}
+                            {% if env_promote.overridePolicy == overridePolicy %}
+                            <option value="{{ overridePolicy }}" selected="selected">{{ overridePolicy }}</option>
+                            {% else %}
+                            <option value="{{ overridePolicy }}">{{ overridePolicy }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group collapse" id="cronExpressionDetailsId">
                     <div class="col-xs-2">

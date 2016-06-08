@@ -23,6 +23,7 @@ public class Constants {
     public static final PromoteType DEFAULT_PROMOTE_TYPE = PromoteType.MANUAL;
     public static final PromoteFailPolicy DEFAULT_PROMOTE_FAIL_POLICY = PromoteFailPolicy.CONTINUE;
     public static final PromoteDisablePolicy DEFAULT_PROMOTE_DISABLE_POLICY = PromoteDisablePolicy.AUTO;
+    public static final PromoteOverridePolicy DEFAULT_PROMOTE_OVERRIDE_POLICY = PromoteOverridePolicy.OVERRIDE;
     public static final AcceptanceType DEFAULT_ACCEPTANCE_TYPE = AcceptanceType.AUTO;
 
     public static final int DEFAULT_MAX_PARALLEL_HOSTS = 1;

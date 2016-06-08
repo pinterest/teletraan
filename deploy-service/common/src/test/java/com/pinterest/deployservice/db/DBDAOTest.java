@@ -770,6 +770,7 @@ public class DBDAOTest {
         bean1.setQueue_size(Constants.DEFAULT_PROMOTE_QUEUE_SIZE);
         bean1.setDisable_policy(Constants.DEFAULT_PROMOTE_DISABLE_POLICY);
         bean1.setFail_policy(Constants.DEFAULT_PROMOTE_FAIL_POLICY);
+        bean1.setOverride_policy(Constants.DEFAULT_PROMOTE_OVERRIDE_POLICY);
         bean1.setLast_operator("system");
         bean1.setLast_update(now);
         bean1.setDelay(0);
@@ -784,6 +785,7 @@ public class DBDAOTest {
         bean2.setQueue_size(Constants.DEFAULT_PROMOTE_QUEUE_SIZE);
         bean2.setDisable_policy(Constants.DEFAULT_PROMOTE_DISABLE_POLICY);
         bean2.setFail_policy(Constants.DEFAULT_PROMOTE_FAIL_POLICY);
+        bean2.setOverride_policy(Constants.DEFAULT_PROMOTE_OVERRIDE_POLICY);
         bean2.setLast_operator("system");
         bean2.setLast_update(now);
         bean2.setDelay(0);

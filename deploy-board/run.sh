@@ -36,7 +36,6 @@ function server_start {
     echo "Starting Deployboard..."
 
     mkdir -p ${LOG_DIR}
-
     export PYTHONPATH=${ROOT_DIR}
     if [ "$1" == "FOREGROUND" ]
     then
