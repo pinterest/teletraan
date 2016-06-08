@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS environs (
     state               VARCHAR(32)   NOT NULL,
     cluster_name        VARCHAR(128),
     max_parallel_rp     INT           NOT NULL DEFAULT 1,
+    override_policy     VARCHAR(32)   NOT NULL,
     PRIMARY KEY   (env_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);

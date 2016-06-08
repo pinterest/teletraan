@@ -142,6 +142,10 @@ public class EnvironHandler {
         if (envBean.getState() == null) {
             envBean.setState(EnvironState.NORMAL);
         }
+
+        if (envBean.getOverride_policy() == null) {
+            envBean.setOverride_policy(Constants.DEFAULT_OVERRIDE_POLICY);
+        }
     }
 
     void updatePromoteBeanDefault(PromoteBean promoteBean) throws Exception {
