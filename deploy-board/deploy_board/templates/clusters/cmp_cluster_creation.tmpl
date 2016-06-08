@@ -1,5 +1,5 @@
 {% load utils %}
-{% include "panel_heading.tmpl" with panel_title="Advanced Cluster Manager" panel_body_id="clusterConfigId" direction="down" %}
+{% include "panel_heading.tmpl" with panel_title="Cluster Manager" panel_body_id="clusterConfigId" direction="down" %}
 <div id="clusterConfigId" class="collapse in panel-body">
     <div class="container-fluid">
         <form id="clusterConfigFormId" class="form-horizontal" role="form">
@@ -45,22 +45,29 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="imageName" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="Image Name">
-                        Image Name
-                    </label>
-                    <div class="col-xs-4" id="image_name_div_id">
-                    </div>
-
                     <label for="baseImageId" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Base Image">
                         Image
                     </label>
-                    <div class="col-xs-4" id="base_image_div_id">
+                    <div class="col-xs-10" id="base_image_div_id">
+                        <div class="input-group">
+                        <select class="form-control" id="base_image" name="baseImageId" required="true">
+                        {% for base_image in base_images %}
+                            <option value="{{ base_image.id }}">{{ base_image.provider_name }}</option>
+                        {% endfor %}
+                        </select>
+                        <span class="input-group-btn">
+                            <button id="baseImageDetailsButtonId" class="deployToolTip btn btn-default"
+                                    type="button" data-toggle="tooltip"
+                                    title="click to see more base image information">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                            </button>
+                        </span>
+                        </div>
                     </div>
                 </div>
+
                 <div class="form-group collapse" id="showBaseImageDetailsId">
                     <div class="col-xs-2">
                     </div>
@@ -77,6 +84,7 @@
                     <div class="col-xs-10" id="host_type_div_id">
                     </div>
                 </div>
+
                 <div class="form-group collapse" id="showHostTypeDetailsId">
                     <div class="col-xs-2">
                     </div>
@@ -135,11 +143,6 @@
 
 <script>
 function loadConfig(provider) {
-    var image_name_url = "/clouds/get_image_names/?provider=" + provider + "&env={{ env.envName }}" + "&stage={{ env.stageName }}";
-    $.get(image_name_url, function(response) {
-        $("#image_name_div_id").html(response);
-    });
-
     var host_type_url = "/clouds/get_host_types/?provider=" + provider;
     $.get(host_type_url, function(response) {
         $("#host_type_div_id").html(response);
@@ -161,13 +164,33 @@ function getCurrentProvider() {
     return $("#provider option:selected").val();
 }
 
+function loadImageDetails(name) {
+    var base_image_info_url = "/clouds/get_base_image_info/?name=" + name;
+    $.get(base_image_info_url, function(response) {
+        $("#baseImageDetailsId").html(response);
+    });
+}
+
+function loadAdvancedConfig(provider, image_name) {
+    var advanced_config_url = "/clouds/get_advanced_config/?provider=" + provider + "&env={{ env.envName }}" + "&stage={{ env.stageName }}"+ "&image_name=" + image_name;
+    $.get(advanced_config_url, function(response) {
+        $("#advanced_config_div_id").html(response);
+    });
+}
+
 $(document).ready(function() {
     loadConfig(getCurrentProvider());
+    loadImageDetails("CMP-DOCKER");
+    loadAdvancedConfig(getCurrentProvider(), "CMP-DOCKER");
 });
 
 $(function () {
     $("#provider").change(function() {
         loadConfig(getCurrentProvider());
+    });
+
+    $("#baseImageDetailsButtonId").click(function() {
+        $("#showBaseImageDetailsId").collapse('toggle');
     });
 
     $('#saveClusterConfigBtnId').attr('disabled','disabled');
@@ -192,7 +215,7 @@ $(function () {
         var btn = $(this);
         $.ajax({
             type: 'POST',
-            url: '/env/{{ env.envName }}/{{ env.stageName }}/config/create_cluster/',
+            url: '/env/{{ env.envName }}/{{ env.stageName }}/config/create_cmp_cluster/',
             data: $("#clusterConfigFormId").serialize(),
             dataType: 'json',
             beforeSend: function () {

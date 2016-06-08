@@ -1348,6 +1348,10 @@ public class DBDAOTest {
 
         Collection<HostTypeBean> beans = hostTypeDAO.getByProvider(CloudProvider.AWS.toString());
         assertEquals(beans.size(), 1);
+
+        HostTypeBean bean3 = hostTypeDAO.getByProviderAndAbstractName(CloudProvider.AWS.toString(), "ComputeHi");
+        assertEquals(bean3.getProvider_name(), "c10");
+        assertEquals(bean3.getId(), id);
     }
 
     @Test
@@ -1370,6 +1374,10 @@ public class DBDAOTest {
 
         Collection<SecurityZoneBean> beans = securityZoneDAO.getByProvider(CloudProvider.AWS.toString());
         assertEquals(beans.size(), 1);
+
+        SecurityZoneBean bean3 = securityZoneDAO.getByProviderAndAbstractName(CloudProvider.AWS.toString(), "prod-public");
+        assertEquals(bean3.getProvider_name(), "prod-public-123");
+        assertEquals(bean3.getId(), id);
     }
 
     @Test
@@ -1401,6 +1409,9 @@ public class DBDAOTest {
         Collection<PlacementBean> beans = placementDAO.getByProvider(CloudProvider.AWS.toString());
         assertEquals(beans.size(), 1);
 
+        PlacementBean bean3 = placementDAO.getByProviderAndAbstractName(CloudProvider.AWS.toString(), "us-east");
+        assertEquals(bean3.getProvider_name(), "us-east-1");
+        assertEquals(bean3.getId(), id);
     }
 
     @Test

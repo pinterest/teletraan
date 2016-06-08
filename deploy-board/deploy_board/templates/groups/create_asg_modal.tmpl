@@ -16,7 +16,7 @@
             </label>
             <div class="col-xs-6">
                 <input class="form-control" name="min_size" required="true" id="minSizeInput"
-                       type="text" value="{{ asg.minSize }}" placeholder="usually the minimum number of instances in the group."/>
+                       type="text" value="" placeholder="usually the minimum number of instances in the group."/>
             </div>
           </div>
 
@@ -38,7 +38,7 @@
 
             <div class="col-xs-6">
                 <input class="form-control" name="max_size" required="true"
-                       type="text" value="{{ asg.maxSize }}" placeholder="usually the maximum number of instances in the group."/>
+                       type="text" value="" placeholder="usually the maximum number of instances in the group."/>
             </div>
           </div>
 
@@ -60,18 +60,6 @@
              </select>
              </div>
           </div>
-
-          <div class="form-group">
-             <label for="attachInstance" class="deployToolTip control-label col-xs-9">Attach Existing Instance(s) to the group&nbsp;
-             <input type="checkbox" id="attach_instance" name="attach_instances">
-             </label>
-          </div>
-          <div id="warning-message-id" class="form-group hidden">
-          <div class="col-xs-12 bg-danger">
-           Auto scaling group may terminate some existing instances and launch new instances to balance the number of instances in different AZs.
-           </div>
-          </div>
-
       </div>
  </div>
 <div class="modal-footer">
@@ -83,12 +71,5 @@
 <script>
   $(function() {
     $(".chosen-select").chosen({"width": "100%"});
-    $("#attach_instance").change(function() {
-        if ($("#attach_instance:checked").length > 0) {
-            $("#warning-message-id").removeClass("hidden");
-        } else {
-            $("#warning-message-id").addClass("hidden");
-        }
-    });
   });
 </script>

@@ -45,6 +45,8 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "SELECT * FROM environs WHERE env_name=?";
     private static final String GET_ENV_BY_STAGE =
         "SELECT * FROM environs WHERE env_name=? AND stage_name=?";
+    private static final String GET_ENV_BY_CLUSTER =
+        "SELECT * FROM environs WHERE cluster_name=?";
     private static final String GET_ALL_ENV =
         "SELECT DISTINCT env_name FROM environs WHERE env_name LIKE ? ORDER BY env_name ASC LIMIT ?,?";
     private static final String GET_ALL_ENV2 =
@@ -165,6 +167,12 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     public EnvironBean getByStage(String envName, String envStage) throws Exception {
         ResultSetHandler<EnvironBean> h = new BeanHandler<EnvironBean>(EnvironBean.class);
         return new QueryRunner(dataSource).query(GET_ENV_BY_STAGE, h, envName, envStage);
+    }
+
+    @Override
+    public EnvironBean getByCluster(String clusterName) throws Exception {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<EnvironBean>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_ENV_BY_CLUSTER, h, clusterName);
     }
 
     @Override

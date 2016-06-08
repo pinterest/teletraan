@@ -47,7 +47,6 @@ public class AwsAutoScalingManager implements AutoScalingManager {
     private final String snsArn;
     private final String vmKeyName;
     private final String defaultRole;
-    private final String pinfoEnvironment;
     private final String roleTemplate;
     private final String userDataTemplate;
     private final String roleARN;
@@ -74,7 +73,6 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         this.snsArn = configManager.getSnsArn();
         this.vmKeyName = configManager.getVmKeyName();
         this.defaultRole = configManager.getDefaultRole();
-        this.pinfoEnvironment = configManager.getPinfoEnvironment();
         this.roleTemplate = configManager.getRoleTemplate();
         this.userDataTemplate = configManager.getUserDataTemplate();
         this.roleARN = configManager.getRoleArn();
@@ -577,7 +575,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         awsVmBean.setAssignPublicIp(launchConfigInfo.getAssignPublicIp());
         awsVmBean.setLaunchConfigId(launchConfigInfo.getLaunchConfigId());
         awsVmBean.setRole(launchConfigInfo.getRole());
-        awsVmBean.setUserDataConfigs(transformUserDataToConfigMap(clusterName, launchConfigInfo.getRawUserDataString()));
+        awsVmBean.setUserDataConfigs(transformUserDataToConfigMap(launchConfigInfo.getRawUserDataString()));
         awsVmBean.setSubnet(autoScalingGroup.getVPCZoneIdentifier());
         awsVmBean.setMinSize(autoScalingGroup.getMinSize());
         awsVmBean.setMaxSize(autoScalingGroup.getMaxSize());
@@ -735,7 +733,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
 
     @Override
     public String transformUserDataConfigToString(String clusterName, Map<String, String> userDataConfigs) throws Exception {
-        String prefix = String.format(userDataTemplate, clusterName, pinfoEnvironment);
+        String prefix = userDataTemplate;
         StringBuilder resultBuilder = new StringBuilder();
         resultBuilder.append(prefix);
         if (userDataConfigs == null) {
@@ -779,8 +777,8 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         return String.format("%s_%s_rule", groupName, scaleType.toLowerCase());
     }
 
-    private Map<String, String> transformUserDataToConfigMap(String clusterName, String userData) throws Exception {
-        String userDataString = userData.replace(String.format(userDataTemplate, clusterName, pinfoEnvironment), "");
+    private Map<String, String> transformUserDataToConfigMap(String userData) throws Exception {
+        String userDataString = userData.replace(userDataTemplate, "");
         Map<String, String> resultMap = new HashMap<>();
         if (userDataString.length() == 0) {
             return resultMap;

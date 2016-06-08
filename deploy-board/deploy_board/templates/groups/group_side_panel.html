@@ -26,6 +26,14 @@
         <span class="glyphicon glyphicon-pause"></span> Disable Auto Scaling
     </button>
 </div>
+{% elif asg_vm_config and asg_vm_config.asgStatus == "UNKNOWN" %}
+    <div class="row">
+    <button class="deployToolTip btn btn-default btn-block"
+                data-toggle="modal" data-target="#createAutoScalingModalId"
+                title="Disable the auto scaling group" id="createAutoScalingBtnId">
+        <span class="glyphicon glyphicon-play"></span> Create Auto Scaling
+    </button>
+    </div>
 {% endif %}
 
 {% if asg_vm_config and asg_vm_config.asg_status != "UNKNOWN" %}
@@ -149,6 +157,10 @@
 
 <script>
 $(function() {
+    $("#createAutoScalingBtnId").click(function() {
+        $("#createASGDivId").load("/groups/{{ group_name }}/gen_asg_setting/");
+    });
+
    $("#deleteAutoScalingBtnId").click(function() {
        if ($("#deleteAutoScalingModalId #delete_instances")[0].checked) {
            $.get('/groups/{{ group_name }}/delete_asg/?delete=1', function(response) {

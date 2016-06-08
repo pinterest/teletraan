@@ -247,11 +247,13 @@ public class GroupHandler {
 
     public GroupInfoBean getGroupInfoByClusterName(String clusterName) throws Exception {
         AwsVmBean awsVmBean = asgDAO.getAutoScalingGroupInfo(clusterName);
-        if (awsVmBean == null) {
+        GroupBean oldBean = groupInfoDAO.getGroupInfo(clusterName);
+        if (awsVmBean == null && oldBean == null) {
             return null;
+        } else if (awsVmBean == null) {
+            awsVmBean = getGroupInfo(oldBean);
         }
 
-        GroupBean oldBean = groupInfoDAO.getGroupInfo(clusterName);
         GroupInfoBean groupInfoBean = new GroupInfoBean();
         groupInfoBean.setAwsVmBean(awsVmBean);
         groupInfoBean.setGroupBean(oldBean);
@@ -259,6 +261,11 @@ public class GroupHandler {
     }
 
     public void updateCluster(String groupName, AwsVmBean awsVmBean) throws Exception {
+        if (getCluster(groupName) == null) {
+            updateLaunchConfig(groupName, awsVmBean);
+            return;
+        }
+
         awsVmManager.updateCluster(groupName, awsVmBean);
         // handle spot auto scaling group
         List<SpotAutoScalingBean> spotAutoScalingGroups = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
@@ -772,4 +779,40 @@ public class GroupHandler {
     public void deleteScheduledActionFromAutoScalingGroup(String clusterName, String actionId) throws Exception {
         asgDAO.deleteScheduledAction(clusterName, actionId);
     }
+
+    // the following functions is used for backward compatible only
+    private void updateLaunchConfig(String clusterName, AwsVmBean awsVmBean) throws Exception {
+        GroupBean groupBean = groupInfoDAO.getGroupInfo(clusterName);
+        String launchConfig = groupBean.getLaunch_config_id();
+        AwsVmBean oldAwsVmBean = asgDAO.getLaunchConfigInfo(launchConfig);
+        String newLaunchConfig = awsVmManager.updateLaunchConfig(clusterName, oldAwsVmBean, awsVmBean);
+
+        groupBean.setLaunch_config_id(newLaunchConfig);
+        if (awsVmBean.getSubnet() != null) {
+            groupBean.setSubnets(awsVmBean.getSubnet());
+        }
+        groupInfoDAO.updateGroupInfo(clusterName, groupBean);
+    }
+
+    public AwsVmBean getGroupInfo(GroupBean groupBean) throws Exception {
+        AwsVmBean awsVmBean = asgDAO.getLaunchConfigInfo(groupBean.getLaunch_config_id());
+        if (awsVmBean == null) {
+            return null;
+        }
+
+        if (groupBean.getSubnets() != null) {
+            awsVmBean.setSubnet(groupBean.getSubnets());
+        }
+        awsVmBean.setAsgStatus(ASGStatus.UNKNOWN);
+        return awsVmBean;
+    }
+
+    public void createAutoScalingGroup(String clusterName, AwsVmBean awsVmBean) throws Exception {
+        GroupBean groupBean = groupInfoDAO.getGroupInfo(clusterName);
+        String launchConfig = groupBean.getLaunch_config_id();
+        awsVmBean.setLaunchConfigId(launchConfig);
+        awsVmBean.setSubnet(groupBean.getSubnets());
+        asgDAO.createAutoScalingGroup(clusterName, awsVmBean);
+    }
+
 }

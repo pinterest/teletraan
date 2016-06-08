@@ -39,7 +39,7 @@
                     </label>
                     <div class="col-xs-4">
                         <div class="input-group">
-                        {% if env.isDocker %}
+                        {% if basic_cluster_info.isDocker %}
                             <input class="" id="is_docker" name="isDocker" type="checkbox" value="" checked>
                         {% else %}
                             <input class="" id="is_docker" name="isDocker" type="checkbox" value="">
@@ -119,23 +119,7 @@
                     <div class="col-xs-10" id="placementDetailsId">
                     </div>
                 </div>
-                <input type="hidden" name="configId" value="{{ basic_cluster_info.config_id }}">
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingOne">
-                        <h4 class="panel-title pointer-cursor">
-                            <div id="showAdvanceDivId">
-                            <span class="glyphicon glyphicon-chevron-right"></span>Advanced Settings
-                            </div>
-                            <div id="hideAdvanceDivId" class="hidden">
-                            <span class="glyphicon glyphicon-chevron-down"></span>Advanced Settings
-                            </div>
-                        </h4>
-                    </div>
-                </div>
-
-                <div id="advanceSettingDivId" class="hidden">
-                    <div id="advanced_config_div_id">
-                    </div>
+                <div id="advanced_config_div_id">
                 </div>
             </fieldset>
             {% csrf_token %}
@@ -160,33 +144,24 @@
 
 <script>
 function loadConfig(provider) {
-    var image_name_url = "/clouds/get_image_names/?provider=" + provider + "&curr_base_image={{ basic_cluster_info.base_image_id }}";
+    var image_name_url = "/clouds/get_image_names/?provider=" + provider + "&env={{ env.envName }}" + "&stage={{ env.stageName }}" + "&curr_base_image={{ basic_cluster_info.baseImageId }}";
     $.get(image_name_url, function(response) {
         $("#image_name_div_id").html(response);
     });
 
-    var host_type_url = "/clouds/get_host_types/?provider=" + provider + "&curr_host_type={{ basic_cluster_info.host_type_id }}";
+    var host_type_url = "/clouds/get_host_types/?provider=" + provider + "&curr_host_type={{ basic_cluster_info.hostType }}";
     $.get(host_type_url, function(response) {
         $("#host_type_div_id").html(response);
     });
 
-    var security_zone_url = "/clouds/get_security_zones/?provider=" + provider + "&curr_security_zone={{ basic_cluster_info.security_zone_id }}";
+    var security_zone_url = "/clouds/get_security_zones/?provider=" + provider + "&curr_security_zone={{ basic_cluster_info.securityZone }}";
     $.get(security_zone_url, function(response) {
         $("#security_zone_div_id").html(response);
     });
 
-    var placement_url = "/clouds/get_placements/?provider=" + provider + "&curr_placement={{ basic_cluster_info.placement_id }}";
+    var placement_url = "/clouds/get_placements/?provider=" + provider + "&curr_placement={{ basic_cluster_info.placement }}";
     $.get(placement_url, function(response) {
         $("#placement_div_id").html(response);
-    });
-}
-
-function loadAdvancedConfig(provider, adv) {
-    var env = "{{ env.envName }}";
-    var stage = "{{ env.stageName }}";
-    var advanced_config_url = "/clouds/get_advanced_config/?provider=" + provider + "&adv=" + adv + "&env=" + env + "&stage=" + stage;
-    $.get(advanced_config_url, function(response) {
-        $("#advanced_config_div_id").html(response);
     });
 }
 
@@ -196,31 +171,11 @@ function getCurrentProvider() {
 
 $(document).ready(function() {
     loadConfig(getCurrentProvider());
-    loadAdvancedConfig(getCurrentProvider(), "0");
 });
 
 $(function () {
     $("#provider").change(function() {
         loadConfig(getCurrentProvider());
-        if ($("#hideAdvanceDivId").is(":hidden")) {
-            loadAdvancedConfig(getCurrentProvider(), "0");
-        } else {
-            loadAdvancedConfig(getCurrentProvider(), "1");
-        }
-    });
-
-    $('#showAdvanceDivId').click(function () {
-        loadAdvancedConfig(getCurrentProvider(), "1");
-        $("#hideAdvanceDivId").removeClass("hidden");
-        $("#advanceSettingDivId").removeClass("hidden");
-        $("#showAdvanceDivId").addClass("hidden");
-    });
-
-    $('#hideAdvanceDivId').click(function () {
-        loadAdvancedConfig(getCurrentProvider(), "0");
-        $("#hideAdvanceDivId").addClass("hidden");
-        $("#advanceSettingDivId").addClass("hidden");
-        $("#showAdvanceDivId").removeClass("hidden");
     });
 
     $('#saveClusterConfigBtnId').attr('disabled','disabled');

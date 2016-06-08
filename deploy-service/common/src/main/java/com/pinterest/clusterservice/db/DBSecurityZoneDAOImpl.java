@@ -33,6 +33,8 @@ public class DBSecurityZoneDAOImpl implements SecurityZoneDAO {
 
     private static String GET_BY_ID = "SELECT * FROM security_zones WHERE id=?";
 
+    private static String GET_BY_PROVIDER_AND_ABSTRACTNAME = "SELECT * FROM security_zones WHERE provider=? AND abstract_name=?";
+
     private static String GET_ALL = "SELECT * FROM security_zones ORDER by abstract_name LIMIT ?,?";
 
     private static String GET_BY_PROVIDER = "SELECT * FROM security_zones WHERE provider=? ORDER by abstract_name";
@@ -54,6 +56,12 @@ public class DBSecurityZoneDAOImpl implements SecurityZoneDAO {
     public SecurityZoneBean getById(String id) throws Exception {
         ResultSetHandler<SecurityZoneBean> h = new BeanHandler<SecurityZoneBean>(SecurityZoneBean.class);
         return new QueryRunner(dataSource).query(GET_BY_ID, h, id);
+    }
+
+    @Override
+    public SecurityZoneBean getByProviderAndAbstractName(String provider, String abstractName) throws Exception {
+        ResultSetHandler<SecurityZoneBean> h = new BeanHandler<SecurityZoneBean>(SecurityZoneBean.class);
+        return new QueryRunner(dataSource).query(GET_BY_PROVIDER_AND_ABSTRACTNAME, h, provider, abstractName);
     }
 
     @Override

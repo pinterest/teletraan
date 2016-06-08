@@ -180,6 +180,7 @@ def is_instance_protected(request, group_name, instance_id):
     return deployclient.get("/groups/{}/autoscaling/instance/protection".format(group_name),
                             request.teletraan_user_id.token, data=instance_id)
 
+
 # config history
 def get_config_history(request, group_name, index, size):
     params = [('pageIndex', index), ('pageSize', size)]
@@ -245,7 +246,7 @@ def update_pas_config(request, pas_config):
 
 
 def get_pas_config(request, group_name):
-    return deployclient.get("/groups/{}/autoscaling/pas".format(group_name, request.teletraan_user_id))
+    return deployclient.get("/groups/{}/autoscaling/pas".format(group_name), request.teletraan_user_id.token)
 
 
 # time based auto scaling

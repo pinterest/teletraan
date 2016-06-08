@@ -35,7 +35,7 @@ public class DBPlacementDAOImpl implements PlacementDAO {
 
     private static String GET_BY_ID = "SELECT * FROM placements WHERE id=?";
 
-    private static String GET_BY_PROVIDER_NAME = "SELECT * FROM placements WHERE provider_name=?";
+    private static String GET_BY_PROVIDER_AND_ABSTRACTNAME = "SELECT * FROM placements WHERE provider=? AND abstract_name=?";
 
     private static String GET_ALL = "SELECT * FROM placements ORDER by abstract_name LIMIT ?,?";
 
@@ -69,9 +69,9 @@ public class DBPlacementDAOImpl implements PlacementDAO {
     }
 
     @Override
-    public PlacementBean getByProviderName(String providerName) throws Exception {
+    public PlacementBean getByProviderAndAbstractName(String provider, String abstractName) throws Exception {
         ResultSetHandler<PlacementBean> h = new BeanHandler<PlacementBean>(PlacementBean.class);
-        return new QueryRunner(dataSource).query(GET_BY_PROVIDER_NAME, h, providerName);
+        return new QueryRunner(dataSource).query(GET_BY_PROVIDER_AND_ABSTRACTNAME, h, provider, abstractName);
     }
 
     @Override

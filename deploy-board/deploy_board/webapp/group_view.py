@@ -226,6 +226,17 @@ def update_group_config(request, group_name):
         raise
 
 
+def gen_asg_setting(request, group_name):
+     asg = groups_helper.get_autoscaling(request, group_name)
+     policies = groups_helper.TerminationPolicy
+     content = render_to_string("groups/create_asg_modal.tmpl", {
+         "asg": asg,
+         "group_name": group_name,
+         "policies": policies,
+         "csrf_token": get_token(request)})
+     return HttpResponse(content)
+
+
 def disable_asg(request, group_name):
     groups_helper.disable_autoscaling(request, group_name)
     return redirect('/groups/{}'.format(group_name))
@@ -239,11 +250,6 @@ def resume_asg(request, group_name):
 def create_asg(request, group_name):
     params = request.POST
     asgRequest = {}
-    asgRequest["groupName"] = group_name
-    if "attach_instances" in params:
-        asgRequest["attachExistingInstances"] = "true"
-    else:
-        asgRequest["attachExistingInstances"] = "false"
     asgRequest["minSize"] = int(params["min_size"])
     asgRequest["maxSize"] = int(params["max_size"])
     asgRequest["terminationPolicy"] = params["terminationPolicy"]
@@ -487,6 +493,7 @@ def get_group_info(request, group_name):
 
         all_hosts_in_group = groups_helper.get_group_instances(request, group_name)
         non_asg_host_names = []
+        non_asg_host_ids = []
         asg_host_names = []
         spot_asg_host_names = []
         if spot_asg:
@@ -505,7 +512,9 @@ def get_group_info(request, group_name):
                 spot_asg_instances.remove(host_id)
             else:
                 non_asg_host_names.append(host_name)
+                non_asg_host_ids.append(host_id)
 
+        non_asg_host_ids_str = ",".join(non_asg_host_ids)
         asg_host_names.extend(nonspot_asg_instances)
         spot_asg_host_names.extend(spot_asg_instances)
 
@@ -529,7 +538,9 @@ def get_group_info(request, group_name):
             "asg_hosts": asg_host_names,
             "spot_asg_hosts": spot_asg_host_names,
             "other_hosts": non_asg_host_names,
+            "other_host_ids": non_asg_host_ids_str,
             "has_spot_group": has_spot_group,
+            "csrf_token": get_token(request),
         })
         return HttpResponse(json.dumps({"html": content}), content_type="application/json")
     except:
@@ -802,10 +813,12 @@ class GroupConfigView(View):
         is_cmp = False
         if asg_cluster:
             asg_vm_info = asg_cluster.get("launchInfo")
-            if asg_vm_info and asg_vm_info.get("subnets"):
-                 asg_vm_info["subnetArrays"] = asg_vm_info["subnets"].split(',')
+            curr_image = None
+            if asg_vm_info:
+                curr_image = images_helper.get_image_by_id(request, asg_vm_info["imageId"])
+                if asg_vm_info.get("subnets"):
+                    asg_vm_info["subnetArrays"] = asg_vm_info["subnets"].split(',')
             group_info = asg_cluster.get("groupInfo")
-            curr_image = images_helper.get_image_by_id(request, asg_vm_info["imageId"])
             group_info = get_group_config_internal(group_info)
             envs = environs_helper.get_all_envs_by_group(request, group_name)
             for env in envs:
@@ -940,6 +953,18 @@ def instance_action_in_asg(request, group_name):
     return redirect('/groups/{}'.format(group_name))
 
 
+def attach_instances(request, group_name):
+    try:
+        params = request.POST
+        hosts = params.get("other_hosts")
+        host_ids = hosts.split(',')
+        groups_helper.instance_action_in_group(request, group_name, host_ids, "attach")
+        return redirect('/groups/{}/'.format(group_name))
+    except:
+        log.error(traceback.format_exc())
+        return redirect('/groups/{}/'.format(group_name))
+
+
 # Health Check related
 def get_health_check_activities(request, group_name):
     index = int(request.GET.get('page_index', '1'))
@@ -1057,3 +1082,4 @@ def update_scheduled_actions(request, group_name):
     except:
         log.error(traceback.format_exc())
         return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
+
