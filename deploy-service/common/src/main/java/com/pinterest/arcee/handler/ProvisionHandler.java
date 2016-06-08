@@ -16,6 +16,7 @@
 package com.pinterest.arcee.handler;
 
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
+import com.pinterest.arcee.bean.GroupInfoBean;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
@@ -33,15 +34,23 @@ public class ProvisionHandler {
     private HostDAO hostDAO;
     private HostInfoDAO hostInfoDAO;
     private AutoScalingManager autoScalingManager;
+    private GroupHandler groupHandler;
 
     public ProvisionHandler(ServiceContext serviceContext) {
         hostDAO = serviceContext.getHostDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         autoScalingManager = serviceContext.getAutoScalingManager();
+        groupHandler = new GroupHandler(serviceContext);
     }
 
     public Collection<String> launchHosts(String groupName, int instanceCnt, String subnet) throws Exception {
-        AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(groupName);
+        GroupInfoBean groupInfoBean = groupHandler.getGroupInfoByClusterName(groupName);
+        if (groupInfoBean == null) {
+            LOG.info(String.format("Failed to find group information in the database. Ignore launching instance request for group: %s", groupName));
+            return null;
+        }
+
+        AwsVmBean awsVmBean = groupInfoBean.getAwsVmBean();
         if (subnet == null) {
             LOG.info(String.format("Launch %d EC2 instances in AutoScalingGroup %s", instanceCnt, groupName));
             autoScalingManager.increaseGroupCapacity(groupName, instanceCnt);
