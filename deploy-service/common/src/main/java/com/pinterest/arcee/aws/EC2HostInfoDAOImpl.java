@@ -136,6 +136,7 @@ public class EC2HostInfoDAOImpl implements HostInfoDAO {
                 host.setIp(instance.getPrivateIpAddress());
                 host.setGroup_name(awsVmBean.getClusterName());
                 host.setState(HostState.PROVISIONED);
+                host.setGroup_name(awsVmBean.getClusterName());
                 host.setCreate_date(instance.getLaunchTime().getTime());
                 host.setLast_update(instance.getLaunchTime().getTime());
                 newHosts.add(host);

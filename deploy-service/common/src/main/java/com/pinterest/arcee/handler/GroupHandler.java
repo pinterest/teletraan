@@ -248,7 +248,7 @@ public class GroupHandler {
         if (awsVmBean == null && oldBean == null) {
             return null;
         } else if (awsVmBean == null) {
-            awsVmBean = getGroupInfo(oldBean);
+            awsVmBean = getGroupInfo(clusterName, oldBean);
         }
 
         GroupInfoBean groupInfoBean = new GroupInfoBean();
@@ -791,7 +791,7 @@ public class GroupHandler {
         groupInfoDAO.updateGroupInfo(clusterName, groupBean);
     }
 
-    public AwsVmBean getGroupInfo(GroupBean groupBean) throws Exception {
+    public AwsVmBean getGroupInfo(String clusterName, GroupBean groupBean) throws Exception {
         AwsVmBean awsVmBean = asgDAO.getLaunchConfigInfo(groupBean.getLaunch_config_id());
         if (awsVmBean == null) {
             return null;
@@ -801,6 +801,7 @@ public class GroupHandler {
             awsVmBean.setSubnet(groupBean.getSubnets());
         }
         awsVmBean.setAsgStatus(ASGStatus.UNKNOWN);
+        awsVmBean.setClusterName(clusterName);
         return awsVmBean;
     }
 
