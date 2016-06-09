@@ -97,6 +97,7 @@ public class ServiceContext {
 
     private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
     private ManagingGroupDAO managingGroupDAO;
+    private GroupMappingDAO groupMappingDAO;
 
     private String quboleAuthentication;
     private int spotAutoScalingThreshold;
@@ -562,4 +563,8 @@ public class ServiceContext {
     public void setTagDAO(TagDAO tagDAO) {
         this.tagDAO = tagDAO;
     }
+
+    public GroupMappingDAO getGroupMappingDAO() { return groupMappingDAO; }
+
+    public void setGroupMappingDAO(GroupMappingDAO groupMappingDAO) { this.groupMappingDAO = groupMappingDAO; }
 }

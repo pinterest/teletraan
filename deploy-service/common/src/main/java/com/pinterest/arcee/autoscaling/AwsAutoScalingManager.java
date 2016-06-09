@@ -245,6 +245,11 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         if (request.getMaxSize() != null) {
             updateAutoScalingGroupRequest.setMaxSize(request.getMaxSize());
         }
+
+        if (request.getCurSize() != null) {
+            updateAutoScalingGroupRequest.setDesiredCapacity(request.getCurSize());
+        }
+
         aasClient.updateAutoScalingGroup(updateAutoScalingGroupRequest);
     }
 

@@ -20,11 +20,11 @@ import com.pinterest.arcee.autoscaling.AlarmManager;
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.AsgAlarmBean;
 import com.pinterest.arcee.bean.AutoScalingGroupBean;
-import com.pinterest.arcee.bean.GroupBean;
+import com.pinterest.arcee.bean.ManagingGroupsBean;
 import com.pinterest.arcee.bean.SpotAutoScalingBean;
 import com.pinterest.arcee.common.AutoScalingConstants;
 import com.pinterest.arcee.dao.AlarmDAO;
-import com.pinterest.arcee.dao.GroupInfoDAO;
+import com.pinterest.arcee.dao.ManagingGroupDAO;
 import com.pinterest.arcee.dao.ReservedInstanceInfoDAO;
 import com.pinterest.arcee.dao.SpotAutoScalingDAO;
 import com.pinterest.arcee.handler.GroupHandler;
@@ -41,7 +41,6 @@ import java.util.List;
 public class SpotAutoScalingScheduler implements Runnable {
     private static Logger LOG = LoggerFactory.getLogger(SpotAutoScalingScheduler.class);
     private SpotAutoScalingDAO spotAutoScalingDAO;
-    private GroupInfoDAO groupInfoDAO;
     private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
     private AutoScalingManager autoScalingManager;
     private AlarmDAO asgAlarmDAO;
@@ -49,16 +48,18 @@ public class SpotAutoScalingScheduler implements Runnable {
     private AlarmManager alarmManager;
     private GroupHandler groupHandler;
 
+    private ManagingGroupDAO managingGroupDAO;
+
     public SpotAutoScalingScheduler(ServiceContext serviceContext) {
         spotAutoScalingDAO = serviceContext.getSpotAutoScalingDAO();
         autoScalingManager = serviceContext.getAutoScalingManager();
-        groupInfoDAO = serviceContext.getGroupInfoDAO();
         reservedInstanceInfoDAO = serviceContext.getReservedInstanceInfoDAO();
         autoScalingManager = serviceContext.getAutoScalingManager();
         spotAutoScalingThreshold = serviceContext.getSpotAutoScalingThreshold();
         asgAlarmDAO = serviceContext.getAlarmDAO();
         alarmManager = serviceContext.getAlarmManager();
         groupHandler = new GroupHandler(serviceContext);
+        managingGroupDAO = serviceContext.getManagingGroupDAO();
         LOG.info(String.format("Set spot auto scaling threshold to %d", spotAutoScalingThreshold));
     }
 
@@ -83,7 +84,7 @@ public class SpotAutoScalingScheduler implements Runnable {
         }
     }
 
-    private void processSpotAutoScaling(String clusterName, SpotAutoScalingBean spotAutoScalingBean) throws Exception {
+    private void processSpotAutoScaling(String clusterName, SpotAutoScalingBean spotAutoScalingBean, int targetGroupSize) throws Exception {
         AwsVmBean awsVmBean = groupHandler.getCluster(clusterName);
         if (awsVmBean == null) {
             return;
@@ -93,7 +94,10 @@ public class SpotAutoScalingScheduler implements Runnable {
         int reservedInstanceCount = reservedInstanceInfoDAO.getReservedInstanceCount(instanceType);
         int runningReservedInstanceCount = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
         int freeInstance = reservedInstanceCount - runningReservedInstanceCount;
-        String spotAutoScalingGroupName = spotAutoScalingBean.getAsg_name();
+
+        String spotAutoScalingGroupName = String.format("%s-spot", clusterName);
+        AwsVmBean spotAwsVmBean = autoScalingManager.getAutoScalingGroupInfo(spotAutoScalingGroupName);
+
         if (freeInstance < spotAutoScalingThreshold) {
             LOG.info(String.format("Enable scaling up for spot auto scaling group %s. Free RI is: %d (Threshold: %d)", clusterName, freeInstance,
                                    spotAutoScalingThreshold));
@@ -113,33 +117,61 @@ public class SpotAutoScalingScheduler implements Runnable {
                 spotAutoScalingDAO.updateSpotAutoScalingGroup(spotAutoScalingGroupName, updatedBean);
             }
         }
+
+        if (!spotAutoScalingBean.getEnable_resource_lending()) {
+            if (spotAwsVmBean.getMaxSize() != targetGroupSize) {
+                LOG.info(String.format("Auto scaling group %s current running %d, target spot max: %d, spot auto scaling max size: %d, "
+                                       + "Adjusting max size", clusterName, spotAwsVmBean.getCurSize(), targetGroupSize, spotAwsVmBean.getMaxSize()));
+                AwsVmBean updatedSpotAwsBean = new AwsVmBean();
+                updatedSpotAwsBean.setMaxSize(targetGroupSize);
+                autoScalingManager.updateAutoScalingGroup(spotAutoScalingGroupName, updatedSpotAwsBean);
+            } else {
+
+                LOG.info(String.format("Auto scaling group %s current running %d, target spot max: %d, spot auto scaling max size: %d, stay unchanged. ",
+                                       clusterName, spotAwsVmBean.getCurSize(), targetGroupSize, spotAwsVmBean.getMaxSize()));
+            }
+            return;
+        }
+
+        String attachedAutoScalingGroupName = String.format("%s-lending", clusterName);
+        AwsVmBean lendingAwsVmBean = autoScalingManager.getAutoScalingGroupInfo(attachedAutoScalingGroupName);
+
+        if (spotAwsVmBean.getMaxSize() + lendingAwsVmBean.getCurSize() != targetGroupSize) {
+            AwsVmBean updatedSpotAwsBean = new AwsVmBean();
+            updatedSpotAwsBean.setMaxSize((targetGroupSize - lendingAwsVmBean.getCurSize()));
+            autoScalingManager.updateAutoScalingGroup(spotAutoScalingGroupName, updatedSpotAwsBean);
+        }
+
+        if (targetGroupSize == lendingAwsVmBean.getMaxSize()) {
+            LOG.info(String.format("Auto Scaling group: %s current running: %d, target spot max size: %d, current max size: %d",
+                                   clusterName, lendingAwsVmBean.getCurSize(), targetGroupSize, lendingAwsVmBean.getMaxSize()));
+            return;
+        }
+
+        LOG.info(String.format("Auto Scaling group: %s current running: %d, current max size: %d, change to target spot max size: %d,  ",
+                               clusterName, lendingAwsVmBean.getCurSize(), lendingAwsVmBean.getMaxSize(), targetGroupSize));
+
+        AwsVmBean updatedLendingAwsBean = new AwsVmBean();
+        updatedLendingAwsBean.setMaxSize(targetGroupSize);
+        autoScalingManager.updateAutoScalingGroup(attachedAutoScalingGroupName, updatedLendingAwsBean);
+
+        ManagingGroupsBean managingGroupsBean = new ManagingGroupsBean();
+        managingGroupsBean.setMax_lending_size(targetGroupSize);
+        managingGroupDAO.updateManagingGroup(clusterName, managingGroupsBean);
     }
+
+
 
     private void processOne(String clusterName, SpotAutoScalingBean spotAutoScalingBean)  throws Exception {
         AutoScalingGroupBean autoScalingGroupBean = autoScalingManager
             .getAutoScalingGroupInfoByName(clusterName);
         List<String> instances = autoScalingGroupBean.getInstances();
         int instanceCount = instances.size();
-        String spotAutoScalingGroupName = spotAutoScalingBean.getAsg_name();
-        AutoScalingGroupBean spotAutoScalingGroup = autoScalingManager.getAutoScalingGroupInfoByName(
-            spotAutoScalingGroupName);
 
-        processSpotAutoScaling(clusterName, spotAutoScalingBean);
 
         int targetSpotAutoScalingGroupMaxSize = (int)(instanceCount * spotAutoScalingBean.getSpot_ratio());
-        if (targetSpotAutoScalingGroupMaxSize == spotAutoScalingGroup.getMaxSize()) {
-            LOG.info(String.format("Auto Scaling group: %s current running: %d, target spot max size: %d, current max size: %d",
-                                   clusterName, instanceCount, targetSpotAutoScalingGroupMaxSize, spotAutoScalingGroup.getMaxSize()));
-            return;
-        }
+        processSpotAutoScaling(clusterName, spotAutoScalingBean, targetSpotAutoScalingGroupMaxSize);
 
-        LOG.info(String.format("Auto Scaling group: %s current running: %d, current max size: %d, change to target spot max size: %d,  ",
-                               clusterName, instanceCount, spotAutoScalingGroup.getMaxSize(), targetSpotAutoScalingGroupMaxSize));
-
-        AwsVmBean updateBean = new AwsVmBean();
-        updateBean.setMinSize(0);
-        updateBean.setMaxSize(targetSpotAutoScalingGroupMaxSize);
-        autoScalingManager.updateAutoScalingGroup(spotAutoScalingGroupName, updateBean);
     }
 
     public void processBatch() throws Exception {

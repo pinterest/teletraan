@@ -46,6 +46,9 @@ public class AutoScalingSummaryBean {
     @JsonProperty("enableSpot")
     private Boolean enableSpot;
 
+    @JsonProperty("enableResourceLending")
+    private Boolean enableResourceLending;
+
     @JsonProperty("spotRatio")
     private Double spotRatio;
 
@@ -103,4 +106,12 @@ public class AutoScalingSummaryBean {
     public void setSensitivityRatio(Double sensitivityRatio) { this.sensitivityRatio = sensitivityRatio; }
 
     public Double getSensitivityRatio() { return sensitivityRatio; }
+
+    public void setEnableResourceLending(Boolean enableResourceLending) {
+        this.enableResourceLending = enableResourceLending;
+    }
+
+    public Boolean getEnableResourceLending() {
+        return enableResourceLending;
+    }
 }

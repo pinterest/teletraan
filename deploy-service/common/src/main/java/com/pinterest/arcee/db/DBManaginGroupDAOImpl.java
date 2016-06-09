@@ -50,11 +50,12 @@ public class DBManaginGroupDAOImpl implements ManagingGroupDAO {
     }
 
     @Override
-    public void insertManagingGroup(ManagingGroupsBean managingGroupsBean) throws Exception {
+    public void insertManagingGroup(String clusterName, ManagingGroupsBean managingGroupsBean) throws Exception {
         if (managingGroupsBean.getLast_activity_time() == null) {
             managingGroupsBean.setLast_activity_time(System.currentTimeMillis());
         }
         SetClause setClause = managingGroupsBean.genSetClause();
+        managingGroupsBean.setGroup_name(clusterName);
         String clause = String.format(INSERT_MANAGING_GROUP_BY_ID, setClause.getClause(), ManagingGroupsBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }

@@ -360,6 +360,7 @@ CREATE TABLE IF NOT EXISTS managing_groups (
     cool_down           INT         NOT NULL,
     lent_size           INT         NOT NULL,
     last_activity_time  BIGINT      NOT NULL,
+    resource_type       VARCHAR(16) NOT NULL DEFAULT "INTERNAL",
     PRIMARY KEY (group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -424,14 +425,13 @@ CREATE TABLE IF NOT EXISTS placements (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS spot_auto_scaling_groups (
-   asg_name         VARCHAR(128)     NOT NULL,
    cluster_name     VARCHAR(128)     NOT NULL,
-   launch_config_id VARCHAR(128),
-   bid_price        VARCHAR(32)      NOT NULL,
+   bid_price        VARCHAR(32),
    spot_ratio       DOUBLE           NOT NULL,
    sensitivity_ratio DOUBLE          NOT NULL DEFAULT 0.1,
    enable_grow       TINYINT(1)      NOT NULL DEFAULT 0,
-   PRIMARY KEY (asg_name)
+   enable_resource_lending TINYINT(1) NOT NULL DEFAULT 0,
+   PRIMARY KEY (cluster_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX asg_cluster_idx ON spot_auto_scaling_groups (cluster_name);
 
@@ -472,3 +472,9 @@ CREATE TABLE IF NOT EXISTS pas_configs (
     pas_state VARCHAR(32) NOT NULL,
     PRIMARY KEY (group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS group_mappings (
+     asg_group_name    VARCHAR(128) NOT NULL,
+     cluster_name VARCHAR(128) NOT NULL,
+     PRIMARY KEY (asg_group_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8

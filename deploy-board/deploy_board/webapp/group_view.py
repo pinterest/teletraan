@@ -331,8 +331,13 @@ def update_asg_config(request, group_name):
             asg_request["spotRatio"] = float(params["spotRatio"]) / 100
             asg_request["sensitivityRatio"] = float(params["sensitivityRatio"]) / 100
             asg_request["spotPrice"] = params["bidPrice"]
+            if "enableResourceLending" in params:
+                asg_request["enableResourceLending"] = True
+            else:
+                asg_request["enableResourceLending"] = False
         else:
             asg_request["enableSpot"] = False
+            asg_request["enableResourceLending"] = False
         groups_helper.update_autoscaling(request, group_name, asg_request)
     except:
         log.error(traceback.format_exc())
