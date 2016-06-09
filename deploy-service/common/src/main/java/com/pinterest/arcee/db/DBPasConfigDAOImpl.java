@@ -14,7 +14,7 @@ public class DBPasConfigDAOImpl implements PasConfigDAO {
 
     private static final Logger LOG = LoggerFactory.getLogger(DBPasConfigDAOImpl.class);
 
-    private final String INSERT_PAS_CONFIG = "INSERT INTO pas_configs SET %s";
+    private final String INSERT_PAS_CONFIG = "INSERT INTO pas_configs SET %s ON DUPLICATE KEY UPDATE %s";
 
     private final String GET_PAS_CONFIG = "SELECT * FROM pas_configs WHERE group_name=?";
 
@@ -32,7 +32,7 @@ public class DBPasConfigDAOImpl implements PasConfigDAO {
             pasConfigBean.setLast_updated(System.currentTimeMillis());
         }
         SetClause setClause = pasConfigBean.genSetClause();
-        String clause = String.format(INSERT_PAS_CONFIG, setClause.getClause());
+        String clause = String.format(INSERT_PAS_CONFIG, setClause.getClause(), PasConfigBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 

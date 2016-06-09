@@ -24,7 +24,9 @@ from deploy_board import settings
 from helpers import environs_helper
 from helpers import autoscaling_metrics_helper, groups_helper
 import traceback
+import logging
 
+log = logging.getLogger(__name__)
 
 # convert json opentsdb to array based
 def _convert_opentsdb_data(dps):

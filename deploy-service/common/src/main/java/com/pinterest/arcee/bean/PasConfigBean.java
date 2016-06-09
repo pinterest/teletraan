@@ -16,13 +16,12 @@ public class PasConfigBean implements Updatable {
 
     @NotNull
     @JsonProperty("throughput")
-    private int throughput;
+    private Integer throughput;
 
     @NotEmpty
     @JsonProperty("metric")
     private String metric;
 
-    @NotEmpty
     @JsonProperty("pas_state")
     private PasState pas_state;
 
@@ -44,11 +43,11 @@ public class PasConfigBean implements Updatable {
         this.group_name = group_name;
     }
 
-    public int getThroughput() {
+    public Integer getThroughput() {
         return throughput;
     }
 
-    public void setThroughput(int throughput) {
+    public void setThroughput(Integer throughput) {
         this.throughput = throughput;
     }
 
@@ -67,6 +66,13 @@ public class PasConfigBean implements Updatable {
     public void setPas_state(PasState pas_state) {
         this.pas_state = pas_state;
     }
+
+    public final static String UPDATE_CLAUSE =
+            "group_name=VALUES(group_name)," +
+                    "last_updated=VALUES(last_updated)," +
+                    "throughput=VALUES(throughput)," +
+                    "metric=VALUES(metric)," +
+                    "pas_state=VALUES(pas_state),";
 
     @Override
     public SetClause genSetClause() {
