@@ -21,13 +21,10 @@ import com.pinterest.arcee.bean.SpotAutoScalingBean;
 import java.util.List;
 
 public interface SpotAutoScalingDAO {
-    SpotAutoScalingBean getClusterByAutoScalingGroup(String autoScalingGroup) throws Exception;
 
-    List<SpotAutoScalingBean> getAutoScalingGroupsByCluster(String clusterName) throws Exception;
+    SpotAutoScalingBean getAutoScalingGroupsByCluster(String clusterName) throws Exception;
 
     void insertAutoScalingGroupToCluster(String autoScalingGroup, SpotAutoScalingBean autoScalingGroupBean) throws Exception;
-
-    void deleteAutoScalingGroupFromCluster(String autoScalingGroup) throws Exception;
 
     void deleteAllAutoScalingGroupByCluster(String clusterName) throws Exception;
 

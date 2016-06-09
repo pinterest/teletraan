@@ -105,6 +105,7 @@ public class ConfigHelper {
         context.setAsgLifecycleEventDAO(new DBAsgLifecycleEventDAOImpl(dataSource));
         context.setManagingGroupDAO(new DBManaginGroupDAOImpl(dataSource));
         context.setPasConfigDAO(new DBPasConfigDAOImpl(dataSource));
+        context.setGroupMappingDAO(new DBGroupMappingDAOImpl(dataSource));
 
         // Inject proper implemetation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));

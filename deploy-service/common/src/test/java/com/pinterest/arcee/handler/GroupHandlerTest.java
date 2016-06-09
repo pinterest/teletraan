@@ -150,10 +150,8 @@ public class GroupHandlerTest {
         GroupBean groupBean = generateDefaultBean("test2", "ami-12345", "test2", "test2-1", lastUpdate);
         groupInfoDAO.insertOrUpdateGroupInfo("test2", groupBean);
         SpotAutoScalingBean spotAutoScalingBean = new SpotAutoScalingBean();
-        spotAutoScalingBean.setAsg_name("test2-spot");
         spotAutoScalingBean.setBid_price("0.6");
         spotAutoScalingBean.setCluster_name("test2");
-        spotAutoScalingBean.setLaunch_config_id("l-2");
         spotAutoScalingBean.setSpot_ratio(0.5);
         spotAutoScalingDAO.insertAutoScalingGroupToCluster("test2-spot", spotAutoScalingBean);
 

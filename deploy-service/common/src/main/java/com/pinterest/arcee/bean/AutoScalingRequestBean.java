@@ -16,6 +16,7 @@
 package com.pinterest.arcee.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.validation.constraints.NotNull;
@@ -52,6 +53,9 @@ public class AutoScalingRequestBean {
 
     @JsonProperty("sensitivityRatio")
     private Double sensitivityRatio;
+
+    @JsonProperty("enableResourceLending")
+    private Boolean enableResourceLending;
 
     public String getGroupName() {
         return groupName;
@@ -108,4 +112,8 @@ public class AutoScalingRequestBean {
     public Double getSensitivityRatio() { return sensitivityRatio; }
 
     public void setSensitivityRatio(Double sensitivityRatio) { this.sensitivityRatio =sensitivityRatio; }
+
+    public Boolean getEnableResourceLending() { return enableResourceLending; }
+
+    public void setEnableResourceLending(Boolean enableResourceLending) { this.enableResourceLending = enableResourceLending; }
 }
