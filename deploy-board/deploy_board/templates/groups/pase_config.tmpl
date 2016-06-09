@@ -27,7 +27,7 @@
                         Metric
                     </label>
                     <div class="col-xs-4">
-                        <input class="form-control" name="metric" required="false"
+                        <input class="form-control" name="metric" required="true"
                                type="text" value="{{ pas_config.metric |default_if_none:'' }}"/>
                     </div>
                 </div>
@@ -38,12 +38,12 @@
                         Throughput
                     </label>
                     <div class="col-xs-4">
-                        <input class="form-control" name="throughput" required="false"
+                        <input class="form-control" name="throughput" required="true"
                                type="text" value="{{ pas_config.throughput |default_if_none:'' }}"/>
                     </div>
                 </div>
             </fieldset>
-            {% csrf_token %}
+        {% csrf_token %}
         </form>
     </div>
     <div class="panel-footer clearfix">
@@ -62,7 +62,6 @@
 
 <script>
     $(function () {
-        $(".chosen-select").chosen({"width": "100%"});
         $('#savePASConfigBtnId').attr('disabled','disabled');
         $('#resetPASConfigBtnId').attr('disabled','disabled');
 
@@ -88,7 +87,6 @@
 
         $('#savePASConfigBtnId').click(function () {
             var btn = $(this);
-            var data = $("#pasConfigIdFormId").serialize();
             $.ajax({
                 type: 'POST',
                 url: '/groups/{{ group_name }}/autoscaling/update_pas_config/',

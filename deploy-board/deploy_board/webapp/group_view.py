@@ -125,15 +125,16 @@ def get_group_config(request, group_name):
 def update_pas_config(request, group_name):
     try:
         params = request.POST
+        if not params['metric'] or not params['throughput']:
+            raise Exception("All fields for Predictive Autoscaling Config Must be specified. ")
         data = {}
         data['group_name'] = group_name
         data["metric"] = params["metric"]
-        data["throughput"] = params["throughput"]
+        data["throughput"] = int(params["throughput"])
         if "pas_state" in params:
-            data["pas_state"] = "enabled"
+            data["pas_state"] = "ENABLED"
         else:
-            data["pas_state"] = "disabled"
-
+            data["pas_state"] = "DISABLED"
         groups_helper.update_pas_config(request, data)
         return get_pas_config(request, group_name)
     except:
@@ -146,7 +147,8 @@ def get_pas_config(request, group_name):
         pas_config = groups_helper.get_pas_config(request, group_name)
         html = render_to_string('groups/pase_config.tmpl', {
             "group_name": group_name,
-            "pas_config": pas_config
+            "pas_config": pas_config,
+            "csrf_token": get_token(request),
         })
     except:
         log.error(traceback.format_exc())
