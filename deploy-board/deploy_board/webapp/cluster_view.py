@@ -506,7 +506,7 @@ def launch_hosts(request, name, stage):
     basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
     cluster_capacity = 0
     if basic_cluster_info:
-        placement_id_str = basic_cluster_info.get('placement_id')
+        placement_id_str = basic_cluster_info.get('placement')
         placement_ids = placement_id_str.split(',')
         for placement_id in placement_ids:
             placement_info = placements_helper.get_by_id(request, placement_id)
