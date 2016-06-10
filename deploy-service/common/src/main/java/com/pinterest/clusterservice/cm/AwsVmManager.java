@@ -182,6 +182,10 @@ public class AwsVmManager implements ClusterManager {
                 newBean.setRole(oldBean.getRole());
             }
 
+            if (newBean.getBidPrice() == null) {
+                newBean.setBidPrice(oldBean.getBidPrice());
+            }
+
             return autoScalingManager.createLaunchConfig(clusterName, newBean);
         } catch (AmazonClientException e) {
             LOG.error(String.format("Failed to update launch config for %s: %s", clusterName, e.getMessage()));

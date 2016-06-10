@@ -81,15 +81,6 @@ public class AwsAutoScalingManager implements AutoScalingManager {
     //------ Launch Config
     @Override
     public String createLaunchConfig(String groupName, AwsVmBean request) throws Exception {
-        return createLaunchConfigInternal(groupName, request, null);
-    }
-
-    @Override
-    public String createSpotLaunchConfig(String groupName, AwsVmBean request, String bidPrice) throws Exception {
-        return createLaunchConfigInternal(groupName, request, bidPrice);
-    }
-
-    private String createLaunchConfigInternal(String groupName, AwsVmBean request, String bidPrice) throws Exception {
         String launchConfigId = genLaunchConfigId(groupName);
         CreateLaunchConfigurationRequest configurationRequest = new CreateLaunchConfigurationRequest();
         configurationRequest.setImageId(request.getImage());
@@ -97,10 +88,10 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         configurationRequest.setLaunchConfigurationName(launchConfigId);
         configurationRequest.setAssociatePublicIpAddress(request.getAssignPublicIp());
         if (request.getSecurityZone() != null) {
-            configurationRequest.setSecurityGroups(Arrays.asList(request.getSecurityZone()));
+            configurationRequest.setSecurityGroups(Collections.singletonList(request.getSecurityZone()));
         }
-        if (bidPrice != null) {
-            configurationRequest.setSpotPrice(bidPrice);
+        if (request.getBidPrice() != null) {
+            configurationRequest.setSpotPrice(request.getBidPrice());
         }
 
         if (request.getRole() == null) {
@@ -551,7 +542,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
             return null;
         }
 
-        AwsVmBean launchConfigInfo = getLaunchConfigInfo(autoScalingGroup.getLaunchConfigurationName());
+        AwsVmBean awsVmBean = getLaunchConfigInfo(autoScalingGroup.getLaunchConfigurationName());
 
         List<SuspendedProcess> suspendedProcesses = autoScalingGroup.getSuspendedProcesses();
         HashSet<String> processName = new HashSet<>();
@@ -559,7 +550,6 @@ public class AwsAutoScalingManager implements AutoScalingManager {
             processName.add(process.getProcessName());
         }
 
-        AwsVmBean awsVmBean = new AwsVmBean();
 
         if (processName.contains(AutoScalingConstants.PROCESS_ALARMNOTIFICATION) &&
                 processName.contains(AutoScalingConstants.PROCESS_SCHEDULEDACTIONS)) {
@@ -569,26 +559,19 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         }
 
         awsVmBean.setClusterName(clusterName);
-        awsVmBean.setImage(launchConfigInfo.getImage());
-        awsVmBean.setHostType(launchConfigInfo.getHostType());
-        awsVmBean.setSecurityZone(launchConfigInfo.getSecurityZone());
-        awsVmBean.setAssignPublicIp(launchConfigInfo.getAssignPublicIp());
-        awsVmBean.setLaunchConfigId(launchConfigInfo.getLaunchConfigId());
-        awsVmBean.setRole(launchConfigInfo.getRole());
-        awsVmBean.setUserDataConfigs(transformUserDataToConfigMap(launchConfigInfo.getRawUserDataString()));
+        awsVmBean.setUserDataConfigs(transformUserDataToConfigMap(awsVmBean.getRawUserDataString()));
         awsVmBean.setSubnet(autoScalingGroup.getVPCZoneIdentifier());
         awsVmBean.setMinSize(autoScalingGroup.getMinSize());
         awsVmBean.setMaxSize(autoScalingGroup.getMaxSize());
         awsVmBean.setCurSize(autoScalingGroup.getDesiredCapacity());
         awsVmBean.setTerminationPolicy(autoScalingGroup.getTerminationPolicies().get(0));
-        awsVmBean.setRawUserDataString(launchConfigInfo.getRawUserDataString());
         return awsVmBean;
     }
 
     @Override
     public AwsVmBean getLaunchConfigInfo(String launchConfigId) throws Exception {
         DescribeLaunchConfigurationsRequest configRequest = new DescribeLaunchConfigurationsRequest();
-        configRequest.setLaunchConfigurationNames(Arrays.asList(launchConfigId));
+        configRequest.setLaunchConfigurationNames(Collections.singletonList(launchConfigId));
         DescribeLaunchConfigurationsResult configResult = aasClient.describeLaunchConfigurations(configRequest);
         List<LaunchConfiguration> configs = configResult.getLaunchConfigurations();
         if (configs.isEmpty()) {
@@ -603,6 +586,7 @@ public class AwsAutoScalingManager implements AutoScalingManager {
         awsVmBean.setSecurityZone(config.getSecurityGroups().get(0));
         awsVmBean.setAssignPublicIp(config.getAssociatePublicIpAddress());
         awsVmBean.setLaunchConfigId(config.getLaunchConfigurationName());
+        awsVmBean.setBidPrice(config.getSpotPrice());
         String roleName = config.getIamInstanceProfile();
         if (roleName.contains("/")) {
             awsVmBean.setRole(roleName.split("/")[1]);

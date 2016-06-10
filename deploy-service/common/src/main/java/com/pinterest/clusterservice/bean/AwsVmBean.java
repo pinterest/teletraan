@@ -59,6 +59,9 @@ public class AwsVmBean {
     @JsonProperty("maxSize")
     private Integer maxSize;
 
+    @JsonProperty("bidPrice")
+    private String bidPrice;
+
     @JsonIgnore
     private Integer curSize;
 
@@ -182,6 +185,10 @@ public class AwsVmBean {
     public ASGStatus getAsgStatus() { return asgStatus; }
 
     public void setAsgStatus(ASGStatus asgStatus) { this.asgStatus = asgStatus; }
+
+    public void setBidPrice(String bidPrice) { this.bidPrice = bidPrice; }
+
+    public String getBidPrice() { return bidPrice; }
 
     @Override
     public String toString() {

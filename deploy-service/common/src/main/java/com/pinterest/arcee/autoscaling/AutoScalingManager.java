@@ -30,8 +30,6 @@ public interface AutoScalingManager {
     //------ Launch Config
     String createLaunchConfig(String groupName, AwsVmBean request) throws Exception;
 
-    String createSpotLaunchConfig(String groupName, AwsVmBean request, String bidPrice) throws Exception;
-
     void deleteLaunchConfig(String configId) throws Exception;
 
     // Auto scaling group
