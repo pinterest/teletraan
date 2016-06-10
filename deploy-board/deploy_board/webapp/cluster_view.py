@@ -503,21 +503,7 @@ def get_advanced_cluster(request):
 def launch_hosts(request, name, stage):
     params = request.POST
     num = int(params['num'])
-    basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-    cluster_capacity = 0
-    if basic_cluster_info:
-        placement_id_str = basic_cluster_info.get('placement')
-        placement_ids = placement_id_str.split(',')
-        for placement_id in placement_ids:
-            placement_info = placements_helper.get_by_id(request, placement_id)
-            cluster_capacity += placement_info.get('capacity')
-
-    if num < cluster_capacity:
-        clusters_helper.launch_hosts(request, name, stage, num)
-    else:
-        content = 'The placement capacity is full. ' \
-                  'Please contact your friendly Teletraan owners for immediate assistance!'
-        messages.add_message(request, messages.ERROR, content)
+    clusters_helper.launch_hosts(request, name, stage, num)
     return redirect('/env/{}/{}/'.format(name, stage))
 
 
