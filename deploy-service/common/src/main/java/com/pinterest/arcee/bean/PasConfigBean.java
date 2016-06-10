@@ -72,7 +72,7 @@ public class PasConfigBean implements Updatable {
                     "last_updated=VALUES(last_updated)," +
                     "throughput=VALUES(throughput)," +
                     "metric=VALUES(metric)," +
-                    "pas_state=VALUES(pas_state),";
+                    "pas_state=VALUES(pas_state)";
 
     @Override
     public SetClause genSetClause() {
