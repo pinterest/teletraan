@@ -56,8 +56,8 @@ public class DBUserRolesDAOImpl implements UserRolesDAO {
     @Override
     public void insert(UserRolesBean bean) throws Exception {
         SetClause setClause = bean.genSetClause();
-        String clause = String.format(INSERT_TEMPLATE, setClause.getClause());
-        new QueryRunner(dataSource).update(clause, setClause.getValueArray(), UserRolesBean.UPDATE_CLAUSE);
+        String clause = String.format(INSERT_TEMPLATE, setClause.getClause(), UserRolesBean.UPDATE_CLAUSE);
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
     @Override
