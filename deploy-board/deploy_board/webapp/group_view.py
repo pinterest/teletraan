@@ -210,6 +210,7 @@ def update_group_config(request, group_name):
         groupRequest["emailRecipients"] = params.get("email_recipients")
         groupRequest["pagerRecipients"] = params.get("pager_recipients")
         groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
+        
         if "healthcheck_state" in params:
             groupRequest["healthcheckState"] = True
         else:
@@ -221,6 +222,11 @@ def update_group_config(request, group_name):
         else:
             groupRequest["lifecycleState"] = False
         groupRequest["lifecycleTimeout"] = int(params["lifecycle_timeout"]) * 60
+        if "lifecycle_notifications" in params:
+            groupRequest["lifecycleNotifications"] = True
+        else:
+            groupRequest["lifecycleNotifications"] = False
+        print groupRequest
         groups_helper.update_group_info(request, group_name, groupRequest)
         return get_group_config(request, group_name)
     except:

@@ -182,6 +182,7 @@ public class GroupHandlerTest {
         groupBean.setLast_update(lastUpdate);
         groupBean.setHealthcheck_state(false);
         groupBean.setLifecycle_state(false);
+        groupBean.setLifecycle_notifications(false);
         return groupBean;
     }
 

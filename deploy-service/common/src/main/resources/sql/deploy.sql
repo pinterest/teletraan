@@ -213,19 +213,20 @@ CREATE TABLE IF NOT EXISTS user_ratings (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS groups (
-    group_name          VARCHAR(64)     NOT NULL,
-    launch_config_id    varchar(81),
-    last_update         BIGINT(20)      NOT NULL,
-    chatroom            VARCHAR(64),
-    email_recipients    VARCHAR(1024),
-    pager_recipients    VARCHAR(1024),
-    watch_recipients    VARCHAR(1024),
-    launch_latency_th   INT             NOT NULL DEFAULT 600,
-    subnets             VARCHAR(128),
-    healthcheck_state   TINYINT(1)      NOT NULL DEFAULT 0,
-    healthcheck_period  BIGINT          NOT NULL DEFAULT 3600,
-    lifecycle_state     TINYINT(1)      NOT NULL DEFAULT 0,
-    lifecycle_timeout   BIGINT          NOT NULL DEFAULT 600,
+    group_name              VARCHAR(64)     NOT NULL,
+    launch_config_id        varchar(81),
+    last_update             BIGINT(20)      NOT NULL,
+    chatroom                VARCHAR(64),
+    email_recipients        VARCHAR(1024),
+    pager_recipients        VARCHAR(1024),
+    watch_recipients        VARCHAR(1024),
+    launch_latency_th       INT             NOT NULL DEFAULT 600,
+    subnets                 VARCHAR(128),
+    healthcheck_state       TINYINT(1)      NOT NULL DEFAULT 0,
+    healthcheck_period      BIGINT          NOT NULL DEFAULT 3600,
+    lifecycle_state         TINYINT(1)      NOT NULL DEFAULT 0,
+    lifecycle_timeout       BIGINT          NOT NULL DEFAULT 600,
+    lifecycle_notifications TINYINT(1)      NOT NULL DEFAULT 0,
     PRIMARY KEY (group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
