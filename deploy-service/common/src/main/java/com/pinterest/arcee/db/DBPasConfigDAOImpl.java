@@ -3,12 +3,17 @@ package com.pinterest.arcee.db;
 import com.pinterest.arcee.bean.PasConfigBean;
 import com.pinterest.arcee.dao.PasConfigDAO;
 import com.pinterest.deployservice.bean.SetClause;
+import com.pinterest.deployservice.db.SingleResultSetHandlerFactory;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public class DBPasConfigDAOImpl implements PasConfigDAO {
 
@@ -19,6 +24,10 @@ public class DBPasConfigDAOImpl implements PasConfigDAO {
     private final String GET_PAS_CONFIG = "SELECT * FROM pas_configs WHERE group_name=?";
 
     private final String UPDATE_PAS_CONFIG = "UPDATE pas_configs SET %s WHERE group_name=?";
+
+    private final String GET_ALL_PAS_GROUPS = "SELECT group_name FROM pas_configs";
+
+    private final String GET_ENABLED_CONFIGS = "SELECT * from pas_configs WHERE pas_state='ENABLED";
 
     private BasicDataSource dataSource;
 
@@ -52,5 +61,17 @@ public class DBPasConfigDAOImpl implements PasConfigDAO {
     public PasConfigBean getPasConfig(String groupName) throws Exception {
         ResultSetHandler<PasConfigBean> h = new BeanHandler<>(PasConfigBean.class);
         return new QueryRunner(dataSource).query(GET_PAS_CONFIG, h, groupName);
+    }
+
+    @Override
+    public List<String> getAllPasGroups() throws Exception {
+        ResultSetHandler<List<String>> h = new BeanListHandler<>(String.class);
+        return new QueryRunner(dataSource).query(GET_ALL_PAS_GROUPS, h);
+    }
+
+    @Override
+    public List<PasConfigBean> getEnabledPasConfigs() throws Exception {
+        ResultSetHandler<List<PasConfigBean>> h = new BeanListHandler<>(PasConfigBean.class);
+        return new QueryRunner(dataSource).query(GET_ENABLED_CONFIGS, h);
     }
 }

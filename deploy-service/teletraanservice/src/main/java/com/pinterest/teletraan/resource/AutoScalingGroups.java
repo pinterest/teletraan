@@ -342,6 +342,19 @@ public class AutoScalingGroups {
         return pasConfigDAO.getPasConfig(groupName);
     }
 
+    @GET
+    @Path("/pas/configs")
+    public List<String> getAllPasGroups(@PathParam("groupName") String groupName) throws Exception {
+        return pasConfigDAO.getAllPasGroups();
+    }
+
+    @GET
+    @Path("/pas/configs/enabled")
+    public List<PasConfigBean> getEnabledPasConfigs(@PathParam("groupName") String groupName) throws Exception {
+        return pasConfigDAO.getEnabledPasConfigs();
+    }
+
+
     @POST
     @Path("/schedules")
     public void putScheduledActionsToAutoScalingGroup(@Context SecurityContext sc,
