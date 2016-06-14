@@ -81,7 +81,7 @@ public class BaseImages {
     }
 
     @GET
-    @Path("/names/{name : [a-zA-Z0-9\\-_]+}")
+    @Path("/names/{name : [a-zA-Z0-9\\-_.]+}")
     public Collection<BaseImageBean> getByAbstractName(@PathParam("name") String name) throws Exception {
         return baseImageDAO.getByAbstractName(name);
     }
