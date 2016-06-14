@@ -124,7 +124,7 @@ public class LaunchEventCollector implements Runnable {
                 // add to the new instance report
                 List<String> envIds = groupDAO.getEnvsByGroupName(groupName);
                 if (groupBean.getLifecycle_notifications()) {
-                    sendEventEmail("LAUNCHED", hostBean, groupBean);
+                    sendEventEmail("launch", hostBean, groupBean);
                 }
                 if (!envIds.isEmpty()) {
                     LOG.debug(String.format("Adding %d instances report for host %s", envIds.size(), eventMessage.getInstanceId()));
@@ -137,7 +137,7 @@ public class LaunchEventCollector implements Runnable {
                 hostBean.setLast_update(eventMessage.getTimestamp());
                 hostDAO.updateHostById(eventMessage.getInstanceId(), hostBean);
                 if (groupBean.getLifecycle_notifications()) {
-                    sendEventEmail("TERMINATED", hostBean, groupBean);
+                    sendEventEmail("termination", hostBean, groupBean);
                 }
             } else if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_TERMINATING")) {
                 // Gracefully shut down services
@@ -234,14 +234,12 @@ public class LaunchEventCollector implements Runnable {
     }
 
     private void sendEventEmail(String eventType, HostBean hostBean, GroupBean groupBean) {
-        LOG.info("Entered");
         if (groupBean.getEmail_recipients() != null || groupBean.getPager_recipients() != null) {// what is watch recipients?? 
             String recipients = groupBean.getEmail_recipients();
-            // String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s/host/%s",  , ,hostBean.hostName);
-            String subject = String.format("Host %s Notification", eventType);
-            // String message = String.format("Host %s was just %s.\nHost Id: %s \nHost Group Name: %s\n\nCheck %s for more information", 
-                                // hostBean.hostName, hostBean.hostId, hostBean.groupName, webLink);
-            String message = String.format("Host %s was just %s.\nHost Id: %s \nHost Group Name: %s", hostBean.getHost_name(), eventType, hostBean.getHost_id(), hostBean.getGroup_name());
+            String webLink = deployBoardUrlPrefix + String.format("/groups/%s", groupBean.getGroup_name());
+            String subject = String.format("Autoscaling - Group <%s> host %s notification", groupBean.getGroup_name(), eventType);
+            String message = String.format("Host %s was just %sed.\nHost Id: %s \nHost Group Name: %s\n\nCheck %s for more information", 
+                                hostBean.getHost_name(), eventType, hostBean.getHost_id(), hostBean.getGroup_name(), webLink);
             jobPool.submit(new NotificationJob(message, subject, recipients, groupBean.getChatroom(), commonHandler));
         }
     }
