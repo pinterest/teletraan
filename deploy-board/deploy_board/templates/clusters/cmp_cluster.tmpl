@@ -58,7 +58,7 @@
                         <div class="input-group">
                         <select class="form-control" id="base_image" name="baseImageId" required="true">
                         {% for base_image in base_images %}
-                            {% if base_image == basic_cluster_info.baseImageId %}
+                            {% if base_image.id == basic_cluster_info.baseImageId %}
                                 <option value="{{ base_image.id }}" selected>{{ base_image.provider_name }}</option>
                             {% else %}
                                 <option value="{{ base_image.id }}">{{ base_image.provider_name }}</option>
