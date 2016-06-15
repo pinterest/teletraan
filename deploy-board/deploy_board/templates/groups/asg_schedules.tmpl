@@ -69,11 +69,10 @@ $(function() {
 <div class="form-group collapse" id="cronExpressionDetailsId">
     <div class="col-xs-2"></div>
     <div class="col-xs-10">
-        This field follows the syntax of cron (with minor differences).
-        Specifically, each line consists of 6 fields separated by whitespace:
-        <pre>SECOND MINUTE HOUR DOM MONTH DOW</pre>
+        This field follows the syntax of cron.
+        Specifically, each line consists of 5 fields separated by whitespace:
+        <pre>MINUTE HOUR DOM MONTH DOW</pre>
         <table class="table table-condensed table-striped table-hover">
-            <tr><td>SECOND</td><td>Seconds within the minute (0 - 59)</td></tr>
             <tr><td>MINUTE</td><td>Minutes within the hour (0 – 59)</td></tr>
             <tr><td>HOUR</td><td>The hour of the day (0 – 23)</td></tr>
             <tr><td>DOM</td><td>The day of the month (1 – 31)</td></tr>
@@ -98,10 +97,8 @@ $(function() {
         </ul>
         <p>Examples:</p>
         <pre>
-        # every fifteen minutes (at :0, :15, :30, :45)
-        * 0/15 * * * ?
-        # Fire at 10:15:00am every day
-        0 15 10 * * ?
+        # Fire at 20:00 every day
+        0 20 * * *
         </pre>
      </div>
 </div>
