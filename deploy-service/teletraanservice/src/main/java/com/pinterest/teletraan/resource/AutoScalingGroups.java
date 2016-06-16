@@ -359,6 +359,10 @@ public class AutoScalingGroups {
         Map<String, ScalingPolicyBean> scalingPolicyBeans = autoScalingManager.getScalingPoliciesForGroup(groupName);
         HashMap<String, Object> pasConfig = new HashMap<>();
 
+        if (scalingPolicyBeans.isEmpty()) {
+            return pasConfig;
+        }
+
         // Combine PasConfigBean data and data from AWS
         pasConfig.put("group_name", groupName);
         pasConfig.put("throughput", config.getThroughput());
