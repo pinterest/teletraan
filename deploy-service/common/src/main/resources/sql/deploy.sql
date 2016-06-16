@@ -466,11 +466,14 @@ CREATE TABLE IF NOT EXISTS cluster_upgrade_events (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS pas_configs (
-    group_name VARCHAR(64) NOT NULL,
-    throughput INT,
-    metric VARCHAR(512),
-    last_updated BIGINT NOT NULL,
-    pas_state VARCHAR(32) NOT NULL,
+    group_name      VARCHAR(64)     NOT NULL,
+    throughput      INT,
+    metric          VARCHAR(512),
+    last_updated    BIGINT          NOT NULL,
+    pas_state       VARCHAR(32)     NOT NULL,
+    min_size        INT             NOT NULL,
+    max_size        INT             NOT NULL,
+    cool_down       INT             NOT NULL,
     PRIMARY KEY (group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

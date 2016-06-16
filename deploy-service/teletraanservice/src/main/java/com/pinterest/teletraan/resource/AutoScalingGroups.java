@@ -16,12 +16,18 @@
 package com.pinterest.teletraan.resource;
 
 
+import com.amazonaws.services.autoscaling.model.AutoScalingGroup;
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
+import com.pinterest.arcee.autoscaling.AwsAutoScalingManager;
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.dao.GroupMappingDAO;
 import com.pinterest.arcee.dao.PasConfigDAO;
 import com.pinterest.arcee.handler.GroupHandler;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.cm.ClusterManager;
+import com.pinterest.clusterservice.cm.AwsVmManager;
+import com.pinterest.clusterservice.cm.ClusterManager;
+import com.pinterest.clusterservice.cm.AwsVmManager;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.common.Constants;
@@ -44,7 +50,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.*;
 
 
 @Path("/v1/groups/{groupName: [a-zA-Z0-9\\-_]+}/autoscaling")
@@ -73,6 +83,7 @@ public class AutoScalingGroups {
     private PasConfigDAO pasConfigDAO;
     private GroupMappingDAO groupMappingDAO;
     private ClusterManager clusterManager;
+    private AutoScalingManager autoScalingManager;
 
     public AutoScalingGroups(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
@@ -82,6 +93,10 @@ public class AutoScalingGroups {
         pasConfigDAO = context.getPasConfigDAO();
         groupMappingDAO = context.getGroupMappingDAO();
         clusterManager = context.getClusterManager();
+        autoScalingManager = context.getAutoScalingManager();
+        groupMappingDAO = context.getGroupMappingDAO();
+        clusterManager = context.getClusterManager();
+        autoScalingManager = context.getAutoScalingManager();
     }
 
     @POST
@@ -337,10 +352,38 @@ public class AutoScalingGroups {
 
     @GET
     @Path("/pas")
-    public PasConfigBean getPasConfig(@Context SecurityContext sc,
+    public HashMap<String, Object> getPasConfig(@Context SecurityContext sc,
                                       @PathParam("groupName") String groupName) throws Exception {
-        return pasConfigDAO.getPasConfig(groupName);
+        PasConfigBean config = pasConfigDAO.getPasConfig(groupName);
+        AutoScalingGroup group = autoScalingManager.getAutoScalingGroup(groupName);
+        Map<String, ScalingPolicyBean> scalingPolicyBeans = autoScalingManager.getScalingPoliciesForGroup(groupName);
+        HashMap<String, Object> pasConfig = new HashMap<>();
+
+        // Combine PasConfigBean data and data from AWS
+        pasConfig.put("group_name", groupName);
+        pasConfig.put("throughput", config.getThroughput());
+        pasConfig.put("metric", config.getMetric());
+        pasConfig.put("pas_state", config.getPas_state());
+        pasConfig.put("last_updated", config.getLast_updated());
+        pasConfig.put("max_size", group.getMaxSize());
+        pasConfig.put("min_size", group.getMinSize());
+        // SCALEUP and SCALEDOWN cooldown times are the same
+        pasConfig.put("cooldown", scalingPolicyBeans.get(PolicyType.SCALEUP.toString()).getCoolDownTime());
+        return pasConfig;
     }
+
+    @GET
+    @Path("/pas/configs")
+    public List<String> getAllPasGroups(@PathParam("groupName") String groupName) throws Exception {
+        return pasConfigDAO.getAllPasGroups();
+    }
+
+    @GET
+    @Path("/pas/configs/enabled")
+    public List<PasConfigBean> getEnabledPasConfigs(@PathParam("groupName") String groupName) throws Exception {
+        return pasConfigDAO.getEnabledPasConfigs();
+    }
+
 
     @POST
     @Path("/schedules")
