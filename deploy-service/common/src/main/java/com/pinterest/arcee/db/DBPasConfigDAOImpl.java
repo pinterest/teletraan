@@ -54,7 +54,6 @@ public class DBPasConfigDAOImpl implements PasConfigDAO {
         String clause = String.format(UPDATE_PAS_CONFIG, setClause.getClause());
         setClause.addValue(pasConfigBean.getGroup_name());
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
-
     }
 
     @Override
