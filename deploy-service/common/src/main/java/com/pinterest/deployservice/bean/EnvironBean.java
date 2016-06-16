@@ -165,6 +165,9 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("maxParallelRp")
     private Integer max_parallel_rp;
 
+    @JsonProperty("overridePolicy")
+    private OverridePolicy override_policy;
+
     public String getWebhooks_config_id() {
         return webhooks_config_id;
     }
@@ -429,6 +432,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.max_parallel_rp = max_parallel_rp;
     }
 
+    public OverridePolicy getOverride_policy() {
+        return override_policy;
+    }
+
+    public void setOverride_policy(OverridePolicy override_policy) {
+        this.override_policy = override_policy;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -465,6 +476,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("state", state);
         clause.addColumn("cluster_name", cluster_name);
         clause.addColumn("max_parallel_rp", max_parallel_rp);
+        clause.addColumn("override_policy", override_policy);
         return clause;
     }
 

@@ -175,6 +175,7 @@ def clone_from_stage_name(request, env_name, stage_name, from_env_name, from_sta
     new_data['watchRecipients'] = from_stage['watchRecipients']
     new_data['maxDeployNum'] = from_stage['maxDeployNum']
     new_data['maxDeployDay'] = from_stage['maxDeployDay']
+    new_data['overridePolicy'] = from_stage['overridePolicy']
 
     new_stage = environs_helper.create_env(request, new_data)
 

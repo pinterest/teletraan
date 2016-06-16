@@ -208,6 +208,25 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label for="overridePolicy" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Should we override current deploy with new one">
+                        Override Policy
+                    </label>
+                    <div class ="col-xs-4">
+                        <select class="form-control" name="overridePolicy">
+                            {% get_override_policies as overridePolicies %}
+                            {% for overridePolicy in overridePolicies %}
+                            {% if env.overridePolicy == overridePolicy %}
+                            <option value="{{ overridePolicy }}" selected="selected">{{ overridePolicy }}</option>
+                            {% else %}
+                            <option value="{{ overridePolicy }}">{{ overridePolicy }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
                     <label for="description" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Simple description of this env stage">
