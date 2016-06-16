@@ -50,7 +50,7 @@ public class DefaultClusterManager implements ClusterManager {
     }
 
     @Override
-    public Collection<String> getHosts(String clusterName, Collection<String> hostIds) throws Exception {
+    public Collection<String> getHosts(Collection<String> clusterName, Collection<String> hostIds) throws Exception {
         return new ArrayList<>();
     }
 }

@@ -33,5 +33,5 @@ public interface ClusterManager {
 
     void terminateHosts(String clusterName, Collection<String> hostIds, boolean replaceHost) throws Exception;
 
-    Collection<String> getHosts(String clusterName, Collection<String> hostIds) throws Exception;
+    Collection<String> getHosts(Collection<String> clusterName, Collection<String> hostIds) throws Exception;
 }

@@ -776,7 +776,7 @@ public class GroupHandler {
             return;
         }
 
-        Collection<String> runningASGInstances = asgDAO.getAutoScalingInstances(groupName, runningIds);
+        Collection<String> runningASGInstances = asgDAO.getAutoScalingInstances(Collections.singletonList(groupName), runningIds);
         runningIds.removeAll(runningASGInstances);
 
         if (!runningIds.isEmpty()) {
@@ -812,7 +812,7 @@ public class GroupHandler {
     }
 
     public void detachInstanceFromAutoScalingGroup(List<String> instanceIds, String groupName) throws Exception {
-        Collection<String> runningIds = asgDAO.getAutoScalingInstances(groupName, instanceIds);
+        Collection<String> runningIds = asgDAO.getAutoScalingInstances(Collections.singletonList(groupName), instanceIds);
 
         // If detach it without decreasing the fleet size, ASG launches a new instance to replace it.
         if (!runningIds.isEmpty()) {

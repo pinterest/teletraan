@@ -479,14 +479,14 @@ public class AwsAutoScalingManager implements AutoScalingManager {
     }
 
     @Override
-    public Collection<String> getAutoScalingInstances(String groupName, Collection<String> hostIds) throws Exception {
+    public Collection<String> getAutoScalingInstances(Collection<String> groupNames, Collection<String> hostIds) throws Exception {
         Collection<String> asgHostIds = new ArrayList<>();
         DescribeAutoScalingInstancesRequest asgInstancesRequest = new DescribeAutoScalingInstancesRequest();
         asgInstancesRequest.setInstanceIds(hostIds);
         DescribeAutoScalingInstancesResult asgInstancesResult = aasClient.describeAutoScalingInstances(asgInstancesRequest);
         List<AutoScalingInstanceDetails> instanceDetails = asgInstancesResult.getAutoScalingInstances();
         for (AutoScalingInstanceDetails instanceDetail : instanceDetails) {
-            if (instanceDetail.getAutoScalingGroupName().equals(groupName)) {
+            if (groupNames.contains(instanceDetail.getAutoScalingGroupName())) {
                 asgHostIds.add(instanceDetail.getInstanceId());
             }
         }

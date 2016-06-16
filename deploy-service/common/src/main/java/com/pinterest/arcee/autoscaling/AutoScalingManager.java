@@ -59,7 +59,7 @@ public interface AutoScalingManager {
 
     ASGStatus getAutoScalingGroupStatus(String groupName) throws Exception;
 
-    Collection<String> getAutoScalingInstances(String groupName, Collection<String> hostIds) throws Exception;
+    Collection<String> getAutoScalingInstances(Collection<String> groupNames, Collection<String> hostIds) throws Exception;
 
     //------ Instance
     void addInstancesToAutoScalingGroup(Collection<String> instances, String groupName) throws Exception;

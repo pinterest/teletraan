@@ -148,11 +148,15 @@ public class AwsVmManager implements ClusterManager {
     }
 
     @Override
-    public Collection<String> getHosts(String clusterName, Collection<String> hostIds) throws Exception {
+    public Collection<String> getHosts(Collection<String> clusterNames, Collection<String> hostIds) throws Exception {
         if (hostIds == null || hostIds.isEmpty()) {
-           return autoScalingManager.getAutoScalingGroupInfoByName(clusterName).getInstances();
+            Collection<String> resultHostIds = new ArrayList<>();
+            for (String clusterName : clusterNames) {
+                resultHostIds.addAll(autoScalingManager.getAutoScalingGroupInfoByName(clusterName).getInstances());
+            }
+            return resultHostIds;
         } else {
-            return autoScalingManager.getAutoScalingInstances(clusterName, hostIds);
+            return autoScalingManager.getAutoScalingInstances(clusterNames, hostIds);
         }
     }
 
