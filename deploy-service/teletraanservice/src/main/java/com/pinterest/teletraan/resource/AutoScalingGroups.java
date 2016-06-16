@@ -54,6 +54,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.List;
+import java.util.*;
 
 
 @Path("/v1/groups/{groupName: [a-zA-Z0-9\\-_]+}/autoscaling")
@@ -358,6 +359,7 @@ public class AutoScalingGroups {
                                       @PathParam("groupName") String groupName) throws Exception {
         PasConfigBean config = pasConfigDAO.getPasConfig(groupName);
         AutoScalingGroup group = autoScalingManager.getAutoScalingGroup(groupName);
+        Map<String, ScalingPolicyBean> scalingPolicyBeans = autoScalingManager.getScalingPoliciesForGroup(groupName);
         HashMap<String, Object> pasConfig = new HashMap<>();
 
         // Combine PasConfigBean data and data from AWS
@@ -368,7 +370,8 @@ public class AutoScalingGroups {
         pasConfig.put("last_updated", config.getLast_updated());
         pasConfig.put("max_size", group.getMaxSize());
         pasConfig.put("min_size", group.getMinSize());
-        pasConfig.put("cooldown", group.getDefaultCooldown());
+        // SCALEUP and SCALEDOWN cooldown times are the same
+        pasConfig.put("cooldown", scalingPolicyBeans.get(PolicyType.SCALEUP.toString()).getCoolDownTime());
         return pasConfig;
     }
 
