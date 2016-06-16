@@ -377,7 +377,7 @@
     });
 
     $("#launchInstance").click(function () {
-        {% if groupInfo != null %} 
+        {% if group_info != null %} 
         $("#addNewInstancesModalId").modal();
         {% else %}
         $("#launchWarningModalId").modal(); 
