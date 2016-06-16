@@ -16,9 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 
 public class DBPasConfigDAOImpl implements PasConfigDAO {
-
-    private static final Logger LOG = LoggerFactory.getLogger(DBPasConfigDAOImpl.class);
-
     private final String INSERT_PAS_CONFIG = "INSERT INTO pas_configs SET %s ON DUPLICATE KEY UPDATE %s";
 
     private final String GET_PAS_CONFIG = "SELECT * FROM pas_configs WHERE group_name=?";
@@ -27,7 +24,7 @@ public class DBPasConfigDAOImpl implements PasConfigDAO {
 
     private final String GET_ALL_PAS_GROUPS = "SELECT group_name FROM pas_configs";
 
-    private final String GET_ENABLED_CONFIGS = "SELECT * from pas_configs WHERE pas_state='ENABLED";
+    private final String GET_ENABLED_CONFIGS = "SELECT * from pas_configs WHERE pas_state='ENABLED'";
 
     private BasicDataSource dataSource;
 
