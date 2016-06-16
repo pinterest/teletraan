@@ -84,9 +84,6 @@ public class AutoScalingGroups {
     private GroupMappingDAO groupMappingDAO;
     private ClusterManager clusterManager;
     private AutoScalingManager autoScalingManager;
-    private GroupMappingDAO groupMappingDAO;
-    private ClusterManager clusterManager;
-    private AutoScalingManager autoScalingManager;
 
     public AutoScalingGroups(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
