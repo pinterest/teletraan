@@ -262,7 +262,10 @@ def get_promote_fail_policies(context):
 def get_promote_disable_policies(context):
     return environs_helper.PROMOTE_DISABLE_POLICY_VALUES
 
-
+@register.assignment_tag(takes_context=True)
+def get_override_policies(context):
+    return environs_helper.OVERRIDE_POLICY_VALUES
+    
 @register.assignment_tag(takes_context=True)
 def get_advanced_config_names(context):
     configNames = []

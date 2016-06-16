@@ -154,6 +154,7 @@
 |webhooksConfigId||false|string||
 |maxDeployNum||false|integer (int32)||
 |maxDeployDay||false|integer (int32)||
+|overridePolicy||false|enum (OVERRIDE, WARN)||
 
 
 ### HostBean

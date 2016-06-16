@@ -60,10 +60,10 @@ public class GroupInfoUpdater implements Runnable {
     private void sendGroupMetrics(String groupName) throws Exception {
         Long groupSize = hostDAO.getGroupSize(groupName);
 
-        List<SpotAutoScalingBean> spotAutoScalingBeans = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+        SpotAutoScalingBean spotAutoScalingBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
         Long currentTime = System.currentTimeMillis();
-        if (!spotAutoScalingBeans.isEmpty()) {
-            String spotAutoScalingName = spotAutoScalingBeans.get(0).getAsg_name();
+        if (spotAutoScalingBean != null) {
+            String spotAutoScalingName = String.format("%s-spot", groupName);
             AutoScalingGroupBean autoScalingGroupBean = autoScalingManager
                 .getAutoScalingGroupInfoByName(spotAutoScalingName);
             if (!autoScalingGroupBean.getStatus().equals(ASGStatus.UNKNOWN)) {

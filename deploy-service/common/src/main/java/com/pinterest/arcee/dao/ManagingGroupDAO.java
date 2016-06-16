@@ -5,7 +5,7 @@ import com.pinterest.arcee.bean.ManagingGroupsBean;
 import java.util.List;
 
 public interface ManagingGroupDAO {
-    void insertManagingGroup(ManagingGroupsBean managingGroupsBean) throws Exception;
+    void insertManagingGroup(String clusterName, ManagingGroupsBean managingGroupsBean) throws Exception;
 
     ManagingGroupsBean getManagingGroupByGroupName(String groupName) throws Exception;
 

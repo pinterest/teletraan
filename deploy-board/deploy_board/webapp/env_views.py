@@ -702,6 +702,7 @@ def deploy_build(request, name, stage, build_id):
     build = builds_helper.get_build_and_tag(request, build_id)
     builds = [build]
     scm_url = systems_helper.get_scm_url(request)
+    deploy_state = deploys_helper.get(request, env['deployId'])['state']
 
     html = render_to_string('deploys/deploy_build.html', {
         "env": env,
@@ -711,6 +712,8 @@ def deploy_build(request, name, stage, build_id):
         "buildName": env.get('buildName'),
         "branch": env.get('branch'),
         "csrf_token": get_token(request),
+        "deployState": deploy_state,
+        "overridePolicy": env.get('overridePolicy'),
     })
     return HttpResponse(html)
 

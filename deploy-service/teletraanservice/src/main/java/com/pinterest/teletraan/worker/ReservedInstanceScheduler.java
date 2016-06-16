@@ -1,13 +1,32 @@
+/**
+ * Copyright 2016 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.teletraan.worker;
 
 
 import com.amazonaws.services.ec2.model.InstanceType;
-import com.pinterest.arcee.Qubole.QuboleClusterBean;
-import com.pinterest.arcee.Qubole.QuboleLeaseDAOImpl;
+import com.pinterest.arcee.lease.InstanceLeaseManager;
+import com.pinterest.arcee.lease.QuboleClusterBean;
+import com.pinterest.arcee.lease.QuboleLeaseManager;
 import com.pinterest.arcee.bean.ManagingGroupsBean;
+import com.pinterest.arcee.bean.ResourceType;
+import com.pinterest.arcee.dao.LeaseDAO;
 import com.pinterest.arcee.dao.ManagingGroupDAO;
 import com.pinterest.arcee.dao.ReservedInstanceInfoDAO;
 import com.pinterest.arcee.metrics.MetricSource;
+import com.pinterest.clusterservice.cm.DefaultClusterManager;
 import com.pinterest.deployservice.ServiceContext;
 
 import java.sql.Connection;
@@ -25,19 +44,27 @@ public class ReservedInstanceScheduler implements Runnable {
     private UtilDAO utilDAO;
     private static String FREEINSTANCE_METRIC_NAME = "free_reserved_instance.%s.count";
     private static String LENDING_FREEINSTANCE_METRIC_NAME = "lending_instance.%s.count";
-    private static String QUBOLE_RUNNING_INSTANCE = "qubole.running_instance.count";
+    private static String QUBOLE_RUNNING_INSTANCE = "lease.running_instance.count";
     private static int THRESHOLD = 100;
     private static InstanceType[] MANAGING_INSTANCE_TYPE = {InstanceType.C38xlarge, InstanceType.C32xlarge};
     private HashSet<InstanceType> managingInstanceType;
-    private QuboleLeaseDAOImpl quboleLeaseDAO;
+    private ServiceContext serviceContext;
 
     public ReservedInstanceScheduler(ServiceContext context) {
         reservedInstanceInfoDAO = context.getReservedInstanceInfoDAO();
         managingGroupDAO = context.getManagingGroupDAO();
         utilDAO = context.getUtilDAO();
         metricSource = context.getMetricSource();
-        quboleLeaseDAO = new QuboleLeaseDAOImpl(context.getQuboleAuthentication());
+        serviceContext = context;
         managingInstanceType = new HashSet<>(Arrays.asList(MANAGING_INSTANCE_TYPE));
+    }
+
+    private LeaseDAO getLeaseDAO(ResourceType resourceType) {
+        if (resourceType == ResourceType.QUBOLE) {
+            return new QuboleLeaseManager(serviceContext);
+        } else {
+            return new InstanceLeaseManager(serviceContext);
+        }
     }
 
     private int lendInstances(ManagingGroupsBean managingGroupsBean, int freeInstances) throws Exception {
@@ -58,9 +85,8 @@ public class ReservedInstanceScheduler implements Runnable {
         newManagingGroupsBean.setLent_size(currentLendingSize);
         managingGroupDAO.updateManagingGroup(clusterName, newManagingGroupsBean);
 
-        // lend instance to qubole
-        quboleLeaseDAO.lendInstances(managingGroupsBean.getGroup_name(), toLendSize);
-        reportQuboleStatus(managingGroupsBean.getGroup_name());
+        // lend instance to lease
+        getLeaseDAO(newManagingGroupsBean.getResource_type()).lendInstances(managingGroupsBean.getGroup_name(), toLendSize);
         metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currentTime);
         return toLendSize;
     }
@@ -92,18 +118,9 @@ public class ReservedInstanceScheduler implements Runnable {
         managingGroupDAO.updateManagingGroup(clusterName,  newManageGroupsBean);
 
         metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currTime);
-        quboleLeaseDAO.returnInstances(clusterName, returnSize);
-        reportQuboleStatus(clusterName);
-        return returnSize;
-    }
+        getLeaseDAO(managingGroupsBean.getResource_type()).returnInstances(clusterName, returnSize);
 
-    // hard coded for stats
-    private void reportQuboleStatus(String clusterId) throws Exception {
-        QuboleClusterBean quboleClusterBean = quboleLeaseDAO.getCluster(clusterId);
-        Long currentTimestamp = System.currentTimeMillis();
-        metricSource.export(QUBOLE_RUNNING_INSTANCE, new HashMap<>(), (double)quboleClusterBean.getRunningReservedInstanceCount(), currentTimestamp);
-        metricSource.export("resource_managing.qubole.min_size", new HashMap<>(), (double)quboleClusterBean.getMinSize(), currentTimestamp);
-        metricSource.export("resource_managing.qubole.max_size", new HashMap<>(), (double)quboleClusterBean.getMaxSize(), currentTimestamp);
+        return returnSize;
     }
 
     public void scheduleReserveInstances(String instanceType) throws Exception {

@@ -40,7 +40,7 @@ public class DBSpotAutoScalingDAOImpl implements SpotAutoScalingDAO {
     private static String DELETE_ASG_BY_CLUSTER =
             "DELETE FROM spot_auto_scaling_groups WHERE cluster_name=?";
     private static String UPDATE_ASG_BY_CLUSTER =
-            "UPDATE spot_auto_scaling_groups SET %s WHERE asg_name=?";
+            "UPDATE spot_auto_scaling_groups SET %s WHERE cluster_name=?";
     private static String GET_ALL_CLUSTER =
             "SELECT * FROM spot_auto_scaling_groups";
 
@@ -50,14 +50,8 @@ public class DBSpotAutoScalingDAOImpl implements SpotAutoScalingDAO {
     }
 
     @Override
-    public SpotAutoScalingBean getClusterByAutoScalingGroup(String autoScalingGroup) throws Exception {
+    public SpotAutoScalingBean getAutoScalingGroupsByCluster(String clusterName) throws Exception {
         ResultSetHandler<SpotAutoScalingBean> h = new BeanHandler<>(SpotAutoScalingBean.class);
-        return new QueryRunner(dataSource).query(GET_CLUSTER_BY_ID, h, autoScalingGroup);
-    }
-
-    @Override
-    public List<SpotAutoScalingBean> getAutoScalingGroupsByCluster(String clusterName) throws Exception {
-        ResultSetHandler<List<SpotAutoScalingBean>> h = new BeanListHandler<>(SpotAutoScalingBean.class);
         return new QueryRunner(dataSource).query(GET_ASG_BY_CLUSTER, h, clusterName);
     }
 
@@ -66,11 +60,6 @@ public class DBSpotAutoScalingDAOImpl implements SpotAutoScalingDAO {
         SetClause setClause = spotAutoScalingBean.genSetClause();
         String clause = String.format(INSERT_UPDATE_ASG_MAPPING, setClause.getClause(), spotAutoScalingBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
-    }
-
-    @Override
-    public void deleteAutoScalingGroupFromCluster(String autoScalingGroup) throws Exception {
-        new QueryRunner(dataSource).update(DELETE_ASG_BY_NAME, autoScalingGroup);
     }
 
     @Override

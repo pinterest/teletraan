@@ -20,11 +20,7 @@ import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.Updatable;
 
 public class SpotAutoScalingBean implements Updatable {
-    private String asg_name;
-
     private String cluster_name;
-
-    private String launch_config_id;
 
     private String bid_price;
 
@@ -34,17 +30,11 @@ public class SpotAutoScalingBean implements Updatable {
 
     private Boolean enable_grow;
 
-    public String getAsg_name() { return asg_name; }
-
-    public void setAsg_name(String asg_name) { this.asg_name = asg_name; }
+    private Boolean enable_resource_lending;
 
     public String getCluster_name() { return cluster_name; }
 
     public void setCluster_name(String cluster_name) { this.cluster_name = cluster_name; }
-
-    public String getLaunch_config_id() { return launch_config_id; }
-
-    public void setLaunch_config_id(String launch_config_id) { this.launch_config_id = launch_config_id;}
 
     public String getBid_price() { return bid_price; }
 
@@ -62,25 +52,26 @@ public class SpotAutoScalingBean implements Updatable {
 
     public void setEnable_grow(Boolean enable_grow) { this.enable_grow = enable_grow; }
 
+    public Boolean getEnable_resource_lending() {  return enable_resource_lending; }
+
+    public void setEnable_resource_lending(Boolean enable_resource_lending) { this.enable_resource_lending = enable_resource_lending; }
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
-        clause.addColumn("asg_name", asg_name);
         clause.addColumn("cluster_name", cluster_name);
-        clause.addColumn("launch_config_id", launch_config_id);
         clause.addColumn("bid_price", bid_price);
         clause.addColumn("spot_ratio", spot_ratio);
         clause.addColumn("sensitivity_ratio", sensitivity_ratio);
         clause.addColumn("enable_grow", enable_grow);
+        clause.addColumn("enable_resource_lending", enable_resource_lending);
         return clause;
     }
 
     public final static String UPDATE_CLAUSE =
-            "asg_name=VALUES(asg_name)," +
                     "cluster_name=VALUES(cluster_name)," +
-                    "launch_config_id=VALUES(launch_config_id)," +
                     "bid_price=VALUES(bid_price), " +
                     "spot_ratio=VALUES(spot_ratio)," +
                     "sensitivity_ratio=VALUES(sensitivity_ratio)," +
-                    "enable_grow=VALUES(enable_grow)";
+                    "enable_grow=VALUES(enable_grow)," +
+                    "enable_resource_lending=VALUES(enable_resource_lending)";
 }

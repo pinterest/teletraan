@@ -25,6 +25,7 @@ public class PasConfigBean implements Updatable {
     @JsonProperty("pas_state")
     private PasState pas_state;
 
+    @JsonProperty("last_updated")
     private Long last_updated;
 
     public String getGroup_name() {

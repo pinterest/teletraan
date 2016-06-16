@@ -48,7 +48,7 @@
            <i class="fa fa-car"></i> Auto Deploy
         </a>
     </div>
-    {% if pinterest %}
+    {% if pinterest and not env.systemPriority %}
     <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/clusters"

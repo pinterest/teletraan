@@ -88,4 +88,11 @@
         if ($(this).is(':checked')) $(this).next('div.chooseSubnet').show();
         else $('div.chooseSubnet').hide();
     }).change();
+   $(document).ready(function() {
+        {% if not config %}
+        $('#addMetricBtnId', window.parent.document).prop('disabled', true);
+        {% else %}
+        $('#addMetricBtnId', window.parent.document).prop('disabled', false);
+        {% endif %}
+   });
 </script>

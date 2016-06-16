@@ -33,6 +33,8 @@ public class ManagingGroupsBean implements Updatable {
 
     private Long last_activity_time;
 
+    private ResourceType resource_type;
+
     public String getGroup_name() { return group_name; }
 
     public void setGroup_name(String group_name) { this.group_name = group_name; }
@@ -65,6 +67,10 @@ public class ManagingGroupsBean implements Updatable {
 
     public void setLast_activity_time(Long last_activity_time) {  this.last_activity_time = last_activity_time; }
 
+    public ResourceType getResource_type() { return resource_type; }
+
+    public void setResource_type(ResourceType resource_type) { this.resource_type = resource_type;}
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -76,6 +82,7 @@ public class ManagingGroupsBean implements Updatable {
         clause.addColumn("instance_type", instance_type);
         clause.addColumn("lent_size", lent_size);
         clause.addColumn("last_activity_time", last_activity_time);
+        clause.addColumn("resource_type", resource_type);
         return clause;
     }
 
@@ -87,5 +94,6 @@ public class ManagingGroupsBean implements Updatable {
             "cool_down=VALUES(cool_down)," +
             "instance_type=VALUES(instance_type)," +
             "lent_size=VALUES(lent_size)," +
-            "last_activity_time=VALUES(last_activity_time)";
+            "last_activity_time=VALUES(last_activity_time)," +
+            "resource_type=VALUES(resource_type)";
 }

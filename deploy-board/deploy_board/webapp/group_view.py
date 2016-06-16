@@ -337,8 +337,13 @@ def update_asg_config(request, group_name):
             asg_request["spotRatio"] = float(params["spotRatio"]) / 100
             asg_request["sensitivityRatio"] = float(params["sensitivityRatio"]) / 100
             asg_request["spotPrice"] = params["bidPrice"]
+            if "enableResourceLending" in params:
+                asg_request["enableResourceLending"] = True
+            else:
+                asg_request["enableResourceLending"] = False
         else:
             asg_request["enableSpot"] = False
+            asg_request["enableResourceLending"] = False
         groups_helper.update_autoscaling(request, group_name, asg_request)
     except:
         log.error(traceback.format_exc())
@@ -858,12 +863,14 @@ class GroupDetailView(View):
         enable_spot = autoscaling_summary.get("enableSpot", False)
         envs = environs_helper.get_all_envs_by_group(request, group_name)
         scaling_down_event_enabled = groups_helper.get_scaling_down_event_status(request, group_name)
+        group_info = groups_helper.get_group_info(request, group_name)
         return render(request, 'groups/group_details.html', {
             "asg_status": asg_status,
             "enable_spot": enable_spot,
             "group_name": group_name,
             "scaling_down_event_enabled": scaling_down_event_enabled,
             "envs": envs,
+            "group_info": group_info,
         })
 
 

@@ -1244,7 +1244,7 @@ public class DBDAOTest {
         managingGroupsBean.setInstance_type("c3.8xlarge");
         managingGroupsBean.setLent_size(0);
         managingGroupsBean.setMax_lending_size(100);
-        managingGroupDAO.insertManagingGroup(managingGroupsBean);
+        managingGroupDAO.insertManagingGroup("test1", managingGroupsBean);
 
         ManagingGroupsBean bean = managingGroupDAO.getManagingGroupByGroupName("test1");
         assertEquals(bean.getBatch_size(), (Integer) 10);
@@ -1415,54 +1415,34 @@ public class DBDAOTest {
     @Test
     public void testSpotAutoScalingGroupDAO() throws Exception {
         SpotAutoScalingBean bean1 = new SpotAutoScalingBean();
-        bean1.setAsg_name("asg-1-spot");
         bean1.setCluster_name("asg-1");
-        bean1.setLaunch_config_id("l-1");
         bean1.setBid_price("0.5");
         bean1.setSpot_ratio(0.5);
         spotAutoScalingDAO.insertAutoScalingGroupToCluster("asg-1-spot", bean1);
-        List<SpotAutoScalingBean> resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
-        assertFalse(resultBean.isEmpty());
+        SpotAutoScalingBean resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
+        assertNotNull(resultBean);
 
-        assertEquals(resultBean.get(0).getAsg_name(), "asg-1-spot");
-        assertEquals(resultBean.get(0).getCluster_name(), "asg-1");
-        assertEquals(resultBean.get(0).getLaunch_config_id(), "l-1");
-        assertEquals(resultBean.get(0).getBid_price(), "0.5");
+        assertEquals(resultBean.getCluster_name(), "asg-1");
+        assertEquals(resultBean.getBid_price(), "0.5");
 
         SpotAutoScalingBean updatedBean = new SpotAutoScalingBean();
         updatedBean.setBid_price("0.6");
-        spotAutoScalingDAO.updateSpotAutoScalingGroup("asg-1-spot", updatedBean);
-        List<SpotAutoScalingBean> resultBean2 = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
-        assertFalse(resultBean2.isEmpty());
+        spotAutoScalingDAO.updateSpotAutoScalingGroup("asg-1", updatedBean);
+        SpotAutoScalingBean resultBean2 = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
+        assertNotNull(resultBean2);
 
-        assertEquals(resultBean2.get(0).getAsg_name(), "asg-1-spot");
-        assertEquals(resultBean2.get(0).getCluster_name(), "asg-1");
-        assertEquals(resultBean2.get(0).getLaunch_config_id(), "l-1");
-        assertEquals(resultBean2.get(0).getBid_price(), "0.6");
+        assertEquals(resultBean2.getCluster_name(), "asg-1");
+        assertEquals(resultBean2.getBid_price(), "0.6");
 
         SpotAutoScalingBean bean3 = new SpotAutoScalingBean();
-        bean3.setAsg_name("asg-1-spot1");
         bean3.setCluster_name("asg-1");
-        bean3.setLaunch_config_id("l-2");
         bean3.setBid_price("0.7");
         bean3.setSpot_ratio(0.6);
 
-        spotAutoScalingDAO.insertAutoScalingGroupToCluster("asg-1-spot1", bean3);
-        resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
-        assertEquals(resultBean.size(), 2);
-
-        SpotAutoScalingBean resultBean3 = spotAutoScalingDAO.getClusterByAutoScalingGroup("asg-1-spot1");
-        assertEquals(resultBean3.getAsg_name(), "asg-1-spot1");
-        assertEquals(resultBean3.getCluster_name(), "asg-1");
-        assertEquals(resultBean3.getBid_price(), "0.7");
-
-        spotAutoScalingDAO.deleteAutoScalingGroupFromCluster("asg-1-spot1");
-        resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
-        assertEquals(resultBean.size(), 1);
 
         spotAutoScalingDAO.deleteAllAutoScalingGroupByCluster("asg-1");
         resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
-        assertTrue(resultBean.isEmpty());
+        assertNull(resultBean);
 
     }
 
@@ -1563,6 +1543,7 @@ public class DBDAOTest {
         envBean.setMax_parallel_pct(0);
         envBean.setState(EnvironState.NORMAL);
         envBean.setMax_parallel_rp(1);
+        envBean.setOverride_policy(OverridePolicy.OVERRIDE);
         return envBean;
     }
 
