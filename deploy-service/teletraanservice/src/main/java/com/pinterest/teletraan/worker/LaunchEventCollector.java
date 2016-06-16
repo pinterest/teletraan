@@ -40,6 +40,9 @@ import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.deployservice.handler.CommonHandler;
+import com.pinterest.deployservice.common.NotificationJob;
+import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +66,9 @@ public class LaunchEventCollector implements Runnable {
     private final EventMessageParser eventMessageParser;
     private final AutoScalingManager autoScalingManager;
     private final AmazonSQSClient sqsClient;
+    private final CommonHandler commonHandler;
+    private final ExecutorService jobPool;
+    private String deployBoardUrlPrefix;
 
     public LaunchEventCollector(TeletraanServiceContext context) {
         agentDAO = context.getAgentDAO();
@@ -78,6 +84,9 @@ public class LaunchEventCollector implements Runnable {
         autoScalingManager = context.getAutoScalingManager();
         sqsClient = new AmazonSQSClient(context.getAwsCredentials());
         sqsClient.setEndpoint(context.getAwsConfigManager().getSqsArn());
+        commonHandler = new CommonHandler(context);
+        jobPool = context.getJobPool();
+        deployBoardUrlPrefix = context.getDeployBoardUrlPrefix();
     }
 
     private boolean updateGroupInfo(EventMessage eventMessage) throws Exception {
@@ -101,7 +110,7 @@ public class LaunchEventCollector implements Runnable {
             }
 
             if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_LAUNCH")) {
-                LOG.debug(String.format("An new instance %s has been launched in group %s", eventMessage.getInstanceId(), groupName));
+                LOG.debug(String.format("A new instance %s has been launched in group %s", eventMessage.getInstanceId(), groupName));
 
                 // insert new host
                 HostBean hostBean = new HostBean();
@@ -116,6 +125,9 @@ public class LaunchEventCollector implements Runnable {
 
                 // add to the new instance report
                 List<String> envIds = groupDAO.getEnvsByGroupName(groupName);
+                if (groupBean.getLifecycle_notifications()) {
+                    sendEventEmail("launch", hostBean, groupBean);
+                }
                 if (!envIds.isEmpty()) {
                     LOG.debug(String.format("Adding %d instances report for host %s", envIds.size(), eventMessage.getInstanceId()));
                     newInstanceReportDAO.addNewInstanceReport(eventMessage.getInstanceId(), eventMessage.getTimestamp(), envIds);
@@ -126,6 +138,9 @@ public class LaunchEventCollector implements Runnable {
                 hostBean.setState(HostState.TERMINATING);
                 hostBean.setLast_update(eventMessage.getTimestamp());
                 hostDAO.updateHostById(eventMessage.getInstanceId(), hostBean);
+                if (groupBean.getLifecycle_notifications()) {
+                    sendEventEmail("termination", hostBean, groupBean);
+                }
             } else if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_TERMINATING")) {
                 // Gracefully shut down services
                 String hostId = eventMessage.getInstanceId();
@@ -220,6 +235,16 @@ public class LaunchEventCollector implements Runnable {
         }
     }
 
+    private void sendEventEmail(String eventType, HostBean hostBean, GroupBean groupBean) {
+        if (groupBean.getEmail_recipients() != null || groupBean.getPager_recipients() != null) {// what is watch recipients?? 
+            String recipients = groupBean.getEmail_recipients();
+            String webLink = deployBoardUrlPrefix + String.format("/groups/%s", groupBean.getGroup_name());
+            String subject = String.format("Autoscaling - Group <%s> host %s notification", groupBean.getGroup_name(), eventType);
+            String message = String.format("Host %s was just %sed.\nHost Id: %s \nHost Group Name: %s\n\nCheck %s for more information", 
+                                hostBean.getHost_name(), eventType, hostBean.getHost_id(), hostBean.getGroup_name(), webLink);
+            jobPool.submit(new NotificationJob(message, subject, recipients, groupBean.getChatroom(), commonHandler));
+        }
+    }
     @Override
     public void run() {
         try {

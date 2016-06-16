@@ -27,7 +27,7 @@
                     </div>
                 </div>
                 <div class="form-group">
-                     <label for="emailRecipients" class="deployToolTip control-label col-xs-2"
+                    <label for="emailRecipients" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Email addressses to send autoscaling and health check notifications, e.g. user1@email.com,user2@email.com">
                         Email Recipients
@@ -152,6 +152,36 @@
                         <span class="input-group-addon">Minutes</span>
                         </div>
                     </div>
+                    <label for="lifecycle_notifications" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Receive email notifications for lifecycle events">
+                        Instance Launch Notification
+                    </label>
+                    <div class="col-xs-4">
+                        <div class="input-group">
+                        {% if config.lifecycleNotifications %}
+                            <input class="" id="lifecycle_notifications" name="lifecycle_notifications" type="checkbox" value="" checked>
+                        {% else %}
+                            <input class="" id="lifecycle_notifications" name="lifecycle_notifications" type="checkbox" value="">
+                        {% endif %}
+                        <span class="input-group-btn">
+                            <button id="notificationsExpressionId" class="deployToolTip btn btn-default"
+                                    type="button" data-toggle="tooltip"
+                                    title="click for more information on lifecycle notifications">
+                                <span class="glyphicon glyphicon-question-sign"></span>
+                            </button>
+                        </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group collapse" id="notificationExpressionDetailsId">
+                        <div class="col-xs-2">
+                        </div>
+                        <div class="col-xs-10">
+                        <b>Lifecycle Notifications</b> are used to notify service owners when a host working
+                        on their service is launched/terminated. An email and slack message (if available) 
+                        detailing the event will be sent out.
+                        </div>
                 </div>
             </fieldset>
             {% csrf_token %}
@@ -246,6 +276,10 @@
 
         $("#lifecycleExpressionId").click(function() {
             $("#lifecycleExpressionDetailsId").collapse('toggle');
+        });
+
+        $("#notificationsExpressionId").click(function() {
+            $("#notificationExpressionDetailsId").collapse('toggle');
         });
     });
 </script>
