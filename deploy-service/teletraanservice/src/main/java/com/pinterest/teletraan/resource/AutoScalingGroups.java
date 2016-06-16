@@ -27,6 +27,7 @@ import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.cm.ClusterManager;
 import com.pinterest.clusterservice.cm.AwsVmManager;
 import com.pinterest.clusterservice.cm.ClusterManager;
+import com.pinterest.clusterservice.cm.AwsVmManager;
 import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.common.Constants;
@@ -51,6 +52,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -83,6 +85,7 @@ public class AutoScalingGroups {
     private AutoScalingManager autoScalingManager;
     private GroupMappingDAO groupMappingDAO;
     private ClusterManager clusterManager;
+    private AutoScalingManager autoScalingManager;
 
     public AutoScalingGroups(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
@@ -95,6 +98,7 @@ public class AutoScalingGroups {
         autoScalingManager = context.getAutoScalingManager();
         groupMappingDAO = context.getGroupMappingDAO();
         clusterManager = context.getClusterManager();
+        autoScalingManager = context.getAutoScalingManager();
     }
 
     @POST
