@@ -33,7 +33,7 @@ public class DBGroupMappingDAOImpl implements GroupMappingDAO {
 
     private static final String UPDATE_GROUP_MAPPING = "UPDATE group_mappings SET %s WHERE asg_group_name=?";
 
-    private static final String GET_GROUP_MAPPING_BY_CLUSTER = "SELECT * FROM group_mappings WHERE deploy_group_name=?";
+    private static final String GET_GROUP_MAPPING_BY_CLUSTER = "SELECT * FROM group_mappings WHERE cluster_name=?";
 
     private static final String GET_GROUP_MAPPING_BY_ASG = "SELECT * FROM group_mappings WHERE asg_group_name=?";
 
