@@ -36,7 +36,6 @@ class GoalAnalyst {
     private String host;
     private String host_id;
     private DeployDAO deployDAO;
-    private EnvironDAO environDAO;
 
     // input maps, all keyed by envId
     private Map<String, EnvironBean> envs;
@@ -174,7 +173,6 @@ class GoalAnalyst {
 
     GoalAnalyst(DeployDAO deployDAO, EnvironDAO environDAO, String host, String host_id, Map<String, EnvironBean> envs, Map<String, PingReportBean> reports, Map<String, AgentBean> agents) {
         this.deployDAO = deployDAO;
-        this.environDAO = environDAO;
         this.host = host;
         this.host_id = host_id;
         this.envs = envs;
