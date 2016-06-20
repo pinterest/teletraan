@@ -7,22 +7,7 @@
 <li><a href="/builds">Builds</a></li>
 {% endblock %}
 
-{% block side-panel %}
-    {{ block.super }}
-<div class="panel panel-default">
-    <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left">Daily Deploy Count</h4>
-    </div>
-    <div id="dailyDeployCountId">
-    </div>
-    </div>
-    <script>
-    $(function () {
-        $('#dailyDeployCountId').load('/deploys/dailycount');
-    });
-</script>
 
-{% endblock %}
 
 {% block main %}
 {% include "environs/site_health.tmpl" with metricsKind="site" %}
@@ -32,6 +17,13 @@
     <div id="onGoingDeployId" class="collapse in panel-body table-responsive">
     </div>
 </div>
+
+    <div class="panel panel-default">
+    {% include "panel_heading.tmpl" with panel_title="Deployment Statistics" panel_body_id="deployStatsId" direction="down" %}
+        <div id="deployStatsId" class="collapse in panel-body">
+            <div id="dailyDeployCountId"></div>
+        </div>
+    </div>
 <script>
     $(function () {
         $('#onGoingDeployId').load('/deploys/ongoing/');
@@ -39,6 +31,9 @@
         setInterval(function() {
             $('#onGoingDeployId').load('/deploys/ongoing/');
         }, 30000);
+
+         $('#dailyDeployCountId').load('/deploys/dailycount');
     });
 </script>
+
 {% endblock %}

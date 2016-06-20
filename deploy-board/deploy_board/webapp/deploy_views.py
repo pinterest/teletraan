@@ -70,7 +70,6 @@ def get_ongoing_deploys(request):
     return HttpResponse(html)
 
 def get_daily_deploy_count(request):
-    #daily_deploy_count = int(request.Get.get(''))
     daily_deploy_count = deploys_helper.get_daily_deploy_count(request);
     html = render_to_string('deploys/daily_deploy_count.tmpl', {
         "daily_deploy_count": daily_deploy_count,
