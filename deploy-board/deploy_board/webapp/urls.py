@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^deploy/inline_update/$', deploy_views.inline_update),
     url(r'^deploy/(?P<deploy_id>[a-zA-Z0-9\-_]+)', deploy_views.DeployView.as_view()),
     url(r'^deploys/ongoing/$', deploy_views.get_ongoing_deploys),
+    url(r'^deploys/dailycount', deploy_views.get_daily_deploy_count),
     url(r'^env/create/$', env_views.post_create_env),
 
     # envs related
