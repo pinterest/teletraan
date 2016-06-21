@@ -1,64 +1,64 @@
 {% load utils %}
-        {% if env.description and not env.description.isspace %}
-        <div>
-        <div class="panel panel-default" id="envDescriptionPanelId">
-            <div class="panel-heading clearfix">
-                <h4 class="panel-title pull-left">{{ env.envName }} Description</h4>
-            </div>
+{% if env.description and not env.description.isspace %}
+<div>
+    <div class="panel panel-default" id="envDescriptionPanelId">
+        <div class="panel-heading clearfix">
+            <h4 class="panel-title pull-left">{{ env.envName }} Description</h4>
+        </div>
 
-            <div id="displayEnvDescription">
-                <div id="envDescription" class="modal-body">{{ env.description }}</div>
-                <div class="panel-footer clearfix">
-                    <div class="pull-right">
-                        <button id="editDescriptionBtnId" class="btn btn-primary pull-right">Edit</button>
-                    </div>
-                </div>
-
-            </div>
-
-
-            <div id="editEnvDescription">
-                <form id="envDescriptionFormId">
-
-                    <input id="envDescriptionInputId" class="form-control modal-body" name="description" type="text"
-                           value="{{ env.description }}"/>
-                    {% csrf_token %}
-                </form>
-
-                <div class="panel-footer clearfix">
-                    <div class="pull-right">
-
-                        <button id="resetEnvDescriptionBtnId" class="btn btn-default"
-                                data-loading-text="Reloading...">
-                            <span class="glyphicon glyphicon-refresh"></span> Reload
-                        </button>
-                        <button id="saveEnvDescriptionBtnId" class="btn btn-primary"
-                                data-loading-text="Saving...">
-                            <span class="glyphicon glyphicon-floppy-save"></span> Save
-                        </button>
-                    </div>
-                    <button id="cancelDescriptionBtnId" class="btn btn-default center-block">
-                        Cancel
-                    </button>
+        <div id="displayEnvDescription">
+            <div id="envDescription" class="modal-body">{{ env.description }}</div>
+            <div class="panel-footer clearfix">
+                <div class="pull-right">
+                    <button id="editDescriptionBtnId" class="btn btn-primary pull-right">Edit</button>
                 </div>
             </div>
 
         </div>
+
+
+        <div id="editEnvDescription">
+            <form id="envDescriptionFormId">
+
+                <input id="envDescriptionInputId" class="form-control modal-body" name="description" type="text"
+                       value="{{ env.description }}"/>
+                {% csrf_token %}
+            </form>
+
+            <div class="panel-footer clearfix">
+                <div class="pull-right">
+
+                    <button id="resetEnvDescriptionBtnId" class="btn btn-default"
+                            data-loading-text="Reloading...">
+                        <span class="glyphicon glyphicon-refresh"></span> Reload
+                    </button>
+                    <button id="saveEnvDescriptionBtnId" class="btn btn-primary"
+                            data-loading-text="Saving...">
+                        <span class="glyphicon glyphicon-floppy-save"></span> Save
+                    </button>
+                </div>
+                <button id="cancelDescriptionBtnId" class="btn btn-default center-block">
+                    Cancel
+                </button>
             </div>
+        </div>
 
-    {% endif %}
+    </div>
+</div>
 
-    <script>
+{% endif %}
+
+<script>
     $(function () {
 
         $('#editEnvDescription').hide();
 
-        $('#editDescriptionBtnId').click(function (){
+        $('#editDescriptionBtnId').click(function () {
             $('#displayEnvDescription').hide();
             $('#editEnvDescription').show();
         });
 
-        $('#cancelDescriptionBtnId').click(function (){
+        $('#cancelDescriptionBtnId').click(function () {
             $('#editEnvDescription').hide();
             $('#displayEnvDescription').show();
         });
@@ -76,7 +76,7 @@
                     btn.button('loading');
                 },
                 success: function (data) {
-                    if(data != null && data.success == false) {
+                    if (data != null && data.success == false) {
                         $('#errorBannerId').append(data.error);
                         $('#errorBannerId').show();
                     } else {
@@ -93,8 +93,8 @@
         });
 
         $('#resetEnvDescriptionBtnId').click(function () {
-            $('#envDescriptionInputId').val( "{{ env.description }}" );
+            $('#envDescriptionInputId').val("{{ env.description }}");
         });
 
     });
-    </script>
+</script>
