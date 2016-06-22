@@ -9,7 +9,8 @@
                 <h4 class="modal-title" id="removeStageModalLabel">Remove Stage</h4>
             </div>
             <div class="modal-body">
-                Are you sure to remove stage <strong>{{ stage }}</strong>?
+                Are you sure you would like to remove stage <strong>{{ stageName }}</strong>?<br/>
+                If there are no other stages in your environment, this will remove the environment as well.
             </div>
             <div class="modal-footer">
                 <a href="/env/{{ envName }}/{{ stageName }}/remove" class="btn btn-primary">
