@@ -26,6 +26,8 @@ import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
 import java.util.List;
+import java.util.Collection;
+
 
 public class DBAgentDAOImpl implements AgentDAO {
     private static final String UPDATE_AGENT_TEMPLATE =
@@ -84,6 +86,15 @@ public class DBAgentDAOImpl implements AgentDAO {
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
+    public void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean) throws Exception {
+        for (String hostId:hostIds) { 
+            SetClause setClause = agentBean.genSetClause();
+            String clause = String.format(UPDATE_AGENT_TEMPLATE, setClause.getClause());
+            setClause.addValue(hostId);
+            setClause.addValue(envId);
+            new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+        }
+    }
     @Override
     public void resetFailedAgents(String envId, String deployId) throws Exception {
         new QueryRunner(dataSource).update(RESET_FAILED_AGENTS, envId, deployId);
