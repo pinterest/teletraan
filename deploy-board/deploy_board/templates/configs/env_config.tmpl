@@ -234,8 +234,7 @@
                     </label>
 
                     <div class="col-xs-10">
-                        <input class="form-control" name="description" type="text"
-                               value="{{ env.description }}"/>
+                        <textarea class="form-control" name="description" rows="7">{{ env.description }}</textarea>
                     </div>
                 </div>
             </fieldset>
@@ -273,6 +272,11 @@
         });
 
         $('#envConfigFormId input').change(function() {
+            $('#saveEnvConfigBtnId').removeAttr('disabled');
+            $('#resetEnvConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#envConfigFormId textarea').keyup(function() {
             $('#saveEnvConfigBtnId').removeAttr('disabled');
             $('#resetEnvConfigBtnId').removeAttr('disabled');
         });
