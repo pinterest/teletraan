@@ -285,6 +285,7 @@ public class GroupHandler {
     public void createCluster(String groupName, AwsVmBean newAwsVmBean) throws Exception {
         awsVmManager.createCluster(groupName, newAwsVmBean);
         createNewPredictiveAutoScalingEntry(groupName);
+        createGroupInfoEntry(groupName);
     }
 
     public AwsVmBean getCluster(String clusterName) throws Exception {
@@ -487,6 +488,13 @@ public class GroupHandler {
         pasConfigBean.setMetric("");
         pasConfigBean.setThroughput(0);
         pasConfigDAO.insertPasConfig(pasConfigBean);
+    }
+
+    private void createGroupInfoEntry(String groupName) throws Exception {
+        GroupBean groupBean = new GroupBean();
+        groupBean.setGroup_name(groupName);
+        groupBean.setLast_update(System.currentTimeMillis());
+        groupInfoDAO.insertOrUpdateGroupInfo(groupName, groupBean);
     }
 
     private AwsVmBean generateInternalAutoScalingRequest(AwsVmBean groupBean, AutoScalingRequestBean requestBean, boolean spotFleet) throws Exception {
