@@ -3,11 +3,13 @@
 <div>
     <div class="panel panel-default" id="envDescriptionPanelId">
         <div class="panel-heading clearfix">
-            <h4 class="panel-title pull-left">{{ env.envName }} Description</h4>
+            <h4 class="panel-title pull-left">Description</h4>
         </div>
 
         <div id="displayEnvDescription">
-            <div id="envDescription" class="modal-body">{{ env.description }}</div>
+            {% autoescape on %}
+            <div id="envDescription" class="modal-body" style="white-space:pre-wrap;">{{env.description}}</div>
+            {% endautoescape %}
             <div class="panel-footer clearfix">
                 <div class="pull-right">
                     <button id="editDescriptionBtnId" class="btn btn-primary pull-right">Edit</button>
@@ -19,9 +21,9 @@
 
         <div id="editEnvDescription">
             <form id="envDescriptionFormId">
+                <textarea id="envDescriptionInputId" class="form-control modal-body" name="description" rows="7">
 
-                <input id="envDescriptionInputId" class="form-control modal-body" name="description" type="text"
-                       value="{{ env.description }}"/>
+                </textarea>
                 {% csrf_token %}
             </form>
 
@@ -51,10 +53,17 @@
 <script>
     $(function () {
 
+        function resetEditDescriptionInputText() {
+            {% autoescape on %}
+            $('#envDescriptionInputId').val("{{ env.description|escapejs }}");
+            {% endautoescape %}
+        }
+
         $('#editEnvDescription').hide();
 
         $('#editDescriptionBtnId').click(function () {
             $('#displayEnvDescription').hide();
+            resetEditDescriptionInputText();
             $('#editEnvDescription').show();
         });
 
@@ -62,8 +71,6 @@
             $('#editEnvDescription').hide();
             $('#displayEnvDescription').show();
         });
-
-        console.log($("#envDescriptionFormId").serialize());
 
         $('#saveEnvDescriptionBtnId').click(function () {
             var btn = $(this);
@@ -92,9 +99,13 @@
             });
         });
 
+        {% autoescape on %}
+
         $('#resetEnvDescriptionBtnId').click(function () {
-            $('#envDescriptionInputId').val("{{ env.description }}");
+            resetEditDescriptionInputText();
         });
+
+        {% endautoescape %}
 
     });
 </script>

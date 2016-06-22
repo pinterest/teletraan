@@ -296,6 +296,7 @@ $(function () {
 {% endblock %}
 
 {% block main %}
+    <div align="center"><em>{{ env.description|linebreaks }}</em></div>
 
 {% if not env|isEnvEnabled %}
 {% if env_tag.value == "DISABLE_ENV" %}
@@ -534,6 +535,8 @@ $(function () {
 </div>
 {% endif %}
 {% endif %}
+
+    {% include "environs/env_description.tmpl" %}
 
 
 {% endblock %}
