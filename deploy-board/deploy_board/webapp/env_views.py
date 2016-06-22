@@ -167,24 +167,6 @@ def check_feedback_eligible(request, username):
             return True
     return False
 
-def get_description_view(request, name, stage):
-    env = environs_helper.get_env_by_stage(request, name, stage)
-    html = render_to_string('environs/env_description.tmpl', {
-        "env": env,
-        "csrf_token": get_token(request),
-    })
-
-    return HttpResponse(json.dumps({'html': html}), content_type="application/json")
-
-
-def update_description(request, name, stage):
-    query_dict = request.POST
-    data = {}
-    data["description"] = query_dict.get("description")
-
-    environs_helper.update_env_basic_config(request, name, stage, data=data)
-    return get_description_view(request, name, stage)
-
 
 class EnvLandingView(View):
     def get(self, request, name, stage=None):
