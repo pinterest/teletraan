@@ -123,6 +123,21 @@ def update_deploy_progress(request, name, stage):
 
     return response
 
+def removeEnvCookie(request, name):
+    if ENV_COOKIE_NAME in request.COOKIES:
+        cookie = request.COOKIES[ENV_COOKIE_NAME]
+        saved_names = cookie.split(',')
+        names = []
+        total = 0
+        for saved_name in saved_names:
+            if total >= ENV_COOKIE_CAPACITY:
+                break
+            if not saved_name == name:
+                names.append(saved_name)
+                total += 1
+        return ','.join(names)
+    else:
+        return ""
 
 def genEnvCookie(request, name):
     if ENV_COOKIE_NAME in request.COOKIES:
@@ -640,7 +655,19 @@ def post_add_stage(request, name):
 def remove_stage(request, name, stage):
     # TODO so we need to make sure the capacity is empty???
     environs_helper.delete_env(request, name, stage)
-    return redirect('/env/' + name)
+
+    envs = environs_helper.get_all_env_stages(request, name)
+
+    response = redirect('/env/' + name)
+
+    if len(envs) == 0:
+        cookie_response = removeEnvCookie(request, name)
+        if not cookie_response:
+            response.delete_cookie(ENV_COOKIE_NAME)
+        else:
+            response.set_cookie(ENV_COOKIE_NAME, cookie_response)
+
+    return response
 
 
 def get_builds(request, name, stage):
