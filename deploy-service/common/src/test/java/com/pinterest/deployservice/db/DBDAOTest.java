@@ -77,6 +77,7 @@ public class DBDAOTest {
     private static PlacementDAO placementDAO;
     private static ClusterUpgradeEventDAO clusterUpgradeEventDAO;
     private static SpotAutoScalingDAO spotAutoScalingDAO;
+    private static PasConfigDAO pasConfigDAO;
     private static TagDAO tagDAO;
 
     @BeforeClass
@@ -125,6 +126,7 @@ public class DBDAOTest {
         clusterUpgradeEventDAO = new DBClusterUpgradeEventDAOImpl(DATASOURCE);
         spotAutoScalingDAO = new DBSpotAutoScalingDAOImpl(DATASOURCE);
         tagDAO = new DBTagDAOImpl(DATASOURCE);
+        pasConfigDAO = new DBPasConfigDAOImpl(DATASOURCE);
     }
 
     @AfterClass
@@ -1514,6 +1516,22 @@ public class DBDAOTest {
 
         Collection<ClusterUpgradeEventBean> beans = clusterUpgradeEventDAO.getOngoingEvents();
         assertEquals(beans.size(), 1);
+    }
+
+    @Test
+    public void testPasConfigDAO() throws Exception {
+        PasConfigBean pasConfigBean = new PasConfigBean();
+        pasConfigBean.setGroup_name("test1");
+        pasConfigBean.setThroughput(100);
+        pasConfigBean.setLast_updated(10L);
+        pasConfigBean.setMetric("");
+        pasConfigBean.setPas_state(PasState.DISABLED);
+
+        pasConfigDAO.insertPasConfig(pasConfigBean);
+
+        List<String> configNames = pasConfigDAO.getAllPasGroups();
+        assertEquals(configNames.size(), 1);
+        assertEquals(configNames.get(0), "test1");
     }
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {

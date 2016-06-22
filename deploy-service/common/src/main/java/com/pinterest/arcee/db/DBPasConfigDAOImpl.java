@@ -61,8 +61,7 @@ public class DBPasConfigDAOImpl implements PasConfigDAO {
 
     @Override
     public List<String> getAllPasGroups() throws Exception {
-        ResultSetHandler<List<String>> h = new BeanListHandler<>(String.class);
-        return new QueryRunner(dataSource).query(GET_ALL_PAS_GROUPS, h);
+        return new QueryRunner(dataSource).query(GET_ALL_PAS_GROUPS, SingleResultSetHandlerFactory.<String>newListObjectHandler());
     }
 
     @Override
