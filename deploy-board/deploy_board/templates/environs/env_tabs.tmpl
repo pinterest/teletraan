@@ -1,7 +1,8 @@
 <ul class="nav nav-tabs">
     {% for stage in stages %}
     <li {% if stage == env.stageName %}class="active"{% endif %}>
-    <a href="/env/{{ env.envName }}/{{ stage }}/{{ envTabKind }}">{{ stage }}</a>
+    <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{env.description}}" data-placement="bottom"
+       href="/env/{{ env.envName }}/{{ stage }}/{{ envTabKind }}">{{ stage }}</a>
     </li>
     {% endfor %}
 </ul>
