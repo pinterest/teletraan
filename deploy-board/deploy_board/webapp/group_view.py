@@ -210,7 +210,7 @@ def update_group_config(request, group_name):
         groupRequest["emailRecipients"] = params.get("email_recipients")
         groupRequest["pagerRecipients"] = params.get("pager_recipients")
         groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
-        
+
         if "healthcheck_state" in params:
             groupRequest["healthcheckState"] = True
         else:
@@ -773,7 +773,10 @@ def get_configs(request):
         config = group_info.get("launchInfo")
         instance_types, sorted_subnets, sorted_sgs = get_system_specs(request)
         if config:
-            config["subnetArrays"] = config["subnets"].split(',')
+            if config.get("subnets", None):
+                config["subnetArrays"] = config["subnets"].split(',')
+            else:
+                config["subnetArrays"] = []
             config["userData"] = config["userData"].replace("\n", "<br>")
 
     contents = render_to_string('groups/get_config.tmpl', {

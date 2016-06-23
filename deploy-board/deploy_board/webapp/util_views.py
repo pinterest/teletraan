@@ -145,7 +145,7 @@ def get_latency_metrics(request, group_name):
             util_data[metric_name2] = json_data2
 
         util_data["stage_names"] = stage_names
-        util_data["launch_latency_th"] = launch_config["launchLatencyTh"]
+        util_data["launch_latency_th"] = launch_config.get("groupInfo")["launchLatencyTh"]
     except:
         log.error(traceback.format_exc())
     return HttpResponse(json.dumps(util_data), content_type="application/json")
