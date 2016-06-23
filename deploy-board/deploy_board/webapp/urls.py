@@ -33,8 +33,6 @@ import docs_views
 urlpatterns = [
     # deploy related
     url(r'^deploy/inline_update/$', deploy_views.inline_update),
-    url(r'^deploy/get_duplicate_commit_message/(?P<buildId>[a-zA-Z0-9\-_]+)/$',
-        deploy_views.get_duplicate_commit_deploy_message),
     url(r'^deploy/(?P<deploy_id>[a-zA-Z0-9\-_]+)', deploy_views.DeployView.as_view()),
     url(r'^deploys/ongoing/$', deploy_views.get_ongoing_deploys),
     url(r'^deploys/dailycount', deploy_views.get_daily_deploy_count),
@@ -79,6 +77,8 @@ urlpatterns = [
         env_views.compare_deploys_2),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pred_deploys/$',
         env_views.get_pred_deploys),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/(?P<buildId>[a-zA-Z0-9\-_]+)'
+        r'/get_duplicate_commit_message/$', deploy_views.get_duplicate_commit_deploy_message),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/'
         r'(?P<buildId>[a-zA-Z0-9\-_]+)/warn_for_deploy/$',
         env_views.warn_for_deploy),

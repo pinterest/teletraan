@@ -20,9 +20,7 @@
                             deploy?</h4>
                     </div>
                     <div class="modal-body">
-                        <div id="duplicateCommitDeployMessageId" class="alert alert-info" role="alert">
-                            <strong>Notice: </strong> This commit has already been deployed.
-                        </div>
+                        <div id="duplicateCommitDeployMessageId"></div>
                         <div id="confirmDeployModalPrecedingDeployWarningId">
                             Warning
                         </div>
@@ -79,20 +77,19 @@
         $(this).find('button[type=submit]').prop('disabled', 'disabled');
         $(this).find('button[type=submit]').text('Creating...');
     });
+
+    $('#confirmDeployModalId').on('show.bs.modal', function () {
+        $('#duplicateCommitDeployMessageId').load('/env/{{env.envName}}/{{env.stageName}}/'
+                +trid.find(".hiddenBuildId").val()+'/'
+                +'get_duplicate_commit_message/');
+    });
+
     $('#confirmDeployModalId').on('shown.bs.modal', function () {
         $('#confirmDeployModalPrecedingDeployWarningId').load(
                 '/env/{{ env.envName }}/{{ env.stageName }}/'
                 + $('#confirmBuildIdInputId').val()
                 + '/warn_for_deploy/'
         );
-
-       /* $('#confirmcommitInputId').val(commit);
-            $('#confirmcommit7InputId').val(commit7);
-            $('#confirmBranchInputId').val(branch);
-            $('#confirmBuildIdInputId').val(buildId);*/
-
-        $('#duplicateCommitDeployMessageId').load('/deploy/get_duplicate_commit_message/'
-                +$('#confirmBuildIdInputId').val()+'/');
     });
 
 </script>
