@@ -10,7 +10,9 @@
             </div>
             <div class="modal-body">
                 Are you sure you would like to remove stage <strong>{{ stageName }}</strong>?<br/>
-                If there are no other stages in your environment, this will remove the environment as well.
+                {% if stages|length == 1 %}
+                This is the last stage, so its removal will remove the environment as well.
+                {% endif %}
             </div>
             <div class="modal-footer">
                 <a href="/env/{{ envName }}/{{ stageName }}/remove" class="btn btn-primary">
