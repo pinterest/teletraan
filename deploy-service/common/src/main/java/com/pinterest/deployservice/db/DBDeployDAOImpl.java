@@ -63,7 +63,7 @@ public class DBDeployDAOImpl implements DeployDAO {
         "DELETE FROM deploys WHERE env_id=? AND last_update<? " +
             "AND NOT EXISTS (SELECT 1 FROM environs WHERE environs.deploy_id = deploys.deploy_id) ORDER BY last_update ASC LIMIT ?";
     private static final String COUNT_DAILY_DEPLOYS =
-            "SELECT COUNT(*) FROM deploys WHERE DATE(FROM_UNIXTIME(start_date)) = CURDATE()";
+            "SELECT COUNT(*) FROM deploys WHERE DATE(FROM_UNIXTIME(start_date*0.001)) = CURDATE()";
 
     private BasicDataSource dataSource;
 
