@@ -3,74 +3,74 @@
      aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-        {% if env.envName == "ngapp2-A" or env.envName == "ngapp2-B" %}
+            {% if env.envName == "ngapp2-A" or env.envName == "ngapp2-B" %}
             <form id="deployConfirmFormlId" class="form-horizontal" method="post"
                   action="/ngapp2/deploy_to/{{ env.envName }}/" role="form">
-        {% else %}
-            <form id="deployConfirmFormlId" class="form-horizontal" method="post"
-                  action="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/" role="form">
-        {% endif %}
+                {% else %}
+                <form id="deployConfirmFormlId" class="form-horizontal" method="post"
+                      action="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/" role="form">
+                    {% endif %}
 
-                {% csrf_token %}
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span
-                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-                    </button>
-                    <h4 class="modal-title" id="newEnvModalLabel">Are you sure to create this
-                        deploy?</h4>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-info" role="alert">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span
+                                aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                        </button>
+                        <h4 class="modal-title" id="newEnvModalLabel">Are you sure to create this
+                            deploy?</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info" role="alert">
                             <strong>Notice: </strong> This commit has already been deployed.
                         </div>
-                    <div id="confirmDeployModalPrecedingDeployWarningId">
-                        Warning
-                    </div>
-                    <div class="form-group">
-                        <label for="description"
-                               class="col-md-2 control-label">Description</label>
-
-                        <div class="col-md-10">
-                            <input id="confirmDeplyDescId" type="text" class="form-control"
-                                placeholder="Simple description of this deploy (optional)"
-                                name="description" >
+                        <div id="confirmDeployModalPrecedingDeployWarningId">
+                            Warning
                         </div>
-                    </div>
+                        <div class="form-group">
+                            <label for="description"
+                                   class="col-md-2 control-label">Description</label>
 
-                    <div class="form-group">
-                        <label for="branch" class="col-md-2 control-label">Branch</label>
-
-                        <div class="col-md-10">
-                            <input id="confirmBranchInputId" type="text" class="form-control"
-                                   name="branch" value="{{ build.branch }}" readonly>
+                            <div class="col-md-10">
+                                <input id="confirmDeplyDescId" type="text" class="form-control"
+                                       placeholder="Simple description of this deploy (optional)"
+                                       name="description">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="commit7" class="col-md-2 control-label">Commit</label>
 
-                        <div class="col-md-10">
-                            <input id="confirmcommit7InputId" type="text" class="form-control"
-                                   name="commit7" value="{{ build.commitShort }}" readonly>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="commit" class="col-md-2 control-label">Commit (long)</label>
+                        <div class="form-group">
+                            <label for="branch" class="col-md-2 control-label">Branch</label>
 
-                        <div class="col-md-10">
-                            <input id="confirmcommitInputId" type="text" class="form-control"
-                                   name="commit" value="{{ build.commit }}" readonly>
+                            <div class="col-md-10">
+                                <input id="confirmBranchInputId" type="text" class="form-control"
+                                       name="branch" value="{{ build.branch }}" readonly>
+                            </div>
                         </div>
+                        <div class="form-group">
+                            <label for="commit7" class="col-md-2 control-label">Commit</label>
+
+                            <div class="col-md-10">
+                                <input id="confirmcommit7InputId" type="text" class="form-control"
+                                       name="commit7" value="{{ build.commitShort }}" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="commit" class="col-md-2 control-label">Commit (long)</label>
+
+                            <div class="col-md-10">
+                                <input id="confirmcommitInputId" type="text" class="form-control"
+                                       name="commit" value="{{ build.commit }}" readonly>
+                            </div>
+                        </div>
+                        <input id="confirmBuildIdInputId" type="hidden" class="form-control"
+                               name="buildId" value="{{ build.id }}" readonly>
+                        <input id="currentBuildId" type="hidden" class="form-control"
+                               name="current_build_id" value="{{ current_build.id }}" readonly>
                     </div>
-                    <input id="confirmBuildIdInputId" type="hidden" class="form-control"
-                           name="buildId" value="{{ build.id }}" readonly>
-                    <input id="currentBuildId" type="hidden" class="form-control"
-                           name="current_build_id" value="{{ current_build.id }}" readonly>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Create</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Create</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
         </div>
     </div>
 </div>
@@ -81,9 +81,9 @@
     });
     $('#confirmDeployModalId').on('shown.bs.modal', function () {
         $('#confirmDeployModalPrecedingDeployWarningId').load(
-            '/env/{{ env.envName }}/{{ env.stageName }}/'
-            + $('#confirmBuildIdInputId').val()
-            + '/warn_for_deploy/'
+                '/env/{{ env.envName }}/{{ env.stageName }}/'
+                + $('#confirmBuildIdInputId').val()
+                + '/warn_for_deploy/'
         );
     });
 </script>
