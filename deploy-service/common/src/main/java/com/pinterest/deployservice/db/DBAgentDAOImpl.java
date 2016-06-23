@@ -28,10 +28,11 @@ import org.apache.commons.dbutils.handlers.BeanListHandler;
 import java.util.List;
 import java.util.Collection;
 
-
 public class DBAgentDAOImpl implements AgentDAO {
     private static final String UPDATE_AGENT_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=? AND env_id=?";
+    private static final String UPDATE_AGENTS_BY_HOSTIDS = 
+        "" + "UPDATE agents SET %s WHERE host_id IN (%s) AND env_id=?";
     private static final String UPDATE_AGENT_BY_ID_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=?";
     private static final String RESET_FAILED_AGENTS =
@@ -84,17 +85,18 @@ public class DBAgentDAOImpl implements AgentDAO {
         setClause.addValue(hostId);
         setClause.addValue(envId);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+
     }
 
+    @Override
     public void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean) throws Exception {
-        for (String hostId:hostIds) { 
-            SetClause setClause = agentBean.genSetClause();
-            String clause = String.format(UPDATE_AGENT_TEMPLATE, setClause.getClause());
-            setClause.addValue(hostId);
-            setClause.addValue(envId);
-            new QueryRunner(dataSource).update(clause, setClause.getValueArray());
-        }
+        SetClause setClause = agentBean.genSetClause();
+        String hostStr = QueryUtils.genStringGroupClause(hostIds);
+        String clause = String.format(UPDATE_AGENTS_BY_HOSTIDS, setClause.getClause(), hostStr);
+        setClause.addValue(envId);
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
+
     @Override
     public void resetFailedAgents(String envId, String deployId) throws Exception {
         new QueryRunner(dataSource).update(RESET_FAILED_AGENTS, envId, deployId);

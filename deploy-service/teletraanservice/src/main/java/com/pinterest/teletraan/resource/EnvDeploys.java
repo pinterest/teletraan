@@ -26,7 +26,6 @@ import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import com.pinterest.clusterservice.cm.ClusterManager;
 
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -34,6 +33,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
@@ -52,7 +52,7 @@ public class EnvDeploys {
     }
 
     public enum HostActions {
-        PAUSE, RESET
+        PAUSED_BY_USER, RESET, NORMAL
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvDeploys.class);
@@ -135,30 +135,40 @@ public class EnvDeploys {
         return Response.created(deployUri).entity(result).build();
     }
 
-    @POST
+    @PUT
     @Path("/hostactions")
     @ApiOperation(
         value = "Take a deploy action",
         notes = "Take an action on a deploy using host information",
         response = Response.class)
-    public Response action(
+    public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName, 
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
-            @ApiParam(value = "HostActions enum selection", required = true)@QueryParam("actionType") HostActions actionType,
-            @ApiParam(value = "List of ids", required = true)@QueryParam("hostIds") Collection<String> hostIds) throws Exception {
+            @ApiParam(value = "Agent object to update with", required = true)@NotEmpty @QueryParam("actionType") HostActions actionType,
+            @NotEmpty List<String> hostIds) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         AgentBean agentBean = new AgentBean();
         switch (actionType) {
-            case PAUSE:
+            case PAUSED_BY_USER:
                 agentBean.setState(AgentState.PAUSED_BY_USER);
                 agentBean.setLast_update(System.currentTimeMillis());
                 agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
+                LOG.info("Succesfully paused hosts in environment {} and stage {}", envName, stageName);
+                break;
             case RESET: 
                 agentBean.setState(AgentState.RESET);
                 agentBean.setLast_update(System.currentTimeMillis());
                 agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
+                LOG.info("Succesfully reset hosts in environment {} and stage {}", envName, stageName);
+                break;
+            case NORMAL:
+                agentBean.setState(AgentState.NORMAL);
+                agentBean.setLast_update(System.currentTimeMillis());
+                agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
+                LOG.info("Succesfully resumed hosts in environment {} and stage {}", envName, stageName);
+                break;
             default:
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
         }

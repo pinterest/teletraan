@@ -548,8 +548,17 @@ def terminate_hosts(request, name, stage):
     if 'hostIds' in post_params:
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
+<<<<<<< a3e4a26f92ffffa277f47ab809b8633c2becb228
     environ_hosts_helper.stop_service_on_host(request, name, stage, host_ids)
     return redirect('/env/{}/{}'.format(name, stage))
+=======
+    clusters_helper.terminate_hosts(request, name, stage, host_ids)
+<<<<<<< 61e7ddf87d3e04f851e87ceed0cae1b92a5210b3
+    return redirect('/env/{}/{}/hosts'.format(name, stage))
+>>>>>>> Redirect to hosts page after action
+=======
+    return redirect('/env/{}/{}/'.format(name, stage))
+>>>>>>> Added resume functionality/redirect to deploy page
 
 
 def force_terminate_hosts(request, name, stage):
