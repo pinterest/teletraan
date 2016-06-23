@@ -983,16 +983,23 @@ def pause_deploy(request, name, stage, host_id):
     agents_helper.pause_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
-
 # resume deploy stage for this env, this host
 def resume_deploy(request, name, stage, host_id):
     agents_helper.resume_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
-def reset_hosts(request, name, stage, host_ids):
-    agents_helper
+# resume hosts for this env and stage
+def pause_hosts(request, env_name, stage):
+    host_ids = request.GET.get('host_ids')
+    environs_helper.pause_hosts(request, env_name, stage, host_ids)
+    return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
-def pause_hosts(request, name, stage, host_ids);
+# reset hosts for this env and stage
+def reset_hosts(request, env_name, stage):
+    host_ids = request.GET.get('host_ids')
+    environs_helper.reset_hosts(request, env_name, stage, host_ids)
+    return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
+
 
 # get total unknown(unreachable) hosts
 def get_unknown_hosts(request, name, stage):
@@ -1154,8 +1161,8 @@ def warn_for_deploy(request, name, stage, buildId):
     if succeeding_deploys:
         return HttpResponse("")
 
-    result = deploys_helper.get_all(req
-    filter['deployState'] = "SUCCEEDED"uest, **filter)
+    filter['deployState'] = "SUCCEEDED"
+    result = deploys_helper.get_all(request, **filter)
     succeeded_deploys = result['deploys']
 
     if succeeded_deploys:

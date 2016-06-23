@@ -157,11 +157,10 @@ urlpatterns = [
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.pause_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume_deploy/'
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.resume_deploy),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/reset_hosts/'
-        r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.reset_hosts),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause_hosts/'
-        r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.pause_hosts),
-
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/reset_hosts/$'
+        , env_views.reset_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause_hosts/$'
+        , env_views.pause_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/host/(?P<hostname>[a-zA-Z0-9\-_]+)',
         host_views.HostDetailView.as_view()),
     url(r'^hosts/$', host_views.hosts_list),

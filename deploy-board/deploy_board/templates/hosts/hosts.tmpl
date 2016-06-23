@@ -10,10 +10,10 @@
           title="Pause selected hosts">
           <span class="glyphicon glyphicon-pause"></span> Pause Selected
           </button>
-          <button id="restartButton"
+          <button id="resetButton"
           class="btn btn-default btn-sm" data-toggle="tooltip"
-          title="Restart selected hosts">
-          <span class="glyphicon glyphicon-repeat"></span> Restart Selected
+          title="reset selected hosts">
+          <span class="glyphicon glyphicon-repeat"></span> reset Selected
           </button>
           <button id="terminateButton"
           class="btn btn-default btn-sm" data-toggle="tooltip"
@@ -130,7 +130,11 @@
     });
 
    $(document).ready(function() {
-        $(".btn").prop("disabled", true);
+        if ($("#hostTable input:checkbox:checked").length <= 0) {
+          $(".btn").prop("disabled", true);
+        } else {
+          $(".btn").prop("disabled", false);
+        }
     });
 
     $("#pauseButton").on("click", function() {
@@ -139,37 +143,35 @@
       $('#pauseSelectedHosts .modal-body #hostsList').val(checkedHosts);  
     });
 
-    $('#pauseSelectedBtnId').on("click", function() {
-       $.ajax({
-              type: 'POST',
-              url: '/env/{{ env.envName }}/{{ env.stageName }}/pause_hosts/{{ checkedHosts }}/',
-              data: {'csrfmiddlewaretoken': '{{csrf_token}}', 'hostIds' },
-              datatype: 'json',
-              success: function (data) {
-                  window.location = '/env/{{env.envName }}/{{env.stageName}}/';
-              }
-          })
-    });
+    // $('#pauseSelectedBtnId').on("click", function() {
+    //    $.ajax({
+    //           type: 'POST',
+    //           url: '/env/{{ env.envName }}/{{ env.stageName }}/pause_hosts/{{ checkedHosts }}/',
+    //           data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+    //           datatype: 'json',
+    //           success: function (data) {
+    //               window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+    //           }
+    //       })
+    // });
 
-    $("#restartButton").on("click", function() {
+    $("#resetButton").on("click", function() {
       console.log('in');
-      $('#restartSelectedHosts').modal();
-      $('#restartSelectedHosts .modal-body #hostsList').val(checkedHosts);
+      $('#resetSelectedHosts').modal();
+      $('#resetSelectedHosts .modal-body #hostsList').val(checkedHosts);
     });
 
-    $('#restartSelectedBtnId').on("click", function() {
-      {% for hostId in checkedHosts %}
-       $.ajax({
-              type: 'POST',
-              url: '/env/{{ env.envName }}/{{ env.stageName }}/reset_hosts/{{ checkedHosts }}/',
-              data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
-              datatype: 'json',
-              success: function (data) {
-                  window.location = '/env/{{env.envName }}/{{env.stageName}}/';
-              }
-          })
-      {% endfor %}
-    });
+    // $('#resetSelectedBtnId').on("click", function() {
+    //    $.ajax({
+    //           type: 'POST',
+    //           url: '/env/{{ env.envName }}/{{ env.stageName }}/reset_hosts/{{ checkedHosts }}/',
+    //           data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+    //           datatype: 'json',
+    //           success: function (data) {
+    //               window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+    //           }
+    //       })
+    // });
 
     $("#terminateButton").on("click", function() {
       $('#terminateSelectedHosts').modal();
@@ -186,7 +188,7 @@
 <div class="modal fade" id="pauseSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="pauseSelectedHostForm" class="form-horizontal">
+            <form id="pauseSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/pause_hosts/?host_ids={{ checkedHosts }}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Host(s) Pause Confirmation</h4>
@@ -205,20 +207,20 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-<div class="modal fade" id="restartSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+<div class="modal fade" id="resetSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="restartSelectedHostForm" class="form-horizontal">
+            <form id="resetSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/reset_hosts/?host_ids={{ checkedHosts }}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Host(s) Restart Confirmation</h4>
+                    <h4 class="modal-title">Host(s) reset Confirmation</h4>
                 </div>
                 <div class="modal-body">
-                    <p> Are you sure you would like to restart the following hosts?</p>
+                    <p> Are you sure you would like to reset the following hosts?</p>
                     <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" id="restartSelectedBtnId">Restart</button>
+                    <button type="submit" class="btn btn-primary" id="resetSelectedBtnId">reset</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
                 {% csrf_token %}
