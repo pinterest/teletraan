@@ -106,7 +106,7 @@ public class LaunchEventCollector implements Runnable {
             ClusterBean clusterBean = clusterDAO.getByClusterName(groupName);
             if (groupBean == null && clusterBean == null) {
                 LOG.info(String.format("The group/cluster %s information is not in the database yet.", groupName));
-                return false;
+                return true;
             }
 
             if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_LAUNCH")) {
@@ -125,7 +125,7 @@ public class LaunchEventCollector implements Runnable {
 
                 // add to the new instance report
                 List<String> envIds = groupDAO.getEnvsByGroupName(groupName);
-                if (groupBean.getLifecycle_notifications()) {
+                if (groupBean != null && groupBean.getLifecycle_notifications() != null && groupBean.getLifecycle_notifications()) {
                     sendEventEmail("launch", hostBean, groupBean);
                 }
                 if (!envIds.isEmpty()) {
@@ -138,7 +138,7 @@ public class LaunchEventCollector implements Runnable {
                 hostBean.setState(HostState.TERMINATING);
                 hostBean.setLast_update(eventMessage.getTimestamp());
                 hostDAO.updateHostById(eventMessage.getInstanceId(), hostBean);
-                if (groupBean.getLifecycle_notifications()) {
+                if (groupBean != null && groupBean.getLifecycle_notifications() != null && groupBean.getLifecycle_notifications()) {
                     sendEventEmail("termination", hostBean, groupBean);
                 }
             } else if (eventMessage.getEventType().equals("autoscaling:EC2_INSTANCE_TERMINATING")) {

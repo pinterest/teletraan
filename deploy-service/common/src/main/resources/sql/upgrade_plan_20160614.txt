@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS group_mappings (
 Rollback
 ===========================
 ALTER TABLE groups DROP COLUMN resource_type;
-ALTER TABLE spot_auto_scaling_groups ADD COLUMN VARCHAR(128) NOT NULL,
+ALTER TABLE spot_auto_scaling_groups ADD COLUMN asg_name VARCHAR(128) NOT NULL,
                                      ADD COLUMN launch_config_id  VARCHAR(128),
                                      MODIFY COLUMN bid_price VARCHAR(32) NOT NULL,
                                      DROP COLUMN enable_resource_lending;
