@@ -77,6 +77,26 @@ def get_daily_deploy_count(request):
     return HttpResponse(html)
 
 
+def get_duplicate_commit_deploy_message(request, buildId):
+    #deployResult = deploys_helper.get_all(request, commit=commit)
+    #print len(deployResult)
+    print "here i go"
+    print
+    build = builds_helper.get_build(request, buildId)
+    commit = build['commit']
+    if deploys_helper.get_deploy_count_by_commit(request, commit) > 0:
+        print "count", deploys_helper.get_deploy_count_by_commit(request, commit)
+        return render(request, 'deploys/duplicate_commit_deploy_message.tmpl')
+    return HttpResponse('')
+   #allDeploys = deploys_helper.get_all(request, commit=commit)
+   # print allDeploys
+   # for deploy in allDeploys['deploys']:
+   #     print
+   #     print deploy
+   #     if deploy['commit'] == commit:
+   #         return render(request, 'deploys/duplicate_commit_deploy_message.tmpl')
+   # return HttpResponse('')
+
 class DeployView(View):
     def get(self, request, deploy_id):
         deploy = deploys_helper.get(request, deploy_id)

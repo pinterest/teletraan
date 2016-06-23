@@ -172,7 +172,7 @@ public class Deploys {
     }
 
     @GET
-    @Path("count/{commit : [a-zA-Z0-9\\-_]+}")
+    @Path("/count/{commit : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value="Get number of deploys with commit"
     )

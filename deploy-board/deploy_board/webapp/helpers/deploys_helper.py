@@ -23,6 +23,7 @@ def get(request, id):
 
 def get_all(request, **kwargs):
     params = deployclient.gen_params(kwargs)
+    print "params", params
     return deployclient.get("/deploys", request.teletraan_user_id.token, params=params)
 
 
@@ -92,3 +93,7 @@ def get_missing_hosts(request, env_name, stage_name):
 
 def get_daily_deploy_count(request):
     return deployclient.get("/deploys/dailycount", request.teletraan_user_id.token)
+
+def get_deploy_count_by_commit(request, commit):
+    print "/deploys/count/%s" % commit
+    return deployclient.get("/deploys/count/%s" % commit, request.teletraan_user_id.token)
