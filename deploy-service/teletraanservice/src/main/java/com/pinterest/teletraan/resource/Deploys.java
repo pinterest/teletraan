@@ -172,17 +172,6 @@ public class Deploys {
     }
 
     @GET
-    @Path("/count/{commit : [a-zA-Z0-9\\-_]+}")
-    @ApiOperation(
-            value="Get number of deploys with commit"
-    )
-    public Long getCountByCommit(
-            @ApiParam(value = "Commit", required = true)@PathParam("commit") String commit
-    ) throws Exception{
-        return deployDAO.countDeploysByCommit(commit);
-    }
-
-    @GET
     @Path("/dailycount")
     @ApiOperation(
             value = "Get deploys per day",

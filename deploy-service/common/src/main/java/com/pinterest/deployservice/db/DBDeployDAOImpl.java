@@ -57,8 +57,6 @@ public class DBDeployDAOImpl implements DeployDAO {
                     "ORDER BY start_date DESC LIMIT 1";
     private static final String COUNT_OF_NONREGULAR_DEPLOYS =
             "SELECT COUNT(*) FROM deploys WHERE env_id=? AND deploy_type IN ('ROLLBACK', 'STOP') AND start_date > ?";
-    private static final String COUNT_TOTAL_BY_COMMIT =
-            "SELECT COUNT(*) FROM builds INNER JOIN deploys ON builds.build_id=deploys.build_id WHERE scm_commit=?";
     private static final String COUNT_TOTAL_BY_ENVID =
         "SELECT COUNT(*) FROM deploys WHERE env_id=?";
     private static final String DELETE_UNUSED_DEPLOYS =
@@ -77,12 +75,6 @@ public class DBDeployDAOImpl implements DeployDAO {
     public DeployBean getById(String deploymentId) throws Exception {
         ResultSetHandler<DeployBean> h = new BeanHandler<>(DeployBean.class);
         return new QueryRunner(dataSource).query(GET_DEPLOYMENT_BY_ID, h, deploymentId);
-    }
-
-    @Override
-    public long countDeploysByCommit(String commit) throws Exception {
-        return new QueryRunner(dataSource).query(COUNT_TOTAL_BY_COMMIT,
-                SingleResultSetHandlerFactory.<Long>newObjectHandler());
     }
 
     @Override

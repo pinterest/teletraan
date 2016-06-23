@@ -56,9 +56,6 @@ public interface DeployDAO {
     // Count total number of deploys by env_id
     long countDeploysByEnvId(String envId) throws Exception;
 
-    // Count total number of deploys by commit
-    long countDeploysByCommit(String commit) throws Exception;
-
     // Delete all unused deploys whose last update time is before timeThreshold
     void deleteUnusedDeploys(String envId, long timeThreshold, long numOfDeploys) throws Exception;
 
