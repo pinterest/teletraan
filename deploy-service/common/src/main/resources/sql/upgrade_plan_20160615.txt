@@ -1,0 +1,7 @@
+Update
+============================== 
+ALTER TABLE environs ADD COLUMN override_policy VARCHAR(32) NOT NULL DEFAULT "OVERRIDE";
+ 
+Rollback
+ ============================= 
+ALTER TABLE groups DROP COLUMN override_policy;
