@@ -55,6 +55,7 @@ class EnvConfigView(View):
         environs_helper.set_active_max_parallel(env)
 
         return render(request, 'configs/env_config.html', {
+            "envs": envs,
             "env": env,
             "stages": stages,
             "show_remove": show_remove,
