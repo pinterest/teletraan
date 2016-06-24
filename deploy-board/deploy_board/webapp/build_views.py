@@ -77,6 +77,7 @@ def get_all_builds(request):
     builds = builds_helper.get_builds_and_tags(request, name=name, branch=branch, pageIndex=index,
                                       pageSize=size)
     scm_url = systems_helper.get_scm_url(request)
+    deploy_state = None
     current_build_id = request.GET.get('current_build_id', None)
     override_policy = request.GET.get('override_policy')
     deploy_id = request.GET.get('deploy_id')
@@ -84,7 +85,9 @@ def get_all_builds(request):
     if current_build_id:
         current_build = builds_helper.get_build_and_tag(request, current_build_id)
         current_build = current_build.get('build')
-    deploy_state = deploys_helper.get(request, deploy_id)['state']
+    if deploy_id:
+        deploy_config = deploys_helper.get(request, deploy_id)
+        deploy_state = deploy_config.get('state', None)
 
     html = render_to_string('builds/pick_a_build.tmpl', {
         "builds": builds,
@@ -97,7 +100,7 @@ def get_all_builds(request):
         "disablePrevious": index <= 1,
         "disableNext": len(builds) < common.DEFAULT_BUILD_SIZE,
         "overridePolicy": override_policy,
-        "deployState": deploy_state, 
+        "deployState": deploy_state,
     })
     return HttpResponse(html)
 
