@@ -17,6 +17,7 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.arcee.handler.ProvisionHandler;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 
@@ -58,6 +59,12 @@ public class Hosts {
                         @Valid HostBean hostBean) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         hostBean.setLast_update(System.currentTimeMillis());
+        if (hostBean.getCreate_date() == null) {
+            hostBean.setCreate_date(System.currentTimeMillis());
+        }
+        if (hostBean.getState() == null) {
+            hostBean.setState(HostState.PROVISIONED);
+        }
         hostDAO.insert(hostBean);
         LOG.info(String.format("Successfully added one host by %s: %s", operator, hostBean.toString()));
     }
@@ -77,11 +84,10 @@ public class Hosts {
     @DELETE
     @Path("/{hostId : [a-zA-Z0-9\\-_]+}")
     public void stopHost(@Context SecurityContext sc,
-                         @PathParam("hostId") String hostId,
-                         @Valid HostBean hostBean) throws Exception {
+                         @PathParam("hostId") String hostId) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         provisionHandler.stopHost(hostId);
-        LOG.info(String.format("Successfully updated one host by %s: %s", operator, hostBean.toString()));
+        LOG.info(String.format("Successfully stopped host %s by %s", hostId, operator));
     }
 
     @GET
