@@ -86,7 +86,8 @@ def get_duplicate_commit_deploy_message(request, name, stage, buildId):
     next_commit = next_build['commit']
 
     if current_commit == next_commit:
-        return render(request, 'deploys/duplicate_commit_deploy_message.tmpl')
+        return render(request, 'deploys/duplicate_commit_deploy_message.tmpl',{
+                      "commit":next_build['commitShort']})
     return HttpResponse('')
 
 
