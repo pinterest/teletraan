@@ -374,8 +374,8 @@ def main():
 
     is_server_less_mode = AgentRunMode.is_server_less(args.mode)
     if args.daemon and is_server_less_mode:
+        raise ValueError("daemon and server_less mode is mutually exclusive.")
         
-
     config = Config(args.config_file)
     utils.run_prereqs(config)
 
