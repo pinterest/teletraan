@@ -391,7 +391,7 @@ def main():
     log.info("Start to run deploy-agent.")
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup, use_facter=args.use_facter)
     if is_server_less_mode:
-        client = ServerlessClient(env_name=args.env_name, stage=args.build, build=args.build)
+        client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build)
 
     agent = DeployAgent(client=client, conf=config)
     utils.listen()
