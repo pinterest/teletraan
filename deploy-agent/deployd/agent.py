@@ -371,7 +371,6 @@ def main():
                         help="Optional. In 'serverless' mode,  script_variables is needed in "
                              "json format.")
 
-
     args = parser.parse_args()
 
     is_serverless_mode = AgentRunMode.is_serverless(args.mode)
