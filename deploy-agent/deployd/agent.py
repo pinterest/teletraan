@@ -367,8 +367,6 @@ def main():
                              "json format.")
     parser.add_argument('--env_name', dest='env_name', default=None,
                         help="Optional. In 'serverless' mode, env_name nneds to be passed in.")
-    parser.add_argument('--stage', dest='stage', default=None,
-                        help="Optional. In 'serverless' mode, stage needs to be passed in.")
 
     args = parser.parse_args()
 
