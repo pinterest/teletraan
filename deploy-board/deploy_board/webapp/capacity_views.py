@@ -48,6 +48,7 @@ class EnvCapacityConfigView(View):
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
         groups = common.get_non_cmp_group(request, name, stage)
         return render(request, 'configs/capacity.html', {
+            "envs": envs,
             "env": env,
             "stages": stages,
             "hosts": ','.join(hosts),
