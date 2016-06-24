@@ -190,4 +190,10 @@ public class Environs {
         tagHandler.createTag(tagBean, operator);
         LOG.info(String.format("Successfully updated actions %s for all envs by %s", actionType, operator));
     }
+
+    @GET
+    @Path("/cluster/{clusterName : [a-zA-Z0-9\\-_]+}")
+    public EnvironBean getByClusterName(@PathParam("clusterName") String clusterName) throws Exception {
+        return environDAO.getByCluster(clusterName);
+    }
 }
