@@ -20,7 +20,11 @@ import com.pinterest.arcee.bean.GroupInfoBean;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 
 import org.slf4j.Logger;
@@ -31,12 +35,14 @@ import java.util.*;
 
 public class ProvisionHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ProvisionHandler.class);
+    private AgentDAO agentDAO;
     private HostDAO hostDAO;
     private HostInfoDAO hostInfoDAO;
     private AutoScalingManager autoScalingManager;
     private GroupHandler groupHandler;
 
     public ProvisionHandler(ServiceContext serviceContext) {
+        agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
         hostInfoDAO = serviceContext.getHostInfoDAO();
         autoScalingManager = serviceContext.getAutoScalingManager();
@@ -68,5 +74,18 @@ public class ProvisionHandler {
             }
             return hostIds;
         }
+    }
+
+    public void stopHost(String hostId) throws Exception {
+        LOG.info(String.format("Start to stop host %s", hostId));
+        AgentBean agentBean = new AgentBean();
+        agentBean.setState(AgentState.STOP);
+        agentBean.setLast_update(System.currentTimeMillis());
+        agentDAO.updateAgentById(hostId, agentBean);
+
+        HostBean hostBean = new HostBean();
+        hostBean.setState(HostState.PENDING_TERMINATE);
+        hostBean.setLast_update(System.currentTimeMillis());
+        hostDAO.updateHostById(hostId, hostBean);
     }
 }

@@ -29,7 +29,7 @@ public interface HostDAO {
 
     List<String> getHostNamesByGroup(String groupName) throws Exception;
 
-    List<String> getHostIdsByGroup(String groupName) throws Exception;
+    Collection<String> getHostIdsByGroup(String groupName) throws Exception;
 
     void insert(HostBean hostBean) throws Exception;
 

@@ -44,6 +44,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @Path("/v1/envs")
@@ -104,6 +105,12 @@ public class Environs {
         @QueryParam("pageSize") Optional<Integer> pageSize) throws Exception {
         return environDAO.getAllEnvNames(nameFilter.or(""), pageIndex.or(DEFAULT_INDEX),
             pageSize.or(DEFAULT_SIZE));
+    }
+
+    @GET
+    @Path("/ids")
+    public Collection<String> getIds() throws Exception {
+        return environDAO.getAllEnvIds();
     }
 
     @GET

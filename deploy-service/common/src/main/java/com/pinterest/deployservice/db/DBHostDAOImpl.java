@@ -52,7 +52,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_GROUP_NAMES_BY_HOST = "SELECT group_name FROM hosts WHERE host_name=?";
     private static final String GET_STALE_ENV_HOST = "SELECT DISTINCT hosts.* FROM hosts INNER JOIN hosts_and_envs ON hosts.host_name=hosts_and_envs.host_name WHERE hosts.last_update<?";
     private static final String GET_HOST_NAMES_BY_GROUP = "SELECT host_name FROM hosts WHERE group_name=?";
-    private static final String GET_HOST_IDS_BY_GROUP = "SELECT host_id FROM hosts WHERE group_name=?";
+    private static final String GET_HOST_IDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE group_name=?";
     private static final String GET_HOSTS_BY_ENVID = "SELECT h.* FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=? UNION DISTINCT SELECT hs.* FROM hosts hs INNER JOIN hosts_and_envs he ON he.host_name = hs.host_name WHERE he.env_id=?";
     private static final String GET_HOST_BY_ENVID_AND_HOSTID = "SELECT DISTINCT e.* FROM hosts e INNER JOIN groups_and_envs ge ON ge.group_name = e.group_name WHERE ge.env_id=? AND e.host_id=?";
     private static final String GET_HOST_BY_ENVID_AND_HOSTNAME1 = "SELECT hs.* FROM hosts hs INNER JOIN groups_and_envs ge ON ge.group_name = hs.group_name WHERE ge.env_id=? AND hs.host_name=?";
@@ -82,7 +82,7 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public List<String> getHostIdsByGroup(String groupName) throws Exception {
+    public Collection<String> getHostIdsByGroup(String groupName) throws Exception {
         return new QueryRunner(dataSource).query(GET_HOST_IDS_BY_GROUP,
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName);
     }

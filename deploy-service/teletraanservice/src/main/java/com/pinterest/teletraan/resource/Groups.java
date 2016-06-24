@@ -30,6 +30,8 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.GroupDAO;
+import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
@@ -39,6 +41,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -61,12 +64,21 @@ public class Groups {
         DISABLE
     }
 
+    public enum HostInfoActionType {
+        ALL,
+        RETIRED,
+        FAILED,
+        RETIRED_AND_FAILED
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(Groups.class);
     private final static int DEFAULT_SIZE = 100;
     private GroupHandler groupHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private ProvisionHandler provisionHandler;
     private EnvironDAO environDAO;
+    private HostDAO hostDAO;
+    private GroupDAO groupDAO;
     private HealthCheckHandler healthCheckHandler;
     private final Authorizer authorizer;;
 
@@ -76,6 +88,8 @@ public class Groups {
         provisionHandler = new ProvisionHandler(context);
         healthCheckHandler = new HealthCheckHandler(context);
         environDAO = context.getEnvironDAO();
+        hostDAO = context.getHostDAO();
+        groupDAO = context.getGroupDAO();
         authorizer = context.getAuthorizer();
     }
 
@@ -240,5 +254,29 @@ public class Groups {
         groupBean.setHealthcheck_state(enableHealthCheck);
         configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_ASG_GENERAL, groupBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_GROUP, groupName, Constants.TYPE_ASG_GENERAL, operator);
+    }
+
+    @GET
+    @Path("/{groupName: [a-zA-Z0-9\\-_]+}/hosts")
+    public Collection<String> getHostIds(@PathParam("groupName") String groupName,
+                                         @NotEmpty @QueryParam("actionType") HostInfoActionType actionType) throws Exception {
+        Collection<String> hostIds;
+        switch (actionType) {
+            case ALL:
+                hostIds = hostDAO.getHostIdsByGroup(groupName);
+                break;
+            case RETIRED:
+                hostIds = hostDAO.getRetiredHostIdsByGroup(groupName);
+                break;
+            case FAILED:
+                hostIds = hostDAO.getFailedHostIdsByGroup(groupName);
+                break;
+            case RETIRED_AND_FAILED:
+                hostIds = hostDAO.getRetiredAndFailedHostIdsByGroup(groupName);
+                break;
+            default:
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+        }
+        return hostIds;
     }
 }

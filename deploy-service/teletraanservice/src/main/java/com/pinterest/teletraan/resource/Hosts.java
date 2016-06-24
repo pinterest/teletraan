@@ -15,13 +15,23 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.pinterest.arcee.handler.ProvisionHandler;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.swagger.annotations.*;
 
+import javax.validation.Valid;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
+
+import java.util.Collection;
 import java.util.List;
 
 @Path("/v1/hosts")
@@ -34,10 +44,44 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Hosts {
+    private static final Logger LOG = LoggerFactory.getLogger(Hosts.class);
     private HostDAO hostDAO;
+    private ProvisionHandler provisionHandler;
 
     public Hosts(TeletraanServiceContext context) {
         hostDAO = context.getHostDAO();
+        provisionHandler = new ProvisionHandler(context);
+    }
+
+    @POST
+    public void addHost(@Context SecurityContext sc,
+                        @Valid HostBean hostBean) throws Exception {
+        String operator = sc.getUserPrincipal().getName();
+        hostBean.setLast_update(System.currentTimeMillis());
+        hostDAO.insert(hostBean);
+        LOG.info(String.format("Successfully added one host by %s: %s", operator, hostBean.toString()));
+    }
+
+    @PUT
+    @Path("/{hostId : [a-zA-Z0-9\\-_]+}")
+    public void updateHost(@Context SecurityContext sc,
+                           @PathParam("hostId") String hostId,
+                           @Valid HostBean hostBean) throws Exception {
+        String operator = sc.getUserPrincipal().getName();
+        hostBean.setHost_id(hostId);
+        hostBean.setLast_update(System.currentTimeMillis());
+        hostDAO.updateHostById(hostId, hostBean);
+        LOG.info(String.format("Successfully updated one host by %s: %s", operator, hostBean.toString()));
+    }
+
+    @DELETE
+    @Path("/{hostId : [a-zA-Z0-9\\-_]+}")
+    public void stopHost(@Context SecurityContext sc,
+                         @PathParam("hostId") String hostId,
+                         @Valid HostBean hostBean) throws Exception {
+        String operator = sc.getUserPrincipal().getName();
+        provisionHandler.stopHost(hostId);
+        LOG.info(String.format("Successfully updated one host by %s: %s", operator, hostBean.toString()));
     }
 
     @GET
