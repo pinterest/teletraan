@@ -44,7 +44,7 @@ class PingServer(object):
         return self._agent.update_deploy_status(deploy_report=deploy_report)
 
 class AgentRunMode(object):
-    SERVER_LESS = "server_less"
+    SERVER_LESS = "serverless"
 
     @staticmethod
     def is_server_less(mode):
