@@ -219,6 +219,7 @@ class EnvLandingView(View):
                         provisioning_hosts.append(faked_host)
 
             response = render(request, 'environs/env_landing.html', {
+                "envs": envs,
                 "env": env,
                 "env_promote": env_promote,
                 "stages": stages,
@@ -245,6 +246,7 @@ class EnvLandingView(View):
             report.showMode = showMode
             report.sortByStatus = sortByStatus
             response = render(request, 'environs/env_landing.html', {
+                "envs": envs,
                 "env": env,
                 "env_promote": env_promote,
                 "stages": stages,
@@ -506,6 +508,7 @@ def get_env_deploys(request, name, stage):
                                  reverse_date, operator, commit, repo, branch)
     if filter is None:
         return render(request, 'environs/env_history.html', {
+            "envs": envs,
             "env": env,
             "stages": stages,
             "deploy_summaries": [],
@@ -539,6 +542,7 @@ def get_env_deploys(request, name, stage):
                                                               DEFAULT_TOTAL_PAGES)
 
     return render(request, 'environs/env_history.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "deploy_summaries": deploy_summaries,
@@ -822,6 +826,7 @@ def rollback(request, name, stage):
         deploy_summaries.append(summary)
 
     html = render_to_string("environs/env_rollback.html", {
+        "envs": envs,
         "stages": stages,
         "envs": envs,
         "env": env,
@@ -864,6 +869,7 @@ def promote(request, name, stage, deploy_id):
     build = builds_helper.get_build(request, deploy['buildId'])
 
     html = render_to_string("environs/env_promote.html", {
+        "envs": envs,
         "stages": stages,
         "envs": envs,
         "env": env,
@@ -927,6 +933,7 @@ def get_hosts(request, name, stage):
         agents_wrapper[agent['deployId']].append(agent)
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -950,6 +957,7 @@ def get_hosts_by_deploy(request, name, stage, deploy_id):
     title = "All hosts with deploy " + deploy_id
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -991,6 +999,7 @@ def get_unknown_hosts(request, name, stage):
     title = "Unknow hosts"
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -1008,6 +1017,7 @@ def get_provisioning_hosts(request, name, stage):
     title = "Provisioning hosts"
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -1025,6 +1035,7 @@ def get_all_hosts(request, name, stage):
     title = "All hosts"
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -1044,6 +1055,7 @@ def get_failed_hosts(request, name, stage):
     title = "Failed Hosts"
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
