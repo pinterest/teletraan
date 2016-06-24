@@ -376,6 +376,7 @@ def main():
     is_serverless_mode = AgentRunMode.is_serverless(args.mode)
     if args.daemon and is_serverless_mode:
         raise ValueError("daemon and serverless mode is mutually exclusive.")
+
     config = Config(args.config_file)
     utils.run_prereqs(config)
 
