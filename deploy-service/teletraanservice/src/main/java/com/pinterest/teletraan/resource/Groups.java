@@ -26,6 +26,7 @@ import com.pinterest.arcee.handler.HealthCheckHandler;
 import com.pinterest.arcee.handler.ProvisionHandler;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.bean.ConfigHistoryBean;
+import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.common.Constants;
@@ -41,7 +42,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -278,5 +278,11 @@ public class Groups {
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
         }
         return hostIds;
+    }
+
+    @GET
+    @Path("/{groupName: [a-zA-Z0-9\\-_]+}/env")
+    public EnvironBean getByClusterName(@PathParam("groupName") String groupName) throws Exception {
+        return environDAO.getByCluster(groupName);
     }
 }
