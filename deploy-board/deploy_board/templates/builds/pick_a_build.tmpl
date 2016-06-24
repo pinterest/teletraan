@@ -40,7 +40,7 @@
                     <span class="label label-danger">{{buildInfo.tag.value}}</span>
                 {%elif buildInfo.tag|tagBuildId == buildInfo.build.id %}
                     <span class="label label-success">{{buildInfo.tag.value}}</span>
-                {% endif %}               
+                {% endif %}
             {% endif %}
         </td>
         <td>{{ buildInfo.build.branch }}</td>
