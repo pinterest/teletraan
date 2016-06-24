@@ -87,7 +87,8 @@ def get_all_builds(request):
         current_build = current_build.get('build')
     if deploy_id:
         deploy_config = deploys_helper.get(request, deploy_id)
-        deploy_state = deploy_config.get('state', None)
+        if deploy_config:
+            deploy_state = deploy_config.get('state', None)
 
     html = render_to_string('builds/pick_a_build.tmpl', {
         "builds": builds,
