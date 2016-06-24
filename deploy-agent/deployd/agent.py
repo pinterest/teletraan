@@ -47,7 +47,7 @@ class AgentRunMode(object):
     SERVER_LESS = "serverless"
 
     @staticmethod
-    def is_server_less(mode):
+    def is_serverless(mode):
         return AgentRunMode.SERVER_LESS == mode
 
 class DeployAgent(object):
@@ -370,8 +370,8 @@ def main():
 
     args = parser.parse_args()
 
-    is_server_less_mode = AgentRunMode.is_server_less(args.mode)
-    if args.daemon and is_server_less_mode:
+    is_serverless_mode = AgentRunMode.is_serverless(args.mode)
+    if args.daemon and is_serverless_mode:
         raise ValueError("daemon and server_less mode is mutually exclusive.")
         
     config = Config(args.config_file)
@@ -388,7 +388,7 @@ def main():
 
     log.info("Start to run deploy-agent.")
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup, use_facter=args.use_facter)
-    if is_server_less_mode:
+    if is_serverless_mode:
         client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build)
 
     agent = DeployAgent(client=client, conf=config)
