@@ -104,7 +104,7 @@
         });
 
         $('#buildPickTableId tr .deployer').click(function () {
-            {% if overridePolicy == "WARN" and deployState == "RUNNING" %}
+            {% if deployState and overridePolicy == "WARN" and deployState == "RUNNING" %}
             $('#confirmOverrideModalId').modal();
             {% else %}
             trid = $(this).closest('tr').prev();

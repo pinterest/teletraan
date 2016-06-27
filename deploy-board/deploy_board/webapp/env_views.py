@@ -727,13 +727,14 @@ def get_groups(request, name, stage):
 def deploy_build(request, name, stage, build_id):
     env = environs_helper.get_env_by_stage(request, name, stage)
     current_build = None
+    deploy_state = None
     if env.get('deployId'):
         current_deploy = deploys_helper.get(request, env['deployId'])
         current_build = builds_helper.get_build(request, current_deploy['buildId'])
+        deploy_state = deploys_helper.get(request, env['deployId'])['state']
     build = builds_helper.get_build_and_tag(request, build_id)
     builds = [build]
     scm_url = systems_helper.get_scm_url(request)
-    deploy_state = deploys_helper.get(request, env['deployId'])['state']
 
     html = render_to_string('deploys/deploy_build.html', {
         "env": env,
