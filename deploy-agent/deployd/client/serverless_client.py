@@ -18,6 +18,7 @@ import json
 import traceback
 import uuid
 
+from deployd.client.base_client import BaseClient
 from deployd.common import utils
 from deployd.common.types import AgentStatus
 from deployd.types.deploy_goal import DeployGoal
@@ -25,13 +26,12 @@ from deployd.types.deploy_stage import DeployStage
 from deployd.types.opcode import OperationCode
 from deployd.types.ping_response import PingResponse
 
-
 log = logging.getLogger(__name__)
 
 _DEPLOY_STAGE_TRANSITIONS = dict(map(lambda i: (i, i+1), range(DeployStage.PRE_DOWNLOAD, DeployStage.SERVING_BUILD)))
 
 
-class ServerlessClient(object):
+class ServerlessClient(BaseClient):
     """This client is supposed to be used when teletraan sever is not available, i.e
     when agent runs in serverless job. The client will simulate teletraan service by
     guiding the agent through one complete deployment process.
