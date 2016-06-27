@@ -21,6 +21,7 @@ import daemon
 import logging
 
 from deployd.client.client import Client
+from deployd.client.serverless_client import ServerlessClient
 from deployd.common.config import Config
 from deployd.common.exceptions import AgentException
 from deployd.common.helper import Helper
@@ -42,6 +43,12 @@ class PingServer(object):
     def __call__(self, deploy_report):
         return self._agent.update_deploy_status(deploy_report=deploy_report)
 
+class AgentRunMode(object):
+    SERVERLESS = "serverless"
+
+    @staticmethod
+    def is_serverless(mode):
+        return AgentRunMode.SERVERLESS == mode
 
 class DeployAgent(object):
     _STATUS_FILE = None
@@ -351,8 +358,26 @@ def main():
                              "This is optional. By default the group name defined in host-info "
                              "file will be used")
     parser.add_argument('--use-facter', dest='use_facter', action='store_true', default=False)
+    parser.add_argument('--mode', dest='mode', default=None,
+                        help="Optional. 'serverless' is the only non default mode supported. "
+                             "In this mode, agent can be run for one time deployment without "
+                             "interacting with teletraan service.")
+    parser.add_argument('--build', dest='build', default=None,
+                        help="Optional. In 'serverless' mode, build information is needed in "
+                             "json format.")
+    parser.add_argument('--env-name', dest='env_name', default=None,
+                        help="Optional. In 'serverless' mode, env_name needs to be passed in.")
+    parser.add_argument('--script-variables', dest='script_variables', default='{}',
+                        help="Optional. In 'serverless' mode,  script_variables is needed in "
+                             "json format.")
+
 
     args = parser.parse_args()
+
+    is_serverless_mode = AgentRunMode.is_serverless(args.mode)
+    if args.daemon and is_serverless_mode:
+        raise ValueError("daemon and serverless mode is mutually exclusive.")
+        
     config = Config(args.config_file)
     utils.run_prereqs(config)
 
@@ -367,6 +392,11 @@ def main():
 
     log.info("Start to run deploy-agent.")
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup, use_facter=args.use_facter)
+    if is_serverless_mode:
+        log.info("Running agent with severless client")
+        client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,
+                                  script_variables=args.script_variables)
+
     agent = DeployAgent(client=client, conf=config)
     utils.listen()
     if args.daemon:
