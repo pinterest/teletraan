@@ -98,6 +98,7 @@ class ServerlessClient(object):
                                'deployStage': numeric_deploy_stage}}
         if numeric_deploy_stage == DeployStage.DOWNLOADING:
             value['deployGoal']['build'] = self._build
+        if numeric_deploy_stage == DeployStage.PRE_DOWNLOAD:
             value['deployGoal']['scriptVariables'] = self._script_variables
         return PingResponse(value)
  
