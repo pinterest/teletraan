@@ -15,11 +15,7 @@
 from setuptools import setup
 import os
 
-<<<<<<< HEAD
 __version__ = '1.2.9'
-=======
-__version__ = '1.2.8'
->>>>>>> change the name
 
 markdown_contents = open(os.path.join(os.path.dirname(__file__),
                                       'README.md')).read()
