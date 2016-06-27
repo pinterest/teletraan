@@ -365,9 +365,9 @@ def main():
     parser.add_argument('--build', dest='build', default=None,
                         help="Optional. In 'serverless' mode, build information is needed in "
                              "json format.")
-    parser.add_argument('--env_name', dest='env_name', default=None,
+    parser.add_argument('--env-name', dest='env_name', default=None,
                         help="Optional. In 'serverless' mode, env_name needs to be passed in.")
-    parser.add_argument('--script_variables', dest='script_variables', default='{}',
+    parser.add_argument('--script-variables', dest='script_variables', default='{}',
                         help="Optional. In 'serverless' mode,  script_variables is needed in "
                              "json format.")
 
