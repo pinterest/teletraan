@@ -29,6 +29,7 @@ import util_views
 import security
 import user_views
 import docs_views
+import schedule_views
 
 urlpatterns = [
     # deploy related
@@ -118,6 +119,8 @@ urlpatterns = [
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/remove/$',
         env_views.remove_stage),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/$', env_views.get_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/schedule/$',
+        env_views.get_deploy_schedule),
 
     # environment configs
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/$',
@@ -134,6 +137,8 @@ urlpatterns = [
         metrics_views.EnvMetricsView.as_view()),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/webhooks/$',
         webhook_views.EnvWebhooksView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/schedule/$',
+        schedule_views.EnvScheduleView.as_view()),
 
     # host related
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/unknowns/$',

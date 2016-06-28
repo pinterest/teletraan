@@ -1,0 +1,167 @@
+{% load utils %}
+
+<div id="envScheduleId" class="collapse in panel-body">
+    <div class="container-fluid">
+        <!-- <form id="envCapacityFormId" class="form-horizontal" role="form"> -->
+            <!-- <fieldset id="envCapacityFieldSetId">
+                <div class="form-group">
+                    <label for="hostCapacity" class="control-label col-xs-2">Hosts</label>
+                    <div class="col-xs-10">
+                        <input id="hostText" class="form-control" name="hosts" required="false"
+                            placeholder="host1,host2,...etc." type="text" value="{{ hosts }}"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="groupCapacity" class="control-label col-xs-2">Groups</label>
+                    <div class="col-xs-10">
+                        <input id="groupText" class="form-control" name="groups" required="false"
+                            placeholder="group1,group2...etc." type="text" value="{{ groups }}"/>
+                    </div>
+                </div>
+            </fieldset> -->
+            <table id="sessionTable" class="table">
+            <tr>
+                <th class="col-md-1">Session #</th>
+                <th class="col-md-2">Number of Hosts</th>
+                <th class="col-md-2">Cooldown Period</th>
+                <th class="col-md-4"></th>
+            </tr>
+            <tr>
+                <td>Final</td>
+                <td>
+                     <div class="input-group">
+                        <input type="text" class="form-control">
+                        <span class="input-group-addon">hosts</span>
+                    </div>
+                      <!-- <div class="input-group"> -->
+                        <!-- <div> 20 </div> -->
+                        <!-- <span class="input-group-addon">hosts</span> -->
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group">
+                        <input type="text" class="form-control">
+                        <span class="input-group-addon">minutes</span>
+                    </div>
+                </td>
+                <td class="text-right">
+                    <button type="button" class="btn btn-danger">Remove</button>
+                </td>
+            </tr>
+
+            </table>
+            <div>Note that the above sessions are run before running the rest of the total hosts</div>
+            {% csrf_token %}
+        <!-- </form> -->
+
+        <button type="button" id="addSessionBtn" class="btn btn-default">Add another session</button>
+    </div>
+</div>
+
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="saveEnvScheduleBtnId" class="btn btn-default"
+                data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Save
+        </button>
+        <button id="resetEnvScheduleBtnId" class="btn btn-default"
+                data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reset
+        </button>
+<!--         {% if env|isEnvEnabled %}
+        <button id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#saveHostGroup" data-toggle="modal" data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+        {% endif %} -->
+    </div>
+</div>
+
+<script type="text/javascript">
+    currentSessionNumber = 0;
+    $("#addSessionBtn").click(function() {
+        currentSessionNumber=currentSessionNumber+1;
+        $('#sessionTable tr:last').before('<tr><td class="sessionNumbers" id=sessionNumber'+currentSessionNumber+'>'+currentSessionNumber+'</td><td><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
+        });
+      
+
+    $("#sessionTable").on("click", "#removeBtn", function () {
+        $(this).closest('tr').remove();
+        currentSessionNumber = currentSessionNumber-1;
+        counter = 0; 
+        $("#sessionTable tr").each(function() {
+            console.log('sdf');
+            var number = $(this).find(".sessionNumbers");
+            number.text(counter);
+            counter=counter+1;
+        })
+    });
+
+    $("#saveBtn").click(function() {
+        var schedule = '{{ env.schedule }}';
+        if (currentSessionNumber = 1 && schedule != null) {
+            //deleteSchedule 
+            $.ajax({
+                type: 'DELETE',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/schedule/delete',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $("#envScheduleId").parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    // btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        } else if (currentSessionNumber != 1) {
+            if (schedule != null) {
+                requestType  = "PUT";
+            } else {
+                //create schedule + update 
+                requestType = "POST";
+            }
+
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/schedule/',
+                data: {'cooldownTimes': cooldownTimes, 
+                       'hostNumbers': hostNumbers}, 
+                dataType: "json",
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $("#envScheduleId").parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    // btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        }
+    });
+
+    //if saved more create schedule --> 
+    //if deleted everything --> delete schedule and reference to schedule from deploys
+    //do you not know how many agents until deploy actually starts running? 
+
+    
+
+</script>

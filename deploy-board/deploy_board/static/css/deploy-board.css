@@ -235,3 +235,7 @@ body {
 .commit-msg {
   white-space: pre-wrap;
 }
+
+.row-outline-success {
+  border: 2px solid;
+}

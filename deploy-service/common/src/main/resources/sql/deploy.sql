@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS environs (
     cluster_name        VARCHAR(128),
     max_parallel_rp     INT           NOT NULL DEFAULT 1,
     override_policy     VARCHAR(32)   NOT NULL,
+    schedule_id         VARCHAR(22)
     PRIMARY KEY   (env_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);
@@ -482,3 +483,14 @@ CREATE TABLE IF NOT EXISTS group_mappings (
      cluster_name VARCHAR(128) NOT NULL,
      PRIMARY KEY (asg_group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+
+CREATE TABLE IF NOT EXISTS schedules (
+    id                  VARCHAR(22)     NOT NULL,
+    total_sessions      INT             NOT NULL,
+    cooldown_times      VARCHAR(32)     NOT NULL,
+    host_numbers        VARCHAR(32)     NOT NULL,
+    current_session     VARCHAR(32)     NOT NULL,
+    state               VARCHAR(32)     NOT NULL,
+    state_start_time    BIGINT          NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -16,7 +16,7 @@
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Configuration</h4>
     </div>
-	<div class="row">
+  <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
            data-toggle="tooltip" title="Return the current deployment page">
@@ -24,7 +24,7 @@
         </a>
     </div>
     {% if env|isEnvEnabled %}
-	<div class="row">
+  <div class="row">
         <button id="envAddStageBtnId" type="button" class="deployToolTip btn btn-default btn-block"
                 data-toggle="modal" data-target="#addStageModalId"
                 title="Create a new environment stage">
@@ -33,7 +33,7 @@
     </div>
     {% endif %}
     {% if show_remove %}
-	<div class="row">
+  <div class="row">
         <button id="envRemoveStageBtnId" type="button" class="deployToolTip btn btn-default btn-block"
                 data-toggle="modal" data-target="#removeStageModalId"
                 title="Remove this environment stage">
@@ -41,13 +41,20 @@
         </button>
     </div>
     {% endif %}
-	<div class="row">
+     <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/auto_deploy"
            data-toggle="tooltip" title="Configure auto deploy">
-           <i class="fa fa-car"></i> Auto Deploy
+           <i class="fa fa-car "></i> Auto Deploy
         </a>
     </div>
+  <div class="row">
+      <a type="button" class="deployToolTip btn btn-default btn-block"
+           href="/env/{{ env.envName }}/{{ env.stageName }}/config/schedule"
+           data-toggle="tooltip" title="Configure the deploy schedule">
+           <i class="glyphicon glyphicon-time"></i> Deploy Schedule
+        </a>
+  </div>
     {% if pinterest and not env.systemPriority %}
     <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
@@ -57,28 +64,28 @@
         </a>
     </div>
     {% endif %}
-	<div class="row">
+  <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity"
            data-toggle="tooltip" title="Configure capacity">
            <i class="fa fa-database"></i> Capacity
         </a>
     </div>
-	<div class="row">
+  <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/map/?flavor=SC"
            data-toggle="tooltip" title="Configure script variables">
            <i class="fa fa-file-code-o"></i> Script Config
         </a>
     </div>
-	<div class="row">
+  <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/map/?flavor=AC"
            data-toggle="tooltip" title="Configure agent variables">
            <i class="fa fa-sliders"></i> Agent Config
         </a>
     </div>
-	<div class="row">
+  <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/metrics"
            data-toggle="tooltip" title="Configure service metrics">
@@ -86,7 +93,7 @@
         </a>
     </div>
     {% if pinterest %}
-	<div class="row">
+  <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/alarm"
            data-toggle="tooltip" title="Configure service alarms">
@@ -94,7 +101,7 @@
         </a>
     </div>
     {% endif %}
-	<div class="row">
+  <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/webhooks"
            data-toggle="tooltip" title="Configure pre/post deploy webhooks">

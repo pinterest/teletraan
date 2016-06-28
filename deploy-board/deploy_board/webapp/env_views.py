@@ -1225,7 +1225,12 @@ def show_config_comparison(request, name, stage):
         "newChange": new_change,
     })
 
+def get_deploy_schedule(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
 
+    return render(request, 'deploys/deploy_schedule.html', {
+        "env": env,
+    })
 class GenerateDiff(diff_match_patch):
     def old_content(self, diffs):
         html = []
