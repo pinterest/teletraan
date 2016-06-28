@@ -16,20 +16,27 @@
 package com.pinterest.arcee.bean;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.bean.Updatable;
 
 public class SpotAutoScalingBean implements Updatable {
+    @JsonProperty("cluster_name")
     private String cluster_name;
 
+    @JsonProperty("bid_price")
     private String bid_price;
 
+    @JsonProperty("spot_ratio")
     private Double spot_ratio;
 
+    @JsonProperty("sensitivity_ratio")
     private Double sensitivity_ratio;
 
+    @JsonProperty("enable_grow")
     private Boolean enable_grow;
 
+    @JsonProperty("enable_resource_landing")
     private Boolean enable_resource_lending;
 
     public String getCluster_name() { return cluster_name; }
