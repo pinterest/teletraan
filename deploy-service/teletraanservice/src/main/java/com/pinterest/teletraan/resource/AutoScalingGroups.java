@@ -447,7 +447,7 @@ public class AutoScalingGroups {
         Collection<GroupMappingBean> mapping = groupMappingDAO.getGroupMappingsByCluster(groupName);
         GroupMappingBean bean = mapping.iterator().next();
         if(bean != null) {
-            return bean.getAsg_group_name();
+            return "\"" + bean.getAsg_group_name() + "\"";
         }
         return "";
     }
