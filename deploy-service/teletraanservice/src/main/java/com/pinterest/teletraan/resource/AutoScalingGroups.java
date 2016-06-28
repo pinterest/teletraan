@@ -22,6 +22,7 @@ import com.pinterest.arcee.autoscaling.AwsAutoScalingManager;
 import com.pinterest.arcee.bean.*;
 import com.pinterest.arcee.dao.GroupMappingDAO;
 import com.pinterest.arcee.dao.PasConfigDAO;
+import com.pinterest.arcee.dao.SpotAutoScalingDAO;
 import com.pinterest.arcee.handler.GroupHandler;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.clusterservice.cm.ClusterManager;
@@ -84,6 +85,7 @@ public class AutoScalingGroups {
     private GroupMappingDAO groupMappingDAO;
     private ClusterManager clusterManager;
     private AutoScalingManager autoScalingManager;
+    private SpotAutoScalingDAO spotAutoScalingDAO;
 
     public AutoScalingGroups(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
@@ -97,6 +99,7 @@ public class AutoScalingGroups {
         groupMappingDAO = context.getGroupMappingDAO();
         clusterManager = context.getClusterManager();
         autoScalingManager = context.getAutoScalingManager();
+        spotAutoScalingDAO = context.getSpotAutoScalingDAO();
     }
 
     @POST
@@ -429,4 +432,24 @@ public class AutoScalingGroups {
         }
         return clusterManager.getHosts(groups, instanceIds);
     }
+
+    @GET
+    @Path("/spot_instances/details")
+    public SpotAutoScalingBean getSpotAutoScalingDetails(@Context SecurityContext sc,
+                                                         @PathParam("groupName") String groupName) throws Exception {
+        return spotAutoScalingDAO.getAutoScalingGroupsByCluster(groupName);
+    }
+
+    @GET
+    @Path("/spot_instances/spot_name")
+    public String getSpotNameByClusterName(@Context SecurityContext sc,
+                                         @PathParam("groupName") String groupName) throws Exception {
+        Collection<GroupMappingBean> mapping = groupMappingDAO.getGroupMappingsByCluster(groupName);
+        if(mapping.size() > 0) {
+            GroupMappingBean bean = mapping.iterator().next();
+            return bean.getAsg_group_name();
+        }
+        return "";
+    }
+
 }
