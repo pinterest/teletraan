@@ -17,6 +17,7 @@ package com.pinterest.teletraan.resource;
 
 
 import com.google.common.base.Optional;
+import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.bean.GroupInfoBean;
 import com.pinterest.arcee.bean.HealthCheckBean;
@@ -81,6 +82,7 @@ public class Groups {
     private GroupDAO groupDAO;
     private HealthCheckHandler healthCheckHandler;
     private final Authorizer authorizer;;
+    private AutoScalingManager autoScalingManager;
 
     public Groups(TeletraanServiceContext context) {
         groupHandler = new GroupHandler(context);
@@ -91,6 +93,7 @@ public class Groups {
         hostDAO = context.getHostDAO();
         groupDAO = context.getGroupDAO();
         authorizer = context.getAuthorizer();
+        autoScalingManager = context.getAutoScalingManager();
     }
 
     @GET
@@ -163,6 +166,18 @@ public class Groups {
             configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_LAUNCH, configChange, operator);
         }
         return instanceIds;
+    }
+
+    @PUT
+    @Path("/{groupName: [a-zA-Z0-9\\-_]+}/instances/terminate")
+    public void decreaseGroupCapacity(@Context SecurityContext sc,
+                                       @PathParam("groupName") String groupName,
+                                       @QueryParam("instanceCount") Integer instanceCnt) throws Exception {
+        Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
+        String operator = sc.getUserPrincipal().getName();
+        autoScalingManager.decreaseGroupCapacity(groupName, instanceCnt);
+        String configChange = String.format("Decreased group capacity for group %s to size %s", groupName, instanceCnt);
+        configHistoryHandler.updateConfigHistory(groupName, Constants.TYPE_HOST_TERMINATE, configChange, operator);
     }
 
     @GET
