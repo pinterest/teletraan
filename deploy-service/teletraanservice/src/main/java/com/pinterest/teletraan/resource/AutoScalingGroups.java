@@ -445,8 +445,8 @@ public class AutoScalingGroups {
     public String getSpotNameByClusterName(@Context SecurityContext sc,
                                          @PathParam("groupName") String groupName) throws Exception {
         Collection<GroupMappingBean> mapping = groupMappingDAO.getGroupMappingsByCluster(groupName);
-        GroupMappingBean bean = mapping.iterator().next();
-        if(bean != null) {
+        if(mapping.size() > 0) {
+            GroupMappingBean bean = mapping.iterator().next();
             return "\"" + bean.getAsg_group_name() + "\"";
         }
         return "";
