@@ -107,7 +107,7 @@ def get_group_config(request, group_name):
         is_cmp = False
         envs = environs_helper.get_all_envs_by_group(request, group_name)
         for env in envs:
-            basic_cluster_info = clusters_helper.get_cluster(request, env.get('envName'), env.get('stageName'))
+            basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             if basic_cluster_info:
                 is_cmp = True
         html = render_to_string('groups/group_config.tmpl', {
@@ -838,7 +838,7 @@ class GroupConfigView(View):
             group_info = get_group_config_internal(group_info)
             envs = environs_helper.get_all_envs_by_group(request, group_name)
             for env in envs:
-                basic_cluster_info = clusters_helper.get_cluster(request, env.get('envName'), env.get('stageName'))
+                basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
                 if basic_cluster_info:
                     is_cmp = True
         else:

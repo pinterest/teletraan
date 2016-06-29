@@ -315,7 +315,7 @@ def get_default_cmp_configs(name, stage):
     return config_map
 
 
-def parse_cluster_info(request):
+def parse_cluster_info(request, env_name, env_stage, cluster_name):
     params = request.POST
     cluster_info = {}
     cluster_info['capacity'] = params['capacity']
@@ -324,50 +324,66 @@ def parse_cluster_info(request):
     cluster_info['hostType'] = params['hostTypeId']
     cluster_info['securityZone'] = params['securityZoneId']
     cluster_info['placement'] = ",".join(params.getlist('placementId'))
+
+    # Update cluster name and isDocker in env
+    env_info = {}
+    env_info['clusterName'] = cluster_name
     if 'isDocker' in params:
-        cluster_info['isDocker'] = True
+        env_info['isDocker'] = True
     else:
-        cluster_info['isDocker'] = False
+        env_info['isDocker'] = False
+    environs_helper.update_env_basic_config(request, env_name, env_stage, data=env_info)
     return cluster_info
 
 
+# TODO merge cmp functions and templates
 def create_cmp_cluster(request, name, stage):
     params = request.POST
-    cluster_info = parse_cluster_info(request)
+    cluster_name = '{}-{}'.format(name, stage)
+    cluster_info = parse_cluster_info(request, name, stage, cluster_name)
     config_map = get_default_cmp_configs(name, stage)
     user_data_configs = parse_configs(params)
     config_map.update(user_data_configs)
     cluster_info['configs'] = config_map
-    clusters_helper.create_cluster(request, name, stage, cluster_info)
+    clusters_helper.create_cluster(request, cluster_name, cluster_info)
+
+    # set up env and group relationship
+    environs_helper.add_env_capacity(request, name, stage, capacity_type="GROUP", data=cluster_name)
     return get_cmp_cluster(request, name, stage)
 
 
 def create_cluster(request, name, stage):
     params = request.POST
-    cluster_info = parse_cluster_info(request)
+    cluster_name = '{}-{}'.format(name, stage)
+    cluster_info = parse_cluster_info(request, name, stage, cluster_name)
     user_data_configs = parse_configs(params)
     cluster_info['configs'] = user_data_configs
-    clusters_helper.create_cluster(request, name, stage, cluster_info)
+    clusters_helper.create_cluster(request, cluster_name, cluster_info)
+
+    # set up env and group relationship
+    environs_helper.add_env_capacity(request, name, stage, capacity_type="GROUP", data=cluster_name)
     return get_basic_cluster(request, name, stage)
 
 
 def update_cmp_cluster(request, name, stage):
     params = request.POST
-    cluster_info = parse_cluster_info(request)
+    cluster_name = common.get_cluster_name(request, name, stage)
+    cluster_info = parse_cluster_info(request, name, stage, cluster_name)
     config_map = get_default_cmp_configs(name, stage)
     user_data_configs = parse_configs(params)
     config_map.update(user_data_configs)
     cluster_info['configs'] = config_map
-    clusters_helper.update_cluster(request, name, stage, cluster_info)
+    clusters_helper.update_cluster(request, cluster_name, cluster_info)
     return get_cmp_cluster(request, name, stage)
 
 
 def update_cluster(request, name, stage):
     params = request.POST
-    cluster_info = parse_cluster_info(request)
+    cluster_name = common.get_cluster_name(request, name, stage)
+    cluster_info = parse_cluster_info(request, name, stage, cluster_name)
     user_data_configs = parse_configs(params)
     cluster_info['configs'] = user_data_configs
-    clusters_helper.update_cluster(request, name, stage, cluster_info)
+    clusters_helper.update_cluster(request, cluster_name, cluster_info)
     return get_basic_cluster(request, name, stage)
 
 
@@ -378,6 +394,7 @@ def get_new_cmp_cluster(request, name, stage):
     base_images = baseimages_helper.get_by_name(request, "CMP-DOCKER")
     html = render_to_string('clusters/cmp_cluster_creation.tmpl', {
         'env': env,
+        'envs': envs,
         'stages': stages,
         'provider_list': provider_list,
         'base_images': base_images,
@@ -390,10 +407,11 @@ def get_cmp_cluster(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
-    basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+    basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
     base_images = baseimages_helper.get_by_name(request, "CMP-DOCKER")
     html = render_to_string('clusters/cmp_cluster.tmpl', {
         'env': env,
+        'envs': envs,
         'stages': stages,
         'provider_list': provider_list,
         'basic_cluster_info': basic_cluster_info,
@@ -407,10 +425,10 @@ def get_basic_cluster(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
-    basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
-
+    basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
     html = render_to_string('clusters/clusters.tmpl', {
         'env': env,
+        'envs': envs,
         'stages': stages,
         'provider_list': provider_list,
         'basic_cluster_info': basic_cluster_info,
@@ -423,7 +441,7 @@ def get_cluster(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
-    basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+    basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
     adv = False
     is_cmp = False
     if basic_cluster_info:
@@ -440,6 +458,7 @@ def get_cluster(request, name, stage):
 
     return render(request, 'clusters/clusters.html', {
         'env': env,
+        'envs': envs,
         'stages': stages,
         'provider_list': provider_list,
         'basic_cluster_info': basic_cluster_info,
@@ -449,7 +468,17 @@ def get_cluster(request, name, stage):
 
 
 def delete_cluster(request, name, stage):
-    clusters_helper.delete_cluster(request, name, stage)
+    cluster_name = common.get_cluster_name(request, name, stage)
+    clusters_helper.delete_cluster(request, cluster_name)
+
+    # Update isDocker and cluster name in
+    env_info = {}
+    env_info['clusterName'] = ''
+    env_info['isDocker'] = False
+    environs_helper.update_env_basic_config(request, name, stage, data=env_info)
+
+    # Remove group and env relationship
+    environs_helper.remove_env_capacity(request, name, stage, capacity_type="GROUP", data=cluster_name)
     return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
 
 
@@ -475,11 +504,12 @@ def get_advanced_cluster(request):
     name = params['env']
     stage = params['stage']
     image_name = params['image_name']
+    cluster_name = common.get_cluster_name(request, name, stage)
     config_list = None
     advanced_cluster_info = {}
     if provider == PROVIDER_AWS:
         config_list = get_aws_config_name_list_by_image(image_name)
-        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+        basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
         if not basic_cluster_info:
             if image_name != 'CMP-DOCKER':
                 advanced_cluster_info['aws_role'] = 'base'
@@ -503,7 +533,8 @@ def get_advanced_cluster(request):
 def launch_hosts(request, name, stage):
     params = request.POST
     num = int(params['num'])
-    clusters_helper.launch_hosts(request, name, stage, num)
+    cluster_name = common.get_cluster_name(request, name, stage)
+    clusters_helper.launch_hosts(request, cluster_name, num)
     return redirect('/env/{}/{}/'.format(name, stage))
 
 
@@ -531,25 +562,30 @@ def force_terminate_hosts(request, name, stage):
     if 'hostIds' in post_params:
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
-    clusters_helper.force_terminate_hosts(request, name, stage, host_ids)
+    cluster_name = common.get_cluster_name(request, name, stage)
+    clusters_helper.force_terminate_hosts(request, cluster_name, host_ids)
     return redirect('/env/{}/{}'.format(name, stage))
 
 
 def enable_cluster_replacement(request, name, stage):
-    clusters_helper.enable_cluster_replacement(request, name, stage)
+    cluster_name = common.get_cluster_name(request, name, stage)
+    clusters_helper.enable_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
 
 
 def pause_cluster_replacement(request, name, stage):
-    clusters_helper.pause_cluster_replacement(request, name, stage)
+    cluster_name = common.get_cluster_name(request, name, stage)
+    clusters_helper.pause_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
 
 
 def resume_cluster_replacement(request, name, stage):
-    clusters_helper.resume_cluster_replacement(request, name, stage)
+    cluster_name = common.get_cluster_name(request, name, stage)
+    clusters_helper.resume_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
 
 
 def cancel_cluster_replacement(request, name, stage):
-    clusters_helper.cancel_cluster_replacement(request, name, stage)
+    cluster_name = common.get_cluster_name(request, name, stage)
+    clusters_helper.cancel_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/clusters/'.format(name, stage))

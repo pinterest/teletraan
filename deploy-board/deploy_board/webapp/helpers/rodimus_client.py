@@ -11,13 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# -*- coding: utf-8 -*-
-"""Helper class to connect Teletraan service
+"""Helper class to connect Rodimus service
 """
 import logging
 from decorators import singleton
-from deploy_board.settings import TELETRAAN_SERVICE_URL, TELETRAAN_SERVICE_VERSION
+from deploy_board.settings import RODIMUS_SERVICE_URL, RODIMUS_SERVICE_VERSION
 from base_client import BaseClient
 
 
@@ -25,6 +23,6 @@ log = logging.getLogger(__name__)
 
 
 @singleton
-class DeployClient(BaseClient):
+class RodimusClient(BaseClient):
     def __init__(self):
-        BaseClient.__init__(self, url_prefix=TELETRAAN_SERVICE_URL, version=TELETRAAN_SERVICE_VERSION)
+        BaseClient.__init__(self, url_prefix=RODIMUS_SERVICE_URL, version=RODIMUS_SERVICE_VERSION)

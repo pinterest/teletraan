@@ -201,15 +201,15 @@ class EnvLandingView(View):
         env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
         if IS_PINTEREST:
-            basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+            basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
             if IS_PINTEREST:
-                basic_cluster_info = clusters_helper.get_cluster(request, env['envName'], env['stageName'])
+                basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
                 if basic_cluster_info and basic_cluster_info.get('capacity'):
-                    hosts_in_cluster = clusters_helper.get_host_names(request, env['envName'], env['stageName'])
+                    hosts_in_cluster = clusters_helper.get_host_ids(request, env.get('clusterName'))
                     num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
                     for i in range(num_to_fake):
                         faked_host = {}

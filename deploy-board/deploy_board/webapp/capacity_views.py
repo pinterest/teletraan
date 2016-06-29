@@ -69,7 +69,8 @@ class EnvCapacityConfigView(View):
             groups = [x.strip() for x in groups_str.split(',')]
 
         if IS_PINTEREST:
-            basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+            cluster_name = common.get_cluster_name(request, name, stage)
+            basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
             if basic_cluster_info:
                 cluster_name = common.get_cluster_name(request, name, stage)
                 groups.append(cluster_name)

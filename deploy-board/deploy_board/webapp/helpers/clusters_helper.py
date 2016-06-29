@@ -15,36 +15,35 @@
 # -*- coding: utf-8 -*-
 
 from deploy_board.webapp.helpers.deployclient import DeployClient
+from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
 deploy_client = DeployClient()
+rodimus_client = RodimusClient()
 
 
-def create_cluster(request, env_name, stage_name, cluster_info):
-    return deploy_client.post("/envs/%s/%s/clusters" % (env_name, stage_name), request.teletraan_user_id.token,
-                              data=cluster_info)
+def create_cluster(request, cluster_name, cluster_info):
+    return rodimus_client.post("/clusters/%s" % cluster_name, request.teletraan_user_id.token, data=cluster_info)
 
 
-def update_cluster(request, env_name, stage_name, cluster_info):
-    return deploy_client.put("/envs/%s/%s/clusters" % (env_name, stage_name), request.teletraan_user_id.token,
-                             data=cluster_info)
+def update_cluster(request, cluster_name, cluster_info):
+    return rodimus_client.put("/clusters/%s" % cluster_name, request.teletraan_user_id.token, data=cluster_info)
 
 
-def get_cluster(request, env_name, stage_name):
-    return deploy_client.get("/envs/%s/%s/clusters" % (env_name, stage_name), request.teletraan_user_id.token)
+def get_cluster(request, cluster_name):
+    return rodimus_client.get("/clusters/%s" % cluster_name, request.teletraan_user_id.token)
 
 
-def delete_cluster(request, env_name, stage_name):
-    return deploy_client.delete("/envs/%s/%s/clusters" % (env_name, stage_name), request.teletraan_user_id.token)
+def delete_cluster(request, cluster_name):
+    return rodimus_client.delete("/clusters/%s" % cluster_name, request.teletraan_user_id.token)
 
 
-def get_host_names(request, env_name, stage_name):
-    return deploy_client.get("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token)
+def get_host_ids(request, cluster_name):
+    return rodimus_client.get("/clusters/%s/hosts" % cluster_name, request.teletraan_user_id.token)
 
 
-def launch_hosts(request, env_name, stage_name, num):
+def launch_hosts(request, cluster_name, num):
     params = [('num', num)]
-    return deploy_client.put("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
-                             params=params)
+    return rodimus_client.put("/clusters/%s/hosts" % cluster_name, request.teletraan_user_id.token, params=params)
 
 
 def terminate_hosts(request, env_name, stage_name, host_ids):
@@ -53,31 +52,25 @@ def terminate_hosts(request, env_name, stage_name, host_ids):
                                 data=host_ids, params=params)
 
 
-def force_terminate_hosts(request, env_name, stage_name, host_ids):
-    params = [('type', 'FORCE_TERMINATE')]
-    return deploy_client.delete("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
-                                data=host_ids, params=params)
+def force_terminate_hosts(request, cluster_name, host_ids):
+    return rodimus_client.delete("/clusters/%s/hosts" % cluster_name, request.teletraan_user_id.token, data=host_ids)
 
 
-def enable_cluster_replacement(request, env_name, stage_name):
+def enable_cluster_replacement(request, cluster_name):
     params = [('actionType', 'REPLACE')]
-    return deploy_client.put("/envs/%s/%s/clusters/actions" % (env_name, stage_name), request.teletraan_user_id.token,
-                             params=params)
+    return rodimus_client.put("/clusters/%s/actions" % cluster_name, request.teletraan_user_id.token, params=params)
 
 
-def pause_cluster_replacement(request, env_name, stage_name):
+def pause_cluster_replacement(request, cluster_name):
     params = [('actionType', 'PAUSE_REPLACE')]
-    return deploy_client.put("/envs/%s/%s/clusters/actions" % (env_name, stage_name), request.teletraan_user_id.token,
-                             params=params)
+    return rodimus_client.put("/clusters/%s/actions" % cluster_name, request.teletraan_user_id.token, params=params)
 
 
-def resume_cluster_replacement(request, env_name, stage_name):
+def resume_cluster_replacement(request, cluster_name):
     params = [('actionType', 'RESUME_REPLACE')]
-    return deploy_client.put("/envs/%s/%s/clusters/actions" % (env_name, stage_name), request.teletraan_user_id.token,
-                             params=params)
+    return rodimus_client.put("/clusters/%s/actions" % cluster_name, request.teletraan_user_id.token, params=params)
 
 
-def cancel_cluster_replacement(request, env_name, stage_name):
+def cancel_cluster_replacement(request, cluster_name):
     params = [('actionType', 'CANCEL_REPLACE')]
-    return deploy_client.put("/envs/%s/%s/clusters/actions" % (env_name, stage_name), request.teletraan_user_id.token,
-                             params=params)
+    return rodimus_client.put("/clusters/%s/actions" % cluster_name, request.teletraan_user_id.token, params=params)

@@ -183,6 +183,10 @@ TELETRAAN_SERVICE_HEALTHCHECK_URL = os.getenv("TELETRAAN_SERVICE_HEALTHCHECK_URL
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = "https://jenkins.pinadmin.com/job/"
 if IS_PINTEREST:
+    # use Rodimus if present
+    RODIMUS_SERVICE_URL = os.getenv("RODIMUS_SERVICE_URL")
+    RODIMUS_SERVICE_VERSION = os.getenv("RODIMUS_SERVICE_VERSION")
+
     # use knox if present
     KNOX_SESSION_ID = os.getenv("KNOX_SESSION_ID")
     if KNOX_SESSION_ID:

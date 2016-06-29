@@ -106,6 +106,7 @@ public class EnvCapacitys {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
+        name = name.replaceAll("\"", "");
         if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
             groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
         } else {
@@ -123,6 +124,7 @@ public class EnvCapacitys {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
+        name = name.replaceAll("\"", "");
         if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
             groupDAO.removeGroupCapacity(envBean.getEnv_id(), name);
         } else {

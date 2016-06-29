@@ -90,6 +90,22 @@ def update_env_capacity(request, env_name, stage_name, capacity_type=None, data=
                             request.teletraan_user_id.token, params=params, data=data)
 
 
+def add_env_capacity(request, env_name, stage_name, capacity_type=None, data=None):
+    params = []
+    if capacity_type:
+        params.append(("capacityType", capacity_type))
+    return deployclient.post("/envs/%s/%s/capacity" % (env_name, stage_name),
+                             request.teletraan_user_id.token, params=params, data=data)
+
+
+def remove_env_capacity(request, env_name, stage_name, capacity_type=None, data=None):
+    params = []
+    if capacity_type:
+        params.append(("capacityType", capacity_type))
+    return deployclient.delete("/envs/%s/%s/capacity" % (env_name, stage_name),
+                               request.teletraan_user_id.token, params=params, data=data)
+
+
 def create_env(request, data):
     return deployclient.post("/envs", request.teletraan_user_id.token, data=data)
 
