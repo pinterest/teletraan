@@ -22,14 +22,14 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.generic import View
 import common
-from helpers import environs_helper
+from helpers import environs_helper, agents_helper, schedules_helper
 
 
 class EnvScheduleView(View):
     def get(self, request, name, stage):
         if request.is_ajax():
             env = environs_helper.get_env_by_stage(request, name, stage)
-            environs_helper.get_schedule_by_id
+            # environs_helper.get_schedule_by_id
             # alarms = environs_helper.get_env_alarms_config(request, name, stage)
             html = render_to_string('configs/schedule_config.tmpl', {
                 "env": env,
@@ -40,9 +40,18 @@ class EnvScheduleView(View):
 
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
+        # agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
+        # print agents;
+        if env["scheduleId"]!= None: 
+
+            schedule = schedules_helper.get_schedule(request, env["scheduleId"])
+            print schedule
+        else:
+            schedule = None;
         # alarms = environs_helper.get_env_alarms_config(request, name, stage)
         return render(request, 'configs/schedule_config.html', {
             "env": env,
+            "schedule": schedule,
         })
 
     def post(self, request, name, stage):

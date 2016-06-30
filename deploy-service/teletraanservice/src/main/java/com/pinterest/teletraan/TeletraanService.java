@@ -134,6 +134,9 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         Clusters clusters = new Clusters(context);
         environment.jersey().register(clusters);
 
+        Schedules schedules = new Schedules(context);
+        environment.jersey().register(schedules);
+
         environment.jersey().register(new Tags(context));
 
         // TODO Arcee specific

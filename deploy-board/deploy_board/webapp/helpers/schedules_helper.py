@@ -17,20 +17,23 @@
 """
 from deploy_board.webapp.helpers.deployclient import DeployClient
 
+deployclient = DeployClient()
+
+
 def get_schedule(request, id):
-    return deployclient.get("/schedules/%s" % (id), request.teletraan_user_id.token)
+	schedule = deployclient.get("/schedules/%s" % (id), request.teletraan_user_id.token)
+	return schedule
 
 #request by schedule id or environment/stage id??  
 
-def update_schedule(request, envName, stageName, cooldownTimes, hostNumbers):
-	params =[("cooldownTimes", cooldownTimes), ("hostNumbers", hostNumbers)]
+def update_schedule(request, envName, stageName, data):
+	# if request.method == 'POST':dule 
+	# 	return deployclient.post("/schedules/update/%s/%s" % (envName, stageName), request.teletraan_user_id.token,
+	# 						params=params)
+	# elif request.method == 'PUT': 
+	return deployclient.post("/schedules/update/%s/%s" % (envName, stageName), request.teletraan_user_id.token,
+							data=data)
 
-	if request.method == 'POST':
-		return deployclient.post("/schedules/update/%s/%s" % (envName, stageName), request.teletraan_user_id.token,
-							params=params)
-	elif request.method == 'PUT': 
-		return deployclient.put("/schedules/update/%s/%s" % (envName, stageName), request.teletraan_user_id.token,
-							params=params)
-
-def delete_schedule(request, envId, cooldownTimes, hostNumbers):
-	return deployclient.delete("/schedules/update/%s/%s" % (envName, stageName), request.teletraan_user_id.token
+def delete_schedule(request, envName, stageName):
+	print 'in delete schedule'
+	return deployclient.delete("/schedules/delete/%s/%s" % (envName, stageName), request.teletraan_user_id.token)

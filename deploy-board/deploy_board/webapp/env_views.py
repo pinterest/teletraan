@@ -27,7 +27,7 @@ import common
 import random
 import json
 from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, autoscaling_groups_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, autoscaling_groups_helper, schedules_helper
 import math
 from dateutil.parser import parse
 import calendar
@@ -1227,9 +1227,11 @@ def show_config_comparison(request, name, stage):
 
 def get_deploy_schedule(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
-
+    schedule = schedules_helper.get_schedule(request, env['scheduleId'])
+    print schedule
     return render(request, 'deploys/deploy_schedule.html', {
         "env": env,
+        "schedule": schedule,
     })
 class GenerateDiff(diff_match_patch):
     def old_content(self, diffs):
@@ -1401,3 +1403,17 @@ def get_tag_message(request):
         'envs_tag': envs_tag,
     })
     return HttpResponse(html)
+
+def update_schedule(request, name, stage):
+    post_params = request.POST
+    data = {}
+    data['cooldownTimes'] = post_params['cooldownTimes']
+    data['hostNumbers'] = post_params['hostNumbers']
+    data['totalSessions'] = post_params['totalSessions']
+    schedules_helper.update_schedule(request, name, stage, data)
+    return HttpResponse(json.dumps(''))
+
+def delete_schedule(request, name, stage):
+    print 'in env view delete schedule'
+    schedules_helper.delete_schedule(request, name, stage)
+    return HttpResponse(json.dumps(''))

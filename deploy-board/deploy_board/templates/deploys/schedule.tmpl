@@ -21,7 +21,7 @@
                     </div>
                 </div>
             </fieldset> -->
-            <table class="table">
+            <table id="sessionTable" class="table">
             <tr>
                 <th class="col-md-2">Session #</th>
                 <th class="col-md-2">Success Rate</th>
@@ -30,65 +30,7 @@
                 <th class="col-md-2">State</th>
                 <th class="col-md-2"></th>
             </tr>
-            <tr>
-                <td>1</td>
-                <td>
-                    <div class="progress deployToolTip" data-toggle="tooltip">
-                        <div class="deployToolTip progress-bar"
-                            data-toggle="tooltip" title="adf"
-                            role="progressbar" aria-valuenow="50"
-                            aria-valuemin="0" aria-valuemax="100"
-                            style="width: 90%;">
-                            <span class="show">9/10</span>
-                        </div>
-                     </div>
-                </td>
-                <td>
-                    10
-                </td>
-                <td>30 min</td>
-                <td>FINISHED</td>
-                <td class="text-right">
-                    <!-- <button type="button" class="btn btn-danger">Override</button> -->
-                </td>
-            </tr>
-            <tr style="border: 2px solid #428bca">
-                <td>2</td>
-                <td>
-                    <div class="progress deployToolTip" data-toggle="tooltip">
-                        <div class="deployToolTip progress-bar"
-                            data-toggle="tooltip" title="adf"
-                            role="progressbar" aria-valuenow="49"
-                            aria-valuemin="0" aria-valuemax="100"
-                            style="width: 98%;">
-                            <span class="show">49/50</span>
-                        </div>
-                     </div>
-                </td>
-    <!--             <td>
-                    <div class="progress deployToolTip" data-toggle="tooltip">
-                        <div class="deployToolTip progress-bar"
-                            data-toggle="tooltip" title="adf"
-                            role="progressbar" aria-valuenow="25"
-                            aria-valuemin="0" aria-valuemax="50"
-                            style="width: 50%;">
-                            <span class="show">25/50</span>
-                        </div>
-                     </div>
-                </td> -->
-                <td>
-                    50
-                </td>
-                <td>30 min (Time Left: 25:30)</td>
-                <!-- <td>30 min</td> -->
-                <!-- <td>RUNNING</td> -->
-                <td>COOLING DOWN</td>
-                <td class="text-right">
-                    <button type="button" class="btn btn-danger">Override</button>
-                </td>
-            </tr>
-            <tr>
-                <td>3</td>
+                <td>FINAL</td>
                 <td>
                     <div class="progress deployToolTip" data-toggle="tooltip">
                         <div class="deployToolTip progress-bar"
@@ -134,5 +76,37 @@
 </div> -->
 
 <script type="text/javascript">
+     {% if schedule %} 
+        var cooldownTimes = "{{ schedule.cooldownTimes }}";
+        var timesArray = cooldownTimes.split(",");
 
+        var hostNumbers = "{{ schedule.hostNumbers }}";
+        var currentSession = {{ schedule.currentSession }};
+        var numbersArray = hostNumbers.split(",");
+        var scheduleState = "{{ schedule.state }}";
+        // var currentSessionNumber = {{ schedule.totalSessions }};
+
+        for (i = 1; i<=numbersArray.length; i++) {
+            if (i < currentSession) { 
+                var state = "FINISHED"; //maybe overrided?? 
+            } else if (i == currentSession) {
+                var state = scheduleState;
+            } else if (i > currentSession) {
+                var state = "NOT STARTED";
+            }
+            var button = '';
+            if (i == currentSession) {
+                button = '<td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Override</button></td>';
+            }
+            $('#sessionTable tr:last').before('<tr id=session' + i +'><td class="sessionNumber" id=sessionNumber'+i+'>'+i+'</td><td><div class="progress deployToolTip" data-toggle="tooltip"><div class="deployToolTip progress-bar" data-toggle="tooltip" title="adf" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"style="width: 90%;"><span class="show">9/10</span></div></div></td><td class="hostNumber"><div>'+numbersArray[i-1]+'</div></td><td class="cooldownTime"><div>'+timesArray[i-1]+'</div></td><td>'+state+'</td>'+button+'</tr>');
+        }
+
+        $("#session" + currentSession).css('border', '2px solid red');
+        // if (scheduleState == "COOLING DOWN") {
+        //     $("#session" + currentSession + " cooldownTime").val(cooldownTimes[currentSession-1] + ' Time Left: ' + System.currentTimeMillis() - state_start_tim) 
+
+        // }
+                //set cooling down to time left --> if about to run say preparing to run 
+
+    {% endif %}
 </script>
