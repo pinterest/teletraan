@@ -100,4 +100,10 @@ public class Hosts {
             @ApiParam(value = "Host name", required = true)@PathParam("hostName") String hostName) throws Exception {
         return hostDAO.getHosts(hostName);
     }
+
+    @GET
+    @Path("/id/{hostId : [a-zA-Z0-9\\-_]+}")
+    public Collection<HostBean> getById(@PathParam("hostId") String hostId) throws Exception {
+        return hostDAO.getHostsByHostId(hostId);
+    }
 }
