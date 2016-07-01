@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 class SingleInstance(object):
     def __init__(self):
         if IS_PINTEREST:
-            _RUNNING_AGENT_PATTERN = ".*/deployd_venv/bin/python.*/deployd_venv/bin/deploy-agent"
+            _RUNNING_AGENT_PATTERN = ".*/deployd_venv/.*bin/python.*/deployd_venv/bin/deploy-agent"
             try:
                 res = subprocess.check_output('pgrep -f \"%s\"' % _RUNNING_AGENT_PATTERN,
                                               shell=True)
