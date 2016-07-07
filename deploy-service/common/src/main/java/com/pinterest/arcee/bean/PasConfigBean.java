@@ -28,6 +28,28 @@ public class PasConfigBean implements Updatable {
     @JsonProperty("last_updated")
     private Long last_updated;
 
+    @JsonProperty("defined_min_size")
+    private Integer defined_min_size;
+
+    @JsonProperty("defined_max_size")
+    private Integer defined_max_size;
+
+    public Integer getDefined_min_size() {
+        return defined_min_size;
+    }
+
+    public void setDefined_min_size(Integer defined_min_size) {
+        this.defined_min_size = defined_min_size;
+    }
+
+    public Integer getDefined_max_size() {
+        return defined_max_size;
+    }
+
+    public void setDefined_max_size(Integer defined_max_size) {
+        this.defined_max_size = defined_max_size;
+    }
+
     public String getGroup_name() {
         return group_name;
     }
@@ -73,7 +95,9 @@ public class PasConfigBean implements Updatable {
                     "last_updated=VALUES(last_updated)," +
                     "throughput=VALUES(throughput)," +
                     "metric=VALUES(metric)," +
-                    "pas_state=VALUES(pas_state)";
+                    "pas_state=VALUES(pas_state)," +
+                    "defined_min_size=VALUES(defined_min_size)," +
+                    "defined_max_size=VALUES(defined_max_size)";
 
     @Override
     public SetClause genSetClause() {
@@ -83,6 +107,8 @@ public class PasConfigBean implements Updatable {
         clause.addColumn("pas_state", pas_state);
         clause.addColumn("group_name", group_name);
         clause.addColumn("last_updated", last_updated);
+        clause.addColumn("defined_min_size", defined_min_size);
+        clause.addColumn("defined_max_size", defined_max_size);
         return clause;
     }
 

@@ -350,7 +350,7 @@ public class AutoScalingGroups {
                                 @PathParam("groupName") String groupName,
                                 @Valid PasConfigBean request) throws Exception {
         Utils.authorizeGroup(environDAO, groupName, sc, authorizer, Role.OPERATOR);
-        pasConfigDAO.updatePasConfig(request);
+        pasConfigDAO.insertPasConfig(request);
     }
 
     @GET
@@ -374,6 +374,8 @@ public class AutoScalingGroups {
         pasConfig.put("last_updated", config.getLast_updated());
         pasConfig.put("max_size", group.getMaxSize());
         pasConfig.put("min_size", group.getMinSize());
+        pasConfig.put("defined_min_size", config.getDefined_min_size());
+        pasConfig.put("defined_max_size", config.getDefined_max_size());
         // SCALEUP and SCALEDOWN cooldown times are the same
         pasConfig.put("cooldown", scalingPolicyBeans.get(PolicyType.SCALEUP.toString()).getCoolDownTime());
         return pasConfig;

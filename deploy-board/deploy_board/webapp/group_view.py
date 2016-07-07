@@ -268,6 +268,14 @@ def create_asg(request, group_name):
 
 def get_asg_config(request, group_name):
     asg_summary = groups_helper.get_autoscaling_summary(request, group_name)
+    pas_config = groups_helper.get_pas_config(request, group_name)
+
+    # Check saved min and max values for autoscaling group
+    if "desired_min_size" in pas_config and pas_config.get("desired_min_size"):
+        asg_summary["minSize"] = pas_config.get("desired_min_size")
+    if "desired_max_size" in pas_config and pas_config.get("desired_max_size"):
+        asg_summary["maxSize"] = pas_config.get("desired_max_size")
+        
     instances = groups_helper.get_group_instances(request, group_name)
     group_info = groups_helper.get_group_info(request, group_name)
     launch_config = group_info.get("launchInfo")
@@ -345,6 +353,14 @@ def update_asg_config(request, group_name):
             asg_request["enableSpot"] = False
             asg_request["enableResourceLending"] = False
         groups_helper.update_autoscaling(request, group_name, asg_request)
+
+        # Save predictive autoscaling min and max, disable pas_config
+        pas_config = {}
+        pas_config['group_name'] = group_name
+        pas_config['defined_min_size'] = int(params["minSize"])
+        pas_config['defined_max_size'] = int(params["maxSize"])
+        pas_config['pas_state'] = "DISABLED"
+        groups_helper.update_pas_config(request, pas_config)
     except:
         log.error(traceback.format_exc())
         raise

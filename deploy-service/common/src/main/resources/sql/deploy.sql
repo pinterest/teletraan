@@ -472,6 +472,8 @@ CREATE TABLE IF NOT EXISTS pas_configs (
     metric          VARCHAR(512),
     last_updated    BIGINT          NOT NULL,
     pas_state       VARCHAR(32)     NOT NULL,
+    defined_min_size        INT,
+    defined_max_size        INT,
     PRIMARY KEY(group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
