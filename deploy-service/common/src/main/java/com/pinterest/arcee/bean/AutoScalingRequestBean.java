@@ -35,7 +35,6 @@ public class AutoScalingRequestBean {
     @JsonProperty("maxSize")
     private Integer maxSize;
 
-    @NotEmpty
     @JsonProperty("terminationPolicy")
     private String terminationPolicy;
 
