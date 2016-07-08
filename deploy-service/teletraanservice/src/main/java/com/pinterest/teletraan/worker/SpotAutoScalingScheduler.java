@@ -135,19 +135,13 @@ public class SpotAutoScalingScheduler implements Runnable {
 
         String attachedAutoScalingGroupName = String.format("%s-lending", clusterName);
         AwsVmBean lendingAwsVmBean = autoScalingManager.getAutoScalingGroupInfo(attachedAutoScalingGroupName);
-
-        if (spotAwsVmBean.getMaxSize() + lendingAwsVmBean.getCurSize() != targetGroupSize) {
-            AwsVmBean updatedSpotAwsBean = new AwsVmBean();
-            updatedSpotAwsBean.setMaxSize((targetGroupSize - lendingAwsVmBean.getCurSize()));
-            autoScalingManager.updateAutoScalingGroup(spotAutoScalingGroupName, updatedSpotAwsBean);
-        }
-
+        
         if (targetGroupSize == lendingAwsVmBean.getMaxSize()) {
             LOG.info(String.format("Auto Scaling group: %s current running: %d, target spot max size: %d, current max size: %d",
                                    clusterName, lendingAwsVmBean.getCurSize(), targetGroupSize, lendingAwsVmBean.getMaxSize()));
         } else {
             LOG.info(String.format(
-                "Auto Scaling group: %s current lending auto scaling group running: %d, current max size: %d, change to target max size: %d,  ",
+                "Auto Scaling group: %s current lending auto scaling group running: %d, current max size: %d, adjust to target max size: %d,  ",
                 clusterName, lendingAwsVmBean.getCurSize(), lendingAwsVmBean.getMaxSize(),
                 targetGroupSize));
 
@@ -159,6 +153,14 @@ public class SpotAutoScalingScheduler implements Runnable {
             managingGroupsBean.setMax_lending_size(targetGroupSize);
             managingGroupDAO.updateManagingGroup(clusterName, managingGroupsBean);
         }
+
+        if (spotAwsVmBean.getMaxSize() + lendingAwsVmBean.getCurSize() != targetGroupSize) {
+            LOG.info(String.format("Spot auto scaling group max size: %d, lending group current size: %d, target group size: %d", spotAwsVmBean.getMaxSize(), lendingAwsVmBean.getCurSize(), targetGroupSize));
+            AwsVmBean updatedSpotAwsBean = new AwsVmBean();
+            updatedSpotAwsBean.setMaxSize(Math.max(targetGroupSize - lendingAwsVmBean.getCurSize(), spotAwsVmBean.getMinSize()));
+            autoScalingManager.updateAutoScalingGroup(spotAutoScalingGroupName, updatedSpotAwsBean);
+        }
+
     }
 
 

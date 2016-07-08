@@ -42,17 +42,18 @@ public class ReservedInstanceScheduler implements Runnable {
     private UtilDAO utilDAO;
     private static String FREEINSTANCE_METRIC_NAME = "free_reserved_instance.%s.count";
     private static String LENDING_FREEINSTANCE_METRIC_NAME = "lending_instance.%s.count";
-    private static int THRESHOLD = 100;
+    private int reservedInstanceThreshold;
     private static InstanceType[] MANAGING_INSTANCE_TYPE = {InstanceType.C38xlarge, InstanceType.C32xlarge};
     private HashSet<InstanceType> managingInstanceType;
     private ServiceContext serviceContext;
 
-    public ReservedInstanceScheduler(ServiceContext context) {
+    public ReservedInstanceScheduler(ServiceContext context, int reservedInstanceThreshold) {
         reservedInstanceInfoDAO = context.getReservedInstanceInfoDAO();
         managingGroupDAO = context.getManagingGroupDAO();
         utilDAO = context.getUtilDAO();
         metricSource = context.getMetricSource();
         serviceContext = context;
+        this.reservedInstanceThreshold = reservedInstanceThreshold;
         managingInstanceType = new HashSet<>(Arrays.asList(MANAGING_INSTANCE_TYPE));
     }
 
@@ -86,7 +87,7 @@ public class ReservedInstanceScheduler implements Runnable {
         int currentLendingSize = toLendSize + lentSize;
         // lend instance to lease
         getLeaseDAO(managingGroupsBean.getResource_type()).lendInstances(managingGroupsBean.getGroup_name(), toLendSize);
-        metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currentTime);
+        //metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currentTime);
 
         ManagingGroupsBean newManagingGroupsBean = new ManagingGroupsBean();
         newManagingGroupsBean.setLast_activity_time(currentTime);
@@ -101,7 +102,7 @@ public class ReservedInstanceScheduler implements Runnable {
         int lentSize = managingGroupsBean.getLent_size();
         if (lentSize == 0) {
             LOG.info(String.format("Cluster: %s, current lending: %d. Nothing to return.", clusterName, lentSize));
-            metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)lentSize, currTime);
+           // metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)lentSize, currTime);
             return 0;
         }
 
@@ -112,7 +113,7 @@ public class ReservedInstanceScheduler implements Runnable {
         LOG.info(String.format("Cluster: %s, current lending: %d, returning: %d", clusterName, lentSize,returnSize));
 
 
-        metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currTime);
+        //metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currTime);
         getLeaseDAO(managingGroupsBean.getResource_type()).returnInstances(clusterName, returnSize);
 
         ManagingGroupsBean newManageGroupsBean = new ManagingGroupsBean();
@@ -134,13 +135,13 @@ public class ReservedInstanceScheduler implements Runnable {
             int reservedInstanceCount = reservedInstanceInfoDAO.getReservedInstanceCount(instanceType);
             int reservedRunningInstance = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
             int freeInstance = reservedInstanceCount - reservedRunningInstance;
-            LOG.info(String.format("Reserved instance type: %s, reserved count: %d, running: %d, free %d", instanceType,
-                    reservedInstanceCount, reservedRunningInstance, freeInstance));
             long currentTime = System.currentTimeMillis();
-            metricSource.export(String.format(FREEINSTANCE_METRIC_NAME, instanceType), new HashMap<>(), (double) freeInstance, currentTime);
+            // metricSource.export(String.format(FREEINSTANCE_METRIC_NAME, instanceType), new HashMap<>(), (double) freeInstance, currentTime);
 
-            if (freeInstance > THRESHOLD) {
-                freeInstance -= THRESHOLD;
+            if (freeInstance > reservedInstanceThreshold) {
+                LOG.info(String.format("Reserved instance type: %s, reserved count: %d, running: %d, free %d, starting lending process.", instanceType,
+                                       reservedInstanceCount, reservedRunningInstance, freeInstance));
+                freeInstance -= reservedInstanceThreshold;
                 Collection<ManagingGroupsBean> managingGroupsBeans = managingGroupDAO.getLendManagingGroupsByInstanceType(instanceType);
                 for (ManagingGroupsBean managingGroupsBean : managingGroupsBeans) {
                     try {
@@ -156,12 +157,14 @@ public class ReservedInstanceScheduler implements Runnable {
                     }
                 }
             } else {
+                LOG.info(String.format("Reserved instance type: %s, reserved count: %d, running: %d, free %d, starting reclaiming process.", instanceType,
+                                       reservedInstanceCount, reservedRunningInstance, freeInstance));
                 Collection<ManagingGroupsBean> managingGroupsBeans = managingGroupDAO.getReturnManagingGroupsByInstanceType(instanceType);
                 for (ManagingGroupsBean managingGroupsBean : managingGroupsBeans) {
                     LOG.info(String.format("Free instance: %d, next service to return: %s", freeInstance, managingGroupsBean.getGroup_name()));
                     int returnSize = returnInstances(managingGroupsBean);
                     freeInstance += returnSize;
-                    if (freeInstance > THRESHOLD) {
+                    if (freeInstance > reservedInstanceThreshold) {
                         break;
                     }
                 }

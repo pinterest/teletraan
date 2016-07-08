@@ -59,6 +59,7 @@ public class ConfigHelper {
     private static final String DEFAULT_BUILD_JANITOR_SCHEDULE = "0 40 3 * * ?";
     private static final int DEFAULT_MAX_DAYS_TO_KEEP = 180;
     private static final int DEFAULT_MAX_BUILDS_TO_KEEP = 1000;
+    private static final int DEFAULT_RESERVED_INSTANCE_COUNT = 100;
 
     public static TeletraanServiceContext setupContext(TeletraanServiceConfiguration configuration) throws Exception {
         TeletraanServiceContext context = new TeletraanServiceContext();
@@ -336,7 +337,8 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(ReservedInstanceScheduler.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new ReservedInstanceScheduler(serviceContext);
+                int reservedInstanceThreshold = MapUtils.getIntValue(properties, "reservedInstanceThreshold", DEFAULT_RESERVED_INSTANCE_COUNT);
+                Runnable worker = new ReservedInstanceScheduler(serviceContext, reservedInstanceThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled ReservedInstanceScheduler.");
             }
