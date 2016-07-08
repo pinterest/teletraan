@@ -16,30 +16,46 @@
 package com.pinterest.arcee.lease;
 
 import com.pinterest.arcee.autoscaling.AutoScalingManager;
-import com.pinterest.arcee.bean.SpotAutoScalingBean;
 import com.pinterest.arcee.dao.LeaseDAO;
-import com.pinterest.arcee.dao.SpotAutoScalingDAO;
 import com.pinterest.clusterservice.bean.AwsVmBean;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.dao.UtilDAO;
 
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.sql.Connection;
+
 
 public class InstanceLeaseManager implements LeaseDAO  {
+    private static final Logger LOG = LoggerFactory.getLogger(InstanceLeaseManager.class);
     private AutoScalingManager autoScalingManager;
+    private UtilDAO utilDAO;
+    private static final String LOCK_NAME = "%s_INSTANCE_LENDING";
 
     public InstanceLeaseManager(ServiceContext context) {
         autoScalingManager = context.getAutoScalingManager();
+        utilDAO = context.getUtilDAO();
     }
 
     @Override
     public void lendInstances(String clusterName, int count) throws Exception {
         String groupName = String.format("%s-lending", clusterName);
-        AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(groupName);
+        String lockName = String.format(LOCK_NAME, groupName);
 
-        AwsVmBean updatedVmBean = new AwsVmBean();
-        int currentSize = Math.min(awsVmBean.getMaxSize(), awsVmBean.getCurSize() + count);
-        updatedVmBean.setCurSize(currentSize);
-        autoScalingManager.updateAutoScalingGroup(groupName, updatedVmBean);
+        Connection connection = utilDAO.getLock(lockName);
+        if (connection == null) {
+            return;
+        }
+        try {
+            AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(groupName);
+            AwsVmBean updatedVmBean = new AwsVmBean();
+            int currentSize = Math.min(awsVmBean.getMaxSize(), awsVmBean.getCurSize() + count);
+            updatedVmBean.setCurSize(currentSize);
+            autoScalingManager.updateAutoScalingGroup(groupName, updatedVmBean);
+        } finally {
+            utilDAO.releaseLock(lockName, connection);
+        }
     }
 
     @Override
@@ -48,6 +64,7 @@ public class InstanceLeaseManager implements LeaseDAO  {
         AwsVmBean awsVmBean = autoScalingManager.getAutoScalingGroupInfo(groupName);
         AwsVmBean updatedVmBean = new AwsVmBean();
         int currSize = Math.max(awsVmBean.getMinSize(), awsVmBean.getCurSize() - count);
+        updatedVmBean.setCurSize(currSize);
         autoScalingManager.updateAutoScalingGroup(groupName, updatedVmBean);
     }
 }
