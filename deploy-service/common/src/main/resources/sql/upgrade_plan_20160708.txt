@@ -1,0 +1,9 @@
+UPDATES
+=================
+ALTER TABLE pas_configs ADD COLUMN defined_min_size INT;
+ALTER TABLE pas_configs ADD COLUMN defined_max_size INT;
+
+Rollback
+===========================
+ALTER TABLE environs DROP COLUMN defined_min_size;
+ALTER TABLE environs DROP COLUMN defined_max_size;
