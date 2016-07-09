@@ -135,7 +135,7 @@ public class SpotAutoScalingScheduler implements Runnable {
 
         String attachedAutoScalingGroupName = String.format("%s-lending", clusterName);
         AwsVmBean lendingAwsVmBean = autoScalingManager.getAutoScalingGroupInfo(attachedAutoScalingGroupName);
-        
+
         if (targetGroupSize == lendingAwsVmBean.getMaxSize()) {
             LOG.info(String.format("Auto Scaling group: %s current running: %d, target spot max size: %d, current max size: %d",
                                    clusterName, lendingAwsVmBean.getCurSize(), targetGroupSize, lendingAwsVmBean.getMaxSize()));

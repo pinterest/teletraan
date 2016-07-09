@@ -87,7 +87,7 @@ public class ReservedInstanceScheduler implements Runnable {
         int currentLendingSize = toLendSize + lentSize;
         // lend instance to lease
         getLeaseDAO(managingGroupsBean.getResource_type()).lendInstances(managingGroupsBean.getGroup_name(), toLendSize);
-        //metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currentTime);
+        metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currentTime);
 
         ManagingGroupsBean newManagingGroupsBean = new ManagingGroupsBean();
         newManagingGroupsBean.setLast_activity_time(currentTime);
@@ -113,7 +113,7 @@ public class ReservedInstanceScheduler implements Runnable {
         LOG.info(String.format("Cluster: %s, current lending: %d, returning: %d", clusterName, lentSize,returnSize));
 
 
-        //metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currTime);
+        metricSource.export(String.format(LENDING_FREEINSTANCE_METRIC_NAME, clusterName), new HashMap<>(), (double)currentLendingSize, currTime);
         getLeaseDAO(managingGroupsBean.getResource_type()).returnInstances(clusterName, returnSize);
 
         ManagingGroupsBean newManageGroupsBean = new ManagingGroupsBean();
@@ -136,7 +136,7 @@ public class ReservedInstanceScheduler implements Runnable {
             int reservedRunningInstance = reservedInstanceInfoDAO.getRunningReservedInstanceCount(instanceType);
             int freeInstance = reservedInstanceCount - reservedRunningInstance;
             long currentTime = System.currentTimeMillis();
-            // metricSource.export(String.format(FREEINSTANCE_METRIC_NAME, instanceType), new HashMap<>(), (double) freeInstance, currentTime);
+             metricSource.export(String.format(FREEINSTANCE_METRIC_NAME, instanceType), new HashMap<>(), (double) freeInstance, currentTime);
 
             if (freeInstance > reservedInstanceThreshold) {
                 LOG.info(String.format("Reserved instance type: %s, reserved count: %d, running: %d, free %d, starting lending process.", instanceType,
