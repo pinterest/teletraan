@@ -100,25 +100,26 @@ public class Schedules {
         Integer totalSessions = bean.getTotal_sessions();
         LOG.info(String.format("why is it not coming here"));
         LOG.info(String.format("Total Sessions:" + Integer.toString(totalSessions)));
-        if (totalSessions > 0) {
-            if (scheduleId == null) {
-                scheduleId = CommonUtils.getBase64UUID();
-                envBean.setSchedule_id(scheduleId);
-                environDAO.update(envName, stageName, envBean);
-                LOG.info(String.format("2 HI SONIA"));
-            }
+        if (totalSessions > 0) {          
             ScheduleBean scheduleBean = new ScheduleBean();
             scheduleBean.setState_start_time(System.currentTimeMillis());
             scheduleBean.setCooldown_times(cooldownTimes);
             scheduleBean.setHost_numbers(hostNumbers);
-            scheduleBean.setId(scheduleId);
-
             scheduleBean.setTotal_sessions(totalSessions);
             LOG.info(scheduleBean.toString());
 
-            scheduleDAO.insertOrUpdate(scheduleBean);
-            LOG.info(String.format("Successfully updated one env %s (%s)'s schedule by %s: %s", envName, stageName, operator, scheduleBean.toString()));
-
+            if (scheduleId == null) {
+                scheduleId = CommonUtils.getBase64UUID();
+                envBean.setSchedule_id(scheduleId);
+                environDAO.update(envName, stageName, envBean);
+                scheduleBean.setId(scheduleId);
+                scheduleDAO.insert(scheduleBean);
+                LOG.info(String.format("Successfully inserted one env %s (%s)'s schedule by %s: %s", envName, stageName, operator, scheduleBean.toString()));
+            } else {
+                scheduleBean.setId(scheduleId);
+                scheduleDAO.update(scheduleBean, scheduleId);
+                LOG.info(String.format("Successfully updated one env %s (%s)'s schedule by %s: %s", envName, stageName, operator, scheduleBean.toString()));
+            }
         } else if (scheduleId != null) { // no more sessions --> delete schedule
             LOG.info(String.format("In here!!!"));
             scheduleDAO.delete(scheduleId); 

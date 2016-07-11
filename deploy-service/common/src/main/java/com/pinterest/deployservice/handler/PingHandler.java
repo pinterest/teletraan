@@ -192,14 +192,14 @@ public class PingHandler {
     boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean) throws Exception {
         // first deploy should always proceed
         
-        String scheduleId = envBean.getSchedule_id();
-        ScheduleBean schedule = null;
-        if (scheduleId != null) {
-            schedule = scheduleDAO.getById(scheduleId);
-        }
-        if (scheduleId != null && schedule.getState() == ScheduleState.COOLING_DOWN) { 
-            return false; 
-        } 
+        // String scheduleId = envBean.getSchedule_id();
+        // ScheduleBean schedule = null;
+        // if (scheduleId != null) {
+        //     schedule = scheduleDAO.getById(scheduleId);
+        // }
+        // if (scheduleId != null && schedule.getState() == ScheduleState.COOLING_DOWN) { 
+        //     return false; 
+        // } 
 
         if (agentBean.getFirst_deploy()) {
             agentDAO.insertOrUpdate(agentBean);
@@ -395,26 +395,40 @@ public class PingHandler {
                 totalSessions = schedule.getTotal_sessions();
                 hostNumbersList = hostNumbers.split(",");
                 cooldownTimesList = cooldownTimes.split(",");
+                LOG.debug("cooldownTimes: {},", cooldownTimes);
+                LOG.debug("CooldownTimes: {}", cooldownTimesList);
             }
-            if (scheduleId != null && schedule.getState() == ScheduleState.COOLING_DOWN) { 
-                if (System.currentTimeMillis() - schedule.getState_start_time() > Integer.parseInt(cooldownTimesList[currentSession])) {
-                    ScheduleBean updateScheduleBean = new ScheduleBean();
-                    updateScheduleBean.setId(schedule.getId());
-                    if (totalSessions == currentSession) {
-                        updateScheduleBean.setState(ScheduleState.FINAL);  
-                    } else {
-                        updateScheduleBean.setState(ScheduleState.RUNNING);  
-                        updateScheduleBean.setCurrent_session(currentSession+1);
-                    }
-                    updateScheduleBean.setState_start_time(System.currentTimeMillis());
-                    scheduleDAO.insertOrUpdate(updateScheduleBean);
-                } else {
-                    LOG.debug("Env {} is currently cooling down. Host {} will wait until the cooling down period is over.");
-                    return NOOP;
-                }
-            } 
-            if (installCandidate.needWait) {
+            
+            LOG.debug("ScheudleId is {} ", scheduleId);
+
+            if (scheduleId != null && schedule.getState() == ScheduleState.NOT_STARTED) { // what if it's final session? 
+                LOG.debug("Starting deploy on Env {} now. Changed schedule's state to RUNNING");
+                ScheduleBean updateScheduleBean = new ScheduleBean();
+                updateScheduleBean.setId(schedule.getId());
+                updateScheduleBean.setState(ScheduleState.RUNNING);
+                updateScheduleBean.setCurrent_session(1);
+                scheduleDAO.update(updateScheduleBean, schedule.getId());
+            }
+            if (installCandidate.needWait) { // new candidate 
                 LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
+                if (scheduleId != null && schedule.getState() == ScheduleState.COOLING_DOWN) { 
+                    LOG.debug("Time Passed: {} ", System.currentTimeMillis() - schedule.getState_start_time());
+                    if (System.currentTimeMillis() - schedule.getState_start_time() > Integer.parseInt(cooldownTimesList[currentSession-1]) * 60000) {
+                        ScheduleBean updateScheduleBean = new ScheduleBean();
+                        updateScheduleBean.setId(schedule.getId());
+                        if (totalSessions == currentSession) {
+                            updateScheduleBean.setState(ScheduleState.FINAL);  
+                        } else {
+                            updateScheduleBean.setState(ScheduleState.RUNNING);  
+                            updateScheduleBean.setCurrent_session(currentSession+1);
+                        }
+                        updateScheduleBean.setState_start_time(System.currentTimeMillis());
+                        scheduleDAO.update(updateScheduleBean, schedule.getId());
+                    } else {
+                        LOG.debug("Env {} is currently cooling down. Host {} will wait until the cooling down period is over.");
+                        return NOOP;
+                    }
+                } 
                 if (canDeploy(env, hostName, updateBean)) {
                     // use the updateBean in the installCandidate instead
                     LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
@@ -424,12 +438,15 @@ public class PingHandler {
                         for (int i = 0; i < currentSession; i++) {
                             totalHosts+=Integer.parseInt(hostNumbersList[i]);
                         }
-                        if (agentDAO.countAgentByDeploy(env.getDeploy_id()) > totalHosts) {
+                        LOG.debug("Total Hosts is {}", totalHosts);
+                        LOG.debug("Deployed agents is {}",agentDAO.countAgentByDeploy(env.getDeploy_id()));
+
+                        if (agentDAO.countAgentByDeploy(env.getDeploy_id()) >= totalHosts && schedule.getState() == ScheduleState.RUNNING) {
                             ScheduleBean updateScheduleBean = new ScheduleBean();
                             updateScheduleBean.setId(schedule.getId());
                             updateScheduleBean.setState(ScheduleState.COOLING_DOWN);
                             updateScheduleBean.setState_start_time(System.currentTimeMillis());
-                            scheduleDAO.insertOrUpdate(updateScheduleBean);
+                            scheduleDAO.update(updateScheduleBean, schedule.getId());
                         }
                     }
                     response = generateInstallResponse(installCandidate);

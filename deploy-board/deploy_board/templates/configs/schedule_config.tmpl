@@ -1,3 +1,4 @@
+
 {% load utils %}
 
 <div id="envScheduleId" class="collapse in panel-body">
@@ -55,60 +56,62 @@
 </div>
 
 <script type="text/javascript">
-    var currentSessionNumber = 0;
+    var totalSessions = 0;
+    var totalAgentCount = {{ agent_count }};
 
     // on document load + if schedule exists 
     $(document).ready(function() {
         {% if schedule %} 
             var cooldownTimes = "{{ schedule.cooldownTimes }}";
             var hostNumbers = "{{ schedule.hostNumbers }}";
-
-            if (cooldownTimes != "" && hostNumbers != "") {
-            // or else it counts it as one!! 
-                var timesArray = cooldownTimes.split(",");
-                var numbersArray = hostNumbers.split(",");
-            }
-            currentSessionNumber = {{ schedule.totalSessions }};
-            // console.log("currentSessionNumber");
-            // console.log(currentSessionNumber);
-            // console.log(numbersArray);
+            totalSessions = {{ schedule.totalSessions }};
+            var timesArray = cooldownTimes.split(",");
+            var numbersArray = hostNumbers.split(",");
+            
             var i;
-            for (i = 1; i<=currentSessionNumber; i++) {
-                $('#sessionTable tr:last').before('<tr><td class="sessionNumber" id=sessionNumber'+i+'>'+i+'</td><td class="hostNumber"><div class="input-group"><input value='+numbersArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input value='+timesArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
+            for (i = 1; i<=totalSessions; i++) {
+                $("#sessionTable tr:last").before('<tr><td class="sessionNumber" id=sessionNumber'+i+'>'+i+'</td><td class="hostNumber"><div class="input-group"><input value='+numbersArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input value='+timesArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
+                totalAgentCount = totalAgentCount - numbersArray[i-1];
             }
+            console.log("COME");
+            console.log(totalSessions);
         // {% else %}
         //     console.log("schedule is null")
-        //     currentSessionNumber = 0;
+        //     totalSessions = 0;
         {% endif %}
-    })
-
-    $("#addSessionBtn").click(function() {
-        currentSessionNumber=currentSessionNumber+1;
-        $('#sessionTable tr:last').before('<tr><td class="sessionNumber" id=sessionNumber'+currentSessionNumber+'>'+currentSessionNumber+'</td><td class="hostNumber"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
+        $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
+        // $("#sessionTable tr").each(function() {
+        
+        // $(this).find(".hostNumber input").val("34sf");
+ 
     });
 
-    
-     
-    // $("#sessionTable tr").not(':first').each(function() { // try  to start from 2nd row 
-    //         var hostNumber = $(this).find(".hostNumber input").val();
+    $(document.body).on("focus", ".hostNumber input", function(){
+        var n = parseInt($(this).val());
+        console.log($(this));
+        console.log($(this).val());
+        if (!isNaN(n) && n % 1 === 0) { // is number + is integer
+            totalAgentCount = totalAgentCount + parseInt($(this).val());
+        }
+    });
 
-    //         var cooldownTime = $(this).find(".cooldownTime input").val();
-    //         if (hostNumbers == "") {
-    //                 hostNumbers = hostNumber;
-    //             } else {
-    //                 hostNumbers = hostNumbers + "," + hostNumber;
-    //             }
-    //             if (cooldownTimes == "") {
-    //                 cooldownTimes = cooldownTime;
-    //             } else {
-    //                 cooldownTimes = cooldownTimes +  "," + cooldownTime;
-    //             }
-    //         });
+    $(document.body).on("blur", ".hostNumber input", function(){
+        var n = parseInt($(this).val());
+        if (!isNaN(n) && n % 1 === 0) { // is number + is integer
+            totalAgentCount = totalAgentCount - parseInt($(this).val());
+            $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
+        }
+    });
 
+    $("#addSessionBtn").click(function() {
+        totalSessions=totalSessions+1;
+        console.log(totalSessions);
+        $('#sessionTable tr:last').before('<tr><td class="sessionNumber" id=sessionNumber'+totalSessions+'>'+totalSessions+'</td><td class="hostNumber"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
+    });
 
     $("#sessionTable").on("click", "#removeBtn", function () {
         $(this).closest('tr').remove();
-        currentSessionNumber = currentSessionNumber-1;
+        totalSessions = totalSessions-1;
         counter = 1; 
         $("#sessionTable tr").not(':first').each(function() {
             var number = $(this).find(".sessionNumber");
@@ -118,8 +121,52 @@
     });
 
     $("#saveEnvScheduleBtnId").click(function() {
+        $('.input-group').removeClass('has-error');
+        var error = false;
+
+        if (parseInt($("#sessionTable tr:last").find(".hostNumber input").val()) > 100000) {
+            $('#errorBannerId').text("Total number of hosts exceeds number of available hosts. Please reenter host numbers.");
+            $('#errorBannerId').show();
+            error = true;
+        }  
+
+        if (error) { return; } // don't send in request
+
+        $("#sessionTable input").not(":last").each(function() { 
+            console.log('adlkfj');
+            var number = parseInt($(this).val());
+            if (isNaN(number)) {
+                //highlight Red
+                console.log($(this).val());
+                $(this).closest('.input-group').addClass('has-error');
+                $('#errorBannerId').text("Please make sure all fields are valid integer values.");
+                $('#errorBannerId').show();
+                error = true; 
+            }
+        })
+
+        if (error) { return; } // don't send in request
+
+        $("#sessionTable .hostNumber input").not(":last").each(function() { 
+            
+            var number = parseInt($(this).val());
+            var maxParallel = {{ max_parallel_number }};
+            console.log('num' + maxParallel);
+            console.log('Number' + number);
+            if (number > maxParallel) {
+                console.log('hello');
+                $(this).closest('.input-group').addClass('has-error');
+                $('#errorBannerId').text("Each session's number of hosts cannot exceed maximum parallel number. Please reenter number of hosts or change the maximum parallel number in General Config.");
+                $('#errorBannerId').show();
+                error = true;
+            }
+        })
+
+ 
+        if (error) { return; } // don't send in request
+        // go through all of hte input boxes and check if they're not an integer. if not, make it glow red and perhaps put errorr on top 
         var schedule = '{{ env.schedule }}';
-        console.log(currentSessionNumber);
+        console.log(totalSessions);
         var cooldownTimes = "";
         var hostNumbers= ""; 
         $("#sessionTable tr").not(':first').not(':last').each(function() { // try  to start from 2nd row 
@@ -137,9 +184,6 @@
                 cooldownTimes = cooldownTimes +  "," + cooldownTime;
             }
         });
-        console.log(cooldownTimes);
-        console.log(hostNumbers);
-        console.log(currentSessionNumber);
 
         var btn = $(this);
 
@@ -149,10 +193,10 @@
             data: {'csrfmiddlewaretoken': '{{csrf_token}}',
                    'cooldownTimes': cooldownTimes, 
                    'hostNumbers': hostNumbers,
-                   'totalSessions': currentSessionNumber}, 
+                   'totalSessions': totalSessions}, 
             dataType: "json",
             beforeSend: function () {
-                // btn.button('loading');
+                btn.button('loading');
             },
             success: function (data) {
                 if(data != null && data.success == false) {
@@ -169,6 +213,13 @@
                 $('#errorBannerId').show();
             }
         }); 
+    });
+
+    $("#resetEnvScheduleBtnId").click(function() {
+        $("#sessionTable tr").not(':first').not(':last').remove(); 
+        totalSessions = 0;
+        totalAgentCount = {{ agent_count }};
+        $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
     });
 
     //if saved more create schedule --> 

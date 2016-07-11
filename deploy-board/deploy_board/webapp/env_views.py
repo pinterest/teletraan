@@ -1228,10 +1228,11 @@ def show_config_comparison(request, name, stage):
 def get_deploy_schedule(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     schedule = schedules_helper.get_schedule(request, env['scheduleId'])
-    print schedule
+    agent_number = agents_helper.get_agents_total_by_env(request, env["id"])
     return render(request, 'deploys/deploy_schedule.html', {
         "env": env,
         "schedule": schedule,
+        "agent_number": agent_number,
     })
 class GenerateDiff(diff_match_patch):
     def old_content(self, diffs):

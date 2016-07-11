@@ -67,6 +67,7 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String GET_NON_FIRST_TIME_DEPLOY_TOTAL =
         "SELECT COUNT(*) FROM agents WHERE env_id=? AND first_deploy=0";
     private static final String COUNT_ALL_AGENT_BY_ENV = "SELECT COUNT(*) FROM agents WHERE env_id=?";
+    private static final String COUNT_ALL_AGENT_BY_ENV_NAME = "SELECT COUNT(*) FROM agents WHERE env_name=?";
     private static final String COUNT_SERVING_TOTAL = "SELECT COUNT(*) FROM agents WHERE env_id=? AND deploy_stage=?";
     private static final String COUNT_ALL_AGENT_BY_DEPLOY = "SELECT COUNT(*) FROM agents WHERE deploy_id=?";
    

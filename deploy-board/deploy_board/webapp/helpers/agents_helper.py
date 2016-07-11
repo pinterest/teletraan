@@ -53,3 +53,7 @@ def resume_deploy(request, env_name, stage_name, host_id):
 
 def get_agents_by_host(request, host_name):
     return deployclient.get("/agents/%s" % host_name, request.teletraan_user_id.token)
+    
+
+def get_agents_total_by_env(request, env_id):
+    return deployclient.get("/agents/env/%s" % env_id, request.teletraan_user_id.token)

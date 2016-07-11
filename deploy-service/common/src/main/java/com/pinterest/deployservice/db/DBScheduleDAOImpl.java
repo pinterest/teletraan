@@ -33,8 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DBScheduleDAOImpl implements ScheduleDAO {
-    private static final String INSERT_OR_UPDATE_SCHEDULE_TEMPLATE =
-        "INSERT INTO schedules SET %s ON DUPLICATE KEY UPDATE %s";
+    private static final String INSERT_SCHEDULE =
+        "INSERT INTO schedules SET %s";
+    private static final String UPDATE_SCHEDULE =
+        "UPDATE schedules SET %s WHERE id=?";
     private static final String DELETE_SCHEDULE = 
         "DELETE FROM schedules WHERE id=?";
     private static final String GET_SCHEDULE_BY_ID =
@@ -51,9 +53,17 @@ public class DBScheduleDAOImpl implements ScheduleDAO {
     }
 
     @Override
-    public void insertOrUpdate(ScheduleBean scheduleBean) throws Exception {
+    public void insert(ScheduleBean scheduleBean) throws Exception {
         SetClause setClause = scheduleBean.genSetClause();
-        String clause = String.format(INSERT_OR_UPDATE_SCHEDULE_TEMPLATE, setClause.getClause(), ScheduleBean.UPDATE_CLAUSE);
+        String clause = String.format(INSERT_SCHEDULE, setClause.getClause());
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+    }
+
+    @Override
+    public void update(ScheduleBean scheduleBean, String scheduleId) throws Exception {
+        SetClause setClause = scheduleBean.genSetClause();
+        String clause = String.format(UPDATE_SCHEDULE, setClause.getClause());
+        setClause.addValue(scheduleId);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
@@ -70,6 +80,7 @@ public class DBScheduleDAOImpl implements ScheduleDAO {
         if (bean!=null) {
             LOG.info(bean.toString());
         }
+        LOG.info(String.format("AFTER"));
         return bean;
     }
 }

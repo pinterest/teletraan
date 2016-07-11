@@ -26,8 +26,10 @@ import java.util.List;
  */
 public interface ScheduleDAO {
     
-    void insertOrUpdate(ScheduleBean scheduleBean) throws Exception;
-        
+    void insert(ScheduleBean scheduleBean) throws Exception;
+
+    void update(ScheduleBean scheduleBean, String scheduleId) throws Exception;
+
     void delete(String scheduleId) throws Exception;
         
     ScheduleBean getById(String scheduleId) throws Exception; 

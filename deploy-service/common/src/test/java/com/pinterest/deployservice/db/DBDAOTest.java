@@ -1548,7 +1548,7 @@ public class DBDAOTest {
         scheduleBean.setHost_numbers("50,60,500");
         scheduleBean.setState(ScheduleState.COOLING_DOWN);
         scheduleBean.setState_start_time(time);
-        scheduleDAO.insertOrUpdate(scheduleBean);
+        scheduleDAO.insert(scheduleBean);
         ScheduleBean bean = scheduleDAO.getById(id);
 
         assertEquals(bean.getTotal_sessions(), (Integer) 3);
@@ -1557,6 +1557,16 @@ public class DBDAOTest {
         assertEquals(bean.getHost_numbers(), "50,60,500");
         assertEquals(bean.getState(), ScheduleState.COOLING_DOWN);
         assertEquals(bean.getState_start_time(), time);
+
+        ScheduleBean updateBean = new ScheduleBean();
+        updateBean.setCurrent_session(1);
+        updateBean.setState(ScheduleState.RUNNING);
+        scheduleDAO.update(updateBean, id);
+        ScheduleBean updatedBean = scheduleDAO.getById(id);
+
+        assertEquals(updatedBean.getCurrent_session(), (Integer) 1);
+        assertEquals(updatedBean.getState(), ScheduleState.RUNNING);
+        assertEquals(updatedBean.getHost_numbers(), "50,60,500");
 
 
     }
