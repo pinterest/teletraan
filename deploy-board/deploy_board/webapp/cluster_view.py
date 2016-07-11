@@ -22,7 +22,7 @@ import json
 import logging
 
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper
-from helpers import clusters_helper, environs_helper
+from helpers import clusters_helper, environs_helper, environ_hosts_helper
 import common
 
 log = logging.getLogger(__name__)
@@ -548,7 +548,7 @@ def terminate_hosts(request, name, stage):
     if 'hostIds' in post_params:
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
-    clusters_helper.terminate_hosts(request, name, stage, host_ids)
+    environ_hosts_helper.stop_service_on_host(request, name, stage, host_ids)
     return redirect('/env/{}/{}'.format(name, stage))
 
 

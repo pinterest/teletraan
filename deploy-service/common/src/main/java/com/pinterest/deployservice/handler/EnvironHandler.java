@@ -488,4 +488,23 @@ public class EnvironHandler {
         }
         return envBean;
     }
+
+    public void stopServiceOnHost(String hostId) throws Exception {
+        LOG.info(String.format("Start to stop host %s", hostId));
+        AgentBean agentBean = new AgentBean();
+        agentBean.setState(AgentState.STOP);
+        agentBean.setLast_update(System.currentTimeMillis());
+        agentDAO.updateAgentById(hostId, agentBean);
+
+        HostBean hostBean = new HostBean();
+        hostBean.setState(HostState.PENDING_TERMINATE);
+        hostBean.setLast_update(System.currentTimeMillis());
+        hostDAO.updateHostById(hostId, hostBean);
+    }
+
+    public void stopServiceOnHosts(Collection<String> hostIds) throws Exception {
+        for (String hostId : hostIds) {
+            stopServiceOnHost(hostId);
+        }
+    }
 }

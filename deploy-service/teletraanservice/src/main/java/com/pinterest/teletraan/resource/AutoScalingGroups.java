@@ -362,7 +362,7 @@ public class AutoScalingGroups {
         Map<String, ScalingPolicyBean> scalingPolicyBeans = autoScalingManager.getScalingPoliciesForGroup(groupName);
         HashMap<String, Object> pasConfig = new HashMap<>();
 
-        if (scalingPolicyBeans.isEmpty()) {
+        if (scalingPolicyBeans.isEmpty() || group == null || config == null) {
             return pasConfig;
         }
 

@@ -14,10 +14,8 @@
 
 # -*- coding: utf-8 -*-
 
-from deploy_board.webapp.helpers.deployclient import DeployClient
 from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
-deploy_client = DeployClient()
 rodimus_client = RodimusClient()
 
 
@@ -44,12 +42,6 @@ def get_host_ids(request, cluster_name):
 def launch_hosts(request, cluster_name, num):
     params = [('num', num)]
     return rodimus_client.put("/clusters/%s/hosts" % cluster_name, request.teletraan_user_id.token, params=params)
-
-
-def terminate_hosts(request, env_name, stage_name, host_ids):
-    params = [('type', 'TERMINATE')]
-    return deploy_client.delete("/envs/%s/%s/clusters/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
-                                data=host_ids, params=params)
 
 
 def force_terminate_hosts(request, cluster_name, host_ids):

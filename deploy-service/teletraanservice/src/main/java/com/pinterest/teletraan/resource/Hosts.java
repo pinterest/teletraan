@@ -19,6 +19,7 @@ import com.pinterest.arcee.handler.ProvisionHandler;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 
 import org.slf4j.Logger;
@@ -47,11 +48,11 @@ import java.util.List;
 public class Hosts {
     private static final Logger LOG = LoggerFactory.getLogger(Hosts.class);
     private HostDAO hostDAO;
-    private ProvisionHandler provisionHandler;
+    private EnvironHandler environHandler;
 
     public Hosts(TeletraanServiceContext context) {
         hostDAO = context.getHostDAO();
-        provisionHandler = new ProvisionHandler(context);
+        environHandler = new EnvironHandler(context);
     }
 
     @POST
@@ -86,7 +87,7 @@ public class Hosts {
     public void stopHost(@Context SecurityContext sc,
                          @PathParam("hostId") String hostId) throws Exception {
         String operator = sc.getUserPrincipal().getName();
-        provisionHandler.stopHost(hostId);
+        environHandler.stopServiceOnHost(hostId);
         LOG.info(String.format("Successfully stopped host %s by %s", hostId, operator));
     }
 
