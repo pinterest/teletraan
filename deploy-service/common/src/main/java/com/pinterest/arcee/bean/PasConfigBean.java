@@ -14,11 +14,9 @@ public class PasConfigBean implements Updatable {
     @JsonProperty("group_name")
     private String group_name;
 
-    @NotNull
     @JsonProperty("throughput")
     private Integer throughput;
-
-    @NotEmpty
+    
     @JsonProperty("metric")
     private String metric;
 
