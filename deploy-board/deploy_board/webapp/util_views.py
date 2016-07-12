@@ -22,7 +22,7 @@ import json
 import urllib2
 from deploy_board import settings
 from helpers import environs_helper
-from helpers import autoscaling_metrics_helper, groups_helper
+from helpers import autoscaling_metrics_helper, autoscaling_groups_helper
 import traceback
 import logging
 
@@ -116,7 +116,7 @@ def health_check(request):
 
 def get_latency_metrics(request, group_name):
     envs = environs_helper.get_all_envs_by_group(request, group_name)
-    launch_config = groups_helper.get_group_info(request, group_name)
+    launch_config = autoscaling_groups_helper.get_group_info(request, group_name)
     util_data = {}
     stage_names = []
     if len(envs) == 0:

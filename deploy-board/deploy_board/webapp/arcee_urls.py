@@ -33,7 +33,6 @@ urlpatterns = [
         group_view.get_config_comparison),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/show_config_comparison/',
         group_view.show_config_comparison),
-    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/config_rollback/$', group_view.config_rollback),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/group_info/$', group_view.get_group_info),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/group_size/$', group_view.get_group_size),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/scaling_activity/$',

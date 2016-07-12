@@ -16,8 +16,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
 import logging
-from helpers import environs_helper, agents_helper
-from helpers import groups_helper, environ_hosts_helper, hosts_helper
+from helpers import environs_helper, agents_helper, autoscaling_groups_helper
+from helpers import environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, TELETRAAN_HOST_INFORMATION_URL
 
 log = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ def get_asg_name(request, hosts):
     if IS_PINTEREST:
         for host in hosts:
             if host and host.get('groupName'):
-                group_info = groups_helper.get_group_info(request, host.get('groupName'))
+                group_info = autoscaling_groups_helper.get_group_info(request, host.get('groupName'))
                 if group_info and group_info.get("launchInfo") and group_info.get("launchInfo")["asgStatus"] == "ENABLED":
                     return host.get('groupName')
     return None
@@ -101,7 +101,7 @@ class HostDetailView(View):
         asg = get_asg_name(request, hosts)
         is_protected = False
         if asg:
-            is_protected = groups_helper.is_instance_protected(request, asg, [host_id])
+            is_protected = autoscaling_groups_helper.is_hosts_protected(request, asg, [host_id])
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         return render(request, 'hosts/host_details.html', {

@@ -26,8 +26,8 @@ import agent_report
 import common
 import random
 import json
-from helpers import builds_helper, environs_helper, groups_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper
+from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, autoscaling_groups_helper
 import math
 from dateutil.parser import parse
 import calendar
@@ -1370,7 +1370,7 @@ def add_instance(request, name, stage):
             launch_in_asg = False
     try:
         if not launch_in_asg:
-            host_ids = groups_helper.launch_instance_in_group(request, groupName, num, subnet)
+            host_ids = autoscaling_groups_helper.launch_hosts(request, groupName, num, subnet)
             if len(host_ids) > 0:
                 content = '{} hosts have been launched to group {} (host ids: {})'.format(num, groupName, host_ids)
                 messages.add_message(request, messages.SUCCESS, content)
@@ -1381,7 +1381,7 @@ def add_instance(request, name, stage):
                           ' for immediate assistance!'.format(groupName, groupName)
                 messages.add_message(request, messages.ERROR, content)
         else:
-            groups_helper.launch_instance_in_group(request, groupName, num, None)
+            autoscaling_groups_helper.launch_hosts(request, groupName, num, None)
             content = 'Capacity increased by {}'.format(num)
             messages.add_message(request, messages.SUCCESS, content)
     except:
