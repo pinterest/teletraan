@@ -20,8 +20,6 @@ public class DBPasConfigDAOImpl implements PasConfigDAO {
 
     private final String GET_PAS_CONFIG = "SELECT * FROM pas_configs WHERE group_name=?";
 
-    private final String UPDATE_PAS_CONFIG = "UPDATE pas_configs SET %s WHERE group_name=?";
-
     private final String GET_ALL_PAS_GROUPS = "SELECT group_name FROM pas_configs";
 
     private final String GET_ENABLED_CONFIGS = "SELECT * from pas_configs WHERE pas_state='ENABLED'";
@@ -39,17 +37,6 @@ public class DBPasConfigDAOImpl implements PasConfigDAO {
         }
         SetClause setClause = pasConfigBean.genSetClause();
         String clause = String.format(INSERT_PAS_CONFIG, setClause.getClause(), PasConfigBean.UPDATE_CLAUSE);
-        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
-    }
-
-    @Override
-    public void updatePasConfig(PasConfigBean pasConfigBean) throws Exception {
-        if (pasConfigBean.getLast_updated() == null) {
-            pasConfigBean.setLast_updated(System.currentTimeMillis());
-        }
-        SetClause setClause = pasConfigBean.genSetClause();
-        String clause = String.format(UPDATE_PAS_CONFIG, setClause.getClause());
-        setClause.addValue(pasConfigBean.getGroup_name());
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 

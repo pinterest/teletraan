@@ -27,15 +27,12 @@ public class AutoScalingRequestBean {
     @JsonProperty("groupName")
     private String groupName;
 
-    @NotNull
     @JsonProperty("minSize")
     private Integer minSize;
 
-    @NotNull
     @JsonProperty("maxSize")
     private Integer maxSize;
 
-    @NotEmpty
     @JsonProperty("terminationPolicy")
     private String terminationPolicy;
 

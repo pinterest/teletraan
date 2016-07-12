@@ -345,6 +345,14 @@ def update_asg_config(request, group_name):
             asg_request["enableSpot"] = False
             asg_request["enableResourceLending"] = False
         groups_helper.update_autoscaling(request, group_name, asg_request)
+
+        # Save predictive autoscaling min and max, disable pas_config
+        pas_config = {}
+        pas_config['group_name'] = group_name
+        pas_config['defined_min_size'] = int(params["minSize"])
+        pas_config['defined_max_size'] = int(params["maxSize"])
+        pas_config['pas_state'] = "DISABLED"
+        groups_helper.update_pas_config(request, pas_config)
     except:
         log.error(traceback.format_exc())
         raise
