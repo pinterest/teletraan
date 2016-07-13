@@ -71,17 +71,14 @@ public class Schedules {
         String operator = sc.getUserPrincipal().getName();
 
         ScheduleBean scheduleBean = scheduleDAO.getById(scheduleId);
-
-        // if (scheduleBean == null) {
-        //     throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-        //         String.format("Schedule %s does not exist.", scheduleId));
-        // }
+        if (scheduleBean == null) {
+            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
+                String.format("Schedule %s does not exist.", scheduleId));
+        }
         if (scheduleBean!=null) {
             LOG.info(scheduleBean.toString());
-
         }
         return scheduleBean;
-        // LOG.info(String.format("Successfully added one host by %s: %s", operator, hostBean.toString()));
     }
     
     @POST

@@ -4,15 +4,17 @@
 <div id="envScheduleId" class="collapse in panel-body">
     <div class="container-fluid">
         <form id="envCapacityFormId" class="form-horizontal" role="form">
+            <div>Note: All sessions will be able to be overidden during the deploy process</div>
+            <br />
             <table id="sessionTable" class="table">
             <tr>
-                <th class="col-md-1">Session #</th>
-                <th class="col-md-2">Number of Hosts</th>
-                <th class="col-md-2">Cooldown Period</th>
+                <th class="col-md-3">Session #</th>
+                <th class="col-md-3">Number of Hosts</th>
+                <th class="col-md-3">Cooldown Period</th>
                 <th class="col-md-4"></th>
             </tr>
             <tr>
-                <td>Final</td>
+                <td><strong>Final</strong></td>
                 <td class="hostNumber">
                      <div class="input-group">
                         <input disabled type="text" class="form-control">
@@ -29,23 +31,21 @@
                     </div>
                 </td>
                 <td class="text-right">
-                    <!-- <button type="button" class="btn btn-danger">Remove</button> -->
                 </td>
             </tr>
 
             </table>
-            <div>Note that the above sessions are run before running the rest of the total hosts</div>
             {% csrf_token %}
         </form>
 
-        <button type="button" id="addSessionBtn" class="btn btn-default">Add another session</button>
+        <button type="button" id="addSessionBtn" class="btn btn-default"><span class="glyphicon glyphicon-plus"></span> Add another session</button>
     </div>
 </div>
 
 <div class="panel-footer clearfix">
     <div class="pull-right">
-        <button id="saveEnvScheduleBtnId" class="btn btn-default"
-                data-loading-text="Saving...">
+        <button id="saveEnvScheduleBtnId" class="btn btn-primary"
+                >
             <span class="glyphicon glyphicon-refresh"></span> Save
         </button>
         <button id="resetEnvScheduleBtnId" class="btn btn-default"
@@ -70,7 +70,7 @@
             
             var i;
             for (i = 1; i<=totalSessions; i++) {
-                $("#sessionTable tr:last").before('<tr><td class="sessionNumber" id=sessionNumber'+i+'>'+i+'</td><td class="hostNumber"><div class="input-group"><input value='+numbersArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input value='+timesArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
+                $("#sessionTable tr:last").before('<tr><td class="sessionNumber" id=sessionNumber'+i+'><strong>'+i+'</strong></td><td class="hostNumber"><div class="input-group"><input value='+numbersArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input value='+timesArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
                 totalAgentCount = totalAgentCount - numbersArray[i-1];
             }
             console.log("COME");
@@ -106,7 +106,7 @@
     $("#addSessionBtn").click(function() {
         totalSessions=totalSessions+1;
         console.log(totalSessions);
-        $('#sessionTable tr:last').before('<tr><td class="sessionNumber" id=sessionNumber'+totalSessions+'>'+totalSessions+'</td><td class="hostNumber"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
+        $('#sessionTable tr:last').before('<tr><td class="sessionNumber" id=sessionNumber'+totalSessions+'><strong>'+totalSessions+'</strong></td><td class="hostNumber"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
     });
 
     $("#sessionTable").on("click", "#removeBtn", function () {
@@ -120,11 +120,18 @@
         })
     });
 
+    $(document).on("keyup", "input", function() {
+        $("#saveEnvScheduleBtnId").removeAttr('disabled');
+      
+    })
+
+
     $("#saveEnvScheduleBtnId").click(function() {
         $('.input-group').removeClass('has-error');
+        $(this).attr('disabled', 'disabled');
         var error = false;
 
-        if (parseInt($("#sessionTable tr:last").find(".hostNumber input").val()) > 100000) {
+        if (parseInt($("#sessionTable tr:last").find(".hostNumber input").val()) < 0) { // change later
             $('#errorBannerId').text("Total number of hosts exceeds number of available hosts. Please reenter host numbers.");
             $('#errorBannerId').show();
             error = true;
@@ -135,6 +142,8 @@
         $("#sessionTable input").not(":last").each(function() { 
             console.log('adlkfj');
             var number = parseInt($(this).val());
+            console.log(number);
+            console.log(isNaN(number));
             if (isNaN(number)) {
                 //highlight Red
                 console.log($(this).val());
@@ -186,6 +195,7 @@
         });
 
         var btn = $(this);
+        console.log('in config tmpl about to add');
 
         $.ajax({
             type: 'POST',
@@ -195,9 +205,9 @@
                    'hostNumbers': hostNumbers,
                    'totalSessions': totalSessions}, 
             dataType: "json",
-            beforeSend: function () {
-                btn.button('loading');
-            },
+            // beforeSend: function () {
+            //     btn.button('loading');
+            // },
             success: function (data) {
                 if(data != null && data.success == false) {
                     $('#errorBannerId').append(data.error);

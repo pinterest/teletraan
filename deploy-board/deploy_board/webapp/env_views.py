@@ -1227,9 +1227,12 @@ def show_config_comparison(request, name, stage):
 
 def get_deploy_schedule(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
+    envs = environs_helper.get_all_env_stages(request, name)
+
     schedule = schedules_helper.get_schedule(request, env['scheduleId'])
     agent_number = agents_helper.get_agents_total_by_env(request, env["id"])
     return render(request, 'deploys/deploy_schedule.html', {
+        "envs": envs,
         "env": env,
         "schedule": schedule,
         "agent_number": agent_number,
@@ -1411,6 +1414,10 @@ def update_schedule(request, name, stage):
     data['cooldownTimes'] = post_params['cooldownTimes']
     data['hostNumbers'] = post_params['hostNumbers']
     data['totalSessions'] = post_params['totalSessions']
+    print 'in update schedule in env views'
+    print name
+    print stage
+    print data
     schedules_helper.update_schedule(request, name, stage, data)
     return HttpResponse(json.dumps(''))
 

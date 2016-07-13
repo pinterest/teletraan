@@ -1,83 +1,35 @@
-{% load utils %}
-
 <!-- {% include "panel_heading.tmpl" with panel_title="Deploy Schedule" panel_body_id="envScheduleId" direction="down" %} -->
 <div id="envScheduleId" class="collapse in panel-body">
     <div class="container-fluid">
         <form id="envCapacityFormId" class="form-horizontal" role="form">
-            <!-- <fieldset id="envCapacityFieldSetId">
-                <div class="form-group">
-                    <label for="hostCapacity" class="control-label col-xs-2">Hosts</label>
-                    <div class="col-xs-10">
-                        <input id="hostText" class="form-control" name="hosts" required="false"
-                            placeholder="host1,host2,...etc." type="text" value="{{ hosts }}"/>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="groupCapacity" class="control-label col-xs-2">Groups</label>
-                    <div class="col-xs-10">
-                        <input id="groupText" class="form-control" name="groups" required="false"
-                            placeholder="group1,group2...etc." type="text" value="{{ groups }}"/>
-                    </div>
-                </div>
-            </fieldset> -->
             <table id="sessionTable" class="table">
             <tr>
                 <th class="col-md-2">Session #</th>
-                <th class="col-md-2">Success Rate</th>
                 <th class="col-md-2">Number of Hosts</th>
-                <th class="col-md-2">Cooldown Period</th>
+                <th class="col-md-2">Cooldown Period (min)</th>
                 <th class="col-md-2">State</th>
                 <th class="col-md-2"></th>
             </tr>
-                <td class="sessionNumber">FINAL</td>
-                <td>
-                    <div class="progress deployToolTip" data-toggle="tooltip">
-                        <div class="deployToolTip progress-bar"
-                            data-toggle="tooltip" title="adf"
-                            role="progressbar" aria-valuenow="50"
-                            aria-valuemin="0" aria-valuemax="100"
-                            style="width: 0%;">
-                            <span class="show">0/400</span>
-                        </div>
-                     </div>
-                </td>
+                <td class="sessionNumber"><strong>FINAL</strong></td>
                 <td class="hostNumber">
                     <div>400</div>
                 </td>
                 <td class="cooldownTime">
                     <div>N/A</div>
                 </td>
-                <td>NOT STARTED</td>
+                <td class="state">NOT STARTED</td>
                 <td class="text-right">
-                    <!-- <button type="button" class="btn btn-danger">Override</button> -->
                 </td>
             </tr>
-          <!--   <tr>
-                <td>2</td>
-            </tr>
- -->
             </table>
             {% csrf_token %}
         </form>
+        <div>Configure schedule <a href="/env/{{ env.envName }}/{{ env.stageName }}/config/schedule">here</a> </div>
     </div>
 </div>
 
-<!-- <div class="panel-footer clearfix">
-    <div class="pull-right">
-        <button id="resetEnvCapacityBtnId" class="btn btn-default"
-                data-loading-text="Reloading...">
-            <span class="glyphicon glyphicon-refresh"></span> Reload
-        </button>
-        {% if env|isEnvEnabled %}
-        <button id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#saveHostGroup" data-toggle="modal" data-loading-text="Saving...">
-            <span class="glyphicon glyphicon-floppy-save"></span> Save
-        </button>
-        {% endif %}
-    </div>
-</div> -->
-
 <script type="text/javascript">
+    var finalHostNumber = {{ agent_number }};
      {% if schedule %} 
      console.log("in my schedule");
         var cooldownTimes = "{{ schedule.cooldownTimes }}";
@@ -87,38 +39,47 @@
         var currentSession = {{ schedule.currentSession }};
         var numbersArray = hostNumbers.split(",");
         var scheduleState = "{{ schedule.state }}";
-        var finalHostNumber = {{ agent_number }};
+        var stateStartTime = {{ schedule.stateStartTime }};
         // var currentSessionNumber = {{ schedule.totalSessions }};
 
         for (i = 1; i<=numbersArray.length; i++) {
-            if (i < currentSession) { 
-                var state = "FINISHED"; //maybe overrided?? 
-            } else if (i == currentSession) {
+            state = "FINISHED";
+
+            if (i == currentSession && scheduleState != "FINAL") {
                 var state = scheduleState;
             } else if (i > currentSession) {
                 var state = "NOT STARTED";
             }
+
             var button = '';
-            if (i == currentSession) {
+            if (i == currentSession && scheduleState != "FINAL") {
                 button = '<td class="text-right"><button id="overrideBtn" type="button" class="btn btn-danger">Override</button></td>';
             }
-            $('#sessionTable tr:last').before('<tr id=session' + i +'><td class="sessionNumber" id=sessionNumber'+i+'>'+i+'</td><td><div class="progress deployToolTip" data-toggle="tooltip"><div class="deployToolTip progress-bar" data-toggle="tooltip" title="adf" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"style="width: 90%;"><span class="show">9/10</span></div></div></td><td class="hostNumber"><div>'+numbersArray[i-1]+'</div></td><td class="cooldownTime"><div>'+timesArray[i-1]+'</div></td><td>'+state+'</td>'+button+'</tr>');
+            $('#sessionTable tr:last').before('<tr id=session' + i +'><td class="sessionNumber" id=sessionNumber'+i+'><strong>'+i+'</strong></td><td class="hostNumber"><div>'+numbersArray[i-1]+' hosts</div></td><td class="cooldownTime"><div>'+timesArray[i-1]+' min</div></td><td class="state">'+state+'</td>'+button+'</tr>');
             finalHostNumber = finalHostNumber - numbersArray[i-1];
         }
         if (scheduleState == "FINAL") {
-            $('#sessionTable tr:last').css('border', '2px solid red');
+            $('#sessionTable tr:last').addClass("info");
+            $('#sessionTable tr:last').css('borderRadius', '25px');
+            $('#sessionTable tr:last .state').text("RUNNING");
+            // check deploy state
         } else {
-            $("#session" + currentSession).css('border', '2px solid red');
+            if (scheduleState == "COOLING_DOWN") {
+                var d = new Date();
+                var timeLeft = (timesArray[currentSession - 1]* 60000) - (d.getTime() - stateStartTime);
+                var min = Math.round((timeLeft/1000/60) << 0);
+                var sec = Math.round((timeLeft/1000) % 60);
+                sec = ("0" + sec).slice(-2); // make it always two integers
+                $("#session" + currentSession).find(".cooldownTime").text(timesArray[currentSession - 1] + "min (Time Left: " + min + ":" + sec + ")");
+
+            }
+            $("#session" + currentSession).addClass("info");
+            $("#session" + currentSession).css('borderRadius', '3em');
+
+
         }
-        $('#sessionTable tr:last').find('.hostNumber div').html(finalHostNumber);
-        // if (scheduleState == "COOLING DOWN") {
-        //     $("#session" + currentSession + " cooldownTime").val(cooldownTimes[currentSession-1] + ' Time Left: ' + System.currentTimeMillis() - state_start_tim) 
-
-        // }
-                //set cooling down to time left --> if about to run say preparing to run 
-
     {% endif %}
-
+    $('#sessionTable tr:last').find('.hostNumber div').html(finalHostNumber + " hosts");
     $(document).on('click', '#overrideBtn', function () {
         console.log('override clicked');
       $.ajax({
@@ -130,18 +91,18 @@
                 // btn.button('loading');
             },
             success: function (data) {
-                // if(data != null && data.success == false) {
-                //     $('#errorBannerId').append(data.error);
-                //     $('#errorBannerId').show();
-                // } else {
-                //     $("#envScheduleId").parent().html(data.html);
-                //     $('#errorBannerId').empty().hide();
-                // }
-                // btn.button('reset');
+                location.reload(true);
+                if(data != null && data.success == false) {
+                    $('#errorBannerId').append(data.error);
+                    $('#errorBannerId').show();
+                } else {
+                    $("#envScheduleId").parent().html(data.html);
+                    $('#errorBannerId').empty().hide();
+                }
             },
             error: function (data) {
-                // $('#errorBannerId').append(data.responseText);
-                // $('#errorBannerId').show();
+                $('#errorBannerId').append(data.responseText);
+                $('#errorBannerId').show();
             }
         });   
     })

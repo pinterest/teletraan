@@ -1,4 +1,4 @@
-{% extends 'environs/envs_base.html' %}
+{% extends 'environs/env_base.html' %}
 
 {% load utils %}
 {% load static %}
@@ -12,23 +12,16 @@
 </ul>
 {% endblock %}
 
-{% block side-panel %}
+
+{% block side-panel-actions %}
 <div class="panel panel-default">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Actions</h4>
     </div>
-	<div class="row">
-        <a href="/envs" type="button" class="deployToolTip btn btn-default btn-block"
-            data-toggle="tooltip" title="List all the environments">
-            <span class="fa fa-list-ol"></span>Skip to next session
-        </a>
-    </div>
-</div>
-<!-- <div class="panel panel-default">
-    <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left">Recent Environments</h4>
-    </div>
-    <div id="recentEnvsId">
+    <div class="row">
+        <button id="envDeployBtn" type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-flash"></span> Current Deployment
+        </button>
     </div>
 </div>
 
@@ -40,10 +33,16 @@
             window.location = "/envs/";
         });
     });
-</script> -->
+</script>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
 {% endblock %}
 
 {% block main %}
+
 <div class="panel panel-default">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Deployment Schedule</h4>

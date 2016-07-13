@@ -24,13 +24,7 @@ def get_schedule(request, id):
 	schedule = deployclient.get("/schedules/%s" % (id), request.teletraan_user_id.token)
 	return schedule
 
-#request by schedule id or environment/stage id??  
-
 def update_schedule(request, envName, stageName, data):
-	# if request.method == 'POST':dule 
-	# 	return deployclient.post("/schedules/update/%s/%s" % (envName, stageName), request.teletraan_user_id.token,
-	# 						params=params)
-	# elif request.method == 'PUT': 
 	return deployclient.post("/schedules/update/%s/%s" % (envName, stageName), request.teletraan_user_id.token,
 							data=data)
 
@@ -38,6 +32,4 @@ def delete_schedule(request, envName, stageName):
 	return deployclient.delete("/schedules/delete/%s/%s" % (envName, stageName), request.teletraan_user_id.token)
 
 def override_session(request, envName, stageName):
-	print 'in override schedule'
-	print 'envName' + envName
 	return deployclient.post("/schedules/override/%s/%s" % (envName, stageName), request.teletraan_user_id.token)
