@@ -79,6 +79,7 @@
 
 <script type="text/javascript">
      {% if schedule %} 
+     console.log("in my schedule");
         var cooldownTimes = "{{ schedule.cooldownTimes }}";
         var timesArray = cooldownTimes.split(",");
 
@@ -99,13 +100,16 @@
             }
             var button = '';
             if (i == currentSession) {
-                button = '<td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Override</button></td>';
+                button = '<td class="text-right"><button id="overrideBtn" type="button" class="btn btn-danger">Override</button></td>';
             }
             $('#sessionTable tr:last').before('<tr id=session' + i +'><td class="sessionNumber" id=sessionNumber'+i+'>'+i+'</td><td><div class="progress deployToolTip" data-toggle="tooltip"><div class="deployToolTip progress-bar" data-toggle="tooltip" title="adf" role="progressbar" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"style="width: 90%;"><span class="show">9/10</span></div></div></td><td class="hostNumber"><div>'+numbersArray[i-1]+'</div></td><td class="cooldownTime"><div>'+timesArray[i-1]+'</div></td><td>'+state+'</td>'+button+'</tr>');
             finalHostNumber = finalHostNumber - numbersArray[i-1];
         }
-
-        $("#session" + currentSession).css('border', '2px solid red');
+        if (scheduleState == "FINAL") {
+            $('#sessionTable tr:last').css('border', '2px solid red');
+        } else {
+            $("#session" + currentSession).css('border', '2px solid red');
+        }
         $('#sessionTable tr:last').find('.hostNumber div').html(finalHostNumber);
         // if (scheduleState == "COOLING DOWN") {
         //     $("#session" + currentSession + " cooldownTime").val(cooldownTimes[currentSession-1] + ' Time Left: ' + System.currentTimeMillis() - state_start_tim) 
@@ -114,4 +118,31 @@
                 //set cooling down to time left --> if about to run say preparing to run 
 
     {% endif %}
+
+    $(document).on('click', '#overrideBtn', function () {
+        console.log('override clicked');
+      $.ajax({
+            type: 'POST',
+            url: '/env/{{ env.envName }}/{{ env.stageName }}/override_session/',
+            data: {'csrfmiddlewaretoken': '{{csrf_token}}'}, 
+            dataType: "json",
+            beforeSend: function () {
+                // btn.button('loading');
+            },
+            success: function (data) {
+                // if(data != null && data.success == false) {
+                //     $('#errorBannerId').append(data.error);
+                //     $('#errorBannerId').show();
+                // } else {
+                //     $("#envScheduleId").parent().html(data.html);
+                //     $('#errorBannerId').empty().hide();
+                // }
+                // btn.button('reset');
+            },
+            error: function (data) {
+                // $('#errorBannerId').append(data.responseText);
+                // $('#errorBannerId').show();
+            }
+        });   
+    })
 </script>

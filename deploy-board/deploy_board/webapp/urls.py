@@ -125,6 +125,8 @@ urlpatterns = [
         env_views.delete_schedule),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/schedule/$',
         env_views.get_deploy_schedule),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/override_session/$',
+        env_views.override_session),
     # environment configs
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/$',
         env_config_views.EnvConfigView.as_view()),

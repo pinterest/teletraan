@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.arcee.handler.ProvisionHandler;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.ScheduleBean;
@@ -144,14 +145,29 @@ public class Schedules {
         //Make better log info 
     }
 
-    // @GET
-    // @Path("/{scheduleId : [a-zA-Z0-9\\-_]+}")
-    // @ApiOperation(
-    //         value = "Get host info objects by host name",
-    //         notes = "Returns a list of host info objects given a host name",
-    //         response = HostBean.class, responseContainer = "List")
-    // public List<HostBean> get(
-    //         @ApiParam(value = "Host name", required = true)@PathParam("hostName") String hostName) throws Exception {
-    //     return hostDAO.getHosts(hostName);
-    // }
+    @POST
+    @Path("/override/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}")
+    public void overrideSession(
+            @Context SecurityContext sc,
+            @PathParam("envName") String envName,
+            @PathParam("stageName") String stageName) throws Exception {
+        String operator = sc.getUserPrincipal().getName();
+        EnvironBean envBean = environDAO.getByStage(envName, stageName);
+        String scheduleId = envBean.getSchedule_id();
+        ScheduleBean scheduleBean = scheduleDAO.getById(scheduleId);
+        Integer currentSession = scheduleBean.getCurrent_session();
+        Integer totalSessions = scheduleBean.getTotal_sessions();
+        LOG.info(String.format("INSIDE OVERRIDE"));
+        if (currentSession == totalSessions) {
+            scheduleBean.setState(ScheduleState.FINAL);
+            LOG.info(String.format("Overrided current session and current working on the final deploy session"));    
+        } else {
+            scheduleBean.setCurrent_session(currentSession+1);
+            scheduleBean.setState(ScheduleState.RUNNING);
+            LOG.info(String.format("Overrided current session and current working session #{}", currentSession+1));    
+
+        }    
+        scheduleBean.setState_start_time(System.currentTimeMillis());
+        scheduleDAO.update(scheduleBean, scheduleId);
+    }
 }

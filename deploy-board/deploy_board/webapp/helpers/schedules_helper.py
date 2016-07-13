@@ -35,5 +35,9 @@ def update_schedule(request, envName, stageName, data):
 							data=data)
 
 def delete_schedule(request, envName, stageName):
-	print 'in delete schedule'
 	return deployclient.delete("/schedules/delete/%s/%s" % (envName, stageName), request.teletraan_user_id.token)
+
+def override_session(request, envName, stageName):
+	print 'in override schedule'
+	print 'envName' + envName
+	return deployclient.post("/schedules/override/%s/%s" % (envName, stageName), request.teletraan_user_id.token)

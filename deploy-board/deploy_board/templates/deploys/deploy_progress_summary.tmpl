@@ -12,6 +12,7 @@
         <th class="col-lg-2">Acceptance</th>
         <th class="col-lg-1">Operator</th>
         <th class="col-lg-1">Details</th>
+        <th class="col-lg-1">Schedule</th>
     </tr>
     <tr>
     <td>
@@ -40,6 +41,7 @@
               data-toggle="tooltip" title="{{ deploy.state|deployStateTip }}">
         </span>
         <small>{{ deploy.state }}</small>
+
     </td>
     <td>
         <div class="progress deployToolTip" data-toggle="tooltip">
@@ -66,6 +68,7 @@
     </td>
     <td>{{ deploy.operator }}</td>
     <td><a href="/deploy/{{ deploy.id }}">view</a></td>
+    <td><a href="/env/{{ env.envName }}/{{ env.stageName }}/schedule">view</a></td>
   </tr>
 </table>
 </div>

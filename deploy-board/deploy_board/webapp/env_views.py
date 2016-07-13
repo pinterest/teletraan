@@ -1415,6 +1415,10 @@ def update_schedule(request, name, stage):
     return HttpResponse(json.dumps(''))
 
 def delete_schedule(request, name, stage):
-    print 'in env view delete schedule'
     schedules_helper.delete_schedule(request, name, stage)
     return HttpResponse(json.dumps(''))
+
+def override_session(request, name, stage):
+    schedules_helper.override_session(request, name, stage)
+    return HttpResponse(json.dumps(''))
+
