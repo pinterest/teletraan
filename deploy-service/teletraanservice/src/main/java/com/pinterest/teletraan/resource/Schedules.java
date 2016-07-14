@@ -41,12 +41,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Path("/v1/schedules")
-// @Api(tags = "Hosts and Systems")
-// @SwaggerDefinition(
-//         tags = {
-//                 @Tag(name = "Hosts and Systems", description = "Host info APIs"),
-//         }
-// )
+
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Schedules {
@@ -110,27 +105,11 @@ public class Schedules {
                 LOG.info(String.format("Successfully updated one env %s (%s)'s schedule by %s: %s", envName, stageName, operator, scheduleBean.toString()));
             }
         } else if (scheduleId != null) { //there are no sessions, so delete the schedule
-            LOG.info(String.format("In here!!!"));
             scheduleDAO.delete(scheduleId); 
             envBean.setSchedule_id(null);
             environDAO.update(envName, stageName, envBean);
+            LOG.info(String.format("Successfully deleted env %s (%s)'s schedule by %s", envName, stageName, operator));
         }
-    }
-
-    @DELETE
-    @Path("/delete/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}")
-    public void deleteSchedule(
-            @Context SecurityContext sc,
-            @PathParam("envName") String envName,
-            @PathParam("stageName") String stageName) throws Exception {
-        String operator = sc.getUserPrincipal().getName();
-        EnvironBean envBean = environDAO.getByStage(envName, stageName);
-        String scheduleId = envBean.getSchedule_id();
-        scheduleDAO.delete(scheduleId); // make sure it deletes it from the enviroment thing too 
-        envBean.setSchedule_id(null);
-        environDAO.update(envName, stageName, envBean);
-        // LOG.info(String.format("Successfully stopped host %s by %s", hostId, operator));
-        //Make better log info 
     }
 
     @POST
@@ -145,7 +124,6 @@ public class Schedules {
         ScheduleBean scheduleBean = scheduleDAO.getById(scheduleId);
         Integer currentSession = scheduleBean.getCurrent_session();
         Integer totalSessions = scheduleBean.getTotal_sessions();
-        LOG.info(String.format("INSIDE OVERRIDE"));
         if (currentSession == totalSessions) {
             scheduleBean.setState(ScheduleState.FINAL);
             LOG.info(String.format("Overrided current session and current working on the final deploy session"));    
@@ -153,7 +131,6 @@ public class Schedules {
             scheduleBean.setCurrent_session(currentSession+1);
             scheduleBean.setState(ScheduleState.RUNNING);
             LOG.info(String.format("Overrided current session and current working session #{}", currentSession+1));    
-
         }    
         scheduleBean.setState_start_time(System.currentTimeMillis());
         scheduleDAO.update(scheduleBean, scheduleId);

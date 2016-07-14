@@ -16,21 +16,23 @@
 package com.pinterest.deployservice.bean;
 
 public enum ScheduleState {
-	/*
-	 * Schedule hasn't been deployed yet 
-	*/
-	NOT_STARTED,
+    /*
+     * Schedule hasn't been deployed yet 
+     */
+    NOT_STARTED,
+
     /*
      * Active session is currently deploying
      */
     RUNNING,
+
     /*
      * Mid-sessions and waiting to start next session
      */
     COOLING_DOWN,
 
     /*
-    * Running on the rest of the hosts, finished all the sessions
-    */
+     * Running on the rest of the hosts, finished all the sessions
+     */
     FINAL, 
 }

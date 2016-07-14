@@ -1,4 +1,3 @@
-<!-- {% include "panel_heading.tmpl" with panel_title="Deploy Schedule" panel_body_id="envScheduleId" direction="down" %} -->
 <div id="envScheduleId" class="collapse in panel-body">
     <div class="container-fluid">
         <form id="envCapacityFormId" class="form-horizontal" role="form">
@@ -12,7 +11,7 @@
             </tr>
                 <td class="sessionNumber"><strong>FINAL</strong></td>
                 <td class="hostNumber">
-                    <div>400</div>
+                    <div>N/A</div>
                 </td>
                 <td class="cooldownTime">
                     <div>N/A</div>
@@ -31,20 +30,16 @@
 <script type="text/javascript">
     var finalHostNumber = {{ agent_number }};
      {% if schedule %} 
-     console.log("in my schedule");
         var cooldownTimes = "{{ schedule.cooldownTimes }}";
         var timesArray = cooldownTimes.split(",");
-
         var hostNumbers = "{{ schedule.hostNumbers }}";
         var currentSession = {{ schedule.currentSession }};
         var numbersArray = hostNumbers.split(",");
         var scheduleState = "{{ schedule.state }}";
         var stateStartTime = {{ schedule.stateStartTime }};
-        // var currentSessionNumber = {{ schedule.totalSessions }};
 
         for (i = 1; i<=numbersArray.length; i++) {
             state = "FINISHED";
-
             if (i == currentSession && scheduleState != "FINAL") {
                 var state = scheduleState;
             } else if (i > currentSession) {
@@ -58,38 +53,35 @@
             $('#sessionTable tr:last').before('<tr id=session' + i +'><td class="sessionNumber" id=sessionNumber'+i+'><strong>'+i+'</strong></td><td class="hostNumber"><div>'+numbersArray[i-1]+' hosts</div></td><td class="cooldownTime"><div>'+timesArray[i-1]+' min</div></td><td class="state">'+state+'</td>'+button+'</tr>');
             finalHostNumber = finalHostNumber - numbersArray[i-1];
         }
+
         if (scheduleState == "FINAL") {
             $('#sessionTable tr:last').addClass("info");
             $('#sessionTable tr:last').css('borderRadius', '25px');
             $('#sessionTable tr:last .state').text("RUNNING");
-            // check deploy state
         } else {
             if (scheduleState == "COOLING_DOWN") {
+                // calculates time left until next session
                 var d = new Date();
-                var timeLeft = (timesArray[currentSession - 1]* 60000) - (d.getTime() - stateStartTime);
+                var timeLeft = (timesArray[currentSession - 1]* 60000) - (d.getTime() - stateStartTime); 
                 var min = Math.round((timeLeft/1000/60) << 0);
                 var sec = Math.round((timeLeft/1000) % 60);
-                sec = ("0" + sec).slice(-2); // make it always two integers
+                sec = ("0" + sec).slice(-2); // make it always two integers for seconds
                 $("#session" + currentSession).find(".cooldownTime").text(timesArray[currentSession - 1] + " min (Time Left: " + min + ":" + sec + ")");
 
             }
             $("#session" + currentSession).addClass("info");
             $("#session" + currentSession).css('borderRadius', '3em');
-
-
         }
     {% endif %}
+
     $('#sessionTable tr:last').find('.hostNumber div').html(finalHostNumber + " hosts");
+
     $(document).on('click', '#overrideBtn', function () {
-        console.log('override clicked');
       $.ajax({
             type: 'POST',
             url: '/env/{{ env.envName }}/{{ env.stageName }}/override_session/',
             data: {'csrfmiddlewaretoken': '{{csrf_token}}'}, 
             dataType: "json",
-            beforeSend: function () {
-                // btn.button('loading');
-            },
             success: function (data) {
                 location.reload(true);
                 if(data != null && data.success == false) {

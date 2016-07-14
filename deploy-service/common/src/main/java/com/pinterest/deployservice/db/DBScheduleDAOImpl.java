@@ -43,8 +43,6 @@ public class DBScheduleDAOImpl implements ScheduleDAO {
         "SELECT * FROM schedules WHERE id=?";
 
     private static final Logger LOG = LoggerFactory.getLogger(DBScheduleDAOImpl.class);
-        
-        
 
     private BasicDataSource dataSource;
 
@@ -75,12 +73,7 @@ public class DBScheduleDAOImpl implements ScheduleDAO {
     @Override
     public ScheduleBean getById(String scheduleId) throws Exception {
         ResultSetHandler<ScheduleBean> h = new BeanHandler<ScheduleBean>(ScheduleBean.class);
-        LOG.info(String.format("DBSCheduledao sonia"));
         ScheduleBean bean = new QueryRunner(dataSource).query(GET_SCHEDULE_BY_ID, h, scheduleId);
-        if (bean!=null) {
-            LOG.info(bean.toString());
-        }
-        LOG.info(String.format("AFTER"));
         return bean;
     }
 }

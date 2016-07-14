@@ -1,4 +1,3 @@
-
 {% load utils %}
 
 <div id="envScheduleId" class="collapse in panel-body">
@@ -33,7 +32,6 @@
                 <td class="text-right">
                 </td>
             </tr>
-
             </table>
             {% csrf_token %}
         </form>
@@ -59,9 +57,8 @@
     var totalSessions = 0;
     var totalAgentCount = {{ agent_count }};
 
-    // on document load + if schedule exists 
     $(document).ready(function() {
-        {% if schedule %} 
+        {% if schedule %} //loads schedule information
             var cooldownTimes = "{{ schedule.cooldownTimes }}";
             var hostNumbers = "{{ schedule.hostNumbers }}";
             totalSessions = {{ schedule.totalSessions }};
@@ -75,29 +72,20 @@
             }
             console.log("COME");
             console.log(totalSessions);
-        // {% else %}
-        //     console.log("schedule is null")
-        //     totalSessions = 0;
         {% endif %}
         $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
-        // $("#sessionTable tr").each(function() {
-        
-        // $(this).find(".hostNumber input").val("34sf");
- 
     });
 
-    $(document.body).on("focus", ".hostNumber input", function(){
+    $(document.body).on("focus", ".hostNumber input", function() { //realtime changes final session's host numbers
         var n = parseInt($(this).val());
-        console.log($(this));
-        console.log($(this).val());
-        if (!isNaN(n) && n % 1 === 0) { // is number + is integer
+        if (!isNaN(n) && n % 1 === 0) { // if is number + is integer
             totalAgentCount = totalAgentCount + parseInt($(this).val());
         }
     });
 
-    $(document.body).on("blur", ".hostNumber input", function(){
+    $(document.body).on("blur", ".hostNumber input", function() {
         var n = parseInt($(this).val());
-        if (!isNaN(n) && n % 1 === 0) { // is number + is integer
+        if (!isNaN(n) && n % 1 === 0) { // if is number + is integer
             totalAgentCount = totalAgentCount - parseInt($(this).val());
             $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
         }
@@ -105,7 +93,6 @@
 
     $("#addSessionBtn").click(function() {
         totalSessions=totalSessions+1;
-        console.log(totalSessions);
         $('#sessionTable tr:last').before('<tr><td class="sessionNumber" id=sessionNumber'+totalSessions+'><strong>'+totalSessions+'</strong></td><td class="hostNumber"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
     });
 
@@ -113,7 +100,7 @@
         $(this).closest('tr').remove();
         totalSessions = totalSessions-1;
         counter = 1; 
-        $("#sessionTable tr").not(':first').each(function() {
+        $("#sessionTable tr").not(':first').each(function() { // renumbers the sessions
             var number = $(this).find(".sessionNumber");
             number.text(counter);
             counter=counter+1;
@@ -125,28 +112,30 @@
       
     })
 
+    $("#resetEnvScheduleBtnId").click(function() {
+        $("#sessionTable tr").not(':first').not(':last').remove(); 
+        totalSessions = 0;
+        totalAgentCount = {{ agent_count }};
+        $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
+    });
 
     $("#saveEnvScheduleBtnId").click(function() {
         $('.input-group').removeClass('has-error');
         $(this).attr('disabled', 'disabled');
         var error = false;
 
-        if (parseInt($("#sessionTable tr:last").find(".hostNumber input").val()) < 0) { // change later
+        // check if number of hosts entered doesn't exceed max
+        if (parseInt($("#sessionTable tr:last").find(".hostNumber input").val()) < 0) { 
             $('#errorBannerId').text("Total number of hosts exceeds number of available hosts. Please reenter host numbers.");
             $('#errorBannerId').show();
             error = true;
         }  
+        if (error) { return; } 
 
-        if (error) { return; } // don't send in request
-
+        // check for valid input values
         $("#sessionTable input").not(":last").each(function() { 
-            console.log('adlkfj');
             var number = parseInt($(this).val());
-            console.log(number);
-            console.log(isNaN(number));
             if (isNaN(number)) {
-                //highlight Red
-                console.log($(this).val());
                 $(this).closest('.input-group').addClass('has-error');
                 $('#errorBannerId').text("Please make sure all fields are valid integer values.");
                 $('#errorBannerId').show();
@@ -154,10 +143,10 @@
             }
         })
 
-        if (error) { return; } // don't send in request
+        if (error) { return; } 
 
+        // check if entered session numbers doesn't exceed max parallel number
         $("#sessionTable .hostNumber input").not(":last").each(function() { 
-            
             var number = parseInt($(this).val());
             var maxParallel = {{ max_parallel_number }};
             console.log('num' + maxParallel);
@@ -171,16 +160,14 @@
             }
         })
 
- 
-        if (error) { return; } // don't send in request
-        // go through all of hte input boxes and check if they're not an integer. if not, make it glow red and perhaps put errorr on top 
+        if (error) { return; } 
+
         var schedule = '{{ env.schedule }}';
-        console.log(totalSessions);
         var cooldownTimes = "";
         var hostNumbers= ""; 
-        $("#sessionTable tr").not(':first').not(':last').each(function() { // try  to start from 2nd row 
-            var hostNumber = $(this).find(".hostNumber input").val();
 
+        $("#sessionTable tr").not(':first').not(':last').each(function() { 
+            var hostNumber = $(this).find(".hostNumber input").val();
             var cooldownTime = $(this).find(".cooldownTime input").val();
             if (hostNumbers == "") {
                 hostNumbers = hostNumber;
@@ -194,9 +181,6 @@
             }
         });
 
-        var btn = $(this);
-        console.log('in config tmpl about to add');
-
         $.ajax({
             type: 'POST',
             url: '/env/{{ env.envName }}/{{ env.stageName }}/update_schedule/',
@@ -205,9 +189,6 @@
                    'hostNumbers': hostNumbers,
                    'totalSessions': totalSessions}, 
             dataType: "json",
-            // beforeSend: function () {
-            //     btn.button('loading');
-            // },
             success: function (data) {
                 if(data != null && data.success == false) {
                     $('#errorBannerId').append(data.error);
@@ -216,7 +197,6 @@
                     $("#envScheduleId").parent().html(data.html);
                     $('#errorBannerId').empty().hide();
                 }
-                // btn.button('reset');
             },
             error: function (data) {
                 $('#errorBannerId').append(data.responseText);
@@ -224,18 +204,5 @@
             }
         }); 
     });
-
-    $("#resetEnvScheduleBtnId").click(function() {
-        $("#sessionTable tr").not(':first').not(':last').remove(); 
-        totalSessions = 0;
-        totalAgentCount = {{ agent_count }};
-        $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
-    });
-
-    //if saved more create schedule --> 
-    //if deleted everything --> delete schedule and reference to schedule from deploys
-    //do you not know how many agents until deploy actually starts running? 
-
-    
 
 </script>

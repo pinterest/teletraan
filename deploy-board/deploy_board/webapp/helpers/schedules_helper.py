@@ -23,13 +23,16 @@ deployclient = DeployClient()
 def get_schedule(request, id):
 	schedule = deployclient.get("/schedules/%s" % (id), request.teletraan_user_id.token)
 	return schedule
+	
 
 def update_schedule(request, envName, stageName, data):
 	return deployclient.post("/schedules/update/%s/%s" % (envName, stageName), request.teletraan_user_id.token,
 							data=data)
 
+
 def delete_schedule(request, envName, stageName):
 	return deployclient.delete("/schedules/delete/%s/%s" % (envName, stageName), request.teletraan_user_id.token)
+
 
 def override_session(request, envName, stageName):
 	return deployclient.post("/schedules/override/%s/%s" % (envName, stageName), request.teletraan_user_id.token)

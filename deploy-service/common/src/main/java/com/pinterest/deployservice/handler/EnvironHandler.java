@@ -27,7 +27,6 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 
 import com.pinterest.deployservice.bean.ScheduleState;
 
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -29,11 +29,8 @@ class EnvScheduleView(View):
     def get(self, request, name, stage):
         if request.is_ajax():
             env = environs_helper.get_env_by_stage(request, name, stage)
-            # environs_helper.get_schedule_by_id
-            # alarms = environs_helper.get_env_alarms_config(request, name, stage)
             html = render_to_string('configs/schedule_config.tmpl', {
                 "env": env,
-                # "alarms": alarms,
                 "csrf_token": get_token(request),
             })
             return HttpResponse(json.dumps({'html': html}), content_type="application/json")
@@ -41,11 +38,9 @@ class EnvScheduleView(View):
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         agent_count = agents_helper.get_agents_total_by_env(request, env["id"])
-        print agent_count
-        if env["scheduleId"]!= None: 
 
+        if env["scheduleId"]!= None: 
             schedule = schedules_helper.get_schedule(request, env["scheduleId"])
-            print schedule
         else:
             schedule = None;
         max_parallel_number = env["maxParallel"];
@@ -56,16 +51,3 @@ class EnvScheduleView(View):
             "max_parallel_number": max_parallel_number,
         })
 
-    def post(self, request, name, stage):
-        alarms = []
-        for key, value in request.POST.iteritems():
-            if not value:
-                continue
-            if key.startswith('TELETRAAN_'):
-                alarm = {}
-                alarm['name'] = key[len('TELETRAAN_'):]
-                alarm['alarmUrl'] = value
-                alarms.append(alarm)
-
-        environs_helper.update_env_alarms_config(request, name, stage, alarms)
-        return self.get(request, name, stage)

@@ -454,9 +454,6 @@ public class DeployHandler {
             updateBean.setCurrent_session(1);
             scheduleDAO.update(updateBean, scheduleId);
         }
-
-        
-
         return internalDeploy(envBean, deployBean);
     }
 }
