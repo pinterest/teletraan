@@ -431,8 +431,6 @@ public class PingHandler {
                 } 
                 if (canDeploy(env, hostName, updateBean)) {
                     // use the updateBean in the installCandidate instead
-                    LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
-                    updateBeans.put(updateBean.getEnv_id(), updateBean);
                     if (schedule!=null) {
                         int totalHosts = 0;
                         for (int i = 0; i < currentSession; i++) {
@@ -441,15 +439,24 @@ public class PingHandler {
                         LOG.debug("Total Hosts is {}", totalHosts);
                         LOG.debug("Deployed agents is {}",agentDAO.countAgentByDeploy(env.getDeploy_id()));
 
-                        if (agentDAO.countAgentByDeploy(env.getDeploy_id()) >= totalHosts && schedule.getState() == ScheduleState.RUNNING) {
+                        if (agentDAO.countAgentByDeploy(env.getDeploy_id()) > totalHosts && schedule.getState() == ScheduleState.RUNNING) {
+                            // greater and not >= because new agent bean is creawted inside goalanalyst analysis
                             ScheduleBean updateScheduleBean = new ScheduleBean();
                             updateScheduleBean.setId(schedule.getId());
                             updateScheduleBean.setState(ScheduleState.COOLING_DOWN);
                             updateScheduleBean.setState_start_time(System.currentTimeMillis());
                             scheduleDAO.update(updateScheduleBean, schedule.getId());
+                        } else { // If deploy comes back from cooling down, need to check first
+                            LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
+                            updateBeans.put(updateBean.getEnv_id(), updateBean);
+                            response = generateInstallResponse(installCandidate);
+
                         }
+                    } else {
+                        LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
+                        updateBeans.put(updateBean.getEnv_id(), updateBean);
+                        response = generateInstallResponse(installCandidate);
                     }
-                    response = generateInstallResponse(installCandidate);
                 } else {
                     LOG.debug("Host {} for env {} needs to wait for its turn to install.",
                             hostName, updateBean.getEnv_id());

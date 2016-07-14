@@ -353,6 +353,15 @@ public class DeployHandler {
 
         disableAutoPromote(envBean, operator, false);
 
+        String scheduleId = envBean.getSchedule_id();
+        if (scheduleId != null) {
+            ScheduleBean updateBean = new ScheduleBean();
+            updateBean.setState(ScheduleState.NOT_STARTED);
+            updateBean.setState_start_time(System.currentTimeMillis());
+            updateBean.setCurrent_session(1);
+            scheduleDAO.update(updateBean, scheduleId);
+        }
+
         return internalDeploy(envBean, deployBean);
     }
 

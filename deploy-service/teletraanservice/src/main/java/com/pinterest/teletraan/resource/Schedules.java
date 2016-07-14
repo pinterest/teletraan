@@ -71,10 +71,6 @@ public class Schedules {
         String operator = sc.getUserPrincipal().getName();
 
         ScheduleBean scheduleBean = scheduleDAO.getById(scheduleId);
-        if (scheduleBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
-                String.format("Schedule %s does not exist.", scheduleId));
-        }
         if (scheduleBean!=null) {
             LOG.info(scheduleBean.toString());
         }
@@ -89,23 +85,18 @@ public class Schedules {
             @PathParam("stageName") String stageName,
             @Valid ScheduleBean bean) throws Exception {
         String operator = sc.getUserPrincipal().getName();
-        // hostBean.setHost_id(hostId);
-        // hostBean.setLast_update(System.currentTimeMillis());
         EnvironBean envBean = environDAO.getByStage(envName, stageName);
         String scheduleId = envBean.getSchedule_id();
         String cooldownTimes = bean.getCooldown_times();
         String hostNumbers = bean.getHost_numbers();
         Integer totalSessions = bean.getTotal_sessions();
-        LOG.info(String.format("why is it not coming here"));
-        LOG.info(String.format("Total Sessions:" + Integer.toString(totalSessions)));
-        if (totalSessions > 0) {          
+        if (totalSessions > 0) { // there is a schedule  
             ScheduleBean scheduleBean = new ScheduleBean();
             scheduleBean.setState_start_time(System.currentTimeMillis());
             scheduleBean.setCooldown_times(cooldownTimes);
             scheduleBean.setHost_numbers(hostNumbers);
             scheduleBean.setTotal_sessions(totalSessions);
             LOG.info(scheduleBean.toString());
-
             if (scheduleId == null) {
                 scheduleId = CommonUtils.getBase64UUID();
                 envBean.setSchedule_id(scheduleId);
@@ -118,7 +109,7 @@ public class Schedules {
                 scheduleDAO.update(scheduleBean, scheduleId);
                 LOG.info(String.format("Successfully updated one env %s (%s)'s schedule by %s: %s", envName, stageName, operator, scheduleBean.toString()));
             }
-        } else if (scheduleId != null) { // no more sessions --> delete schedule
+        } else if (scheduleId != null) { //there are no sessions, so delete the schedule
             LOG.info(String.format("In here!!!"));
             scheduleDAO.delete(scheduleId); 
             envBean.setSchedule_id(null);

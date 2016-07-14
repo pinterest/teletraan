@@ -70,7 +70,7 @@
                 var min = Math.round((timeLeft/1000/60) << 0);
                 var sec = Math.round((timeLeft/1000) % 60);
                 sec = ("0" + sec).slice(-2); // make it always two integers
-                $("#session" + currentSession).find(".cooldownTime").text(timesArray[currentSession - 1] + "min (Time Left: " + min + ":" + sec + ")");
+                $("#session" + currentSession).find(".cooldownTime").text(timesArray[currentSession - 1] + " min (Time Left: " + min + ":" + sec + ")");
 
             }
             $("#session" + currentSession).addClass("info");
