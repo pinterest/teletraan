@@ -50,8 +50,8 @@ def get_group_info(request, group_name):
     return rodimus_client.get("/groups/%s" % group_name, request.teletraan_user_id.token)
 
 
-def launch_hosts(request, group_name, instance_count, subnet):
-    params = {"hostCount": instance_count, "subnet": subnet}
+def launch_hosts(request, group_name, host_count, subnet):
+    params = {"hostCount": host_count, "subnet": subnet}
     return rodimus_client.put("/groups/%s/hosts" % group_name, request.teletraan_user_id.token, params=params)
 
 

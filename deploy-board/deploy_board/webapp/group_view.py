@@ -136,7 +136,7 @@ def update_pas_config(request, group_name):
             data["pas_state"] = "ENABLED"
         else:
             data["pas_state"] = "DISABLED"
-        autoscaling_groups_helper.update_pas_config(request, data)
+        autoscaling_groups_helper.update_pas_config(request, group_name, data)
         return get_pas_config(request, group_name)
     except:
         log.error(traceback.format_exc())
@@ -354,7 +354,7 @@ def update_asg_config(request, group_name):
         pas_config['defined_min_size'] = int(params["minSize"])
         pas_config['defined_max_size'] = int(params["maxSize"])
         pas_config['pas_state'] = "DISABLED"
-        autoscaling_groups_helper.update_pas_config(request, pas_config)
+        autoscaling_groups_helper.update_pas_config(request, group_name, pas_config)
     except:
         log.error(traceback.format_exc())
         raise
