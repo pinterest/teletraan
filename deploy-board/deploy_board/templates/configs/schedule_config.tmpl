@@ -19,8 +19,7 @@
                         <input disabled type="text" class="form-control">
                         <span class="input-group-addon">hosts</span>
                     </div>
-                      <div class="input-group">
-                    
+                        <div class="input-group">
                     </div>
                 </td>
                 <td class="cooldownTime">
@@ -70,22 +69,20 @@
                 $("#sessionTable tr:last").before('<tr><td class="sessionNumber" id=sessionNumber'+i+'><strong>'+i+'</strong></td><td class="hostNumber"><div class="input-group"><input value='+numbersArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">hosts</span></div></div></td><td class="cooldownTime"><div class="input-group"><input value='+timesArray[i-1]+' type="text" class="form-control"><span class="input-group-addon">minutes</span></div></td><td class="text-right"><button id="removeBtn" type="button" class="btn btn-danger">Remove</button></td></tr>');
                 totalAgentCount = totalAgentCount - numbersArray[i-1];
             }
-            console.log("COME");
-            console.log(totalSessions);
         {% endif %}
         $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
     });
 
-    $(document.body).on("focus", ".hostNumber input", function() { //realtime changes final session's host numbers
+    $(document.body).on("focus", ".hostNumber input", function() { // change final session's host numbers in realtime
         var n = parseInt($(this).val());
-        if (!isNaN(n) && n % 1 === 0) { // if is number + is integer
+        if (!isNaN(n) && n % 1 === 0) { // if is number and is integer
             totalAgentCount = totalAgentCount + parseInt($(this).val());
         }
     });
 
     $(document.body).on("blur", ".hostNumber input", function() {
         var n = parseInt($(this).val());
-        if (!isNaN(n) && n % 1 === 0) { // if is number + is integer
+        if (!isNaN(n) && n % 1 === 0) { // if is number and is integer
             totalAgentCount = totalAgentCount - parseInt($(this).val());
             $("#sessionTable tr:last").find('.hostNumber input').val(totalAgentCount);
         }
@@ -109,7 +106,6 @@
 
     $(document).on("keyup", "input", function() {
         $("#saveEnvScheduleBtnId").removeAttr('disabled');
-      
     })
 
     $("#resetEnvScheduleBtnId").click(function() {

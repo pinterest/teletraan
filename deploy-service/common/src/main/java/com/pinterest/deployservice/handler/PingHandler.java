@@ -191,16 +191,6 @@ public class PingHandler {
      */
     boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean) throws Exception {
         // first deploy should always proceed
-        
-        // String scheduleId = envBean.getSchedule_id();
-        // ScheduleBean schedule = null;
-        // if (scheduleId != null) {
-        //     schedule = scheduleDAO.getById(scheduleId);
-        // }
-        // if (scheduleId != null && schedule.getState() == ScheduleState.COOLING_DOWN) { 
-        //     return false; 
-        // } 
-
         if (agentBean.getFirst_deploy()) {
             agentDAO.insertOrUpdate(agentBean);
             LOG.debug("First deploy for env {}/{}, update and proceed on host {}", envBean.getEnv_name(), envBean.getStage_name(), host);

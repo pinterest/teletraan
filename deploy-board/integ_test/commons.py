@@ -21,7 +21,7 @@ import random
 import time
 
 from deploy_board.webapp.helpers import environs_helper, builds_helper, systems_helper, \
-    deploys_helper, agents_helper, groups_helper
+    deploys_helper, agents_helper, groups_helper, schedules_helper
 from deploy_board.webapp.common import UserIdentity
 
 token = os.environ.get("TELETRAAN_TEST_TOKEN")
@@ -99,3 +99,6 @@ def get_agent_helper():
 
 def get_group_helper():
     return groups_helper
+
+def get_schedule_helper():
+    return schedules_helper
