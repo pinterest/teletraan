@@ -983,11 +983,40 @@ def pause_deploy(request, name, stage, host_id):
     agents_helper.pause_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
-
 # resume deploy stage for this env, this host
 def resume_deploy(request, name, stage, host_id):
     agents_helper.resume_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
+
+# pause hosts for this env and stage
+def pause_hosts(request, name, stage):
+    post_params = request.POST
+    host_ids = None
+    if 'hostIds' in post_params:
+        hosts_str = post_params['hostIds']
+        host_ids = [x.strip() for x in hosts_str.split(',')]
+    environs_helper.pause_hosts(request, name, stage, host_ids)
+    return redirect('/env/{}/{}/'.format(name, stage))
+
+# resume hosts for this env and stage
+def resume_hosts(request, name, stage):
+    post_params = request.POST
+    host_ids = None
+    if 'hostIds' in post_params:
+        hosts_str = post_params['hostIds']
+        host_ids = [x.strip() for x in hosts_str.split(',')]
+    environs_helper.resume_hosts(request, name, stage, host_ids)
+    return redirect('/env/{}/{}/'.format(name, stage))
+
+# reset hosts for this env and stage
+def reset_hosts(request, name, stage):
+    post_params = request.POST
+    host_ids = None
+    if 'hostIds' in post_params:
+        hosts_str = post_params['hostIds']
+        host_ids = [x.strip() for x in hosts_str.split(',')]
+    environs_helper.reset_hosts(request, name, stage, host_ids)
+    return redirect('/env/{}/{}/hosts'.format(name, stage))
 
 
 # get total unknown(unreachable) hosts

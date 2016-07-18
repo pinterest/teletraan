@@ -28,6 +28,8 @@ public interface AgentDAO {
 
     void update(String hostId, String envId, AgentBean updateBean) throws Exception;
 
+    void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean) throws Exception;
+
     void resetFailedAgents(String envId, String deployId) throws Exception;
 
     void updateAgentById(String hostId, AgentBean bean) throws Exception;

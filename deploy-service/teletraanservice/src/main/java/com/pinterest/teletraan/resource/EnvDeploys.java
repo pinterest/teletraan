@@ -18,11 +18,13 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.clusterservice.cm.ClusterManager;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -31,10 +33,12 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,12 +51,18 @@ public class EnvDeploys {
         PROMOTE, RESTART, ROLLBACK, PAUSE, RESUME
     }
 
+    public enum HostActions {
+        PAUSED_BY_USER, RESET, NORMAL
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(EnvDeploys.class);
     private EnvironDAO environDAO;
     private DeployDAO deployDAO;
     private Authorizer authorizer;
     private EnvironHandler environHandler;
     private DeployHandler deployHandler;
+    private AgentDAO agentDAO;
+    private ClusterManager clusterManager;
 
     @Context
     UriInfo uriInfo;
@@ -63,6 +73,8 @@ public class EnvDeploys {
         authorizer = context.getAuthorizer();
         environHandler = new EnvironHandler(context);
         deployHandler = new DeployHandler(context);
+        agentDAO = context.getAgentDAO();
+        clusterManager = context.getClusterManager();
     }
 
     @GET
@@ -123,7 +135,45 @@ public class EnvDeploys {
         return Response.created(deployUri).entity(result).build();
     }
 
-    @POST
+    @PUT
+    @Path("/hostactions")
+    @ApiOperation(
+        value = "Take a deploy action",
+        notes = "Take an action on a deploy using host information",
+        response = Response.class)
+    public void update(
+            @Context SecurityContext sc,
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName, 
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+            @ApiParam(value = "Agent object to update with", required = true)@NotEmpty @QueryParam("actionType") HostActions actionType,
+            @NotEmpty List<String> hostIds) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        AgentBean agentBean = new AgentBean();
+        switch (actionType) {
+            case PAUSED_BY_USER:
+                agentBean.setState(AgentState.PAUSED_BY_USER);
+                agentBean.setLast_update(System.currentTimeMillis());
+                agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
+                LOG.info("Succesfully paused hosts in environment {} and stage {}", envName, stageName);
+                break;
+            case RESET: 
+                agentBean.setState(AgentState.RESET);
+                agentBean.setLast_update(System.currentTimeMillis());
+                agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
+                LOG.info("Succesfully reset hosts in environment {} and stage {}", envName, stageName);
+                break;
+            case NORMAL:
+                agentBean.setState(AgentState.NORMAL);
+                agentBean.setLast_update(System.currentTimeMillis());
+                agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
+                LOG.info("Succesfully resumed hosts in environment {} and stage {}", envName, stageName);
+                break;
+            default:
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+        }
+    }
+        
     @ApiOperation(
             value = "Create a deploy",
             notes = "Creates a deploy given an environment name, stage name, build id and description",

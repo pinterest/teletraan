@@ -29,6 +29,7 @@ import util_views
 import security
 import user_views
 import docs_views
+import cluster_view
 
 urlpatterns = [
     # deploy related
@@ -157,8 +158,13 @@ urlpatterns = [
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.pause_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume_deploy/'
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.resume_deploy),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/reset_hosts/$', env_views.reset_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause_hosts/$', env_views.pause_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume_hosts/$', env_views.resume_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/host/(?P<hostname>[a-zA-Z0-9\-_]+)',
         host_views.HostDetailView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/terminate_hosts/$', cluster_view.terminate_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/force_terminate_hosts/$', cluster_view.force_terminate_hosts),
     url(r'^hosts/$', host_views.hosts_list),
 
     # builds related

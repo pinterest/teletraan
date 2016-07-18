@@ -214,3 +214,17 @@ def disable_env_changes(request, env_name, stage_name, description):
     return deployclient.post("/envs/%s/%s/actions" % (env_name, stage_name), request.teletraan_user_id.token,
                              params=params)
 
+def pause_hosts(request, env_name, stage_name, host_ids):
+    params = [("actionType", "PAUSED_BY_USER")]
+    return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token, 
+        params=params, data=host_ids)
+
+def resume_hosts(request, env_name, stage_name, host_ids):
+    params = [("actionType", "NORMAL")]
+    return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token, 
+        params=params, data=host_ids)
+
+def reset_hosts(request, env_name, stage_name, host_ids):
+    params = [("actionType", "RESET")]
+    return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token,
+        params=params, data=host_ids)

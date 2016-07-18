@@ -376,6 +376,31 @@ public class DBDAOTest {
         assertEquals(agentBeans.get(0).getFirst_deploy_time(), new Long(10));
     }
 
+    @Test
+    public void testAgentUpdateMultiple() throws Exception {
+        AgentBean agentBean1 = genDefaultAgentBean("h5", "id-5", "e-2", "d-1", DeployStage.PRE_DOWNLOAD);
+        AgentBean agentBean2 = genDefaultAgentBean("h6", "id-6", "e-2", "d-1", DeployStage.PRE_DOWNLOAD);
+        AgentBean agentBean3 = genDefaultAgentBean("h7", "id-7", "e-2", "d-1", DeployStage.PRE_DOWNLOAD);
+
+        agentDAO.insertOrUpdate(agentBean1);
+        agentDAO.insertOrUpdate(agentBean2);
+        agentDAO.insertOrUpdate(agentBean3);
+
+        List<String> hostIds = Arrays.asList("id-5", "id-6", "id-7");
+
+        AgentBean updateBean = new AgentBean();
+        updateBean.setState(AgentState.RESET);
+        updateBean.setDeploy_id("d-2");
+
+        agentDAO.updateMultiple(hostIds, "e-2", updateBean);
+
+        List<AgentBean> beans = agentDAO.getAllByEnv("e-2");
+
+        for (AgentBean bean : beans) {
+            assertEquals(bean.getState(), AgentState.RESET);
+            assertEquals(bean.getDeploy_id(), "d-2");
+        }
+    }
 
     @Test
     public void testFirstDeployCount() throws Exception {
