@@ -23,6 +23,9 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
+
+import com.pinterest.deployservice.bean.ScheduleState;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -38,6 +41,7 @@ public class EnvironHandler {
     private AgentDAO agentDAO;
     private GroupDAO groupDAO;
     private HostDAO hostDAO;
+    private ScheduleDAO scheduleDAO;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
 
@@ -47,6 +51,7 @@ public class EnvironHandler {
         agentDAO = serviceContext.getAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
         hostDAO = serviceContext.getHostDAO();
+        scheduleDAO = serviceContext.getScheduleDAO();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
     }

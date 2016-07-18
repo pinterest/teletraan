@@ -77,6 +77,7 @@ public class ConfigHelper {
         context.setAgentErrorDAO(new DBAgentErrorDAOImpl(dataSource));
 
         context.setTagDAO(new DBTagDAOImpl(dataSource));
+        context.setScheduleDAO(new DBScheduleDAOImpl(dataSource));
 
         // Inject proper implemetation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));

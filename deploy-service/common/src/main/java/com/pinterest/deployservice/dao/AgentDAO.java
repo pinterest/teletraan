@@ -71,4 +71,8 @@ public interface AgentDAO {
     long countNonFirstDeployingAgent(String envId) throws Exception;
 
     long countServingTotal(String envId) throws Exception;
+
+    long countFinishedAgentsByDeploy(String deployId) throws Exception;
+
+    long countAgentsByDeploy(String deployId) throws Exception;
 }

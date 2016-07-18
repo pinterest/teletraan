@@ -49,6 +49,7 @@ public class ServiceContext {
     private TokenRolesDAO tokenRolesDAO;
     private ConfigHistoryDAO configHistoryDAO;
     private TagDAO tagDAO;
+    private ScheduleDAO scheduleDAO;
 
     private String serviceStage;
     private MailManager mailManager;
@@ -337,5 +338,13 @@ public class ServiceContext {
 
     public void setTagDAO(TagDAO tagDAO) {
         this.tagDAO = tagDAO;
+    }
+
+    public ScheduleDAO getScheduleDAO() { 
+        return scheduleDAO; 
+    }
+
+    public void setScheduleDAO(ScheduleDAO scheduleDAO) {
+        this.scheduleDAO = scheduleDAO;
     }
 }
