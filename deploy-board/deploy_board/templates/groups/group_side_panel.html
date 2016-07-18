@@ -36,7 +36,7 @@
     </div>
 {% endif %}
 
-{% if asg_vm_config and asg_vm_config.asg_status != "UNKNOWN" %}
+{% if not is_cmp and asg_vm_config and asg_vm_config.asg_status != "UNKNOWN" %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block" data-target="#deleteAutoScalingModalId"
             data-toggle="modal" title="Delete auto scaling group">

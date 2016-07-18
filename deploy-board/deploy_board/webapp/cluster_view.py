@@ -489,6 +489,13 @@ def get_aws_config_name_list_by_image(image_name):
     if IS_PINTEREST:
         config_map['pinfo_environment'] = 'prod'
         config_map['raid'] = 'true'
+        config_map['raid_mount'] = '/mnt'
+        config_map['raid_device'] = '/dev/md0'
+        config_map['raid_fs'] = 'xfs'
+        config_map['ebs'] = 'true'
+        config_map['ebs_size'] = 500
+        config_map['ebs_mount'] = '/backup'
+        config_map['ebs_volume_type'] = 'gp2'
         if image_name == 'CMP-DOCKER':
             config_map['pinfo_role'] = 'cmp_docker'
             config_map['pinfo_team'] = 'cloudeng'
@@ -563,6 +570,10 @@ def force_terminate_hosts(request, name, stage):
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
     cluster_name = common.get_cluster_name(request, name, stage)
+    if not cluster_name:
+        groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
+        for group_name in groups:
+            cluster_name = group_name
     clusters_helper.force_terminate_hosts(request, cluster_name, host_ids)
     return redirect('/env/{}/{}'.format(name, stage))
 
