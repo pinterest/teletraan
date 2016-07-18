@@ -107,6 +107,7 @@ public class ConfigHelper {
         context.setManagingGroupDAO(new DBManaginGroupDAOImpl(dataSource));
         context.setPasConfigDAO(new DBPasConfigDAOImpl(dataSource));
         context.setGroupMappingDAO(new DBGroupMappingDAOImpl(dataSource));
+        context.setScheduleDAO(new DBScheduleDAOImpl(dataSource));
 
         // Inject proper implemetation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));

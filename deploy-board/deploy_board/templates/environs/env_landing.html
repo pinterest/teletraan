@@ -59,6 +59,13 @@
     {% endif %}
     {% endif %}
     {% endif %}
+    <div class="row">
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/schedule"
+            type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip" title="Check current deploy schedule">
+            <span class="glyphicon glyphicon-time"></span> Deploy Schedule
+        </a>
+    </div>
     <!--div class="row">
         <a href="/builds/{{ env.envName }}/{{ env.stageName }}/start_build/" type="button" class="deployToolTip btn btn-default btn-block"
            data-toggle="tooltip" title="Create a private build for current environment">

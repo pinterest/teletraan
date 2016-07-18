@@ -19,11 +19,13 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentErrorBean;
 import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployGoalBean;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.OpCode;
 import com.pinterest.deployservice.bean.PingReportBean;
@@ -39,6 +41,7 @@ import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -84,6 +87,7 @@ public class PingHandler {
     private EnvironDAO environDAO;
     private HostDAO hostDAO;
     private UtilDAO utilDAO;
+    private ScheduleDAO scheduleDAO;
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
     private LoadingCache<String, DeployBean> deployCache;
@@ -96,6 +100,7 @@ public class PingHandler {
         environDAO = serviceContext.getEnvironDAO();
         hostDAO = serviceContext.getHostDAO();
         utilDAO = serviceContext.getUtilDAO();
+        scheduleDAO = serviceContext.getScheduleDAO();
         dataHandler = new DataHandler(serviceContext);
 
         if (serviceContext.isBuildCacheEnabled()) {
@@ -348,7 +353,7 @@ public class PingHandler {
 
         // Find all agent records for this host, convert to envId based map
         List<AgentBean> agentBeans = agentDAO.getByHost(hostName);
-        Map<String, AgentBean> agents = convertAgentBeans(agentBeans);
+        Map<String, AgentBean> agents = convertAgentBeans(agentBeans); //database agent
 
         // Now we have all the relevant envs, reports and agents, let us do some
         // analysis & pick the potential install candidate and uninstall candidate
@@ -363,13 +368,80 @@ public class PingHandler {
         if (!installCandidates.isEmpty()) {
             GoalAnalyst.InstallCandidate installCandidate = installCandidates.get(0);
             AgentBean updateBean = installCandidate.updateBean;
-            if (installCandidate.needWait) {
+            EnvironBean env = installCandidate.env;
+            String scheduleId = env.getSchedule_id();
+            ScheduleBean schedule = null;
+            String hostNumbers = null;
+            String cooldownTimes = null;
+            Integer currentSession = null;
+            Integer totalSessions = null;
+            String[] hostNumbersList = null;
+            String[] cooldownTimesList = null;
+            if (scheduleId != null) {
+                schedule = scheduleDAO.getById(scheduleId);
+                hostNumbers = schedule.getHost_numbers();
+                cooldownTimes = schedule.getCooldown_times();
+                currentSession = schedule.getCurrent_session();
+                totalSessions = schedule.getTotal_sessions();
+                hostNumbersList = hostNumbers.split(",");
+                cooldownTimesList = cooldownTimes.split(",");
+            }
+            
+            if (scheduleId != null && schedule.getState() == ScheduleState.NOT_STARTED) { // what if it's final session? 
+                LOG.debug("Starting deploy on Env {} now. Changed schedule's state to RUNNING");
+                ScheduleBean updateScheduleBean = new ScheduleBean();
+                updateScheduleBean.setId(schedule.getId());
+                updateScheduleBean.setState(ScheduleState.RUNNING);
+                updateScheduleBean.setCurrent_session(1);
+                scheduleDAO.update(updateScheduleBean, schedule.getId());
+            }
+            if (installCandidate.needWait) { // new candidate 
                 LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
-                if (canDeploy(installCandidate.env, hostName, updateBean)) {
+                if (scheduleId != null && schedule.getState() == ScheduleState.COOLING_DOWN) { 
+                    // check if cooldown period is over
+                    if (System.currentTimeMillis() - schedule.getState_start_time() > Integer.parseInt(cooldownTimesList[currentSession-1]) * 60000) {
+                        ScheduleBean updateScheduleBean = new ScheduleBean();
+                        updateScheduleBean.setId(schedule.getId());
+                        if (totalSessions == currentSession) {
+                            updateScheduleBean.setState(ScheduleState.FINAL); 
+                            LOG.debug("Env {} is now going into final deloy stage and will deploy on the rest of all of the hosts.");
+                        } else {
+                            updateScheduleBean.setState(ScheduleState.RUNNING);  
+                            updateScheduleBean.setCurrent_session(currentSession+1);
+                            LOG.debug("Env {} has finished cooling down and will now start resume deploy by running session {}", currentSession+1);
+                        }
+                        updateScheduleBean.setState_start_time(System.currentTimeMillis());
+                        scheduleDAO.update(updateScheduleBean, schedule.getId());
+                    } else {
+                        LOG.debug("Env {} is currently cooling down. Host {} will wait until the cooling down period is over.");
+                        return NOOP;
+                    }
+                } 
+                if (canDeploy(env, hostName, updateBean)) {
                     // use the updateBean in the installCandidate instead
-                    LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
-                    updateBeans.put(updateBean.getEnv_id(), updateBean);
-                    response = generateInstallResponse(installCandidate);
+                    int totalHosts = 0;
+                    if (schedule != null) {
+                        for (int i = 0; i < currentSession; i++) {
+                            totalHosts+=Integer.parseInt(hostNumbersList[i]);
+                        }
+                    }
+
+                    // if the number of hosts for that session has finished running change state to cooling down
+                    // greater and not >= because new agent bean is created inside goalanalyst analysis
+                    if (schedule != null && agentDAO.countAgentByDeploy(env.getDeploy_id()) > totalHosts && schedule.getState() == ScheduleState.RUNNING) {
+                        ScheduleBean updateScheduleBean = new ScheduleBean();
+                        updateScheduleBean.setId(schedule.getId());
+                        updateScheduleBean.setState(ScheduleState.COOLING_DOWN);
+                        updateScheduleBean.setState_start_time(System.currentTimeMillis());
+                        scheduleDAO.update(updateScheduleBean, schedule.getId());
+                        LOG.debug("Env {} has finished running session {} and will not begin cooling down", currentSession);
+
+                    } else {
+                        LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
+                        updateBeans.put(updateBean.getEnv_id(), updateBean);
+                        response = generateInstallResponse(installCandidate);
+                    }
+                    
                 } else {
                     LOG.debug("Host {} for env {} needs to wait for its turn to install.",
                             hostName, updateBean.getEnv_id());
