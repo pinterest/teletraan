@@ -74,7 +74,6 @@ public class ServiceContext {
     private SpotAutoScalingDAO spotAutoScalingDAO;
     private PasConfigDAO pasConfigDAO;
     private TagDAO tagDAO;
-    private ScheduleDAO scheduleDAO;
 
     private String serviceStage;
     private MailManager mailManager;
@@ -568,12 +567,4 @@ public class ServiceContext {
     public GroupMappingDAO getGroupMappingDAO() { return groupMappingDAO; }
 
     public void setGroupMappingDAO(GroupMappingDAO groupMappingDAO) { this.groupMappingDAO = groupMappingDAO; }
-
-    public ScheduleDAO getScheduleDAO() { 
-        return scheduleDAO; 
-    }
-
-    public void setScheduleDAO(ScheduleDAO scheduleDAO) {
-        this.scheduleDAO = scheduleDAO;
-    }
 }
