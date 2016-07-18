@@ -29,7 +29,6 @@ import com.pinterest.deployservice.bean.DeployType;
 import com.pinterest.deployservice.bean.EnvWebHookBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.PromoteBean;
-import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.PromoteDisablePolicy;
 import com.pinterest.deployservice.bean.PromoteType;
 import com.pinterest.deployservice.bean.OverridePolicy;
@@ -45,11 +44,9 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
-import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.scm.SourceControlManager;
-import com.pinterest.deployservice.bean.ScheduleState;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -78,7 +75,6 @@ public class DeployHandler {
     private BuildDAO buildDAO;
     private PromoteDAO promoteDAO;
     private AgentDAO agentDAO;
-    private ScheduleDAO scheduleDAO;
     private BasicDataSource dataSource;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
@@ -174,7 +170,6 @@ public class DeployHandler {
         buildDAO = serviceContext.getBuildDAO();
         promoteDAO = serviceContext.getPromoteDAO();
         agentDAO = serviceContext.getAgentDAO();
-        scheduleDAO = serviceContext.getScheduleDAO();
         dataSource = serviceContext.getDataSource();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
@@ -353,15 +348,6 @@ public class DeployHandler {
 
         disableAutoPromote(envBean, operator, false);
 
-        String scheduleId = envBean.getSchedule_id();
-        if (scheduleId != null) {
-            ScheduleBean updateBean = new ScheduleBean();
-            updateBean.setState(ScheduleState.NOT_STARTED);
-            updateBean.setState_start_time(System.currentTimeMillis());
-            updateBean.setCurrent_session(1);
-            scheduleDAO.update(updateBean, scheduleId);
-        }
-
         return internalDeploy(envBean, deployBean);
     }
 
@@ -446,14 +432,6 @@ public class DeployHandler {
 
         disableAutoPromote(envBean, operator, false);
 
-        String scheduleId = envBean.getSchedule_id();
-        if (scheduleId != null) {
-            ScheduleBean updateBean = new ScheduleBean();
-            updateBean.setState(ScheduleState.NOT_STARTED);
-            updateBean.setState_start_time(System.currentTimeMillis());
-            updateBean.setCurrent_session(1);
-            scheduleDAO.update(updateBean, scheduleId);
-        }
         return internalDeploy(envBean, deployBean);
     }
 }

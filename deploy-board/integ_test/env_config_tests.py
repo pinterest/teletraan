@@ -15,12 +15,10 @@
 # -*- coding: utf-8 -*-
 import unittest
 import commons
-import json
 
 builds_helper = commons.get_build_helper()
 environs_helper = commons.get_environ_helper()
 systems_helper = commons.get_system_helper()
-schedules_helper = commons.get_schedule_helper()
 
 
 class TestEnvirons(unittest.TestCase):
@@ -249,27 +247,6 @@ class TestEnvirons(unittest.TestCase):
                                                         TestEnvirons.stageName)
         self.assertEquals(hooks, newHooks)
 
-    def testScheduleConfigs(self):
-        schedule = {}
-        schedule["cooldownTimes"] = "20,30,40"
-        schedule["hostNumbers"] = "30,50,70"
-        schedule["totalSessions"] = 3
-        schedules_helper.update_schedule(commons.REQUEST, TestEnvirons.envName, TestEnvirons.stageName, schedule)
-
-        scheduleId = environs_helper.get_env_by_stage(commons.REQUEST, TestEnvirons.envName,
-                                                        TestEnvirons.stageName)['scheduleId']
-        envSchedule = schedules_helper.get_schedule(commons.REQUEST, scheduleId)
-
-        newSchedule = {}
-        newSchedule[u'cooldownTimes'] = u'20,30,40'
-        newSchedule[u'hostNumbers'] = u'30,50,70'
-        newSchedule[u'totalSessions'] = 3
-        newSchedule[u'state'] = u'NOT_STARTED'
-        newSchedule[u'id'] = scheduleId
-        newSchedule[u'currentSession'] = 0
-        newSchedule[u'stateStartTime'] = envSchedule[u'stateStartTime']
-
-        self.assertEquals(newSchedule, envSchedule)
 
 if __name__ == '__main__':
     unittest.main()

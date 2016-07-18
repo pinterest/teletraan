@@ -40,4 +40,3 @@ DROP TABLE IF EXISTS user_ratings;
 DROP TABLE IF EXISTS users_and_roles;
 DROP TABLE IF EXISTS cluster_upgrade_events;
 DROP TABLE IF EXISTS pas_configs;
-DROP TABLE IF EXISTS schedules

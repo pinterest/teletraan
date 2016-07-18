@@ -180,10 +180,6 @@ class TestPings(unittest.TestCase):
         self.assertEquals(goal['build']['commit'], self.commit)
         self.assertEquals(goal['agentConfigs']['a-c-n'], 'a-c-v')
 
-    def test_ping_schedule(self): 
-        response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'], )
-        goal = response['deployGoal']
-
 
 if __name__ == '__main__':
     unittest.main()

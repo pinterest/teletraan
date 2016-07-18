@@ -168,9 +168,6 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("overridePolicy")
     private OverridePolicy override_policy;
 
-    @JsonProperty("scheduleId")
-    private String schedule_id;
-
     public String getWebhooks_config_id() {
         return webhooks_config_id;
     }
@@ -443,14 +440,6 @@ public class EnvironBean implements Updatable, Serializable {
         this.override_policy = override_policy;
     }
 
-    public String getSchedule_id() {
-        return schedule_id;
-    }
-
-    public void setSchedule_id(String schedule_id) {
-        this.schedule_id = schedule_id;
-    }
-
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -488,7 +477,6 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("cluster_name", cluster_name);
         clause.addColumn("max_parallel_rp", max_parallel_rp);
         clause.addColumn("override_policy", override_policy);
-        clause.addColumn("schedule_id", schedule_id);
         return clause;
     }
 
