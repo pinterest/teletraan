@@ -24,7 +24,7 @@ import logging
 import traceback
 
 from helpers import environs_helper, clusters_helper
-from helpers import images_helper, groups_helper
+from helpers import groups_helper, baseimages_helper
 from helpers import specs_helper, autoscaling_groups_helper
 from helpers import autoscaling_metrics_helper
 from diff_match_patch import diff_match_patch
@@ -67,9 +67,9 @@ def get_launch_config(request, group_name):
 
         if launch_config and launch_config.get("subnets"):
             launch_config["subnetArrays"] = launch_config["subnets"].split(',')
-        appNames = images_helper.get_all_app_names(request)
+        appNames = baseimages_helper.get_image_names(request, 'AWS')
         appNames = sorted(appNames)
-        curr_image = images_helper.get_image_by_id(request, launch_config["imageId"])
+        curr_image = baseimages_helper.get_by_provider_name(request, launch_config["imageId"])
         html = render_to_string('groups/launch_config.tmpl', {
             "group_name": group_name,
             "app_names": appNames,
@@ -822,14 +822,14 @@ class GenerateDiff(diff_match_patch):
 class GroupConfigView(View):
     def get(self, request, group_name):
         asg_cluster = autoscaling_groups_helper.get_group_info(request, group_name)
-        appNames = images_helper.get_all_app_names(request)
+        appNames = baseimages_helper.get_image_names(request, 'AWS')
         appNames = sorted(appNames)
         is_cmp = False
         if asg_cluster:
             asg_vm_info = asg_cluster.get("launchInfo")
             curr_image = None
             if asg_vm_info:
-                curr_image = images_helper.get_image_by_id(request, asg_vm_info["imageId"])
+                curr_image = baseimages_helper.get_by_provider_name(request, asg_vm_info["imageId"])
                 if asg_vm_info.get("subnets"):
                     asg_vm_info["subnetArrays"] = asg_vm_info["subnets"].split(',')
             group_info = asg_cluster.get("groupInfo")
@@ -882,7 +882,7 @@ class GroupDetailView(View):
 def get_aws_settings(request):
     params = request.GET
     app_name = params["app_name"]
-    images = images_helper.get_all_images_by_app(request, app_name)
+    images = baseimages_helper.get_by_name(request, app_name)
     contents = render_to_string("groups/get_ami.tmpl",
                                 {"aws_images": images,
                                  "curr_image_id": params["curr_image_id"]})

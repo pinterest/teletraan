@@ -265,7 +265,7 @@ def get_promote_disable_policies(context):
 @register.assignment_tag(takes_context=True)
 def get_override_policies(context):
     return environs_helper.OVERRIDE_POLICY_VALUES
-    
+
 @register.assignment_tag(takes_context=True)
 def get_advanced_config_names(context):
     configNames = []
@@ -787,12 +787,12 @@ def genSubnetId(value):
 
 @register.filter("genImageInfo")
 def genImageInfo(value):
-    temp_time = datetime.fromtimestamp(value.get("publishDate") / 1000,
+    temp_time = datetime.fromtimestamp(value.get("publish_date") / 1000,
                                        pytz.timezone('America/Los_Angeles'))
     symbol = "X"
     if value.get("qualified"):
         symbol = "V"
-    return "{} | {} | {} | {}".format(value.get("id"), value.get("app_name"),
+    return "{} | {} | {} | {}".format(value.get("abstract_name"), value.get("provider_name"),
                                       temp_time.strftime("%Y-%m-%d %H:%M:%S"), symbol)
 
 
