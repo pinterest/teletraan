@@ -27,6 +27,9 @@ public class SystemFactory {
     private String changeFeedUrl;
 
     @JsonProperty
+    private boolean disableStackTrace;
+
+    @JsonProperty
     private String quboleAuthentication;
 
     public String getDashboardUrl() {
@@ -43,5 +46,13 @@ public class SystemFactory {
 
     public void setChangeFeedUrl(String changeFeedUrl) {
         this.changeFeedUrl = changeFeedUrl;
+    }
+
+    public boolean isDisableStackTrace() {
+        return disableStackTrace;
+    }
+
+    public void setDisableStackTrace(boolean disableStackTrace) {
+        this.disableStackTrace = disableStackTrace;
     }
 }

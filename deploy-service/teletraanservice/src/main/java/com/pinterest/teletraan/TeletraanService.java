@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan;
 
+import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.*;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -158,6 +159,11 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         ConfigHelper.scheduleWorkers(configuration, context);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
+
+        // Exception handler
+        if (!configuration.getSystemFactory().isDisableStackTrace()) {
+            environment.jersey().register(new GenericExceptionMapper());
+        }
 
         // Swagger API docs generation related
         environment.jersey().register(new ApiListingResource());
