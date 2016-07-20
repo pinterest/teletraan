@@ -24,7 +24,6 @@ import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.clusterservice.cm.ClusterManager;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,12 +32,10 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -62,7 +59,6 @@ public class EnvDeploys {
     private EnvironHandler environHandler;
     private DeployHandler deployHandler;
     private AgentDAO agentDAO;
-    private ClusterManager clusterManager;
 
     @Context
     UriInfo uriInfo;
@@ -74,7 +70,6 @@ public class EnvDeploys {
         environHandler = new EnvironHandler(context);
         deployHandler = new DeployHandler(context);
         agentDAO = context.getAgentDAO();
-        clusterManager = context.getClusterManager();
     }
 
     @GET
@@ -173,7 +168,8 @@ public class EnvDeploys {
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
         }
     }
-        
+
+    @POST
     @ApiOperation(
             value = "Create a deploy",
             notes = "Creates a deploy given an environment name, stage name, build id and description",
