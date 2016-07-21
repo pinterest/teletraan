@@ -43,7 +43,7 @@ public class TSDBMetricSource extends BaseMetricSource {
         HashMap<String, String> headers = new HashMap<>();
 
         String url = String.format("%s/api/query", readPath);
-        String jsonPayload = httpClient.get(url, params, headers, 1);
+        String jsonPayload = httpClient.get(url, null, params, headers, 1);
         LOG.debug(String.format("Get metric data from source: %s", jsonPayload));
 
         GsonBuilder builder = new GsonBuilder();

@@ -120,40 +120,10 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         Pings pings = new Pings(context);
         environment.jersey().register(pings);
 
-        BaseImages baseImages = new BaseImages(context);
-        environment.jersey().register(baseImages);
-
-        HostTypes hostTypes = new HostTypes(context);
-        environment.jersey().register(hostTypes);
-
-        SecurityZones securityZones = new SecurityZones(context);
-        environment.jersey().register(securityZones);
-
-        Placements placements = new Placements(context);
-        environment.jersey().register(placements);
-
-        Clusters clusters = new Clusters(context);
-        environment.jersey().register(clusters);
-
         environment.jersey().register(new Tags(context));
 
-        // TODO Arcee specific
-        if (configuration.getAwsFactory() != null) {
-            Groups groups = new Groups(context);
-            environment.jersey().register(groups);
-
-            Images images = new Images(context);
-            environment.jersey().register(images);
-
-            AutoScalingGroups autoScalingGroups = new AutoScalingGroups(context);
-            environment.jersey().register(autoScalingGroups);
-
-            AutoScalingMetrics autoScalingMetrics = new AutoScalingMetrics(context);
-            environment.jersey().register(autoScalingMetrics);
-
-            Specs specs = new Specs(context);
-            environment.jersey().register(specs);
-        }
+        Groups groups = new Groups(context);
+        environment.jersey().register(groups);
 
         // Schedule workers if configured
         ConfigHelper.scheduleWorkers(configuration, context);

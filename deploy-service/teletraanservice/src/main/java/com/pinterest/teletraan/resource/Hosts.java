@@ -15,7 +15,6 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.pinterest.arcee.handler.ProvisionHandler;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.HostDAO;

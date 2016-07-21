@@ -76,6 +76,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("autoscaling")
     private AutoScalingFactory autoScalingFactory;
 
+    @Valid
+    @JsonProperty("rodimus")
+    private RodimusFactory rodimusFactory;
+
     public DataSourceFactory getDataSourceFactory() {
         if (dataSourceFactory == null) {
             return new EmbeddedDataSourceFactory();
@@ -198,6 +202,14 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setAutoScalingFactory(AutoScalingFactory autoScalingFactory) {
         this.autoScalingFactory = autoScalingFactory;
+    }
+
+    public RodimusFactory getRodimusFactory() {
+        return rodimusFactory;
+    }
+
+    public void setRodimusFactory(RodimusFactory rodimusFactory) {
+        this.rodimusFactory = rodimusFactory;
     }
 
     public List<WorkerConfig> getWorkerConfigs() {

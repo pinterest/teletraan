@@ -18,20 +18,8 @@ package com.pinterest.arcee.common;
 
 
 public class AutoScalingConstants {
-    public final static String DEFAULT_INSTANCE_TYPE = "c3.2xlarge";
-    public final static String DEFAULT_SECURITY_GROUP = "sg-5fb76336"; // berry_security
     public final static int DEFAULT_LAUNCH_LATENCY_THRESHOLD = 600;
-    public final static String DEFAULT_IAM_ROLE = "base";
-    public final static int DEFAULT_GROUP_CAPACITY = 0;
-
-    public final static String ASG_GROW = "GROW";
     public final static String ASG_SHRINK = "SHRINK";
-
-    public final static String LIFECYCLE_ACTION_CONTINUE = "CONTINUE";
-    public final static String LIFECYCLE_ACTION_ABANDON = "ABANDON";
-    public final static long LIFECYCLE_TIMEOUT = 600;
-
-    public static final String PROCESS_LAUNCH = "Launch";
     public static final String PROCESS_ALARMNOTIFICATION = "AlarmNotification";
     public static final String PROCESS_SCHEDULEDACTIONS = "ScheduledActions";
 }

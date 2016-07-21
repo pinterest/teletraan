@@ -16,21 +16,17 @@
 package com.pinterest.teletraan.worker;
 
 
-import com.pinterest.clusterservice.bean.AwsVmBean;
-import com.pinterest.deployservice.bean.ASGStatus;
 import com.pinterest.arcee.bean.GroupBean;
 import com.pinterest.arcee.dao.GroupInfoDAO;
-import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.group.HostGroupManager;
-import com.pinterest.deployservice.dao.UtilDAO;
-import com.pinterest.deployservice.handler.CommonHandler;
+import com.pinterest.deployservice.rodimus.RodimusManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.util.*;
 
 /**
@@ -42,17 +38,17 @@ import java.util.*;
  */
 public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
-    private HostInfoDAO hostInfoDAO;
     private HostGroupManager hostGroupDAO;
     private GroupInfoDAO groupInfoDAO;
+    private final RodimusManager rodimusManager;
     private long maxLaunchLatencyThreshold;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
         int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
         super(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
-        hostInfoDAO = serviceContext.getHostInfoDAO();
         hostGroupDAO = serviceContext.getHostGroupDAO();
         groupInfoDAO = serviceContext.getGroupInfoDAO();
+        rodimusManager = serviceContext.getRodimusManager();
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
 
@@ -60,7 +56,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
         if (staleHostIds.isEmpty()) {
             return;
         }
-        Set<String> terminatedHosts = hostInfoDAO.getTerminatedHosts(new HashSet<>(staleHostIds));
+
+        Collection<String> terminatedHosts = rodimusManager.getTerminatedHosts(staleHostIds);
         if (isMarkedUnreachable) {
             for (String staleId : staleHostIds) {
                 if (terminatedHosts.contains(staleId)) {
@@ -177,7 +174,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
         // Check the instance is not launched from Teletraan/Autoscaling
         Set<String> ids = cmdbReportedHosts.keySet();
-        Set<String> terminatedIds = hostInfoDAO.getTerminatedHosts(ids);
+        Collection<String> terminatedIds = rodimusManager.getTerminatedHosts(ids);
 
         for (Map.Entry<String, HostBean> host : cmdbReportedHosts.entrySet()) {
             try {

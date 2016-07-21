@@ -77,10 +77,10 @@ public class QuboleLeaseManager implements LeaseDAO {
     public QuboleClusterBean getCluster(String clusterName) throws Exception {
         HTTPClient client = new HTTPClient();
         String statePath = String.format("%s/clusters/%s/state",API_URL, clusterName);
-        String clusterState = client.get(statePath, null, generateHeaders(), 3);
+        String clusterState = client.get(statePath, null, null, generateHeaders(), 3);
 
         String configurationPath = String.format("%s/clusters/%s", API_URL, clusterName);
-        String configuration = client.get(configurationPath, null, generateHeaders(), 3);
+        String configuration = client.get(configurationPath, null, null, generateHeaders(), 3);
         return fromJson(clusterName, configuration, clusterState);
     }
 

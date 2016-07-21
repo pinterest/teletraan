@@ -112,7 +112,7 @@ public class GithubManager extends BaseManager {
         String url = String.format("%s/repos/%s/commits/%s", apiPrefix, repo, sha);
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
-        String jsonPayload = httpClient.get(url, null, headers, 1);
+        String jsonPayload = httpClient.get(url, null, null, headers, 1);
         GsonBuilder builder = new GsonBuilder();
         Map<String, Object>
             jsonMap =
@@ -131,7 +131,7 @@ public class GithubManager extends BaseManager {
         Map<String, String> params = new HashMap<String, String>();
         params.put("sha", startSha);
 
-        String jsonPayload = httpClient.get(url, params, headers, 1);
+        String jsonPayload = httpClient.get(url, null, params, headers, 1);
         Queue<CommitBean> CommitBeans = new LinkedList<CommitBean>();
         GsonBuilder builder = new GsonBuilder();
         Map<String, Object>[]

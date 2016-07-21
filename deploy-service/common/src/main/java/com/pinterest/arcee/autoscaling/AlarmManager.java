@@ -16,25 +16,10 @@
 package com.pinterest.arcee.autoscaling;
 
 
-import com.pinterest.arcee.bean.AsgAlarmBean;
-import com.pinterest.arcee.bean.MetricDatumBean;
-
-import java.util.Collection;
 import java.util.List;
 
 public interface AlarmManager {
-
-    void putAlarmToPolicy(String actionId, String clusterName, AsgAlarmBean asgAlarmBean) throws Exception;
-
-    void deleteAlarmFromPolicy(AsgAlarmBean asgAlarmBean) throws Exception;
-
-    void putMetricsToAlarm(String groupName, String metricName, Collection<MetricDatumBean> metricDataPoints) throws Exception;
-
     void disableAlarm(List<String> actionId, String groupName) throws Exception;
 
     void enableAlarm(List<String> actionId, String groupName) throws Exception;
-
-    List<String> listAwsMetrics(String groupName) throws Exception;
-
-    List<MetricDatumBean> getMetricsStatistics(String groupName, String metricName, String startFrom) throws Exception;
 }

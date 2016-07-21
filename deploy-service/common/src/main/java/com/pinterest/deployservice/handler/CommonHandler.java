@@ -15,8 +15,6 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.pinterest.arcee.bean.ImageBean;
-import com.pinterest.arcee.dao.ImageDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.chat.ChatManager;
@@ -39,12 +37,10 @@ import java.util.concurrent.TimeUnit;
 
 public class CommonHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CommonHandler.class);
-    private static final String DEFAULT_APP_NAME = "golden_12.04";
     private DeployDAO deployDAO;
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
     private AgentDAO agentDAO;
-    private ImageDAO imageDAO;
     private UtilDAO utilDAO;
     private ChatManager chatManager;
     private EventSender sender;
@@ -116,7 +112,6 @@ public class CommonHandler {
         environDAO = serviceContext.getEnvironDAO();
         buildDAO = serviceContext.getBuildDAO();
         agentDAO = serviceContext.getAgentDAO();
-        imageDAO = serviceContext.getImageDAO();
         utilDAO = serviceContext.getUtilDAO();
         sender = serviceContext.getEventSender();
         chatManager = serviceContext.getChatManager();
@@ -414,21 +409,6 @@ public class CommonHandler {
             !deployBean.getTotal().equals(newPartialDeployBean.getTotal())) {
             deployDAO.updateStateSafely(deployId, state.toString(), newPartialDeployBean);
             LOG.info("Updated deploy {} with deploy bean = {}.", deployId, newPartialDeployBean);
-        }
-    }
-
-    public String getDefaultImageId(String groupName) throws Exception {
-        List<ImageBean> imageBeans = imageDAO.getImages(groupName, 1, 10);
-        if (imageBeans != null && !imageBeans.isEmpty()) {
-            return imageBeans.get(0).getId();
-        }
-
-        // by default, return golden_12.04 image
-        List<ImageBean> defaultImageBeans = imageDAO.getImages(DEFAULT_APP_NAME, 1, 10);
-        if (defaultImageBeans != null && !defaultImageBeans.isEmpty()) {
-            return defaultImageBeans.get(0).getId();
-        } else {
-            return null;
         }
     }
 }

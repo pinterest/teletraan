@@ -22,14 +22,12 @@ import com.pinterest.arcee.autoscaling.AutoScalingManager;
 import com.pinterest.arcee.aws.AwsConfigManager;
 import com.pinterest.arcee.dao.*;
 import com.pinterest.arcee.metrics.MetricSource;
-import com.pinterest.clusterservice.aws.AwsManager;
-import com.pinterest.clusterservice.dao.*;
-import com.pinterest.clusterservice.cm.ClusterManager;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.email.MailManager;
 import com.pinterest.deployservice.events.EventSender;
 import com.pinterest.deployservice.group.HostGroupManager;
+import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManager;
 
 import org.apache.commons.dbcp.BasicDataSource;
@@ -51,7 +49,6 @@ public class ServiceContext {
     private RatingDAO ratingDAO;
     private EventSender eventSender;
     private PromoteDAO promoteDAO;
-    private HostInfoDAO hostInfoDAO;
     private GroupDAO groupDAO;
     private GroupInfoDAO groupInfoDAO;
     private AlarmManager alarmManager;
@@ -59,20 +56,8 @@ public class ServiceContext {
     private UserRolesDAO userRolesDAO;
     private GroupRolesDAO groupRolesDAO;
     private TokenRolesDAO tokenRolesDAO;
-    private ImageDAO imageDAO;
-    private HealthCheckDAO healthCheckDAO;
-    private HealthCheckErrorDAO healthCheckErrorDAO;
-    private NewInstanceReportDAO newInstanceReportDAO;
-    private AsgLifecycleEventDAO asgLifecycleEventDAO;
     private ConfigHistoryDAO configHistoryDAO;
-    private ClusterDAO clusterDAO;
-    private BaseImageDAO baseImageDAO;
-    private HostTypeDAO hostTypeDAO;
-    private SecurityZoneDAO securityZoneDAO;
-    private PlacementDAO placementDAO;
-    private ClusterUpgradeEventDAO clusterUpgradeEventDAO;
     private SpotAutoScalingDAO spotAutoScalingDAO;
-    private PasConfigDAO pasConfigDAO;
     private TagDAO tagDAO;
 
     private String serviceStage;
@@ -80,13 +65,12 @@ public class ServiceContext {
     private SourceControlManager sourceControlManager;
     private ChatManager chatManager;
     private ExecutorService jobPool;
-    private ClusterManager clusterManager;
-    private AwsManager awsManager;
     private AmazonEC2Client ec2Client;
     private AWSCredentials awsCredentials;
     private AutoScalingManager autoScalingManager;
     private MetricSource metricSource;
     private AwsConfigManager awsConfigManager;
+    private RodimusManager rodimusManager;
 
     private boolean buildCacheEnabled;
     private String buildCacheSpec;
@@ -97,18 +81,9 @@ public class ServiceContext {
 
     private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
     private ManagingGroupDAO managingGroupDAO;
-    private GroupMappingDAO groupMappingDAO;
 
     private String quboleAuthentication;
     private int spotAutoScalingThreshold;
-
-    public PasConfigDAO getPasConfigDAO() {
-        return pasConfigDAO;
-    }
-
-    public void setPasConfigDAO(PasConfigDAO pasConfigDAO) {
-        this.pasConfigDAO = pasConfigDAO;
-    }
 
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;
@@ -246,54 +221,6 @@ public class ServiceContext {
         return hostGroupDAO;
     }
 
-    public void setHostInfoDAO(HostInfoDAO hostInfoDAO) {
-        this.hostInfoDAO = hostInfoDAO;
-    }
-
-    public HostInfoDAO getHostInfoDAO() {
-        return this.hostInfoDAO;
-    }
-
-    public void setImageDAO(ImageDAO imageDAO) {
-        this.imageDAO = imageDAO;
-    }
-
-    public ImageDAO getImageDAO() {
-        return imageDAO;
-    }
-
-    public void setHealthCheckDAO(HealthCheckDAO healthCheckDAO) {
-        this.healthCheckDAO = healthCheckDAO;
-    }
-
-    public HealthCheckDAO getHealthCheckDAO() {
-        return healthCheckDAO;
-    }
-
-    public void setHealthCheckErrorDAO(HealthCheckErrorDAO healthCheckErrorDAO) {
-        this.healthCheckErrorDAO = healthCheckErrorDAO;
-    }
-
-    public HealthCheckErrorDAO getHealthCheckErrorDAO() {
-        return healthCheckErrorDAO;
-    }
-
-    public void setnewInstanceReportDAO(NewInstanceReportDAO newInstanceReportDAO) {
-        this.newInstanceReportDAO = newInstanceReportDAO;
-    }
-
-    public NewInstanceReportDAO getNewInstanceReportDAO() {
-        return newInstanceReportDAO;
-    }
-
-    public void setAsgLifecycleEventDAO(AsgLifecycleEventDAO asgLifecycleEventDAO) {
-        this.asgLifecycleEventDAO = asgLifecycleEventDAO;
-    }
-
-    public AsgLifecycleEventDAO getAsgLifecycleEventDAO() {
-        return asgLifecycleEventDAO;
-    }
-
     public ReservedInstanceInfoDAO getReservedInstanceInfoDAO() {
         return reservedInstanceInfoDAO;
     }
@@ -308,54 +235,6 @@ public class ServiceContext {
 
     public ConfigHistoryDAO getConfigHistoryDAO() {
         return configHistoryDAO;
-    }
-
-    public ClusterDAO getClusterDAO() {
-        return clusterDAO;
-    }
-
-    public void setClusterDAO(ClusterDAO clusterDAO) {
-        this.clusterDAO = clusterDAO;
-    }
-
-    public BaseImageDAO getBaseImageDAO() {
-        return baseImageDAO;
-    }
-
-    public void setBaseImageDAO(BaseImageDAO baseImageDAO) {
-        this.baseImageDAO = baseImageDAO;
-    }
-
-    public HostTypeDAO getHostTypeDAO() {
-        return hostTypeDAO;
-    }
-
-    public void setHostTypeDAO(HostTypeDAO hostTypeDAO) {
-        this.hostTypeDAO = hostTypeDAO;
-    }
-
-    public SecurityZoneDAO getSecurityZoneDAO() {
-        return securityZoneDAO;
-    }
-
-    public void setSecurityZoneDAO(SecurityZoneDAO securityZoneDAO) {
-        this.securityZoneDAO = securityZoneDAO;
-    }
-
-    public PlacementDAO getPlacementDAO() {
-        return placementDAO;
-    }
-
-    public void setPlacementDAO(PlacementDAO placementDAO) {
-        this.placementDAO = placementDAO;
-    }
-
-    public ClusterUpgradeEventDAO getClusterUpgradeEventDAO() {
-        return clusterUpgradeEventDAO;
-    }
-
-    public void setClusterUpgradeEventDAO(ClusterUpgradeEventDAO clusterUpgradeEventDAO) {
-        this.clusterUpgradeEventDAO = clusterUpgradeEventDAO;
     }
 
     public SpotAutoScalingDAO getSpotAutoScalingDAO() { return spotAutoScalingDAO; }
@@ -450,22 +329,6 @@ public class ServiceContext {
         this.tokenRolesDAO = tokenRolesDAO;
     }
 
-    public ClusterManager getClusterManager() {
-        return clusterManager;
-    }
-
-    public void setClusterManager(ClusterManager clusterManager) {
-        this.clusterManager = clusterManager;
-    }
-
-    public AwsManager getAwsManager() {
-        return awsManager;
-    }
-
-    public void setAwsManager(AwsManager awsManager) {
-        this.awsManager = awsManager;
-    }
-
     public AWSCredentials getAwsCredentials() {
         return awsCredentials;
     }
@@ -476,6 +339,14 @@ public class ServiceContext {
 
     public void setAwsConfigManager(AwsConfigManager awsConfigManager) {
         this.awsConfigManager = awsConfigManager;
+    }
+
+    public RodimusManager getRodimusManager() {
+        return rodimusManager;
+    }
+
+    public void setRodimusManager(RodimusManager rodimusManager) {
+        this.rodimusManager = rodimusManager;
     }
 
     public MetricSource getMetricSource() {
@@ -563,8 +434,4 @@ public class ServiceContext {
     public void setTagDAO(TagDAO tagDAO) {
         this.tagDAO = tagDAO;
     }
-
-    public GroupMappingDAO getGroupMappingDAO() { return groupMappingDAO; }
-
-    public void setGroupMappingDAO(GroupMappingDAO groupMappingDAO) { this.groupMappingDAO = groupMappingDAO; }
 }

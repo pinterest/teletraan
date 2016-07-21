@@ -16,24 +16,16 @@
 package com.pinterest.teletraan;
 
 import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.pinterest.arcee.aws.DefaultHostInfoDAOImpl;
-import com.pinterest.arcee.aws.EC2HostInfoDAOImpl;
 import com.pinterest.arcee.aws.ReservedInstanceFetcher;
 import com.pinterest.arcee.db.*;
-import com.pinterest.clusterservice.aws.AwsManagerImpl;
-import com.pinterest.clusterservice.db.DBBaseImageDAOImpl;
-import com.pinterest.clusterservice.db.DBClusterDAOImpl;
-import com.pinterest.clusterservice.db.DBClusterUpgradeEventDAOImpl;
-import com.pinterest.clusterservice.db.DBHostTypeDAOImpl;
-import com.pinterest.clusterservice.db.DBPlacementDAOImpl;
-import com.pinterest.clusterservice.db.DBSecurityZoneDAOImpl;
-import com.pinterest.clusterservice.cm.AwsVmManager;
-import com.pinterest.clusterservice.cm.DefaultClusterManager;
 import com.pinterest.deployservice.db.*;
 import com.pinterest.deployservice.events.DefaultEventSender;
+import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
+import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.teletraan.config.AWSFactory;
 import com.pinterest.teletraan.config.AutoScalingFactory;
 import com.pinterest.teletraan.config.EventSenderFactory;
+import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 import com.pinterest.teletraan.worker.*;
 
@@ -87,26 +79,13 @@ public class ConfigHelper {
         context.setAgentDAO(new DBAgentDAOImpl(dataSource));
         context.setAgentErrorDAO(new DBAgentErrorDAOImpl(dataSource));
 
-        context.setClusterDAO(new DBClusterDAOImpl(dataSource));
-        context.setBaseImageDAO(new DBBaseImageDAOImpl(dataSource));
-        context.setHostTypeDAO(new DBHostTypeDAOImpl(dataSource));
-        context.setSecurityZoneDAO(new DBSecurityZoneDAOImpl(dataSource));
-        context.setPlacementDAO(new DBPlacementDAOImpl(dataSource));
-        context.setClusterUpgradeEventDAO(new DBClusterUpgradeEventDAOImpl(dataSource));
         context.setSpotAutoScalingDAO(new DBSpotAutoScalingDAOImpl(dataSource));
         context.setTagDAO(new DBTagDAOImpl(dataSource));
 
         // TODO Arcee specific
         context.setAlarmDAO(new DBAlarmDAOImpl(dataSource));
-        context.setImageDAO(new DBImageDAOImpl(dataSource));
         context.setGroupInfoDAO(new DBGroupInfoDAOImpl(dataSource));
-        context.setHealthCheckDAO(new DBHealthCheckDAOImpl(dataSource));
-        context.setHealthCheckErrorDAO(new DBHealthCheckErrorDAOImpl(dataSource));
-        context.setnewInstanceReportDAO(new DBNewInstanceReportDAOImpl(dataSource));
-        context.setAsgLifecycleEventDAO(new DBAsgLifecycleEventDAOImpl(dataSource));
         context.setManagingGroupDAO(new DBManaginGroupDAOImpl(dataSource));
-        context.setPasConfigDAO(new DBPasConfigDAOImpl(dataSource));
-        context.setGroupMappingDAO(new DBGroupMappingDAOImpl(dataSource));
 
         // Inject proper implemetation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
@@ -132,15 +111,14 @@ public class ConfigHelper {
             context.setEc2Client(ec2Client);
             // TODO we should just use AwsConfigManager and get rid of the above 3
             context.setAwsConfigManager(awsFactory.buildAwsConfigManager());
-            // TODO rename to manager
-            context.setHostInfoDAO(new EC2HostInfoDAOImpl(ec2Client, context.getAwsConfigManager()));
             context.setReservedInstanceInfoDAO(new ReservedInstanceFetcher(ec2Client));
-            context.setClusterManager(new AwsVmManager(context));
-            context.setAwsManager(new AwsManagerImpl(context.getAwsConfigManager()));
+        }
+
+        RodimusFactory rodimusFactory = configuration.getRodimusFactory();
+        if (rodimusFactory != null) {
+            context.setRodimusManager(new RodimusManagerImpl(rodimusFactory.getRodimusUrl(), rodimusFactory.getToken()));
         } else {
-            // TODO make sure if aws is null, all the workers related to aws still works
-            context.setHostInfoDAO(new DefaultHostInfoDAOImpl());
-            context.setClusterManager(new DefaultClusterManager());
+            context.setRodimusManager(new DefaultRodimusManager());
         }
 
         /**
@@ -263,76 +241,11 @@ public class ConfigHelper {
                 }
             }
 
-            // TODO Arcee specific workers
-            if (workerName.equalsIgnoreCase(LaunchLatencyUpdater.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new LaunchLatencyUpdater(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
-                LOG.info("Scheduled LaunchLatencyUpdater.");
-            }
-
-            if (workerName.equalsIgnoreCase(MetricsCollector.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new MetricsCollector(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
-                LOG.info("Scheduled MetricsCollector.");
-            }
-
-            if (workerName.equalsIgnoreCase(GroupInfoUpdater.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new GroupInfoUpdater(serviceContext);
-                int randomInitTime = new Random().nextInt(initDelay);
-                scheduler.scheduleAtFixedRate(worker, randomInitTime, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled GroupInfoUpdater.");
-            }
-
-            if (workerName.equalsIgnoreCase(LaunchEventCollector.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new LaunchEventCollector(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled LaunchEventCollector.");
-            }
-
             if (workerName.equalsIgnoreCase(HostTerminator.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 Runnable worker = new HostTerminator(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled HostTerminator.");
-            }
-
-            if (workerName.equalsIgnoreCase(HealthChecker.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new HealthChecker(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled HealthChecker.");
-            }
-
-            if (workerName.equalsIgnoreCase(HealthCheckInserter.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new HealthCheckInserter(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled HealthCheckInserter.");
-            }
-
-            if (workerName.equalsIgnoreCase(HealthCheckHostTerminator.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new HealthCheckHostTerminator(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled HealthCheckHostTerminator.");
-            }
-
-            if (workerName.equalsIgnoreCase(NewInstanceChecker.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new NewInstanceChecker(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled NewInstanceChecker.");
-            }
-
-            if (workerName.equalsIgnoreCase(LifecycleUpdator.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new LifecycleUpdator(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled LifecycleUpdator.");
             }
 
             if (workerName.equalsIgnoreCase(ReservedInstanceScheduler.class.getSimpleName())) {
@@ -349,21 +262,6 @@ public class ConfigHelper {
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled SpotAutoScalingScheduler");
             }
-
-            if (workerName.equalsIgnoreCase(PlacementCapacityUpdater.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new PlacementCapacityUpdater(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled PlacementCapacityUpdater");
-            }
-
-            if (workerName.equalsIgnoreCase(ClusterReplacer.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new ClusterReplacer(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled ClusterReplacer");
-            }
         }
     }
-
 }
