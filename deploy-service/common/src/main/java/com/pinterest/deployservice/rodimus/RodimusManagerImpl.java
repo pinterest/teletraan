@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -66,14 +67,22 @@ public class RodimusManagerImpl implements RodimusManager {
 
     @Override
     public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds) throws Exception {
+        if (hostIds.isEmpty()) {
+            return;
+        }
+        
         String url = String.format("%s/v1/clusters/%s/hosts", rodimusUrl, clusterName);
         httpClient.delete(url, gson.toJson(hostIds), headers, RETRIES);
     }
 
     @Override
     public Collection<String> getTerminatedHosts(Collection<String> hostIds) throws Exception {
+        if (hostIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
-        String res = httpClient.get(url, gson.toJson(hostIds), null, headers, RETRIES);
+        String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
         return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
     }
 }
