@@ -15,14 +15,11 @@
  */
 package com.pinterest.teletraan;
 
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.pinterest.arcee.aws.ReservedInstanceFetcher;
-import com.pinterest.arcee.db.*;
+
 import com.pinterest.deployservice.db.*;
 import com.pinterest.deployservice.events.DefaultEventSender;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
-import com.pinterest.teletraan.config.AWSFactory;
 import com.pinterest.teletraan.config.AutoScalingFactory;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
@@ -79,13 +76,7 @@ public class ConfigHelper {
         context.setAgentDAO(new DBAgentDAOImpl(dataSource));
         context.setAgentErrorDAO(new DBAgentErrorDAOImpl(dataSource));
 
-        context.setSpotAutoScalingDAO(new DBSpotAutoScalingDAOImpl(dataSource));
         context.setTagDAO(new DBTagDAOImpl(dataSource));
-
-        // TODO Arcee specific
-        context.setAlarmDAO(new DBAlarmDAOImpl(dataSource));
-        context.setGroupInfoDAO(new DBGroupInfoDAOImpl(dataSource));
-        context.setManagingGroupDAO(new DBManaginGroupDAOImpl(dataSource));
 
         // Inject proper implemetation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
@@ -93,25 +84,12 @@ public class ConfigHelper {
         context.setChatManager(configuration.getChatFactory().create());
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
-        context.setMetricSource(configuration.getMetricSourceFactory().create());
 
         EventSenderFactory eventSenderFactory = configuration.getEventSenderFactory();
         if (eventSenderFactory != null) {
             context.setEventSender(eventSenderFactory.createEventSender());
         } else {
             context.setEventSender(new DefaultEventSender());
-        }
-
-        // AWS specific DAOs
-        AWSFactory awsFactory = configuration.getAwsFactory();
-        if (awsFactory != null) {
-            context.setAutoScalingManager(awsFactory.buildAwsAutoScalingManager());
-            context.setAlarmManager(awsFactory.buildAwsAlarmManager());
-            AmazonEC2Client ec2Client = awsFactory.buildEC2Client();
-            context.setEc2Client(ec2Client);
-            // TODO we should just use AwsConfigManager and get rid of the above 3
-            context.setAwsConfigManager(awsFactory.buildAwsConfigManager());
-            context.setReservedInstanceInfoDAO(new ReservedInstanceFetcher(ec2Client));
         }
 
         RodimusFactory rodimusFactory = configuration.getRodimusFactory();
@@ -138,13 +116,6 @@ public class ConfigHelper {
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
-
-        AutoScalingFactory autoScalingFactory = configuration.getAutoScalingFactory();
-        if (autoScalingFactory != null) {
-            context.setQuboleAuthentication(autoScalingFactory.getQuboleAuthentication());
-            context.setSpotAutoScalingThreshold(autoScalingFactory.getSpotAutoScalingThreshold());
-        }
-
         return context;
     }
 
@@ -248,20 +219,6 @@ public class ConfigHelper {
                 LOG.info("Scheduled HostTerminator.");
             }
 
-            if (workerName.equalsIgnoreCase(ReservedInstanceScheduler.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                int reservedInstanceThreshold = MapUtils.getIntValue(properties, "reservedInstanceThreshold", DEFAULT_RESERVED_INSTANCE_COUNT);
-                Runnable worker = new ReservedInstanceScheduler(serviceContext, reservedInstanceThreshold);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled ReservedInstanceScheduler.");
-            }
-
-            if (workerName.equalsIgnoreCase(SpotAutoScalingScheduler.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new SpotAutoScalingScheduler(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled SpotAutoScalingScheduler");
-            }
         }
     }
 }

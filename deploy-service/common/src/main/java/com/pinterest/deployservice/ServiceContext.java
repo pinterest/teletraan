@@ -15,13 +15,7 @@
  */
 package com.pinterest.deployservice;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.pinterest.arcee.autoscaling.AlarmManager;
-import com.pinterest.arcee.autoscaling.AutoScalingManager;
-import com.pinterest.arcee.aws.AwsConfigManager;
-import com.pinterest.arcee.dao.*;
-import com.pinterest.arcee.metrics.MetricSource;
+
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.email.MailManager;
@@ -39,7 +33,6 @@ public class ServiceContext {
     private BuildDAO buildDAO;
     private AgentDAO agentDAO;
     private AgentErrorDAO agentErrorDAO;
-    private AlarmDAO alarmDAO;
     private DeployDAO deployDAO;
     private EnvironDAO environDAO;
     private HostDAO hostDAO;
@@ -50,14 +43,11 @@ public class ServiceContext {
     private EventSender eventSender;
     private PromoteDAO promoteDAO;
     private GroupDAO groupDAO;
-    private GroupInfoDAO groupInfoDAO;
-    private AlarmManager alarmManager;
     private HostGroupManager hostGroupDAO;
     private UserRolesDAO userRolesDAO;
     private GroupRolesDAO groupRolesDAO;
     private TokenRolesDAO tokenRolesDAO;
     private ConfigHistoryDAO configHistoryDAO;
-    private SpotAutoScalingDAO spotAutoScalingDAO;
     private TagDAO tagDAO;
 
     private String serviceStage;
@@ -65,11 +55,6 @@ public class ServiceContext {
     private SourceControlManager sourceControlManager;
     private ChatManager chatManager;
     private ExecutorService jobPool;
-    private AmazonEC2Client ec2Client;
-    private AWSCredentials awsCredentials;
-    private AutoScalingManager autoScalingManager;
-    private MetricSource metricSource;
-    private AwsConfigManager awsConfigManager;
     private RodimusManager rodimusManager;
 
     private boolean buildCacheEnabled;
@@ -78,9 +63,6 @@ public class ServiceContext {
     private boolean deployCacheEnabled;
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
-
-    private ReservedInstanceInfoDAO reservedInstanceInfoDAO;
-    private ManagingGroupDAO managingGroupDAO;
 
     private String quboleAuthentication;
     private int spotAutoScalingThreshold;
@@ -115,14 +97,6 @@ public class ServiceContext {
 
     public void setAgentErrorDAO(AgentErrorDAO agentErrorDAO) {
         this.agentErrorDAO = agentErrorDAO;
-    }
-
-    public AlarmDAO getAlarmDAO() {
-        return alarmDAO;
-    }
-
-    public void setAlarmDAO(AlarmDAO alarmDAO) {
-        this.alarmDAO = alarmDAO;
     }
 
     public DeployDAO getDeployDAO() {
@@ -205,28 +179,12 @@ public class ServiceContext {
         this.groupDAO = groupDAO;
     }
 
-    public void setGroupInfoDAO(GroupInfoDAO groupInfoDAO) {
-        this.groupInfoDAO = groupInfoDAO;
-    }
-
-    public GroupInfoDAO getGroupInfoDAO() {
-        return groupInfoDAO;
-    }
-
     public void setHostGroupDAO(HostGroupManager hostGroupDAO) {
         this.hostGroupDAO = hostGroupDAO;
     }
 
     public HostGroupManager getHostGroupDAO() {
         return hostGroupDAO;
-    }
-
-    public ReservedInstanceInfoDAO getReservedInstanceInfoDAO() {
-        return reservedInstanceInfoDAO;
-    }
-
-    public void setReservedInstanceInfoDAO(ReservedInstanceInfoDAO reservedInstanceInfoDAO) {
-        this.reservedInstanceInfoDAO = reservedInstanceInfoDAO;
     }
 
     public void setConfigHistoryDAO(ConfigHistoryDAO configHistoryDAO) {
@@ -236,10 +194,6 @@ public class ServiceContext {
     public ConfigHistoryDAO getConfigHistoryDAO() {
         return configHistoryDAO;
     }
-
-    public SpotAutoScalingDAO getSpotAutoScalingDAO() { return spotAutoScalingDAO; }
-
-    public void setSpotAutoScalingDAO(SpotAutoScalingDAO spotAutoScalingDAO) { this.spotAutoScalingDAO = spotAutoScalingDAO; }
 
     public void setEventSender(EventSender sender) {
         this.eventSender = sender;
@@ -263,22 +217,6 @@ public class ServiceContext {
 
     public void setSourceControlManager(SourceControlManager sourceControlManager) {
         this.sourceControlManager = sourceControlManager;
-    }
-
-    public AutoScalingManager getAutoScalingManager() {
-        return autoScalingManager;
-    }
-
-    public void setAutoScalingManager(AutoScalingManager autoScalingManager) {
-        this.autoScalingManager = autoScalingManager;
-    }
-
-    public AlarmManager getAlarmManager() {
-        return alarmManager;
-    }
-
-    public void setAlarmManager(AlarmManager alarmManager) {
-        this.alarmManager = alarmManager;
     }
 
     public ChatManager getChatManager() {
@@ -305,14 +243,6 @@ public class ServiceContext {
         this.ratingDAO = ratingDAO;
     }
 
-    public AmazonEC2Client getEc2Client() {
-        return ec2Client;
-    }
-
-    public void setEc2Client(AmazonEC2Client client) {
-        ec2Client = client;
-    }
-
     public UserRolesDAO getUserRolesDAO() {
         return userRolesDAO;
     }
@@ -329,17 +259,6 @@ public class ServiceContext {
         this.tokenRolesDAO = tokenRolesDAO;
     }
 
-    public AWSCredentials getAwsCredentials() {
-        return awsCredentials;
-    }
-
-    public AwsConfigManager getAwsConfigManager() {
-        return awsConfigManager;
-    }
-
-    public void setAwsConfigManager(AwsConfigManager awsConfigManager) {
-        this.awsConfigManager = awsConfigManager;
-    }
 
     public RodimusManager getRodimusManager() {
         return rodimusManager;
@@ -349,13 +268,6 @@ public class ServiceContext {
         this.rodimusManager = rodimusManager;
     }
 
-    public MetricSource getMetricSource() {
-        return metricSource;
-    }
-
-    public void setMetricSource(MetricSource metricSource) {
-        this.metricSource = metricSource;
-    }
 
     public void setBuildCacheEnabled(boolean buildCacheEnabled) {
         this.buildCacheEnabled = buildCacheEnabled;
@@ -403,14 +315,6 @@ public class ServiceContext {
 
     public void setChangeFeedUrl(String changeFeedUrl) {
         this.changeFeedUrl = changeFeedUrl;
-    }
-
-    public void setManagingGroupDAO(ManagingGroupDAO managingGroupDAO) {
-        this.managingGroupDAO = managingGroupDAO;
-    }
-
-    public ManagingGroupDAO getManagingGroupDAO() {
-        return managingGroupDAO;
     }
 
     public void setQuboleAuthentication(String quboleAuthentication) {

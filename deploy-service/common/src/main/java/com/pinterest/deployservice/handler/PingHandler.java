@@ -196,7 +196,7 @@ public class PingHandler {
         // Make sure we do not exceed allowed number of concurrent active deploying agent
         String envId = envBean.getEnv_id();
         long totalNonFirstDeployAgents = agentDAO.countNonFirstDeployingAgent(envId);
-        long parallelThreshold = this.getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents);
+        long parallelThreshold = getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents);
 
         try {
             //Note: This count already excludes first deploy agents

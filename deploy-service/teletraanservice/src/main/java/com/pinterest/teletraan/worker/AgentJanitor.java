@@ -16,8 +16,6 @@
 package com.pinterest.teletraan.worker;
 
 
-import com.pinterest.arcee.bean.GroupBean;
-import com.pinterest.arcee.dao.GroupInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
@@ -39,7 +37,6 @@ import java.util.*;
 public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
     private HostGroupManager hostGroupDAO;
-    private GroupInfoDAO groupInfoDAO;
     private final RodimusManager rodimusManager;
     private long maxLaunchLatencyThreshold;
 
@@ -47,7 +44,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
         int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
         super(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
         hostGroupDAO = serviceContext.getHostGroupDAO();
-        groupInfoDAO = serviceContext.getGroupInfoDAO();
         rodimusManager = serviceContext.getRodimusManager();
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
@@ -80,6 +76,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 removeStaleHost(removedId);
             }
         }
+    }
+
+    private Long getInstanceLaunchGracePeriod(String clusterName) throws Exception {
+        Long launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
+        return launchGracePeriod == null ? maxLaunchLatencyThreshold : launchGracePeriod * 1000;
     }
 
     @Override
@@ -125,11 +126,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
         Set<String> maxStaleHostIds = new HashSet<>();
         Set<String> minStaleHostIds = new HashSet<>();
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
-        if (groupBean == null) {
-            LOG.debug("Group Name {} does not exist in groups table.", groupName);
-        }
-
+        Long launchGracePeriod = getInstanceLaunchGracePeriod(groupName);
         long current_time = System.currentTimeMillis();
         while (true) {
             List<HostBean> hostBeans = hostDAO.getHostsByGroup(groupName, page_index, page_size);
@@ -139,23 +136,16 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
             for (HostBean host : hostBeans) {
                 long last_update = host.getLast_update();
+                long launchLatency = current_time - last_update;
                 String id = host.getHost_id();
                 if (host.getState() == HostState.PROVISIONED) {
-                    if (groupBean == null) {
-                        // Not in autoscaling group
-                        if (current_time - last_update >= maxStaleHostThreshold) {
-                            maxStaleHostIds.add(id);
-                        }
-                    } else {
-                        // If it is in autoscaling group, use launch latency threshold
-                        if (current_time - last_update >= (long) groupBean.getLaunch_latency_th() * 1000) {
-                            maxStaleHostIds.add(id);
-                        }
+                    if (launchLatency >= launchGracePeriod) {
+                        maxStaleHostIds.add(id);
                     }
                 } else if (host.getState() != HostState.TERMINATING && host.getState() != HostState.PENDING_TERMINATE) {
-                    if (current_time - last_update >= maxStaleHostThreshold) {
+                    if (launchLatency >= maxStaleHostThreshold) {
                         maxStaleHostIds.add(id);
-                    } else if (current_time - last_update >= minStaleHostThreshold) {
+                    } else if (launchLatency >= minStaleHostThreshold) {
                         minStaleHostIds.add(id);
                     }
                 }

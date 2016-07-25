@@ -58,12 +58,6 @@
             <artifactId>ibatis2-common</artifactId>
             <version>2.1.7.597</version>
         </dependency>
-        <!-- TODO move this to ARCEE, the only place knows how to handle AWS -->
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk</artifactId>
-            <version>1.10.74</version>
-        </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>

@@ -61,11 +61,8 @@ public class Resource {
         if (!id.equals(resource.id)) {
             return false;
         }
-        if (type != resource.type) {
-            return false;
-        }
+        return type == resource.type;
 
-        return true;
     }
 
     @Override
