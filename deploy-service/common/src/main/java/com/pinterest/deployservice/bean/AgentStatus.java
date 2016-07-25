@@ -51,5 +51,5 @@ public enum AgentStatus {
     /*
      * Runtime release version mismatch
      */
-    RUNTIME_MISMATCH;
+    RUNTIME_MISMATCH
 }

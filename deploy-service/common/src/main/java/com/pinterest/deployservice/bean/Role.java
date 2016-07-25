@@ -40,7 +40,7 @@ public enum Role {
 
     private int value;
 
-    private Role(int value) {
+    Role(int value) {
         this.value = value;
     }
 

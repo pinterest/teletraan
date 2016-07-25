@@ -49,14 +49,6 @@ public class TeletraanServiceConfiguration extends Configuration {
     private EmailFactory emailFactory;
 
     @Valid
-    @JsonProperty("aws")
-    private AWSFactory awsFactory;
-
-    @Valid
-    @JsonProperty("metric")
-    private MetricSourceFactory metricSourceFactory;
-
-    @Valid
     @JsonProperty("hostgroup")
     private HostGroupFactory hostGroupFactory;
 
@@ -72,9 +64,6 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("system")
     private SystemFactory systemFactory;
 
-    @Valid
-    @JsonProperty("autoscaling")
-    private AutoScalingFactory autoScalingFactory;
 
     @Valid
     @JsonProperty("rodimus")
@@ -131,17 +120,6 @@ public class TeletraanServiceConfiguration extends Configuration {
         this.chatFactory = chatFactory;
     }
 
-    public MetricSourceFactory getMetricSourceFactory() {
-        if (metricSourceFactory == null) {
-            return new DefaultMetricSourceFactory();
-        }
-
-        return metricSourceFactory;
-    }
-
-    public void setMetricSourceFactory(MetricSourceFactory metricSourceFactory) {
-        this.metricSourceFactory = metricSourceFactory;
-    }
 
     public EmailFactory getEmailFactory() {
         if (emailFactory == null) {
@@ -156,14 +134,6 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setAuthorizationFactory(AuthorizationFactory authorizationFactory) {
         this.authorizationFactory = authorizationFactory;
-    }
-
-    public AWSFactory getAwsFactory() {
-        return awsFactory;
-    }
-
-    public void setAwsFactory(AWSFactory awsFactory) {
-        this.awsFactory = awsFactory;
     }
 
     public HostGroupFactory getHostGroupFactory() {
@@ -194,14 +164,6 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setSystemFactory(SystemFactory systemFactory) {
         this.systemFactory = systemFactory;
-    }
-
-    public AutoScalingFactory getAutoScalingFactory() {
-        return autoScalingFactory;
-    }
-
-    public void setAutoScalingFactory(AutoScalingFactory autoScalingFactory) {
-        this.autoScalingFactory = autoScalingFactory;
     }
 
     public RodimusFactory getRodimusFactory() {

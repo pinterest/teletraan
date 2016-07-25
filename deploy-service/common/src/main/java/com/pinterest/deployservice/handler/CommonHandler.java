@@ -314,11 +314,8 @@ public class CommonHandler {
         }
 
         // if newState is SUCCEEDING and suc_date is set, do not report ( because we already did )
-        if (newState == DeployState.SUCCEEDING && sucDate != null) {
-            return false;
-        }
+        return !(newState == DeployState.SUCCEEDING && sucDate != null);
 
-        return true;
     }
 
     void sendDeployEvents(DeployBean oldDeployBean, DeployBean newDeployBean, EnvironBean environBean) {

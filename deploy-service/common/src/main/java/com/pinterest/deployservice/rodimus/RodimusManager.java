@@ -22,4 +22,6 @@ public interface RodimusManager {
     void terminateHostsByClusterName(String clusterName, Collection<String> hostIds) throws Exception;
 
     Collection<String> getTerminatedHosts(Collection<String> hostIds) throws Exception;
+
+    Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception;
 }

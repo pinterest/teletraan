@@ -29,4 +29,9 @@ public class DefaultRodimusManager implements RodimusManager {
     public Collection<String> getTerminatedHosts(Collection<String> hostIds) throws Exception {
         return Collections.emptyList();
     }
+
+    @Override
+    public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
+        return null;
+    }
 }

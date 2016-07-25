@@ -17,10 +17,6 @@ package com.pinterest.deployservice.db;
 
 import com.ibatis.common.jdbc.ScriptRunner;
 import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
-import com.pinterest.arcee.bean.*;
-import com.pinterest.arcee.common.AutoScalingConstants;
-import com.pinterest.arcee.dao.*;
-import com.pinterest.arcee.db.*;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
@@ -54,15 +50,11 @@ public class DBDAOTest {
     private static PromoteDAO promoteDAO;
     private static HostDAO hostDAO;
     private static GroupDAO groupDAO;
-    private static GroupInfoDAO groupInfoDAO;
     private static RatingDAO ratingDAO;
-    private static AlarmDAO alarmDAO;
     private static UserRolesDAO userRolesDAO;
     private static TokenRolesDAO tokenRolesDAO;
     private static GroupRolesDAO groupRolesDAO;
     private static ConfigHistoryDAO configHistoryDAO;
-    private static ManagingGroupDAO managingGroupDAO;
-    private static SpotAutoScalingDAO spotAutoScalingDAO;
     private static TagDAO tagDAO;
 
     @BeforeClass
@@ -91,14 +83,10 @@ public class DBDAOTest {
         hostDAO = new DBHostDAOImpl(DATASOURCE);
         groupDAO = new DBGroupDAOImpl(DATASOURCE);
         ratingDAO = new DBRatingsDAOImpl(DATASOURCE);
-        groupInfoDAO = new DBGroupInfoDAOImpl(DATASOURCE);
-        alarmDAO = new DBAlarmDAOImpl(DATASOURCE);
         userRolesDAO = new DBUserRolesDAOImpl(DATASOURCE);
         groupRolesDAO = new DBGroupRolesDAOImpl(DATASOURCE);
         tokenRolesDAO = new DBTokenRolesDAOImpl(DATASOURCE);
         configHistoryDAO = new DBConfigHistoryDAOImpl(DATASOURCE);
-        managingGroupDAO = new DBManaginGroupDAOImpl(DATASOURCE);
-        spotAutoScalingDAO = new DBSpotAutoScalingDAOImpl(DATASOURCE);
         tagDAO = new DBTagDAOImpl(DATASOURCE);
     }
 
@@ -817,42 +805,6 @@ public class DBDAOTest {
     }
 
     @Test
-    public void testGroupInfoDAO() throws Exception {
-        // Insert test
-        GroupBean groupBean = new GroupBean();
-        groupBean.setGroup_name("deploy-test");
-        groupBean.setLast_update(System.currentTimeMillis());
-        groupBean.setChatroom("#lo");
-        groupBean.setEmail_recipients("lo@pinterest.com");
-        groupBean.setPager_recipients("lo@pinterest.com");
-        groupBean.setHealthcheck_state(true);
-        groupBean.setHealthcheck_period(10L);
-        groupInfoDAO.insertOrUpdateGroupInfo("deploy-test", groupBean);
-        GroupBean gBean = groupInfoDAO.getGroupInfo("deploy-test");
-        assertEquals(gBean.getGroup_name(), "deploy-test");
-        assertEquals(gBean.getChatroom(), "#lo");
-        assertEquals(gBean.getPager_recipients(), "lo@pinterest.com");
-        assertEquals(gBean.getLaunch_latency_th(), Integer.valueOf(AutoScalingConstants.DEFAULT_LAUNCH_LATENCY_THRESHOLD));
-        assertNull(gBean.getWatch_recipients());
-        assertTrue(gBean.getHealthcheck_state());
-        List<String> groups = groupDAO.getExistingGroups(1, 10);
-        assertEquals(groups.size(), 1);
-
-        List<String> enabledHealthCheckGroup = groupInfoDAO.getEnabledHealthCheckGroupNames();
-        assertEquals(enabledHealthCheckGroup.size(), 1);
-
-        // Update test
-        groupBean.setWatch_recipients("lo");
-        groupBean.setLaunch_latency_th(300);
-        groupBean.setLifecycle_state(true);
-        groupInfoDAO.updateGroupInfo("deploy-test", groupBean);
-        gBean = groupInfoDAO.getGroupInfo("deploy-test");
-        assertEquals(gBean.getWatch_recipients(), "lo");
-        assertEquals(gBean.getLaunch_latency_th(), Integer.valueOf(300));
-        assertTrue(gBean.getLifecycle_state());
-    }
-
-    @Test
     public void testUserRolesDAO() throws Exception {
         UserRolesBean bean = new UserRolesBean();
         bean.setUser_name("test");
@@ -890,79 +842,7 @@ public class DBDAOTest {
         assertEquals(bean2.getRole(), Role.ADMIN);
     }
 
-    @Test
-    public void testAlarmInfoDAO() throws Exception {
-        // test insert
-        AsgAlarmBean bean1 = new AsgAlarmBean();
-        bean1.setAlarm_id("ABCDEF1");
-        bean1.setGroup_name("deploy-agent-test");
-        bean1.setAction_type("GROW");
-        bean1.setComparator("GreaterThanThreshold");
-        bean1.setEvaluation_time(1000);
-        bean1.setMetric_name("test-metric");
-        bean1.setMetric_source("https://pinadmin.com");
-        bean1.setThreshold(20.1);
-        bean1.setFrom_aws_metric(true);
 
-
-        AsgAlarmBean bean2 = new AsgAlarmBean();
-        bean2.setAlarm_id("ABCDEF2");
-        bean2.setGroup_name("deploy-agent-test");
-        bean2.setAction_type("SHRINK");
-        bean2.setComparator("LessThanThreshold");
-        bean2.setEvaluation_time(1000);
-        bean2.setMetric_name("test-metric");
-        bean2.setMetric_source("https://pinadmin.com");
-        bean2.setThreshold(10.1);
-        bean2.setFrom_aws_metric(true);
-
-        AsgAlarmBean bean3 = new AsgAlarmBean();
-        bean3.setAlarm_id("ABCDEF3");
-        bean3.setGroup_name("deploy-agent-test");
-        bean3.setAction_type("SHRINK");
-        bean3.setComparator("LessThanThreshold");
-        bean3.setEvaluation_time(1000);
-        bean3.setMetric_name("test-metric2");
-        bean3.setMetric_source("https://pinadmin.com2");
-        bean3.setThreshold(10.1);
-        bean3.setFrom_aws_metric(false);
-
-        alarmDAO.insertOrUpdateAlarmInfo(bean1);
-        alarmDAO.insertOrUpdateAlarmInfo(bean2);
-        alarmDAO.insertOrUpdateAlarmInfo(bean3);
-
-        // test get
-        AsgAlarmBean resultBean = alarmDAO.getAlarmInfoById("ABCDEF1");
-        assertTrue(EqualsBuilder.reflectionEquals(resultBean, bean1));
-
-        List<AsgAlarmBean> resultList = alarmDAO.getAlarmInfosByGroup("deploy-agent-test");
-        assertEquals(resultList.size(), 3);
-
-        List<MetricBean> resultMetricList = alarmDAO.getMetrics();
-        assertEquals(resultMetricList.size(), 2);
-
-
-        // test delete
-        alarmDAO.deleteAlarmInfoById("ABCDEF3");
-        assertNull(alarmDAO.getAlarmInfoById("ABCDEF3"));
-        resultMetricList = alarmDAO.getMetrics();
-        assertEquals(resultMetricList.size(), 1);
-        MetricBean expectedBean = new MetricBean();
-        expectedBean.setMetric_name("test-metric");
-        expectedBean.setMetric_source("https://pinadmin.com");
-        expectedBean.setGroup_name("deploy-agent-test");
-        expectedBean.setFrom_aws_metric(true);
-        assertTrue(EqualsBuilder.reflectionEquals(resultMetricList.get(0), expectedBean));
-
-        // test update
-        bean2.setComparator("LessThanOrEqualToThreshold");
-        bean2.setThreshold(30.1);
-
-        alarmDAO.updateAlarmInfoById
-            (bean2.getAlarm_id(), bean2);
-        AsgAlarmBean resultBean2 = alarmDAO.getAlarmInfoById(bean2.getAlarm_id());
-        assertTrue(EqualsBuilder.reflectionEquals(resultBean2, bean2));
-    }
 
     @Test
     public void testConfigHistoryDAO() throws Exception {
@@ -988,71 +868,6 @@ public class DBDAOTest {
 
         List<ConfigHistoryBean> beanList = configHistoryDAO.getByConfigId("group-1", 1, 10);
         assertEquals(beanList.size(), 2);
-    }
-
-    @Test
-    public void testManagingGroupDAO() throws Exception {
-        ManagingGroupsBean managingGroupsBean = new ManagingGroupsBean();
-        managingGroupsBean.setBatch_size(10);
-        managingGroupsBean.setCool_down(100);
-        managingGroupsBean.setGroup_name("test1");
-        managingGroupsBean.setLast_activity_time(System.currentTimeMillis());
-        managingGroupsBean.setLending_priority(0);
-        managingGroupsBean.setInstance_type("c3.8xlarge");
-        managingGroupsBean.setLent_size(0);
-        managingGroupsBean.setMax_lending_size(100);
-        managingGroupDAO.insertManagingGroup("test1", managingGroupsBean);
-
-        ManagingGroupsBean bean = managingGroupDAO.getManagingGroupByGroupName("test1");
-        assertEquals(bean.getBatch_size(), (Integer) 10);
-        assertEquals(bean.getCool_down(), (Integer) 100);
-        assertEquals(bean.getGroup_name(), "test1");
-        assertEquals(bean.getLending_priority(), new Integer(0));
-        assertEquals(bean.getLent_size(), (Integer) 0);
-        assertEquals(bean.getInstance_type(), "c3.8xlarge");
-        assertEquals(bean.getMax_lending_size(), (Integer) 100);
-
-        bean.setLent_size(10);
-        Long currentTime = System.currentTimeMillis();
-        bean.setLast_activity_time(currentTime);
-        managingGroupDAO.updateManagingGroup("test1", bean);
-        ManagingGroupsBean bean2 = managingGroupDAO.getManagingGroupByGroupName("test1");
-        assertEquals(bean2.getLent_size(), (Integer) 10);
-        assertEquals(bean2.getLast_activity_time(), currentTime);
-    }
-
-    @Test
-    public void testSpotAutoScalingGroupDAO() throws Exception {
-        SpotAutoScalingBean bean1 = new SpotAutoScalingBean();
-        bean1.setCluster_name("asg-1");
-        bean1.setBid_price("0.5");
-        bean1.setSpot_ratio(0.5);
-        spotAutoScalingDAO.insertAutoScalingGroupToCluster("asg-1-spot", bean1);
-        SpotAutoScalingBean resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
-        assertNotNull(resultBean);
-
-        assertEquals(resultBean.getCluster_name(), "asg-1");
-        assertEquals(resultBean.getBid_price(), "0.5");
-
-        SpotAutoScalingBean updatedBean = new SpotAutoScalingBean();
-        updatedBean.setBid_price("0.6");
-        spotAutoScalingDAO.updateSpotAutoScalingGroup("asg-1", updatedBean);
-        SpotAutoScalingBean resultBean2 = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
-        assertNotNull(resultBean2);
-
-        assertEquals(resultBean2.getCluster_name(), "asg-1");
-        assertEquals(resultBean2.getBid_price(), "0.6");
-
-        SpotAutoScalingBean bean3 = new SpotAutoScalingBean();
-        bean3.setCluster_name("asg-1");
-        bean3.setBid_price("0.7");
-        bean3.setSpot_ratio(0.6);
-
-
-        spotAutoScalingDAO.deleteAllAutoScalingGroupByCluster("asg-1");
-        resultBean = spotAutoScalingDAO.getAutoScalingGroupsByCluster("asg-1");
-        assertNull(resultBean);
-
     }
 
     @Test

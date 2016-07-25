@@ -20,6 +20,8 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
 import com.pinterest.deployservice.common.HTTPClient;
@@ -84,5 +86,25 @@ public class RodimusManagerImpl implements RodimusManager {
         String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
         String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
         return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
+    }
+
+    @Override
+    public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
+        String url = String.format("%s/v1/groups/%s", rodimusUrl, clusterName);
+        String res = httpClient.get(url, null, null, headers, RETRIES);
+        JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
+        if (jsonObject == null) {
+            return null;
+        }
+        JsonObject groupInfo = jsonObject.getAsJsonObject("groupInfo");
+        if (groupInfo == null) {
+            return null;
+        }
+
+        JsonPrimitive launchGracePeriod = groupInfo.getAsJsonPrimitive("launchLatencyTh");
+        if (launchGracePeriod == null) {
+            return null;
+        }
+        return launchGracePeriod.getAsLong();
     }
 }

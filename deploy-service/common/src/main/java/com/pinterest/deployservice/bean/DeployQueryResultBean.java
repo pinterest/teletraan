@@ -15,10 +15,8 @@
  */
 package com.pinterest.deployservice.bean;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
