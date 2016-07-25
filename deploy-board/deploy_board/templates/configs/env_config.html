@@ -48,15 +48,6 @@
            <i class="fa fa-car"></i> Auto Deploy
         </a>
     </div>
-    {% if pinterest and not env.systemPriority %}
-    <div class="row">
-        <a type="button" class="deployToolTip btn btn-default btn-block"
-           href="/env/{{ env.envName }}/{{ env.stageName }}/config/clusters"
-           data-toggle="tooltip" title="Configure cluster">
-           <i class="fa fa-cloud"></i> Cluster Manager
-        </a>
-    </div>
-    {% endif %}
 	<div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity"

@@ -479,7 +479,7 @@ def delete_cluster(request, name, stage):
 
     # Remove group and env relationship
     environs_helper.remove_env_capacity(request, name, stage, capacity_type="GROUP", data=cluster_name)
-    return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
+    return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
 
 def get_aws_config_name_list_by_image(image_name):
@@ -581,22 +581,22 @@ def force_terminate_hosts(request, name, stage):
 def enable_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     clusters_helper.enable_cluster_replacement(request, cluster_name)
-    return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
+    return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
 
 def pause_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     clusters_helper.pause_cluster_replacement(request, cluster_name)
-    return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
+    return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
 
 def resume_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     clusters_helper.resume_cluster_replacement(request, cluster_name)
-    return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
+    return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
 
 def cancel_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     clusters_helper.cancel_cluster_replacement(request, cluster_name)
-    return redirect('/env/{}/{}/config/clusters/'.format(name, stage))
+    return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
