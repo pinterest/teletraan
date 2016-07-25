@@ -88,6 +88,7 @@ class DeployAgent(object):
 
         # start to ping server to get the latest deploy goal
         response = self._client.send_reports(self._envs)
+
         self._response = response
         if self._response:
             report = self._update_internal_deploy_goal(self._response)
@@ -371,13 +372,11 @@ def main():
                         help="Optional. In 'serverless' mode,  script_variables is needed in "
                              "json format.")
 
-
     args = parser.parse_args()
 
     is_serverless_mode = AgentRunMode.is_serverless(args.mode)
     if args.daemon and is_serverless_mode:
         raise ValueError("daemon and serverless mode is mutually exclusive.")
-        
     config = Config(args.config_file)
     utils.run_prereqs(config)
 

@@ -101,4 +101,3 @@ class ServerlessClient(BaseClient):
         if numeric_deploy_stage == DeployStage.PRE_DOWNLOAD:
             value['deployGoal']['scriptVariables'] = self._script_variables
         return PingResponse(value)
- 
