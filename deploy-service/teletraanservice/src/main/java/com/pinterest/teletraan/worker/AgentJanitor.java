@@ -53,7 +53,14 @@ public class AgentJanitor extends SimpleAgentJanitor {
             return;
         }
 
-        Collection<String> terminatedHosts = rodimusManager.getTerminatedHosts(staleHostIds);
+        Collection<String> terminatedHosts = new ArrayList<>(staleHostIds);
+        for (String hostId : staleHostIds) {
+            Collection<String> resultIds = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
+            if (resultIds.isEmpty()) {
+                terminatedHosts.remove(hostId);
+            }
+        }
+
         if (isMarkedUnreachable) {
             for (String staleId : staleHostIds) {
                 if (terminatedHosts.contains(staleId)) {
@@ -164,7 +171,13 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
         // Check the instance is not launched from Teletraan/Autoscaling
         Set<String> ids = cmdbReportedHosts.keySet();
-        Collection<String> terminatedIds = rodimusManager.getTerminatedHosts(ids);
+        Collection<String> terminatedIds = new ArrayList<>(ids);
+        for (String hostId : ids) {
+            Collection<String> resultIds = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
+            if (resultIds.isEmpty()) {
+                terminatedIds.remove(hostId);
+            }
+        }
 
         for (Map.Entry<String, HostBean> host : cmdbReportedHosts.entrySet()) {
             try {

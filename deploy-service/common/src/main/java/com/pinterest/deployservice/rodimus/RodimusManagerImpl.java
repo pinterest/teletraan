@@ -82,7 +82,7 @@ public class RodimusManagerImpl implements RodimusManager {
         if (hostIds.isEmpty()) {
             return Collections.emptyList();
         }
-
+        // NOTE: it's better to call this function with single host id
         String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
         String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
         return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
