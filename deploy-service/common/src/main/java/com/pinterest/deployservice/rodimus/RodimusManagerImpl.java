@@ -94,18 +94,19 @@ public class RodimusManagerImpl implements RodimusManager {
         String url = String.format("%s/v1/groups/%s", rodimusUrl, clusterName);
         String res = httpClient.get(url, null, null, headers, RETRIES);
         JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
-        if (jsonObject == null) {
+        if (jsonObject == null || jsonObject.isJsonNull()) {
             return null;
         }
         JsonElement groupInfo = jsonObject.get("groupInfo");
-        if (groupInfo == null) {
+        if (groupInfo == null || groupInfo.isJsonNull()) {
             return null;
         }
 
         JsonPrimitive launchGracePeriod = groupInfo.getAsJsonObject().getAsJsonPrimitive("launchLatencyTh");
-        if (launchGracePeriod == null) {
+        if (launchGracePeriod == null || launchGracePeriod.isJsonNull()) {
             return null;
         }
+        
         return launchGracePeriod.getAsLong();
     }
 }
