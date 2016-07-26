@@ -20,6 +20,7 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
@@ -96,12 +97,12 @@ public class RodimusManagerImpl implements RodimusManager {
         if (jsonObject == null) {
             return null;
         }
-        JsonObject groupInfo = jsonObject.getAsJsonObject("groupInfo");
+        JsonElement groupInfo = jsonObject.get("groupInfo");
         if (groupInfo == null) {
             return null;
         }
 
-        JsonPrimitive launchGracePeriod = groupInfo.getAsJsonPrimitive("launchLatencyTh");
+        JsonPrimitive launchGracePeriod = groupInfo.getAsJsonObject().getAsJsonPrimitive("launchLatencyTh");
         if (launchGracePeriod == null) {
             return null;
         }
