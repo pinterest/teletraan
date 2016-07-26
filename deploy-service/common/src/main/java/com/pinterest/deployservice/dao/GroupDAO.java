@@ -19,8 +19,6 @@ import java.util.List;
 
 
 public interface GroupDAO {
-    List<String> getExistingGroups(long pageIndex, int pageSize) throws Exception;
-
     List<String> getAllEnvGroups() throws Exception;
 
     List<String> getEnvsByGroupName(String groupName) throws Exception;

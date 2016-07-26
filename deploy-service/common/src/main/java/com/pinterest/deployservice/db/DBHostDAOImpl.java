@@ -35,7 +35,6 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String DELETE_ALL_BY_ID = "DELETE hosts, agents, agent_errors FROM hosts LEFT JOIN agents ON hosts.host_id=agents.host_id " +
             "LEFT JOIN agent_errors ON agents.host_name=agent_errors.host_name WHERE hosts.host_id=?";
     private static final String UPDATE_HOST_BY_ID = "UPDATE hosts SET %s WHERE host_id=?";
-    private static final String UPDATE_HOST_BY_GROUP = "UPDATE hosts SET %s WHERE group_name=?";
     private static final String INSERT_HOST_TEMPLATE = "INSERT INTO hosts SET %s ON DUPLICATE KEY UPDATE %s";
     private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, " +
             "state=IF(state!='%s' AND state!='%s', VALUES(state), state), " +
@@ -202,14 +201,6 @@ public class DBHostDAOImpl implements HostDAO {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(UPDATE_HOST_BY_ID, setClause.getClause());
         setClause.addValue(id);
-        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
-    }
-
-    @Override
-    public void updateHostByGroup(String groupName, HostBean bean) throws Exception {
-        SetClause setClause = bean.genSetClause();
-        String clause = String.format(UPDATE_HOST_BY_GROUP, setClause.getClause());
-        setClause.addValue(groupName);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 

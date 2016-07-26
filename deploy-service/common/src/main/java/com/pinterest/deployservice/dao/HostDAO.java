@@ -37,8 +37,6 @@ public interface HostDAO {
 
     void updateHostById(String hostId, HostBean hostBean) throws Exception;
 
-    void updateHostByGroup(String groupName, HostBean bean) throws Exception;
-
     void deleteById(String hostId) throws Exception;
 
     void deleteAllById(String id) throws Exception;
