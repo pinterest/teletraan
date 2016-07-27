@@ -27,7 +27,7 @@ import common
 import random
 import json
 from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, autoscaling_groups_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, autoscaling_groups_helper, groups_helper
 import math
 from dateutil.parser import parse
 import calendar
@@ -209,7 +209,7 @@ class EnvLandingView(View):
             if IS_PINTEREST:
                 basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
                 if basic_cluster_info and basic_cluster_info.get('capacity'):
-                    hosts_in_cluster = clusters_helper.get_host_ids(request, env.get('clusterName'))
+                    hosts_in_cluster = groups_helper.get_group_hosts(request, env.get('clusterName'))
                     num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
                     for i in range(num_to_fake):
                         faked_host = {}
