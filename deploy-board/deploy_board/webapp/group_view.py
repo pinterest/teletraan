@@ -351,12 +351,12 @@ def update_asg_config(request, group_name):
         autoscaling_groups_helper.update_autoscaling(request, group_name, asg_request)
 
         # Save predictive autoscaling min and max, disable pas_config
-        pas_config = {}
-        pas_config['group_name'] = group_name
-        pas_config['defined_min_size'] = int(params["minSize"])
-        pas_config['defined_max_size'] = int(params["maxSize"])
-        pas_config['pas_state'] = "DISABLED"
-        autoscaling_groups_helper.update_pas_config(request, group_name, pas_config)
+        pas_config = autoscaling_groups_helper.get_pas_config(group_name)
+        if pas_config:
+            pas_config['defined_min_size'] = int(params["minSize"])
+            pas_config['defined_max_size'] = int(params["maxSize"])
+            pas_config['pas_state'] = "DISABLED"
+            autoscaling_groups_helper.update_pas_config(request, group_name, pas_config)
     except:
         log.error(traceback.format_exc())
         raise
