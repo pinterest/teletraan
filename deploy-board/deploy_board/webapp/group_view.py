@@ -269,6 +269,7 @@ def create_asg(request, group_name):
 
 def get_asg_config(request, group_name):
     asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
+    pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
     instances = groups_helper.get_group_hosts(request, group_name)
     group_info = autoscaling_groups_helper.get_group_info(request, group_name)
     launch_config = group_info.get("launchInfo")
@@ -290,6 +291,7 @@ def get_asg_config(request, group_name):
         "instanceType": launch_config.get("instanceType"),
         "time_based_asg": time_based_asg,
         "csrf_token": get_token(request),
+        "pas_config": pas_config,
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
 
