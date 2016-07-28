@@ -22,12 +22,14 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
+from django.conf import settings
 import agent_report
 import common
 import random
 import json
 from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, autoscaling_groups_helper, groups_helper, schedules_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, autoscaling_groups_helper, groups_helper, schedules_helper, \
+    s3_helper, private_builds_helper
 import math
 from dateutil.parser import parse
 import calendar
@@ -36,6 +38,9 @@ from deploy_board.webapp.agent_report import TOTAL_ALIVE_HOST_REPORT, TOTAL_HOST
 from diff_match_patch import diff_match_patch
 import traceback
 import logging
+import os
+import datetime
+import time
 
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
@@ -232,6 +237,7 @@ class EnvLandingView(View):
                 "basic_cluster_info": basic_cluster_info,
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
+                "csrf_token": get_token(request),
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -677,7 +683,6 @@ def remove_stage(request, name, stage):
 def get_builds(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     env_promote = environs_helper.get_env_promotes_config(request, name, stage)
-
     show_lock = False
     if env_promote['type'] == 'AUTO' and env_promote['predStage'] and \
             env_promote['predStage'] == environs_helper.BUILD_STAGE:
@@ -714,6 +719,10 @@ def get_builds(request, name, stage):
         "show_lock": show_lock,
     })
     return HttpResponse(html)
+
+
+def upload_private_build(request, name, stage):    
+    return private_builds_helper.handle_uploaded_build(request, request.FILES['file'], name, stage)
 
 
 def get_groups(request, name, stage):

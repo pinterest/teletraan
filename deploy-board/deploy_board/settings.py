@@ -174,6 +174,9 @@ STATICFILES_DIRS = (
     os.path.join(PROJECT_PATH, "static"),
 )
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 # Site global metrics
 SITE_METRICS_CONFIGS = []
 # Deep Teletraan backend health check url

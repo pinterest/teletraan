@@ -21,6 +21,9 @@
                 {% if not current_publish_date or buildInfo.build.publishDate > current_publish_date %}
                     <span class="label label-info">New</span>
                 {% endif %}
+                {% if buildInfo.build.branch == "private" %}
+                    <span class="label label-warning">Private</span>
+                {% endif %}
                 {% if buildInfo.tag %}
                     {% if buildInfo.tag.value == "BAD_BUILD" %}
                         <span class="label label-danger">{{buildInfo.tag.value}}</span>
@@ -37,6 +40,7 @@
         {% endif %}
     </div>
 </div>
+
 <script>
     $(function () {
         $('.deployToolTip').tooltip();

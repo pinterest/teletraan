@@ -28,12 +28,20 @@
             <input class="hiddenCommit7" type="hidden" value="{{ buildInfo.build.commitShort }}"/>
             <input class="hiddenBranch" type="hidden" value="{{ buildInfo.build.branch }}"/>
         </td>
-        <td><a class="deployToolTip" href="{{ buildInfo.build.commitInfo }}" target="_blank"
+        <td>
+            {% if buildInfo.build.branch == "private" %}
+            <i class="{{ buildInfo.build|commitIcon }}"></i> {{ buildInfo.build.commitShort }}
+            {% else %}
+            <a class="deployToolTip" href="{{ buildInfo.build.commitInfo }}" target="_blank"
                title="Click to see commit details in {{ buildInfo.build.type }}">
                 <i class="{{ buildInfo.build|commitIcon }}"></i> {{ buildInfo.build.commitShort }}
             </a>
+            {% endif %}
             {% if not current_build or buildInfo.build.publishDate > current_build.publishDate %}
             <span class="label label-info">New</span>
+            {% endif %}
+            {% if buildInfo.build.branch == "private" %}
+            <span class="label label-warning">Private</span>
             {% endif %}
             {% if buildInfo.tag %}
                 {%if buildInfo.tag.value == "BAD_BUILD" %}

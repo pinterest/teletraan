@@ -16,13 +16,16 @@
                         <button type="button" class="close" data-dismiss="modal"><span
                                 aria-hidden="true">&times;</span><span class="sr-only">Close</span>
                         </button>
-                        <h4 class="modal-title" id="newEnvModalLabel">Are you sure to create this
+                        <h4 class="modal-title" id="newEnvModalLabel">Are you sure you would like to create this
                             deploy?</h4>
                     </div>
                     <div class="modal-body">
                         <div id="duplicateCommitDeployMessageId"></div>
                         <div id="confirmDeployModalPrecedingDeployWarningId">
                             Warning
+                        </div>
+                        <div id="privateBuildDeployMessageId" class="alert alert-warning" role="alert" aria-hidden=true>
+                            <strong>Notice: </strong> This build is private and should only be deployed in testing environments and not production environments
                         </div>
                         <div class="form-group">
                             <label for="description"
@@ -82,6 +85,10 @@
         $('#duplicateCommitDeployMessageId').load('/env/{{env.envName}}/{{env.stageName}}/'
                 +trid.find(".hiddenBuildId").val()+'/'
                 +'get_duplicate_commit_message/');
+
+        if ($('#confirmBranchInputId').val() == "private") {
+            $('#privateBuildDeployMessageId').attr("aria-hidden", "false");
+        }
     });
 
     $('#confirmDeployModalId').on('shown.bs.modal', function () {
