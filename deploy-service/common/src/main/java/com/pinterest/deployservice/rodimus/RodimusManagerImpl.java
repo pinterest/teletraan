@@ -91,22 +91,18 @@ public class RodimusManagerImpl implements RodimusManager {
 
     @Override
     public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
-        String url = String.format("%s/v1/groups/%s", rodimusUrl, clusterName);
+        String url = String.format("%s/v1/groups/%s/config", rodimusUrl, clusterName);
         String res = httpClient.get(url, null, null, headers, RETRIES);
         JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
         if (jsonObject == null || jsonObject.isJsonNull()) {
             return null;
         }
-        JsonElement groupInfo = jsonObject.get("groupInfo");
-        if (groupInfo == null || groupInfo.isJsonNull()) {
-            return null;
-        }
 
-        JsonPrimitive launchGracePeriod = groupInfo.getAsJsonObject().getAsJsonPrimitive("launchLatencyTh");
+        JsonPrimitive launchGracePeriod = jsonObject.getAsJsonPrimitive("launchLatencyTh");
         if (launchGracePeriod == null || launchGracePeriod.isJsonNull()) {
             return null;
         }
-        
+
         return launchGracePeriod.getAsLong();
     }
 }
