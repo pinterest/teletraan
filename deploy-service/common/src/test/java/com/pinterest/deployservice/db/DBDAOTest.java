@@ -56,6 +56,7 @@ public class DBDAOTest {
     private static GroupRolesDAO groupRolesDAO;
     private static ConfigHistoryDAO configHistoryDAO;
     private static TagDAO tagDAO;
+    private static ScheduleDAO scheduleDAO;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -88,6 +89,7 @@ public class DBDAOTest {
         tokenRolesDAO = new DBTokenRolesDAOImpl(DATASOURCE);
         configHistoryDAO = new DBConfigHistoryDAOImpl(DATASOURCE);
         tagDAO = new DBTagDAOImpl(DATASOURCE);
+        scheduleDAO = new DBScheduleDAOImpl(DATASOURCE);
     }
 
     @AfterClass
@@ -902,6 +904,42 @@ public class DBDAOTest {
         assertEquals(4, tagDAO.getByValue(TagValue.BAD_BUILD).size());
         assertEquals(0, tagDAO.getByValue(TagValue.GOOD_BUILD).size());
     }
+
+
+    @Test
+    public void testScheduleDAO() throws Exception {
+        Long time = System.currentTimeMillis();
+        String id = CommonUtils.getBase64UUID();
+        ScheduleBean scheduleBean = new ScheduleBean();
+        scheduleBean.setId(id);
+        scheduleBean.setTotal_sessions(3);
+        scheduleBean.setCooldown_times("40,50,60");
+        scheduleBean.setCurrent_session(2);
+        scheduleBean.setHost_numbers("50,60,500");
+        scheduleBean.setState(ScheduleState.COOLING_DOWN);
+        scheduleBean.setState_start_time(time);
+        scheduleDAO.insert(scheduleBean);
+        ScheduleBean bean = scheduleDAO.getById(id);
+
+        assertEquals(bean.getTotal_sessions(), (Integer) 3);
+        assertEquals(bean.getCooldown_times(), "40,50,60");
+        assertEquals(bean.getCurrent_session(), (Integer) 2);
+        assertEquals(bean.getHost_numbers(), "50,60,500");
+        assertEquals(bean.getState(), ScheduleState.COOLING_DOWN);
+        assertEquals(bean.getState_start_time(), time);
+
+        ScheduleBean updateBean = new ScheduleBean();
+        updateBean.setCurrent_session(1);
+        updateBean.setState(ScheduleState.RUNNING);
+        scheduleDAO.update(updateBean, id);
+        ScheduleBean updatedBean = scheduleDAO.getById(id);
+
+        assertEquals(updatedBean.getCurrent_session(), (Integer) 1);
+        assertEquals(updatedBean.getState(), ScheduleState.RUNNING);
+        assertEquals(updatedBean.getHost_numbers(), "50,60,500");
+
+    }
+
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage, String deployId) {
         EnvironBean envBean = new EnvironBean();

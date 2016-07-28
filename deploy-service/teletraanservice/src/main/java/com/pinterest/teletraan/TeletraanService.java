@@ -120,6 +120,9 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         Pings pings = new Pings(context);
         environment.jersey().register(pings);
 
+        Schedules schedules = new Schedules(context);
+        environment.jersey().register(schedules);
+
         environment.jersey().register(new Tags(context));
 
         Groups groups = new Groups(context);

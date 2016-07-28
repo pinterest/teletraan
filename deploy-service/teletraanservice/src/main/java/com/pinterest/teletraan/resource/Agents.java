@@ -76,4 +76,11 @@ public class Agents {
         agentDAO.updateAgentById(hostId, agentBean);
         LOG.info("Successfully update agents %s by %s: %s", hostId, operator, agentBean.toString());
     }
+
+    @GET
+    @Path("/env/{envId : [a-zA-Z0-9\\-_]+}/total")
+    public long getCountByEnvName(
+        @ApiParam(value = "Env Id", required = true)@PathParam("envId") String envId) throws Exception {
+        return agentDAO.countAgentByEnv(envId);    
+    }
 }

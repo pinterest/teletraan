@@ -19,11 +19,13 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentErrorBean;
 import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployGoalBean;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.OpCode;
 import com.pinterest.deployservice.bean.PingReportBean;
@@ -39,6 +41,7 @@ import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -84,6 +87,7 @@ public class PingHandler {
     private EnvironDAO environDAO;
     private HostDAO hostDAO;
     private UtilDAO utilDAO;
+    private ScheduleDAO scheduleDAO;
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
     private LoadingCache<String, DeployBean> deployCache;
@@ -96,6 +100,7 @@ public class PingHandler {
         environDAO = serviceContext.getEnvironDAO();
         hostDAO = serviceContext.getHostDAO();
         utilDAO = serviceContext.getUtilDAO();
+        scheduleDAO = serviceContext.getScheduleDAO();
         dataHandler = new DataHandler(serviceContext);
 
         if (serviceContext.isBuildCacheEnabled()) {
@@ -239,6 +244,37 @@ public class PingHandler {
         }
     }
 
+    boolean canDeploywithSchedule(String scheduleId, GoalAnalyst.InstallCandidate installCandidate, String hostName, EnvironBean env, AgentBean updateBean) throws Exception {
+        ScheduleBean schedule = scheduleDAO.getById(scheduleId);
+        String hostNumbers = schedule.getHost_numbers();
+        String cooldownTimes = schedule.getCooldown_times();
+        Integer currentSession = schedule.getCurrent_session();
+        Integer totalSessions = schedule.getTotal_sessions();
+        String[] hostNumbersList = hostNumbers.split(",");
+        String[] cooldownTimesList = cooldownTimes.split(",");
+
+        if (schedule.getState() == ScheduleState.COOLING_DOWN) { 
+            // check if cooldown period is over
+            LOG.info("Env {} is currently cooling down. Host {} will wait until the cooling down period is over.", env.getEnv_id());
+            return false;
+        } else {
+            int totalHosts = 0;
+            for (int i = 0; i < currentSession; i++) {
+                totalHosts+=Integer.parseInt(hostNumbersList[i]);
+            }
+            // if deployed max amount
+            if (agentDAO.countAgentsByDeploy(env.getDeploy_id()) < totalHosts || 
+                schedule.getState() == ScheduleState.FINAL || schedule.getState() == ScheduleState.NOT_STARTED) {
+                // if max amount of hosts are finished deploying --> set schedule to cooldown state
+                return true;
+            } else {
+                LOG.debug("{} hosts have been deployed, cannot deploy anymore in session {}", totalHosts, currentSession);
+                return false;
+            } 
+        }
+        
+    }
+
     // Host env will override group env, if there is conflicts, and convert to Map
     Map<String, EnvironBean> convergeEnvs(String host, List<EnvironBean> hostEnvs, List<EnvironBean> groupEnvs) {
         Map<String, EnvironBean> hostEnvMap = mergeEnvs(host, hostEnvs);
@@ -348,7 +384,7 @@ public class PingHandler {
 
         // Find all agent records for this host, convert to envId based map
         List<AgentBean> agentBeans = agentDAO.getByHost(hostName);
-        Map<String, AgentBean> agents = convertAgentBeans(agentBeans);
+        Map<String, AgentBean> agents = convertAgentBeans(agentBeans); //database agent
 
         // Now we have all the relevant envs, reports and agents, let us do some
         // analysis & pick the potential install candidate and uninstall candidate
@@ -363,21 +399,35 @@ public class PingHandler {
         if (!installCandidates.isEmpty()) {
             GoalAnalyst.InstallCandidate installCandidate = installCandidates.get(0);
             AgentBean updateBean = installCandidate.updateBean;
+            EnvironBean env = installCandidate.env;
+            String scheduleId = env.getSchedule_id();
+
             if (installCandidate.needWait) {
-                LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
-                if (canDeploy(installCandidate.env, hostName, updateBean)) {
-                    // use the updateBean in the installCandidate instead
-                    LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
-                    updateBeans.put(updateBean.getEnv_id(), updateBean);
-                    response = generateInstallResponse(installCandidate);
+                boolean canDeploywithSchedule = false; 
+                String scheduleLockName = String.format("scheduleLock - %s", scheduleId);
+                Connection connection = utilDAO.getLock(scheduleLockName);
+                if (connection != null) {
+                    if (scheduleId != null) { 
+                        canDeploywithSchedule = canDeploywithSchedule(scheduleId, installCandidate, hostName, env, updateBean);
+                    }
+                    if (scheduleId == null || canDeploywithSchedule) {
+                         LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
+                        if (canDeploy(env, hostName, updateBean)) {
+                            LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
+                            updateBeans.put(updateBean.getEnv_id(), updateBean);
+                            response = generateInstallResponse(installCandidate);
+                        } else {
+                            LOG.debug("Host {} for env {} needs to wait for its turn to install.",
+                                hostName, updateBean.getEnv_id());
+                        }
+                    } 
+                    utilDAO.releaseLock(scheduleLockName, connection);    
                 } else {
-                    LOG.debug("Host {} for env {} needs to wait for its turn to install.",
-                            hostName, updateBean.getEnv_id());
+                    LOG.warn("Lock {} not received", scheduleLockName);
                 }
             } else {
                 LOG.debug("Host {} is in the middle of deploy, no need to wait, updateBean = {}",
-                        hostName, updateBean);
-                // Update the updateBeans to use the updateBean instead
+                    hostName, updateBean);
                 updateBeans.put(updateBean.getEnv_id(), updateBean);
                 response = generateInstallResponse(installCandidate);
             }
@@ -519,7 +569,6 @@ public class PingHandler {
         response.setDeployGoal(goal);
         return response;
     }
-
 
     private static boolean isApplicable(Integer val) {
         return val != null && val > 0;

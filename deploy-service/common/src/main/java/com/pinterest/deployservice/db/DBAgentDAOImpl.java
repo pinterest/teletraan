@@ -25,8 +25,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
-import java.util.List;
-import java.util.Collection;
+import java.util.*;
 
 public class DBAgentDAOImpl implements AgentDAO {
     private static final String UPDATE_AGENT_TEMPLATE =
@@ -70,7 +69,14 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String GET_NON_FIRST_TIME_DEPLOY_TOTAL =
         "SELECT COUNT(*) FROM agents WHERE env_id=? AND first_deploy=0";
     private static final String COUNT_ALL_AGENT_BY_ENV = "SELECT COUNT(*) FROM agents WHERE env_id=?";
+    private static final String COUNT_ALL_AGENT_BY_ENV_NAME = "SELECT COUNT(*) FROM agents WHERE env_name=?";
     private static final String COUNT_SERVING_TOTAL = "SELECT COUNT(*) FROM agents WHERE env_id=? AND deploy_stage=?";
+    private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY = 
+        "SELECT COUNT(*) FROM agents WHERE deploy_id=? AND (deploy_stage='SERVING_BUILD' OR state='PAUSED_BY_USER' OR state='PAUSED_BY_SYSTEM')";
+    private static final String COUNT_AGENTS_BY_DEPLOY =
+        "SELECT COUNT(*) FROM agents WHERE deploy_id=?";
+
+   
 
     private BasicDataSource dataSource;
 
@@ -212,6 +218,20 @@ public class DBAgentDAOImpl implements AgentDAO {
     public long countServingTotal(String envId) throws Exception {
         Long n = new QueryRunner(dataSource).query(COUNT_SERVING_TOTAL, SingleResultSetHandlerFactory.<Long>newObjectHandler(),
                 envId, DeployStage.SERVING_BUILD.toString());
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long countFinishedAgentsByDeploy(String deployId) throws Exception {
+        Long n = new QueryRunner(dataSource).query(COUNT_FINISHED_AGENTS_BY_DEPLOY,
+            SingleResultSetHandlerFactory.<Long>newObjectHandler(), deployId);
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long countAgentsByDeploy(String deployId) throws Exception {
+        Long n = new QueryRunner(dataSource).query(COUNT_AGENTS_BY_DEPLOY,
+            SingleResultSetHandlerFactory.<Long>newObjectHandler(), deployId);
         return n == null ? 0 : n;
     }
 }
