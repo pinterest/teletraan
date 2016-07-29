@@ -22,7 +22,7 @@ import json
 import logging
 
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper
-from helpers import clusters_helper, environs_helper, environ_hosts_helper
+from helpers import clusters_helper, environs_helper, environ_hosts_helper, autoscaling_groups_helper
 import common
 
 log = logging.getLogger(__name__)
@@ -569,12 +569,18 @@ def force_terminate_hosts(request, name, stage):
     if 'hostIds' in post_params:
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
+
+    if 'replaceHost' in post_params:
+        replace_host = True
+    else:
+        replace_host = False
+
     cluster_name = common.get_cluster_name(request, name, stage)
     if not cluster_name:
         groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
         for group_name in groups:
             cluster_name = group_name
-    clusters_helper.force_terminate_hosts(request, cluster_name, host_ids)
+    clusters_helper.force_terminate_hosts(request, cluster_name, host_ids, replace_host)
     return redirect('/env/{}/{}'.format(name, stage))
 
 

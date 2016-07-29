@@ -44,8 +44,10 @@ def launch_hosts(request, cluster_name, num):
     return rodimus_client.put("/clusters/%s/hosts" % cluster_name, request.teletraan_user_id.token, params=params)
 
 
-def force_terminate_hosts(request, cluster_name, host_ids):
-    return rodimus_client.delete("/clusters/%s/hosts" % cluster_name, request.teletraan_user_id.token, data=host_ids)
+def force_terminate_hosts(request, cluster_name, host_ids, replace_host):
+    params = [('replaceHost', replace_host)]
+    return rodimus_client.delete("/clusters/%s/hosts" % cluster_name, request.teletraan_user_id.token, params=params,
+                                 data=host_ids)
 
 
 def enable_cluster_replacement(request, cluster_name):

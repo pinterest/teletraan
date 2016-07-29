@@ -58,7 +58,18 @@
                 </div>
                 <div class="modal-body">
                     <p> Are you sure to force terminate {{ hostname }}?</p>
+
+                    <a data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                    <span id="collapseToggler" class="glyphicon glyphicon-chevron-right"></span>
+                    </a>
+
+                    <div class="collapse" id="collapseExample">
+                      <div class="card card-block">
+                        <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host
+                      </div>
+                    </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
