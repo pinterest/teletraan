@@ -54,4 +54,6 @@ public class Constants {
     public static final String TYPE_ENV_METRIC = "Env Metrics Config";
     public static final String TYPE_ENV_ALARM = "Env Alarm Config";
     public static final String TYPE_ENV_WEBHOOK = "Env Webhook Config";
+
+    public static final String CLIENT_ERROR_SHORT = "short";
 }

@@ -135,8 +135,8 @@ db:
 system:
   # Teletraan needs to refer Deploy Dashboard url in its notify etc.
   dashboardUrl: http://localhost:8888
-  # Disploy full stack stack trace to user. Uncomment disableStackTrace to disable
-  #disableStackTrace: true
+  # long or short. long means displaying full stack stack trace to user.
+  clientError: short
 
 #
 # Worker settings: disable all the workers if you do not want to run

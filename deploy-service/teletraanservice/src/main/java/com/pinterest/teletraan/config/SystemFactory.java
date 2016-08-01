@@ -16,6 +16,7 @@
 package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.pinterest.deployservice.common.Constants;
 
 public class SystemFactory {
     private static final String DEFAULT_DASHBOARD_URL = "http://localhost:8888";
@@ -27,10 +28,7 @@ public class SystemFactory {
     private String changeFeedUrl;
 
     @JsonProperty
-    private boolean disableStackTrace;
-
-    @JsonProperty
-    private String quboleAuthentication;
+    private String clientError = Constants.CLIENT_ERROR_SHORT;
 
     public String getDashboardUrl() {
         return dashboardUrl;
@@ -48,11 +46,11 @@ public class SystemFactory {
         this.changeFeedUrl = changeFeedUrl;
     }
 
-    public boolean isDisableStackTrace() {
-        return disableStackTrace;
+    public String getClientError() {
+        return clientError;
     }
 
-    public void setDisableStackTrace(boolean disableStackTrace) {
-        this.disableStackTrace = disableStackTrace;
+    public void setClientError(String clientError) {
+        this.clientError = clientError;
     }
 }

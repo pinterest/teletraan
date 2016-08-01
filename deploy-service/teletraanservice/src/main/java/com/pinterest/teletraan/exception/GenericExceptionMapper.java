@@ -1,13 +1,13 @@
 package com.pinterest.teletraan.exception;
 
 
+import com.pinterest.deployservice.common.Constants;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.Scanner;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.WebApplicationException;
@@ -24,43 +24,55 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
     @Context
     HttpServletRequest request;
 
+    private String clientError;
+
+    public GenericExceptionMapper(String clientError) {
+        this.clientError = clientError;
+    }
+
     @Override
     public Response toResponse(Throwable t) {
         if (t instanceof WebApplicationException) {
-            return ((WebApplicationException) t).getResponse();
+            LOG.error("Teletraan WebApplicationException:", t);
+            StringBuilder sb = new StringBuilder();
+            if (t.getMessage() != null) {
+                sb.append("\nMessage: ").append(t.getMessage());
+            }
+
+            if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
+                return Response.serverError().entity(sb.toString()).build();
+            } else {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                t.printStackTrace(pw);
+                sb.append("\n").append(sw.toString());
+                return Response.serverError().entity(sb.toString()).build();
+            }
         } else {
             String errorMessage = buildErrorMessage(request);
             LOG.error(errorMessage, t);
-
-            StringBuilder sb = new StringBuilder(errorMessage);
+            StringBuilder sb = new StringBuilder();
             if (t.getMessage() != null) {
-                sb.append("\n");
-                sb.append(t.getMessage());
+                sb.append("\nMessage: ").append(t.getMessage());
             }
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            t.printStackTrace(pw);
-            sb.append(sw.toString());
-            return Response.serverError().entity(sb.toString()).build();
+
+            if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
+                return Response.serverError().entity(sb.toString()).build();
+            } else {
+                sb.append(errorMessage);
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                t.printStackTrace(pw);
+                sb.append("\n").append(sw.toString());
+                return Response.serverError().entity(sb.toString()).build();
+            }
         }
     }
 
     private String buildErrorMessage(HttpServletRequest req) {
         StringBuilder message = new StringBuilder();
-        String entity = "";
-
-        try {
-            InputStream is = req.getInputStream();
-            Scanner s = new Scanner(is, "UTF-8").useDelimiter("\\A");
-            entity = s.hasNext() ? s.next() : entity;
-        } catch (Exception ex) {
-            // Ignore exceptions around getting the entity
-        }
-
-        message.append("Teletraan Exception:\n");
-        message.append("API: ").append(getOriginalURL(req)).append("\n");
-        message.append("Method: ").append(req.getMethod()).append("\n");
-        message.append("Entity: ").append(entity);
+        message.append("\nResource: ").append(getOriginalURL(req));
+        message.append("\nMethod: ").append(req.getMethod());
         return message.toString();
     }
 

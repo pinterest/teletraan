@@ -134,9 +134,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
 
         // Exception handler
-        if (!configuration.getSystemFactory().isDisableStackTrace()) {
-            environment.jersey().register(new GenericExceptionMapper());
-        }
+        environment.jersey().register(new GenericExceptionMapper(configuration.getSystemFactory().getClientError()));
 
         // Swagger API docs generation related
         environment.jersey().register(new ApiListingResource());
