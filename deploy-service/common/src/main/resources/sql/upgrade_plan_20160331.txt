@@ -1,7 +1,0 @@
-UPDATES
-=================
-ALTER TABLE placements ADD COLUMN capacity INT DEFAULT 0;
-
-Rollback
-===========================
-ALTER TABLE placements DROP COLUMN capacity;

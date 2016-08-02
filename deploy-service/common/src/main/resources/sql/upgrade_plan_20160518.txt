@@ -1,7 +1,0 @@
-ATES
-=================
-ALTER TABLE environs ADD COLUMN cluster_name VARCHAR(128);
-
-Rollback
-===========================
-ALTER TABLE environs DROP COLUMN cluster_name;

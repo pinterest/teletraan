@@ -1,0 +1,4 @@
+To upgrade DB schema to release 1.0.2, run something like the following:
+mysql -uroot -f < teletraan/schema-upgrade-r1.0.1-to-r1.0.2.sql
+
+You can safely ignore the duplicate column error if any

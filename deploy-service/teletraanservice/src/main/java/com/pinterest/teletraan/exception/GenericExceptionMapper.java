@@ -32,8 +32,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
 
     @Override
     public Response toResponse(Throwable t) {
+        LOG.error("Server error:", t);
         if (t instanceof WebApplicationException) {
-            LOG.error("Teletraan WebApplicationException:", t);
             StringBuilder sb = new StringBuilder();
             if (t.getMessage() != null) {
                 sb.append("\nMessage: ").append(t.getMessage());
@@ -50,7 +50,6 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
             }
         } else {
             String errorMessage = buildErrorMessage(request);
-            LOG.error(errorMessage, t);
             StringBuilder sb = new StringBuilder();
             if (t.getMessage() != null) {
                 sb.append("\nMessage: ").append(t.getMessage());
