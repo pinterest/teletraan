@@ -78,6 +78,10 @@ def get_daily_deploy_count(request):
 
 
 def get_duplicate_commit_deploy_message(request, name, stage, buildId):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    if env.get('deployId') is None:
+        return HttpResponse('')
+
     current_deploy = deploys_helper.get_current(request, name, stage)
     current_build = builds_helper.get_build(request, current_deploy['buildId'])
     current_commit = current_build['commit']
