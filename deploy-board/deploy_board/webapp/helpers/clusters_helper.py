@@ -28,7 +28,10 @@ def update_cluster(request, cluster_name, cluster_info):
 
 
 def get_cluster(request, cluster_name):
-    return rodimus_client.get("/clusters/%s" % cluster_name, request.teletraan_user_id.token)
+    if cluster_name:
+        return rodimus_client.get("/clusters/%s" % cluster_name, request.teletraan_user_id.token)
+    else:
+        return None
 
 
 def delete_cluster(request, cluster_name):
