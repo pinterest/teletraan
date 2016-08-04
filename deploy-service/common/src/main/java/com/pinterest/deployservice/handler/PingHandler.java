@@ -15,22 +15,26 @@
  */
 package com.pinterest.deployservice.handler;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentErrorBean;
 import com.pinterest.deployservice.bean.AgentState;
-import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployGoalBean;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.OpCode;
 import com.pinterest.deployservice.bean.PingReportBean;
 import com.pinterest.deployservice.bean.PingRequestBean;
 import com.pinterest.deployservice.bean.PingResponseBean;
+import com.pinterest.deployservice.bean.ScheduleBean;
+import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.StateMachines;
@@ -40,12 +44,8 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.pinterest.deployservice.dao.UtilDAO;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -189,7 +189,7 @@ public class PingHandler {
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
      */
-    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean) throws Exception {
+    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean, String scheduleId) throws Exception {
         // first deploy should always proceed
         if (agentBean.getFirst_deploy()) {
             agentDAO.insertOrUpdate(agentBean);
@@ -215,6 +215,14 @@ public class PingHandler {
             return false;
         }
 
+        // Make sure we also follow the schedule if specified
+        if (scheduleId != null) {
+            if (!canDeploywithSchedule(scheduleId, envBean)) {
+                LOG.debug("Env {} schedule does not allow host {} to proceed.", envId, host);
+                return false;
+            }
+        }
+
         // Looks like we can proceed with deploy, but let us double check with lock, and
         // Update table to occupy one seat if condition still hold
         String deployLockName = String.format("DEPLOY-%s", envId);
@@ -227,6 +235,13 @@ public class PingHandler {
                 if (totalActiveAgents >= parallelThreshold) {
                     LOG.debug("Got lock, but there are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalActiveAgents, envId, host);
                     return false;
+                }
+                // Make sure again we also follow the schedule if specified
+                if (scheduleId != null) {
+                    if (!canDeploywithSchedule(scheduleId, envBean)) {
+                        LOG.debug("Env {} schedule does not allow host {} to proceed.", envId, host);
+                        return false;
+                    }
                 }
                 agentDAO.insertOrUpdate(agentBean);
                 LOG.debug("There are currently only {} agent is actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
@@ -244,35 +259,30 @@ public class PingHandler {
         }
     }
 
-    boolean canDeploywithSchedule(String scheduleId, GoalAnalyst.InstallCandidate installCandidate, String hostName, EnvironBean env, AgentBean updateBean) throws Exception {
+    boolean canDeploywithSchedule(String scheduleId, EnvironBean env) throws Exception {
         ScheduleBean schedule = scheduleDAO.getById(scheduleId);
         String hostNumbers = schedule.getHost_numbers();
-        String cooldownTimes = schedule.getCooldown_times();
         Integer currentSession = schedule.getCurrent_session();
-        Integer totalSessions = schedule.getTotal_sessions();
         String[] hostNumbersList = hostNumbers.split(",");
-        String[] cooldownTimesList = cooldownTimes.split(",");
 
-        if (schedule.getState() == ScheduleState.COOLING_DOWN) { 
-            // check if cooldown period is over
-            LOG.info("Env {} is currently cooling down. Host {} will wait until the cooling down period is over.", env.getEnv_id());
+        if (schedule.getState() == ScheduleState.COOLING_DOWN) {
+            LOG.debug("Env {} is currently cooling down. Host {} will wait until the cooling down period is over.", env.getEnv_id());
             return false;
         } else {
             int totalHosts = 0;
             for (int i = 0; i < currentSession; i++) {
-                totalHosts+=Integer.parseInt(hostNumbersList[i]);
+                totalHosts += Integer.parseInt(hostNumbersList[i]);
             }
             // if deployed max amount
-            if (agentDAO.countAgentsByDeploy(env.getDeploy_id()) < totalHosts || 
+            if (agentDAO.countAgentsByDeploy(env.getDeploy_id()) < totalHosts ||
                 schedule.getState() == ScheduleState.FINAL || schedule.getState() == ScheduleState.NOT_STARTED) {
-                // if max amount of hosts are finished deploying --> set schedule to cooldown state
+                LOG.debug("{} hosts have been deployed, still can deploy in session {}", totalHosts, currentSession);
                 return true;
             } else {
                 LOG.debug("{} hosts have been deployed, cannot deploy anymore in session {}", totalHosts, currentSession);
                 return false;
-            } 
+            }
         }
-        
     }
 
     // Host env will override group env, if there is conflicts, and convert to Map
@@ -403,27 +413,14 @@ public class PingHandler {
             String scheduleId = env.getSchedule_id();
 
             if (installCandidate.needWait) {
-                boolean canDeploywithSchedule = false; 
-                String scheduleLockName = String.format("scheduleLock - %s", scheduleId);
-                Connection connection = utilDAO.getLock(scheduleLockName);
-                if (connection != null) {
-                    if (scheduleId != null) { 
-                        canDeploywithSchedule = canDeploywithSchedule(scheduleId, installCandidate, hostName, env, updateBean);
-                    }
-                    if (scheduleId == null || canDeploywithSchedule) {
-                         LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
-                        if (canDeploy(env, hostName, updateBean)) {
-                            LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
-                            updateBeans.put(updateBean.getEnv_id(), updateBean);
-                            response = generateInstallResponse(installCandidate);
-                        } else {
-                            LOG.debug("Host {} for env {} needs to wait for its turn to install.",
-                                hostName, updateBean.getEnv_id());
-                        }
-                    } 
-                    utilDAO.releaseLock(scheduleLockName, connection);    
+                LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
+                if (canDeploy(env, hostName, updateBean, scheduleId)) {
+                    LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
+                    updateBeans.put(updateBean.getEnv_id(), updateBean);
+                    response = generateInstallResponse(installCandidate);
                 } else {
-                    LOG.warn("Lock {} not received", scheduleLockName);
+                    LOG.debug("Host {} for env {} needs to wait for its turn to install.",
+                              hostName, updateBean.getEnv_id());
                 }
             } else {
                 LOG.debug("Host {} is in the middle of deploy, no need to wait, updateBean = {}",

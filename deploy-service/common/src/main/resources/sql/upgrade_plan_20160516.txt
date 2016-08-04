@@ -1,7 +1,0 @@
-UPDATES
-=================
-ALTER TABLE environs ADD COLUMN system_priority INT;
-
-Rollback
-===========================
-ALTER TABLE environs DROP COLUMN system_priority;

@@ -1,27 +1,0 @@
-Update
- ============================== 
-ALTER TABLE groups DROP COLUMN notify_authors;
-ALTER TABLE groups ADD COLUMN launch_latency_th INT NOT NULL DEFAULT 600;
-
-create table api_tokens (
-  token       VARCHAR(22)   NOT NULL,
-  user_name   VARCHAR(22)   NOT NULL,
-  start_date   BIGINT        NOT NULL,
-  PRIMARY KEY (token)
-);
-
-create table script_tokens (
-  token         VARCHAR(22)   NOT NULL,
-  role          VARCHAR(22)   NOT NULL,
-  script_name   VARCHAR(22)   NOT NULL,
-  env_id        VARCHAR(22)   NOT NULL,
-  start_date     BIGINT        NOT NULL,
-  PRIMARY KEY (token)
-);
-
-Rollback
- ============================= 
-ALTER TABLE groups ADD COLUMN notify_authors tinyint(1);
-ALTER TABLE groups DROP COLUMN launch_latency_th;
-DROP TABLE IF EXISTS api_tokens;
-DROP TABLE IF EXISTS script_tokens;

@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,17 +17,48 @@ package com.pinterest.teletraan;
 
 import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
-import com.pinterest.teletraan.resource.*;
-import io.swagger.jaxrs.config.BeanConfig;
-import io.swagger.jaxrs.listing.ApiListingResource;
-import io.swagger.jaxrs.listing.SwaggerSerializers;
-import io.dropwizard.Application;
-import io.dropwizard.setup.Environment;
+import com.pinterest.teletraan.resource.Agents;
+import com.pinterest.teletraan.resource.Builds;
+import com.pinterest.teletraan.resource.Commits;
+import com.pinterest.teletraan.resource.Deploys;
+import com.pinterest.teletraan.resource.EnvAgentConfigs;
+import com.pinterest.teletraan.resource.EnvAgents;
+import com.pinterest.teletraan.resource.EnvAlarms;
+import com.pinterest.teletraan.resource.EnvCapacitys;
+import com.pinterest.teletraan.resource.EnvDeploys;
+import com.pinterest.teletraan.resource.EnvGroupRoles;
+import com.pinterest.teletraan.resource.EnvHistory;
+import com.pinterest.teletraan.resource.EnvHosts;
+import com.pinterest.teletraan.resource.EnvMetrics;
+import com.pinterest.teletraan.resource.EnvPromotes;
+import com.pinterest.teletraan.resource.EnvScriptConfigs;
+import com.pinterest.teletraan.resource.EnvStages;
+import com.pinterest.teletraan.resource.EnvTokenRoles;
+import com.pinterest.teletraan.resource.EnvUserRoles;
+import com.pinterest.teletraan.resource.EnvWebHooks;
+import com.pinterest.teletraan.resource.Environs;
+import com.pinterest.teletraan.resource.Groups;
+import com.pinterest.teletraan.resource.Hosts;
+import com.pinterest.teletraan.resource.Hotfixs;
+import com.pinterest.teletraan.resource.Pings;
+import com.pinterest.teletraan.resource.Ratings;
+import com.pinterest.teletraan.resource.Schedules;
+import com.pinterest.teletraan.resource.SystemGroupRoles;
+import com.pinterest.teletraan.resource.Systems;
+import com.pinterest.teletraan.resource.Tags;
+
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+
+import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
-import java.util.EnumSet;
+
+import io.dropwizard.Application;
+import io.dropwizard.setup.Environment;
+import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.jaxrs.listing.ApiListingResource;
+import io.swagger.jaxrs.listing.SwaggerSerializers;
 
 public class TeletraanService extends Application<TeletraanServiceConfiguration> {
     @Override

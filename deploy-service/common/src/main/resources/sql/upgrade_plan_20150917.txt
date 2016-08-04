@@ -1,13 +1,0 @@
-Update
- ============================== 
-create table groups_and_roles (
-    group_name     VARCHAR(64)     NOT NULL,
-    resource_id   VARCHAR(64)     NOT NULL,
-    resource_type VARCHAR(16)     NOT NULL,
-    role          VARCHAR(22)     NOT NULL,
-    PRIMARY KEY (resource_id, resource_type, group_name)
-);
-
-Rollback
- ============================= 
-DROP TABLE IF EXISTS groups_and_roles;

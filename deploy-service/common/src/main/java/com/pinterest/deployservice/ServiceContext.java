@@ -65,9 +65,6 @@ public class ServiceContext {
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
 
-    private String quboleAuthentication;
-    private int spotAutoScalingThreshold;
-
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;
     }
@@ -318,20 +315,6 @@ public class ServiceContext {
         this.changeFeedUrl = changeFeedUrl;
     }
 
-    public void setQuboleAuthentication(String quboleAuthentication) {
-        this.quboleAuthentication = quboleAuthentication;
-    }
-
-    public String getQuboleAuthentication() {
-        return quboleAuthentication;
-    }
-
-    public void setSpotAutoScalingThreshold(int spotAutoScalingThreshold) {
-        this.spotAutoScalingThreshold = spotAutoScalingThreshold;
-    }
-
-    public int getSpotAutoScalingThreshold() { return spotAutoScalingThreshold; }
-
     public TagDAO getTagDAO() {
         return tagDAO;
     }
@@ -340,8 +323,8 @@ public class ServiceContext {
         this.tagDAO = tagDAO;
     }
 
-    public ScheduleDAO getScheduleDAO() { 
-        return scheduleDAO; 
+    public ScheduleDAO getScheduleDAO() {
+        return scheduleDAO;
     }
 
     public void setScheduleDAO(ScheduleDAO scheduleDAO) {

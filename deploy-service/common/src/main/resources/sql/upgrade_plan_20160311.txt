@@ -1,7 +1,0 @@
-UPDATES
-=================
-ALTER TABLE  spot_auto_scaling_groups ADD COLUMN enable_grow TINYINT(1) NOT NULL DEFAULT 0;
-
-Rollback
-===========================
-ALTER TABLE spot_auto_scaling_groups DROP COLUMN enable_grow;
