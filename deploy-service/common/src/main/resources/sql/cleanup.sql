@@ -4,6 +4,7 @@ USE deploy;
 
 /* This is for unit tests only - it will wipe all data - do NOT run it in prodution!*/
 
+DROP TABLE IF EXISTS schema_versions;
 DROP TABLE IF EXISTS agents;
 DROP TABLE IF EXISTS agent_errors;
 DROP TABLE IF EXISTS builds;
