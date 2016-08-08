@@ -276,3 +276,11 @@ CREATE TABLE IF NOT EXISTS schedules (
     state_start_time    BIGINT          NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS schema_versions (
+    version INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Make sure to update the version everytime we change the schema
+INSERT INTO schema_versions (version) VALUES (1);
