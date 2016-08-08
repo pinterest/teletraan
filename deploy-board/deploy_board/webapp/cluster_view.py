@@ -22,13 +22,14 @@ import json
 import logging
 
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper
-from helpers import clusters_helper, environs_helper, environ_hosts_helper, autoscaling_groups_helper
+from helpers import clusters_helper, environs_helper, environ_hosts_helper
 import common
 
 log = logging.getLogger(__name__)
 
 DEFAULT_PAGE_SIZE = 200
 PROVIDER_AWS = 'AWS'
+CMP_DOCKER_IMAGE = 'CMP-DOCKER'
 
 
 def create_base_image(request):
@@ -391,7 +392,7 @@ def get_new_cmp_cluster(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
-    base_images = baseimages_helper.get_by_name(request, "CMP-DOCKER")
+    base_images = baseimages_helper.get_by_name(request, CMP_DOCKER_IMAGE)
     html = render_to_string('clusters/cmp_cluster_creation.tmpl', {
         'env': env,
         'envs': envs,
@@ -408,7 +409,7 @@ def get_cmp_cluster(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     provider_list = baseimages_helper.get_all_providers(request)
     basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-    base_images = baseimages_helper.get_by_name(request, "CMP-DOCKER")
+    base_images = baseimages_helper.get_by_name(request, CMP_DOCKER_IMAGE)
     html = render_to_string('clusters/cmp_cluster.tmpl', {
         'env': env,
         'envs': envs,
@@ -447,7 +448,7 @@ def get_cluster(request, name, stage):
     if basic_cluster_info:
         base_image_id = basic_cluster_info.get('baseImageId')
         base_image = baseimages_helper.get_by_id(request, base_image_id)
-        if base_image.get('abstract_name') != 'CMP-DOCKER':
+        if base_image.get('abstract_name') != CMP_DOCKER_IMAGE:
             adv = True
         else:
             is_cmp = True
@@ -496,7 +497,7 @@ def get_aws_config_name_list_by_image(image_name):
         config_map['ebs_size'] = 500
         config_map['ebs_mount'] = '/backup'
         config_map['ebs_volume_type'] = 'gp2'
-        if image_name == 'CMP-DOCKER':
+        if image_name == CMP_DOCKER_IMAGE:
             config_map['pinfo_role'] = 'cmp_docker'
             config_map['pinfo_team'] = 'cloudeng'
         else:
@@ -518,10 +519,12 @@ def get_advanced_cluster(request):
         config_list = get_aws_config_name_list_by_image(image_name)
         basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
         if not basic_cluster_info:
-            if image_name != 'CMP-DOCKER':
+            if image_name != CMP_DOCKER_IMAGE:
                 advanced_cluster_info['aws_role'] = 'base'
+            else:
+                advanced_cluster_info = get_default_cmp_configs(name, stage)
         else:
-            if image_name != 'CMP-DOCKER':
+            if image_name != CMP_DOCKER_IMAGE:
                 advanced_cluster_info = basic_cluster_info.get('configs')
             else:
                 cmp_configs = get_default_cmp_configs(name, stage)
