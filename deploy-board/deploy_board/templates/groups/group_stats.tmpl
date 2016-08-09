@@ -62,7 +62,6 @@
                 spot_extended_data.addColumn("number", "Spot Scale Down Threshold");
             {% endif %}
         {% endif %}
-
         {% for metric_data in alarm_info.metric_datum %}
             var time = {{ metric_data.timestamp }};
             var d = new Date(time);
