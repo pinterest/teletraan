@@ -2,7 +2,8 @@
 {% load static %}
 
 <form name="env_config_history_list">
-    <table id="envConfigHistoryTableId" class="table table-condensed table-striped table-hover">
+    <table id="envConfigHistoryTableId" class="table table-condensed table-striped table-hover sortable">
+        <thead>
         <tr>
             <th class="col-sm-1"></th>
             <th class="col-lg-2">Time</th>
@@ -10,6 +11,7 @@
             <th class="col-lg-2">Type</th>
             <th class="col-lg-4">Configuration Change</th>
         </tr>
+        </thead>
         {% for config in configs %}
         <tr>
             <td>
@@ -18,7 +20,23 @@
             <td> {{ config.createTime | convertTimestamp }} </td>
             <td> {{ config.operator }} </td>
             <td> {{ config.type }}  </td>
-            <td> {{ config.configChange }} </td>
+            <td> 
+            {% with type=config.configChange|convertConfigHistoryString|getType value=config.configChange|convertConfigHistoryString %}
+            {% if type == 'dict' %}
+                {% for k, v in value.items %}
+                <div class="row" style="height: 15px;">
+                <i>{{ k }}: </i>{{ v }} 
+                </div>
+                {% endfor %}
+            {% elif type == 'list' %}
+                {% for item in value %}
+                {{ item }}, 
+                {% endfor %}
+            {% else %}
+                {{ value }}
+            {% endif %}
+            {% endwith %}
+            </td>
         </tr>
         {% endfor %}
     </table>
