@@ -174,6 +174,10 @@ def delete_alarm(request, cluster_name, alarm_id):
                                  request.teletraan_user_id.token)
 
 
+def get_alarm_state(request, cluster_name):
+    return rodimus_client.get("/clusters/%s/autoscaling/alarmstate" % cluster_name, request.teletraan_user_id.token)
+
+
 def get_system_metrics(request, cluster_name):
     return rodimus_client.get("/clusters/%s/autoscaling/metrics/system" % cluster_name, request.teletraan_user_id.token)
 

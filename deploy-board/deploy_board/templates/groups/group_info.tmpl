@@ -20,7 +20,11 @@
         <td>{{ asg.maxSize }}</td>
         <td>{{ fleet_size }}</td>
         {% endif %}
+        {% if asg_state %}
+        <td>{{ asg_status }} / {{ asg_state }} </td>
+        {% else %}
         <td>{{ asg_status }}</td>
+        {% endif %}
     </tr>
   </table>
 </div>

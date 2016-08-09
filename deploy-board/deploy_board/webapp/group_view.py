@@ -548,6 +548,16 @@ def get_group_info(request, group_name):
             asg_status_str = "Enabled"
         else:
             asg_status_str = "Not Enabled"
+        asg_state = autoscaling_groups_helper.get_alarm_state(request, group_name)
+        if asg_state == "UNKNOWN":
+            asg_state_str = ""
+        elif asg_state == "SCALE_UP_ALARM":
+            asg_state_str = "Scaling up"
+        elif asg_state == "SCALE_DOWN_ALARM":
+            asg_state_str = "Scaling down"
+        else:
+            asg_state_str = "OK"
+
         group_size = len(asg_host_names) + len(non_asg_host_names) + len(spot_asg_host_names)
         spot_size = len(spot_asg_host_names)
         content = render_to_string("groups/group_info.tmpl", {
@@ -564,6 +574,7 @@ def get_group_info(request, group_name):
             "other_hosts": non_asg_host_names,
             "other_host_ids": non_asg_host_ids_str,
             "has_spot_group": has_spot_group,
+            "asg_state": asg_state_str,
             "csrf_token": get_token(request),
         })
         return HttpResponse(json.dumps({"html": content}), content_type="application/json")
