@@ -1,6 +1,5 @@
 <script type="text/javascript">
 {% if enable_policy  %}
-
     {% for alarm_info in alarm_infos %}
         var newDiv = document.createElement("div");
         var id = "chart" + {{ forloop.counter0 }};
