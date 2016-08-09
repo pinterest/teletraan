@@ -74,11 +74,46 @@
     {% endfor %}
 </table>
     {% if pinterest %}
+    <a href="javascript:void(0)" id="seeMoreLink">See more host details</a>
+    <div id="moreHostDetails" hidden="true">
+    {% for key, value in host_details.items %}
+    <div class="row">
+        <div class="col-lg-2"><strong> {{ key }} </strong></div>
+        {% if value|getType == 'dict' %}
+        <div>
+            {% for k, v in value.items %}
+            <i>{{ k }}: </i>{{ v }}, 
+            {% endfor %}
+        </div>
+        {% elif value|getType == 'list' %}
+        <div>
+            {% for item in value %}
+            {{ item }}, 
+            {% endfor %}
+        </div>
+        {% else %}
+        <div>{{ value }}</div>
+        {% endif %}
+    </div>
+    {% endfor %}
     <span>For complete host details, </span>
     <a href="{{ host_information_url }}/ui/getinstance/{{ host_id }}">click here</a>
+    </div>
     {% endif %}
 </div>
 
 </div>
+
+<script>
+    $("#seeMoreLink").click(function() {
+        $("#moreHostDetails").toggle('slow', function() {
+            if ($("#moreHostDetails").is(':visible')) {
+                $("#seeMoreLink").text('Hide more host details');
+            } else {
+                $("#seeMoreLink").text('See more host details');
+            }
+        });
+    });
+</script>
 
 {% endblock %}

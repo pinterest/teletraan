@@ -19,6 +19,9 @@ import logging
 from helpers import environs_helper, agents_helper, autoscaling_groups_helper
 from helpers import environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, TELETRAAN_HOST_INFORMATION_URL
+import brood
+from datetime import datetime
+import pytz
 
 log = logging.getLogger(__name__)
 
@@ -69,6 +72,23 @@ def get_host_id(hosts):
     return None
 
 
+def get_host_details(host_id):
+    client = brood.Brood()
+    instance = client.get_instance(host_id)
+    launch_time = instance['cloud']['aws']['launchTime']
+    launch_time = datetime.fromtimestamp(launch_time / 1000, pytz.timezone('America/Los_Angeles')).strftime("%Y-%m-%d %H:%M:%S")
+    host_details = {
+     'Subnet Id': instance['subnet_id'],
+     'State': instance['state'],
+     'Security Groups': instance['security_groups'],
+     'Availability Zone': instance['cloud']['aws']['placement']['availability_zone'],
+     'Tags': instance['tags'],
+     'Launch Time': launch_time,
+     'AMI Id': instance['facts']['ec2_ami_id'],
+    }
+    return host_details
+
+
 class GroupHostDetailView(View):
     def get(self, request, groupname, hostname):
         hosts = hosts_helper.get_hosts_by_name(request, hostname)
@@ -78,6 +98,8 @@ class GroupHostDetailView(View):
         show_terminate = get_show_terminate(hosts)
         show_warning_message = not show_terminate
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
+        host_details = get_host_details(host_id)
+
         return render(request, 'hosts/host_details.html', {
             'group_name': groupname,
             'hostname': hostname,
@@ -89,6 +111,7 @@ class GroupHostDetailView(View):
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
             'host_information_url': TELETRAAN_HOST_INFORMATION_URL,
+            'host_details': host_details,
         })
 
 
@@ -104,6 +127,8 @@ class HostDetailView(View):
             is_protected = autoscaling_groups_helper.is_hosts_protected(request, asg, [host_id])
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
+        host_details = get_host_details(host_id)
+        
         return render(request, 'hosts/host_details.html', {
             'env_name': name,
             'stage_name': stage,
@@ -119,6 +144,7 @@ class HostDetailView(View):
             'pinterest': IS_PINTEREST,
             'host_information_url': TELETRAAN_HOST_INFORMATION_URL,
             'instance_protected': is_protected,
+            'host_details': host_details,
         })
 
 
