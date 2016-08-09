@@ -1,5 +1,6 @@
 <script type="text/javascript">
 {% if enable_policy  %}
+
     {% for alarm_info in alarm_infos %}
         var newDiv = document.createElement("div");
         var id = "chart" + {{ forloop.counter0 }};
@@ -63,7 +64,7 @@
             {% endif %}
         {% endif %}
 
-        
+
         {% for metric_data in alarm_info.metric_datum %}
             var time = {{ metric_data.timestamp }};
             var d = new Date(time);

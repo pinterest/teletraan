@@ -64,8 +64,6 @@
             var arcee_data = response['arcee'];
 
             var data_len = Math.min(actual_size_data.length, pase_data.length, arcee_data.length);
-            data.addColumn("number", "Actual Size");
-            data.addColumn("number", "Prediction");
             data.addColumn("number", "Min Size Changes");
 
             for (var j = 0; j < data_len; ++j) {
