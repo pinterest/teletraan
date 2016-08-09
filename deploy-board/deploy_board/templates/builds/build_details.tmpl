@@ -45,11 +45,18 @@
     <tr>
         <td>Publish Info</td>
         <td>
-            <a class="deployToolTip" data-toggle="tooltip"
-               title="Click to see the details of jenkins build job"
-               href='{{ build.publishInfo }}'><i class="fa fa-wrench"></i>
-                Publisher Information
+           {% if build.publishInfo != "UNKNOWN" %}
+           <a class="deployToolTip" data-toggle="tooltip"
+           title="Click to see the details of jenkins build job"
+           href='{{ build.publishInfo }}'>
+           <i class="fa fa-wrench"></i>
+            Publisher Information
             </a>
+            {% else %}
+            <span> <i class="fa fa-wrench"></i>
+            Publisher Information
+            </span>
+            {% endif %}
         </td>
     </tr>
     <tr>
