@@ -51,3 +51,11 @@ def get_raw_metrics(request, metric_name, start):
         return rodimus_client.get("/metrics/raw_metrics", request.teletraan_user_id.token, params=params)
     except:
         return []
+
+
+def get_pas_metrics(request, cluster_name, start, type):
+    params = {"clusterName": cluster_name, "start": start, "actionType": type}
+    try:
+        return rodimus_client.get("/metrics/pas", request.teletraan_user_id.token, params=params)
+    except:
+        return []

@@ -865,6 +865,8 @@ class GroupDetailView(View):
         enable_spot = autoscaling_summary.get("enableSpot", False)
         envs = environs_helper.get_all_envs_by_group(request, group_name)
         disabled_actions = autoscaling_groups_helper.get_disabled_asg_actions(request, group_name)
+        pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
+
         if "Terminate" in disabled_actions:
             scaling_down_event_enabled = False
         else:
@@ -877,6 +879,7 @@ class GroupDetailView(View):
             "scaling_down_event_enabled": scaling_down_event_enabled,
             "envs": envs,
             "group_info": group_info,
+            "pas_enabled": pas_config['pas_state'] if pas_config else False,
         })
 
 
