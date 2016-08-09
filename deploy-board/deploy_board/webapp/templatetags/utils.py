@@ -907,3 +907,8 @@ def canReplaceCluster(cluster):
     if cluster and cluster.get('state') and cluster.get('state') != 'NORMAL':
         return False
     return True
+
+@register.filter("getType")
+def get_type(object):
+    return type(object).__name__
+
