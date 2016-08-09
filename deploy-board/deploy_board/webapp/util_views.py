@@ -185,6 +185,7 @@ def get_pas_metrics(request, group_name):
         arcee_size_points = autoscaling_metrics_helper.get_pas_metrics(request, group_name,
                                                                        settings.DEFAULT_START_TIME, 'PREDICTED')
 
+
         json_data3 = []
         for data_point in arcee_size_points:
             timestamp, value = data_point["timestamp"], data_point["value"]
