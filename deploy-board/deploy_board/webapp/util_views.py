@@ -177,7 +177,7 @@ def get_launch_rate(request, group_name):
 
 
 def get_pas_metrics(request, group_name):
-    pas_config = autoscaling_groups_helper.get_pas_config(group_name)
+    pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
     util_data = {}
     if pas_config['pas_state'] != 'ENABLED':
         return HttpResponse(json.dumps(util_data), content_type="application/json")
@@ -200,15 +200,13 @@ def get_pas_metrics(request, group_name):
         util_data['pase'] = json_data2
 
         arcee_size_points = autoscaling_metrics_helper.get_pas_metrics(request, group_name,
-                                                                       settings.DEFAULT_START_TIME, 'ARCEE')
+                                                                       settings.DEFAULT_START_TIME, 'PREDICTED')
 
         json_data3 = []
         for data_point in arcee_size_points:
             timestamp, value = data_point["timestamp"], data_point["value"]
             json_data3.append([timestamp, value])
         util_data['arcee'] = json_data3
-
-        util_data['metric_names'] = ['actual', 'pase', 'arcee']
     except:
         log.error(traceback.format_exc())
     return HttpResponse(json.dumps(util_data), content_type="application/json")

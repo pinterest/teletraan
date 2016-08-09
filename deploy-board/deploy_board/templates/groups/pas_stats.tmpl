@@ -42,7 +42,7 @@
                         lineWidth: 2}
                 },
                 vAxes: {
-                    0: {title: 'Seconds',
+                    0: {title: 'Group Size',
                         titleTextStyle: {italic: false}}
                 },
                 interpolateNulls: true,
@@ -64,6 +64,9 @@
             var arcee_data = response['arcee'];
 
             var data_len = Math.min(actual_size_data.length, pase_data.length, arcee_data.length);
+            data.addColumn("number", "Actual Size");
+            data.addColumn("number", "Prediction");
+            data.addColumn("number", "Min Size Changes");
 
             for (var j = 0; j < data_len; ++j) {
                 var d = new Date(actual_size_data[j][0]);
