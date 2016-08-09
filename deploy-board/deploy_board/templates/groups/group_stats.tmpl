@@ -1,5 +1,6 @@
 <script type="text/javascript">
 {% if enable_policy  %}
+
     {% for alarm_info in alarm_infos %}
         var newDiv = document.createElement("div");
         var id = "chart" + {{ forloop.counter0 }};
@@ -62,7 +63,6 @@
                 spot_extended_data.addColumn("number", "Spot Scale Down Threshold");
             {% endif %}
         {% endif %}
-
 
         {% for metric_data in alarm_info.metric_datum %}
             var time = {{ metric_data.timestamp }};

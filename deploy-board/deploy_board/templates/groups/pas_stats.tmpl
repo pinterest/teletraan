@@ -1,0 +1,88 @@
+<html>
+    <script>
+        var data_options4 = {};
+        var charts4 = {};
+    </script>
+
+    <script type="text/javascript">
+        google.load("visualization", "1", {packages:["corechart"]});
+        google.setOnLoadCallback(drawChart4);
+
+        function drawChart4() {
+            var data = new google.visualization.DataTable();
+            data.addColumn("datetime", "Date");
+
+            var options = {
+                title: 'Predictive Autoscaling Stats',
+                titleFontSize: 15,
+                height: 300,
+                min: 0,
+                max: 50,
+                curveType: 'function',
+                legend: 'top',
+                series: {
+                    0: {targetAxisIndex: 0,
+                        color: 'red',
+                        lineWidth: 3,
+                        side: 'top'},
+                    1: {targetAxisIndex: 0,
+                        color: 'purple',
+                        lineWidth: 2},
+                    2: {targetAxisIndex: 0,
+                        color: 'green',
+                        lineWidth: 2},
+                    3: {targetAxisIndex: 0,
+                        color: 'blue',
+                        lineWidth: 2},
+                    4: {targetAxisIndex: 0,
+                        color: 'yellow',
+                        lineWidth: 2},
+                    5: {targetAxisIndex: 0,
+                        color: 'gray',
+                        lineWidth: 2}
+                },
+                vAxes: {
+                    0: {title: 'Seconds',
+                        titleTextStyle: {italic: false}}
+                },
+                interpolateNulls: true,
+            };
+            var chart4 = new google.visualization.LineChart(document.getElementById('pas_stats_id'));
+            charts4['Requests'] = chart4;
+            chart4.draw(data, options);
+            data_options4['Requests'] = [data, options];
+        }
+    </script>
+
+    <script>
+        function updateCharts4(response) {
+            var data = data_options4['Requests'][0];
+            var options = data_options4['Requests'][1];
+
+            var actual_size_data = response['actual'];
+            var pase_data = response['pase'];
+            var arcee_data = response['arcee'];
+
+            var data_len = Math.min(actual_size_data.length, pase_data.length, arcee_data.length);
+
+            for (var j = 0; j < data_len; ++j) {
+                var d = new Date(actual_size_data[j][0]);
+                data.addRow([d, actual_size_data[j][1], pase_data[j][1], arcee_data[j][1]]);
+            }
+
+            var metric_chart = charts4["Requests"];
+            metric_chart.draw(data, options);
+        }
+
+        function poll_metrics4() {
+            $.get('/pas_stats/{{ group_name }}', function(response) {
+                updateCharts4(response);
+            }).fail(function() {
+            });
+        }
+
+        $(document).ready(function() {
+            poll_metrics4();
+        });
+    </script>
+</html>

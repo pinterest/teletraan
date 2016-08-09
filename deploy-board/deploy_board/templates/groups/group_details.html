@@ -83,6 +83,12 @@
                 <div id="launch_rate_id"></div>
                 {% include "groups/latency_stats.tmpl" %}
                 {% include "groups/launch_rate.tmpl" %}
+
+                {% if pas_enabled %}
+                <div id="pas_stats_id"></div>
+                {% include "groups/pas_stats.tmpl" %}
+                {% endif %}
+
                 <style>
                 .chartContainer>div {
                     width:550px;

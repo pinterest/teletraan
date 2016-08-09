@@ -49,6 +49,8 @@ urlpatterns = [
     url(r'^specs/get_subnets/$', group_view.get_subnets_settings),
     url(r'^group_latency_stats/(?P<group_name>[a-zA-Z0-9\-_]+)/$', util_views.get_latency_metrics),
     url(r'^group_launch_rate/(?P<group_name>[a-zA-Z0-9\-_]+)/$', util_views.get_launch_rate),
+    url(r'^pas_stats/(?P<group_name>[a-zA-Z0-9\-_]+)/$', util_views.get_pas_metrics),
+
 
     # instances related
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/add_instance/$', group_view.add_instance),
