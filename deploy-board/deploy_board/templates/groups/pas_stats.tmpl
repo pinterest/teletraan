@@ -59,18 +59,14 @@
             var data = data_options4['Requests'][0];
             var options = data_options4['Requests'][1];
 
-            var actual_size_data = response['actual'];
-            var pase_data = response['pase'];
             var arcee_data = response['arcee'];
-
-            var data_len = Math.min(actual_size_data.length, pase_data.length, arcee_data.length);
-            data.addColumn("number", "Actual Size");
-            data.addColumn("number", "Prediction");
+            var data_len = arcee_data.length;
+            
             data.addColumn("number", "Min Size Changes");
 
             for (var j = 0; j < data_len; ++j) {
-                var d = new Date(actual_size_data[j][0]);
-                data.addRow([d, actual_size_data[j][1], pase_data[j][1], arcee_data[j][1]]);
+                var d = new Date(arcee_data[data_len - j - 1][0]);
+                data.addRow([d, arcee_data[data_len - j - 1][1]]);
             }
 
             var metric_chart = charts4["Requests"];
