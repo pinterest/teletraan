@@ -24,7 +24,7 @@
             {% with type=config.configChange|convertConfigHistoryString|getType value=config.configChange|convertConfigHistoryString %}
             {% if type == 'dict' %}
                 {% for k, v in value.items %}
-                <div class="row" style="height: 15px;">
+                <div class="row">
                 <i>{{ k }}: </i>{{ v }} 
                 </div>
                 {% endfor %}
