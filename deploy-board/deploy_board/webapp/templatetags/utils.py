@@ -27,6 +27,7 @@ from deploy_board.webapp.agent_report import UNKNOWN_HOSTS_CODE, PROVISION_HOST_
 from deploy_board.webapp.common import is_agent_failed, BUILD_STAGE
 from deploy_board.webapp.helpers import environs_helper
 from deploy_board.webapp.helpers.tags_helper import TagValue
+import ast
 
 register = template.Library()
 logger = logging.getLogger(__name__)
@@ -912,3 +913,16 @@ def canReplaceCluster(cluster):
 def get_type(object):
     return type(object).__name__
 
+
+@register.filter("convertConfigHistoryString")
+def convertConfigHistoryString(change):
+    change = str(change)
+    change = change.replace("false", "False")
+    change = change.replace("true", "True")
+    if change[:1] == "{" or change[:1] == "[":
+        try: 
+            converted_string = ast.literal_eval(change)
+            return converted_string
+        except: 
+            pass
+    return change
