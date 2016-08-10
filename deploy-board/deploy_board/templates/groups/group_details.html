@@ -84,7 +84,7 @@
                 {% include "groups/latency_stats.tmpl" %}
                 {% include "groups/launch_rate.tmpl" %}
 
-                {% if pas_enabled %}
+                {% if pas_enabled == 'ENABLED' %}
                 <div id="pas_stats_id"></div>
                 {% include "groups/pas_stats.tmpl" %}
                 {% endif %}
