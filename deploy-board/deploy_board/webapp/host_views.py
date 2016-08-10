@@ -19,9 +19,9 @@ import logging
 from helpers import environs_helper, agents_helper, autoscaling_groups_helper
 from helpers import environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, TELETRAAN_HOST_INFORMATION_URL
-import brood
 from datetime import datetime
 import pytz
+import requests
 
 log = logging.getLogger(__name__)
 
@@ -73,8 +73,9 @@ def get_host_id(hosts):
 
 
 def get_host_details(host_id):
-    client = brood.Brood()
-    instance = client.get_instance(host_id)
+    host_url = TELETRAAN_HOST_INFORMATION_URL + '/api/cmdb/getinstance/' + host_id
+    response = requests.get(host_url)
+    instance = response.json()
     launch_time = instance['cloud']['aws']['launchTime']
     launch_time = datetime.fromtimestamp(launch_time / 1000, pytz.timezone('America/Los_Angeles')).strftime("%Y-%m-%d %H:%M:%S")
     host_details = {
