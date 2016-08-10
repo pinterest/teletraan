@@ -24,7 +24,7 @@
                         <div id="confirmDeployModalPrecedingDeployWarningId">
                             Warning
                         </div>
-                        <div id="privateBuildDeployMessageId" class="alert alert-warning" role="alert" aria-hidden=true>
+                        <div id="privateBuildDeployMessageId" class="alert alert-warning" role="alert" hidden=true>
                             <strong>Notice: </strong> This build is private and should only be deployed in testing environments and not production environments
                         </div>
                         <div class="form-group">
@@ -85,10 +85,6 @@
         $('#duplicateCommitDeployMessageId').load('/env/{{env.envName}}/{{env.stageName}}/'
                 +trid.find(".hiddenBuildId").val()+'/'
                 +'get_duplicate_commit_message/');
-
-        if ($('#confirmBranchInputId').val() == "private") {
-            $('#privateBuildDeployMessageId').attr("aria-hidden", "false");
-        }
     });
 
     $('#confirmDeployModalId').on('shown.bs.modal', function () {
@@ -97,6 +93,11 @@
                 + $('#confirmBuildIdInputId').val()
                 + '/warn_for_deploy/'
         );
+        if ($('#confirmBranchInputId').val() == "private") {
+            $('#privateBuildDeployMessageId').show();
+        } else {
+            $('#privateBuildDeployMessageId').hide();
+        }
     });
 
 </script>
