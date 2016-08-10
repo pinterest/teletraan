@@ -72,20 +72,33 @@ def get_host_id(hosts):
     return None
 
 
+def _get_cloud(json_obj):
+    try:
+        return json_obj.get('cloud', None).get('aws', None)
+    except:
+        return None
+
+
 def get_host_details(host_id):
     host_url = TELETRAAN_HOST_INFORMATION_URL + '/api/cmdb/getinstance/' + host_id
     response = requests.get(host_url)
     instance = response.json()
-    launch_time = instance['cloud']['aws']['launchTime']
+    cloud_info = _get_cloud(instance)
+    if not cloud_info:
+        return None
+
+    launch_time = cloud_info.get('launchTime', 0)
     launch_time = datetime.fromtimestamp(launch_time / 1000, pytz.timezone('America/Los_Angeles')).strftime("%Y-%m-%d %H:%M:%S")
+    availability_zone = cloud_info.get('placement', {}).get('availability_zone', None)
+    ami_id = cloud_info.get('image_id', None)
     host_details = {
-     'Subnet Id': instance['subnet_id'],
-     'State': instance['state'],
-     'Security Groups': instance['security_groups'],
-     'Availability Zone': instance['cloud']['aws']['placement']['availability_zone'],
+     'Subnet Id': instance.get('subnet_id', None),
+     'State': instance.get('state', None),
+     'Security Groups': instance.get('security_groups', None),
+     'Availability Zone': availability_zone,
      'Tags': instance['tags'],
      'Launch Time': launch_time,
-     'AMI Id': instance['facts']['ec2_ami_id'],
+     'AMI Id': ami_id,
     }
     return host_details
 
@@ -129,7 +142,7 @@ class HostDetailView(View):
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         host_details = get_host_details(host_id)
-        
+
         return render(request, 'hosts/host_details.html', {
             'env_name': name,
             'stage_name': stage,
