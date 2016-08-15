@@ -21,8 +21,10 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
@@ -57,12 +59,14 @@ public class EnvHosts {
     private final EnvironDAO environDAO;
     private final HostDAO hostDAO;
     private final EnvironHandler environHandler;
+    private final ConfigHistoryHandler configHistoryHandler;
 
     public EnvHosts(TeletraanServiceContext context) {
         authorizer = context.getAuthorizer();
         environDAO = context.getEnvironDAO();
         hostDAO = context.getHostDAO();
         environHandler = new EnvironHandler(context);
+        configHistoryHandler = new ConfigHistoryHandler(context);
     }
 
     @GET
@@ -100,6 +104,7 @@ public class EnvHosts {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         environHandler.stopServiceOnHosts(hostIds);
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_HOST_ACTION, String.format("STOP %s", hostIds.toString()), operator);
         LOG.info(String.format("Successfully stopped %s/%s service on hosts %s by %s", envName, stageName, hostIds.toString(), operator));
     }
 }

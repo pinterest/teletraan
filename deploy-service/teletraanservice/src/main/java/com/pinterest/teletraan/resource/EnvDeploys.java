@@ -16,9 +16,11 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
@@ -56,9 +58,10 @@ public class EnvDeploys {
     private EnvironDAO environDAO;
     private DeployDAO deployDAO;
     private Authorizer authorizer;
+    private AgentDAO agentDAO;
     private EnvironHandler environHandler;
     private DeployHandler deployHandler;
-    private AgentDAO agentDAO;
+    private ConfigHistoryHandler configHistoryHandler;
 
     @Context
     UriInfo uriInfo;
@@ -67,9 +70,10 @@ public class EnvDeploys {
         environDAO = context.getEnvironDAO();
         deployDAO = context.getDeployDAO();
         authorizer = context.getAuthorizer();
+        agentDAO = context.getAgentDAO();
         environHandler = new EnvironHandler(context);
         deployHandler = new DeployHandler(context);
-        agentDAO = context.getAgentDAO();
+        configHistoryHandler = new ConfigHistoryHandler(context);
     }
 
     @GET
@@ -122,6 +126,8 @@ public class EnvDeploys {
             default:
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
         }
+
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_ACTION, actionType.toString(), operator);
         LOG.info("Successfully create deploy {} for env{}/{} as {} by {}.",
             newDeployId, envName, stageName, actionType, operator);
         UriBuilder ub = uriInfo.getAbsolutePathBuilder();
