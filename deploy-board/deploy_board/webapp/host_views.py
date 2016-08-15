@@ -80,6 +80,8 @@ def _get_cloud(json_obj):
 
 
 def get_host_details(host_id):
+    if not host_id:
+        return None
     host_url = TELETRAAN_HOST_INFORMATION_URL + '/api/cmdb/getinstance/' + host_id
     response = requests.get(host_url)
     instance = response.json()

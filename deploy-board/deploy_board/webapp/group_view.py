@@ -883,6 +883,7 @@ class GroupDetailView(View):
         else:
             scaling_down_event_enabled = True
         group_info = autoscaling_groups_helper.get_group_info(request, group_name)
+        launch_config = group_info.get('launchInfo')
         return render(request, 'groups/group_details.html', {
             "asg_status": asg_status,
             "enable_spot": enable_spot,
@@ -890,6 +891,7 @@ class GroupDetailView(View):
             "scaling_down_event_enabled": scaling_down_event_enabled,
             "envs": envs,
             "group_info": group_info,
+            "launch_config": launch_config,
             "pas_enabled": pas_config['pas_state'] if pas_config else False,
         })
 
@@ -953,16 +955,23 @@ def add_instance(request, group_name):
             launch_in_asg = False
     try:
         if not launch_in_asg:
-            host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet)
-            if len(host_ids) > 0:
-                content = '{} hosts have been launched to group {} (host ids: {})'.format(num, group_name, host_ids)
-                messages.add_message(request, messages.SUCCESS, content)
-            else:
-                content = 'Failed to launch hosts to group {}. Please make sure the' \
-                          ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
-                          ' is correct. If you have any question, please contact your friendly Teletraan owners' \
+            if not subnet:
+                content = 'Failed to launch hosts to group {}. Please choose subnets in' \
+                          ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>.' \
+                          ' If you have any question, please contact your friendly Teletraan owners' \
                           ' for immediate assistance!'.format(group_name, group_name)
                 messages.add_message(request, messages.ERROR, content)
+            else:
+                host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet)
+                if len(host_ids) > 0:
+                    content = '{} hosts have been launched to group {} (host ids: {})'.format(num, group_name, host_ids)
+                    messages.add_message(request, messages.SUCCESS, content)
+                else:
+                    content = 'Failed to launch hosts to group {}. Please make sure the' \
+                              ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
+                              ' is correct. If you have any question, please contact your friendly Teletraan owners' \
+                              ' for immediate assistance!'.format(group_name, group_name)
+                    messages.add_message(request, messages.ERROR, content)
         else:
             autoscaling_groups_helper.launch_hosts(request, group_name, num, None)
             content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \

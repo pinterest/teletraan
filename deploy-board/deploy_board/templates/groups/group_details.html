@@ -354,7 +354,7 @@
         <h4 class="modal-title">Cannot Launch New Host</h4>
       </div>
       <div class="modal-body">
-        <strong>Warning!</strong> An instance cannot be launched. Please update the <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">Group Launch Configuration</a> before launching hosts! Please make sure to fill out the IAM role and subnets. 
+        <strong>Warning!</strong> An instance cannot be launched. Please update the <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">Group Launch Configuration</a> before launching hosts! Please make sure to fill out the IAM role and subnets.
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
@@ -383,13 +383,13 @@
     });
 
     $("#launchInstance").click(function () {
-        {% if group_info != null %} 
+        {% if group_info and launch_config.subnets %}
         $("#addNewInstancesModalId").modal();
         {% else %}
-        $("#launchWarningModalId").modal(); 
+        $("#launchWarningModalId").modal();
         {% endif %}
     });
-    
+
     $(document).ready(function() {
         var config_url = "/aws_info/get_configs/?group_name={{ group_name }}";
         $.get(config_url, function(response) {
