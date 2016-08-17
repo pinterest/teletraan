@@ -383,7 +383,7 @@
     });
 
     $("#launchInstance").click(function () {
-        {% if group_info and launch_config.subnets %}
+        {% if group_info and launch_config and launch_config.subnets %}
         $("#addNewInstancesModalId").modal();
         {% else %}
         $("#launchWarningModalId").modal();

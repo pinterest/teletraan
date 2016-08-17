@@ -883,7 +883,10 @@ class GroupDetailView(View):
         else:
             scaling_down_event_enabled = True
         group_info = autoscaling_groups_helper.get_group_info(request, group_name)
-        launch_config = group_info.get('launchInfo')
+        if group_info:
+            launch_config = group_info.get('launchInfo')
+        else:
+            launch_config = None
         return render(request, 'groups/group_details.html', {
             "asg_status": asg_status,
             "enable_spot": enable_spot,
