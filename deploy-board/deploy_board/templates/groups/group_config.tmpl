@@ -190,9 +190,25 @@
                         Load Balancers
                     </label>
                     <div class="col-xs-4">
-                        <input class="form-control" name="load_balancer" required="false"
-                               type="text" value="{{ config.load_balancer |default_if_none:'' }}"/>
+                        <div class="input-group">
+                            <input class="form-control" name="load_balancer" required="false"
+                                   type="text" value="{{ config.load_balancer |default_if_none:'' }}"/>
+                            <span class="input-group-btn">
+                                <button id="loadbalancersExpressionId" class="deployToolTip btn btn-default"
+                                        type="button" data-toggle="tooltip"
+                                        title="click for more information on load balancers">
+                                    <span class="glyphicon glyphicon-question-sign"></span>
+                                </button>
+                            </span>
+                        </div>
                     </div>
+                </div>
+                 <div class="form-group collapse" id="loadbalancersExpressionDetailsId">
+                        <div class="col-xs-2">
+                        </div>
+                        <div class="col-xs-10">
+                        Please enter the load balancers you would like to attach to this group seperated by commas.
+                        </div>
                 </div>
             </fieldset>
             {% csrf_token %}
@@ -291,6 +307,9 @@
 
         $("#notificationsExpressionId").click(function() {
             $("#notificationExpressionDetailsId").collapse('toggle');
+        });
+        $("#loadbalancersExpressionId").click(function() {
+            $("#loadbalancersExpressionDetailsId").collapse('toggle');
         });
     });
 </script>
