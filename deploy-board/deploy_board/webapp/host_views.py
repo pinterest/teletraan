@@ -22,6 +22,7 @@ from deploy_board.settings import IS_PINTEREST, TELETRAAN_HOST_INFORMATION_URL
 from datetime import datetime
 import pytz
 import requests
+import common
 
 log = logging.getLogger(__name__)
 
@@ -133,6 +134,15 @@ class GroupHostDetailView(View):
 
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
+        envs = environs_helper.get_all_env_stages(request, name)
+        stages, env = common.get_all_stages(envs, stage)
+        duplicate_stage = ''
+        for stage_name in stages:
+            if stage_name != stage:
+                hosts = environs_helper.get_env_capacity(request, name, stage_name, capacity_type="HOST")
+                if hostname in hosts:
+                    duplicate_stage = stage_name
+
         hosts = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
         host_id = get_host_id(hosts)
         show_terminate = get_show_terminate(hosts)
@@ -161,6 +171,7 @@ class HostDetailView(View):
             'host_information_url': TELETRAAN_HOST_INFORMATION_URL,
             'instance_protected': is_protected,
             'host_details': host_details,
+            'duplicate_stage': duplicate_stage,
         })
 
 

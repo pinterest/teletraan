@@ -356,6 +356,7 @@ def create_cmp_cluster(request, name, stage):
 def create_cluster(request, name, stage):
     params = request.POST
     cluster_name = '{}-{}'.format(name, stage)
+    cluster_name = cluster_name.lower()
     cluster_info = parse_cluster_info(request, name, stage, cluster_name)
     user_data_configs = parse_configs(params)
     cluster_info['configs'] = user_data_configs

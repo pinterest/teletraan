@@ -32,6 +32,14 @@
 </div>
 {% endif %}
 
+{% if duplicate_stage %}
+<div class="alert alert-danger" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> Cannot add host {{ hostname }} to multiple stages. Please remove it from
+    <a href="https://deploy.pinadmin.com/{{ env_name }}/{{ duplicate_stage }}/config/capacity/">{{ env_name }}/{{ duplicate_stage }}</a>
+</div>
+{% endif %}
+
 {% if agent_wrappers %}
     <div class="panel panel-default">
     {% include "panel_heading.tmpl" with panel_title="Agent Details" panel_body_id="agentDetailsId" direction="down" %}
@@ -82,13 +90,13 @@
         {% if value|getType == 'dict' %}
         <div>
             {% for k, v in value.items %}
-            <i>{{ k }}: </i>{{ v }}, 
+            <i>{{ k }}: </i>{{ v }},
             {% endfor %}
         </div>
         {% elif value|getType == 'list' %}
         <div>
             {% for item in value %}
-            {{ item }}, 
+            {{ item }},
             {% endfor %}
         </div>
         {% else %}
