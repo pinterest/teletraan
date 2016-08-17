@@ -211,6 +211,7 @@ def update_group_config(request, group_name):
         groupRequest["emailRecipients"] = params.get("email_recipients")
         groupRequest["pagerRecipients"] = params.get("pager_recipients")
         groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
+        groupRequest["loadBalancer"] = params.get("load_balancer") 
 
         if "healthcheck_state" in params:
             groupRequest["healthcheckState"] = True
@@ -227,6 +228,7 @@ def update_group_config(request, group_name):
             groupRequest["lifecycleNotifications"] = True
         else:
             groupRequest["lifecycleNotifications"] = False
+
         print groupRequest
         autoscaling_groups_helper.update_group_info(request, group_name, groupRequest)
         return get_group_config(request, group_name)

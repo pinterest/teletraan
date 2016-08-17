@@ -1,5 +1,5 @@
 {% load utils %}
-{% include "panel_heading.tmpl" with panel_title="Notification" panel_body_id="groupConfigId" direction="down" %}
+{% include "panel_heading.tmpl" with panel_title="Advanced Configurations" panel_body_id="groupConfigId" direction="down" %}
 <div id="groupConfigId" class="collapse in panel-body">
     <div class="container-fluid">
         <form id="groupConfigIdFormId" class="form-horizontal" role="form">
@@ -182,6 +182,17 @@
                         on their service is launched/terminated. An email and slack message (if available) 
                         detailing the event will be sent out.
                         </div>
+                </div>
+                <div class="form-group">
+                    <label for="loadBalancer" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Enter a load balancer to attach to this autoscaling group">
+                        Load Balancer
+                    </label>
+                    <div class="col-xs-4">
+                        <input class="form-control" name="load_balancer" required="false"
+                               type="text" value="{{ config.load_balancer |default_if_none:'' }}"/>
+                    </div>
                 </div>
             </fieldset>
             {% csrf_token %}
