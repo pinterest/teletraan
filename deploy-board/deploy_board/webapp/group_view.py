@@ -211,7 +211,7 @@ def update_group_config(request, group_name):
         groupRequest["emailRecipients"] = params.get("email_recipients")
         groupRequest["pagerRecipients"] = params.get("pager_recipients")
         groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
-        groupRequest["loadBalancer"] = params.get("load_balancer") 
+        groupRequest["loadBalancers"] = params.get("load_balancers") 
 
         if "healthcheck_state" in params:
             groupRequest["healthcheckState"] = True
