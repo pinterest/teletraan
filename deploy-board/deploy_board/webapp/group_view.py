@@ -141,7 +141,7 @@ def update_pas_config(request, group_name):
             asg_request = {}
             asg_request['group_name'] = group_name
             asg_request['min_size'] = int(pas_config.get("defined_min_size"))
-            autoscaling_groups_helper.update_autoscaling(request, asg_request)
+            autoscaling_groups_helper.update_autoscaling(request, group_name, asg_request)
         autoscaling_groups_helper.update_pas_config(request, group_name, data)
         return get_pas_config(request, group_name)
     except:
