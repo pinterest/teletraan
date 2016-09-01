@@ -6,4 +6,4 @@ Contributors
 * Nick DeChant <nickd@pinterest.com>
 * Linda Lo <lo@pinterest.com>
 * Suman Karumuri <skarumuri@pinterest.com>
-
+* Hao Ming <haom@pinterest.com>
