@@ -88,7 +88,8 @@
 
                     <div class="col-xs-4">
                         <input class="form-control" name="chatroom" required="false"
-                               type="text" value="{{ env.chatroom |default_if_none:'' }}"/>
+                               type="text" value="{{ env.chatroom |default_if_none:'' }}"
+                               maxlength="64"/>
                     </div>
                     <label for="notify" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
@@ -136,7 +137,8 @@
 
                     <div class="col-xs-4">
                         <input class="form-control" name="buildName" required="true"
-                               type="text" value="{{ env.buildName|default_if_none:'' }}"/>
+                               type="text" value="{{ env.buildName|default_if_none:'' }}"
+                               maxlength="64"/>
                     </div>
 
                     <label for="branch" class="deployToolTip control-label col-xs-2"
@@ -148,7 +150,8 @@
                     <div class="col-xs-4">
                         <input class="form-control" name="branch" required="false"
                                type="text" placeholder="Optional"
-                               value="{{ env.branch|default_if_none:'' }}"/>
+                               value="{{ env.branch|default_if_none:'' }}"
+                               maxlength="64"/>
                     </div>
                 </div>
 
