@@ -7,13 +7,30 @@
                 <div class="form-group">
                     <label for="maxParallelHosts" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
-                        title="Maximum number of hosts allowed to deploy at the same time">
-                        Maximum Hosts
+                        title="Maximum number (or percentage) of hosts allowed to deploy at the same time">
+                        Maximum Parallel Number
                     </label>
 
-                    <div class="col-xs-4">
-                        <input class="form-control" name="maxParallelHosts" required="true"
-                               type="text" value="{{ env.maxParallel }}"/>
+                    <div class="col-xs-2">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <input type="radio" name="maxParallel" value="Number" id="maxParallelRadio"
+                                    {% ifequal env.showNumber True%}checked{% endifequal %} >
+                            </span>
+                                <input type="text" id="maxParallelValue" name="maxParallelValue" class="form-control"
+                                    value="{% ifequal env.showNumber True%}{{env.maxParallel}}{% endifequal %}">
+                        </div>
+                    </div>
+                    <div class="col-xs-2">
+                        <div class="input-group">
+                            <span class="input-group-addon">
+                                <input type="radio" name="maxParallel" value="Percentage" id="maxParallelPctRadio"
+                                    {% ifequal env.showNumber False%}checked{% endifequal %}>
+                            </span>
+                            <input type="text" id="maxParallelPctValue" name="maxParallelPctValue" class="form-control"
+                                    value="{% ifequal env.showNumber False %}{{ env.maxParallelPct }}{% endifequal %}">
+                            <span class="input-group-addon">%</span>
+                        </div>
                     </div>
                     <label for="successThreshold" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
@@ -71,7 +88,8 @@
 
                     <div class="col-xs-4">
                         <input class="form-control" name="chatroom" required="false"
-                               type="text" value="{{ env.chatroom |default_if_none:'' }}"/>
+                               type="text" value="{{ env.chatroom |default_if_none:'' }}"
+                               maxlength="64"/>
                     </div>
                     <label for="notify" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
@@ -119,7 +137,8 @@
 
                     <div class="col-xs-4">
                         <input class="form-control" name="buildName" required="true"
-                               type="text" value="{{ env.buildName|default_if_none:'' }}"/>
+                               type="text" value="{{ env.buildName|default_if_none:'' }}"
+                               maxlength="64"/>
                     </div>
 
                     <label for="branch" class="deployToolTip control-label col-xs-2"
@@ -131,7 +150,8 @@
                     <div class="col-xs-4">
                         <input class="form-control" name="branch" required="false"
                                type="text" placeholder="Optional"
-                               value="{{ env.branch|default_if_none:'' }}"/>
+                               value="{{ env.branch|default_if_none:'' }}"
+                               maxlength="64"/>
                     </div>
                 </div>
 
@@ -177,6 +197,37 @@
                             {% endfor %}
                         </select>
                     </div>
+
+                    <label for="maxParallelRp" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Maximum number of hosts are allowed to be replaced at the same time
+                        when doing cluster upgrading">
+                        Maximum Replaceable Host
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="maxParallelRp" required="true"
+                               type="text" value="{{ env.maxParallelRp }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="overridePolicy" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Should we override current deploy with new one">
+                        Override Policy
+                    </label>
+                    <div class ="col-xs-4">
+                        <select class="form-control" name="overridePolicy">
+                            {% get_override_policies as overridePolicies %}
+                            {% for overridePolicy in overridePolicies %}
+                            {% if env.overridePolicy == overridePolicy %}
+                            <option value="{{ overridePolicy }}" selected="selected">{{ overridePolicy }}</option>
+                            {% else %}
+                            <option value="{{ overridePolicy }}">{{ overridePolicy }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="description" class="deployToolTip control-label col-xs-2"
@@ -186,8 +237,7 @@
                     </label>
 
                     <div class="col-xs-10">
-                        <input class="form-control" name="description" type="text"
-                               value="{{ env.description }}"/>
+                        <textarea class="form-control" name="description" rows="7">{{ env.description }}</textarea>
                     </div>
                 </div>
             </fieldset>
@@ -201,10 +251,12 @@
                 data-loading-text="Reloading...">
             <span class="glyphicon glyphicon-refresh"></span> Reload
         </button>
+        {% if env|isEnvEnabled %}
         <button id="saveEnvConfigBtnId" class="btn btn-primary"
                 data-loading-text="Saving...">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
+        {% endif %}
     </div>
 </div>
 <script>
@@ -223,6 +275,11 @@
         });
 
         $('#envConfigFormId input').change(function() {
+            $('#saveEnvConfigBtnId').removeAttr('disabled');
+            $('#resetEnvConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#envConfigFormId textarea').keyup(function() {
             $('#saveEnvConfigBtnId').removeAttr('disabled');
             $('#resetEnvConfigBtnId').removeAttr('disabled');
         });
@@ -267,5 +324,26 @@
                 }
             });
         });
+
+        $('input:radio[name=maxParallel]').change(function() {
+            if (this.value == 'Number') {
+                $('#maxParallelPctValue').attr('value','');
+            }
+            else if (this.value == 'Percentage') {
+                 $('#maxParallelValue').attr('value', '');
+            }
+        });
+
+        $('#maxParallelValue').keyup(function(){
+            $('#maxParallelRadio').prop('checked', true)
+            $('#maxParallelPctValue').attr('value','');
+
+        });
+
+        $('#maxParallelPctValue').keyup(function(){
+            $('#maxParallelPctRadio').prop('checked', true)
+            $('#maxParallelValue').attr('value', '');
+        });
+
     });
 </script>

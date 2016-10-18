@@ -78,6 +78,12 @@ public class UserRolesBean implements Updatable {
         this.role = role;
     }
 
+    public final static String UPDATE_CLAUSE =
+            "user_name=VALUES(user_name)," +
+                    "resource_id=VALUES(resource_id)," +
+                    "resource_type=VALUES(resource_type)," +
+                    "role=VALUES(role)";
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();

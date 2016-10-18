@@ -58,4 +58,6 @@ public interface DeployDAO {
 
     // Delete all unused deploys whose last update time is before timeThreshold
     void deleteUnusedDeploys(String envId, long timeThreshold, long numOfDeploys) throws Exception;
+
+    Long getDailyDeployCount() throws Exception;
 }

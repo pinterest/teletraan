@@ -1,7 +1,0 @@
-Update
-===========================
-ALTER TABLE health_checks ADD COLUMN host_terminated TINYINT(1);
-
-
-===========================
-ALTER TABLE health_checks DROP COLUMN host_terminated;

@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -43,6 +43,8 @@ PROMOTE_TYPE_VALUES = ['MANUAL', 'AUTO']
 PROMOTE_FAILED_POLICY_VALUES = ['CONTINUE', 'DISABLE', 'ROLLBACK']
 
 PROMOTE_DISABLE_POLICY_VALUES = ['MANUAL', 'AUTO']
+
+OVERRIDE_POLICY_VALUES = ['OVERRIDE', 'WARN']
 
 deployclient = DeployClient()
 
@@ -86,6 +88,22 @@ def update_env_capacity(request, env_name, stage_name, capacity_type=None, data=
         params.append(("capacityType", capacity_type))
     return deployclient.put("/envs/%s/%s/capacity" % (env_name, stage_name),
                             request.teletraan_user_id.token, params=params, data=data)
+
+
+def add_env_capacity(request, env_name, stage_name, capacity_type=None, data=None):
+    params = []
+    if capacity_type:
+        params.append(("capacityType", capacity_type))
+    return deployclient.post("/envs/%s/%s/capacity" % (env_name, stage_name),
+                             request.teletraan_user_id.token, params=params, data=data)
+
+
+def remove_env_capacity(request, env_name, stage_name, capacity_type=None, data=None):
+    params = []
+    if capacity_type:
+        params.append(("capacityType", capacity_type))
+    return deployclient.delete("/envs/%s/%s/capacity" % (env_name, stage_name),
+                               request.teletraan_user_id.token, params=params, data=data)
 
 
 def create_env(request, data):
@@ -166,3 +184,47 @@ def get_config_history(request, env_name, stage_name, index, size):
     params = [('pageIndex', index), ('pageSize', size)]
     return deployclient.get("/envs/%s/%s/history" % (env_name, stage_name),
                             request.teletraan_user_id.token, params=params)
+
+
+def set_active_max_parallel(env):
+    max_parallel_pecentage = int(env['maxParallelPct'])
+    env['showNumber'] = True
+    if max_parallel_pecentage > 0:
+        env['showNumber'] = False
+
+
+def enable_all_env_changes(request, description):
+    params = [("actionType", "ENABLE"), ("description", description)]
+    return deployclient.post("/envs/actions", request.teletraan_user_id.token, params=params)
+
+
+def disable_all_env_changes(request, description):
+    params = [("actionType", "DISABLE"), ("description", description)]
+    return deployclient.post("/envs/actions", request.teletraan_user_id.token, params=params)
+
+
+def enable_env_changes(request, env_name, stage_name, description):
+    params = [("actionType", "ENABLE"), ("description", description)]
+    return deployclient.post("/envs/%s/%s/actions" % (env_name, stage_name), request.teletraan_user_id.token,
+                             params=params)
+
+
+def disable_env_changes(request, env_name, stage_name, description):
+    params = [("actionType", "DISABLE"), ("description", description)]
+    return deployclient.post("/envs/%s/%s/actions" % (env_name, stage_name), request.teletraan_user_id.token,
+                             params=params)
+
+def pause_hosts(request, env_name, stage_name, host_ids):
+    params = [("actionType", "PAUSED_BY_USER")]
+    return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token, 
+        params=params, data=host_ids)
+
+def resume_hosts(request, env_name, stage_name, host_ids):
+    params = [("actionType", "NORMAL")]
+    return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token, 
+        params=params, data=host_ids)
+
+def reset_hosts(request, env_name, stage_name, host_ids):
+    params = [("actionType", "RESET")]
+    return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token,
+        params=params, data=host_ids)

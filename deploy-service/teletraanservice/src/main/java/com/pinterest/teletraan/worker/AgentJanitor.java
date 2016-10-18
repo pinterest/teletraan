@@ -16,20 +16,15 @@
 package com.pinterest.teletraan.worker;
 
 
-import com.pinterest.deployservice.bean.ASGStatus;
-import com.pinterest.arcee.bean.GroupBean;
-import com.pinterest.arcee.dao.GroupInfoDAO;
-import com.pinterest.arcee.dao.HostInfoDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.group.HostGroupManager;
-import com.pinterest.deployservice.dao.UtilDAO;
-import com.pinterest.deployservice.handler.CommonHandler;
+import com.pinterest.deployservice.rodimus.RodimusManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.util.*;
 
 /**
@@ -41,17 +36,15 @@ import java.util.*;
  */
 public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
-    private HostInfoDAO hostInfoDAO;
     private HostGroupManager hostGroupDAO;
-    private GroupInfoDAO groupInfoDAO;
+    private final RodimusManager rodimusManager;
     private long maxLaunchLatencyThreshold;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
         int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
         super(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
-        hostInfoDAO = serviceContext.getHostInfoDAO();
         hostGroupDAO = serviceContext.getHostGroupDAO();
-        groupInfoDAO = serviceContext.getGroupInfoDAO();
+        rodimusManager = serviceContext.getRodimusManager();
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
 
@@ -59,7 +52,15 @@ public class AgentJanitor extends SimpleAgentJanitor {
         if (staleHostIds.isEmpty()) {
             return;
         }
-        Set<String> terminatedHosts = hostInfoDAO.getTerminatedHosts(new HashSet<>(staleHostIds));
+
+        Collection<String> terminatedHosts = new ArrayList<>(staleHostIds);
+        for (String hostId : staleHostIds) {
+            Collection<String> resultIds = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
+            if (resultIds.isEmpty()) {
+                terminatedHosts.remove(hostId);
+            }
+        }
+
         if (isMarkedUnreachable) {
             for (String staleId : staleHostIds) {
                 if (terminatedHosts.contains(staleId)) {
@@ -82,6 +83,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 removeStaleHost(removedId);
             }
         }
+    }
+
+    private Long getInstanceLaunchGracePeriod(String clusterName) throws Exception {
+        Long launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
+        return launchGracePeriod == null ? maxLaunchLatencyThreshold : launchGracePeriod * 1000;
     }
 
     @Override
@@ -127,11 +133,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
         Set<String> maxStaleHostIds = new HashSet<>();
         Set<String> minStaleHostIds = new HashSet<>();
-        GroupBean groupBean = groupInfoDAO.getGroupInfo(groupName);
-        if (groupBean == null) {
-            LOG.debug("Group Name {} does not exist in groups table.", groupName);
-        }
-
+        Long launchGracePeriod = getInstanceLaunchGracePeriod(groupName);
         long current_time = System.currentTimeMillis();
         while (true) {
             List<HostBean> hostBeans = hostDAO.getHostsByGroup(groupName, page_index, page_size);
@@ -141,23 +143,16 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
             for (HostBean host : hostBeans) {
                 long last_update = host.getLast_update();
+                long launchLatency = current_time - last_update;
                 String id = host.getHost_id();
                 if (host.getState() == HostState.PROVISIONED) {
-                    if (groupBean == null) {
-                        // Not in autoscaling group
-                        if (current_time - last_update >= maxStaleHostThreshold) {
-                            maxStaleHostIds.add(id);
-                        }
-                    } else {
-                        // If it is in autoscaling group, use launch latency threshold
-                        if (current_time - last_update >= (long) groupBean.getLaunch_latency_th() * 1000) {
-                            maxStaleHostIds.add(id);
-                        }
+                    if (launchLatency >= launchGracePeriod) {
+                        maxStaleHostIds.add(id);
                     }
                 } else if (host.getState() != HostState.TERMINATING && host.getState() != HostState.PENDING_TERMINATE) {
-                    if (current_time - last_update >= maxStaleHostThreshold) {
+                    if (launchLatency >= maxStaleHostThreshold) {
                         maxStaleHostIds.add(id);
-                    } else if (current_time - last_update >= minStaleHostThreshold) {
+                    } else if (launchLatency >= minStaleHostThreshold) {
                         minStaleHostIds.add(id);
                     }
                 }
@@ -174,14 +169,15 @@ public class AgentJanitor extends SimpleAgentJanitor {
         processStaleHosts(minStaleHostIds, false);
         processStaleHosts(maxStaleHostIds, true);
 
-        // we don't check CMDB for auto scaling group
-        if (groupBean != null && groupBean.getAsg_status() != null && groupBean.getAsg_status() == ASGStatus.ENABLED) {
-            return;
-        }
-
         // Check the instance is not launched from Teletraan/Autoscaling
         Set<String> ids = cmdbReportedHosts.keySet();
-        Set<String> terminatedIds = hostInfoDAO.getTerminatedHosts(ids);
+        Collection<String> terminatedIds = new ArrayList<>(ids);
+        for (String hostId : ids) {
+            Collection<String> resultIds = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
+            if (resultIds.isEmpty()) {
+                terminatedIds.remove(hostId);
+            }
+        }
 
         for (Map.Entry<String, HostBean> host : cmdbReportedHosts.entrySet()) {
             try {

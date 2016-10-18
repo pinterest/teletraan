@@ -7,21 +7,27 @@
 {% if show_terminate %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
-            data-toggle="modal" title="Terminate Host">
-        <span class="glyphicon glyphicon-remove"></span> Terminate Host
+            data-toggle="modal" title="Gracefully shutdown the service and terminate the host.">
+        <span class="glyphicon glyphicon-off"></span> Terminate Host
     </button>
 </div>
 
 <div class="modal fade" id="terminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="terminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/terminate_hosts/?host_id={{ host.hostId }}">
+            <form id="terminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/terminate_hosts/?host_id={{ host_id }}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Host Termination Confirm</h4>
                 </div>
                 <div class="modal-body">
-                    <p> Are you sure to terminate {{ host.hostName }}?</p>
+                    <p> Are you sure to gracefully shutdown the service and then terminate {{ hostname }}?</p>
+                    {% if is_unreachable %}
+                        <div class="alert alert-warning" role="alert">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <strong>Warning!</strong> This host is unreachable. It cannot be gracefully shut down.
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
@@ -34,10 +40,10 @@
 </div><!-- /.modal -->
 {% endif %}
 
-{% if show_force_terminate  %}
+{% if hosts and show_force_terminate  %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block" data-target="#forceTerminateHost"
-            data-toggle="modal" title="Force Terminate Host">
+            data-toggle="modal" title="Directly terminate instance without running stopping script on the host.">
         <span class="glyphicon glyphicon-remove"></span> Force Terminate
     </button>
 </div>
@@ -45,14 +51,25 @@
 <div class="modal fade" id="forceTerminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="forceTerminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/force_terminate_hosts/?host_id={{ host.hostId }}">
+            <form id="forceTerminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/force_terminate_hosts/?host_id={{ host_id }}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Host Termination Confirm</h4>
                 </div>
                 <div class="modal-body">
-                    <p> Are you sure to force terminate {{ host.hostName }}?</p>
+                    <p> Are you sure to force terminate {{ hostname }}?</p>
+
+                    <a data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                    <span id="collapseToggler" class="glyphicon glyphicon-chevron-right"></span>
+                    </a>
+
+                    <div class="collapse" id="collapseExample">
+                      <div class="card card-block">
+                        <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host
+                      </div>
+                    </div>
                 </div>
+
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -66,29 +83,30 @@
 {% endif %}
 
 
-<!--- detach instances -->
-{% if asg_group %}
+{% if asg_group and pinterest %}
+{% if not instance_protected %}
+<!--- protect instances -->
 <div class="row">
-<button class="deployToolTip btn btn-default btn-block" data-target="#detachHost"
-        data-toggle="modal" title="Detach Host">
-    <span class="glyphicon glyphicon-eject"></span> Detach Host
+<button class="deployToolTip btn btn-default btn-block" data-target="#protectHost"
+        data-toggle="modal" title="Protect host from terminating during scaling down event.">
+    <span class="glyphicon glyphicon-eject"></span> Protect Host
 </button>
 </div>
 
-<div class="modal fade" id="detachHost" tabindex="-1" role="dialog"
+<div class="modal fade" id="protectHost" tabindex="-1" role="dialog"
      aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="detachHostForm" class="form-horizontal" method="post" role="form" action="/groups/{{ asg_group }}/detach_host/?hostId={{ host.hostId }}">
+            <form id="protectHostForm" class="form-horizontal" method="post" role="form" action="/groups/{{ asg_group }}/instance_action/?hostId={{ host_id }}&action=PROTECT">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Detach Confirm</h4>
+                    <h4 class="modal-title">Protection Confirm</h4>
                 </div>
                 <div class="modal-body">
-                    <p> Are you sure to detach {{ host.hostName }} from {{ asg_group }}?</p>
+                    <p> Are you sure to protect {{ hostname }} from terminating in {{ asg_group }}?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" id="detachInstanceBtnId">Detach</button>
+                    <button type="submit" class="btn btn-primary" id="detachInstanceBtnId">Protect</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
                 {% csrf_token %}
@@ -96,4 +114,35 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+{% else %}
+<!--- unprotect instances -->
+<div class="row">
+<button class="deployToolTip btn btn-default btn-block" data-target="#unprotectHost"
+        data-toggle="modal" title="Unprotect host in auto scaling group. The host may be terminated in auto scaling group scaling down event.">
+    <span class="glyphicon glyphicon-eject"></span> Unprotect Host
+</button>
+</div>
+
+<div class="modal fade" id="unprotectHost" tabindex="-1" role="dialog"
+     aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="protectHostForm" class="form-horizontal" method="post" role="form" action="/groups/{{ asg_group }}/instance_action/?hostId={{ host_id }}&action=UNPROTECT">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Unprotection Confirm</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure to unprotect {{ hostname }} in {{ asg_group }}?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="detachInstanceBtnId">Unprotect</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+{% endif %}
 {% endif %}

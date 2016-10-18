@@ -22,6 +22,7 @@ package com.pinterest.deployservice.bean;
  *      Environment current deploy is on pause
  * DISABLED:
  *      Environment is disabled, current deploy should be on pause
+ * TODO this is actually used for env deploy state, should refactor it later
  */
 public enum EnvState {
     NORMAL,

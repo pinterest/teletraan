@@ -29,12 +29,15 @@ import util_views
 import security
 import user_views
 import docs_views
+import cluster_view
+import schedule_views
 
 urlpatterns = [
     # deploy related
     url(r'^deploy/inline_update/$', deploy_views.inline_update),
     url(r'^deploy/(?P<deploy_id>[a-zA-Z0-9\-_]+)', deploy_views.DeployView.as_view()),
     url(r'^deploys/ongoing/$', deploy_views.get_ongoing_deploys),
+    url(r'^deploys/dailycount', deploy_views.get_daily_deploy_count),
     url(r'^env/create/$', env_views.post_create_env),
 
     # envs related
@@ -44,6 +47,9 @@ urlpatterns = [
     url(r'^envs/search/(?P<filter>[a-zA-Z0-9\-_]+)/$', env_views.search_envs),
     url(r'^envs/search/$', env_views.EnvListView.as_view()),
     url(r'^envs/$', env_views.EnvListView.as_view()),
+    url(r'^envs/enable/$', env_views.enable_all_env_change),
+    url(r'^envs/disable/$', env_views.disable_all_env_change),
+    url(r'^envs/get_tag_message/$', env_views.get_tag_message),
 
     # env related
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/add_stage/$', env_views.post_add_stage),
@@ -73,13 +79,19 @@ urlpatterns = [
         env_views.compare_deploys_2),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pred_deploys/$',
         env_views.get_pred_deploys),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/(?P<buildId>[a-zA-Z0-9\-_]+)'
+        r'/get_duplicate_commit_message/$', deploy_views.get_duplicate_commit_deploy_message),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/'
-        r'(?P<buildId>[a-zA-Z0-9\-_]+)/warn_no_succ_deploy_in_pred/$',
-        env_views.warn_no_succ_deploy_in_pred),
+        r'(?P<buildId>[a-zA-Z0-9\-_]+)/warn_for_deploy/$',
+        env_views.warn_for_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/builds/$',
         env_views.get_builds),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/upload_private_build/$',
+        env_views.upload_private_build),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/groups/$',
         env_views.get_groups),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/enable/$', env_views.enable_env_change),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/disable/$', env_views.disable_env_change),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/restart/$', env_views.restart),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause/$', env_views.pause),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume/$', env_views.resume),
@@ -110,7 +122,14 @@ urlpatterns = [
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/remove/$',
         env_views.remove_stage),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/$', env_views.get_hosts),
-
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/update_schedule/$',
+        env_views.update_schedule),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/delete_schedule/$',
+        env_views.delete_schedule),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/schedule/$',
+        env_views.get_deploy_schedule),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/override_session/$',
+        env_views.override_session),
     # environment configs
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/$',
         env_config_views.EnvConfigView.as_view()),
@@ -126,6 +145,8 @@ urlpatterns = [
         metrics_views.EnvMetricsView.as_view()),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/webhooks/$',
         webhook_views.EnvWebhooksView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/schedule/$',
+        schedule_views.EnvScheduleView.as_view()),
 
     # host related
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/unknowns/$',
@@ -149,8 +170,13 @@ urlpatterns = [
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.pause_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume_deploy/'
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.resume_deploy),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/reset_hosts/$', env_views.reset_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause_hosts/$', env_views.pause_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume_hosts/$', env_views.resume_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/host/(?P<hostname>[a-zA-Z0-9\-_]+)',
         host_views.HostDetailView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/terminate_hosts/$', cluster_view.terminate_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/force_terminate_hosts/$', cluster_view.force_terminate_hosts),
     url(r'^hosts/$', host_views.hosts_list),
 
     # builds related
@@ -161,6 +187,7 @@ urlpatterns = [
         build_views.list_build_branches),
     url(r'^builds/names/$', build_views.get_build_names),
     url(r'^builds/(?P<id>[a-zA-Z0-9\-_]+)/$', build_views.get_build),
+    url(r'^builds/(?P<id>[a-zA-Z0-9\-_]+)/tags/$', build_views.tag_build),
     url(r'^builds/$', build_views.builds_landing),
 
     # Commits related

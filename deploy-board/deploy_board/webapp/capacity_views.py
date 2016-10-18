@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,22 +23,47 @@ from django.template.loader import render_to_string
 from django.views.generic import View
 import common
 from helpers import environs_helper, clusters_helper
+from helpers import baseimages_helper
 from deploy_board.settings import IS_PINTEREST
 
 
 class EnvCapacityConfigView(View):
     def get(self, request, name, stage):
+        # cluster manager
+        provider_list = None
+        basic_cluster_info = None
+        create_new = False
+        adv = False
+        env = environs_helper.get_env_by_stage(request, name, stage)
+        if IS_PINTEREST:
+            provider_list = baseimages_helper.get_all_providers(request)
+            basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
+            if basic_cluster_info:
+                base_image_id = basic_cluster_info.get('baseImageId')
+                base_image = baseimages_helper.get_by_id(request, base_image_id)
+                if base_image.get('abstract_name') != 'CMP-DOCKER':
+                    adv = True
+
+            params = request.GET
+            if params.get('adv'):
+                adv = params.get('adv')
+            if params.get('create_new'):
+                create_new = params.get('create_new')
+
         if request.is_ajax():
             # return data for ajax calls
             hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
             groups = common.get_non_cmp_group(request, name, stage)
-            env = environs_helper.get_env_by_stage(request, name, stage)
             html = render_to_string("configs/capacity.tmpl", {
                 "env": env,
                 "hosts": ','.join(hosts),
                 "groups": ','.join(groups),
                 "csrf_token": get_token(request),
-
+                'is_pinterest': IS_PINTEREST,
+                'provider_list': provider_list,
+                'basic_cluster_info': basic_cluster_info,
+                'adv': adv,
+                'create_new': create_new,
             })
             return HttpResponse(json.dumps({'html': html}), content_type="application/json")
 
@@ -48,10 +73,16 @@ class EnvCapacityConfigView(View):
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
         groups = common.get_non_cmp_group(request, name, stage)
         return render(request, 'configs/capacity.html', {
+            "envs": envs,
             "env": env,
             "stages": stages,
             "hosts": ','.join(hosts),
             "groups": ','.join(groups),
+            'is_pinterest': IS_PINTEREST,
+            'provider_list': provider_list,
+            'basic_cluster_info': basic_cluster_info,
+            'adv': adv,
+            'create_new': create_new,
         })
 
     def post(self, request, name, stage):
@@ -68,9 +99,10 @@ class EnvCapacityConfigView(View):
             groups = [x.strip() for x in groups_str.split(',')]
 
         if IS_PINTEREST:
-            basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+            cluster_name = common.get_cluster_name(request, name, stage)
+            basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
             if basic_cluster_info:
-                cluster_name = common.get_cluster_name(name, stage)
+                cluster_name = common.get_cluster_name(request, name, stage)
                 groups.append(cluster_name)
         environs_helper.update_env_capacity(request, name, stage, capacity_type="GROUP",
                                             data=groups)

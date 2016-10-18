@@ -8,7 +8,7 @@
         <th class="col-lg-2">Repo</th>
         <th class="col-lg-1">Details</th>
     </tr>
-    {% for build in builds %}
+    {% for buildInfo in builds %}
     <tr>
         <td>
             <a class="deployToolTip pointer-cursor" data-toggle="collapse"
@@ -21,24 +21,39 @@
                       class="glyphicon glyphicon-chevron-down">
                       {% endif %}
                 </span>
-                {{ build.publishDate|convertTimestamp }}
+                {{ buildInfo.build.publishDate|convertTimestamp }}
             </a>
-            <input class="hiddenBuildId" type="hidden" value="{{ build.id }}"/>
-            <input class="hiddenCommit" type="hidden" value="{{ build.commit }}"/>
-            <input class="hiddenCommit7" type="hidden" value="{{ build.commitShort }}"/>
-            <input class="hiddenBranch" type="hidden" value="{{ build.branch }}"/>
+            <input class="hiddenBuildId" type="hidden" value="{{ buildInfo.build.id }}"/>
+            <input class="hiddenCommit" type="hidden" value="{{ buildInfo.build.commit }}"/>
+            <input class="hiddenCommit7" type="hidden" value="{{ buildInfo.build.commitShort }}"/>
+            <input class="hiddenBranch" type="hidden" value="{{ buildInfo.build.branch }}"/>
         </td>
-        <td><a class="deployToolTip" href="{{ build.commitInfo }}" target="_blank"
-               title="Click to see commit details in {{ build.type }}">
-                <i class="{{ build|commitIcon }}"></i> {{ build.commitShort }}
+        <td>
+            {% if buildInfo.build.branch == "private" %}
+            <i class="{{ buildInfo.build|commitIcon }}"></i> {{ buildInfo.build.commitShort }}
+            {% else %}
+            <a class="deployToolTip" href="{{ buildInfo.build.commitInfo }}" target="_blank"
+               title="Click to see commit details in {{ buildInfo.build.type }}">
+                <i class="{{ buildInfo.build|commitIcon }}"></i> {{ buildInfo.build.commitShort }}
             </a>
-            {% if not current_build or build.publishDate > current_build.publishDate %}
+            {% endif %}
+            {% if not current_build or buildInfo.build.publishDate > current_build.publishDate %}
             <span class="label label-info">New</span>
             {% endif %}
+            {% if buildInfo.build.branch == "private" %}
+            <span class="label label-warning">Private</span>
+            {% endif %}
+            {% if buildInfo.tag %}
+                {%if buildInfo.tag.value == "BAD_BUILD" %}
+                    <span class="label label-danger">{{buildInfo.tag.value}}</span>
+                {%elif buildInfo.tag|tagBuildId == buildInfo.build.id %}
+                    <span class="label label-success">{{buildInfo.tag.value}}</span>
+                {% endif %}
+            {% endif %}
         </td>
-        <td>{{ build.branch }}</td>
-        <td>{{ build.repo }}</td>
-        <td><a href="/builds/{{ build.id }}">view</a></td>
+        <td>{{ buildInfo.build.branch }}</td>
+        <td>{{ buildInfo.build.repo }}</td>
+        <td><a href="/builds/{{ buildInfo.build.id }}">view</a></td>
     </tr>
     {% if builds|length > 1 %}
     <tr id="deployAction{{forloop.counter}}" class="collapse out deployActionPanel">
@@ -97,7 +112,21 @@
         });
 
         $('#buildPickTableId tr .deployer').click(function () {
+            {% if deployState and overridePolicy == "WARN" and deployState == "RUNNING" %}
+            $('#confirmOverrideModalId').modal();
+            {% else %}
             trid = $(this).closest('tr').prev();
+            buildId = trid.find(".hiddenBuildId").val();
+            commit = trid.find(".hiddenCommit").val();
+            commit7 = trid.find(".hiddenCommit7").val();
+            branch = trid.find(".hiddenBranch").val();
+            $('#confirmDeployModalId').modal();
+            {% endif %}
+        });
+
+        $('#confirmOverrideModalId').on('click','#overrideButton', function (e) {
+            $('#confirmOverrideModalId').modal('toggle');
+            trid = $( "tr:nth-child(2)" );
             buildId = trid.find(".hiddenBuildId").val();
             commit = trid.find(".hiddenCommit").val();
             commit7 = trid.find(".hiddenCommit7").val();
@@ -144,14 +173,14 @@
             $('#buildPickTableId').parent().load(
                 '/builds/get_all_builds/?name={{ buildName }}&branch={{ branch }}' +
                     '&page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}' +
-                    '&current_build_id={{ current_build.id }}');
+                    '&current_build_id={{ current_build.id }}' + '&override_policy={{ env.overridePolicy }}&deploy_id={{ env.deployId }}');
         });
 
         $("#buildsPreviousId").click(function () {
             $('#buildPickTableId').parent().load(
                 '/builds/get_all_builds/?name={{ buildName }}&branch={{ branch }}' +
                     '&page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}' +
-                    '&current_build_id={{ current_build.id }}');
+                    '&current_build_id={{ current_build.id }}' + '&override_policy={{ env.overridePolicy }}&deploy_id={{ env.deployId }}');
         });
     });
 </script>

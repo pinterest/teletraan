@@ -1,5 +1,5 @@
 {% load utils %}
-{% include "panel_heading.tmpl" with panel_title="Cluster Manager" panel_body_id="clusterConfigId" direction="down" %}
+{% include "panel_heading.tmpl" with panel_title="Advanced Cluster Manager" panel_body_id="clusterConfigId" direction="down" %}
 <div id="clusterConfigId" class="collapse in panel-body">
     <div class="container-fluid">
         <form id="clusterConfigFormId" class="form-horizontal" role="form">
@@ -116,22 +116,7 @@
                     </div>
                 </div>
 
-                <div class="panel panel-default">
-                    <div class="panel-heading" role="tab" id="headingOne">
-                        <h4 class="panel-title pointer-cursor">
-                            <div id="showAdvanceDivId">
-                            <span class="glyphicon glyphicon-chevron-right"></span>Advanced Settings
-                            </div>
-                            <div id="hideAdvanceDivId" class="hidden">
-                            <span class="glyphicon glyphicon-chevron-down"></span>Advanced Settings
-                            </div>
-                        </h4>
-                    </div>
-                </div>
-
-                <div id="advanceSettingDivId" class="hidden">
-                    <div id="advanced_config_div_id">
-                    </div>
+                <div id="advanced_config_div_id">
                 </div>
             </fieldset>
             {% csrf_token %}
@@ -150,7 +135,7 @@
 
 <script>
 function loadConfig(provider) {
-    var image_name_url = "/clouds/get_image_names/?provider=" + provider;
+    var image_name_url = "/clouds/get_image_names/?provider=" + provider + "&env={{ env.envName }}" + "&stage={{ env.stageName }}";
     $.get(image_name_url, function(response) {
         $("#image_name_div_id").html(response);
     });
@@ -171,15 +156,6 @@ function loadConfig(provider) {
     });
 }
 
-function loadAdvancedConfig(provider, adv) {
-    var env = "{{ env.envName }}";
-    var stage = "{{ env.stageName }}";
-    var advanced_config_url = "/clouds/get_advanced_config/?provider=" + provider + "&adv=" + adv + "&env=" + env + "&stage=" + stage;
-    $.get(advanced_config_url, function(response) {
-        $("#advanced_config_div_id").html(response);
-    });
-}
-
 function getCurrentProvider() {
     val = $("#provider option:selected").val()
     return $("#provider option:selected").val();
@@ -187,31 +163,11 @@ function getCurrentProvider() {
 
 $(document).ready(function() {
     loadConfig(getCurrentProvider());
-    loadAdvancedConfig(getCurrentProvider(), "0");
 });
 
 $(function () {
     $("#provider").change(function() {
         loadConfig(getCurrentProvider());
-        if ($("#hideAdvanceDivId").is(":hidden")) {
-            loadAdvancedConfig(getCurrentProvider(), "0");
-        } else {
-            loadAdvancedConfig(getCurrentProvider(), "1");
-        }
-    });
-
-    $('#showAdvanceDivId').click(function () {
-        loadAdvancedConfig(getCurrentProvider(), "1");
-        $("#hideAdvanceDivId").removeClass("hidden");
-        $("#advanceSettingDivId").removeClass("hidden");
-        $("#showAdvanceDivId").addClass("hidden");
-    });
-
-    $('#hideAdvanceDivId').click(function () {
-        loadAdvancedConfig(getCurrentProvider(), "0");
-        $("#hideAdvanceDivId").addClass("hidden");
-        $("#advanceSettingDivId").addClass("hidden");
-        $("#showAdvanceDivId").removeClass("hidden");
     });
 
     $('#saveClusterConfigBtnId').attr('disabled','disabled');

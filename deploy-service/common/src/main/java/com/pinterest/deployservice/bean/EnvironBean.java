@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
- *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,6 +18,7 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
 
@@ -37,6 +38,7 @@ import java.io.Serializable;
  * deploy_type   VARCHAR(32),
  * max_parallel  INT                 NOT NULL,
  * priority      VARCHAR(16)         NOT NULL,
+ * system_priority  INT,
  * stuck_th      INT                 NOT NULL,
  * success_th    INT                 NOT NULL,
  * adv_config_id VARCHAR(22),
@@ -52,6 +54,11 @@ import java.io.Serializable;
  * max_deploy_num      INT           NOT NULL,
  * max_deploy_day      INT           NOT NULL,
  * is_docker           TINYINT(1)    DEFAULT 0,
+ * max_parallel_pct    TINYINT(1)    NOT NULL DEFAULT 0,
+ * state               VARCHAR(32)         NOT NULL,
+ * cluster_name        VARCHAR(128)
+ * max_parallel_rp     INT           NOT NULL DEFAULT 1,
+ * schedule_id         VARCHAR(22)   DEFAULT NULL,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -94,6 +101,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("priority")
     private DeployPriority priority;
+
+    @JsonProperty("systemPriority")
+    private Integer system_priority;
 
     @JsonProperty("stuckThreshold")
     private Integer stuck_th;
@@ -142,6 +152,25 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("isDocker")
     private Boolean is_docker;
+
+    @Range(min = 0, max = 100)
+    @JsonProperty("maxParallelPct")
+    private Integer max_parallel_pct;
+
+    @JsonProperty("state")
+    private EnvironState state;
+
+    @JsonProperty("clusterName")
+    private String cluster_name;
+
+    @JsonProperty("maxParallelRp")
+    private Integer max_parallel_rp;
+
+    @JsonProperty("overridePolicy")
+    private OverridePolicy override_policy;
+
+    @JsonProperty("scheduleId")
+    private String schedule_id;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -295,6 +324,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.priority = priority;
     }
 
+    public Integer getSystem_priority() {
+        return system_priority;
+    }
+
+    public void setSystem_priority(Integer system_priority) {
+        this.system_priority = system_priority;
+    }
+
     public AcceptanceType getAccept_type() {
         return accept_type;
     }
@@ -367,6 +404,54 @@ public class EnvironBean implements Updatable, Serializable {
         this.is_docker = is_docker;
     }
 
+    public Integer getMax_parallel_pct() {
+        return max_parallel_pct;
+    }
+
+    public void setMax_parallel_pct(Integer max_parallel_pct) {
+        this.max_parallel_pct = max_parallel_pct;
+    }
+
+    public EnvironState getState() {
+        return state;
+    }
+
+    public void setState(EnvironState state) {
+        this.state = state;
+    }
+
+    public String getCluster_name() {
+        return cluster_name;
+    }
+
+    public void setCluster_name(String cluster_name) {
+        this.cluster_name = cluster_name;
+    }
+
+    public Integer getMax_parallel_rp() {
+        return max_parallel_rp;
+    }
+
+    public void setMax_parallel_rp(Integer max_parallel_rp) {
+        this.max_parallel_rp = max_parallel_rp;
+    }
+
+    public OverridePolicy getOverride_policy() {
+        return override_policy;
+    }
+
+    public void setOverride_policy(OverridePolicy override_policy) {
+        this.override_policy = override_policy;
+    }
+
+    public String getSchedule_id() {
+        return schedule_id;
+    }
+
+    public void setSchedule_id(String schedule_id) {
+        this.schedule_id = schedule_id;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -382,6 +467,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("deploy_type", deploy_type);
         clause.addColumn("max_parallel", max_parallel);
         clause.addColumn("priority", priority);
+        clause.addColumn("system_priority", system_priority);
         clause.addColumn("stuck_th", stuck_th);
         clause.addColumn("success_th", success_th);
         clause.addColumn("adv_config_id", adv_config_id);
@@ -398,6 +484,12 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("max_deploy_num", max_deploy_num);
         clause.addColumn("max_deploy_day", max_deploy_day);
         clause.addColumn("is_docker", is_docker);
+        clause.addColumn("max_parallel_pct", max_parallel_pct);
+        clause.addColumn("state", state);
+        clause.addColumn("cluster_name", cluster_name);
+        clause.addColumn("max_parallel_rp", max_parallel_rp);
+        clause.addColumn("override_policy", override_policy);
+        clause.addColumn("schedule_id", schedule_id);
         return clause;
     }
 
@@ -405,4 +497,5 @@ public class EnvironBean implements Updatable, Serializable {
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
+
 }

@@ -25,3 +25,8 @@ def get_hosts(request, env_name, stage_name):
 
 def get_host_by_env_and_hostname(request, env_name, stage_name, host_name):
     return deploy_client.get("/envs/%s/%s/hosts/%s" % (env_name, stage_name, host_name), request.teletraan_user_id.token)
+
+
+def stop_service_on_host(request, env_name, stage_name, host_ids):
+    return deploy_client.delete("/envs/%s/%s/hosts" % (env_name, stage_name), request.teletraan_user_id.token,
+                                data=host_ids)

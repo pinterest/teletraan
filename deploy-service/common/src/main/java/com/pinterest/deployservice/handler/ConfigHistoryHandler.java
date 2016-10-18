@@ -21,12 +21,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-import com.pinterest.arcee.bean.AsgAlarmBean;
-import com.pinterest.arcee.bean.AutoScalingRequestBean;
-import com.pinterest.arcee.bean.GroupBean;
-import com.pinterest.arcee.bean.ScalingPoliciesBean;
-import com.pinterest.arcee.handler.GroupHandler;
-import com.pinterest.clusterservice.bean.ClusterBean;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AlarmBean;
 import com.pinterest.deployservice.bean.ConfigHistoryBean;
@@ -40,7 +34,6 @@ import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.ConfigHistoryDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 
-import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,16 +48,12 @@ public class ConfigHistoryHandler {
             + "\"automation\":\"%s\",\"source\":\"Teletraan\",\"optional-1\":\"%s\",\"optional-2\":\"\"}";
     private final ConfigHistoryDAO configHistoryDAO;
     private final EnvironDAO environDAO;
-    private final GroupHandler groupHandler;
-    private final EnvironHandler environHandler;
     private final String changeFeedUrl;
     private final ExecutorService jobPool;
 
     public ConfigHistoryHandler(ServiceContext serviceContext) {
         configHistoryDAO = serviceContext.getConfigHistoryDAO();
         environDAO = serviceContext.getEnvironDAO();
-        groupHandler = new GroupHandler(serviceContext);
-        environHandler = new EnvironHandler(serviceContext);
         changeFeedUrl = serviceContext.getChangeFeedUrl();
         jobPool = serviceContext.getJobPool();
     }
@@ -114,208 +103,87 @@ public class ConfigHistoryHandler {
         }
     }
 
-    /**
-     * Rollback to previous configuration based on change id
-     */
-    public void rollbackConfig(String configType, String changeId, String operator) throws Exception {
+    public void updateChangeFeed(String configType, String configId, String type, String operator) {
         try {
-            ConfigHistoryBean bean = configHistoryDAO.getByChangeId(changeId);
-            String type = bean.getType();
-            String configChange = bean.getConfig_change();
-
             Gson gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
-            if (configType.equals(Constants.CONFIG_TYPE_GROUP)) {
-                String groupName = bean.getConfig_id();
-                LOG.info(String.format("Rollback group config to the ChangeId: %s, Type:%s for group %s", changeId, type, groupName));
+            List<ConfigHistoryBean> configHistoryBeans = configHistoryDAO.getLatestChangesByType(configId, type);
+            if (configHistoryBeans.size() != 2) {
+                return;
+            }
 
-                if (type.equals(Constants.TYPE_ASG_GENERAL)) {
-                    GroupBean newBean = gson.fromJson(configChange, GroupBean.class);
-                    newBean.setGroup_name(groupName);
-                    String userData = new String(Base64.decodeBase64(newBean.getUser_data()));
-                    newBean.setUser_data(userData);
-                    groupHandler.updateLaunchConfig(groupName, newBean);
-                    updateConfigHistory(groupName, type, newBean, operator);
-                } else if (type.equals(Constants.TYPE_ASG_SCALING)) {
-                    AutoScalingRequestBean newBean = gson.fromJson(configChange, AutoScalingRequestBean.class);
-                    newBean.setGroupName(groupName);
-                    groupHandler.insertOrUpdateAutoScalingGroup(groupName, newBean);
-                    updateConfigHistory(groupName, type, newBean, operator);
-                } else if (type.equals(Constants.TYPE_ASG_POLICY)) {
-                    ScalingPoliciesBean newBean = gson.fromJson(configChange, ScalingPoliciesBean.class);
-                    groupHandler.putScalingPolicyToGroup(groupName, newBean);
-                    updateConfigHistory(groupName, type, newBean, operator);
-                } else if (type.equals(Constants.TYPE_ASG_ALARM)) {
-                    List<AsgAlarmBean> newBeans = gson.fromJson(configChange, new TypeToken<ArrayList<AsgAlarmBean>>() {
-                    }.getType());
-                    groupHandler.updateAlarmsToAutoScalingGroup(groupName, newBeans);
-                    updateConfigHistory(groupName, type, newBeans, operator);
-                } else {
-                    LOG.warn(String.format("Failed to find the type %s to rollback, %s", type, changeId));
-                }
-            } else if (configType.equals(Constants.CONFIG_TYPE_ENV)) {
-                String envId = bean.getConfig_id();
-                EnvironBean environBean = environDAO.getById(envId);
-                LOG.info(String.format("Rollback environment config to the ChangeId: %s, Type:%s for env %s", changeId, type, environBean.getEnv_name()));
-
+            if (configType.equals(Constants.CONFIG_TYPE_ENV)) {
+                EnvironBean environBean = environDAO.getById(configId);
+                String envStageName = String.format("%s (%s)", environBean.getEnv_name(), environBean.getStage_name());
+                LOG.info(String.format("Push env %s config change for %s", type, envStageName));
+                String configHistoryUrl = String.format("https://deploy.pinadmin.com/env/%s/%s/config_history/",
+                                  environBean.getEnv_name(), environBean.getStage_name());
+                String feedPayload = String.format(CHANGEFEED_TEMPLATE, configType, envStageName, configHistoryUrl, operator, "False", type);
                 if (type.equals(Constants.TYPE_ENV_GENERAL)) {
-                    EnvironBean newBean = gson.fromJson(configChange, EnvironBean.class);
-                    environHandler.updateStage(environBean, newBean, operator);
-                    updateConfigHistory(envId, type, newBean, operator);
+                    EnvironBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), EnvironBean.class);
+                    newBean.setLast_update(null);
+                    newBean.setLast_operator(null);
+                    EnvironBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), EnvironBean.class);
+                    oriBean.setLast_update(null);
+                    oriBean.setLast_operator(null);
+                    jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
                 } else if (type.equals(Constants.TYPE_ENV_PROMOTE)) {
-                    PromoteBean newBean = gson.fromJson(configChange, PromoteBean.class);
-                    environHandler.updateEnvPromote(environBean, newBean, operator);
-                    updateConfigHistory(envId, type, newBean, operator);
+                    PromoteBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), PromoteBean.class);
+                    newBean.setLast_update(null);
+                    newBean.setLast_operator(null);
+                    PromoteBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), PromoteBean.class);
+                    oriBean.setLast_update(null);
+                    oriBean.setLast_operator(null);
+                    jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
                 } else if (type.equals(Constants.TYPE_ENV_SCRIPT)) {
-                    Map<String, String> newConfigs = gson.fromJson(configChange, new TypeToken<Map<String, String>>() {
-                    }.getType());
-                    environHandler.updateScriptConfigs(environBean, newConfigs, operator);
-                    updateConfigHistory(envId, type, newConfigs, operator);
+                    Map<String, String> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<Map<String, String>>() {
+                                      }.getType());
+                    Map<String, String> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(),
+                                      new TypeToken<Map<String, String>>() {
+                                      }.getType());
+                    jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
                 } else if (type.equals(Constants.TYPE_ENV_ADVANCED)) {
-                    Map<String, String> newConfigs = gson.fromJson(configChange, new TypeToken<Map<String, String>>() {
-                    }.getType());
-                    environHandler.updateAdvancedConfigs(environBean, newConfigs, operator);
-                    updateConfigHistory(envId, type, newConfigs, operator);
+                    Map<String, String> newConfigs = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<Map<String, String>>() {
+                                      }.getType());
+                    Map<String, String> oriConfigs = gson.fromJson(configHistoryBeans.get(1).getConfig_change(),
+                                      new TypeToken<Map<String, String>>() {
+                                      }.getType());
+                    jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriConfigs, newConfigs));
                 } else if (type.equals(Constants.TYPE_ENV_METRIC)) {
-                    List<MetricsConfigBean> newBeans = gson.fromJson(configChange, new TypeToken<ArrayList<MetricsConfigBean>>() {
-                    }.getType());
-                    environHandler.updateMetrics(environBean, newBeans, operator);
-                    updateConfigHistory(envId, type, newBeans, operator);
+                    List<MetricsConfigBean> newBeans = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<MetricsConfigBean>>() {
+                                      }.getType());
+                    List<MetricsConfigBean> oriBeans = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<MetricsConfigBean>>() {
+                                      }.getType());
+                    jobPool
+                        .submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBeans, newBeans));
                 } else if (type.equals(Constants.TYPE_ENV_ALARM)) {
-                    List<AlarmBean> newBeans = gson.fromJson(configChange, new TypeToken<ArrayList<AlarmBean>>() {
-                    }.getType());
-                    environHandler.updateAlarms(environBean, newBeans, operator);
-                    updateConfigHistory(envId, type, newBeans, operator);
+                    List<AlarmBean> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<AlarmBean>>() {
+                                      }.getType());
+                    List<AlarmBean> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<AlarmBean>>() {
+                                      }.getType());
+                    jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
                 } else if (type.equals(Constants.TYPE_ENV_WEBHOOK)) {
-                    EnvWebHookBean newBean = gson.fromJson(configChange, EnvWebHookBean.class);
-                    environHandler.updateHooks(environBean, newBean, operator);
-                    updateConfigHistory(envId, type, newBean, operator);
+                    EnvWebHookBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), EnvWebHookBean.class);
+                    EnvWebHookBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), EnvWebHookBean.class);
+                    jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
                 } else if (type.equals(Constants.TYPE_ENV_HOST_CAPACITY)) {
-                    List<String> newHosts = gson.fromJson(configChange, new TypeToken<ArrayList<String>>() {
-                    }.getType());
-                    environHandler.updateHosts(environBean, newHosts, operator);
-                    updateConfigHistory(envId, type, newHosts, operator);
+                    List<String> newHosts = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<String>>() {
+                                      }.getType());
+                    List<String> oriHosts = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {
+                                      }.getType());
+                    LOG.debug(String.format("Host update %s, %s", newHosts, oriHosts));
+                    jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriHosts, newHosts));
                 } else if (type.equals(Constants.TYPE_ENV_GROUP_CAPACITY)) {
-                    List<String> newGroups = gson.fromJson(configChange, new TypeToken<ArrayList<String>>() {
-                    }.getType());
-                    environHandler.updateGroups(environBean, newGroups, operator);
-                    updateConfigHistory(envId, type, newGroups, operator);
+                    List<String> newGroups = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<String>>() {
+                                      }.getType());
+                    List<String> oriGroups = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {
+                                      }.getType());
+                    jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriGroups, newGroups));
                 } else {
-                    LOG.warn(String.format("Failed to find the type %s to rollback, %s", type, changeId));
+                    LOG.warn(String.format("Failed to find the type %s to update changefeed", type));
                 }
             }
-        } catch (Exception e) {
-            LOG.error("Failed to rollback to previous config, " + changeId, e);
-        }
-    }
-
-    public void updateChangeFeed(String configType, String configId, String type, String operator) throws Exception {
-        Gson gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
-        List<ConfigHistoryBean> configHistoryBeans = configHistoryDAO.getLatestChangesByType(configId, type);
-        if (configHistoryBeans.size() != 2) {
-            return;
-        }
-
-        if (configType.equals(Constants.CONFIG_TYPE_GROUP)) {
-            LOG.info(String.format("Push group %s config change for %s", type, configId));
-
-            String configHistoryUrl = String.format("https://deploy.pinadmin.com/groups/%s/config_history/", configId);
-            String feedPayload = String.format(CHANGEFEED_TEMPLATE, configType, configId, configHistoryUrl, operator, "False", type);
-            if (type.equals(Constants.TYPE_ASG_GENERAL)) {
-                GroupBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), GroupBean.class);
-                newBean.setLast_update(null);
-                newBean.setLaunch_config_id(null);
-                GroupBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), GroupBean.class);
-                oriBean.setLast_update(null);
-                oriBean.setLaunch_config_id(null);
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else if (type.equals(Constants.TYPE_ASG_SCALING)) {
-                AutoScalingRequestBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), AutoScalingRequestBean.class);
-                AutoScalingRequestBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), AutoScalingRequestBean.class);
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else if (type.equals(Constants.TYPE_ASG_POLICY)) {
-                ScalingPoliciesBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), ScalingPoliciesBean.class);
-                ScalingPoliciesBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), ScalingPoliciesBean.class);
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else if (type.equals(Constants.TYPE_ASG_ALARM)) {
-                List<AsgAlarmBean> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<AsgAlarmBean>>() {
-                }.getType());
-                List<AsgAlarmBean> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<AsgAlarmBean>>() {
-                }.getType());
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else {
-                LOG.warn(String.format("Failed to find the type %s to update changefeed", type));
-            }
-        } else if (configType.equals(Constants.CONFIG_TYPE_ENV)) {
-            EnvironBean environBean = environDAO.getById(configId);
-            String envStageName = String.format("%s (%s)", environBean.getEnv_name(), environBean.getStage_name());
-            LOG.info(String.format("Push env %s config change for %s", type, envStageName));
-
-            String configHistoryUrl = String.format("https://deploy.pinadmin.com/env/%s/%s/config_history/", environBean.getEnv_name(), environBean.getStage_name());
-            String feedPayload = String.format(CHANGEFEED_TEMPLATE, configType, envStageName, configHistoryUrl, operator, "False", type);
-            if (type.equals(Constants.TYPE_ENV_GENERAL)) {
-                EnvironBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), EnvironBean.class);
-                newBean.setLast_update(null);
-                newBean.setLast_operator(null);
-                EnvironBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), EnvironBean.class);
-                oriBean.setLast_update(null);
-                oriBean.setLast_operator(null);
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else if (type.equals(Constants.TYPE_ENV_PROMOTE)) {
-                PromoteBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), PromoteBean.class);
-                newBean.setLast_update(null);
-                newBean.setLast_operator(null);
-                PromoteBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), PromoteBean.class);
-                oriBean.setLast_update(null);
-                oriBean.setLast_operator(null);
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else if (type.equals(Constants.TYPE_ENV_SCRIPT)) {
-                Map<String, String> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<Map<String, String>>() {
-                }.getType());
-                Map<String, String> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<Map<String, String>>() {
-                }.getType());
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else if (type.equals(Constants.TYPE_ENV_ADVANCED)) {
-                Map<String, String> newConfigs = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<Map<String, String>>() {
-                }.getType());
-                Map<String, String> oriConfigs = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<Map<String, String>>() {
-                }.getType());
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriConfigs, newConfigs));
-            } else if (type.equals(Constants.TYPE_ENV_METRIC)) {
-                List<MetricsConfigBean> newBeans = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<MetricsConfigBean>>() {
-                }.getType());
-                List<MetricsConfigBean> oriBeans = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<MetricsConfigBean>>() {
-                }.getType());
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBeans, newBeans));
-            } else if (type.equals(Constants.TYPE_ENV_ALARM)) {
-                List<AlarmBean> newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<AlarmBean>>() {
-                }.getType());
-                List<AlarmBean> oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<AlarmBean>>() {
-                }.getType());
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else if (type.equals(Constants.TYPE_ENV_WEBHOOK)) {
-                EnvWebHookBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), EnvWebHookBean.class);
-                EnvWebHookBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), EnvWebHookBean.class);
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else if (type.equals(Constants.TYPE_ENV_HOST_CAPACITY)) {
-                List<String> newHosts = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<String>>() {
-                }.getType());
-                List<String> oriHosts = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {
-                }.getType());
-                LOG.debug(String.format("Host update %s, %s", newHosts, oriHosts));
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriHosts, newHosts));
-            } else if (type.equals(Constants.TYPE_ENV_GROUP_CAPACITY)) {
-                List<String> newGroups = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<String>>() {
-                }.getType());
-                List<String> oriGroups = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {
-                }.getType());
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriGroups, newGroups));
-            } else if (type.equals(Constants.TYPE_ENV_CLUSTER)) {
-                ClusterBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), ClusterBean.class);
-                ClusterBean oriBean = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), ClusterBean.class);
-                jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriBean, newBean));
-            } else {
-                LOG.warn(String.format("Failed to find the type %s to update changefeed", type));
-            }
+        } catch (Exception ex) {
+            LOG.error("Failed to send notification to change log", ex);
         }
     }
 }

@@ -17,6 +17,7 @@ package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.AgentBean;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -26,6 +27,8 @@ public interface AgentDAO {
     void insertOrUpdate(AgentBean agentBean) throws Exception;
 
     void update(String hostId, String envId, AgentBean updateBean) throws Exception;
+
+    void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean) throws Exception;
 
     void resetFailedAgents(String envId, String deployId) throws Exception;
 
@@ -63,4 +66,13 @@ public interface AgentDAO {
 
     // return how many agent state is PAUSED_BY_SYSTEM, or stuck/failed
     long countStuckAgent(String envId, String deployId) throws Exception;
+
+    // return how many agents that are not first time deploy for the environment
+    long countNonFirstDeployingAgent(String envId) throws Exception;
+
+    long countServingTotal(String envId) throws Exception;
+
+    long countFinishedAgentsByDeploy(String deployId) throws Exception;
+
+    long countAgentsByDeploy(String deployId) throws Exception;
 }

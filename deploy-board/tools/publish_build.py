@@ -20,10 +20,10 @@ import commons
 
 
 def main():
-    for x in xrange(10):
+    for x in xrange(1):
         commons.publish_build("sample-build", "master")
-    for x in xrange(10):
-        commons.publish_build("sample-build", "hotfix")
+#    for x in xrange(1):
+#        commons.publish_build("sample-build", "hotfix")
 
 
 if __name__ == "__main__":

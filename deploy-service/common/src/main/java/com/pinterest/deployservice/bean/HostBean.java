@@ -22,12 +22,14 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * Keep the bean and table in sync
  * <p>
  * CREATE TABLE hosts (
- * host_name       VARCHAR(64)         NOT NULL,
+ * host_id         VARCHAR(64)         NOT NULL,
+ * host_name       VARCHAR(64),
  * group_name      VARCHAR(64)         NOT NULL,
- * ip              VARCHAR(64)         NOT NULL,
- * id              VARCHAR(64),
+ * ip              VARCHAR(64),
  * create_date     BIGINT              NOT NULL,
  * last_update     BIGINT              NOT NULL,
+ * state           VARCHAR(32)         NOT NULL,
+ * can_retire      TINYINT(1)          NOT NULL DEFAULT 0,
  * PRIMARY KEY    (host_name, group_name)
  * );
  */
@@ -52,6 +54,9 @@ public class HostBean implements Updatable {
 
     @JsonProperty("state")
     private HostState state;
+
+    @JsonProperty("canRetire")
+    private Boolean can_retire;
 
     public String getHost_name() {
         return host_name;
@@ -109,6 +114,14 @@ public class HostBean implements Updatable {
         this.state = state;
     }
 
+    public Boolean getCan_retire() {
+        return can_retire;
+    }
+
+    public void setCan_retire(Boolean can_retire) {
+        this.can_retire = can_retire;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -119,6 +132,7 @@ public class HostBean implements Updatable {
         clause.addColumn("create_date", create_date);
         clause.addColumn("last_update", last_update);
         clause.addColumn("state", state);
+        clause.addColumn("can_retire", can_retire);
         return clause;
     }
 
@@ -129,7 +143,8 @@ public class HostBean implements Updatable {
             "host_id=VALUES(host_id)," +
             "create_date=VALUES(create_date)," +
             "last_update=VALUES(last_update)," +
-            "state=VALUES(state)";
+            "state=VALUES(state)," +
+            "can_retire=VALUES(can_retire)";
 
     @Override
     public String toString() {

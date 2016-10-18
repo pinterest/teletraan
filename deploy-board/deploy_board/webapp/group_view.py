@@ -23,9 +23,9 @@ import json
 import logging
 import traceback
 
-from helpers import environs_helper
-from helpers import images_helper, groups_helper
-from helpers import specs_helper
+from helpers import environs_helper, clusters_helper
+from helpers import groups_helper, baseimages_helper
+from helpers import specs_helper, autoscaling_groups_helper
 from helpers import autoscaling_metrics_helper
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
@@ -37,10 +37,11 @@ DEFAULT_PAGE_SIZE = 50
 
 ScalingType = ["ChangeInCapacity", "ExactCapacity", "PercentChangeInCapacity"]
 
+
 def group_landing(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
-    group_names = groups_helper.get_env_group_names(request, index, size)
+    group_names = autoscaling_groups_helper.get_env_group_names(request, index, size)
     return render(request, 'groups/group_landing.html', {
         'group_names': group_names,
         "pageIndex": index,
@@ -48,17 +49,6 @@ def group_landing(request):
         "disablePrevious": index <= 1,
         "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
     })
-
-
-def create_group(request):
-    params = request.POST
-    group_name = params["group_name"]
-    try:
-        groups_helper.create_group(request, group_name)
-    except:
-        log.error(traceback.format_exc())
-        raise
-    return redirect("/groups/{}/".format(group_name))
 
 
 def get_system_specs(request):
@@ -72,26 +62,99 @@ def get_system_specs(request):
 
 def get_launch_config(request, group_name):
     try:
-        group_info = groups_helper.get_group_info(request, group_name)
-        if group_info and group_info.get("subnets"):
-            group_info["subnetArrays"] = group_info["subnets"].split(',')
-        if group_info and not group_info.get("asgStatus"):
-            group_info["asgStatus"] = "UNKNOWN"
-        if group_info and group_info.get("launchLatencyTh"):
-            group_info["launchLatencyTh"] = group_info.get("launchLatencyTh") / 60
-        if group_info and group_info.get("healthcheckPeriod"):
-            group_info["healthcheckPeriod"] = group_info.get("healthcheckPeriod") / 60
-        if group_info and group_info.get("lifecycleTimeout"):
-            group_info["lifecycleTimeout"] = group_info.get("lifecycleTimeout") / 60
+        group_info = autoscaling_groups_helper.get_group_info(request, group_name)
+        launch_config = group_info.get("launchInfo")
 
-        appNames = images_helper.get_all_app_names(request)
+        if launch_config and launch_config.get("subnets"):
+            launch_config["subnetArrays"] = launch_config["subnets"].split(',')
+        appNames = baseimages_helper.get_image_names(request, 'AWS')
         appNames = sorted(appNames)
-        curr_image = images_helper.get_image_by_id(request, group_info["imageId"])
-        html = render_to_string('groups/group_config.tmpl', {
+        curr_image = baseimages_helper.get_by_provider_name(request, launch_config["imageId"])
+        html = render_to_string('groups/launch_config.tmpl', {
             "group_name": group_name,
             "app_names": appNames,
-            "config": group_info,
+            "config": launch_config,
             "curr_image": curr_image,
+            "csrf_token": get_token(request),
+        })
+    except:
+        log.error(traceback.format_exc())
+        raise
+    return HttpResponse(json.dumps(html), content_type="application/json")
+
+
+def get_group_config_internal(group_config):
+    if group_config:
+        if group_config.get("launchLatencyTh"):
+            group_config["launchLatencyTh"] = group_config.get("launchLatencyTh") / 60
+        if group_config.get("healthcheckPeriod"):
+            group_config["healthcheckPeriod"] = group_config.get("healthcheckPeriod") / 60
+        if group_config.get("lifecycleTimeout"):
+            group_config["lifecycleTimeout"] = group_config.get("lifecycleTimeout") / 60
+        return group_config
+    else:
+        group_config = {}
+        group_config["launchLatencyTh"] = 10
+        group_config["healthcheckPeriod"] = 10
+        group_config["lifecycleTimeout"] = 10
+        return group_config
+
+
+def get_group_config(request, group_name):
+    try:
+        group_info = autoscaling_groups_helper.get_group_info(request, group_name)
+        group_config = group_info.get("groupInfo")
+        group_config = get_group_config_internal(group_config)
+        is_cmp = False
+        envs = environs_helper.get_all_envs_by_group(request, group_name)
+        for env in envs:
+            basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
+            if basic_cluster_info:
+                is_cmp = True
+        html = render_to_string('groups/group_config.tmpl', {
+            "group_name": group_name,
+            "config": group_config,
+            "is_cmp": is_cmp,
+            "csrf_token": get_token(request),
+        })
+    except:
+        log.error(traceback.format_exc())
+        raise
+    return HttpResponse(json.dumps(html), content_type="application/json")
+
+
+def update_pas_config(request, group_name):
+    try:
+        params = request.POST
+        if not params['metric'] or not params['throughput']:
+            raise Exception("All fields for Predictive Autoscaling Config Must be specified. ")
+        data = {}
+        data['group_name'] = group_name
+        data["metric"] = params["metric"]
+        data["throughput"] = int(params["throughput"])
+        if "pas_state" in params:
+            data["pas_state"] = "ENABLED"
+        else:
+            data["pas_state"] = "DISABLED"
+            # Reset min size to user defined min size
+            pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
+            asg_request = {}
+            asg_request["groupName"] = group_name
+            asg_request["minSize"] = int(pas_config.get("defined_min_size"))
+            autoscaling_groups_helper.update_autoscaling(request, group_name, asg_request)
+        autoscaling_groups_helper.update_pas_config(request, group_name, data)
+        return get_pas_config(request, group_name)
+    except:
+        log.error(traceback.format_exc())
+        raise
+
+
+def get_pas_config(request, group_name):
+    try:
+        pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
+        html = render_to_string('groups/pase_config.tmpl', {
+            "group_name": group_name,
+            "pas_config": pas_config,
             "csrf_token": get_token(request),
         })
     except:
@@ -104,97 +167,139 @@ def update_launch_config(request, group_name):
     try:
         params = request.POST
         launchRequest = {}
-        launchRequest["groupName"] = group_name
         launchRequest["instanceType"] = params["instanceType"]
         launchRequest["securityGroup"] = params["securityGroup"]
         launchRequest["imageId"] = params["imageId"]
         launchRequest["userData"] = params["userData"]
-        launchRequest["chatroom"] = params["chatroom"]
-        launchRequest["watchRecipients"] = params["watch_recipients"]
-        launchRequest["emailRecipients"] = params["email_recipients"]
-        launchRequest["pagerRecipients"] = params["pager_recipients"]
-        launchRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
-        launchRequest["iamRole"] = params["iam_role"]
+        launchRequest["iamRole"] = params["iamRole"]
         launchRequest["subnets"] = ",".join(params.getlist("subnets"))
-        launchRequest["asgStatus"] = params["asg_status"]
 
         if params["assignPublicIP"] == "True":
             launchRequest["assignPublicIp"] = True
         else:
             launchRequest["assignPublicIp"] = False
-
-        if "healthcheck_state" in params:
-            launchRequest["healthcheckState"] = True
-        else:
-            launchRequest["healthcheckState"] = False
-        launchRequest["healthcheckPeriod"] = int(params["healthcheck_period"]) * 60
-
-        if "lifecycle_state" in params:
-            launchRequest["lifecycleState"] = True
-        else:
-            launchRequest["lifecycleState"] = False
-        launchRequest["lifecycleTimeout"] = int(params["lifecycle_timeout"]) * 60
-        groups_helper.update_group_info(request, group_name,  launchRequest)
+        autoscaling_groups_helper.update_launch_config(request, group_name, launchRequest)
         return get_launch_config(request, group_name)
     except:
         log.error(traceback.format_exc())
         raise
 
 
+def create_launch_config(request, group_name):
+    try:
+        params = request.POST
+        launchRequest = {}
+        launchRequest["minSize"] = int(params["minSize"])
+        launchRequest["maxSize"] = int(params["maxSize"])
+        launchRequest["instanceType"] = params["instanceType"]
+        launchRequest["securityGroup"] = params["securityGroup"]
+        launchRequest["imageId"] = params["imageId"]
+        launchRequest["userData"] = params["userData"]
+        launchRequest["iamRole"] = params["iamRole"]
+        launchRequest["subnets"] = ",".join(params.getlist("subnets"))
+        if params["assignPublicIP"] == "True":
+            launchRequest["assignPublicIp"] = True
+        else:
+            launchRequest["assignPublicIp"] = False
+        autoscaling_groups_helper.create_launch_config(request, group_name, launchRequest)
+        return redirect("/groups/{}/config".format(group_name))
+    except:
+        log.error(traceback.format_exc())
+        raise
+
+
+def update_group_config(request, group_name):
+    try:
+        params = request.POST
+        groupRequest = {}
+        groupRequest["chatroom"] = params.get("chatroom")
+        groupRequest["watchRecipients"] = params.get("watch_recipients")
+        groupRequest["emailRecipients"] = params.get("email_recipients")
+        groupRequest["pagerRecipients"] = params.get("pager_recipients")
+        groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
+        groupRequest["loadBalancers"] = params.get("load_balancers") 
+
+        if "healthcheck_state" in params:
+            groupRequest["healthcheckState"] = True
+        else:
+            groupRequest["healthcheckState"] = False
+        groupRequest["healthcheckPeriod"] = int(params["healthcheck_period"]) * 60
+
+        if "lifecycle_state" in params:
+            groupRequest["lifecycleState"] = True
+        else:
+            groupRequest["lifecycleState"] = False
+        groupRequest["lifecycleTimeout"] = int(params["lifecycle_timeout"]) * 60
+        if "lifecycle_notifications" in params:
+            groupRequest["lifecycleNotifications"] = True
+        else:
+            groupRequest["lifecycleNotifications"] = False
+
+        print groupRequest
+        autoscaling_groups_helper.update_group_info(request, group_name, groupRequest)
+        return get_group_config(request, group_name)
+    except:
+        log.error(traceback.format_exc())
+        raise
+
+
 def gen_asg_setting(request, group_name):
-    asg = groups_helper.get_autoscaling(request, group_name)
-    policies = groups_helper.TerminationPolicy
-    content = render_to_string("groups/create_asg_modal.tmpl", {
-        "asg": asg,
-        "group_name": group_name,
-        "policies": policies,
-        "csrf_token": get_token(request)})
-    return HttpResponse(content)
+     asg = autoscaling_groups_helper.get_autoscaling(request, group_name)
+     policies = autoscaling_groups_helper.TerminationPolicy
+     content = render_to_string("groups/create_asg_modal.tmpl", {
+         "asg": asg,
+         "group_name": group_name,
+         "policies": policies,
+         "csrf_token": get_token(request)})
+     return HttpResponse(content)
 
 
 def disable_asg(request, group_name):
-    groups_helper.disable_autoscaling(request, group_name)
+    autoscaling_groups_helper.disable_autoscaling(request, group_name)
     return redirect('/groups/{}'.format(group_name))
 
 
 def resume_asg(request, group_name):
-    groups_helper.enable_autoscaling(request, group_name)
+    autoscaling_groups_helper.enable_autoscaling(request, group_name)
     return redirect('/groups/{}'.format(group_name))
 
 
 def create_asg(request, group_name):
     params = request.POST
     asgRequest = {}
-    asgRequest["groupName"] = group_name
-    if "attach_instances" in params:
-        asgRequest["attachExistingInstances"] = "true"
-    else:
-        asgRequest["attachExistingInstances"] = "false"
     asgRequest["minSize"] = int(params["min_size"])
     asgRequest["maxSize"] = int(params["max_size"])
     asgRequest["terminationPolicy"] = params["terminationPolicy"]
 
-    groups_helper.create_autoscaling(request, group_name, asgRequest)
+    autoscaling_groups_helper.create_autoscaling(request, group_name, asgRequest)
     return redirect('/groups/{}/config/'.format(group_name))
 
 
 def get_asg_config(request, group_name):
-    asg_summary = groups_helper.get_autoscaling_summary(request, group_name)
-    instances = groups_helper.get_group_instances(request, group_name)
-    group_info = groups_helper.get_group_info(request, group_name)
+    asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
+    pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
+    instances = groups_helper.get_group_hosts(request, group_name)
+    group_info = autoscaling_groups_helper.get_group_info(request, group_name)
+    launch_config = group_info.get("launchInfo")
     group_size = len(instances)
-    policies = groups_helper.TerminationPolicy
+    policies = autoscaling_groups_helper.TerminationPolicy
     if asg_summary.get("spotRatio", None):
         asg_summary["spotRatio"] *= 100
     if asg_summary.get("sensitivityRatio", None):
         asg_summary["sensitivityRatio"] *= 100
+    scheduled_actions = autoscaling_groups_helper.get_scheduled_actions(request, group_name)
+    time_based_asg = False
+    if len(scheduled_actions) > 0:
+        time_based_asg = True
     content = render_to_string("groups/asg_config.tmpl", {
         "group_name": group_name,
         "asg": asg_summary,
         "group_size": group_size,
         "terminationPolicies": policies,
-        "instanceType": group_info.get("instanceType"),
+        "instanceType": launch_config.get("instanceType"),
+        "time_based_asg": time_based_asg,
         "csrf_token": get_token(request),
+        "pas_config": pas_config,
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
 
@@ -206,7 +311,7 @@ def delete_asg(request, group_name):
             detach_instances = "false"
         else:
             detach_instances = "true"
-        groups_helper.delete_autoscaling(request, group_name, detach_instances)
+        autoscaling_groups_helper.delete_autoscaling(request, group_name, detach_instances)
         content = render_to_string("groups/deletion_loading.tmpl",
                                    {"group_name": group_name})
     except:
@@ -216,7 +321,7 @@ def delete_asg(request, group_name):
 
 def get_deleted_asg_status(request, group_name):
     try:
-        status = groups_helper.get_autoscaling_status(request, group_name)
+        status = autoscaling_groups_helper.get_autoscaling_status(request, group_name)
         if status == "UNKNOWN":
             asg_status = 0
             log.info("{} is removed from autoscaling group.".format(group_name))
@@ -243,9 +348,23 @@ def update_asg_config(request, group_name):
             asg_request["spotRatio"] = float(params["spotRatio"]) / 100
             asg_request["sensitivityRatio"] = float(params["sensitivityRatio"]) / 100
             asg_request["spotPrice"] = params["bidPrice"]
+            if "enableResourceLending" in params:
+                asg_request["enableResourceLending"] = True
+            else:
+                asg_request["enableResourceLending"] = False
         else:
             asg_request["enableSpot"] = False
-        groups_helper.update_autoscaling(request, group_name, asg_request)
+            asg_request["enableResourceLending"] = False
+
+        autoscaling_groups_helper.update_autoscaling(request, group_name, asg_request)
+
+        # Save new pas min and max, disable pas
+        pas_config = {}
+        pas_config['group_name'] = group_name
+        pas_config['defined_min_size'] = int(params["minSize"])
+        pas_config['defined_max_size'] = int(params["maxSize"])
+        pas_config['pas_state'] = "DISABLED"
+        autoscaling_groups_helper.update_pas_config(request, group_name, pas_config)
     except:
         log.error(traceback.format_exc())
         raise
@@ -272,7 +391,7 @@ class ScalingPolicy(object):
 
 
 def get_policy(request, group_name):
-    policies = groups_helper.get_policies(request, group_name)
+    policies = autoscaling_groups_helper.get_policies(request, group_name)
     policy = ScalingPolicy(policies)
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
@@ -294,8 +413,7 @@ def update_policy(request, group_name):
         scaling_policies["scaledownPolicies"].append({"scaleSize": make_int(params["scaledownSize"]),
                                                       "scalingType": params["scaledownType"],
                                                       "coolDown": make_int(params["scaleDownCooldownTime"])})
-
-        groups_helper.put_scaling_policies(request, group_name, scaling_policies)
+        autoscaling_groups_helper.put_scaling_policies(request, group_name, scaling_policies)
         return get_policy(request, group_name)
     except:
         log.error(traceback.format_exc())
@@ -328,9 +446,9 @@ def _parse_metrics_configs(query_data, group_name):
 
 
 def get_alarms(request, group_name):
-    operators = groups_helper.Comparator
-    alarms = groups_helper.get_alarms(request, group_name)
-    aws_metric_names = groups_helper.get_system_metrics(request, group_name)
+    operators = autoscaling_groups_helper.Comparator
+    alarms = autoscaling_groups_helper.get_alarms(request, group_name)
+    aws_metric_names = autoscaling_groups_helper.get_system_metrics(request, group_name)
     content = render_to_string("groups/asg_metrics.tmpl", {
         "group_name": group_name,
         "alarms": alarms,
@@ -344,7 +462,7 @@ def get_alarms(request, group_name):
 def update_alarms(request, group_name):
     try:
         configs = _parse_metrics_configs(request.POST, group_name)
-        groups_helper.update_alarms(request, group_name, configs)
+        autoscaling_groups_helper.update_alarms(request, group_name, configs)
         return get_alarms(request, group_name)
     except:
         log.error(traceback.format_exc())
@@ -354,7 +472,7 @@ def update_alarms(request, group_name):
 def delete_alarms(request, group_name):
     params = request.POST
     alarm_id = params["alarmId"]
-    groups_helper.delete_alarm(request, group_name, alarm_id)
+    autoscaling_groups_helper.delete_alarm(request, group_name, alarm_id)
     return get_alarms(request, group_name)
 
 
@@ -379,7 +497,7 @@ def add_alarms(request, group_name):
             if "awsMetrics" in params:
                 alarm_info["metricSource"] = params["awsMetrics"]
         alarm_info["groupName"] = group_name
-        groups_helper.add_alarm(request, group_name, [alarm_info])
+        autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
     except:
         log.error(traceback.format_exc())
 
@@ -389,23 +507,25 @@ def add_alarms(request, group_name):
 # group host information
 def get_group_info(request, group_name):
     try:
-        group_info = groups_helper.get_group_info(request, group_name)
-        asgs = groups_helper.get_autoscaling(request, group_name)
+        group_info = autoscaling_groups_helper.get_group_info(request, group_name)
+        launch_config = group_info.get("launchInfo")
+        asgs = autoscaling_groups_helper.get_autoscaling(request, group_name)
         spot_asg = None
         nonspot_asg = None
         spot_asg_instances = []
         nonspot_asg_instances = []
         if asgs:
             for asg in asgs:
-                if asg.get("spotGroup", None):
+                if asg.get("enableSpot", None):
                     spot_asg = asg
                     spot_asg_instances = asg.get("instances")
                 else:
                     nonspot_asg = asg
                     nonspot_asg_instances = asg.get("instances")
 
-        all_hosts_in_group = groups_helper.get_group_instances(request, group_name)
+        all_hosts_in_group = groups_helper.get_group_hosts(request, group_name)
         non_asg_host_names = []
+        non_asg_host_ids = []
         asg_host_names = []
         spot_asg_host_names = []
         if spot_asg:
@@ -424,21 +544,33 @@ def get_group_info(request, group_name):
                 spot_asg_instances.remove(host_id)
             else:
                 non_asg_host_names.append(host_name)
+                non_asg_host_ids.append(host_id)
 
+        non_asg_host_ids_str = ",".join(non_asg_host_ids)
         asg_host_names.extend(nonspot_asg_instances)
         spot_asg_host_names.extend(spot_asg_instances)
 
-        if group_info["asgStatus"] == "DISABLED":
+        if launch_config["asgStatus"] == "DISABLED":
             asg_status_str = "Disabled"
-        elif group_info["asgStatus"] == "ENABLED":
+        elif launch_config["asgStatus"] == "ENABLED":
             asg_status_str = "Enabled"
         else:
             asg_status_str = "Not Enabled"
+        asg_state = autoscaling_groups_helper.get_alarm_state(request, group_name)
+        if asg_state == "UNKNOWN":
+            asg_state_str = ""
+        elif asg_state == "SCALE_UP_ALARM":
+            asg_state_str = "Scaling up"
+        elif asg_state == "SCALE_DOWN_ALARM":
+            asg_state_str = "Scaling down"
+        else:
+            asg_state_str = "OK"
+
         group_size = len(asg_host_names) + len(non_asg_host_names) + len(spot_asg_host_names)
         spot_size = len(spot_asg_host_names)
         content = render_to_string("groups/group_info.tmpl", {
-            "instance_type": group_info["instanceType"],
-            "security_group": group_info["securityGroup"],
+            "instance_type": launch_config["instanceType"],
+            "security_group": launch_config["securityGroup"],
             "group_name": group_name,
             "fleet_size": group_size,
             "spot_size": spot_size,
@@ -448,7 +580,10 @@ def get_group_info(request, group_name):
             "asg_hosts": asg_host_names,
             "spot_asg_hosts": spot_asg_host_names,
             "other_hosts": non_asg_host_names,
+            "other_host_ids": non_asg_host_ids_str,
             "has_spot_group": has_spot_group,
+            "asg_state": asg_state_str,
+            "csrf_token": get_token(request),
         })
         return HttpResponse(json.dumps({"html": content}), content_type="application/json")
     except:
@@ -465,9 +600,9 @@ def get_group_size(request, group_name):
             autoscaling_metrics_helper.get_asg_size_metric(request, "{}-spot".format(group_name),
                                                            settings.DEFAULT_START_TIME)
 
-        alarm_infos = groups_helper.get_alarms(request, group_name)
+        alarm_infos = autoscaling_groups_helper.get_alarms(request, group_name)
         spot_group_name = "{}-spot".format(group_name)
-        spot_alarm_infos = groups_helper.get_alarms(request, spot_group_name)
+        spot_alarm_infos = autoscaling_groups_helper.get_alarms(request, spot_group_name)
         enable_policy = False
         if alarm_infos and len(alarm_infos) > 0:
             enable_policy = True
@@ -538,9 +673,7 @@ def get_envs(request, group_name):
 
 def get_scaling_activities(request, group_name):
     try:
-        scaling_activities = groups_helper.get_scaling_activities(request, group_name,
-                                                                  10, "")
-
+        scaling_activities = autoscaling_groups_helper.get_scaling_activities(request, group_name, 10, "")
         content = render_to_string("groups/scaling_details.tmpl", {
             "group_name": group_name,
             "activities": scaling_activities["activities"],
@@ -552,9 +685,7 @@ def get_scaling_activities(request, group_name):
 
 class ScalingActivityView(View):
     def get(self, request, group_name):
-
-        scaling_activities_info = groups_helper.get_scaling_activities(request, group_name,
-                                                                       50, "")
+        scaling_activities_info = autoscaling_groups_helper.get_scaling_activities(request, group_name, 50, "")
         activities = scaling_activities_info["activities"]
         next_token = scaling_activities_info["nextToken"]
         if next_token:
@@ -573,8 +704,7 @@ def get_more_scaling_activities(request, group_name):
     params = request.GET
     token = params.get("token", "")
     try:
-        scaling_activities_info = groups_helper.get_scaling_activities(request, group_name,
-                                                                       50, token)
+        scaling_activities_info = autoscaling_groups_helper.get_scaling_activities(request, group_name, 50, token)
         activities = scaling_activities_info["activities"]
         next_token = scaling_activities_info["nextToken"]
 
@@ -598,7 +728,7 @@ def get_more_scaling_activities(request, group_name):
 def get_config_history(request, group_name):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
-    configs = groups_helper.get_config_history(request, group_name, index, size)
+    configs = autoscaling_groups_helper.get_config_history(request, group_name, index, size)
     for config in configs:
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
@@ -651,35 +781,28 @@ def show_config_comparison(request, group_name):
     })
 
 
-def config_rollback(request, group_name):
-    changeId = request.GET.get('changeId')
-    groups_helper.rollback_config(request, group_name, changeId)
-    return redirect('/groups/{}/config/'.format(group_name))
-
-
 def get_configs(request):
     params = request.GET
     groupName = params["group_name"]
-    config = groups_helper.get_group_info(request, groupName)
-    empty_config = False
-    if not config.get("instanceType") or not config.get("securityGroup") \
-            or not config.get("imageId") or not config.get("userData") or not config.get("subnets"):
-        empty_config = True
-
-    instance_types, sorted_subnets, sorted_sgs = get_system_specs(request)
-    if config and config.get("subnets"):
-        config["subnetArrays"] = config["subnets"].split(',')
-
-    if config and config.get("userData"):
-        config["userData"] = config["userData"].replace("\n", "<br>")
+    group_info = autoscaling_groups_helper.get_group_info(request, groupName)
+    sorted_subnets = None
+    sorted_sgs = None
+    config = None
+    if group_info:
+        config = group_info.get("launchInfo")
+        instance_types, sorted_subnets, sorted_sgs = get_system_specs(request)
+        if config:
+            if config.get("subnets", None):
+                config["subnetArrays"] = config["subnets"].split(',')
+            else:
+                config["subnetArrays"] = []
+            config["userData"] = config["userData"].replace("\n", "<br>")
 
     contents = render_to_string('groups/get_config.tmpl', {
         "groupName": groupName,
-        "empty_config": empty_config,
         "subnets": sorted_subnets,
         "security_groups": sorted_sgs,
         "config": config,
-        "asgStatus": config["asgStatus"],
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
@@ -719,27 +842,68 @@ class GenerateDiff(diff_match_patch):
 
 class GroupConfigView(View):
     def get(self, request, group_name):
-        asg_status = groups_helper.get_autoscaling_status(request, group_name)
+        asg_cluster = autoscaling_groups_helper.get_group_info(request, group_name)
+        appNames = baseimages_helper.get_image_names(request, 'AWS')
+        appNames = sorted(appNames)
+        is_cmp = False
+        if asg_cluster:
+            asg_vm_info = asg_cluster.get("launchInfo")
+            curr_image = None
+            if asg_vm_info:
+                curr_image = baseimages_helper.get_by_provider_name(request, asg_vm_info["imageId"])
+                if asg_vm_info.get("subnets"):
+                    asg_vm_info["subnetArrays"] = asg_vm_info["subnets"].split(',')
+            group_info = asg_cluster.get("groupInfo")
+            group_info = get_group_config_internal(group_info)
+            envs = environs_helper.get_all_envs_by_group(request, group_name)
+            for env in envs:
+                basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
+                if basic_cluster_info:
+                    is_cmp = True
+        else:
+            asg_vm_info = None
+            group_info = None
+            curr_image = None
 
+        pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
         return render(request, 'groups/asg_config.html', {
-            "asg_status": asg_status,
+            "asg_vm_config": asg_vm_info,
+            "app_names": appNames,
+            "curr_image": curr_image,
+            "group_config": group_info,
             "group_name": group_name,
+            "pas_config": pas_config,
+            "is_cmp": is_cmp
         })
 
 
 class GroupDetailView(View):
     def get(self, request, group_name):
-        autoscaling_summary = groups_helper.get_autoscaling_summary(request, group_name)
+        autoscaling_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
         asg_status = autoscaling_summary.get("status", "UNKNOWN")
         enable_spot = autoscaling_summary.get("enableSpot", False)
         envs = environs_helper.get_all_envs_by_group(request, group_name)
-        scaling_down_event_enabled = groups_helper.get_scaling_down_event_status(request, group_name)
+        disabled_actions = autoscaling_groups_helper.get_disabled_asg_actions(request, group_name)
+        pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
+
+        if "Terminate" in disabled_actions:
+            scaling_down_event_enabled = False
+        else:
+            scaling_down_event_enabled = True
+        group_info = autoscaling_groups_helper.get_group_info(request, group_name)
+        if group_info:
+            launch_config = group_info.get('launchInfo')
+        else:
+            launch_config = None
         return render(request, 'groups/group_details.html', {
             "asg_status": asg_status,
             "enable_spot": enable_spot,
             "group_name": group_name,
             "scaling_down_event_enabled": scaling_down_event_enabled,
             "envs": envs,
+            "group_info": group_info,
+            "launch_config": launch_config,
+            "pas_enabled": pas_config['pas_state'] if pas_config else False,
         })
 
 
@@ -747,7 +911,7 @@ class GroupDetailView(View):
 def get_aws_settings(request):
     params = request.GET
     app_name = params["app_name"]
-    images = images_helper.get_all_images_by_app(request, app_name)
+    images = baseimages_helper.get_by_name(request, app_name)
     contents = render_to_string("groups/get_ami.tmpl",
                                 {"aws_images": images,
                                  "curr_image_id": params["curr_image_id"]})
@@ -790,62 +954,83 @@ def get_subnets_settings(request):
 # Instances Provision
 def add_instance(request, group_name):
     params = request.POST
-    asgStatus = params["asgStatus"]
-    instanceCnt = int(params["instanceCnt"])
-    subnet = ""
+    num = int(params["instanceCnt"])
+    subnet = None
+    asg_status = params['asgStatus']
+    launch_in_asg = True
+    if 'subnet' in params:
+        subnet = params['subnet']
+        if asg_status == 'UNKNOWN':
+            launch_in_asg = False
+        elif 'customSubnet' in params:
+            launch_in_asg = False
     try:
-        if asgStatus == 'ENABLED':
-            groups_helper.launch_instance_in_group(request, group_name, instanceCnt, subnet)
-            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
-                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
-                      'to check new hosts information.'.format(instanceCnt, group_name, group_name)
-            messages.add_message(request, messages.SUCCESS, content)
-        elif asgStatus == 'DISABLED':
-            content = 'This Auto Scaling Group {} is disabled.' \
-                      ' Please go to <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
-                      ' to enable it.'.format(group_name, group_name)
-            messages.add_message(request, messages.ERROR, content)
-        else:
-            if "subnet" in params:
-                subnet = params["subnet"]
-            instanceIds = groups_helper.launch_instance_in_group(request, group_name, instanceCnt,
-                                                                 subnet)
-            if len(instanceIds) > 0:
-                content = '{} instances have been launched to group {} (instance ids: {})' \
-                    .format(instanceCnt, group_name, instanceIds)
-                messages.add_message(request, messages.SUCCESS, content)
-            else:
-                content = 'Failed to launch instances to group {}. Please make sure the' \
-                          ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
-                          ' is correct. If you have any question, please contact your friendly Teletraan owners' \
+        if not launch_in_asg:
+            if not subnet:
+                content = 'Failed to launch hosts to group {}. Please choose subnets in' \
+                          ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>.' \
+                          ' If you have any question, please contact your friendly Teletraan owners' \
                           ' for immediate assistance!'.format(group_name, group_name)
                 messages.add_message(request, messages.ERROR, content)
+            else:
+                host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet)
+                if len(host_ids) > 0:
+                    content = '{} hosts have been launched to group {} (host ids: {})'.format(num, group_name, host_ids)
+                    messages.add_message(request, messages.SUCCESS, content)
+                else:
+                    content = 'Failed to launch hosts to group {}. Please make sure the' \
+                              ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
+                              ' is correct. If you have any question, please contact your friendly Teletraan owners' \
+                              ' for immediate assistance!'.format(group_name, group_name)
+                    messages.add_message(request, messages.ERROR, content)
+        else:
+            autoscaling_groups_helper.launch_hosts(request, group_name, num, None)
+            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
+                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
+                      'to check new hosts information.'.format(num, group_name, group_name)
+            messages.add_message(request, messages.SUCCESS, content)
     except:
         log.error(traceback.format_exc())
         raise
     return redirect('/groups/{}'.format(group_name))
 
 
-# Detach/Attach instances from asg
-def detach_instance_from_asg(request, group_name):
+def instance_action_in_asg(request, group_name):
     host_id = request.GET.get("hostId", "")
+    action = request.GET.get("action", "")
     host_ids = []
     host_ids.append(host_id)
     try:
-        groups_helper.detach_instance_in_group(request, group_name, host_ids)
+        autoscaling_groups_helper.hosts_action_in_group(request, group_name, host_ids, action)
     except:
         log.error(traceback.format_exc())
         raise
     return redirect('/groups/{}'.format(group_name))
+
+
+def attach_instances(request, group_name):
+    try:
+        params = request.POST
+        hosts = params.get("other_hosts")
+        host_ids = hosts.split(',')
+        autoscaling_groups_helper.hosts_action_in_group(request, group_name, host_ids, "ATTACH")
+        return redirect('/groups/{}/'.format(group_name))
+    except:
+        log.error(traceback.format_exc())
+        return redirect('/groups/{}/'.format(group_name))
 
 
 # Health Check related
 def get_health_check_activities(request, group_name):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
-    health_checks = groups_helper.get_health_check_activities(request, group_name, index, size)
-    asg_status = groups_helper.get_autoscaling_status(request, group_name)
-    scaling_down_event_enabled = groups_helper.get_scaling_down_event_status(request, group_name)
+    health_checks = autoscaling_groups_helper.get_health_check_activities(request, group_name, index, size)
+    asg_status = autoscaling_groups_helper.get_autoscaling_status(request, group_name)
+    disabled_actions = autoscaling_groups_helper.get_disabled_asg_actions(request, group_name)
+    if "Terminate" in disabled_actions:
+        scaling_down_event_enabled = False
+    else:
+        scaling_down_event_enabled = True
 
     for check in health_checks:
         env_id = check.get('env_id')
@@ -866,12 +1051,12 @@ def get_health_check_activities(request, group_name):
 
 
 def get_health_check_details(request, id):
-    health_check = groups_helper.get_health_check(request, id)
+    health_check = autoscaling_groups_helper.get_health_check(request, id)
     env = environs_helper.get(request, health_check.get('env_id'))
     health_check['env_name'] = env.get('envName')
     health_check['stage_name'] = env.get('stageName')
 
-    health_check_error = groups_helper.get_health_check_error(request, id)
+    health_check_error = autoscaling_groups_helper.get_health_check_error(request, id)
     if health_check_error:
         env = environs_helper.get(request, health_check.get('env_id'))
         health_check_error['env_name'] = env.get('envName')
@@ -887,15 +1072,73 @@ def create_manually_health_check(request, group_name):
     health_check_info = {}
     health_check_info["group_name"] = group_name
     health_check_info["type"] = "MANUALLY_TRIGGERED"
-    groups_helper.create_health_check(request, group_name, health_check_info)
+    autoscaling_groups_helper.create_health_check(request, group_name, health_check_info)
     return redirect('/groups/{}/health_check_activities'.format(group_name))
 
 
 def enable_scaling_down_event(request, group_name):
-    groups_helper.enable_scaling_down_event(request, group_name)
+    autoscaling_groups_helper.enable_autoscaling(request, group_name)
     return redirect('/groups/{}'.format(group_name))
 
 
 def disable_scaling_down_event(request, group_name):
-    groups_helper.disable_scaling_down_event(request, group_name)
+    autoscaling_groups_helper.disable_scaling_down_event(request, group_name)
     return redirect('/groups/{}'.format(group_name))
+
+
+def add_scheduled_actions(request, group_name):
+    params = request.POST
+    try:
+        schedule_action = {}
+        schedule_action['clusterName'] = group_name
+        schedule_action['schedule'] = params['schedule']
+        schedule_action['capacity'] = params['capacity']
+        autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
+    except:
+        log.error(traceback.format_exc())
+    return redirect("/groups/{}/config/".format(group_name))
+
+
+def get_scheduled_actions(request, group_name):
+    scheduled_actions = autoscaling_groups_helper.get_scheduled_actions(request, group_name)
+    content = render_to_string("groups/asg_schedules.tmpl", {
+        'group_name': group_name,
+        'scheduled_actions': scheduled_actions,
+        'csrf_token': get_token(request),
+    })
+    return HttpResponse(json.dumps(content), content_type="application/json")
+
+
+def delete_scheduled_actions(request, group_name):
+    params = request.POST
+    action_id = params['action_id']
+    autoscaling_groups_helper.delete_scheduled_action(request, group_name, action_id)
+    return get_scheduled_actions(request, group_name)
+
+
+def _parse_actions_configs(query_data, group_name):
+    page_data = dict(query_data.lists())
+    configs = []
+    for key, value in page_data.iteritems():
+        if not value:
+            continue
+        if key.startswith('TELETRAAN_'):
+            action_info = {}
+            action_id = key[len('TELETRAAN_'):]
+            action_info["actionId"] = action_id
+            action_info["schedule"] = page_data["schedule_{}".format(action_id)][0]
+            action_info["capacity"] = page_data["capacity_{}".format(action_id)][0]
+            action_info["clusterName"] = group_name
+            configs.append(action_info)
+    return configs
+
+
+def update_scheduled_actions(request, group_name):
+    try:
+        configs = _parse_actions_configs(request.POST, group_name)
+        autoscaling_groups_helper.add_scheduled_actions(request, group_name, configs)
+        return get_scheduled_actions(request, group_name)
+    except:
+        log.error(traceback.format_exc())
+        return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
+

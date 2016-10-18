@@ -18,21 +18,30 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.bean.TagBean;
+import com.pinterest.deployservice.bean.TagTargetType;
+import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
+import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
+import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+
+import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}")
@@ -40,16 +49,23 @@ import javax.ws.rs.core.SecurityContext;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvStages {
+    public enum ActionType {
+        ENABLE,
+        DISABLE
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(EnvStages.class);
     private EnvironDAO environDAO;
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
+    private TagHandler tagHandler;
     private Authorizer authorizer;
 
     public EnvStages(TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
+        tagHandler = new EnvTagHandler(context);
         authorizer = context.getAuthorizer();
     }
 
@@ -96,5 +112,37 @@ public class EnvStages {
         String operator = sc.getUserPrincipal().getName();
         environHandler.deleteEnvStage(envName, stageName, operator);
         LOG.info("Successfully deleted env {}/{} by {}.", envName, stageName, operator);
+    }
+
+    @POST
+    @Path("/actions")
+    public void action(@Context SecurityContext sc,
+                       @PathParam("envName") String envName,
+                       @PathParam("stageName") String stageName,
+                       @NotEmpty @QueryParam("actionType") ActionType actionType,
+                       @NotEmpty @QueryParam("description") String description) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        String operator = sc.getUserPrincipal().getName();
+
+        TagBean tagBean = new TagBean();
+        switch (actionType) {
+            case ENABLE:
+                environHandler.enable(envBean, operator);
+                tagBean.setValue(TagValue.ENABLE_ENV);
+                break;
+            case DISABLE:
+                environHandler.disable(envBean, operator);
+                tagBean.setValue(TagValue.DISABLE_ENV);
+                break;
+            default:
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+        }
+
+        tagBean.setTarget_id(envBean.getEnv_id());
+        tagBean.setTarget_type(TagTargetType.ENVIRONMENT);
+        tagBean.setComments(description);
+        tagHandler.createTag(tagBean, operator);
+        LOG.info(String.format("Successfully updated action %s for %s/%s by %s", actionType, envName, stageName, operator));
     }
 }

@@ -54,6 +54,13 @@
             <td>
                 <a href="/builds/{{ deploy_summary.build.id }}">
                     {{ deploy_summary.build|branchAndCommit }}</a>
+                {% if deploy_summary.buildTag %}
+                     {%if deploy_summary.buildTag.value == "BAD_BUILD" %}
+                        <span class="label label-danger">{{deploy_summary.buildTag.value}}</span>
+                     {%elif deploy_summary.buildTag|tagBuildId == deploy_summary.build.id %}
+                        <span class="label label-success">{{deploy_summary.buildTag.value}}</span>
+                     {% endif %}
+                {% endif %}
             </td>
             <td>{{ deploy_summary.deploy.operator }}</td>
             <td><a href="/deploy/{{ deploy_summary.deploy.id }}">Details</a></td>
@@ -81,6 +88,7 @@
                         title="Show all the new commits since last deploy">
                         <span class="glyphicon glyphicon-zoom-in"></span> Show Commits
                     </a>
+                    {% if env|isEnvEnabled %}
                     {% if stages|length > 1 %}
                     <a href="/env/{{ env.envName }}/{{ env.stageName }}/promote/{{ deploy_summary.deploy.id }}"
                        type="button" class="deployToolTip btn btn-default btn-sm" data-toggle="tooltip"
@@ -101,6 +109,7 @@
                        title="Create a hotfix based on this deployment">
                        <span class="glyphicon glyphicon-fire"></span> Patch It
                     </a>
+                    {% endif %}
                     {% endif %}
                 </div>
             </td>

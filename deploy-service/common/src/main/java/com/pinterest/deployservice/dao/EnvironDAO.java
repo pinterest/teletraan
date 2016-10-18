@@ -31,6 +31,8 @@ public interface EnvironDAO {
 
     void update(String envName, String envStage, EnvironBean bean) throws Exception;
 
+    void updateAll(EnvironBean bean) throws Exception;
+
     UpdateStatement genUpdateStatement(String envId, EnvironBean bean);
 
     void delete(String envId) throws Exception;
@@ -43,11 +45,15 @@ public interface EnvironDAO {
 
     EnvironBean getByStage(String envName, String envStage) throws Exception;
 
+    EnvironBean getByCluster(String clusterName) throws Exception;
+
     List<String> getOverrideHosts(String envId, String envName, String envStage) throws Exception;
 
     long countTotalCapacity(String envId, String envName, String envStage) throws Exception;
 
     List<String> getTotalCapacityHosts(String envId, String envName, String envStage) throws Exception;
+
+    Collection<String> getMissingHosts(String envId) throws Exception;
 
     List<EnvironBean> getEnvsByHost(String host) throws Exception;
 
@@ -57,5 +63,7 @@ public interface EnvironDAO {
 
     // Return all
     List<String> getAllEnvIds() throws Exception;
+
+    void deleteSchedule(String envName, String stageName) throws Exception;
 
 }

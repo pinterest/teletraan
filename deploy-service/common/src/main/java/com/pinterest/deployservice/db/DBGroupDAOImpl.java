@@ -24,8 +24,6 @@ import java.util.List;
 
 
 public class DBGroupDAOImpl implements GroupDAO {
-    private static final String GET_GROUP_NAMES =
-            "SELECT DISTINCT group_name FROM groups LIMIT ?,?";
     private static final String GET_ALL_NON_EMPTY_GROUPS_NAMES =
             "SELECT DISTINCT group_name FROM groups_and_envs";
     private static final String GET_ENV_BY_GROUP =
@@ -47,13 +45,6 @@ public class DBGroupDAOImpl implements GroupDAO {
 
     public DBGroupDAOImpl(BasicDataSource dataSource) {
         this.dataSource = dataSource;
-    }
-
-    @Override
-    public List<String> getExistingGroups(long pageIndex, int pageSize) throws Exception {
-        return new QueryRunner(dataSource).query(GET_GROUP_NAMES,
-                SingleResultSetHandlerFactory.<String>newListObjectHandler(),
-                (pageIndex - 1) * pageSize, pageSize);
     }
 
     @Override

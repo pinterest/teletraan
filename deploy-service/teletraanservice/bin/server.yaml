@@ -17,6 +17,7 @@ server:
         archive: false
         currentLogFilename: /tmp/teletraan/access.log
         timeZone: UTC
+  registerDefaultExceptionMappers: false
 
 #
 # Logging settings. refer
@@ -135,6 +136,8 @@ db:
 system:
   # Teletraan needs to refer Deploy Dashboard url in its notify etc.
   dashboardUrl: http://localhost:8888
+  # Display full stack trace or just the error to user.
+  #clientError: long|short
 
 #
 # Worker settings: disable all the workers if you do not want to run

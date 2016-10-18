@@ -2,12 +2,40 @@
 {% load static %}
 {% for deployId, agents in agents_wrapper.items %}
 <div class="panel panel-default">
-  <div class="panel-heading">
+  <div class="panel-heading clearfix">
       <strong>Deploy:</strong><a href="/deploy/{{ deployId }}"> {{ deployId }}</a>
+       <div class="btn-toolbar pull-right">
+          <button id="pauseButton"
+          class="btn btn-default btn-sm" data-toggle="tooltip"
+          title="Pause selected hosts">
+          <span class="glyphicon glyphicon-pause"></span> Pause 
+          </button>
+          <button id="resumeButton"
+          class="btn btn-default btn-sm" data-toggle="tooltip"
+          title="Resume selected hosts">
+          <span class="glyphicon glyphicon-play"></span> Resume 
+          </button>
+          <button id="resetButton"
+          class="btn btn-default btn-sm" data-toggle="tooltip"
+          title="reset selected hosts">
+          <span class="glyphicon glyphicon-repeat"></span> Reset 
+          </button>
+          <button id="terminateButton"
+          class="btn btn-default btn-sm" data-toggle="tooltip"
+          title="Soft terminate selected hosts">
+          <span class="glyphicon glyphicon-off"></span> Terminate 
+          </button>
+          <button id="forceTerminateButton"
+          class="btn btn-default btn-sm" data-toggle="tooltip"
+          title="Soft terminate selected hosts">
+          <span class="glyphicon glyphicon-remove"></span> Force Terminate 
+          </button>
+        </div>
   </div>
   <div class="panel-body table-responsive">
-      <table class="table table-striped table-bordered table-condensed table-hover">
+      <table id="hostTable" class="table table-striped table-bordered table-condensed table-hover">
           <tr>
+              <th></th>
               <th>Host</th>
               <th>Host Id</th>
               <th>Stage</th>
@@ -20,6 +48,7 @@
           {% for agent in agents %}
           <tr>
               {% if agent.lastErrorCode|isUnknownHost %}
+                  <td><input type="checkbox" value="N/A"></td>
                   <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
                   <td>N/A</td>
                   <td>N/A</td>
@@ -29,6 +58,7 @@
                   <td>N/A</td>
                   <td>N/A</td>
               {% elif agent.lastErrorCode|isProvisioningHost %}
+                  <td><input type="checkbox" value="{{ agent.hostId | default_if_none:'' }}"></td>
                   <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
                   <td>{{ agent.hostId | default_if_none:'' }}</td>
                   <td>N/A</td>
@@ -38,6 +68,7 @@
                   <td>N/A</td>
                   <td>N/A</td>
               {% else %}
+                  <td><input type="checkbox" value="{{ agent.hostId }}"></td>
                   <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
                   <td>{{ agent.hostId }}</td>
                   <td>{{ agent.deployStage }}</td>
@@ -53,7 +84,7 @@
   </div>
 
 <div class="panel-footer clearfix">
-    {% if is_retryable %}
+    {% if is_retryable and host_ids %}
     <div class="pull-left">
         <button id="reset_{{ deployId }}"
                 class="deployToolTip btn btn-primary" data-toggle="tooltip"
@@ -73,6 +104,8 @@
     {% endif %}
 </div>
 <script>
+    var checkedHosts = [];
+
     $(function () {
         $('.deployToolTip').tooltip();
         $('#reset_{{ deployId }}').click(function () {
@@ -88,19 +121,186 @@
 
         });
     });
+
+    $('input[type="checkbox"]').click(function(){
+        if ($("#hostTable input:checkbox:checked").length <= 0) {
+          $(".btn").prop("disabled", true);
+        } else {
+          $(".btn").prop("disabled", false);
+        }
+
+        if ($(this).is(":checked")) {
+          checkedHosts.push($(this).val());
+        } else {
+          var index = checkedHosts.indexOf($(this).val());
+          if (index > -1) {
+            checkedHosts.splice(index, 1);
+          }
+        }
+    });
+
+    $(document).ready(function() {
+        $('input[type=checkbox]').each(function () {
+            if (this.checked) {
+                checkedHosts.push($(this).val());
+            }
+        });
+      
+        if ($("#hostTable input:checkbox:checked").length <= 0) {
+            $(".btn").prop("disabled", true);
+        } else {
+            $(".btn").prop("disabled", false);
+        }
+    });
+
+    $("#pauseButton").on("click", function() {
+        $('#pauseSelectedHosts').modal();
+        $('#pauseSelectedHosts .modal-body #hostsList').val(checkedHosts);  
+    });
+
+    $("#resumeButton").on("click", function() {
+        $('#resumeSelectedHosts').modal();
+        $('#resumeSelectedHosts .modal-body #hostsList').val(checkedHosts);  
+    });
+
+    $("#resetButton").on("click", function() {
+        $('#resetSelectedHosts').modal();
+        $('#resetSelectedHosts .modal-body #hostsList').val(checkedHosts);
+    });
+
+    $("#terminateButton").on("click", function() {
+        $('#terminateSelectedHosts').modal();
+        $('#terminateSelectedHosts .modal-body #hostsList').val(checkedHosts);
+    });
+
+    $("#forceTerminateButton").on("click", function() {
+        $('#forceTerminateSelectedHosts').modal();
+        $('#forceTerminateSelectedHosts .modal-body #hostsList').val(checkedHosts);
+    });
+
 </script>
 </div>
 {% endfor %}
 
+<div class="modal fade" id="pauseSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="pauseSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/pause_hosts/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Host(s) Pause Confirmation</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure you would like to pause the following hosts?</p>
+                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Pause</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="resumeSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="resumeSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/resume_hosts/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Host(s) Resume Confirmation</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure you would like to resume the following hosts?</p>
+                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Resume</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="resetSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="resetSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/reset_hosts/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Host(s) Reset Confirmation</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure you would like to reset the following hosts?</p>
+                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Reset</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="terminateSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="terminateSelectedHostForm" class="form-horizontal"  method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Host(s) Termination Confirmation</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure you would like to terminate the following hosts?</p>
+                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Terminate</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="forceTerminateSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="forceTerminateSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Host(s) Force Termination Confirmation</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure you would like to force terminate the following hosts?</p>
+                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Force Terminate</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
 <div class="modal fade" id="terminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="terminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
+            <form id="terminateHostForm" class="form-horizontal"  method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Host Termination Confirm</h4>
                 </div>
-
                 <div class="modal-body">
                     <p> Are you sure to terminate the following hosts?</p>
                     <input class="form-control" name="hostIds" type="text" value="{{ host_ids }}"/>

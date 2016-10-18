@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,7 @@ from django.shortcuts import render
 from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from helpers import builds_helper, deploys_helper, environs_helper
+from helpers import builds_helper, deploys_helper, environs_helper, tags_helper
 
 
 DEFAULT_PAGE_SIZE = 30
@@ -48,9 +48,11 @@ def _get_ongoing_deploys(request, index, size):
 
 
 def get_landing_page(request):
+    envs_tag = tags_helper.get_latest_by_targe_id(request, 'TELETRAAN')
     metrics = SITE_METRICS_CONFIGS
     return render(request, 'landing.html', {
         "metrics": metrics,
+        'envs_tag': envs_tag,
     })
 
 
@@ -66,6 +68,31 @@ def get_ongoing_deploys(request):
         "disableNext": len(deploy_summeries) < DEFAULT_ONGOING_DEPLOY_SIZE,
     })
     return HttpResponse(html)
+
+def get_daily_deploy_count(request):
+    daily_deploy_count = deploys_helper.get_daily_deploy_count(request);
+    html = render_to_string('deploys/daily_deploy_count.tmpl', {
+        "daily_deploy_count": daily_deploy_count,
+    })
+    return HttpResponse(html)
+
+
+def get_duplicate_commit_deploy_message(request, name, stage, buildId):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    if env.get('deployId') is None:
+        return HttpResponse('')
+
+    current_deploy = deploys_helper.get_current(request, name, stage)
+    current_build = builds_helper.get_build(request, current_deploy['buildId'])
+    current_commit = current_build['commit']
+
+    next_build = builds_helper.get_build(request, buildId)
+    next_commit = next_build['commit']
+
+    if current_commit == next_commit:
+        return render(request, 'deploys/duplicate_commit_deploy_message.tmpl',{
+                      "commit":next_build['commitShort']})
+    return HttpResponse('')
 
 
 class DeployView(View):

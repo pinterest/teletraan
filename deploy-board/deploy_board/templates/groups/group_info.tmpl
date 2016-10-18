@@ -20,7 +20,11 @@
         <td>{{ asg.maxSize }}</td>
         <td>{{ fleet_size }}</td>
         {% endif %}
+        {% if asg_state %}
+        <td>{{ asg_status }} / {{ asg_state }} </td>
+        {% else %}
         <td>{{ asg_status }}</td>
+        {% endif %}
     </tr>
   </table>
 </div>
@@ -84,7 +88,7 @@
             <td class="col-lg-10">
                 <small>
                     {% for other_host in other_hosts %}
-                        <a type="button" class="deployToolTip btn btn-xs btn-default host-btn" href="/groups/{{group_name}}/host/{{host}}/"
+                        <a type="button" class="deployToolTip btn btn-xs btn-default host-btn" href="/groups/{{group_name}}/host/{{other_host}}/"
                            title="">
                            <small>{{ other_host }}</small>
                            <i class="fa fa-fw fa-check"></i>
@@ -94,5 +98,33 @@
             </td>
         </tr>
     </table>
+        <br>
+        <a type="button" class="deployToolTip btn btn-xs" data-toggle="modal" data-target="#attachInstanceModalId" title="" data-original-title="Click to see the details of all scaling activites">
+            <strong>Attach these instances to the current auto scaling group</strong>
+        </a>
 </div>
+
+<div class="modal fade" id="attachInstanceModalId" tabindex="-1" role="dialog"
+     aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" id="attachInstanceId">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+          <h4 class="modal-title">Attach Instances to the auto scaling group</h4>
+      </div>
+        <form id="asgEnableFormId" method="post" class="form-horizontal" role="form" action="/groups/{{ group_name }}/attach_instance/">
+        <div class="modal-body">
+        <input type="hidden" name="other_hosts" value="{{ other_host_ids }}">
+        <p>Are you sure to attach these instances to the current auto scaling group?</p>
+        </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Attach</button
+      </div>
+      {% csrf_token %}
+       </form>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 {% endif %}

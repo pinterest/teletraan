@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -175,6 +175,7 @@ def clone_from_stage_name(request, env_name, stage_name, from_env_name, from_sta
     new_data['watchRecipients'] = from_stage['watchRecipients']
     new_data['maxDeployNum'] = from_stage['maxDeployNum']
     new_data['maxDeployDay'] = from_stage['maxDeployDay']
+    new_data['overridePolicy'] = from_stage['overridePolicy']
 
     new_stage = environs_helper.create_env(request, new_data)
 
@@ -195,15 +196,17 @@ def clone_from_stage_name(request, env_name, stage_name, from_env_name, from_sta
     return new_stage
 
 
-def get_cluster_name(name, stage):
-    return '{}-{}'.format(name, stage)
+def get_cluster_name(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    return env.get('clusterName')
 
 
 def get_non_cmp_group(request, name, stage):
     groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
     if IS_PINTEREST:
-        basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+        cluster_name = get_cluster_name(request, name, stage)
+        basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
         if basic_cluster_info:
-            cluster_name = get_cluster_name(name, stage)
+            cluster_name = get_cluster_name(request, name, stage)
             groups.remove(cluster_name)
     return groups

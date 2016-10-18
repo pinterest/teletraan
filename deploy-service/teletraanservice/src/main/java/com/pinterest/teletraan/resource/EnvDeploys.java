@@ -16,8 +16,11 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
@@ -34,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,12 +50,18 @@ public class EnvDeploys {
         PROMOTE, RESTART, ROLLBACK, PAUSE, RESUME
     }
 
+    public enum HostActions {
+        PAUSED_BY_USER, RESET, NORMAL
+    }
+
     private static final Logger LOG = LoggerFactory.getLogger(EnvDeploys.class);
     private EnvironDAO environDAO;
     private DeployDAO deployDAO;
     private Authorizer authorizer;
+    private AgentDAO agentDAO;
     private EnvironHandler environHandler;
     private DeployHandler deployHandler;
+    private ConfigHistoryHandler configHistoryHandler;
 
     @Context
     UriInfo uriInfo;
@@ -60,8 +70,10 @@ public class EnvDeploys {
         environDAO = context.getEnvironDAO();
         deployDAO = context.getDeployDAO();
         authorizer = context.getAuthorizer();
+        agentDAO = context.getAgentDAO();
         environHandler = new EnvironHandler(context);
         deployHandler = new DeployHandler(context);
+        configHistoryHandler = new ConfigHistoryHandler(context);
     }
 
     @GET
@@ -114,12 +126,53 @@ public class EnvDeploys {
             default:
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
         }
+
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_ACTION, actionType.toString(), operator);
         LOG.info("Successfully create deploy {} for env{}/{} as {} by {}.",
             newDeployId, envName, stageName, actionType, operator);
         UriBuilder ub = uriInfo.getAbsolutePathBuilder();
         URI deployUri = ub.path("current").build();
         DeployBean result = deployDAO.getById(newDeployId);
         return Response.created(deployUri).entity(result).build();
+    }
+
+    @PUT
+    @Path("/hostactions")
+    @ApiOperation(
+        value = "Take a deploy action",
+        notes = "Take an action on a deploy using host information",
+        response = Response.class)
+    public void update(
+            @Context SecurityContext sc,
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName, 
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+            @ApiParam(value = "Agent object to update with", required = true)@NotEmpty @QueryParam("actionType") HostActions actionType,
+            @NotEmpty List<String> hostIds) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        AgentBean agentBean = new AgentBean();
+        switch (actionType) {
+            case PAUSED_BY_USER:
+                agentBean.setState(AgentState.PAUSED_BY_USER);
+                agentBean.setLast_update(System.currentTimeMillis());
+                agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
+                LOG.info("Succesfully paused hosts in environment {} and stage {}", envName, stageName);
+                break;
+            case RESET: 
+                agentBean.setState(AgentState.RESET);
+                agentBean.setLast_update(System.currentTimeMillis());
+                agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
+                LOG.info("Succesfully reset hosts in environment {} and stage {}", envName, stageName);
+                break;
+            case NORMAL:
+                agentBean.setState(AgentState.NORMAL);
+                agentBean.setLast_update(System.currentTimeMillis());
+                agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
+                LOG.info("Succesfully resumed hosts in environment {} and stage {}", envName, stageName);
+                break;
+            default:
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+        }
     }
 
     @POST
@@ -178,6 +231,6 @@ public class EnvDeploys {
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName)
             throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        return environHandler.getMissingHosts(envBean);
+        return new ArrayList<>(environDAO.getMissingHosts(envBean.getEnv_id()));
     }
 }

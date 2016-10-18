@@ -26,41 +26,37 @@
 {% block main %}
 
 
-<div id="launchConfigPid" class="panel panel-default">
+{% if asg_vm_config %}
+    {% if not is_cmp %}
+    <div id="launchConfigPid" class="panel panel-default">
+    {% include "groups/launch_config.tmpl" with config=asg_vm_config  %}
+    </div>
+    {% endif %}
 
-</div>
+    <div id="groupConfigPid" class="panel panel-default">
+    {% include "groups/group_config.tmpl" with config=group_config %}
+    </div>
 
-<div id="showAsgConfigPDivId" class="hidden">
+    {% if asg_vm_config.asgStatus != "UNKNOWN" %}
     <div id="asgConfigPid" class="panel panel-default">
-    {% include "groups/asg_config.tmpl" %}
+        {% include "groups/asg_config.tmpl" %}
     </div>
-    <div id="scalingPolicyPid" class="panel panel-default">
-    {% include "groups/asg_policy.tmpl" %}
-    </div>
-
-    <div id="alarmMetricPid" class="panel panel-default">
-    {% include "groups/asg_metrics.tmpl" %}
-    </div>
-</div>
+    {% endif %}
 <script>
 $(function() {
     $.get('/groups/{{ group_name }}/autoscaling/get_launch_config/', function(response){
         $('#launchConfigPid').html(response);
     });
 
-    {% if not asg_status|needConfigLoading %}
-        $("#showAsgConfigPDivId").removeClass("hidden");
-        $.get('/groups/{{ group_name }}/autoscaling/get_asg_config/', function(response) {
-            $('#asgConfigPid').html(response);
-        });
-        $.get('/groups/{{ group_name }}/autoscaling/get_asg_policy/', function(response) {
-            $('#scalingPolicyPid').html(response);
-        });
-        $.get('/groups/{{ group_name }}/autoscaling/get_metrics/', function(response) {
-            $('#alarmMetricPid').html(response);
-        });
-    {% endif %}
+    $.get('/groups/{{ group_name }}/autoscaling/get_asg_config/', function(response) {
+        $('#asgConfigPid').html(response);
+    });
 });
 
 </script>
+{% else %}
+<div id="launchConfigPid" class="panel panel-default">
+{% include "groups/create_config.tmpl" %}
+</div>
+{% endif %}
 {% endblock %}

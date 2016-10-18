@@ -55,13 +55,16 @@ class S3DownloadHelper(DownloadHelper):
 
             filekey.get_contents_to_filename(local_full_fn)
             etag = filekey.etag
-            if etag.startswith('"') and etag.endswith('"'):
-                etag = etag[1:-1]
-
-            md5 = self.md5_file(local_full_fn)
-            if md5 != etag:
-                log.error("MD5 verification failed. tarball is corrupt.")
-                return Status.FAILED
+            if "-" not in etag:
+                if etag.startswith('"') and etag.endswith('"'):
+                    etag = etag[1:-1]
+            
+                md5 = self.md5_file(local_full_fn)
+                if md5 != etag:
+                    log.error("MD5 verification failed. tarball is corrupt.")
+                    return Status.FAILED
+            else:
+                log.info("MD5 verification currently not supported on multipart uploads.")
 
             log.info("Successfully downloaded to {}".format(local_full_fn))
             return Status.SUCCEEDED

@@ -120,3 +120,9 @@ def get_info_from_facter(key):
     except:
         log.error("Failed to get info from facter by key {}".format(key))
         return None
+
+def check_not_none(arg, msg=None):
+    if arg is None:
+        raise ValueError(msg)
+    return arg
+

@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     #os.environ.setdefault("OAUTH_DOMAIN", <YOUR_DOMAIN>)
     #os.environ.setdefault("OAUTH_CLIENT_TYPE", <CLIENT_TYPE>)
     #os.environ.setdefault("OAUTH_USER_INFO_URI", <USER_INFO_URL>)
-    #os.environ.setdefault("ACCESS_TOKEN_URL", <ACCESS_TOKEN_URL>)
+    #os.environ.setdefault("OAUTH_ACCESS_TOKEN_URL", <ACCESS_TOKEN_URL>)
     #os.environ.setdefault("OAUTH_AUTHORIZE_URL", <OAUTH_AUTH_URL>)
     #os.environ.setdefault("OAUTH_DEFAULT_SCOPE", <DEFAULT_SCOP>)
     # Key for user response, which key is associated with the username in the response. Emails are parsed for prefix.

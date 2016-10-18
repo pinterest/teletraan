@@ -85,11 +85,8 @@ public class AutoPromoter implements Runnable {
         }
 
         // Otherwise, it is up to the deploy state
-        if (currDeployBean.getState() == DeployState.FAILING) {
-            return true;
-        }
+        return currDeployBean.getState() == DeployState.FAILING;
 
-        return false;
     }
 
     boolean isCurrentDeployRetirable(String envId, DeployBean currDeployBean) throws Exception {
@@ -213,7 +210,8 @@ public class AutoPromoter implements Runnable {
 
     void processOnce(String envId) throws Exception {
         EnvironBean currEnvBean = environDAO.getById(envId);
-        if (currEnvBean == null || currEnvBean.getEnv_state() != EnvState.NORMAL) {
+        if (currEnvBean == null || currEnvBean.getEnv_state() != EnvState.NORMAL ||
+                currEnvBean.getState() != EnvironState.NORMAL) {
             LOG.info("Env {} has just been disabled or paused or deleted, bail out!", envId);
             return;
         }
@@ -351,7 +349,9 @@ public class AutoPromoter implements Runnable {
                 if ((currDeployBean == null && currEnvBean.getDeploy_id() != null) ||
                     (currDeployBean != null && !currEnvBean.getDeploy_id().equals(currDeployBean.getDeploy_id()))) {
                     LOG.info("Env {} has a new deploy already, previously was {}, now is {}, no need to promote, bail out!",
-                        new Object[] {currEnvBean.getEnv_id(), currDeployBean == null ? "NULL" : currDeployBean.getDeploy_id(), currEnvBean.getDeploy_id()});
+                             currEnvBean.getEnv_id(),
+                             currDeployBean == null ? "NULL" : currDeployBean.getDeploy_id(),
+                             currEnvBean.getDeploy_id());
                     return;
                 }
 
@@ -360,12 +360,14 @@ public class AutoPromoter implements Runnable {
                     String description = "Auto promote deploy " + predDeployBean.getDeploy_id();
                     String newDeployId = deployHandler.promote(currEnvBean, predDeployBean.getDeploy_id(), description, AUTO_PROMOTER_NAME);
                     LOG.info("Auto promoted deploy {} from deploy {}, from stage {} to {} for env {}",
-                        new Object[] {newDeployId, predDeployBean.getDeploy_id(), predStageName, currEnvBean.getStage_name(), currEnvBean.getEnv_name()});
+                             newDeployId, predDeployBean.getDeploy_id(), predStageName, currEnvBean.getStage_name(),
+                             currEnvBean.getEnv_name());
                 } else {
                     String desc = "Auto promote build " + buildId;
                     String newDeployId = deployHandler.deploy(currEnvBean, buildId, desc, AUTO_PROMOTER_NAME);
                     LOG.info("Auto promoted deploy {} from build {}, from stage {} to {} for env {}",
-                        new Object[] {newDeployId, buildId, predStageName, currEnvBean.getStage_name(), currEnvBean.getEnv_name()});
+                             newDeployId, buildId, predStageName, currEnvBean.getStage_name(),
+                             currEnvBean.getEnv_name());
                 }
             } catch (Exception e) {
                 LOG.warn("Failed to promote for env {}.", currEnvBean.getEnv_id(), e);

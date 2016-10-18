@@ -28,13 +28,14 @@ import java.util.*;
 
 class GoalAnalyst {
     private static final Logger LOG = LoggerFactory.getLogger(GoalAnalyst.class);
-    private static final int HOT_FIX_PRIORITY = 0;
-    private static final int ROLL_BACK_PRIORITY = 1;
+    // Define lower value for hotfix and rollback priority to make sure they deploy first
+    // Notice hotfix and rollback priority should still lower than system service priority
+    private static final int HOT_FIX_PRIORITY = DeployPriority.HIGHER.getValue() - 20;
+    private static final int ROLL_BACK_PRIORITY = DeployPriority.HIGHER.getValue() - 10;
 
     private String host;
     private String host_id;
     private DeployDAO deployDAO;
-    private EnvironDAO environDAO;
 
     // input maps, all keyed by envId
     private Map<String, EnvironBean> envs;
@@ -90,9 +91,17 @@ class GoalAnalyst {
 
         int getDeployPriority(EnvironBean env) {
             if (env.getDeploy_type() == null) {
-                return 100;
+              return DeployPriority.NORMAL.getValue();
             } else {
-                DeployType deployType = env.getDeploy_type();
+              // System level deploy, or sidecar service deploy mostly, will use dedicated system
+              // priority. Notice for system level deploy, we disregard the priorities of hotfix
+              // or rollback.
+              Integer systemPriority = env.getSystem_priority();
+              if (systemPriority != null) {
+                return systemPriority;
+              }
+
+              DeployType deployType = env.getDeploy_type();
                 if (deployType == DeployType.HOTFIX) {
                     return HOT_FIX_PRIORITY;
                 } else if (deployType == DeployType.ROLLBACK) {
@@ -164,7 +173,6 @@ class GoalAnalyst {
 
     GoalAnalyst(DeployDAO deployDAO, EnvironDAO environDAO, String host, String host_id, Map<String, EnvironBean> envs, Map<String, PingReportBean> reports, Map<String, AgentBean> agents) {
         this.deployDAO = deployDAO;
-        this.environDAO = environDAO;
         this.host = host;
         this.host_id = host_id;
         this.envs = envs;

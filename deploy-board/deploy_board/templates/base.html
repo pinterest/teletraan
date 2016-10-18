@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="jiehou">
 
-    <title>Teletraan</title>
+    <title>{% block title %}Teletraan{% endblock %}</title>
 
     {%load static %}
     {% load utils %}
@@ -24,6 +24,7 @@
     <link href="{% static "css/bootstrap-chosen.css" %}" rel="stylesheet" >
     <link href="{% static "datatables/css/dataTables.bootstrap.min.css" %}" rel="stylesheet" >
     <link href="{% static "editable/css/bootstrap-editable.css" %}" rel="stylesheet">
+    <link href="{% static "css/bootstrap-sortable.css" %}" rel="stylesheet" >
 
     <!-- Just for debugging purposes. Don't actually copy this line! -->
     <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
@@ -47,6 +48,8 @@
 <script src="{% static "datatables/js/jquery.dataTables.min.js" %}"></script>
 <script src="{% static "datatables/js/dataTables.bootstrap.min.js" %}"></script>
 <script src="{% static "editable/js/bootstrap-editable.js" %}"></script>
+<script src="{% static "js/bootstrap-uploadprogress.js" %}"></script>
+<script src="{% static "js/bootstrap-sortable.js" %}"></script>
 </head>
 
 <body>
@@ -89,10 +92,26 @@
 <div>
 {% block breadcrumb-items %}
 {% endblock %}
+    <div id="tagMessageDetailsId"></div>
     <div id="errorBannerId" style="display:none; text-align:center;" class="alert alert-danger alert-dismissible" role="alert">
       <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
     </div>
 </div>
+
+<script>
+function loadDetails() {
+    var url = "/envs/get_tag_message/";
+    $.get(url, function(response) {
+        $("#tagMessageDetailsId").html(response);
+    });
+}
+
+$(document).ready(function() {
+    loadDetails();
+});
+
+</script>
+
 {% include "feedbacks/feedback_modal.tmpl" %}
 <div class="container-fluid">
 <div class="row">

@@ -134,15 +134,13 @@
 <script>
     $(function () {
         $('#buildPickDivId').load(
-            '/builds/get_all_builds/?name={{ buildName }}&branch={{ branch }}&page_index={{ pageIndex }}&page_size={{ pageSize }}&current_build_id={{ current_build.id }}'
-        );
+            '/builds/get_all_builds/?name={{ buildName }}&branch={{ branch }}&page_index={{ pageIndex }}&page_size={{ pageSize }}&current_build_id={{ current_build.id }}&override_policy={{ env.overridePolicy }}&deploy_id={{ env.deployId }}');
     });
 
     $("#newBranchBtnId").click(function () {
         newBranch = $('#newBranchInputId').val();
         $('#buildPickDivId').load(
-            '/builds/get_all_builds/?name={{ buildName }}&branch=' + newBranch +
-                    '&page_index={{ pageIndex }}&page_size={{ pageSize }}&current_build_id={{ current_build.id }}');
+            '/builds/get_all_builds/?name={{ buildName }}&branch=' + newBranch + '&override_policy={{ env.overridePolicy }}&deploy_id={{ env.deployId }}');
     });
 
     $("#newCommitBtnId").click(function () {
@@ -156,5 +154,7 @@
     });
 </script>
 
+{% include "builds/pick_a_build.tmpl" %}
 {% include "deploys/confirm_deploy.tmpl" %}
+{% include "deploys/confirm_override.tmpl" %}
 {% endblock %}

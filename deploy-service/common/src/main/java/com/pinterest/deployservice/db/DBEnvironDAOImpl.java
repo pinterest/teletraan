@@ -37,12 +37,16 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "UPDATE environs SET %s WHERE env_id=?";
     private static final String UPDATE_ENV_BY_STAGE_TEMPLATE =
         "UPDATE environs SET %s WHERE env_name=? AND stage_name=?";
+    private static final String UPDATE_ALL =
+        "UPDATE environs SET %s";
     private static final String GET_ENV_BY_ID =
         "SELECT * FROM environs WHERE env_id=?";
     private static final String GET_ENV_BY_NAME =
         "SELECT * FROM environs WHERE env_name=?";
     private static final String GET_ENV_BY_STAGE =
         "SELECT * FROM environs WHERE env_name=? AND stage_name=?";
+    private static final String GET_ENV_BY_CLUSTER =
+        "SELECT * FROM environs WHERE cluster_name=?";
     private static final String GET_ALL_ENV =
         "SELECT DISTINCT env_name FROM environs WHERE env_name LIKE ? ORDER BY env_name ASC LIMIT ?,?";
     private static final String GET_ALL_ENV2 =
@@ -61,12 +65,12 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "SELECT COUNT(DISTINCT host_name) FROM (" +
             "SELECT h.host_name FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=? " +
             "UNION DISTINCT " +
-            "SELECT he.host_name FROM hosts_and_envs he WHERE he.env_id=?) x";
+            "SELECT  hh.host_name FROM hosts hh INNER JOIN hosts_and_envs he WHERE hh.host_name=he.host_name AND he.env_id=?) x";
     private static final String GET_HOSTS_BY_CAPACITY =
         "SELECT DISTINCT host_name FROM (" +
             "SELECT h.host_name FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=? " +
             "UNION DISTINCT " +
-            "SELECT he.host_name FROM hosts_and_envs he WHERE he.env_id=?) x";
+            "SELECT hh.host_name FROM hosts hh INNER JOIN hosts_and_envs he WHERE hh.host_name=he.host_name AND he.env_id=?) x";
     private static final String GET_OVERRIDE_HOSTS_BY_CAPACITY =
         "SELECT DISTINCT h.host_name FROM hosts h " +
             "INNER JOIN " +
@@ -78,10 +82,14 @@ public class DBEnvironDAOImpl implements EnvironDAO {
             "   ON hes.env_id = e.env_id " +
             "   WHERE e.env_name=? and e.stage_name!=?) hs " +
             "ON h.host_name=hs.host_name";
+    private static final String GET_MISSING_HOSTS =
+            "SELECT * FROM hosts_and_envs he WHERE he.env_id=? AND NOT EXISTS (SELECT 1 FROM hosts h WHERE h.host_name = he.host_name);";
     private static final String GET_CURRENT_DEPLOY_IDS =
         "SELECT deploy_id FROM environs WHERE env_state='NORMAL' AND deploy_id IS NOT NULL";
     private static final String GET_ALL_ENV_IDS =
         "SELECT env_id FROM environs";
+    private static final String DELETE_SCHEDULE =
+        "UPDATE environs SET schedule_id=null where env_name=? AND stage_name=?";
 
     private BasicDataSource dataSource;
 
@@ -110,6 +118,13 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         String clause = String.format(UPDATE_ENV_BY_STAGE_TEMPLATE, setClause.getClause());
         setClause.addValue(envName);
         setClause.addValue(envStage);
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+    }
+
+    @Override
+    public void updateAll(EnvironBean bean) throws Exception {
+        SetClause setClause = bean.genSetClause();
+        String clause = String.format(UPDATE_ALL, setClause.getClause());
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
@@ -157,6 +172,12 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     }
 
     @Override
+    public EnvironBean getByCluster(String clusterName) throws Exception {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<EnvironBean>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_ENV_BY_CLUSTER, h, clusterName);
+    }
+
+    @Override
     public List<String> getOverrideHosts(String envId, String envName, String envStage) throws Exception {
         return new QueryRunner(dataSource).query(GET_OVERRIDE_HOSTS_BY_CAPACITY,
             SingleResultSetHandlerFactory.<String>newListObjectHandler(), envId, envName, envStage);
@@ -182,6 +203,11 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     }
 
     @Override
+    public Collection<String> getMissingHosts(String envId) throws Exception {
+        return new QueryRunner(dataSource).query(GET_MISSING_HOSTS, SingleResultSetHandlerFactory.<String>newListObjectHandler(), envId);
+    }
+
+    @Override
     public List<EnvironBean> getEnvsByHost(String host) throws Exception {
         ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<EnvironBean>(EnvironBean.class);
         return new QueryRunner(dataSource).query(String.format(GET_ENVS_BY_HOST_TMPL, host), h);
@@ -203,5 +229,10 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     @Override
     public List<String> getAllEnvIds() throws Exception {
         return new QueryRunner(dataSource).query(GET_ALL_ENV_IDS, SingleResultSetHandlerFactory.<String>newListObjectHandler());
+    }
+
+    @Override
+    public void deleteSchedule(String envName, String stageName) throws Exception {
+        new QueryRunner(dataSource).update(DELETE_SCHEDULE, envName, stageName);
     }
 }

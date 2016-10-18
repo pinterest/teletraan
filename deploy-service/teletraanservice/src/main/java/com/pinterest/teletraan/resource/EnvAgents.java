@@ -20,14 +20,18 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import io.swagger.annotations.*;
+
+import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
 
@@ -41,6 +45,12 @@ public class EnvAgents {
     private AgentDAO agentDAO;
     private AgentErrorDAO agentErrorDAO;
     private Authorizer authorizer;
+
+    public enum CountActionType {
+        SERVING,
+        FIRST_DEPLOY,
+        FAILED_FIRST_DEPLOY
+    }
 
     public EnvAgents(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
@@ -115,5 +125,32 @@ public class EnvAgents {
         agentDAO.resetFailedAgents(environBean.getEnv_id(), deployId);
         LOG.info("Successfully reset failed agents for deploy {} in env {}/{} by {}.",
             deployId, envName, stageName, operator);
+    }
+
+    @GET
+    @Path("/count")
+    public long countServingAgents(@PathParam("envName") String envName,
+                                   @PathParam("stageName") String stageName,
+                                   @NotEmpty @QueryParam("actionType") CountActionType actionType) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        if (envBean == null) {
+            return 0;
+        }
+
+        long count = 0;
+        switch (actionType) {
+            case SERVING:
+                count = agentDAO.countServingTotal(envBean.getEnv_id());
+                break;
+            case FIRST_DEPLOY:
+                count = agentDAO.countFirstDeployingAgent(envBean.getEnv_id());
+                break;
+            case FAILED_FIRST_DEPLOY:
+                count = agentDAO.countFailedFirstDeployingAgent(envBean.getEnv_id());
+                break;
+            default:
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+        }
+        return count;
     }
 }

@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@
 """Helper functions to help generate agents views
 """
 from common import is_agent_failed
-from helpers import builds_helper, deploys_helper, environs_helper, clusters_helper
+from helpers import builds_helper, deploys_helper, environs_helper, clusters_helper, groups_helper
 from deploy_board.settings import IS_PINTEREST
 import time
 from collections import OrderedDict
@@ -44,9 +44,10 @@ class AgentStatistics(object):
 
 
 class DeployStatistics(object):
-    def __init__(self, deploy=None, build=None, stageDistMap=None, stateDistMap=None):
+    def __init__(self, deploy=None, build=None, stageDistMap=None, stateDistMap=None, buildTag=None):
         self.deploy = deploy
         self.build = build
+        self.buildTag = buildTag
         self.stageDistMap = stageDistMap
         self.stateDistMap = stateDistMap
         self.total = 0
@@ -139,11 +140,11 @@ def gen_report(request, env, progress, sortByStatus="false"):
 
     # always set the current
     deploy = deploys_helper.get(request, env['deployId'])
-    build = builds_helper.get_build(request, deploy["buildId"])
+    build_info = builds_helper.get_build_and_tag(request, deploy["buildId"])
     stageDistMap = genStageDistMap()
     stateDistMap = genStateDistMap()
-    currentDeployStat = DeployStatistics(deploy=deploy, build=build, stageDistMap=stageDistMap,
-                                         stateDistMap=stateDistMap)
+    currentDeployStat = DeployStatistics(deploy=deploy, build=build_info['build'], stageDistMap=stageDistMap,
+                                         stateDistMap=stateDistMap, buildTag=build_info.get('tag'))
     deployStats[env['deployId']] = currentDeployStat
 
     for agent in progress["agents"]:
@@ -161,9 +162,9 @@ def gen_report(request, env, progress, sortByStatus="false"):
 
     provisioning_hosts = progress["provisioningHosts"]
     if IS_PINTEREST:
-        basic_cluster_info = clusters_helper.get_cluster(request, env['envName'], env['stageName'])
+        basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
         if basic_cluster_info and basic_cluster_info.get('capacity'):
-            hosts_in_cluster = clusters_helper.get_host_names(request, env['envName'], env['stageName'])
+            hosts_in_cluster = groups_helper.get_group_hosts(request, env.get('clusterName'))
             num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
             for i in range(num_to_fake):
                 faked_host = {}

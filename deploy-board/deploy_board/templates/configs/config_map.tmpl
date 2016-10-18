@@ -28,6 +28,7 @@
                 type="button" data-loading-text="Reloading...">
             <span class="glyphicon glyphicon-refresh"></span> Reload
         </button>
+        {% if env|isEnvEnabled %}
         <button id="addConfigMapBtnId" class="btn btn-default">
             <span class="glyphicon glyphicon-plus"></span> Add
         </button>
@@ -35,6 +36,7 @@
                 type="button" data-loading-text="Saving...">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
+        {% endif %}
     </div>
 </div>
 

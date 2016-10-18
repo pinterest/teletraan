@@ -23,6 +23,9 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
+
+import com.pinterest.deployservice.bean.ScheduleState;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -38,6 +41,7 @@ public class EnvironHandler {
     private AgentDAO agentDAO;
     private GroupDAO groupDAO;
     private HostDAO hostDAO;
+    private ScheduleDAO scheduleDAO;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
 
@@ -47,6 +51,7 @@ public class EnvironHandler {
         agentDAO = serviceContext.getAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
         hostDAO = serviceContext.getHostDAO();
+        scheduleDAO = serviceContext.getScheduleDAO();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
     }
@@ -76,6 +81,16 @@ public class EnvironHandler {
             } else {
                 throw new DeployInternalException("Max days to keep a deploy is below 0!");
             }
+        }
+
+        //If the update contains either max parallel number or percentage. We clear the other by set
+        //to 0. Note: the null value of bean won't propagate to the database
+        if(envBean.getMax_parallel() != null && envBean.getMax_parallel_pct()==null){
+            envBean.setMax_parallel_pct(0);
+        }
+
+        if(envBean.getMax_parallel() == null && envBean.getMax_parallel_pct()!=null){
+            envBean.setMax_parallel(0);
         }
 
         envBean.setLast_operator(operator);
@@ -127,6 +142,14 @@ public class EnvironHandler {
 
         if (envBean.getMax_deploy_day() == null) {
             envBean.setMax_deploy_day(Constants.DEFAULT_DEPLOY_DAY);
+        }
+
+        if (envBean.getState() == null) {
+            envBean.setState(EnvironState.NORMAL);
+        }
+
+        if (envBean.getOverride_policy() == null) {
+            envBean.setOverride_policy(Constants.DEFAULT_OVERRIDE_POLICY);
         }
     }
 
@@ -318,6 +341,34 @@ public class EnvironHandler {
         return envBean.getEnv_id();
     }
 
+    public void enable(EnvironBean envBean, String operator) throws Exception {
+        EnvironBean updateBean = new EnvironBean();
+        updateBean.setState(EnvironState.NORMAL);
+        updateStage(envBean, updateBean, operator);
+    }
+
+    public void disable(EnvironBean envBean, String operator) throws Exception {
+        EnvironBean updateBean = new EnvironBean();
+        updateBean.setState(EnvironState.DISABLED);
+        updateStage(envBean, updateBean, operator);
+    }
+
+    public void enableAll(String operator) throws Exception {
+        EnvironBean updateBean = new EnvironBean();
+        updateBean.setState(EnvironState.NORMAL);
+        updateBean.setLast_operator(operator);
+        updateBean.setLast_update(System.currentTimeMillis());
+        environDAO.updateAll(updateBean);
+    }
+
+    public void disableAll(String operator) throws Exception {
+        EnvironBean updateBean = new EnvironBean();
+        updateBean.setState(EnvironState.DISABLED);
+        updateBean.setLast_operator(operator);
+        updateBean.setLast_update(System.currentTimeMillis());
+        environDAO.updateAll(updateBean);
+    }
+
     /**
      * A stage is only allowed to be deleted when there is no host and group capacity, e.g.
      * all the agents had been instructed to delete its env ( stop service and delete status etc.)
@@ -406,7 +457,7 @@ public class EnvironHandler {
         long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
         Set<String> capacityHosts = new HashSet<>();
         if (capacityTotal > agentBeans.size()) {
-            // we only consider the missing hosts if there is a hint
+            // Capacity hosts = newly provisioned host + agents
             List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
             capacityHosts.addAll(capacityHostList);
         }
@@ -422,15 +473,14 @@ public class EnvironHandler {
         }
 
         List<HostBean> newHosts = new ArrayList<>();
-        for (Iterator<String> iterator = capacityHosts.iterator(); iterator.hasNext(); ) {
-            HostBean hostBean = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), iterator.next());
-            if (hostBean != null) {
-                iterator.remove();
-                newHosts.add(hostBean);
+        for (String hostName : capacityHosts) {
+            Collection<HostBean> hostBeans = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), hostName);
+            if (!hostBeans.isEmpty()) {
+                newHosts.add(hostBeans.iterator().next());
             }
         }
 
-        progress.setMissingHosts(new ArrayList<>(capacityHosts));
+        progress.setMissingHosts(new ArrayList<>(environDAO.getMissingHosts(envBean.getEnv_id())));
         progress.setAgents(agents);
         progress.setProvisioningHosts(newHosts);
         return progress;
@@ -444,30 +494,22 @@ public class EnvironHandler {
         return envBean;
     }
 
-    public List<String> getMissingHosts(EnvironBean envBean) throws Exception {
-        List<AgentBean> agentBeans = agentDAO.getAllByEnv(envBean.getEnv_id());
-        long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(),
-                envBean.getStage_name());
-        Set<String> capacityHosts = new HashSet<>();
-        if (capacityTotal > agentBeans.size()) {
-            // we only consider the missing hosts if there is a hint
-            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
-            capacityHosts.addAll(capacityHostList);
-        }
+    public void stopServiceOnHost(String hostId) throws Exception {
+        LOG.info(String.format("Start to stop host %s", hostId));
+        AgentBean agentBean = new AgentBean();
+        agentBean.setState(AgentState.STOP);
+        agentBean.setLast_update(System.currentTimeMillis());
+        agentDAO.updateAgentById(hostId, agentBean);
 
-        // Remove hosts agent has seen
-        for (AgentBean agentBean : agentBeans) {
-            if (!capacityHosts.isEmpty()) {
-                capacityHosts.remove(agentBean.getHost_name());
-            }
-        }
+        HostBean hostBean = new HostBean();
+        hostBean.setState(HostState.PENDING_TERMINATE);
+        hostBean.setLast_update(System.currentTimeMillis());
+        hostDAO.updateHostById(hostId, hostBean);
+    }
 
-        for (Iterator<String> iterator = capacityHosts.iterator(); iterator.hasNext(); ) {
-            HostBean hostBean = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), iterator.next());
-            if (hostBean != null) {
-                iterator.remove();
-            }
+    public void stopServiceOnHosts(Collection<String> hostIds) throws Exception {
+        for (String hostId : hostIds) {
+            stopServiceOnHost(hostId);
         }
-        return new ArrayList<>(capacityHosts);
     }
 }

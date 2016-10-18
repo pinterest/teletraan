@@ -39,10 +39,11 @@
         <h4 class="panel-title pull-left">Build Details</h4>
     </div>
     <div class="panel-body table-responsive">
-        {% include "builds/pick_a_build.tmpl" %}
+        {% include "builds/pick_a_build.tmpl" with deployState=deployState overridePolicy=overridePolicy %}
     </div>
 </div>
 
+{% include "deploys/confirm_override.tmpl" %}
 {% include "deploys/confirm_deploy.tmpl" %}
 
 {% endblock %}

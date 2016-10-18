@@ -32,11 +32,8 @@
             <td colspan="4">
                 <div class="row">
                     {% if forloop.counter > 1 %}
-                    <a href="/groups/{{ group_name }}/config_rollback/?changeId={{ config.changeId }}"
-                       class="historyToolTip btn btn-default btn-sm" data-toggle="tooltip"
-                       title="Rollback to this configuration">
-                       <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback To
-                    </a>
+                    <!-- TODO config rollback
+                    -->
                     {% endif %}
                 </div>
             </td>

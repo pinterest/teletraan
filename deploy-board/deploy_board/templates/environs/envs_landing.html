@@ -9,6 +9,116 @@
 
 {% load utils %}
 
+{% block side-panel %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Environments</h4>
+    </div>
+    <div class="row">
+        <button id="newEnvBtnId" type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip" title="Create a new deploy environment">
+            <span class="glyphicon glyphicon-file"></span> Create Environment
+        </button>
+    </div>
+    <div class="row">
+        <a href="/envs/deploys" type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip" title="List all the deployments">
+            <span class="fa fa-list-ul"></span> All Deployments
+        </a>
+    </div>
+    {% if envs_tag|isDisabledEnvTag %}
+    <div class="row">
+    <button type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="modal" data-target="#enableConfirmModelId"
+            title="Allow environment changes for all environments">
+    <span class="glyphicon glyphicon-ok-circle"></span> Enable All Envs
+    </button>
+    </div>
+    {% else %}
+    <div class="row">
+        <button type="button" class="deployToolTip btn btn-default btn-block"
+                data-toggle="modal" data-target="#disableConfirmModelId"
+                title="Disable new environment changes for all environments
+                to avoid people make any new config and deploy changes">
+        <span class="glyphicon glyphicon-ban-circle"></span> Disable All Envs
+        </button>
+    </div>
+    {% endif %}
+</div>
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Recent Environments</h4>
+    </div>
+    <div id="recentEnvsId">
+    </div>
+</div>
+
+<!-- Disable all envs dialog -->
+<div class="modal fade" id="disableConfirmModelId" tabindex="-1" role="dialog"
+     aria-labelledby="disableconfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="disableConfigFormId" class="form-horizontal" role="form" method="post" action="/envs/disable/">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Disable Confirm</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure to disable all new deploy and configuration changes for every environments?</p>
+                <textarea type="text" class="form-control" name="description" id="description"
+                          row="2" placeholder="simple description" required>
+                </textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="addMetricBtnId" type="submit" class="btn btn-primary">Disable</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+            {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!-- Enable all envs dialog -->
+<div class="modal fade" id="enableConfirmModelId" tabindex="-1" role="dialog"
+     aria-labelledby="enableconfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="enableConfigFormId" class="form-horizontal" role="form" method="post" action="/envs/enable/">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Enable Confirm</h4>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure to allow new configuration and deploy changes for every environments?</p>
+                <textarea type="text" class="form-control" name="description" id="description"
+                          row="2" placeholder="simple description" required>
+                </textarea>
+            </div>
+            <div class="modal-footer">
+                <button id="addMetricBtnId" type="submit" class="btn btn-primary">Enable</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+            {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+{% include "environs/new_env_modal.tmpl" %}
+
+
+<script>
+$(function () {
+    $('#recentEnvsId').load('/envs/recent/');
+
+    $('#newEnvBtnId').click(function () {
+        $('#newEnvModalId').modal()
+    });
+});
+</script>
+{% endblock %}
+
 {% block main %}
 <div class="panel panel-default">
     {% include "panel_heading.tmpl" with panel_title="All Environments" panel_body_id="envsId" direction="down" %}

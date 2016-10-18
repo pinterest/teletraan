@@ -15,8 +15,6 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.pinterest.arcee.bean.ImageBean;
-import com.pinterest.arcee.dao.ImageDAO;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.chat.ChatManager;
@@ -39,13 +37,12 @@ import java.util.concurrent.TimeUnit;
 
 public class CommonHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CommonHandler.class);
-    private static final String DEFAULT_APP_NAME = "golden_12.04";
     private DeployDAO deployDAO;
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
     private AgentDAO agentDAO;
-    private ImageDAO imageDAO;
     private UtilDAO utilDAO;
+    private ScheduleDAO scheduleDAO;
     private ChatManager chatManager;
     private EventSender sender;
     private MailManager mailManager;
@@ -116,8 +113,8 @@ public class CommonHandler {
         environDAO = serviceContext.getEnvironDAO();
         buildDAO = serviceContext.getBuildDAO();
         agentDAO = serviceContext.getAgentDAO();
-        imageDAO = serviceContext.getImageDAO();
         utilDAO = serviceContext.getUtilDAO();
+        scheduleDAO = serviceContext.getScheduleDAO();
         sender = serviceContext.getEventSender();
         chatManager = serviceContext.getChatManager();
         mailManager = serviceContext.getMailManager();
@@ -216,13 +213,56 @@ public class CommonHandler {
         }
     }
 
-    void transition(DeployBean deployBean, DeployBean newDeployBean, EnvironBean envBean) throws Exception {
+    void transitionSchedule(EnvironBean envBean) throws Exception {
+        String scheduleId = envBean.getSchedule_id();
+        if (scheduleId == null) {
+            return;
+        }
+        ScheduleBean schedule = scheduleDAO.getById(scheduleId);
+        String hostNumbers = schedule.getHost_numbers();
+        String cooldownTimes = schedule.getCooldown_times();
+        Integer currentSession = schedule.getCurrent_session();
+        Integer totalSessions = schedule.getTotal_sessions();
+        String[] hostNumbersList = hostNumbers.split(",");
+        String[] cooldownTimesList = cooldownTimes.split(",");
+        int totalHosts = 0;
+        for (int i = 0; i < currentSession; i++) {
+            totalHosts+=Integer.parseInt(hostNumbersList[i]);
+        }
+        if (schedule.getState() == ScheduleState.COOLING_DOWN) { 
+            // check if cooldown period is over
+            if (System.currentTimeMillis() - schedule.getState_start_time() > Integer.parseInt(cooldownTimesList[currentSession-1]) * 60000) {
+                ScheduleBean updateScheduleBean = new ScheduleBean();
+                updateScheduleBean.setId(schedule.getId());
+                if (totalSessions == currentSession) {
+                    updateScheduleBean.setState(ScheduleState.FINAL); 
+                    LOG.debug("Env {} is now going into final deloy stage and will deploy on the rest of all of the hosts.", envBean.getEnv_id());
+                } else {
+                    updateScheduleBean.setState(ScheduleState.RUNNING);  
+                    updateScheduleBean.setCurrent_session(currentSession+1);
+                    LOG.debug("Env {} has finished cooling down and will now start resume deploy by running session {}", envBean.getEnv_id(), currentSession+1);
+                }
+                updateScheduleBean.setState_start_time(System.currentTimeMillis());
+                scheduleDAO.update(updateScheduleBean, schedule.getId());
+            }
+        } else if (schedule.getState() == ScheduleState.RUNNING && agentDAO.countFinishedAgentsByDeploy(envBean.getDeploy_id()) >= totalHosts) {
+            ScheduleBean updateScheduleBean = new ScheduleBean();
+            updateScheduleBean.setId(schedule.getId());
+            updateScheduleBean.setState(ScheduleState.COOLING_DOWN);
+            updateScheduleBean.setState_start_time(System.currentTimeMillis());
+            scheduleDAO.update(updateScheduleBean, schedule.getId());
+            LOG.debug("Env {} has finished running session {} and will now begin cooling down", envBean.getEnv_id(), currentSession); 
+        }
+    }
+
+    void transition(DeployBean deployBean, DeployBean newDeployBean, EnvironBean envBean) throws Exception {  
+        transitionSchedule(envBean);
         String deployId = deployBean.getDeploy_id();
         String envId = envBean.getEnv_id();
         DeployState oldState = deployBean.getState();
 
         int sucThreshold = envBean.getSuccess_th();
-        long total = agentDAO.getAllByEnv(envId).size();
+        long total = agentDAO.countAgentByEnv(envId);
         LOG.debug("There are total {} agents are expected for env {}", total, envId);
 
         long succeeded = agentDAO.countSucceededAgent(envId, deployId);
@@ -267,6 +307,7 @@ public class CommonHandler {
             return;
         }
 
+        String scheduleId = envBean.getSchedule_id(); 
         long duration = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - deployBean.getLast_update());
         long stuckTh = envBean.getStuck_th();
         if (succeeded <= deployBean.getSuc_total() && duration >= stuckTh) {
@@ -277,8 +318,15 @@ public class CommonHandler {
                 newDeployBean.setState(DeployState.RUNNING);
                 return;
             } else {
+                if (scheduleId != null) { // don't change state if it's cooling down 
+                    ScheduleBean schedule = scheduleDAO.getById(scheduleId);  
+                    if (schedule.getState() == ScheduleState.COOLING_DOWN) {  
+                        return;
+                    }
+                }
                 newDeployBean.setState(DeployState.FAILING);
                 LOG.info("Set deploy {} as FAILING since {} seconds past without complete the deploy.", deployId, duration);
+                
                 // TODO, temp hack do NOT set lastUpdate for deploy stuck case, otherwise the
                 // next round transition will convert FAILING to RUNNING since new lastUpdate
                 // The better solution should be provide reason for previous transition
@@ -319,11 +367,8 @@ public class CommonHandler {
         }
 
         // if newState is SUCCEEDING and suc_date is set, do not report ( because we already did )
-        if (newState == DeployState.SUCCEEDING && sucDate != null) {
-            return false;
-        }
+        return !(newState == DeployState.SUCCEEDING && sucDate != null);
 
-        return true;
     }
 
     void sendDeployEvents(DeployBean oldDeployBean, DeployBean newDeployBean, EnvironBean environBean) {
@@ -377,12 +422,12 @@ public class CommonHandler {
         if (!StateMachines.DEPLOY_ACTIVE_STATES.contains(state)) {
             LOG.info("Deploy {} is currently in {} state, no need to transition.", deployId, state);
             return;
-        }
+        } 
 
         String envId = deployBean.getEnv_id();
         if (envBean == null)
             envBean = environDAO.getById(envId);
-
+        
         /*
          * Make sure we do not have such a deploy which is not current but somehow not in the
          * final state. This should NOT happen, treat this as cleaning up for any potential wrong states
@@ -405,6 +450,7 @@ public class CommonHandler {
             jobPool.submit(new FinishNotifyJob(envBean, deployBean, newPartialDeployBean, deployBean.getBuild_id()));
         }
 
+
         // TODO This is not easy to maintain especially when there are new fields added,
         // it makes more sense it we implement this in DeployBean and have it examine all
         // the fields, just like equals
@@ -414,21 +460,6 @@ public class CommonHandler {
             !deployBean.getTotal().equals(newPartialDeployBean.getTotal())) {
             deployDAO.updateStateSafely(deployId, state.toString(), newPartialDeployBean);
             LOG.info("Updated deploy {} with deploy bean = {}.", deployId, newPartialDeployBean);
-        }
-    }
-
-    public String getDefaultImageId(String groupName) throws Exception {
-        List<ImageBean> imageBeans = imageDAO.getImages(groupName, 1, 10);
-        if (imageBeans != null && !imageBeans.isEmpty()) {
-            return imageBeans.get(0).getId();
-        }
-
-        // by default, return golden_12.04 image
-        List<ImageBean> defaultImageBeans = imageDAO.getImages(DEFAULT_APP_NAME, 1, 10);
-        if (defaultImageBeans != null && !defaultImageBeans.isEmpty()) {
-            return defaultImageBeans.get(0).getId();
-        } else {
-            return null;
         }
     }
 }

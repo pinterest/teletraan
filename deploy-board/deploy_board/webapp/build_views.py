@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,13 +16,16 @@
 """Collection of builds related views
 """
 import json
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 import common
-from helpers import builds_helper, systems_helper
+from helpers import builds_helper, systems_helper, tags_helper, environs_helper, deploys_helper
 import random
 
+import logging
+
+log = logging.getLogger(__name__)
 
 def builds_landing(request):
     return get_build_names(request)
@@ -42,16 +45,20 @@ def get_build_names(request):
 
 
 def get_build(request, id):
-    build = builds_helper.get_build(request, id)
+    info = builds_helper.get_build_and_tag(request, id)
+    tag = info.get("tag")
+    if tag:
+        tag["build"]=json.loads(tag["metaInfo"])
     return render(request, 'builds/build_details.html', {
-        "build": build,
+        "build": info["build"],
+        "tag": tag
     })
 
 
 def list_builds(request, name):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', common.DEFAULT_BUILD_SIZE))
-    builds = builds_helper.get_builds(request, name=name, pageIndex=index, pageSize=size)
+    builds = builds_helper.get_builds_and_tags(request, name=name, pageIndex=index, pageSize=size)
     return render(request, 'builds/builds.html', {
         'build_name': name,
         'builds': builds,
@@ -67,13 +74,21 @@ def get_all_builds(request):
     branch = request.GET.get('branch')
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', common.DEFAULT_BUILD_SIZE))
-    builds = builds_helper.get_builds(request, name=name, branch=branch, pageIndex=index,
+    builds = builds_helper.get_builds_and_tags(request, name=name, branch=branch, pageIndex=index,
                                       pageSize=size)
     scm_url = systems_helper.get_scm_url(request)
+    deploy_state = None
     current_build_id = request.GET.get('current_build_id', None)
+    override_policy = request.GET.get('override_policy')
+    deploy_id = request.GET.get('deploy_id')
     current_build = None
     if current_build_id:
-        current_build = builds_helper.get_build(request, current_build_id)
+        current_build = builds_helper.get_build_and_tag(request, current_build_id)
+        current_build = current_build.get('build')
+    if deploy_id:
+        deploy_config = deploys_helper.get(request, deploy_id)
+        if deploy_config:
+            deploy_state = deploy_config.get('state', None)
 
     html = render_to_string('builds/pick_a_build.tmpl', {
         "builds": builds,
@@ -85,13 +100,15 @@ def get_all_builds(request):
         "pageSize": common.DEFAULT_BUILD_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(builds) < common.DEFAULT_BUILD_SIZE,
+        "overridePolicy": override_policy,
+        "deployState": deploy_state,
     })
     return HttpResponse(html)
 
 
 # currently we only support search by git commit or SHA, 7 letters or longer
 def search_commit(request, commit):
-    builds = builds_helper.get_builds(request, commit=commit)
+    builds = builds_helper.get_builds_and_tags(request, commit=commit)
     return render(request, 'builds/builds_by_commit.html', {
         'commit': commit,
         'builds': builds,
@@ -161,3 +178,27 @@ def compare_commits_datatables(request):
     })
 
     return HttpResponse(html)
+
+
+def tag_build(request, id):
+    if request.method == "POST":
+        build_info = builds_helper.get_build_and_tag(request, id)
+        current_tag = build_info.get("tag")
+
+        if current_tag:
+            tagged_build = json.loads(current_tag["metaInfo"])
+            if tagged_build["id"] == id:
+                log.info("There is already a tag associated with the build. Remove it")
+                builds_helper.del_build_tag(request, current_tag["id"])
+        tag = {"targetId":id, "targetType":"Build", "comments":request.POST["comments"]}
+        value = request.POST["tag_value"]
+        if value.lower() == "good":
+            tag["value"] = tags_helper.TagValue.GOOD_BUILD
+        elif value.lower()=="bad":
+            tag["value"] = tags_helper.TagValue.BAD_BUILD
+        else:
+            return HttpResponse(status=400)
+        builds_helper.set_build_tag(request, tag)
+        return redirect("/builds/{0}/".format(id))
+    else:
+        return HttpResponse(status=405)

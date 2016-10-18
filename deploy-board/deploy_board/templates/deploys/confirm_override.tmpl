@@ -1,0 +1,24 @@
+{% load utils %}
+<div class="modal fade" id="confirmOverrideModalId" tabindex="-1" role="dialog"
+     aria-labelledby="confirmOverrideModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="newEnvModalLabel">Would you like to override?</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="overrideDescription">
+                    A current deploy is still ongoing. Are you sure you would like to override the current deploy?
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="overrideButton" type="submit" class="btn btn-primary">Override</button>
+                    <button id="cancelButton" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

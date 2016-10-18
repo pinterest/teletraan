@@ -18,6 +18,7 @@ import os
 import socket
 import traceback
 
+from deployd.client.base_client import BaseClient
 from deployd.client.restfulclient import RestfulClient
 from deployd.common.decorators import retry
 from deployd.common.stats import create_stats_timer, create_sc_increment
@@ -27,7 +28,7 @@ from deployd.types.ping_request import PingRequest
 log = logging.getLogger(__name__)
 
 
-class Client(object):
+class Client(BaseClient):
     def __init__(self, config=None, hostname=None,
                  ip=None, hostgroup=None, host_id=None, use_facter=None):
         self._hostname = hostname

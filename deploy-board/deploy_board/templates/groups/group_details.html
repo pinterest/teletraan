@@ -38,7 +38,7 @@
     </div>
     {% endif %}
     <div class="row">
-        <button class="deployToolTip btn btn-default btn-block" data-target="#addNewInstances"
+        <button id="launchInstance" class="deployToolTip btn btn-default btn-block"
             data-toggle="modal" title="Launch Instances">
             <span class="glyphicon glyphicon-plus-sign"></span> Launch Instance
         </button>
@@ -83,6 +83,12 @@
                 <div id="launch_rate_id"></div>
                 {% include "groups/latency_stats.tmpl" %}
                 {% include "groups/launch_rate.tmpl" %}
+
+                {% if pas_enabled == 'ENABLED' %}
+                <div id="pas_stats_id"></div>
+                {% include "groups/pas_stats.tmpl" %}
+                {% endif %}
+
                 <style>
                 .chartContainer>div {
                     width:550px;
@@ -223,7 +229,7 @@
 
 
 <!--- launch instances button dialog-->
-<div class="modal fade" id="addNewInstances" tabindex="-1" role="dialog" aria-labelledby="newInstanceModalLabel" aria-hidden="true">
+<div class="modal fade" id="addNewInstancesModalId" tabindex="-1" role="dialog" aria-labelledby="newInstanceModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
             <form id="addInstanceFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/add_instance/">
@@ -339,6 +345,24 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
+<div class="modal fade" id="launchWarningModalId" tabindex="-1" role="dialog"
+     aria-labelledby="launchWarningModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h4 class="modal-title">Cannot Launch New Host</h4>
+      </div>
+      <div class="modal-body">
+        <strong>Warning!</strong> An instance cannot be launched. Please update the <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">Group Launch Configuration</a> before launching hosts! Please make sure to fill out the IAM role and subnets.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 <script>
     $(function() {
         $.get("/groups/{{ group_name }}/group_info/", function(response) {
@@ -356,6 +380,14 @@
         $.get("/groups/{{ group_name }}/group_size/", function(response) {
             $("#loadGroupInfo").html(response.html)
         })
+    });
+
+    $("#launchInstance").click(function () {
+        {% if group_info and launch_config and launch_config.subnets %}
+        $("#addNewInstancesModalId").modal();
+        {% else %}
+        $("#launchWarningModalId").modal();
+        {% endif %}
     });
 
     $(document).ready(function() {

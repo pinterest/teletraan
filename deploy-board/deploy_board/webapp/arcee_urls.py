@@ -19,6 +19,8 @@ import util_views
 
 urlpatterns = [
     # auto scaling alarms endpoint
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/create_group/$',
+        group_view.create_launch_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/add_metrics/$',
         group_view.add_alarms),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_metrics/$',
@@ -31,7 +33,6 @@ urlpatterns = [
         group_view.get_config_comparison),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/show_config_comparison/',
         group_view.show_config_comparison),
-    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/config_rollback/$', group_view.config_rollback),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/group_info/$', group_view.get_group_info),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/group_size/$', group_view.get_group_size),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/scaling_activity/$',
@@ -40,6 +41,7 @@ urlpatterns = [
         group_view.ScalingActivityView.as_view()),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/more_scaling_activities/$',
         group_view.get_more_scaling_activities),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/attach_instance/$', group_view.attach_instances),
     url(r'^aws_info/get_ami_ids/$', group_view.get_aws_settings),
     url(r'^aws_info/get_configs/$', group_view.get_configs),
     url(r'^specs/get_sgs/$', group_view.get_sg_settings),
@@ -47,10 +49,12 @@ urlpatterns = [
     url(r'^specs/get_subnets/$', group_view.get_subnets_settings),
     url(r'^group_latency_stats/(?P<group_name>[a-zA-Z0-9\-_]+)/$', util_views.get_latency_metrics),
     url(r'^group_launch_rate/(?P<group_name>[a-zA-Z0-9\-_]+)/$', util_views.get_launch_rate),
+    url(r'^pas_stats/(?P<group_name>[a-zA-Z0-9\-_]+)/$', util_views.get_pas_metrics),
+
 
     # instances related
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/add_instance/$', group_view.add_instance),
-    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/detach_host/', group_view.detach_instance_from_asg),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/instance_action/', group_view.instance_action_in_asg),
 
     # health check related
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/health_check_activities/$', group_view.get_health_check_activities),
@@ -61,7 +65,6 @@ urlpatterns = [
 
     # groups related
     url(r'^groups/$', group_view.group_landing),
-    url(r'^groups/create_groups/$', group_view.create_group),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/config/$', group_view.GroupConfigView.as_view()),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/envs/', group_view.get_envs),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/gen_asg_setting', group_view.gen_asg_setting),
@@ -80,10 +83,26 @@ urlpatterns = [
         group_view.get_policy),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/get_metrics/$',
         group_view.get_alarms),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/create_launch_config/$',
+        group_view.create_launch_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_launch_config/$',
         group_view.update_launch_config),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_group_config/$',
+        group_view.update_group_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_config/$',
         group_view.update_asg_config),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_policy/$',
         group_view.update_policy),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_pas_config/$',
+        group_view.update_pas_config),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/get_pas_config/$',
+        group_view.get_pas_config),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/get_scheduled_actions/$',
+        group_view.get_scheduled_actions),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/delete_scheduled_actions/$',
+        group_view.delete_scheduled_actions),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/add_scheduled_actions/$',
+        group_view.add_scheduled_actions),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_scheduled_actions/$',
+        group_view.update_scheduled_actions),
 ]

@@ -8,6 +8,7 @@
             <th class="col-lg-2">Abstract Name</th>
             <th class="col-lg-2">Provider Name</th>
             <th class="col-lg-1">Cloud Provider</th>
+            <th class="col-lg-1">Available Capacity</th>
             <th class="col-lg-4">Description</th>
         </tr>
         {% for placement in placements %}
@@ -16,6 +17,7 @@
             <td> {{ placement.abstract_name }} </td>
             <td> {{ placement.provider_name }}  </td>
             <td> {{ placement.provider }}  </td>
+            <td> {{ placement.capacity }}  </td>
             <td> {{ placement.description }} </td>
         </tr>
         {% endfor %}

@@ -46,9 +46,9 @@ public class HTTPClient {
         return sb.toString();
     }
 
-    public String get(String url, Map<String, String> params, Map<String, String> headers, int retries) throws Exception {
+    public String get(String url, String payload, Map<String, String> params, Map<String, String> headers, int retries) throws Exception {
         String urlAndQuery = generateUrlAndQuery(url, params);
-        return internalCall(urlAndQuery, "GET", null, headers, retries);
+        return internalCall(urlAndQuery, "GET", payload, headers, retries);
     }
 
     public String post(String url, String payload, Map<String, String> headers, int retries) throws Exception {
@@ -57,6 +57,10 @@ public class HTTPClient {
 
     public String put(String url, String payload, Map<String, String> headers, int retries) throws Exception {
         return internalCall(url, "PUT", payload, headers, retries);
+    }
+
+    public String delete(String url, String payload, Map<String, String> headers, int retries) throws Exception {
+        return internalCall(url, "DELETE", payload, headers, retries);
     }
 
     private String internalCall(String url, String method, String payload, Map<String, String> headers, int retries) throws Exception {

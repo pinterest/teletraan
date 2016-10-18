@@ -49,4 +49,15 @@ urlpatterns = [
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/launch_hosts/$', cluster_view.launch_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/terminate_hosts/$', cluster_view.terminate_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/force_terminate_hosts/$', cluster_view.force_terminate_hosts),
+
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/enable_replacement/$', cluster_view.enable_cluster_replacement),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause_replacement/$', cluster_view.pause_cluster_replacement),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume_replacement/$', cluster_view.resume_cluster_replacement),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cancel_replacement/$', cluster_view.cancel_cluster_replacement),
+
+    # CMP specific util
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/get_new_cmp_cluster/$', cluster_view.get_new_cmp_cluster),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/get_cmp_cluster/$', cluster_view.get_cmp_cluster),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/create_cmp_cluster/$', cluster_view.create_cmp_cluster),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/update_cmp_cluster/$', cluster_view.update_cmp_cluster),
 ]

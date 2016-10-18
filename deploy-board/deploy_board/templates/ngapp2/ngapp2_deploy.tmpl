@@ -27,7 +27,7 @@
         <input id="currentDeployStatusId" value="{{ deploy.state }}" type="hidden" />
     </td>
     <td>
-        <div class="progress deployToolTip" data-toggle="tooltip" title="{{ deploy|progressTip }}">
+        <div class="progress deployToolTip" data-toggle="tooltip">
             <div class="deployToolTip progress-bar {{ deploy|progressType }}"
                  data-toggle="tooltip" title="{{ deploy|progressTip }}"
                  role="progressbar" aria-valuenow="{{ deploy|successRatePercentage }}"

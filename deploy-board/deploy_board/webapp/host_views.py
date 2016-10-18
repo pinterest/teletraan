@@ -16,10 +16,13 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
 import logging
-from helpers import environs_helper, agents_helper
-from helpers import groups_helper, environ_hosts_helper, hosts_helper
-from common import is_agent_failed
-from deploy_board.settings import IS_PINTEREST
+from helpers import environs_helper, agents_helper, autoscaling_groups_helper
+from helpers import environ_hosts_helper, hosts_helper
+from deploy_board.settings import IS_PINTEREST, TELETRAAN_HOST_INFORMATION_URL
+from datetime import datetime
+import pytz
+import requests
+import common
 
 log = logging.getLogger(__name__)
 
@@ -28,11 +31,8 @@ def get_agent_wrapper(request, hostname):
     # gather the env name and stage info
     agents = agents_helper.get_agents_by_host(request, hostname)
     agent_wrappers = []
-    show_force_terminate = False
+    is_unreachable = False
     for agent in agents:
-        if agent.get('deployStage') == 'STOPPING' or agent.get('deployStage') == 'STOPPED':
-            if is_agent_failed(agent):
-                show_force_terminate = True
         agent_wrapper = {}
         agent_wrapper["agent"] = agent
         envId = agent['envId']
@@ -42,64 +42,136 @@ def get_agent_wrapper(request, hostname):
         if agent.get('lastErrno', 0) != 0:
             agent_wrapper["error"] = agents_helper.get_agent_error(request, agent_env['envName'],
                                                                    agent_env['stageName'], hostname)
+        if agent['state'] == 'UNREACHABLE':
+            is_unreachable = True
+
         agent_wrappers.append(agent_wrapper)
-
-    return agent_wrappers, show_force_terminate
-
-
-def get_asg_name(request, host):
-    asg = ''
-    if host and host.get('groupName'):
-        group_info = groups_helper.get_group_info(request, host.get('groupName'))
-        if group_info and group_info["asgStatus"] == "ENABLED":
-            asg = host.get('groupName')
-    return asg
+    return agent_wrappers, is_unreachable
 
 
-def get_show_terminate(host):
-    if host and host.get('state') and host.get('state') != 'PENDING_TERMINATE' and host.get('state') != 'TERMINATING' and host.get('state') != 'TERMINATED':
-        return True
-    else:
-        return False
+# TODO deprecated it
+def get_asg_name(request, hosts):
+    if IS_PINTEREST:
+        for host in hosts:
+            if host and host.get('groupName'):
+                group_info = autoscaling_groups_helper.get_group_info(request, host.get('groupName'))
+                if group_info and group_info.get("launchInfo") and group_info.get("launchInfo")["asgStatus"] == "ENABLED":
+                    return host.get('groupName')
+    return None
+
+
+def get_show_terminate(hosts):
+    for host in hosts:
+        if host and host.get('state') and host.get('state') != 'PENDING_TERMINATE' and host.get('state') != 'TERMINATING' and host.get('state') != 'TERMINATED':
+            return True
+    return False
+
+
+def get_host_id(hosts):
+    if hosts:
+        return hosts[0].get('hostId')
+    return None
+
+
+def _get_cloud(json_obj):
+    try:
+        return json_obj.get('cloud', None).get('aws', None)
+    except:
+        return None
+
+
+def get_host_details(host_id):
+    if not host_id:
+        return None
+    host_url = TELETRAAN_HOST_INFORMATION_URL + '/api/cmdb/getinstance/' + host_id
+    response = requests.get(host_url)
+    instance = response.json()
+    cloud_info = _get_cloud(instance)
+    if not cloud_info:
+        return None
+
+    launch_time = cloud_info.get('launchTime', 0)
+    launch_time = datetime.fromtimestamp(launch_time / 1000, pytz.timezone('America/Los_Angeles')).strftime("%Y-%m-%d %H:%M:%S")
+    availability_zone = cloud_info.get('placement', {}).get('availability_zone', None)
+    ami_id = cloud_info.get('image_id', None)
+    host_details = {
+     'Subnet Id': instance.get('subnet_id', None),
+     'State': instance.get('state', None),
+     'Security Groups': instance.get('security_groups', None),
+     'Availability Zone': availability_zone,
+     'Tags': instance['tags'],
+     'Launch Time': launch_time,
+     'AMI Id': ami_id,
+    }
+    return host_details
 
 
 class GroupHostDetailView(View):
     def get(self, request, groupname, hostname):
         hosts = hosts_helper.get_hosts_by_name(request, hostname)
-        show_host = None
-        for host in hosts:
-            if host.get('groupName') == groupname:
-                show_host = host
-        asg = get_asg_name(request, show_host)
-        agent_wrappers, show_force_terminate = get_agent_wrapper(request, hostname)
+        host_id = get_host_id(hosts)
+        asg = get_asg_name(request, hosts)
+
+        show_terminate = get_show_terminate(hosts)
+        show_warning_message = not show_terminate
+        agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
+        host_details = get_host_details(host_id)
+
         return render(request, 'hosts/host_details.html', {
-                'group_name': groupname,
-                'hostname': hostname,
-                'host': show_host,
-                'agent_wrappers': agent_wrappers,
-                'asg_group': asg,
-                'pinterest': IS_PINTEREST,
-            })
+            'group_name': groupname,
+            'hostname': hostname,
+            'hosts': hosts,
+            'host_id': host_id,
+            'agent_wrappers': agent_wrappers,
+            'show_warning_message': show_warning_message,
+            'asg_group': asg,
+            'is_unreachable': is_unreachable,
+            'pinterest': IS_PINTEREST,
+            'host_information_url': TELETRAAN_HOST_INFORMATION_URL,
+            'host_details': host_details,
+        })
 
 
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
-        host = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
-        show_terminate = get_show_terminate(host)
-        # TODO deprecated it
-        asg = get_asg_name(request, host)
+        envs = environs_helper.get_all_env_stages(request, name)
+        stages, env = common.get_all_stages(envs, stage)
+        duplicate_stage = ''
+        for stage_name in stages:
+            if stage_name != stage:
+                hosts = environs_helper.get_env_capacity(request, name, stage_name, capacity_type="HOST")
+                if hostname in hosts:
+                    duplicate_stage = stage_name
 
-        agent_wrappers, show_force_terminate = get_agent_wrapper(request, hostname)
+        hosts = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
+        host_id = get_host_id(hosts)
+        show_terminate = get_show_terminate(hosts)
+        show_warning_message = not show_terminate
+        asg = get_asg_name(request, hosts)
+        is_protected = False
+        if asg:
+            is_protected = autoscaling_groups_helper.is_hosts_protected(request, asg, [host_id])
+
+        agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
+        host_details = get_host_details(host_id)
+
         return render(request, 'hosts/host_details.html', {
             'env_name': name,
             'stage_name': stage,
             'hostname': hostname,
-            'host': host,
+            'hosts': hosts,
+            'host_id': host_id,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
-            'show_force_terminate': show_force_terminate,
+            'show_warning_message': show_warning_message,
+            'show_force_terminate': IS_PINTEREST,
             'asg_group': asg,
+            'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
+            'host_information_url': TELETRAAN_HOST_INFORMATION_URL,
+            'instance_protected': is_protected,
+            'host_details': host_details,
+            'duplicate_stage': duplicate_stage,
         })
 
 

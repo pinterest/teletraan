@@ -1,3 +1,4 @@
+{% load utils %}
 {% for metric in metrics %}
 <div id="panelBodyId" class="panel-default" value="{{ metric.title|slugify }}">
     <div class="panel-heading clearfix">
@@ -60,6 +61,7 @@
                 type="button" data-loading-text="Reloading...">
             <span class="glyphicon glyphicon-refresh"></span> Reload
         </button>
+        {% if env|isEnvEnabled %}
         <button id="{{ 'addConfigMapBtnId' }}" class="btn btn-default">
             <span class="glyphicon glyphicon-plus"></span> Add Metric
         </button>
@@ -67,6 +69,7 @@
                 type="button" data-loading-text="Saving...">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
+        {% endif %}
     </div>
 </div>
 

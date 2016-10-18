@@ -24,224 +24,316 @@
 <div id="autoscalingConfigId" class="collapse in panel-body">
 <div class="container-fluid">
     <form id="autoscalingGroupConfigFormId" class="form-horizontal" role="form">
-      <input type="hidden" name="asgStatus" value="{{asg.status}}" />
-      <input type="hidden" name="groupName" value="{{ group_name }}" />
+        <input type="hidden" name="asgStatus" value="{{asg.status}}" />
+        <input type="hidden" name="groupName" value="{{ group_name }}" />
         <fieldset id="envConfigFieldSetId">
-          <div class="form-group">
-            <label for="minSize" class="deployToolTip control-label col-xs-2"
-                data-toggle="tooltip"
-                title="minimum number of hosts in one autoscaling group">
-                Min Size (current group size {{ group_size }})
-            </label>
+            <div class="form-group">
+                <label for="minSize" class="deployToolTip control-label col-xs-2"
+                    data-toggle="tooltip"
+                    title="minimum number of hosts in one autoscaling group">
+                    Min Size (current group size {{ group_size }})
+                </label>
+                <div class="col-xs-4">
+                    <input class="form-control" name="minSize" required="true" id="minSizeInput"
+                           type="text" value="{{ asg.minSize }}"/>
+                </div>
 
-            <div class="col-xs-4">
-                <input class="form-control" name="minSize" required="true" id="minSizeInput"
-                       type="text" value="{{ asg.minSize }}"/>
-            </div>
-            <label for="maxSize" class="deployToolTip control-label col-xs-2"
-                data-toggle="tooltip"
-                title="maximum number of hosts in one autoscaling group">
-                Max Size
-            </label>
-
-            <div class="col-xs-4">
-                <input class="form-control" name="maxSize" required="true"
-                       type="text" value="{{ asg.maxSize }}"/>
-            </div>
-          </div>
-          <div id="minSizeWarningDivId" class="hidden">
-
-          <div class="form-group">
-              <label class="control-label col-xs-2"></label>
-              <div class="col-xs-10">
-                <h4><span class="label label-danger">Minimum size is too low for your group!</span></h4>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
-              data-toggle="tooltip"
-              title="termination policy">
-              Termination Policy
-            </label>
-            <div class="col-xs-4">
-               <select class="form-control" name="terminationPolicy" required="true" id="terminationPolicyInput">
-               {% for policy in terminationPolicies %}
-                   {% if policy == asg.terminationPolicy %}
-                   <option value="{{policy}}" selected>{{policy}}</option>
-                   {% else %}
-                   <option value="{{policy}}">{{policy}}</option>
-                   {% endif %}
-               {% endfor %}
-               </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-          <label for="enablespot" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="Whether we allow spot instance in the fleet">
-                        Allow Spot Instances
-           </label>
-           <div class="col-xs-3">
-                <div class="input-group">
-                    {% if asg.enableSpot %}
-                        <input class="" id="enableSpot" name="enableSpot" type="checkbox" value="" checked>
-                    {% else %}
-                        <input class="" id="enableSpot" name="enableSpot" type="checkbox" value="">
-                    {% endif %}
+                <label for="maxSize" class="deployToolTip control-label col-xs-2"
+                    data-toggle="tooltip"
+                    title="maximum number of hosts in one autoscaling group">
+                    Max Size
+                </label>
+                <div class="col-xs-4">
+                    <input class="form-control" name="maxSize" required="true"
+                           type="text" value="{{ asg.maxSize }}"/>
                 </div>
             </div>
-           </div>
 
-           <div id="spotInstanceConfigDiv" class="hidden">
-           <div class="form-group">
-            <label for="spotInstanceRatio" class="deployToolTip control-label col-xs-2"
+            <div id="minSizeWarningDivId" class="hidden">
+                <div class="form-group">
+                    <label class="control-label col-xs-2"></label>
+                    <div class="col-xs-10">
+                    <h4><span class="label label-danger">Minimum size is too low for your group!</span></h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="autoScalingType" class="deployToolTip control-label col-xs-2"
+                  data-toggle="tooltip"
+                  title="Auto Scaling Type">
+                  Auto Scaling Type
+                </label>
+                <div class="col-xs-4">
+                <select class="form-control" name="autoScalingType" id="autoScalingType">
+                    {% if time_based_asg %}
+                        <option value="time" selected>Time based</option>
+                        <option value="alarm">Alarm based</option>
+                    {% else %}
+                        <option value="alarm" selected>Alarm based</option>
+                        <option value="time">Time based</option>
+                    {% endif %}
+                </select>
+                </div>
+
+                <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
+                  data-toggle="tooltip"
+                  title="termination policy">
+                  Termination Policy
+                </label>
+                <div class="col-xs-4">
+                    <select class="form-control" name="terminationPolicy" required="true" id="terminationPolicyInput">
+                    {% for policy in terminationPolicies %}
+                        {% if policy == asg.terminationPolicy %}
+                            <option value="{{policy}}" selected>{{policy}}</option>
+                        {% else %}
+                            <option value="{{policy}}">{{policy}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="enablespot" class="deployToolTip control-label col-xs-2"
+                    data-toggle="tooltip"
+                    title="Whether we allow spot instance in the fleet">
+                    Allow Spot Instances
+                </label>
+                <div class="col-xs-3">
+                    <div class="input-group">
+                        {% if asg.enableSpot %}
+                            <input class="" id="enableSpot" name="enableSpot" type="checkbox" value="" checked>
+                        {% else %}
+                            <input class="" id="enableSpot" name="enableSpot" type="checkbox" value="">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="spotInstanceConfigDiv" class="hidden">
+                <div class="form-group">
+                    <label for="spotInstanceRatio" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="percentage of the spot instance in the fleet">
-                        Spot Instances Ratio
-            </label>
+                            Spot Instances Ratio
+                    </label>
                     <div class="col-xs-4">
                         <div class="input-group">
-                        <input class="form-control" name="spotRatio" required="true" id="spotRatio"
-                               type="text" value="{{ asg.spotRatio }}"/>
-                        <span class="input-group-addon">%</span>
+                            <input class="form-control" name="spotRatio" required="true" id="spotRatio"
+                               type="text" value="{{ asg.spotRatio|default_if_none:'' }}"/>
+                            <span class="input-group-addon">%</span>
                         </div>
                     </div>
-             <label for="spotsensitivityRatio" class="deployToolTip control-label col-xs-2"
-               data-toggle="tooltip" title="">
-               Sensitivity Ratio
-               </label>
-              <div class="col-xs-4">
-                <div class="input-group">
-                    <input class="form-control" name="sensitivityRatio" required="true"
-                           type="text" value="{{ asg.sensitivityRatio }}"/>
-                    <span class="input-group-addon">%</span>
-                </div>
-              </div>
-          </div>
 
-          <div class="form-group">
-            <label for="bidPrice" class="deployToolTip control-label col-xs-2"
-              data-toggle="tooltip"
-              title="bidPrice">
-            Maximum Bid Price
-            </label>
-            <div class="col-xs-4">
-                <div class="input-group">
-                <span class="input-group-addon">$</span>
-                <input class="form-control" name="bidPrice" required="true" type="text" id="bidPrice"
-                value="{{asg.bidPrice| default_if_none:'' }}" />
+                    <label for="spotsensitivityRatio" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip" title="">
+                        Sensitivity Ratio
+                    </label>
+                    <div class="col-xs-4">
+                        <div class="input-group">
+                            <input class="form-control" name="sensitivityRatio" required="true"
+                                type="text" value="{{ asg.sensitivityRatio|default_if_none:'' }}"/>
+                        <span class="input-group-addon">%</span>
+                    </div>
                 </div>
+
             </div>
-            <label for="bidPrice" class="deployToolTip control-label col-xs-2"
-              data-toggle="tooltip"
-              title="bidPrice">
-            ({{instanceType}} Pricing: $1.68/Hour)
-            </label>
-          </div>
-        </div>
+
+            <div class="form-group">
+                <label for="bidPrice" class="deployToolTip control-label col-xs-2"
+                    data-toggle="tooltip"
+                    title="bidPrice">
+                    Maximum Bid Price
+                </label>
+                <div class="col-xs-4">
+                    <div class="input-group">
+                        <span class="input-group-addon">$</span>
+                        <input class="form-control" name="bidPrice" required="true" type="text" id="bidPrice"
+                            value="{{asg.bidPrice| default_if_none:'' }}" />
+                    </div>
+                </div>
+
+                <label for="bidPrice" class="deployToolTip control-label col-xs-2"
+                    data-toggle="tooltip"
+                    title="bidPrice">
+                    ({{instanceType}} Pricing: $1.68/Hour)
+                </label>
+            </div>
+            <div class="form-group">
+                  <label for="enableResourceLending" class="deployToolTip control-label col-xs-2"
+                     data-toggle="tooltip"
+                     title="Whether we allow free RI lending">
+                     Allow Free Instances Lending
+                  </label>
+                  <div class="col-xs-3">
+                     <div class="input-group">
+                        {% if asg.enableResourceLending %}
+                          <input class="" id="enableResourceLending" name="enableResourceLending" type="checkbox" value="" checked>
+                        {% else %}
+                          <input class="" id="enableResourceLending" name="enableResourceLending" type="checkbox" value="">
+                        {% endif %}
+                     </div>
+                  </div>
+            </div>
         </fieldset>
       {% csrf_token %}
     </form>
 </div>
 </div>
 <div class="panel-footer clearfix">
-  <div class="pull-right">
-    <button id="resetEnvConfigBtnId" class="btn btn-default"
-            data-loading-text="Reloading...">
-        <span class="glyphicon glyphicon-refresh"></span> Reload
-    </button>
-    <button id="saveEnvConfigBtnId" class="btn btn-primary"
-            data-loading-text="Saving...">
-        <span class="glyphicon glyphicon-floppy-save"></span> Save
-    </button>
-  </div>
+    <div class="pull-right">
+        <button id="resetEnvConfigBtnId" class="btn btn-default" data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        <button id="saveEnvConfigBtnId" class="btn btn-primary" data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
 </div>
 
+<div id="scheduledActionsPid"></div>
+<div id="scalingPolicyPid"></div>
+<div id="alarmMetricPid"></div>
+
+<div id="pasConfigPid" class="panel panel-default">
+    {% include "groups/pase_config.tmpl" %}
+</div>
 
 <script>
-    $(function () {
-        $('#saveEnvConfigBtnId').attr('disabled','disabled');
-        $('#resetEnvConfigBtnId').attr('disabled','disabled');
-        if ($("#enableSpot").is(":checked")) {
-            $("#spotInstanceConfigDiv").removeClass("hidden");
+$(function() {
+    $.get('/groups/{{ group_name }}/autoscaling/get_pas_config/', function (response) {
+        $('#pasConfigPid').html(response);
+    });
+});
+
+function loadAsgScheduledActions() {
+    $("#scheduledActionsPid").addClass("panel panel-default");
+    var asg_policy_url = "/groups/{{ group_name }}/autoscaling/get_scheduled_actions/";
+    $.get(asg_policy_url, function(response) {
+        $("#scheduledActionsPid").html(response);
+    });
+}
+
+function loadAsgPolicy() {
+    $("#scalingPolicyPid").addClass("panel panel-default");
+    var asg_policy_url = "/groups/{{ group_name }}/autoscaling/get_asg_policy/";
+    $.get(asg_policy_url, function(response) {
+        $("#scalingPolicyPid").html(response);
+    });
+}
+
+function loadAsgAlarms() {
+    $("#alarmMetricPid").addClass("panel panel-default");
+    var asg_policy_url = "/groups/{{ group_name }}/autoscaling/get_metrics/";
+    $.get(asg_policy_url, function(response) {
+        $("#alarmMetricPid").html(response);
+    });
+}
+
+function getAdvancedSetting() {
+    var auto_scaling_type = $("#autoScalingType option:selected").val();
+    if (auto_scaling_type == "time") {
+        $("#scalingPolicyPid").empty();
+        $("#scalingPolicyPid").removeClass("panel panel-default");
+        $("#alarmMetricPid").empty();
+        $("#alarmMetricPid").removeClass("panel panel-default");
+        loadAsgScheduledActions();
+    } else {
+        $("#scheduledActionsPid").empty();
+        $("#scheduledActionsPid").removeClass("panel panel-default");
+        loadAsgPolicy();
+        loadAsgAlarms();
+    }
+}
+
+$(document).ready(function() {
+    getAdvancedSetting();
+});
+
+$(function () {
+    $("#autoScalingType").change(function() {
+        getAdvancedSetting();
+    });
+
+    $('#saveEnvConfigBtnId').attr('disabled','disabled');
+    $('#resetEnvConfigBtnId').attr('disabled','disabled');
+    if ($("#enableSpot").is(":checked")) {
+        $("#spotInstanceConfigDiv").removeClass("hidden");
+    } else {
+        $("#spotInstanceConfigDiv").addClass("hidden");
+    }
+
+    $('#autoscalingGroupConfigFormId input').keyup(function() {
+        $('#saveEnvConfigBtnId').removeAttr('disabled');
+        $('#resetEnvConfigBtnId').removeAttr('disabled');
+        val = parseInt($("#minSizeInput").val())
+        group_size = parseInt({{group_size}})
+        if ( val < group_size / 2) {
+            $('#minSizeWarningDivId').removeClass("hidden");
         } else {
-            $("#spotInstanceConfigDiv").addClass("hidden");
+            $('#minSizeWarningDivId').addClass("hidden");
         }
+    });
 
+    $('#autoscalingGroupConfigFormId select').change(function() {
+        $('#saveEnvConfigBtnId').removeAttr('disabled');
+        $('#resetEnvConfigBtnId').removeAttr('disabled');
+    });
 
-        $('#autoscalingGroupConfigFormId input').keyup(function() {
-            $('#saveEnvConfigBtnId').removeAttr('disabled');
-            $('#resetEnvConfigBtnId').removeAttr('disabled');
-            val = parseInt($("#minSizeInput").val())
-            group_size = parseInt({{group_size}})
-            if ( val < group_size / 2) {
-                $('#minSizeWarningDivId').removeClass("hidden");
-            } else {
-                $('#minSizeWarningDivId').addClass("hidden");
+    $('#autoscalingGroupConfigFormId input').change(function() {
+        $('#saveEnvConfigBtnId').removeAttr('disabled');
+        $('#resetEnvConfigBtnId').removeAttr('disabled');
+    });
+
+    $("#enableSpot").click(function() {
+       if ($("#enableSpot").is(":checked")) {
+        $("#spotInstanceConfigDiv").removeClass("hidden");
+       } else {
+        $("#spotInstanceConfigDiv").addClass("hidden");
+       }
+    });
+
+    $('#saveEnvConfigBtnId').click(function () {
+        var btn = $(this);
+        $.ajax({
+            type: 'POST',
+            url: '/groups/{{ group_name }}/autoscaling/update_config/',
+            data: $("#autoscalingGroupConfigFormId").serialize(),
+            dataType: 'json',
+            beforeSend: function () {
+                btn.button('loading');
+            },
+            success: function (data) {
+                if(data != null && data.success == false) {
+                    $('#errorBannerId').append(data.error);
+                    $('#errorBannerId').show();
+                } else {
+                    $("#asgConfigPid").html(data);
+                    $('#errorBannerId').empty().hide();
+                }
+                btn.button('reset');
+            },
+            error: function (data) {
+                $('#errorBannerId').append(data.responseText);
+                $('#errorBannerId').show();
             }
         });
+    });
 
-        $('#autoscalingGroupConfigFormId select').change(function() {
-            $('#saveEnvConfigBtnId').removeAttr('disabled');
-            $('#resetEnvConfigBtnId').removeAttr('disabled');
-        });
-
-        $('#autoscalingGroupConfigFormId input').change(function() {
-            $('#saveEnvConfigBtnId').removeAttr('disabled');
-            $('#resetEnvConfigBtnId').removeAttr('disabled');
-        });
-
-        $("#enableSpot").click(function() {
-           if ($("#enableSpot").is(":checked")) {
-            $("#spotInstanceConfigDiv").removeClass("hidden");
-           } else {
-            $("#spotInstanceConfigDiv").addClass("hidden");
-           }
-        });
-
-        $('#saveEnvConfigBtnId').click(function () {
-            var btn = $(this);
-            $.ajax({
-                type: 'POST',
-                url: '/groups/{{ group_name }}/autoscaling/update_config/',
-                data: $("#autoscalingGroupConfigFormId").serialize(),
-                dataType: 'json',
-                beforeSend: function () {
-                    btn.button('loading');
-                },
-                success: function (data) {
-                    if(data != null && data.success == false) {
-                        $('#errorBannerId').append(data.error);
-                        $('#errorBannerId').show();
-                    } else {
-                        $("#asgConfigPid").html(data);
-                        $('#errorBannerId').empty().hide();
-                    }
-                    btn.button('reset');
-                },
-                error: function (data) {
-                    $('#errorBannerId').append(data.responseText);
-                    $('#errorBannerId').show();
-                }
-            });
-        });
-
-        $('#resetEnvConfigBtnId').click(function () {
-            var btn = $(this);
-            $.ajax({
-                type: 'GET',
-                url: '/groups/{{ group_name }}/autoscaling/get_asg_config/',
-                beforeSend: function () {
-                    btn.button('loading');
-                },
-                success: function (data) {
-                    btn.button('reset');
-                    $("#asgConfigPid").html(data);
-                }
-            });
+    $('#resetEnvConfigBtnId').click(function () {
+        var btn = $(this);
+        $.ajax({
+            type: 'GET',
+            url: '/groups/{{ group_name }}/autoscaling/get_asg_config/',
+            beforeSend: function () {
+                btn.button('loading');
+            },
+            success: function (data) {
+                btn.button('reset');
+                $("#asgConfigPid").html(data);
+            }
         });
     });
+});
 </script>

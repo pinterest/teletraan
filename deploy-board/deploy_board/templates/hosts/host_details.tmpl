@@ -47,20 +47,20 @@
     <div class="panel-footer clearfix">
         <div class="pull-left">
             {% if agent|agentRetryable %}
-            <button id="reset_agent_{{ env.stageName }}"
+            <button id="reset_agent_{{ env.envName }}_{{ env.stageName }}"
                     class="deployToolTip btn btn-default" data-toggle="tooltip"
                     title="Retry the deploy on this host.">
                 <span class="glyphicon glyphicon-repeat"></span> Retry
             </button>
             {% endif %}
             {% if agent|agentPausable %}
-            <button id="pause_agent_{{ env.stageName }}"
+            <button id="pause_agent_{{ env.envName }}_{{ env.stageName }}"
                     class="deployToolTip btn btn-default" data-toggle="tooltip"
                     title="Pause this host for any future deploys.">
                 <span class="glyphicon glyphicon-pause"></span> Pause
             </button>
             {% else %}
-            <button id="resume_agent_{{ env.stageName }}"
+            <button id="resume_agent_{{ env.envName }}_{{ env.stageName }}"
                     class="deployToolTip btn btn-default" data-toggle="tooltip"
                     title="Resume deploy on this host.">
                 <span class="glyphicon glyphicon-play"></span> Resume
@@ -72,7 +72,7 @@
 <script>
     $(function () {
         $('.deployToolTip').tooltip();
-        $('#reset_agent_{{ env.stageName }}').click(function () {
+        $('#reset_agent_{{ env.envName }}_{{ env.stageName }}').click(function () {
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/reset_deploy/{{ agent.hostId }}/',
@@ -83,7 +83,7 @@
                 }
             });
         });
-        $('#pause_agent_{{ env.stageName }}').click(function () {
+        $('#pause_agent_{{ env.envName }}_{{ env.stageName }}').click(function () {
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/pause_deploy/{{ agent.hostId }}/',
@@ -94,7 +94,7 @@
                 }
             });
         });
-        $('#resume_agent_{{ env.stageName }}').click(function () {
+        $('#resume_agent_{{ env.envName }}_{{ env.stageName }}').click(function () {
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/resume_deploy/{{ agent.hostId }}/',

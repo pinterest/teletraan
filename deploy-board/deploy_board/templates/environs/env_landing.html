@@ -17,11 +17,13 @@
 {% endif %}
 {% endblock %}
 
+
 {% block side-panel-actions %}
 <div class="panel panel-default">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Current Deploy</h4>
     </div>
+    {% if env|isEnvEnabled %}
 	<div class="row">
         <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/"
             type="button" class="deployToolTip btn btn-default btn-block"
@@ -54,7 +56,25 @@
             <span class="glyphicon glyphicon-fire"></span> Hotfix
         </a>
     </div>
+
+    <div id="privateBldUploadBtnId" class="row">
+       <button class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip"
+           title="Publish a local private build"> 
+            <span class="glyphicon glyphicon-upload"></span> Publish Private Build
+        </a>        
+    </div>
+
     {% endif %}
+    {% endif %}
+    {% endif %}
+    <div class="row">
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/schedule"
+            type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip" title="Check current deploy schedule">
+            <span class="glyphicon glyphicon-time"></span> Deploy Schedule
+        </a>
+    </div>
     <!--div class="row">
         <a href="/builds/{{ env.envName }}/{{ env.stageName }}/start_build/" type="button" class="deployToolTip btn btn-default btn-block"
            data-toggle="tooltip" title="Create a private build for current environment">
@@ -62,6 +82,7 @@
            </a>
     </div-->
 
+    {% if has_deploy %}
 	<div class="row">
         <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_commits/"
            type="button" class="deployToolTip btn btn-default btn-block"
@@ -85,12 +106,22 @@
             <span class="glyphicon glyphicon-cog"></span> Configure
         </a>
     </div>
-    {% if pinterest %}
+    {% if pinterest and env|isEnvEnabled %}
     <div class="row">
         <button id="addNewInstancesBtnId" class="deployToolTip btn btn-default btn-block"
                 data-target="#launchHostModalId" data-toggle="modal" title="Launch new hosts">
                 <span class="glyphicon glyphicon-plus-sign"></span> Launch Hosts
         </button>
+    </div>
+    {% endif %}
+    {% if basic_cluster_info %}
+    <div class="row">
+        <a href="/groups/{{ env.clusterName }}/"
+           type="button" class="deployToolTip btn btn-default btn-block"
+           data-toggle="tooltip"
+           title="Show auto scaling statistics">
+            <span class="glyphicon glyphicon-cloud"></span> Auto Scaling
+        </a>
     </div>
     {% endif %}
 </div>
@@ -165,6 +196,8 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
+{% include "builds/upload_private_build.tmpl" with form=form %}
+
 {% if basic_cluster_info %}
 <div class="modal fade" id="launchHostModalId" tabindex="-1" role="dialog" aria-labelledby="launchHostModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">
@@ -208,7 +241,7 @@
                     <div class="modal-body" id="newMetricModal">
                         <div class="form-group">
                             <label class="deployToolTip control-label text-center col-xs-6">
-                                Number of instances to launch:
+                                Number of hosts to launch:
                             </label>
                             <div class="col-md-6">
                                 <input class="form-control" name="instanceCnt" required="true" type="text" value=""/>
@@ -217,7 +250,7 @@
 
                         <div class="form-group">
                             <label for="groupName" class="deployToolTip control-label col-xs-6">
-                                Choose a group to launch instances to:
+                                Choose a group to launch hosts to:
                             </label>
                             <div class ="col-md-6">
                                 <select class="form-control" id="group_name" name="groupName" required="true">
@@ -258,33 +291,53 @@
 
 {% if pinterest %}
 <script>
-    $(document).ready(function() {
-        var selected_value = $("#group_name option:selected").val();
-        var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
-        $.get(config_url, function(response) {
-            $("#config_div_id").html(response);
-        });
+function loadGroupConfig() {
+    var selected_value = $("#group_name option:selected").val();
+    var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
+    $.get(config_url, function(response) {
+        $("#config_div_id").html(response);
     });
+}
+$(document).ready(function() {
+    loadGroupConfig();
+});
 
-    $(function () {
-        $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
-
-        $("#group_name").change(function() {
-            var selected_value = $("#group_name option:selected").val();
-            var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
-            $.get(config_url, function(response) {
-                $("#config_div_id").html(response);
-            });
-        });
+$(function () {
+    $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
+    $("#group_name").change(function() {
+        loadGroupConfig();
     });
+});
+
+$('#privateBldUploadBtnId button').click(function () {
+    $('#uploadPrivateBldModalId').modal();
+});
+
+
 </script>
 {% endif %}
+
 {% endblock %}
 
 {% block main %}
 
-{% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
-{% include "environs/site_health.tmpl" with metricsKind="service" %}
+{% if not env|isEnvEnabled %}
+{% if env_tag.value == "DISABLE_ENV" %}
+<div class="alert alert-warning" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning!</strong> {{ env.envName }}/{{ env.stageName }} is disabled by {{ env_tag.operator }} due to
+    {{ env_tag.comments }} on {{ env_tag.createdDate|convertTimestamp }}.<br>
+    You cannot make any new configuration and deploy changes until this environment is enabled.
+</div>
+{% endif %}
+{% endif %}
+
+{% if not basic_cluster_info|canReplaceCluster %}
+    <div class="alert alert-info">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
+    </div>
+{% endif %}
 
 {% if messages %}
     {% for message in messages %}
@@ -299,12 +352,13 @@
                 <strong>Launch Succeeded!</strong> {{ message | safe}}
             </div>
         {% endif %}
-
     {% endfor %}
 {% endif %}
 
-{% if has_deploy %}
+{% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
+{% include "environs/site_health.tmpl" with metricsKind="service" %}
 
+{% if has_deploy %}
     {%  if env|canResume %}
     <div class="panel panel-danger">
     {% else %}
@@ -324,7 +378,7 @@
                 </a>
             </h4>
             <div class="btn-group pull-right">
-                {% if has_deploy %}
+                {% if has_deploy and env|isEnvEnabled %}
                 <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback"
                     type="button" class="deployToolTip btn btn-primary btn-sm"
                     title="Rollback to a previous deploy">
@@ -504,6 +558,5 @@
 </div>
 {% endif %}
 {% endif %}
-
 
 {% endblock %}

@@ -15,8 +15,6 @@
  */
 package com.pinterest.teletraan.worker;
 
-import com.pinterest.arcee.dao.HostInfoDAO;
-import com.pinterest.clusterservice.handler.ClusterHandler;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.DeployStage;
@@ -25,6 +23,8 @@ import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.rodimus.RodimusManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,19 +35,22 @@ public class HostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HostTerminator.class);
     private final AgentDAO agentDAO;
     private final HostDAO hostDAO;
-    private final HostInfoDAO hostInfoDAO;
     private final UtilDAO utilDAO;
-    private final ClusterHandler clusterHandler;
+    private final RodimusManager rodimusManager;
 
     public HostTerminator(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
-        hostInfoDAO = serviceContext.getHostInfoDAO();
         utilDAO = serviceContext.getUtilDAO();
-        clusterHandler = new ClusterHandler(serviceContext);
+        rodimusManager = serviceContext.getRodimusManager();
     }
 
     private void terminateHost(HostBean host) throws Exception {
+        // if host is terminated before stopping successfully, delete record directly
+        if (removeTerminatedHost(host)) {
+            return;
+        }
+
         String hostId = host.getHost_id();
         List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
         boolean stopSucceeded = true;
@@ -60,19 +63,20 @@ public class HostTerminator implements Runnable {
         if (stopSucceeded) {
             LOG.info(String.format("Host %s is stopped. Terminate it.", hostId));
             String clusterName = host.getGroup_name();
-            clusterHandler.terminateHostsByClusterName(clusterName, Collections.singletonList(hostId));
+            rodimusManager.terminateHostsByClusterName(clusterName, Collections.singletonList(hostId));
         }
     }
 
-    private void removeTerminatedHost(HostBean host) throws Exception {
-        // Check whether the host state is TERMINATED_CODE on AWS
+    private boolean removeTerminatedHost(HostBean host) throws Exception {
         String hostId = host.getHost_id();
-        Set<String> terminatedHosts = hostInfoDAO.getTerminatedHosts(new HashSet<>(Collections.singletonList(hostId)));
+        Collection<String> terminatedHosts = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
         if (terminatedHosts.contains(hostId)) {
             LOG.info(String.format("Delete %s in host and agent table", hostId));
             hostDAO.deleteAllById(hostId);
             agentDAO.deleteAllById(hostId);
+            return true;
         }
+        return false;
     }
 
     private void processBatch() throws Exception {
