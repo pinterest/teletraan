@@ -28,8 +28,7 @@ import common
 import random
 import json
 from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, autoscaling_groups_helper, groups_helper, schedules_helper, \
-    s3_helper, private_builds_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper
 import math
 from dateutil.parser import parse
 import calendar
@@ -42,6 +41,8 @@ import os
 import datetime
 import time
 
+if IS_PINTEREST:
+    import s3_helper, autoscaling_groups_helper, private_builds_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
