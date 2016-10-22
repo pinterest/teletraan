@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -99,6 +99,10 @@ class DeployAgent(object):
                 return
 
         while self._response and self._response.opCode and self._response.opCode != OpCode.NOOP:
+            if self._response.opCode == OpCode.DELETE:
+                log.info('Could not handle DELETE opreation currently, bail out.')
+                break
+
             try:
                 # update the current deploy goal
                 if self._response.deployGoal:
@@ -163,6 +167,7 @@ class DeployAgent(object):
         deploy_goal = response.deployGoal
         if op_code == OpCode.TERMINATE or op_code == OpCode.DELETE:
             if deploy_goal.envName in self._envs:
+                # TODO FIXME this does not work since envName could be None
                 del self._envs[deploy_goal.envName]
             else:
                 log.info('Cannot find env {} in the ping report'.format(deploy_goal.env_name))
