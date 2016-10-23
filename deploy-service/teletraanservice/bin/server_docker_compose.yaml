@@ -35,6 +35,10 @@ logging:
       threshold: DEBUG
       archive: false
       currentLogFilename: /tmp/teletraan/service.log
+    - type: console
+      threshold: ALL
+      timeZone: UTC
+      target: stdout
 
 #
 # Mysql connection config. By default, we use the real mysql as the backend.
