@@ -99,10 +99,6 @@ class DeployAgent(object):
                 return
 
         while self._response and self._response.opCode and self._response.opCode != OpCode.NOOP:
-            if self._response.opCode == OpCode.DELETE:
-                log.info('Could not handle DELETE opreation currently, bail out.')
-                break
-
             try:
                 # update the current deploy goal
                 if self._response.deployGoal:
@@ -162,15 +158,26 @@ class DeployAgent(object):
         except Exception:
             log.exception("Deploy Agent got exceptions: {}".format(traceback.format_exc()))
 
+    def _resolve_deleted_env_name(self, envName, envId):
+        # When server return DELETE goal, the envName might be empty if the env has already been deleted.
+        # This function would try to figure out the envName based on the envId in the DELETE goal
+        if envName:
+            return envName
+        for name, value in self._envs.iteritems():
+            if envId == value.report.envId:
+                return name
+        return None
+
+
     def process_deploy(self, response):
         op_code = response.opCode
         deploy_goal = response.deployGoal
         if op_code == OpCode.TERMINATE or op_code == OpCode.DELETE:
-            if deploy_goal.envName in self._envs:
-                # TODO FIXME this does not work since envName could be None
-                del self._envs[deploy_goal.envName]
+            envName = self._resolve_deleted_env_name(deploy_goal.envName, deploy_goal.envId)
+            if envName in self._envs:
+                del self._envs[envName]
             else:
-                log.info('Cannot find env {} in the ping report'.format(deploy_goal.env_name))
+                log.info('Cannot find env {} in the ping report'.format(env_name))
 
             if self._curr_report.report.envName == deploy_goal.envName:
                 self._curr_report = None
