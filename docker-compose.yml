@@ -19,7 +19,10 @@ services:
     ports:
       - "8080:8080"
       - "8081:8081"
-    command: "/opt/deploy-service/teletraanservice/bin/run.sh -c /opt/deploy-service/teletraanservice/bin/server_docker_compose.yaml"
+    command: "/opt/deploy-service/teletraanservice/bin/run.sh -c /opt/deploy-service/teletraanservice/bin/server.yaml"
+    environment:
+      - TELETRAAN_DB_HOST=mysql
+      - TELETRAAN_DASHBOARD_URL=http://deploy-board:8888
     volumes: 
       - "./deploy-service:/opt/deploy-service"
     depends_on:
