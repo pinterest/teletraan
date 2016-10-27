@@ -18,7 +18,7 @@ from django.views.generic import View
 import logging
 from helpers import environs_helper, agents_helper, autoscaling_groups_helper
 from helpers import environ_hosts_helper, hosts_helper
-from deploy_board.settings import IS_PINTEREST, TELETRAAN_HOST_INFORMATION_URL
+from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST
 from datetime import datetime
 import pytz
 import requests
@@ -83,7 +83,7 @@ def _get_cloud(json_obj):
 def get_host_details(host_id):
     if not host_id:
         return None
-    host_url = TELETRAAN_HOST_INFORMATION_URL + '/api/cmdb/getinstance/' + host_id
+    host_url = CMDB_API_HOST + CMDB_INSTANCE_URL + host_id
     response = requests.get(host_url)
     instance = response.json()
     cloud_info = _get_cloud(instance)
@@ -127,7 +127,7 @@ class GroupHostDetailView(View):
             'asg_group': asg,
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
-            'host_information_url': TELETRAAN_HOST_INFORMATION_URL,
+            'host_information_url': CMDB_UI_HOST,
             'host_details': host_details,
         })
 
@@ -168,7 +168,7 @@ class HostDetailView(View):
             'asg_group': asg,
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
-            'host_information_url': TELETRAAN_HOST_INFORMATION_URL,
+            'host_information_url': CMDB_UI_HOST,
             'instance_protected': is_protected,
             'host_details': host_details,
             'duplicate_stage': duplicate_stage,
