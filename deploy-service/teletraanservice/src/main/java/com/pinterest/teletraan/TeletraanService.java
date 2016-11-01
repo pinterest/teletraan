@@ -47,23 +47,34 @@ import com.pinterest.teletraan.resource.SystemGroupRoles;
 import com.pinterest.teletraan.resource.Systems;
 import com.pinterest.teletraan.resource.Tags;
 
-import org.eclipse.jetty.servlets.CrossOriginFilter;
-
-import java.util.EnumSet;
-
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
-
 import io.dropwizard.Application;
+import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
+import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
+
+import java.util.EnumSet;
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
 
 public class TeletraanService extends Application<TeletraanServiceConfiguration> {
     @Override
     public String getName() {
         return "teletraan-service";
+    }
+
+    @Override
+    public void initialize(Bootstrap<TeletraanServiceConfiguration> bootstrap) {
+        // Enable variable substitution with environment variables
+        bootstrap.setConfigurationSourceProvider(
+            new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
+                new EnvironmentVariableSubstitutor(false)
+            )
+        );
     }
 
     @Override

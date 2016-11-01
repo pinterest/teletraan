@@ -27,6 +27,7 @@ if __name__ == "__main__":
     #
     # Backend Teletraan service url and settings. Change it accordingly in prod
     #
+
     os.environ.setdefault("TELETRAAN_SERVICE_URL", "http://localhost:8080")
     os.environ.setdefault("TELETRAAN_SERVICE_VERSION", "v1")
 
