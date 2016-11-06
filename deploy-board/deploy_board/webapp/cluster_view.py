@@ -17,19 +17,192 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
-from deploy_board.settings import IS_PINTEREST
+from django.views.generic import View
+
+from deploy_board.settings import IS_PINTEREST, DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING
 import json
 import logging
 
-from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper
+from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
+    autoscaling_groups_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
 import common
 
 log = logging.getLogger(__name__)
 
 DEFAULT_PAGE_SIZE = 200
-PROVIDER_AWS = 'AWS'
-CMP_DOCKER_IMAGE = 'CMP-DOCKER'
+
+class EnvCapacityBasicCreateView(View):
+    def get(self, request, name, stage):
+        host_types = hosttypes_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        for host_type in host_types:
+            host_type['mem'] = float(host_type['mem']) / 1024
+
+        security_zones = securityzones_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        placements = placements_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        default_base_image = baseimages_helper.get_by_name(request,DEFAULT_CMP_IMAGE)
+        env = environs_helper.get_env_by_stage(request, name, stage)
+
+        capacity_creation_info = {
+            'environment': env,
+            'hostTypes': host_types,
+            'securityZones': security_zones,
+            'placements': placements,
+            'defaultMappings': PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING,
+            'baseImages': default_base_image,
+            'defaultCMPConfigs': get_default_cmp_configs(name, stage),
+            'defaultProvider': DEFAULT_PROVIDER
+        }
+        # cluster manager
+        return render(request, 'configs/new_capacity.html', {
+            'env': env,
+            'capacity_creation_info': json.dumps(capacity_creation_info)})
+
+    def post(self, request, name, stage):
+        log.info("Post to capacity with data {0}".format(request.body))
+        try:
+            cluster_name = '{}-{}'.format(name, stage)
+            cluster_info = json.loads(request.body)
+
+            log.info("Create Capacity in the provider")
+            clusters_helper.create_cluster(request, cluster_name, cluster_info)
+
+            log.info("Associate cluster_name to environment")
+            # Update cluster info
+            environs_helper.update_env_basic_config(request, name, stage, data={"clusterName": cluster_name})
+
+            log.info("Update capacity to the environment")
+            # set up env and group relationship
+            environs_helper.add_env_capacity(request, name, stage, capacity_type="GROUP", data=cluster_name)
+            return HttpResponse("{}", content_type="application/json")
+        except Exception as e:
+            log.info("Have an error {}", e)
+            return HttpResponse(e, status=500, content_type="application/json")
+
+
+class EnvCapacityAdvCreateView(View):
+    def get(self, request, name, stage):
+        host_types = hosttypes_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        for host_type in host_types:
+            host_type['mem'] = float(host_type['mem']) / 1024
+
+        security_zones = securityzones_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        placements = placements_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        base_images = baseimages_helper.get_by_name(request, DEFAULT_CMP_IMAGE)
+        base_images_names = baseimages_helper.get_image_names(request, DEFAULT_PROVIDER)
+
+        env = environs_helper.get_env_by_stage(request, name, stage)
+        provider_list = baseimages_helper.get_all_providers(request)
+
+        capacity_creation_info = {
+            'environment': env,
+            'hostTypes': host_types,
+            'securityZones': security_zones,
+            'placements': placements,
+            'defaultMappings': PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING,
+            'baseImages': base_images,
+            'baseImageNames': base_images_names,
+            'defaultBaseImage': DEFAULT_CMP_IMAGE,
+            'defaultCMPConfigs': get_default_cmp_configs(name, stage),
+            'defaultProvider': DEFAULT_PROVIDER,
+            'providerList': provider_list,
+            'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
+        }
+        # cluster manager
+        return render(request, 'configs/new_capacity_adv.html', {
+            'env': env,
+            'capacity_creation_info': json.dumps(capacity_creation_info)})
+
+    def post(self, request, name, stage):
+        log.info("Post to capacity with data {0}".format(request.body))
+        try:
+            cluster_name = '{}-{}'.format(name, stage)
+            cluster_info = json.loads(request.body)
+
+            log.info("Create Capacity in the provider")
+            clusters_helper.create_cluster(request, cluster_name, cluster_info)
+
+            log.info("Update cluster_name to environment")
+            # Update environment
+            environs_helper.update_env_basic_config(request, name, stage,
+                                                    data={"clusterName": cluster_name, "IsDocker": True})
+
+            return HttpResponse("{}", content_type="application/json")
+        except Exception as e:
+            log.info("Have an error {}", e)
+            return HttpResponse(e, status=500, content_type="application/json")
+
+
+class ClusterConfigurationView(View):
+    def get(self, request, name, stage):
+
+        cluster_name = '{}-{}'.format(name, stage)
+        current_cluster = clusters_helper.get_cluster(request, cluster_name)
+        host_types = hosttypes_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        for host_type in host_types:
+            host_type['mem'] = float(host_type['mem']) / 1024
+
+        security_zones = securityzones_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        placements = placements_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        base_images = baseimages_helper.get_by_name(request, DEFAULT_CMP_IMAGE)
+        base_images_names = baseimages_helper.get_image_names(request, DEFAULT_PROVIDER)
+
+        env = environs_helper.get_env_by_stage(request, name, stage)
+        provider_list = baseimages_helper.get_all_providers(request)
+
+        capacity_creation_info = {
+            'environment': env,
+            'hostTypes': host_types,
+            'securityZones': security_zones,
+            'placements': placements,
+            'defaultMappings': PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING,
+            'baseImages': base_images,
+            'baseImageNames': base_images_names,
+            'defaultBaseImage': DEFAULT_CMP_IMAGE,
+            'defaultCMPConfigs': get_default_cmp_configs(name, stage),
+            'defaultProvider': DEFAULT_PROVIDER,
+            'providerList': provider_list,
+            'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
+            'currentCluster': current_cluster
+        }
+        return render(request, 'clusters/cluster_configuration.html', {
+            'env': env,
+            'capacity_creation_info': json.dumps(capacity_creation_info)})
+
+    def post(self, request, name, stage):
+        try:
+            env = environs_helper.get_env_by_stage(request, name, stage)
+            cluster_name = env.get('clusterName')
+            isDocker = env['isDocker']
+            cluster_info = json.loads(request.body)
+            log.info("Update Cluster Configuration with {}", cluster_info)
+            image = baseimages_helper.get_by_id(request, cluster_info['baseImageId'])
+            isDockerAMI =  image['abstract_name'] == DEFAULT_CMP_IMAGE
+            if isDocker!=isDockerAMI:
+                #AMI and env isDocker doesn't match
+                environs_helper.update_env_basic_config(request, name, stage, data={'isDocker': isDockerAMI})
+            clusters_helper.update_cluster(request, cluster_name, cluster_info)
+        except Exception as e:
+            log.info("Post to cluster configuration view has an error {}", e)
+            return HttpResponse(e, status=500, content_type="application/json")
+        return HttpResponse(json.dumps(cluster_info), content_type="application/json")
+
+
+class ClusterCapacityUpdateView(View):
+    def post(self, request, name, stage):
+        log.info("Update Cluster Capacity with data {}".format(request.body))
+        try:
+            settings = json.loads(request.body)
+            cluster_name = '{}-{}'.format(name, stage)
+            log.info("Update cluster {0} with {1}".format(cluster_name, settings))
+            minSize = int(settings['minsize'])
+            maxSize = int(settings['maxsize'])
+            clusters_helper.update_cluster_capacity(request, cluster_name, minSize, maxSize)
+        except Exception as e:
+            log.info("Post to cluster capacity view has an error {}", e)
+            return HttpResponse(e, status=500, content_type="application/json")
+
+        return HttpResponse(json.dumps(settings), content_type="application/json")
 
 
 def create_base_image(request):
@@ -108,12 +281,14 @@ def get_base_images_by_name(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
-def get_base_image_info(request):
-    base_images = baseimages_helper.get_by_name(request, request.GET.get('name'))
-    contents = render_to_string("clusters/get_base_image_info.tmpl", {
-        'base_images': base_images,
-    })
-    return HttpResponse(json.dumps(contents), content_type="application/json")
+def get_base_image_info(request, name):
+    base_images = baseimages_helper.get_by_name(request, name)
+    return HttpResponse(json.dumps(base_images), content_type="application/json")
+
+
+def get_base_images_by_name_json(request, name):
+    base_images = baseimages_helper.get_by_name(request, name)
+    return HttpResponse(json.dumps(base_images), content_type="application/json")
 
 
 def create_host_type(request):
@@ -176,10 +351,7 @@ def get_host_type_info(request):
     host_types = hosttypes_helper.get_all(request, index, size)
     for host_type in host_types:
         host_type['mem'] = float(host_type['mem']) / 1024
-    contents = render_to_string("clusters/get_host_type_info.tmpl", {
-        'host_types': host_types,
-    })
-    return HttpResponse(json.dumps(contents), content_type="application/json")
+    return HttpResponse(json.dumps(host_types), content_type="application/json")
 
 
 def create_security_zone(request):
@@ -232,10 +404,7 @@ def get_security_zone_info(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     security_zones = securityzones_helper.get_all(request, index, size)
-    contents = render_to_string("clusters/get_security_zone_info.tmpl", {
-        'security_zones': security_zones,
-    })
-    return HttpResponse(json.dumps(contents), content_type="application/json")
+    return HttpResponse(json.dumps(security_zones), content_type="application/json")
 
 
 def create_placement(request):
@@ -289,10 +458,7 @@ def get_placement_infos(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     placements = placements_helper.get_all(request, index, size)
-    contents = render_to_string("clusters/get_placement_infos.tmpl", {
-        'placements': placements,
-    })
-    return HttpResponse(json.dumps(contents), content_type="application/json")
+    return HttpResponse(json.dumps(placements), content_type="application/json")
 
 
 def parse_configs(query_dict):
@@ -312,7 +478,7 @@ def get_default_cmp_configs(name, stage):
     config_map['cmp_group'] = 'CMP,{}-{}'.format(name, stage)
     config_map['pinfo_environment'] = 'prod'
     config_map['pinfo_team'] = 'cloudeng'
-    config_map['pinfo_role'] = 'cmp_docker'
+    config_map['pinfo_role'] = 'cmp_base'
     return config_map
 
 
@@ -367,18 +533,6 @@ def create_cluster(request, name, stage):
     return get_basic_cluster(request, name, stage)
 
 
-def update_cmp_cluster(request, name, stage):
-    params = request.POST
-    cluster_name = common.get_cluster_name(request, name, stage)
-    cluster_info = parse_cluster_info(request, name, stage, cluster_name)
-    config_map = get_default_cmp_configs(name, stage)
-    user_data_configs = parse_configs(params)
-    config_map.update(user_data_configs)
-    cluster_info['configs'] = config_map
-    clusters_helper.update_cluster(request, cluster_name, cluster_info)
-    return get_cmp_cluster(request, name, stage)
-
-
 def update_cluster(request, name, stage):
     params = request.POST
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -387,40 +541,6 @@ def update_cluster(request, name, stage):
     cluster_info['configs'] = user_data_configs
     clusters_helper.update_cluster(request, cluster_name, cluster_info)
     return get_basic_cluster(request, name, stage)
-
-
-def get_new_cmp_cluster(request, name, stage):
-    envs = environs_helper.get_all_env_stages(request, name)
-    stages, env = common.get_all_stages(envs, stage)
-    provider_list = baseimages_helper.get_all_providers(request)
-    base_images = baseimages_helper.get_by_name(request, CMP_DOCKER_IMAGE)
-    html = render_to_string('clusters/cmp_cluster_creation.tmpl', {
-        'env': env,
-        'envs': envs,
-        'stages': stages,
-        'provider_list': provider_list,
-        'base_images': base_images,
-        'csrf_token': get_token(request),
-    })
-    return HttpResponse(json.dumps(html), content_type="application/json")
-
-
-def get_cmp_cluster(request, name, stage):
-    envs = environs_helper.get_all_env_stages(request, name)
-    stages, env = common.get_all_stages(envs, stage)
-    provider_list = baseimages_helper.get_all_providers(request)
-    basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-    base_images = baseimages_helper.get_by_name(request, CMP_DOCKER_IMAGE)
-    html = render_to_string('clusters/cmp_cluster.tmpl', {
-        'env': env,
-        'envs': envs,
-        'stages': stages,
-        'provider_list': provider_list,
-        'basic_cluster_info': basic_cluster_info,
-        'base_images': base_images,
-        'csrf_token': get_token(request),
-    })
-    return HttpResponse(json.dumps(html), content_type="application/json")
 
 
 def get_basic_cluster(request, name, stage):
@@ -449,7 +569,7 @@ def get_cluster(request, name, stage):
     if basic_cluster_info:
         base_image_id = basic_cluster_info.get('baseImageId')
         base_image = baseimages_helper.get_by_id(request, base_image_id)
-        if base_image.get('abstract_name') != CMP_DOCKER_IMAGE:
+        if base_image.get('abstract_name') != DEFAULT_CMP_IMAGE:
             adv = True
         else:
             is_cmp = True
@@ -471,6 +591,7 @@ def get_cluster(request, name, stage):
 
 def delete_cluster(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
+    log.info("Delete cluster {}", cluster_name);
     clusters_helper.delete_cluster(request, cluster_name)
 
     # Update isDocker and cluster name in
@@ -498,8 +619,8 @@ def get_aws_config_name_list_by_image(image_name):
         config_map['ebs_size'] = 500
         config_map['ebs_mount'] = '/backup'
         config_map['ebs_volume_type'] = 'gp2'
-        if image_name == CMP_DOCKER_IMAGE:
-            config_map['pinfo_role'] = 'cmp_docker'
+        if image_name == DEFAULT_CMP_IMAGE:
+            config_map['pinfo_role'] = 'cmp_base'
             config_map['pinfo_team'] = 'cloudeng'
         else:
             config_map['pinfo_role'] = ''
@@ -516,16 +637,16 @@ def get_advanced_cluster(request):
     cluster_name = common.get_cluster_name(request, name, stage)
     config_list = None
     advanced_cluster_info = {}
-    if provider == PROVIDER_AWS:
+    if provider == DEFAULT_PROVIDER:
         config_list = get_aws_config_name_list_by_image(image_name)
         basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
         if not basic_cluster_info:
-            if image_name != CMP_DOCKER_IMAGE:
+            if image_name != DEFAULT_CMP_IMAGE:
                 advanced_cluster_info['aws_role'] = 'base'
             else:
                 advanced_cluster_info = get_default_cmp_configs(name, stage)
         else:
-            if image_name != CMP_DOCKER_IMAGE:
+            if image_name != DEFAULT_CMP_IMAGE:
                 advanced_cluster_info = basic_cluster_info.get('configs')
             else:
                 cmp_configs = get_default_cmp_configs(name, stage)

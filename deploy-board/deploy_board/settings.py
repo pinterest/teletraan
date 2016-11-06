@@ -93,7 +93,7 @@ LOGGING = {
             'level': LOG_LEVEL,
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': '%s/service.log' % LOG_DIR,
-            'maxBytes': 1024 * 1024 * 5, # 5 MB
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
         },
@@ -101,14 +101,18 @@ LOGGING = {
             'level': LOG_LEVEL,
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': '%s/access.log' % LOG_DIR,
-            'maxBytes': 1024 * 1024 * 5, # 5 MB
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
+        },
+        'console': {
+            'level': LOG_LEVEL,
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
         '': {
-            'handlers': ['default'],
+            'handlers': ['default', 'console'],
             'level': LOG_LEVEL,
             'propagate': True
         },
@@ -237,3 +241,60 @@ if IS_PINTEREST:
 
     DEFAULT_START_TIME = "-1d"
 
+    #Pinterest Default Cloud Provider
+    DEFAULT_PROVIDER = 'AWS'
+
+    #Pinterest Default AMI image name
+    DEFAULT_CMP_IMAGE = 'cmp_base'
+
+    # Pinterest default placement strategy mapping.
+    PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING = {
+        'dev-private-service': ['dev-private-service-us-east-1a',
+                                'dev-private-service-us-east-1c',
+                                'dev-private-service-us-east-1d',
+                                'dev-private-service-us-east-1e'],
+        'dev-public-service': ['dev-public-service-us-east-1a',
+                               'dev-public-service-us-east-1c',
+                               'dev-public-service-us-east-1d',
+                               'dev-public-service-us-east-1e'],
+        'dev-private-storage': ['dev-private-service-us-east-1a',
+                                'dev-private-service-us-east-1c',
+                                'dev-private-service-us-east-1d',
+                                'dev-private-service-us-east-1e'],
+        'prod-private-service': ['prod-private-service-us-east-1a',
+                                 'prod-private-service-us-east-1c',
+                                 'prod-private-service-us-east-1d',
+                                 'prod-private-service-us-east-1e',
+                                 'prod-private-tools-us-east-1a',
+                                 'prod-private-tools-us-east-1c',
+                                 'prod-private-tools-us-east-1d',
+                                 'prod-private-tools-us-east-1e'],
+        'prod-private-tools': ['prod-private-service-us-east-1a',
+                               'prod-private-service-us-east-1c',
+                               'prod-private-service-us-east-1d',
+                               'prod-private-service-us-east-1e',
+                               'prod-private-tools-us-east-1a',
+                               'prod-private-tools-us-east-1c',
+                               'prod-private-tools-us-east-1d',
+                               'prod-private-tools-us-east-1e'],
+        'prod-public-service': ['prod-public-service-us-east-1a',
+                                'prod-public-service-us-east-1c',
+                                'prod-public-service-us-east-1d',
+                                'prod-public-service-us-east-1e'],
+        'prod-private-storage': ['prod-private-service-us-east-1a',
+                                 'prod-private-service-us-east-1c',
+                                 'prod-private-service-us-east-1d',
+                                 'prod-private-service-us-east-1e',
+                                 'prod-private-tools-us-east-1a',
+                                 'prod-private-tools-us-east-1c',
+                                 'prod-private-tools-us-east-1d',
+                                 'prod-private-tools-us-east-1e'],
+        'rtp-prod-private-service': ['prod-private-service-us-east-1a',
+                                     'prod-private-service-us-east-1c',
+                                     'prod-private-service-us-east-1d',
+                                     'prod-private-service-us-east-1e',
+                                     'prod-private-tools-us-east-1a',
+                                     'prod-private-tools-us-east-1c',
+                                     'prod-private-tools-us-east-1d',
+                                     'prod-private-tools-us-east-1e']
+    }

@@ -727,7 +727,7 @@ def upload_private_build(request, name, stage):
 
 
 def get_groups(request, name, stage):
-    groups = common.get_non_cmp_group(request, name, stage)
+    groups = common.get_env_groups(request, name, stage)
     html = render_to_string('groups/simple_groups.tmpl', {
         "groups": groups,
     })

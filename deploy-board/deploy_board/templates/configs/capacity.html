@@ -7,126 +7,43 @@
     <li><a href="/envs">Environments</a></li>
     <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
     <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/config">General Config</a></li>
-    <li class="active">Capacity</li>
+    <li class="active"><a href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity">Capacity</a></li>
 </ul>
 {% endblock %}
 {% load static %}
 
+
 {% block side-panel-actions %}
-<div class="panel panel-default">
+<script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}"></script>
+<script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}"></script>
+
+<div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Capacity</h4>
     </div>
-	<div class="row">
-        <a type="button" class="deployToolTip btn btn-default btn-block"
-           href="/env/{{ env.envName }}/{{ env.stageName }}/config"
-           data-toggle="tooltip" title="Return the generic configuration page">
-           <i class="fa fa-gears"></i> General Config
-        </a>
+
+    {% if is_pinterest %} <!-- Pinterest specific-->
+        <div v-if="noCluster" class="row">
+            <side-button styleclass="fa fa-cloud" text="Create New Cluster" href="/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/" title="Create New Cluster"></side-button>
+        </div>
+        <div v-if="!noCluster" class="row">
+            <side-button styleclass="fa fa-gears" text="Cluster Configuration" href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/" title="Go to the cluster configuration page"></side-button>
+        </div>
+        <div v-if="!noCluster" class="row">
+            <side-button styleclass="fa fa-cloud" text="Autoscaling Settings" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Advanced auto scaling configuration page"></side-button>
+        </div>
+         <div v-if="!noCluster&&!showExistingCapacity" class="row">
+            <side-button styleclass="fa fa-plus" text="Add Existing Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?addexisting" title="Add Existing Capacity"></side-button>
+        </div>
+
+        <delete-cluster v-bind:showdelete="!noCluster" v-on:input="deleteClick"></delete-cluster>
+    {% else %}
+        <div class="row">
+            <side-button styleclass="fa fa-gears" text="General Config"  title="Return the generic configuration page"></side-button>
+        </div>
     </div>
-    {% if is_pinterest and not env.systemPriority %}
-        {% if not basic_cluster_info %}
-            {% if not create_new %}
-            <div class="row">
-                <a type="button" class="deployToolTip btn btn-default btn-block"
-                   href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?create_new=true"
-                   data-toggle="tooltip" title="Create New Cluster">
-                   <i class="fa fa-cloud"></i> Create New Cluster
-                </a>
-            </div>
-            {% else %}
-                {% if adv %}
-                    <div class="row">
-                        <a type="button" class="deployToolTip btn btn-default btn-block"
-                           href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?create_new=true"
-                           data-toggle="tooltip" title="Return the generic configuration page">
-                           <i class="fa fa-gear"></i> Basic Settings
-                        </a>
-                    </div>
-                {% else %}
-                    <div class="row">
-                    <a type="button" class="deployToolTip btn btn-default btn-block"
-                       href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?adv=true&create_new=true"
-                       data-toggle="tooltip" title="Return the generic configuration page">
-                       <i class="fa fa-gear"></i> Advanced Settings
-                    </a>
-                    </div>
-                {% endif %}
-            {% endif %}
-        {% else %}
-            {% if adv %}
-                <div class="row">
-                    <a type="button" class="deployToolTip btn btn-default btn-block"
-                       href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/"
-                       data-toggle="tooltip" title="Return the generic configuration page">
-                       <i class="fa fa-gear"></i> Basic Settings
-                    </a>
-                </div>
-            {% else %}
-                <div class="row">
-                <a type="button" class="deployToolTip btn btn-default btn-block"
-                   href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?adv=true"
-                   data-toggle="tooltip" title="Return the generic configuration page">
-                   <i class="fa fa-gear"></i> Advanced Settings
-                </a>
-                </div>
-            {% endif %}
+    {% endif %} 
 
-            {% if basic_cluster_info and env|isEnvEnabled %}
-                <div class="row">
-                <a type="button" class="deployToolTip btn btn-default btn-block"
-                href="/groups/{{ env.clusterName }}/config/"
-                data-toggle="tooltip" title="Advanced auto scaling configuration page">
-                <i class="fa fa-cloud"></i> Auto Scaling Setting
-                </a>
-                </div>
-
-                <div class="row">
-                <button class="deployToolTip btn btn-default btn-block" data-target="#deleteCluster"
-                data-toggle="modal" title="Delete Cluster">
-                <span class="glyphicon glyphicon-remove-sign"></span> Delete cluster
-                </button>
-                </div>
-
-                {% if basic_cluster_info|canReplaceCluster %}
-                <div class="row">
-                <button class="deployToolTip btn btn-default btn-block" data-target="#enableReplacement"
-                data-toggle="modal" title="Click to Schedule cluster replacement">
-                <span class="glyphicon glyphicon-random"></span> Replace cluster
-                </button>
-                </div>
-                {% elif basic_cluster_info.state == "REPLACE" %}
-                    <div class="row">
-                    <button class="deployToolTip btn btn-default btn-block" data-target="#pauseReplacement"
-                    data-toggle="modal" title="Click to pause cluster replacement">
-                    <span class="glyphicon glyphicon-pause"></span> PAUSE
-                    </button>
-                    </div>
-
-                    <div class="row">
-                    <button class="deployToolTip btn btn-default btn-block" data-target="#cancelReplacement"
-                    data-toggle="modal" title="Click to cancel cluster replacement">
-                    <span class="glyphicon glyphicon-step-backward"></span> Cancel
-                    </button>
-                    </div>
-                {% elif basic_cluster_info.state == "PAUSE" %}
-                    <div class="row">
-                    <button class="deployToolTip btn btn-default btn-block" data-target="#resumeReplacement"
-                    data-toggle="modal" title="Click to resume cluster replacement">
-                    <span class="glyphicon glyphicon-play"></span> Resume
-                    </button>
-                    </div>
-
-                    <div class="row">
-                    <button class="deployToolTip btn btn-default btn-block" data-target="#cancelReplacement"
-                    data-toggle="modal" title="Click to cancel cluster replacement">
-                    <span class="glyphicon glyphicon-step-backward"></span> Cancel
-                    </button>
-                    </div>
-                {% endif %}
-            {% endif %}
-        {% endif %}
-    {% endif %} <!-- Pinterest specific-->
 </div>
 {% endblock %}
 
@@ -136,168 +53,73 @@
 {% endblock %}
 
 {% block main %}
-{% if not basic_cluster_info|canReplaceCluster %}
-    <div class="alert alert-info">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
-        You cannot update this page unless you cancel cluster replacement.
-    </div>
-{% endif %}
 
-{% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
-<div class="panel panel-default">
-    {% include "configs/capacity.tmpl" %}
+<div id = "clusterAlert">
+    <in-rolling-alert v-show="showReplaceAlert"></in-rolling-alert>
 </div>
-
-{% if is_pinterest %}
-{% if not basic_cluster_info %}
-    {% if create_new %}
-        {% if adv %}
-            <div id="advCmpClusterCreationPid" class="panel panel-default">
-            {% include "clusters/cluster_creation.tmpl" %}
-            </div>
-        {% else %}
-            <div id="cmpClusterCreationPid" class="panel panel-default">
-                {% include "clusters/cmp_cluster_creation.tmpl" %}
-            </div>
-        {% endif %}
-    {% endif %}
-{% else %}
-    {% if adv %}
-        <div id="advCmpClusterPid" class="panel panel-default">
-        {% include "clusters/clusters.tmpl" %}
-        </div>
-    {% else %}
-        <div id="cmpClusterPid" class="panel panel-default">
-            {% include "clusters/cmp_cluster.tmpl" %}
-        </div>
-    {% endif %}
-{% endif %}
+{% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 
 <script>
-$(function() {
-    $.get('/env/{{ env.envName }}/{{ env.stageName }}/config/get_new_cmp_cluster/', function(response){
-        $('#cmpClusterCreationPid').html(response);
-    });
 
-    $.get('/env/{{ env.envName }}/{{ env.stageName }}/config/get_cmp_cluster/', function(response){
-        $('#cmpClusterPid').html(response);
-    });
-});
+window.info = {{info | safe}}
+window.env = info.env;
+window.hosts = info.hosts;
+window.groups = info.groups;
+
+if (info.is_pinterest){
+    hasCMPCluster = env.clusterName || $.inArray(env.envName+"-"+env.stageName, groups) >= 0;
+}
+var sidebar = new Vue({
+    el:"#side-panel",
+    data:{
+        noCluster: !hasCMPCluster ,
+        showExistingCapacity: (hosts!=null && hosts.length>0)||(groups!=null && groups.length>0)
+    },
+    methods:{
+        //Send delete request
+        sendDelete: function(){
+             $.ajax({
+                    type: 'POST',
+                    url: '/env/{{ env.envName }}/{{ env.stageName }}/config/delete_cluster/',
+                    data: "",
+                    dataType: "json",
+                    beforeSend: function(xhr, settings) {
+                        var csrftoken = getCookie('csrftoken')
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                    },
+                    success: function(data) {
+                        globalNotificationBanner.info = "Request sent successfully"
+                        //Reload page
+                        window.location.href=window.location.href
+                    },
+                    error: function(data) {
+                        globalNotificationBanner.error = data
+                    }
+                });
+        },
+        //Delete cluster
+        deleteClick: function(value){
+            if (value){
+                this.sendDelete()
+            }
+        },
+    }
+ });
+
+var alert = new Vue({
+    el:"#clusterAlert",
+    data:{
+        showReplaceAlert: info.basic_cluster_info != null && info.basic_cluster_info.state != "NORMAL"
+    }
+ });
 </script>
 
-<!--- delete cluster button dialog-->
-<div class="modal fade" id="deleteCluster" tabindex="-1" role="dialog" aria-labelledby="deleteClusterModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <form id="deleteClusterFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/config/delete_cluster/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Delete Cluster Confirm</h4>
-                </div>
-                <div class="modal-body" id="newMetricModal">
-                <div class="alert alert-danger">
-                     Are you really sure to <strong>DELETE</strong> cluster?<br>
-                     If you DELETE the cluster, <strong>ALL HOSTS</strong> in this cluster will be <strong>TERMINATED</strong>.
-                </div>
-                </div>
-                <div class="modal-footer">
-                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Delete</button>
-                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-<!--- enable replacement button dialog-->
-<div class="modal fade" id="enableReplacement" tabindex="-1" role="dialog" aria-labelledby="enableReplacementModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <form id="enableReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/enable_replacement/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Cluster Replacement Confirm</h4>
-                </div>
-                <div class="modal-body" id="newMetricModal">
-                     Are you sure to <strong>REPLACE</strong> every host in this cluster?
-                </div>
-                <div class="modal-footer">
-                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Replace</button>
-                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-<!--- pause replacement button dialog-->
-<div class="modal fade" id="pauseReplacement" tabindex="-1" role="dialog" aria-labelledby="pauseReplacementModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <form id="pauseReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/pause_replacement/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Pause Replacement Confirm</h4>
-                </div>
-                <div class="modal-body" id="newMetricModal">
-                 Are you sure to pause cluster replacement?
-                </div>
-                <div class="modal-footer">
-                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">PAUSE</button>
-                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-<!--- resume replacement button dialog-->
-<div class="modal fade" id="resumeReplacement" tabindex="-1" role="dialog" aria-labelledby="resumeReplacementModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <form id="resumeReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/resume_replacement/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Resume Replacement Confirm</h4>
-                </div>
-                <div class="modal-body" id="newMetricModal">
-                    Are you sure to resume cluster replacement?
-                </div>
-                <div class="modal-footer">
-                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Resume</button>
-                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-<!--- cancel replacement button dialog-->
-<div class="modal fade" id="cancelReplacement" tabindex="-1" role="dialog" aria-labelledby="cancelReplacementModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <form id="cancelReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/cancel_replacement/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Cancel Replacement Confirm</h4>
-                </div>
-                <div class="modal-body" id="newMetricModal">
-                     Are you sure to cancel cluster replacement?
-                </div>
-                <div class="modal-footer">
-                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Yes</button>
-                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">No</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-{% endif %} <!-- Pinterest specific-->
+<div id="mainPanel">
+    {% if is_pinterest %} 
+        {% include "clusters/cluster_capacity.tmpl" %}
+    {% endif %}
+    {% include "configs/capacity.tmpl" %}
+</div>
 
 {% endblock %}

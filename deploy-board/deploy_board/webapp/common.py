@@ -201,12 +201,6 @@ def get_cluster_name(request, name, stage):
     return env.get('clusterName')
 
 
-def get_non_cmp_group(request, name, stage):
+def get_env_groups(request, name, stage):
     groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
-    if IS_PINTEREST:
-        cluster_name = get_cluster_name(request, name, stage)
-        basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
-        if basic_cluster_info:
-            cluster_name = get_cluster_name(request, name, stage)
-            groups.remove(cluster_name)
     return groups

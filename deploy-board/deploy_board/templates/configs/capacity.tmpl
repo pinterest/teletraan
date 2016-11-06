@@ -1,26 +1,15 @@
-{% load utils %}
-{% include "panel_heading.tmpl" with panel_title="Existing Capacity" panel_body_id="envCapacityId" direction="down" %}
-<div id="envCapacityId" class="collapse in panel-body">
+<div id="capacityPanelId" v-if="showExistingCapacity" class="panel panel-default">
+<panel-heading title="Existing Capacity"  target="#envCapacityId" initcollapse="false"></panel-heading>
+<div id="envCapacityPanel">
+<div id="envCapacityId" class="collapse in panel-body" v-on:show.bs.collapse="showcontent" v-on:hide.bs.collapse="hidecontent">
     <div class="container-fluid">
         <form id="envCapacityFormId" class="form-horizontal" role="form">
             <fieldset id="envCapacityFieldSetId">
-                <div class="form-group">
-                    <label for="hostCapacity" class="control-label col-xs-2">Hosts</label>
-                    <div class="col-xs-10">
-                        <input id="hostText" class="form-control" name="hosts" required="false"
-                            placeholder="host1,host2,...etc." type="text" value="{{ hosts }}"/>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="groupCapacity" class="control-label col-xs-2">Groups</label>
-                    <div class="col-xs-10">
-                        <input id="groupText" class="form-control" name="groups" required="false"
-                            placeholder="group1,group2...etc." type="text" value="{{ groups }}"/>
-                    </div>
-                </div>
+                <tag-input-box label="Hosts" ref="hostsinput" v-bind:inittags="hosts" v-bind:placeholder="hostsPlaceholder" v-on:inputtagclick="hostTagClick($event)">
+                </tag-input-box>
+                <tag-input-box label="Groups" ref="groupsinput" v-bind:inittags="groups" v-bind:placeholder="groupsPlaceholder" v-on:inputtagclick="groupTagClick($event)">
+                </tag-input-box>
             </fieldset>
-            {% csrf_token %}
         </form>
     </div>
 </div>
@@ -28,67 +17,94 @@
 <div class="panel-footer clearfix">
     <div class="pull-right">
         <button id="resetEnvCapacityBtnId" class="btn btn-default"
-                data-loading-text="Reloading...">
+                data-loading-text="Reloading..." v-on:click="reloadCapacity">
             <span class="glyphicon glyphicon-refresh"></span> Reload
         </button>
-        {% if env|isEnvEnabled %}
-        <button id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#saveHostGroup" data-toggle="modal" data-loading-text="Saving...">
+        <button v-if="isEnvEnabled" id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#configdialog" data-toggle="modal" 
+            data-loading-text="Saving...">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
-        {% endif %}
     </div>
+</div>
+<modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">
+    <div slot="body">Are you sure to update the capacity for environment {{env.envName}}({{env.stageName}})?</div>
+</modal>
+</div>
 </div>
 
 <script type="text/javascript">
-    $(function () {
-        $('#saveEnvCapacityBtnId').attr('disabled','disabled');
-        $('#resetEnvCapacityBtnId').attr('disabled','disabled');
-
-        $('#envCapacityFormId input').keyup(function() {
-            $('#saveEnvCapacityBtnId').removeAttr('disabled');
-            $('#resetEnvCapacityBtnId').removeAttr('disabled');
-        });
-
-        $('#saveEnvCapacityBtnId').click(function () {
-            var btn = $(this);
-            $.ajax({
-                type: 'POST',
-                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/',
-                data: $("#envCapacityFormId").serialize(),
-                dataType: "json",
-                beforeSend: function () {
-                    btn.button('loading');
-                },
-                success: function (data) {
-                    if(data != null && data.success == false) {
-                        $('#errorBannerId').append(data.error);
-                        $('#errorBannerId').show();
-                    } else {
-                        $("#envCapacityId").parent().html(data.html);
-                        $('#errorBannerId').empty().hide();
+    var rootVue = new Vue({
+        el:"#capacityPanelId",
+        data:{
+            hosts:hosts,
+            hostsPlaceholder:"click here to input",
+            groups:groups,
+            groupsPlaceholder:"click here to input",
+            confirmDialogTitle:"Confirm Capacity Change",
+            confirmDialogId:"configdialog",
+            headingtoggleclass: "glyphicon glyphicon-chevron-down",
+            isEnvEnabled: env != null && env.state==="NORMAL",
+            showExistingCapacity: getUrlParameter("addexisting") || (hosts!=null && hosts.length>0)||(groups!=null && groups.length>0)
+        },
+        methods:{
+            "hostTagClick": function(value){
+                var hostLink = "/env/{{ env.envName }}/{{ env.stageName }}/host/"+value;
+                window.location.href = hostLink;
+            },
+            "groupTagClick": function(value){
+                var groupLink = '/groups/'+value;
+                window.location.href = groupLink;
+            },
+            "clickDialog": function(value){
+                if (value){
+                    this.saveCapacity();
+                }
+            },
+            "reloadCapacity": function(){
+                $.ajax({
+                    type: 'GET',
+                    url: '/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/',
+                    dataType: "json",
+                    beforeSend: function(xhr, settings) {
+                        var csrftoken = getCookie('csrftoken')
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    
+                    },
+                    success: function (data) {
+                        rootVue.hosts = data.hosts;
+                        rootVue.groups = data.groups;
+                        rootVue.$refs.hostsinput.tags = rootVue.hosts;
+                        rootVue.$refs.groupsinput.tags = rootVue.groups;
+                    },
+                    error: function (data) {
+                        globalNotificationBanner.error= data;
                     }
-                    btn.button('reset');
-                },
-                error: function (data) {
-                    $('#errorBannerId').append(data.responseText);
-                    $('#errorBannerId').show();
-                }
             });
-        });
-
-        $('#resetEnvCapacityBtnId').click(function () {
-            var btn = $(this);
-            $.ajax({
-                type: 'GET',
-                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/capacity',
-                beforeSend: function () {
-                    btn.button('loading');
-                },
-                success: function (data) {
-                    btn.button('reset');
-                    $("#envCapacityId").parent().html(data.html);
-                }
+            },
+            "saveCapacity": function(){
+                $.ajax({
+                    type: 'POST',
+                    url: '/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/',
+                    data: JSON.stringify({'hosts':rootVue.$refs.hostsinput.tags, 'groups':rootVue.$refs.groupsinput.tags}),
+                    dataType: "json",
+                    beforeSend: function(xhr, settings) {
+                        var csrftoken = getCookie('csrftoken')
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    
+                    },
+                    success: function (data) {
+                        if(data != null && data.success == false) {
+                            globalNotificationBanner.error = data;
+                        } else {
+                            globalNotificationBanner.info = "Saved Successfully";
+                        }
+                    },
+                    error: function (data) {
+                        globalNotificationBanner.error = data;
+                    }
             });
-        });
-    });
+            },
+        }
+      }
+    )
 </script>

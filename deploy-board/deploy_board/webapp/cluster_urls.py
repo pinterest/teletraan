@@ -15,13 +15,15 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
 import cluster_view
+import capacity_views
 
 urlpatterns = [
     url(r'^clouds/create_base_image/$', cluster_view.create_base_image),
     url(r'^clouds/baseimages/$', cluster_view.get_base_images),
     url(r'^clouds/get_image_names/$', cluster_view.get_image_names),
     url(r'^clouds/get_base_images/$', cluster_view.get_base_images_by_name),
-    url(r'^clouds/get_base_image_info/$', cluster_view.get_base_image_info),
+    url(r'^clouds/get_base_images/(?P<name>[a-zA-Z0-9\-_]+)/$', cluster_view.get_base_images_by_name_json),
+    url(r'^clouds/get_base_image_info/(?P<name>[a-zA-Z0-9\-_]+)/$', cluster_view.get_base_image_info),
 
     url(r'^clouds/create_host_type/$', cluster_view.create_host_type),
     url(r'^clouds/hosttypes/$', cluster_view.get_host_types),
@@ -46,6 +48,8 @@ urlpatterns = [
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/update_cluster/$', cluster_view.update_cluster),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/delete_cluster/$', cluster_view.delete_cluster),
 
+
+
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/launch_hosts/$', cluster_view.launch_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/terminate_hosts/$', cluster_view.terminate_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/force_terminate_hosts/$', cluster_view.force_terminate_hosts),
@@ -56,8 +60,10 @@ urlpatterns = [
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cancel_replacement/$', cluster_view.cancel_cluster_replacement),
 
     # CMP specific util
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/get_new_cmp_cluster/$', cluster_view.get_new_cmp_cluster),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/get_cmp_cluster/$', cluster_view.get_cmp_cluster),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/create_cmp_cluster/$', cluster_view.create_cmp_cluster),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/update_cmp_cluster/$', cluster_view.update_cmp_cluster),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/cluster/capacity/$', cluster_view.ClusterCapacityUpdateView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/newcapacity/$', cluster_view.EnvCapacityBasicCreateView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/newcapacity/advanced/$',
+        cluster_view.EnvCapacityAdvCreateView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/cluster/config/$',
+        cluster_view.ClusterConfigurationView.as_view()),
 ]

@@ -1,5 +1,5 @@
 {% load utils %}
-{% include "panel_heading.tmpl" with panel_title="Cluster Manager" panel_body_id="clusterConfigId" direction="down" %}
+{% include "panel_heading.tmpl" with panel_title="Cluster Launch Configuration" panel_body_id="clusterConfigId" direction="down" %}
 <div id="clusterConfigId" class="collapse in panel-body">
     <div class="container-fluid">
         <form id="clusterConfigFormId" class="form-horizontal" role="form">
@@ -20,31 +20,6 @@
                                 {% endif %}
                             {% endfor %}
                         </select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="capacity" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="Number of hosts for this service">
-                    Capacity
-                    </label>
-                    <div class="col-xs-4">
-                        <input class="form-control" name="capacity" required="true" type="text" value="{{ basic_cluster_info.capacity }}"/>
-                    </div>
-
-                    <label for="isDocker" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="Run as docker">
-                        Run as docker
-                    </label>
-                    <div class="col-xs-4">
-                        <div class="input-group">
-                        {% if env.isDocker %}
-                            <input class="" id="is_docker" name="isDocker" type="checkbox" value="" checked>
-                        {% else %}
-                            <input class="" id="is_docker" name="isDocker" type="checkbox" value="">
-                        {% endif %}
-                        </div>
                     </div>
                 </div>
 

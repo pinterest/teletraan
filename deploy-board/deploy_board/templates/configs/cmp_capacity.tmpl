@@ -1,0 +1,98 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title="Existing Capacity" panel_body_id="envCapacityId" direction="down" %}
+<div id="envCapacityId" class="collapse in panel-body">
+    <div class="container-fluid">
+        <form id="envCapacityFormId" class="form-horizontal" role="form">
+            <fieldset id="envCapacityFieldSetId">
+                <div class = "form-group">
+                <tag-input-box label="test"></tag-input-box>
+                </div>
+                <div class="form-group">
+                    <label for="hostCapacity" class="control-label col-xs-2">Hosts</label>
+                    <div class="col-xs-10">
+                        <input id="hostText" class="form-control" name="hosts" required="false"
+                            placeholder="host1,host2,...etc." type="text" value="{{ hosts }}"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="groupCapacity" class="control-label col-xs-2">Groups</label>
+                    <div class="col-xs-10">
+                        <input id="groupText" class="form-control" name="groups" required="false"
+                            placeholder="group1,group2...etc." type="text" value="{{ groups }}"/>
+                    </div>
+                </div>
+            </fieldset>
+            {% csrf_token %}
+        </form>
+    </div>
+</div>
+
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button id="resetEnvCapacityBtnId" class="btn btn-default"
+                data-loading-text="Reloading...">
+            <span class="glyphicon glyphicon-refresh"></span> Reload
+        </button>
+        {% if env|isEnvEnabled %}
+        <button id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#saveHostGroup" data-toggle="modal" data-loading-text="Saving...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<script type="text/javascript">
+    new 
+    $(function () {
+        $('#saveEnvCapacityBtnId').attr('disabled','disabled');
+        $('#resetEnvCapacityBtnId').attr('disabled','disabled');
+
+        $('#envCapacityFormId input').keyup(function() {
+            $('#saveEnvCapacityBtnId').removeAttr('disabled');
+            $('#resetEnvCapacityBtnId').removeAttr('disabled');
+        });
+
+        $('#saveEnvCapacityBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/',
+                data: $("#envCapacityFormId").serialize(),
+                dataType: "json",
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $("#envCapacityId").parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetEnvCapacityBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/capacity',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    btn.button('reset');
+                    $("#envCapacityId").parent().html(data.html);
+                }
+            });
+        });
+    });
+</script>
