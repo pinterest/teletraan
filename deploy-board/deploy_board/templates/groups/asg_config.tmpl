@@ -177,10 +177,11 @@
                   </div>
             </div>
         </fieldset>
+      {% csrf_token %}
        </form>
 </div>
 </div>
-      {% csrf_token %}
+
 
 <div class="panel-footer clearfix">
     <div class="pull-right">
@@ -196,10 +197,6 @@
 <div id="scheduledActionsPid"></div>
 <div id="scalingPolicyPid"></div>
 <div id="alarmMetricPid"></div>
-
-<!--<div id="pasConfigPid" class="panel panel-default">-->
-    <!--{% include "groups/pase_config.tmpl" %}-->
-<!--</div>-->
 
 <script>
 $(function() {
