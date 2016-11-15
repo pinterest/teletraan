@@ -179,20 +179,20 @@
                         </div>
                         <div class="col-xs-10">
                         <b>Lifecycle Notifications</b> are used to notify service owners when a host working
-                        on their service is launched/terminated. An email and slack message (if available) 
+                        on their service is launched/terminated. An email and slack message (if available)
                         detailing the event will be sent out.
                         </div>
                 </div>
                 <div class="form-group">
-                    <label for="loadBalancer" class="deployToolTip control-label col-xs-2"
+                    <label for="load_balancer" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Enter the name of load balancers to attach to this autoscaling group">
                         Load Balancers
                     </label>
                     <div class="col-xs-4">
                         <div class="input-group">
-                            <input class="form-control" name="load_balancer" required="false"
-                                   type="text" value="{{ config.load_balancer |default_if_none:'' }}"/>
+                            <input class="form-control" id="load_balancer" name="load_balancer" required="false"
+                                   type="text" value="{{ config.loadBalancers |default_if_none:'' }}"/>
                             <span class="input-group-btn">
                                 <button id="loadbalancersExpressionId" class="deployToolTip btn btn-default"
                                         type="button" data-toggle="tooltip"
