@@ -15,6 +15,8 @@
 from django.conf.urls import patterns, include, url
 
 from django.contrib import admin
+from django.conf.urls.static import static
+from django.conf import settings
 
 admin.autodiscover()
 
@@ -28,7 +30,7 @@ if IS_PINTEREST:
         url(r'^', include('deploy_board.webapp.arcee_urls')),
         url(r'^', include('deploy_board.webapp.ngapp2_urls')),
         url(r'^', include('deploy_board.webapp.cluster_urls')),
-    )
+    ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:
     urlpatterns = patterns(
         '',

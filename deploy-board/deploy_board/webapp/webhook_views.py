@@ -41,6 +41,7 @@ class EnvWebhooksView(View):
         stages, env = common.get_all_stages(envs, stage)
         webhooks = environs_helper.get_env_hooks_config(request, name, stage)
         return render(request, 'configs/webhooks_config.html', {
+            "envs": envs,
             "env": env,
             "stages": stages,
             "webhooks": webhooks,

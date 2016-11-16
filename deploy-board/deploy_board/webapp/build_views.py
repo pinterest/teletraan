@@ -20,7 +20,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 import common
-from helpers import builds_helper, systems_helper, tags_helper
+from helpers import builds_helper, systems_helper, tags_helper, environs_helper, deploys_helper
 import random
 
 import logging
@@ -77,14 +77,22 @@ def get_all_builds(request):
     builds = builds_helper.get_builds_and_tags(request, name=name, branch=branch, pageIndex=index,
                                       pageSize=size)
     scm_url = systems_helper.get_scm_url(request)
+    deploy_state = None
     current_build_id = request.GET.get('current_build_id', None)
+    override_policy = request.GET.get('override_policy')
+    deploy_id = request.GET.get('deploy_id')
     current_build = None
     if current_build_id:
         current_build = builds_helper.get_build_and_tag(request, current_build_id)
+        current_build = current_build.get('build')
+    if deploy_id:
+        deploy_config = deploys_helper.get(request, deploy_id)
+        if deploy_config:
+            deploy_state = deploy_config.get('state', None)
 
     html = render_to_string('builds/pick_a_build.tmpl', {
         "builds": builds,
-        "current_build": current_build['build'],
+        "current_build": current_build,
         "scm_url": scm_url,
         "buildName": name,
         "branch": branch,
@@ -92,6 +100,8 @@ def get_all_builds(request):
         "pageSize": common.DEFAULT_BUILD_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(builds) < common.DEFAULT_BUILD_SIZE,
+        "overridePolicy": override_policy,
+        "deployState": deploy_state,
     })
     return HttpResponse(html)
 

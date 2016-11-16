@@ -58,3 +58,6 @@ junit-py27.xml
 
 # PIP stuff
 MANIFEST
+
+# Virtual Environments
+.venv

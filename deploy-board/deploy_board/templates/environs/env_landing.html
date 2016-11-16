@@ -56,9 +56,25 @@
             <span class="glyphicon glyphicon-fire"></span> Hotfix
         </a>
     </div>
+
+    <div id="privateBldUploadBtnId" class="row">
+       <button class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip"
+           title="Publish a local private build"> 
+            <span class="glyphicon glyphicon-upload"></span> Publish Private Build
+        </a>        
+    </div>
+
     {% endif %}
     {% endif %}
     {% endif %}
+    <div class="row">
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/schedule"
+            type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip" title="Check current deploy schedule">
+            <span class="glyphicon glyphicon-time"></span> Deploy Schedule
+        </a>
+    </div>
     <!--div class="row">
         <a href="/builds/{{ env.envName }}/{{ env.stageName }}/start_build/" type="button" class="deployToolTip btn btn-default btn-block"
            data-toggle="tooltip" title="Create a private build for current environment">
@@ -180,6 +196,8 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
+{% include "builds/upload_private_build.tmpl" with form=form %}
+
 {% if basic_cluster_info %}
 <div class="modal fade" id="launchHostModalId" tabindex="-1" role="dialog" aria-labelledby="launchHostModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">
@@ -290,6 +308,12 @@ $(function () {
         loadGroupConfig();
     });
 });
+
+$('#privateBldUploadBtnId button').click(function () {
+    $('#uploadPrivateBldModalId').modal();
+});
+
+
 </script>
 {% endif %}
 
@@ -534,6 +558,5 @@ $(function () {
 </div>
 {% endif %}
 {% endif %}
-
 
 {% endblock %}

@@ -24,12 +24,17 @@ function getCurrentName() {
     return $("#image_name option:selected").val();
 }
 
-function loadImageConfig(name) {
-    {% if curr_base_image %}
-        var base_image_url = "/clouds/get_base_images/?name=" + name + "&curr_base_image={{ curr_base_image }}";
-    {% else %}
+function loadImageConfig(name, changed) {
+    if (changed) {
         var base_image_url = "/clouds/get_base_images/?name=" + name;
-    {% endif %}
+    } else {
+        {% if curr_base_image %}
+            var base_image_url = "/clouds/get_base_images/?name=" + name + "&curr_base_image={{ curr_base_image }}";
+        {% else %}
+            var base_image_url = "/clouds/get_base_images/?name=" + name;
+        {% endif %}
+    }
+
     $.get(base_image_url, function(response) {
         $("#base_image_div_id").html(response);
     });
@@ -42,15 +47,24 @@ function loadImageDetails(name) {
     });
 }
 
+function loadAdvancedConfig(provider, image_name) {
+    var advanced_config_url = "/clouds/get_advanced_config/?provider=" + provider + "&env={{ env_name }}" + "&stage={{ stage_name }}"+ "&image_name=" + image_name;
+    $.get(advanced_config_url, function(response) {
+        $("#advanced_config_div_id").html(response);
+    });
+}
+
 $(document).ready(function() {
-    loadImageConfig(getCurrentName());
+    loadImageConfig(getCurrentName(), false);
     loadImageDetails(getCurrentName());
+    loadAdvancedConfig("{{ provider }}", getCurrentName());
 });
 
 $(function () {
     $("#image_name").change(function() {
-        loadImageConfig(getCurrentName());
+        loadImageConfig(getCurrentName(), true);
         loadImageDetails(getCurrentName());
+        loadAdvancedConfig("{{ provider }}", getCurrentName());
     });
 
     $("#baseImageDetailsButtonId").click(function() {

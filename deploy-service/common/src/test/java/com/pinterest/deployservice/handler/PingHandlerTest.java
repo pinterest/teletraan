@@ -4,9 +4,7 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import org.junit.Assert;
 import org.junit.Test;
 
-/**
- * Created by lidali on 4/26/16.
- */
+
 public class PingHandlerTest {
     @Test
     public void getGetFinalMaxParallelCount() throws Exception {

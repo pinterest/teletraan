@@ -29,15 +29,13 @@ public interface HostDAO {
 
     List<String> getHostNamesByGroup(String groupName) throws Exception;
 
-    List<String> getHostIdsByGroup(String groupName) throws Exception;
+    Collection<String> getHostIdsByGroup(String groupName) throws Exception;
 
     void insert(HostBean hostBean) throws Exception;
 
     void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception;
 
     void updateHostById(String hostId, HostBean hostBean) throws Exception;
-
-    void updateHostByGroup(String groupName, HostBean bean) throws Exception;
 
     void deleteById(String hostId) throws Exception;
 

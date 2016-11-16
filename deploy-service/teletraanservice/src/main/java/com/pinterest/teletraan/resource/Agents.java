@@ -18,10 +18,19 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.swagger.annotations.*;
 
+import javax.validation.Valid;
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
+
+import java.util.Collection;
 import java.util.List;
 
 @Path("/v1/agents")
@@ -34,6 +43,7 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Agents {
+    private static final Logger LOG = LoggerFactory.getLogger(Agents.class);
     private AgentDAO agentDAO;
 
     public Agents(TeletraanServiceContext context) {
@@ -49,5 +59,28 @@ public class Agents {
     public List<AgentBean> get(
             @ApiParam(value = "Host name", required = true)@PathParam("hostName") String hostName) throws Exception {
         return agentDAO.getByHost(hostName);
+    }
+
+    @GET
+    @Path("/id/{hostId : [a-zA-Z0-9\\-_]+}")
+    public Collection<AgentBean> getById(@PathParam("hostId") String hostId) throws Exception {
+        return agentDAO.getByHostId(hostId);
+    }
+
+    @PUT
+    @Path("/id/{hostId : [a-zA-Z0-9\\-_]+}")
+    public void updateById(@Context SecurityContext sc,
+                           @PathParam("hostId") String hostId,
+                           @Valid AgentBean agentBean) throws Exception {
+        String operator = sc.getUserPrincipal().getName();
+        agentDAO.updateAgentById(hostId, agentBean);
+        LOG.info("Successfully update agents %s by %s: %s", hostId, operator, agentBean.toString());
+    }
+
+    @GET
+    @Path("/env/{envId : [a-zA-Z0-9\\-_]+}/total")
+    public long getCountByEnvName(
+        @ApiParam(value = "Env Id", required = true)@PathParam("envId") String envId) throws Exception {
+        return agentDAO.countAgentByEnv(envId);    
     }
 }

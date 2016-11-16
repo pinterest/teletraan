@@ -55,6 +55,7 @@ class EnvConfigView(View):
         environs_helper.set_active_max_parallel(env)
 
         return render(request, 'configs/env_config.html', {
+            "envs": envs,
             "env": env,
             "stages": stages,
             "show_remove": show_remove,
@@ -94,6 +95,7 @@ class EnvConfigView(View):
         data["maxDeployNum"] = int(query_dict["maxDeployNum"])
         data["maxDeployDay"] = int(query_dict["maxDeployDay"])
         data["maxParallelRp"] = int(query_dict["maxParallelRp"])
+        data["overridePolicy"] = query_dict["overridePolicy"]
 
         environs_helper.update_env_basic_config(request, name, stage, data=data)
         return self.get(request, name, stage)

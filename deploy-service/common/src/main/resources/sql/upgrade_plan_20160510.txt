@@ -1,8 +1,0 @@
-UPDATES
-=================
-ALTER TABLE environs ADD COLUMN state VARCHAR(32) NOT NULL;
-UPDATE environs SET state="NORMAL";
-
-Rollback
-===========================
-ALTER TABLE environs DROP COLUMN state;

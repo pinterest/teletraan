@@ -1,8 +1,0 @@
-UPDATES
-=================
-ALTER TABLE clusters ADD COLUMN config_id  VARCHAR(22);
-
-Rollback
-===========================
-ALTER TABLE clusters DROP COLUMN configs;
-

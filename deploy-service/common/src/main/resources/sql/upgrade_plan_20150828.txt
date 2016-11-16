@@ -1,19 +1,0 @@
-Update
- ============================== 
-ALTER TABLE groups ADD COLUMN instance_type VARCHAR(64);
-ALTER TABLE groups ADD COLUMN image_id VARCHAR(128);
-ALTER TABLE groups ADD COLUMN security_group VARCHAR(128);
-ALTER TABLE groups ADD COLUMN user_data TEXT;
-ALTER TABLE groups ADD COLUMN subnets VARCHAR(128);
-ALTER TABLE groups DROP COLUMN availability_zones;
-ALTER TABLE groups DROP COLUMN capacity;
-
-Rollback
- ============================= 
-ALTER TABLE groups DROP COLUMN instance_type;
-ALTER TABLE groups DROP COLUMN image_id;
-ALTER TABLE groups DROP COLUMN security_group;
-ALTER TABLE groups DROP COLUMN user_data;
-ALTER TABLE groups DROP COLUMN subnets;
-ALTER TABLE groups ADD COLUMN availability_zones VARCHAR(64);
-ALTER TABLE groups ADD COLUMN capacity INT;

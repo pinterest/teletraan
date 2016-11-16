@@ -22,9 +22,11 @@ import json
 import urllib2
 from deploy_board import settings
 from helpers import environs_helper
-from helpers import autoscaling_metrics_helper, groups_helper
+from helpers import autoscaling_metrics_helper, autoscaling_groups_helper
 import traceback
+import logging
 
+log = logging.getLogger(__name__)
 
 # convert json opentsdb to array based
 def _convert_opentsdb_data(dps):
@@ -114,7 +116,7 @@ def health_check(request):
 
 def get_latency_metrics(request, group_name):
     envs = environs_helper.get_all_envs_by_group(request, group_name)
-    launch_config = groups_helper.get_group_info(request, group_name)
+    launch_config = autoscaling_groups_helper.get_group_info(request, group_name)
     util_data = {}
     stage_names = []
     if len(envs) == 0:
@@ -143,7 +145,7 @@ def get_latency_metrics(request, group_name):
             util_data[metric_name2] = json_data2
 
         util_data["stage_names"] = stage_names
-        util_data["launch_latency_th"] = launch_config["launchLatencyTh"]
+        util_data["launch_latency_th"] = launch_config.get("groupInfo")["launchLatencyTh"]
     except:
         log.error(traceback.format_exc())
     return HttpResponse(json.dumps(util_data), content_type="application/json")
@@ -172,3 +174,26 @@ def get_launch_rate(request, group_name):
     except:
         log.error(traceback.format_exc())
     return HttpResponse(json.dumps(util_data), content_type="application/json")
+
+
+def get_pas_metrics(request, group_name):
+    pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
+    util_data = {}
+    if pas_config['pas_state'] != 'ENABLED':
+        return HttpResponse(json.dumps(util_data), content_type="application/json")
+    try:
+        arcee_size_points = autoscaling_metrics_helper.get_pas_metrics(request, group_name,
+                                                                       settings.DEFAULT_START_TIME, 'PREDICTED')
+
+
+        json_data3 = []
+        for data_point in arcee_size_points:
+            timestamp, value = data_point["timestamp"], data_point["value"]
+            json_data3.append([timestamp, value])
+        util_data['arcee'] = json_data3
+    except:
+        log.error(traceback.format_exc())
+    return HttpResponse(json.dumps(util_data), content_type="application/json")
+
+
+

@@ -25,6 +25,7 @@
 
 {% block main %}
 
+
 {% if asg_vm_config %}
     {% if not is_cmp %}
     <div id="launchConfigPid" class="panel panel-default">
@@ -36,9 +37,11 @@
     {% include "groups/group_config.tmpl" with config=group_config %}
     </div>
 
+    {% if asg_vm_config.asgStatus != "UNKNOWN" %}
     <div id="asgConfigPid" class="panel panel-default">
-        {% include "groups/asg_config.tmpl" %}
+    {% include "groups/asg_config.tmpl" %}
     </div>
+    {% endif %}
 <script>
 $(function() {
     $.get('/groups/{{ group_name }}/autoscaling/get_launch_config/', function(response){

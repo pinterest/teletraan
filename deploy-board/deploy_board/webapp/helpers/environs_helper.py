@@ -44,6 +44,8 @@ PROMOTE_FAILED_POLICY_VALUES = ['CONTINUE', 'DISABLE', 'ROLLBACK']
 
 PROMOTE_DISABLE_POLICY_VALUES = ['MANUAL', 'AUTO']
 
+OVERRIDE_POLICY_VALUES = ['OVERRIDE', 'WARN']
+
 deployclient = DeployClient()
 
 
@@ -86,6 +88,22 @@ def update_env_capacity(request, env_name, stage_name, capacity_type=None, data=
         params.append(("capacityType", capacity_type))
     return deployclient.put("/envs/%s/%s/capacity" % (env_name, stage_name),
                             request.teletraan_user_id.token, params=params, data=data)
+
+
+def add_env_capacity(request, env_name, stage_name, capacity_type=None, data=None):
+    params = []
+    if capacity_type:
+        params.append(("capacityType", capacity_type))
+    return deployclient.post("/envs/%s/%s/capacity" % (env_name, stage_name),
+                             request.teletraan_user_id.token, params=params, data=data)
+
+
+def remove_env_capacity(request, env_name, stage_name, capacity_type=None, data=None):
+    params = []
+    if capacity_type:
+        params.append(("capacityType", capacity_type))
+    return deployclient.delete("/envs/%s/%s/capacity" % (env_name, stage_name),
+                               request.teletraan_user_id.token, params=params, data=data)
 
 
 def create_env(request, data):
@@ -196,3 +214,17 @@ def disable_env_changes(request, env_name, stage_name, description):
     return deployclient.post("/envs/%s/%s/actions" % (env_name, stage_name), request.teletraan_user_id.token,
                              params=params)
 
+def pause_hosts(request, env_name, stage_name, host_ids):
+    params = [("actionType", "PAUSED_BY_USER")]
+    return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token, 
+        params=params, data=host_ids)
+
+def resume_hosts(request, env_name, stage_name, host_ids):
+    params = [("actionType", "NORMAL")]
+    return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token, 
+        params=params, data=host_ids)
+
+def reset_hosts(request, env_name, stage_name, host_ids):
+    params = [("actionType", "RESET")]
+    return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token,
+        params=params, data=host_ids)

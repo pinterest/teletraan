@@ -1,7 +1,0 @@
-Update
-===========================
-ALTER TABLE health_checks ADD COLUMN deploy_start_time BIGINT;
-
-Rollback
-===========================
-ALTER TABLE health_checks DROP COLUMN deploy_start_time;

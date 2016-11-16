@@ -23,6 +23,9 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
+
+import com.pinterest.deployservice.bean.ScheduleState;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -38,6 +41,7 @@ public class EnvironHandler {
     private AgentDAO agentDAO;
     private GroupDAO groupDAO;
     private HostDAO hostDAO;
+    private ScheduleDAO scheduleDAO;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
 
@@ -47,6 +51,7 @@ public class EnvironHandler {
         agentDAO = serviceContext.getAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
         hostDAO = serviceContext.getHostDAO();
+        scheduleDAO = serviceContext.getScheduleDAO();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
     }
@@ -141,6 +146,10 @@ public class EnvironHandler {
 
         if (envBean.getState() == null) {
             envBean.setState(EnvironState.NORMAL);
+        }
+
+        if (envBean.getOverride_policy() == null) {
+            envBean.setOverride_policy(Constants.DEFAULT_OVERRIDE_POLICY);
         }
     }
 
@@ -483,5 +492,24 @@ public class EnvironHandler {
             throw new DeployInternalException("env %s/%s does not exist.", envName, envStage);
         }
         return envBean;
+    }
+
+    public void stopServiceOnHost(String hostId) throws Exception {
+        LOG.info(String.format("Start to stop host %s", hostId));
+        AgentBean agentBean = new AgentBean();
+        agentBean.setState(AgentState.STOP);
+        agentBean.setLast_update(System.currentTimeMillis());
+        agentDAO.updateAgentById(hostId, agentBean);
+
+        HostBean hostBean = new HostBean();
+        hostBean.setState(HostState.PENDING_TERMINATE);
+        hostBean.setLast_update(System.currentTimeMillis());
+        hostDAO.updateHostById(hostId, hostBean);
+    }
+
+    public void stopServiceOnHosts(Collection<String> hostIds) throws Exception {
+        for (String hostId : hostIds) {
+            stopServiceOnHost(hostId);
+        }
     }
 }

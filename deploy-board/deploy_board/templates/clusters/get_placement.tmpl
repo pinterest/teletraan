@@ -2,10 +2,10 @@
 <div class="input-group">
 <select class="form-control chosen-select" id="placement_id" name="placementId" required multiple>
 {% for placement in placements %}
-    {% if curr_placement_arrays and placement.id in curr_placement_arrays %}
-        <option value="{{ placement.id }}" selected>{{ placement.abstract_name }}</option>
+    {% if curr_placement_arrays and placement.abstract_name in curr_placement_arrays %}
+        <option value="{{ placement.abstract_name }}" selected>{{ placement.abstract_name }}</option>
     {% else %}
-        <option value="{{ placement.id }}">{{ placement.abstract_name }}</option>
+        <option value="{{ placement.abstract_name }}">{{ placement.abstract_name }}</option>
     {% endif %}
 {% endfor %}
 </select>

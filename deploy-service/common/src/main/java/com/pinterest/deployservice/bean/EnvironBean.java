@@ -58,6 +58,7 @@ import java.io.Serializable;
  * state               VARCHAR(32)         NOT NULL,
  * cluster_name        VARCHAR(128)
  * max_parallel_rp     INT           NOT NULL DEFAULT 1,
+ * schedule_id         VARCHAR(22)   DEFAULT NULL,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -164,6 +165,12 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("maxParallelRp")
     private Integer max_parallel_rp;
+
+    @JsonProperty("overridePolicy")
+    private OverridePolicy override_policy;
+
+    @JsonProperty("scheduleId")
+    private String schedule_id;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -429,6 +436,22 @@ public class EnvironBean implements Updatable, Serializable {
         this.max_parallel_rp = max_parallel_rp;
     }
 
+    public OverridePolicy getOverride_policy() {
+        return override_policy;
+    }
+
+    public void setOverride_policy(OverridePolicy override_policy) {
+        this.override_policy = override_policy;
+    }
+
+    public String getSchedule_id() {
+        return schedule_id;
+    }
+
+    public void setSchedule_id(String schedule_id) {
+        this.schedule_id = schedule_id;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -465,6 +488,8 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("state", state);
         clause.addColumn("cluster_name", cluster_name);
         clause.addColumn("max_parallel_rp", max_parallel_rp);
+        clause.addColumn("override_policy", override_policy);
+        clause.addColumn("schedule_id", schedule_id);
         return clause;
     }
 

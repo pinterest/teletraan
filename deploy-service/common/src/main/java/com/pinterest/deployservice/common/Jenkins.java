@@ -79,7 +79,7 @@ public class Jenkins {
 
     String getJenkinsToken() throws Exception {
         String url = String.format("%s/%s", JENKINS_URL, "crumbIssuer/api/json");
-        String ret = httpClient.get(url, null, null, RETRIES);
+        String ret = httpClient.get(url, null, null, null, RETRIES);
         JsonParser parser = new JsonParser();
         JsonObject json = (JsonObject) parser.parse(ret);
         return json.get("crumb").getAsString();
@@ -97,14 +97,14 @@ public class Jenkins {
         String url = String.format("%s/job/%s/buildWithParameters?%s", JENKINS_URL, jobName, buildParams);
         // startBuild(url);
         // Use GET instead, which is the same as POST but no need for token
-        httpClient.get(url, null, null, RETRIES);
+        httpClient.get(url, null, null, null, RETRIES);
         LOG.info("Successfully post to jenkins for job " + jobName);
     }
 
     public Build getBuild(String jobName, String jobNum) throws Exception {
         String url = String.format("%s/job/%s/%s/api/json", JENKINS_URL, jobName, jobNum);
         LOG.debug("Calling jenkins with url " + url);
-        String ret = httpClient.get(url, null, null, RETRIES);
+        String ret = httpClient.get(url, null, null, null, RETRIES);
         JsonParser parser = new JsonParser();
         JsonObject json = (JsonObject) parser.parse(ret);
         return new Build(json.get("number").toString(),

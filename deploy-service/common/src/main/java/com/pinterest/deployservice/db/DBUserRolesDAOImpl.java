@@ -33,7 +33,7 @@ import java.util.List;
 public class DBUserRolesDAOImpl implements UserRolesDAO {
 
     private static final String INSERT_TEMPLATE =
-        "INSERT INTO users_and_roles SET %s";
+        "INSERT INTO users_and_roles SET %s ON DUPLICATE KEY UPDATE %s";
 
     private static final String DELETE_TEMPLATE =
         "DELETE FROM users_and_roles WHERE user_name=? AND resource_id=? AND resource_type=?";
@@ -56,7 +56,7 @@ public class DBUserRolesDAOImpl implements UserRolesDAO {
     @Override
     public void insert(UserRolesBean bean) throws Exception {
         SetClause setClause = bean.genSetClause();
-        String clause = String.format(INSERT_TEMPLATE, setClause.getClause());
+        String clause = String.format(INSERT_TEMPLATE, setClause.getClause(), UserRolesBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 

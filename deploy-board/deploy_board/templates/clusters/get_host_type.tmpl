@@ -2,10 +2,10 @@
 <div class="input-group">
 <select class="form-control" id="host_type" name="hostTypeId" required="true">
 {% for host_type in host_types %}
-    {% if curr_host_type and curr_host_type == host_type.id %}
-        <option value="{{ host_type.id }}" selected>{{ host_type.abstract_name }}</option>
+    {% if curr_host_type and curr_host_type == host_type.abstract_name %}
+        <option value="{{ host_type.abstract_name }}" selected>{{ host_type.abstract_name }}</option>
     {% else %}
-        <option value="{{ host_type.id }}">{{ host_type.abstract_name }}</option>
+        <option value="{{ host_type.abstract_name }}">{{ host_type.abstract_name }}</option>
     {% endif %}
 {% endfor %}
 </select>

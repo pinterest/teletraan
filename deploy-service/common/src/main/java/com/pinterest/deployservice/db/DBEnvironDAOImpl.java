@@ -45,6 +45,8 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "SELECT * FROM environs WHERE env_name=?";
     private static final String GET_ENV_BY_STAGE =
         "SELECT * FROM environs WHERE env_name=? AND stage_name=?";
+    private static final String GET_ENV_BY_CLUSTER =
+        "SELECT * FROM environs WHERE cluster_name=?";
     private static final String GET_ALL_ENV =
         "SELECT DISTINCT env_name FROM environs WHERE env_name LIKE ? ORDER BY env_name ASC LIMIT ?,?";
     private static final String GET_ALL_ENV2 =
@@ -86,6 +88,8 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "SELECT deploy_id FROM environs WHERE env_state='NORMAL' AND deploy_id IS NOT NULL";
     private static final String GET_ALL_ENV_IDS =
         "SELECT env_id FROM environs";
+    private static final String DELETE_SCHEDULE =
+        "UPDATE environs SET schedule_id=null where env_name=? AND stage_name=?";
 
     private BasicDataSource dataSource;
 
@@ -168,6 +172,12 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     }
 
     @Override
+    public EnvironBean getByCluster(String clusterName) throws Exception {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<EnvironBean>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_ENV_BY_CLUSTER, h, clusterName);
+    }
+
+    @Override
     public List<String> getOverrideHosts(String envId, String envName, String envStage) throws Exception {
         return new QueryRunner(dataSource).query(GET_OVERRIDE_HOSTS_BY_CAPACITY,
             SingleResultSetHandlerFactory.<String>newListObjectHandler(), envId, envName, envStage);
@@ -219,5 +229,10 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     @Override
     public List<String> getAllEnvIds() throws Exception {
         return new QueryRunner(dataSource).query(GET_ALL_ENV_IDS, SingleResultSetHandlerFactory.<String>newListObjectHandler());
+    }
+
+    @Override
+    public void deleteSchedule(String envName, String stageName) throws Exception {
+        new QueryRunner(dataSource).update(DELETE_SCHEDULE, envName, stageName);
     }
 }

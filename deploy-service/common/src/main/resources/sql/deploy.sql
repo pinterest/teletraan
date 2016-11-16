@@ -36,6 +36,8 @@ CREATE TABLE IF NOT EXISTS environs (
     state               VARCHAR(32)   NOT NULL,
     cluster_name        VARCHAR(128),
     max_parallel_rp     INT           NOT NULL DEFAULT 1,
+    override_policy     VARCHAR(32)   NOT NULL,
+    schedule_id         VARCHAR(22),
     PRIMARY KEY   (env_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);
@@ -212,35 +214,6 @@ CREATE TABLE IF NOT EXISTS user_ratings (
     PRIMARY KEY (rating_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS groups (
-    group_name          VARCHAR(64)     NOT NULL,
-    last_update         BIGINT(20)      NOT NULL,
-    chatroom            VARCHAR(64),
-    email_recipients    VARCHAR(1024),
-    pager_recipients    VARCHAR(1024),
-    watch_recipients    VARCHAR(1024),
-    launch_latency_th   INT             NOT NULL DEFAULT 600,
-    healthcheck_state   TINYINT(1)      NOT NULL DEFAULT 0,
-    healthcheck_period  BIGINT          NOT NULL DEFAULT 3600,
-    lifecycle_state     TINYINT(1)      NOT NULL DEFAULT 0,
-    lifecycle_timeout   BIGINT          NOT NULL DEFAULT 600,
-    PRIMARY KEY (group_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS asg_alarms (
-    alarm_id            VARCHAR(64)        NOT NULL,
-    metric_name         VARCHAR(80)        NOT NULL,
-    metric_source       VARCHAR(128)       NOT NULL,
-    comparator          VARCHAR(30)        NOT NULL,
-    action_type         VARCHAR(10)        NOT NULL,
-    group_name          VARCHAR(64)        NOT NULL,
-    threshold           DOUBLE             NOT NULL,
-    evaluation_time     INT                NOT NULL,
-    last_update         BIGINT             NOT NULL,
-    from_aws_metric       TINYINT(1)         NOT NULL DEFAULT 0,
-    PRIMARY KEY (alarm_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE IF NOT EXISTS config_history (
     config_id           VARCHAR(64)     NOT NULL,
     change_id           VARCHAR(22)     NOT NULL,
@@ -270,16 +243,6 @@ CREATE TABLE IF NOT EXISTS tokens_and_roles (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX tokens_and_roles_token_idx ON tokens_and_roles (token);
 
-
-CREATE TABLE IF NOT EXISTS images (
-    id               VARCHAR(30)         NOT NULL,
-    app_name         VARCHAR(64)         NOT NULL,
-    publish_info     VARCHAR(512),
-    publish_date     BIGINT              NOT NULL,
-    qualified        TINYINT(1)          NOT NULL DEFAULT 0,
-    PRIMARY KEY    (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE IF NOT EXISTS groups_and_roles (
   group_name    VARCHAR(64)     NOT NULL,
   resource_id   VARCHAR(64)     NOT NULL,
@@ -287,151 +250,6 @@ CREATE TABLE IF NOT EXISTS groups_and_roles (
   role          VARCHAR(22)     NOT NULL,
   PRIMARY KEY (resource_id, resource_type, group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS health_checks (
-    id                      VARCHAR(64)      NOT NULL,
-    group_name              VARCHAR(64)      NOT NULL,
-    env_id                  VARCHAR(22)      NOT NULL,
-    deploy_id               VARCHAR(64)      NOT NULL,
-    ami_id                  VARCHAR(64)      NOT NULL,
-    state                   VARCHAR(64)      NOT NULL,
-    status                  VARCHAR(32)      NOT NULL,
-    type                    VARCHAR(32)      NOT NULL,
-    host_id                 VARCHAR(64),
-    host_launch_time        BIGINT,
-    host_terminated         TINYINT(1),
-    error_message           TEXT,
-    deploy_start_time       BIGINT,
-    deploy_complete_time    BIGINT,
-    state_start_time        BIGINT           NOT NULL,
-    start_time              BIGINT           NOT NULL,
-    last_worked_on          BIGINT           NOT NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS healthcheck_errors (
-    id                  VARCHAR(64)         NOT NULL,
-    env_id              VARCHAR(22)         NOT NULL,
-    deploy_stage        VARCHAR(32)         NOT NULL,
-    agent_state         VARCHAR(32)         NOT NULL,
-    agent_status        VARCHAR(32)         NOT NULL,
-    last_err_no         INT                 NOT NULL DEFAULT 0,
-    fail_count          INT                 NOT NULL DEFAULT 0,
-    error_msg           TEXT                NOT NULL,
-    agent_start_date    BIGINT              NOT NULL,
-    agent_last_update   BIGINT              NOT NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS new_instances_reports (
-    host_id              VARCHAR(64)        NOT NULL,
-    env_id               VARCHAR(64)        NOT NULL,
-    launch_time          BIGINT,
-    reported             TINYINT            NOT NULL DEFAULT 0,
-    PRIMARY KEY (host_id, env_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS asg_lifecycle_events (
-    token_id       VARCHAR(128)  NOT NULL,
-    hook_id        VARCHAR(64)   NOT NULL,
-    group_name     VARCHAR(64)   NOT NULL,
-    host_id        VARCHAR(64)   NOT NULL,
-    start_date     BIGINT        NOT NULL,
-    PRIMARY KEY (token_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS lending_activities (
-    id          VARCHAR(32)   NOT NULL,
-    group_name  VARCHAR(32)   NOT NULL,
-    actity_type VARCHAR(10)   NOT NULL,
-    reason      VARCHAR(1024) NOT NULL,
-    update_time  BIGINT       NOT NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS managing_groups (
-    group_name          VARCHAR(32) NOT NULL,
-    max_lending_size    INT         NOT NULL,
-    lending_priority    INT         NOT NULL,
-    instance_type       VARCHAR(16) NOT NULL,
-    batch_size          INT         NOT NULL,
-    cool_down           INT         NOT NULL,
-    lent_size           INT         NOT NULL,
-    last_activity_time  BIGINT      NOT NULL,
-    PRIMARY KEY (group_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS clusters (
-    cluster_name         VARCHAR(128)    NOT NULL,
-    capacity             INT             NOT NULL DEFAULT 0,
-    base_image_id        VARCHAR(22),
-    host_type_id         VARCHAR(22),
-    security_zone_id     VARCHAR(22),
-    placement_id         VARCHAR(128),
-    config_id            VARCHAR(22),
-    provider             VARCHAR(64),
-    state                VARCHAR(32),
-    last_update          BIGINT(20)      NOT NULL,
-    PRIMARY KEY (cluster_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS base_images (
-    id              VARCHAR(22)      NOT NULL,
-    abstract_name   VARCHAR(128)     NOT NULL,
-    provider_name   VARCHAR(128)     NOT NULL,
-    provider        VARCHAR(128)     NOT NULL,
-    basic           TINYINT(1)       DEFAULT  0,
-    qualified       TINYINT(1)       DEFAULT  0,
-    description     TEXT,
-    publish_date    BIGINT(20)       NOT NULL,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS host_types (
-    id              VARCHAR(22)      NOT NULL,
-    abstract_name   VARCHAR(128)     NOT NULL,
-    provider_name   VARCHAR(128)     NOT NULL,
-    provider        VARCHAR(128)     NOT NULL,
-    basic           TINYINT(1)       DEFAULT  0,
-    core            INT,
-    mem             INT,
-    storage         VARCHAR(128),
-    description     TEXT,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS security_zones (
-    id              VARCHAR(22)      NOT NULL,
-    abstract_name   VARCHAR(128)     NOT NULL,
-    provider_name   VARCHAR(128)     NOT NULL,
-    provider        VARCHAR(128)     NOT NULL,
-    basic           TINYINT(1)       DEFAULT  0,
-    description     TEXT,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS placements (
-    id              VARCHAR(22)      NOT NULL,
-    abstract_name   VARCHAR(128)     NOT NULL,
-    provider_name   VARCHAR(128)     NOT NULL,
-    provider        VARCHAR(128)     NOT NULL,
-    basic           TINYINT(1)       DEFAULT 0,
-    capacity        INT              DEFAULT 0,
-    description     TEXT,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-CREATE TABLE IF NOT EXISTS spot_auto_scaling_groups (
-   asg_name         VARCHAR(128)     NOT NULL,
-   cluster_name     VARCHAR(128)     NOT NULL,
-   launch_config_id VARCHAR(128),
-   bid_price        VARCHAR(32)      NOT NULL,
-   spot_ratio       DOUBLE           NOT NULL,
-   sensitivity_ratio DOUBLE          NOT NULL DEFAULT 0.1,
-   enable_grow       TINYINT(1)      NOT NULL DEFAULT 0,
-   PRIMARY KEY (asg_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-CREATE INDEX asg_cluster_idx ON spot_auto_scaling_groups (cluster_name);
 
 CREATE TABLE IF NOT EXISTS tags (
   id VARCHAR(30) NOT NULL,
@@ -448,16 +266,21 @@ CREATE INDEX tags_target_id_idx ON tags(target_id, target_type, created_date);
 CREATE INDEX tags_value_target_type_idx ON tags(value, target_type, created_date);
 CREATE INDEX tags_target_type_idx ON tags(target_type, created_date);
 
-CREATE TABLE IF NOT EXISTS cluster_upgrade_events (
-    id                      VARCHAR(64)      NOT NULL,
-    cluster_name            VARCHAR(128)     NOT NULL,
-    env_id                  VARCHAR(22)      NOT NULL,
-    state                   VARCHAR(64)      NOT NULL,
-    status                  VARCHAR(32)      NOT NULL,
-    host_ids                TEXT,
-    start_time              BIGINT           NOT NULL,
-    state_start_time        BIGINT           NOT NULL,
-    last_worked_on          BIGINT           NOT NULL,
-    error_message           TEXT,
+CREATE TABLE IF NOT EXISTS schedules (
+    id                  VARCHAR(22)     NOT NULL,
+    total_sessions      INT             NOT NULL DEFAULT 0,
+    cooldown_times      VARCHAR(32)     NOT NULL,
+    host_numbers        VARCHAR(32)     NOT NULL,
+    current_session     INT             NOT NULL DEFAULT 0,
+    state               VARCHAR(32)     NOT NULL DEFAULT "NOT_STARTED",
+    state_start_time    BIGINT          NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS schema_versions (
+    version INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (version)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Make sure to update the version everytime we change the schema
+INSERT INTO schema_versions (version) VALUES (1);

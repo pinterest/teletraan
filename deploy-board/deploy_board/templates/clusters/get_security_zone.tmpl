@@ -2,10 +2,10 @@
 <div class="input-group">
 <select class="form-control" id="security_zone" name="securityZoneId" required="true">
 {% for security_zone in security_zones %}
-    {% if curr_security_zone and curr_security_zone == security_zone.id %}
-        <option value="{{ security_zone.id }}" selected>{{ security_zone.abstract_name }}</option>
+    {% if curr_security_zone and curr_security_zone == security_zone.abstract_name %}
+        <option value="{{ security_zone.abstract_name }}" selected>{{ security_zone.abstract_name }}</option>
     {% else %}
-        <option value="{{ security_zone.id }}">{{ security_zone.abstract_name }}</option>
+        <option value="{{ security_zone.abstract_name }}">{{ security_zone.abstract_name }}</option>
     {% endif %}
 {% endfor %}
 </select>

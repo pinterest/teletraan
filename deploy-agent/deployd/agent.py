@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,6 +21,7 @@ import daemon
 import logging
 
 from deployd.client.client import Client
+from deployd.client.serverless_client import ServerlessClient
 from deployd.common.config import Config
 from deployd.common.exceptions import AgentException
 from deployd.common.helper import Helper
@@ -42,6 +43,12 @@ class PingServer(object):
     def __call__(self, deploy_report):
         return self._agent.update_deploy_status(deploy_report=deploy_report)
 
+class AgentRunMode(object):
+    SERVERLESS = "serverless"
+
+    @staticmethod
+    def is_serverless(mode):
+        return AgentRunMode.SERVERLESS == mode
 
 class DeployAgent(object):
     _STATUS_FILE = None
@@ -81,6 +88,7 @@ class DeployAgent(object):
 
         # start to ping server to get the latest deploy goal
         response = self._client.send_reports(self._envs)
+
         self._response = response
         if self._response:
             report = self._update_internal_deploy_goal(self._response)
@@ -150,14 +158,26 @@ class DeployAgent(object):
         except Exception:
             log.exception("Deploy Agent got exceptions: {}".format(traceback.format_exc()))
 
+    def _resolve_deleted_env_name(self, envName, envId):
+        # When server return DELETE goal, the envName might be empty if the env has already been deleted.
+        # This function would try to figure out the envName based on the envId in the DELETE goal
+        if envName:
+            return envName
+        for name, value in self._envs.iteritems():
+            if envId == value.report.envId:
+                return name
+        return None
+
+
     def process_deploy(self, response):
         op_code = response.opCode
         deploy_goal = response.deployGoal
         if op_code == OpCode.TERMINATE or op_code == OpCode.DELETE:
-            if deploy_goal.envName in self._envs:
-                del self._envs[deploy_goal.envName]
+            envName = self._resolve_deleted_env_name(deploy_goal.envName, deploy_goal.envId)
+            if envName in self._envs:
+                del self._envs[envName]
             else:
-                log.info('Cannot find env {} in the ping report'.format(deploy_goal.env_name))
+                log.info('Cannot find env {} in the ping report'.format(env_name))
 
             if self._curr_report.report.envName == deploy_goal.envName:
                 self._curr_report = None
@@ -351,8 +371,24 @@ def main():
                              "This is optional. By default the group name defined in host-info "
                              "file will be used")
     parser.add_argument('--use-facter', dest='use_facter', action='store_true', default=False)
+    parser.add_argument('--mode', dest='mode', default=None,
+                        help="Optional. 'serverless' is the only non default mode supported. "
+                             "In this mode, agent can be run for one time deployment without "
+                             "interacting with teletraan service.")
+    parser.add_argument('--build', dest='build', default=None,
+                        help="Optional. In 'serverless' mode, build information is needed in "
+                             "json format.")
+    parser.add_argument('--env-name', dest='env_name', default=None,
+                        help="Optional. In 'serverless' mode, env_name needs to be passed in.")
+    parser.add_argument('--script-variables', dest='script_variables', default='{}',
+                        help="Optional. In 'serverless' mode,  script_variables is needed in "
+                             "json format.")
 
     args = parser.parse_args()
+
+    is_serverless_mode = AgentRunMode.is_serverless(args.mode)
+    if args.daemon and is_serverless_mode:
+        raise ValueError("daemon and serverless mode is mutually exclusive.")
     config = Config(args.config_file)
     utils.run_prereqs(config)
 
@@ -367,6 +403,11 @@ def main():
 
     log.info("Start to run deploy-agent.")
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup, use_facter=args.use_facter)
+    if is_serverless_mode:
+        log.info("Running agent with severless client")
+        client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,
+                                  script_variables=args.script_variables)
+
     agent = DeployAgent(client=client, conf=config)
     utils.listen()
     if args.daemon:

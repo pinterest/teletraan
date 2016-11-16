@@ -54,7 +54,7 @@
                     <div class="col-xs-4">
                         <select class="form-control" id="app_name" name="appName" required="true">
                         {% for app_name in app_names %}
-                            {% if curr_image.app_name == app_name %}
+                            {% if curr_image.abstract_name == app_name %}
                                 <option value="{{ app_name }}" selected>{{app_name }}</option>
                             {% else %}
                                 <option value="{{ app_name }}">{{app_name }}</option>

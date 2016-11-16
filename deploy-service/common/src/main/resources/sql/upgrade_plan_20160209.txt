@@ -1,8 +1,0 @@
-Update
-============
-ALTER TABLE asg_alarms MODIFY COLUMN threshold DOUBLE NOT NULL;
-
-
-Rollback
-============
-ALTER TABLE asg_alarms MODIFY COLUMN threshold BIGINT NOT NULL;

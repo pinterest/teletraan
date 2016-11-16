@@ -1,0 +1,130 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title="Predictive Autoscaling Config" panel_body_id="pasConfigId" direction="down" %}
+<div id="pasConfigId" class="collapse in panel-body">
+   <div class="container-fluid">
+        <form id="pasConfigIdFormId" class="form-horizontal" role="form">
+            <fieldset id="pasConfigFieldSetId">
+                <div class="form-group">
+                    <label for="pas_state" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Whether or not to enable predictive autoscaling">
+                        Enable Predictive Autoscaling
+                    </label>
+                    <div class="col-xs-4">
+                        <div class="input-group">
+                        {% if pas_config.pas_state == 'ENABLED' %}
+                            <input class="" id="pas_state" name="pas_state" type="checkbox" value="" checked>
+                        {% else %}
+                            <input class="" id="pas_state" name="pas_state" type="checkbox" value="">
+                        {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="Metric" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Metric">
+                        Metric
+                    </label>
+                    <div class="col-xs-4">
+                        <input class="form-control" name="metric" required="true"
+                               type="text" value="{{ pas_config.metric |default_if_none:'' }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="Throughput" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Throughput">
+                        Throughput
+                    </label>
+                    <div class="col-xs-4">
+                        <input class="form-control" name="throughput" required="true"
+                               type="text" value="{{ pas_config.throughput |default_if_none:'' }}"/>
+                    </div>
+                </div>
+            </fieldset>
+        {% csrf_token %}
+        </form>
+    </div>
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button id="resetPASConfigBtnId" class="btn btn-default"
+                    data-loading-text="Reloading...">
+                <span class="glyphicon glyphicon-refresh"></span> Reload
+            </button>
+            <button id="savePASConfigBtnId" class="btn btn-primary"
+                    data-loading-text="Saving...">
+                <span class="glyphicon glyphicon-floppy-save"></span> Save
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#savePASConfigBtnId').attr('disabled','disabled');
+        $('#resetPASConfigBtnId').attr('disabled','disabled');
+
+        $('#pasConfigIdFormId input').keyup(function() {
+            $('#savePASConfigBtnId').removeAttr('disabled');
+            $('#resetPASConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#pasConfigIdFormId textarea').keyup(function() {
+            $('#savePASConfigBtnId').removeAttr('disabled');
+            $('#resetPASConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#pasConfigIdFormId select').change(function() {
+            $('#savePASConfigBtnId').removeAttr('disabled');
+            $('#resetPASConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#pasConfigIdFormId input').change(function() {
+            $('#savePASConfigBtnId').removeAttr('disabled');
+            $('#resetPASConfigBtnId').removeAttr('disabled');
+        });
+
+        $('#savePASConfigBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'POST',
+                url: '/groups/{{ group_name }}/autoscaling/update_pas_config/',
+                data: $("#pasConfigIdFormId").serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $("#pasConfigId").parent().html(data);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+
+        $('#resetPASConfigBtnId').click(function () {
+            var btn = $(this);
+            $.ajax({
+                type: 'GET',
+                url: '/groups/{{ group_name }}/autoscaling/get_pas_config/',
+                beforeSend: function () {
+                    btn.button('loading');
+                },
+                success: function (data) {
+                    btn.button('reset');
+                    $("#pasConfigId").parent().html(data);
+                }
+            });
+        });
+    });
+</script>

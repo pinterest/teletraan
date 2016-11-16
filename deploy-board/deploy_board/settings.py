@@ -61,6 +61,12 @@ else:
 TELETRAAN_SERVICE_URL = os.getenv("TELETRAAN_SERVICE_URL")
 TELETRAAN_SERVICE_VERSION = os.getenv("TELETRAAN_SERVICE_VERSION")
 TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN = os.getenv("TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN", None)
+TELETRAAN_HOST_INFORMATION_URL = os.getenv("HOST_INFORMATION_URL")
+
+# CMDB vars
+CMDB_API_HOST = os.getenv("CMDB_API_HOST")
+CMDB_INSTANCE_URL = os.getenv("CMDB_INSTANCE_URL")
+CMDB_UI_HOST = os.getenv("CMDB_UI_HOST")
 
 LOG_DIR = os.getenv("LOG_DIR")
 LOG_LEVEL = os.getenv("LOG_LEVEL")
@@ -173,6 +179,9 @@ STATICFILES_DIRS = (
     os.path.join(PROJECT_PATH, "static"),
 )
 
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
 # Site global metrics
 SITE_METRICS_CONFIGS = []
 # Deep Teletraan backend health check url
@@ -181,6 +190,11 @@ TELETRAAN_SERVICE_HEALTHCHECK_URL = os.getenv("TELETRAAN_SERVICE_HEALTHCHECK_URL
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = "https://jenkins.pinadmin.com/job/"
+
+# use Rodimus if present
+RODIMUS_SERVICE_URL = os.getenv("RODIMUS_SERVICE_URL", None)
+RODIMUS_SERVICE_VERSION = os.getenv("RODIMUS_SERVICE_VERSION", None)
+
 if IS_PINTEREST:
     # use knox if present
     KNOX_SESSION_ID = os.getenv("KNOX_SESSION_ID")

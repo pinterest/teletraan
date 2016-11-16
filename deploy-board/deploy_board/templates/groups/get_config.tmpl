@@ -4,6 +4,11 @@
     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
     <strong>Warning!</strong> Please update the <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">Group Launch Configuration</a> before launching hosts!
 </div>
+{% elif not subnets %}
+<div class="alert alert-danger" role="alert">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+    <strong>Warning! Empty Subnets</strong> Please update the <a href="https://deploy.pinadmin.com/groups/{{ groupName }}/config/">Group Launch Configuration</a> before launching hosts!
+</div>
 {% else %}
     <input type="hidden" name="asgStatus" value="{{ config.asgStatus }}" />
     {% if config.asgStatus == 'UNKNOWN' %}
@@ -88,4 +93,11 @@
         if ($(this).is(':checked')) $(this).next('div.chooseSubnet').show();
         else $('div.chooseSubnet').hide();
     }).change();
+   $(document).ready(function() {
+        {% if not config %}
+        $('#addMetricBtnId', window.parent.document).prop('disabled', true);
+        {% else %}
+        $('#addMetricBtnId', window.parent.document).prop('disabled', false);
+        {% endif %}
+   });
 </script>

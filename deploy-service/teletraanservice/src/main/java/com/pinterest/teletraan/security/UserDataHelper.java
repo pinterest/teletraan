@@ -60,7 +60,7 @@ public class UserDataHelper {
         HTTPClient client = new HTTPClient();
         HashMap<String, String> params = new HashMap<>();
         params.put("access_token", token);
-        String jsonResponse = client.get(groupDataUrl, params, null, 3);
+        String jsonResponse = client.get(groupDataUrl, null, params, null, 3);
 
         // Parse response
         Gson gson = new Gson();
@@ -80,7 +80,7 @@ public class UserDataHelper {
     public String getUsername(String token) throws Exception {
         HTTPClient httpClient = new HTTPClient();
         Map<String, String> params = ImmutableMap.of("access_token", token);
-        String jsonPayload = httpClient.get(userDataUrl, params, null, 3);
+        String jsonPayload = httpClient.get(userDataUrl, null, params, null, 3);
         JsonObject jsonObject = new JsonParser().parse(jsonPayload).getAsJsonObject();
         jsonObject = jsonObject.getAsJsonObject("user");
         String user = jsonObject.get("username").getAsString();

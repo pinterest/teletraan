@@ -17,7 +17,7 @@
 """
 from django.shortcuts import render, redirect
 from django.views.generic import View
-from helpers import environs_helper, deploys_helper, builds_helper, systems_helper
+from helpers import environs_helper, deploys_helper, builds_helper, systems_helper, autoscaling_groups_helper
 from deploy_board import settings
 import subprocess
 import common
@@ -28,7 +28,6 @@ import traceback
 
 from ngapptools.varnish.varnish_info import Recorder
 from helpers.ngapp2_deploy import Ngapp2DeployUtils, NgappDeployStep
-from helpers import groups_helper
 
 from helpers import s3_helper
 import time
@@ -178,14 +177,14 @@ def send_health_check_error_message(request, enable):
 
 def enable_health_check(request):
     try:
-        groups_helper.enable_health_check(request, NGAPP_GROUP)
+        autoscaling_groups_helper.enable_health_check(request, NGAPP_GROUP)
     except:
         send_health_check_error_message(True)
 
 
 def disable_health_check(request):
     try:
-        groups_helper.disable_health_check(request, NGAPP_GROUP)
+        autoscaling_groups_helper.disable_health_check(request, NGAPP_GROUP)
     except:
         send_health_check_error_message(False)
 

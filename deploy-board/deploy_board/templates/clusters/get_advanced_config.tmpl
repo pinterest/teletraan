@@ -1,33 +1,7 @@
 {%load utils %}
 {% if provider == "AWS" %}
-{% if advanced_cluster_info %}
 <div class="form-group">
 </div>
-<div class="form-group">
-    <label for="role" class="deployToolTip control-label col-xs-2"
-        data-toggle="tooltip"
-        title="AWS VM Role">
-        Role
-    </label>
-    <div class="col-xs-4">
-        <input class="form-control" name="role" type="text" value="{{ advanced_cluster_info.role }}"/>
-    </div>
-
-    <label for="assignIp" class="deployToolTip control-label col-xs-2"
-       data-toggle="tooltip" title="Assign public IP address to the instance in VPC">
-       Assign Public IP:
-    </label>
-    <div class="col-xs-4">
-        <div class="input-group">
-        {% if advanced_cluster_info.assignPublicIp %}
-            <input class="" id="assign_public_ip" name="assignPublicIp" type="checkbox" value="" checked>
-        {% else %}
-            <input class="" id="assign_public_ip" name="assignPublicIp" type="checkbox" value="">
-        {% endif %}
-        </div>
-    </div>
-</div>
-
 <div class="form-group">
     <label class="deployToolTip control-label col-xs-2"
        data-toggle="tooltip" title="Customize user data">
@@ -43,7 +17,7 @@
 </div>
 
 <div id="mapConfigFieldSetId">
-    {% for key,value in advanced_cluster_info.userDataConfigs.items %}
+    {% for key,value in advanced_cluster_info.items %}
     <div class="form-group">
         <label for="properties" class="control-label col-xs-3">{{ key }}</label>
         <div class="col-xs-6">
@@ -73,15 +47,29 @@
                     <div class="form-group">
                         <label for="newEntryName" class="col-md-2 control-label">Name</label>
                         <div class="col-md-10">
-                            <input type="text" class="form-control" name="newEntryName"
-                                   placeholder="name..." value="">
+                        <select class="form-control" name="newEntryName" id="config_name">
+                            {% for config_name in config_list %}
+                            <option value="{{ config_name }}">{{ config_name }}</option>
+                            {% endfor %}
+                        </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-9"></div>
+                        <input type="checkbox" class="checkToCustomize" name="customKey"> Check to customize name
+                        <div class="checkToCustomizeKey" hidden>
+                            <label for="newCustomizedName" class="col-md-2 control-label">Name</label>
+                            <div class="col-md-10">
+                                <input type="text" class="form-control" name="newCustomizedName"
+                                       placeholder="name..." value="">
+                            </div>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="newEntryValue" class="col-md-2 control-label">Value</label>
                         <div class="col-md-10">
-                            <input type="text" class="form-control" name="newEntryValue"
+                            <input type="text" class="form-control" name="newEntryValue" id="new_entry_value"
                                    placeholder="value..." value="">
                         </div>
                     </div>
@@ -94,14 +82,45 @@
         </div>
     </div>
 </div>
-
-{% endif %}
 {% endif %}
 
 <script>
+function getConfigValue() {
+    var config_name = $("#config_name option:selected").val();
+    {% for key,value in config_list.items %}
+        var key = "{{ key}}";
+        if (key == config_name) {
+            return "{{ value }}";
+        }
+    {% endfor %}
+    return "";
+}
+
 $(function () {
+    $("#config_name").change(function() {
+        if (!$('input.checkToCustomize').is(':checked')) {
+            $("#new_entry_value").val(getConfigValue());
+        }
+    });
+
+    $('input.checkToCustomize').change(function(){
+        if ($(this).is(':checked')) {
+            $(this).next('div.checkToCustomizeKey').show();
+            $("#new_entry_value").val("");
+        } else {
+            $('div.checkToCustomizeKey').hide();
+            $("#new_entry_value").val(getConfigValue());
+        }
+    }).change();
+
     $('#newEntryBtnId').click(function () {
-        var name = $('#newEntryFormId').find('input[name="newEntryName"]').val();
+        var checked = $('input.checkToCustomize').is(':checked');
+        if (checked) {
+            var name = $('#newEntryFormId').find('input[name="newCustomizedName"]').val();
+        } else {
+            var name = $('#newEntryFormId').find('select[name="newEntryName"]').val();
+        }
+
         var value = $('#newEntryFormId').find('input[name="newEntryValue"]').val();
         $('#mapConfigFieldSetId').append(
             '<div class="form-group">' +

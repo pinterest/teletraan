@@ -22,12 +22,13 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
+from django.conf import settings
 import agent_report
 import common
 import random
 import json
-from helpers import builds_helper, environs_helper, groups_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper
+from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper
 import math
 from dateutil.parser import parse
 import calendar
@@ -36,7 +37,12 @@ from deploy_board.webapp.agent_report import TOTAL_ALIVE_HOST_REPORT, TOTAL_HOST
 from diff_match_patch import diff_match_patch
 import traceback
 import logging
+import os
+import datetime
+import time
 
+if IS_PINTEREST:
+    from helpers import s3_helper, autoscaling_groups_helper, private_builds_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
@@ -123,6 +129,21 @@ def update_deploy_progress(request, name, stage):
 
     return response
 
+def removeEnvCookie(request, name):
+    if ENV_COOKIE_NAME in request.COOKIES:
+        cookie = request.COOKIES[ENV_COOKIE_NAME]
+        saved_names = cookie.split(',')
+        names = []
+        total = 0
+        for saved_name in saved_names:
+            if total >= ENV_COOKIE_CAPACITY:
+                break
+            if not saved_name == name:
+                names.append(saved_name)
+                total += 1
+        return ','.join(names)
+    else:
+        return ""
 
 def genEnvCookie(request, name):
     if ENV_COOKIE_NAME in request.COOKIES:
@@ -186,15 +207,15 @@ class EnvLandingView(View):
         env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
         if IS_PINTEREST:
-            basic_cluster_info = clusters_helper.get_cluster(request, name, stage)
+            basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
             if IS_PINTEREST:
-                basic_cluster_info = clusters_helper.get_cluster(request, env['envName'], env['stageName'])
+                basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
                 if basic_cluster_info and basic_cluster_info.get('capacity'):
-                    hosts_in_cluster = clusters_helper.get_host_names(request, env['envName'], env['stageName'])
+                    hosts_in_cluster = groups_helper.get_group_hosts(request, env.get('clusterName'))
                     num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
                     for i in range(num_to_fake):
                         faked_host = {}
@@ -204,6 +225,7 @@ class EnvLandingView(View):
                         provisioning_hosts.append(faked_host)
 
             response = render(request, 'environs/env_landing.html', {
+                "envs": envs,
                 "env": env,
                 "env_promote": env_promote,
                 "stages": stages,
@@ -216,6 +238,7 @@ class EnvLandingView(View):
                 "basic_cluster_info": basic_cluster_info,
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
+                "csrf_token": get_token(request),
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -230,6 +253,7 @@ class EnvLandingView(View):
             report.showMode = showMode
             report.sortByStatus = sortByStatus
             response = render(request, 'environs/env_landing.html', {
+                "envs": envs,
                 "env": env,
                 "env_promote": env_promote,
                 "stages": stages,
@@ -491,6 +515,7 @@ def get_env_deploys(request, name, stage):
                                  reverse_date, operator, commit, repo, branch)
     if filter is None:
         return render(request, 'environs/env_history.html', {
+            "envs": envs,
             "env": env,
             "stages": stages,
             "deploy_summaries": [],
@@ -524,6 +549,7 @@ def get_env_deploys(request, name, stage):
                                                               DEFAULT_TOTAL_PAGES)
 
     return render(request, 'environs/env_history.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "deploy_summaries": deploy_summaries,
@@ -640,13 +666,24 @@ def post_add_stage(request, name):
 def remove_stage(request, name, stage):
     # TODO so we need to make sure the capacity is empty???
     environs_helper.delete_env(request, name, stage)
-    return redirect('/env/' + name)
+
+    envs = environs_helper.get_all_env_stages(request, name)
+
+    response = redirect('/env/' + name)
+
+    if len(envs) == 0:
+        cookie_response = removeEnvCookie(request, name)
+        if not cookie_response:
+            response.delete_cookie(ENV_COOKIE_NAME)
+        else:
+            response.set_cookie(ENV_COOKIE_NAME, cookie_response)
+
+    return response
 
 
 def get_builds(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     env_promote = environs_helper.get_env_promotes_config(request, name, stage)
-
     show_lock = False
     if env_promote['type'] == 'AUTO' and env_promote['predStage'] and \
             env_promote['predStage'] == environs_helper.BUILD_STAGE:
@@ -685,6 +722,10 @@ def get_builds(request, name, stage):
     return HttpResponse(html)
 
 
+def upload_private_build(request, name, stage):
+    return private_builds_helper.handle_uploaded_build(request, request.FILES['file'], name, stage)
+
+
 def get_groups(request, name, stage):
     groups = common.get_non_cmp_group(request, name, stage)
     html = render_to_string('groups/simple_groups.tmpl', {
@@ -696,9 +737,11 @@ def get_groups(request, name, stage):
 def deploy_build(request, name, stage, build_id):
     env = environs_helper.get_env_by_stage(request, name, stage)
     current_build = None
+    deploy_state = None
     if env.get('deployId'):
         current_deploy = deploys_helper.get(request, env['deployId'])
         current_build = builds_helper.get_build(request, current_deploy['buildId'])
+        deploy_state = deploys_helper.get(request, env['deployId'])['state']
     build = builds_helper.get_build_and_tag(request, build_id)
     builds = [build]
     scm_url = systems_helper.get_scm_url(request)
@@ -711,6 +754,8 @@ def deploy_build(request, name, stage, build_id):
         "buildName": env.get('buildName'),
         "branch": env.get('branch'),
         "csrf_token": get_token(request),
+        "deployState": deploy_state,
+        "overridePolicy": env.get('overridePolicy'),
     })
     return HttpResponse(html)
 
@@ -792,6 +837,7 @@ def rollback(request, name, stage):
         deploy_summaries.append(summary)
 
     html = render_to_string("environs/env_rollback.html", {
+        "envs": envs,
         "stages": stages,
         "envs": envs,
         "env": env,
@@ -834,6 +880,7 @@ def promote(request, name, stage, deploy_id):
     build = builds_helper.get_build(request, deploy['buildId'])
 
     html = render_to_string("environs/env_promote.html", {
+        "envs": envs,
         "stages": stages,
         "envs": envs,
         "env": env,
@@ -897,6 +944,7 @@ def get_hosts(request, name, stage):
         agents_wrapper[agent['deployId']].append(agent)
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -920,6 +968,7 @@ def get_hosts_by_deploy(request, name, stage, deploy_id):
     title = "All hosts with deploy " + deploy_id
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -944,11 +993,40 @@ def pause_deploy(request, name, stage, host_id):
     agents_helper.pause_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
-
 # resume deploy stage for this env, this host
 def resume_deploy(request, name, stage, host_id):
     agents_helper.resume_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
+
+# pause hosts for this env and stage
+def pause_hosts(request, name, stage):
+    post_params = request.POST
+    host_ids = None
+    if 'hostIds' in post_params:
+        hosts_str = post_params['hostIds']
+        host_ids = [x.strip() for x in hosts_str.split(',')]
+    environs_helper.pause_hosts(request, name, stage, host_ids)
+    return redirect('/env/{}/{}/'.format(name, stage))
+
+# resume hosts for this env and stage
+def resume_hosts(request, name, stage):
+    post_params = request.POST
+    host_ids = None
+    if 'hostIds' in post_params:
+        hosts_str = post_params['hostIds']
+        host_ids = [x.strip() for x in hosts_str.split(',')]
+    environs_helper.resume_hosts(request, name, stage, host_ids)
+    return redirect('/env/{}/{}/'.format(name, stage))
+
+# reset hosts for this env and stage
+def reset_hosts(request, name, stage):
+    post_params = request.POST
+    host_ids = None
+    if 'hostIds' in post_params:
+        hosts_str = post_params['hostIds']
+        host_ids = [x.strip() for x in hosts_str.split(',')]
+    environs_helper.reset_hosts(request, name, stage, host_ids)
+    return redirect('/env/{}/{}/hosts'.format(name, stage))
 
 
 # get total unknown(unreachable) hosts
@@ -961,6 +1039,7 @@ def get_unknown_hosts(request, name, stage):
     title = "Unknow hosts"
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -978,6 +1057,7 @@ def get_provisioning_hosts(request, name, stage):
     title = "Provisioning hosts"
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -995,6 +1075,7 @@ def get_all_hosts(request, name, stage):
     title = "All hosts"
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -1014,6 +1095,7 @@ def get_failed_hosts(request, name, stage):
     title = "Failed Hosts"
 
     return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
@@ -1182,6 +1264,21 @@ def show_config_comparison(request, name, stage):
         "newChange": new_change,
     })
 
+def get_deploy_schedule(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    envs = environs_helper.get_all_env_stages(request, name)
+    schedule_id = env.get('scheduleId', None);
+    if schedule_id != None:
+        schedule = schedules_helper.get_schedule(request, name, stage, schedule_id)
+    else:
+        schedule = None
+    agent_number = agents_helper.get_agents_total_by_env(request, env["id"])
+    return render(request, 'deploys/deploy_schedule.html', {
+        "envs": envs,
+        "env": env,
+        "schedule": schedule,
+        "agent_number": agent_number,
+    })
 
 class GenerateDiff(diff_match_patch):
     def old_content(self, diffs):
@@ -1327,18 +1424,25 @@ def add_instance(request, name, stage):
             launch_in_asg = False
     try:
         if not launch_in_asg:
-            host_ids = groups_helper.launch_instance_in_group(request, groupName, num, subnet)
-            if len(host_ids) > 0:
-                content = '{} hosts have been launched to group {} (host ids: {})'.format(num, groupName, host_ids)
-                messages.add_message(request, messages.SUCCESS, content)
-            else:
-                content = 'Failed to launch hosts to group {}. Please make sure the' \
-                          ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
-                          ' is correct. If you have any question, please contact your friendly Teletraan owners' \
+            if not subnet:
+                content = 'Failed to launch hosts to group {}. Please choose subnets in' \
+                          ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>.' \
+                          ' If you have any question, please contact your friendly Teletraan owners' \
                           ' for immediate assistance!'.format(groupName, groupName)
                 messages.add_message(request, messages.ERROR, content)
+            else:
+                host_ids = autoscaling_groups_helper.launch_hosts(request, groupName, num, subnet)
+                if len(host_ids) > 0:
+                    content = '{} hosts have been launched to group {} (host ids: {})'.format(num, groupName, host_ids)
+                    messages.add_message(request, messages.SUCCESS, content)
+                else:
+                    content = 'Failed to launch hosts to group {}. Please make sure the' \
+                              ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
+                              ' is correct. If you have any question, please contact your friendly Teletraan owners' \
+                              ' for immediate assistance!'.format(groupName, groupName)
+                    messages.add_message(request, messages.ERROR, content)
         else:
-            groups_helper.launch_instance_in_group(request, groupName, num, None)
+            autoscaling_groups_helper.launch_hosts(request, groupName, num, None)
             content = 'Capacity increased by {}'.format(num)
             messages.add_message(request, messages.SUCCESS, content)
     except:
@@ -1353,3 +1457,22 @@ def get_tag_message(request):
         'envs_tag': envs_tag,
     })
     return HttpResponse(html)
+
+def update_schedule(request, name, stage):
+    post_params = request.POST
+    data = {}
+    data['cooldownTimes'] = post_params['cooldownTimes']
+    data['hostNumbers'] = post_params['hostNumbers']
+    data['totalSessions'] = post_params['totalSessions']
+    schedules_helper.update_schedule(request, name, stage, data)
+    return HttpResponse(json.dumps(''))
+
+def delete_schedule(request, name, stage):
+    schedules_helper.delete_schedule(request, name, stage)
+    return HttpResponse(json.dumps(''))
+
+def override_session(request, name, stage):
+    session_num = request.GET.get('session_num')
+    schedules_helper.override_session(request, name, stage, session_num)
+    return HttpResponse(json.dumps(''))
+

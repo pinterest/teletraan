@@ -62,6 +62,8 @@ public class DBDeployDAOImpl implements DeployDAO {
     private static final String DELETE_UNUSED_DEPLOYS =
         "DELETE FROM deploys WHERE env_id=? AND last_update<? " +
             "AND NOT EXISTS (SELECT 1 FROM environs WHERE environs.deploy_id = deploys.deploy_id) ORDER BY last_update ASC LIMIT ?";
+    private static final String COUNT_DAILY_DEPLOYS =
+            "SELECT COUNT(*) FROM deploys WHERE DATE(FROM_UNIXTIME(start_date*0.001)) = CURDATE()";
 
     private BasicDataSource dataSource;
 
@@ -179,5 +181,10 @@ public class DBDeployDAOImpl implements DeployDAO {
     @Override
     public void deleteUnusedDeploys(String envId, long timeThreshold, long numOfDeploys) throws Exception {
         new QueryRunner(dataSource).update(DELETE_UNUSED_DEPLOYS, envId, timeThreshold, numOfDeploys);
+    }
+
+    @Override
+    public Long getDailyDeployCount() throws Exception{
+        return new QueryRunner(dataSource).query(COUNT_DAILY_DEPLOYS, SingleResultSetHandlerFactory.<Long>newObjectHandler());
     }
 }

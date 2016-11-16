@@ -23,6 +23,7 @@ public class Constants {
     public static final PromoteType DEFAULT_PROMOTE_TYPE = PromoteType.MANUAL;
     public static final PromoteFailPolicy DEFAULT_PROMOTE_FAIL_POLICY = PromoteFailPolicy.CONTINUE;
     public static final PromoteDisablePolicy DEFAULT_PROMOTE_DISABLE_POLICY = PromoteDisablePolicy.AUTO;
+    public static final OverridePolicy DEFAULT_OVERRIDE_POLICY = OverridePolicy.OVERRIDE;
     public static final AcceptanceType DEFAULT_ACCEPTANCE_TYPE = AcceptanceType.AUTO;
 
     public static final int DEFAULT_MAX_PARALLEL_HOSTS = 1;
@@ -43,17 +44,7 @@ public class Constants {
     // functions, need to revisit
     public static final String NULL_HOST_GROUP = "NULL";
 
-    public static final String CONFIG_TYPE_GROUP = "ASG Config Change";
     public static final String CONFIG_TYPE_ENV = "Deploy Env Config Change";
-
-    public static final String TYPE_ASG_LAUNCH = "Asg Launch Config";
-    public static final String TYPE_ASG_GENERAL = "Asg General Config";
-    public static final String TYPE_ASG_SCALING = "Asg Scaling Group";
-    public static final String TYPE_ASG_POLICY = "Asg Scaling Policy";
-    public static final String TYPE_ASG_ALARM = "Asg Scaling Alarm";
-    public static final String TYPE_ASG_SCHEDULE = "Asg Scheduled Action";
-    public static final String TYPE_ASG_SCALING_ACTION = "Asg Scaling Action";
-
     public static final String TYPE_ENV_GENERAL = "Env General Config";
     public static final String TYPE_ENV_PROMOTE = "Env Promote Config";
     public static final String TYPE_ENV_SCRIPT = "Env Script Config";
@@ -63,15 +54,8 @@ public class Constants {
     public static final String TYPE_ENV_METRIC = "Env Metrics Config";
     public static final String TYPE_ENV_ALARM = "Env Alarm Config";
     public static final String TYPE_ENV_WEBHOOK = "Env Webhook Config";
-    public static final String TYPE_ENV_CLUSTER = "Env Cluster Config";
+    public static final String TYPE_ENV_ACTION = "Env Action";
+    public static final String TYPE_HOST_ACTION = "Host Action";
 
-    public static final String TYPE_HOST_LAUNCH = "Host Launch";
-    public static final String TYPE_HOST_TERMINATE = "Host Terminate";
-    public static final String TYPE_HOST_ATTACH = "Host Attach";
-    public static final String TYPE_HOST_DETACH = "Host Detach";
-    public static final String TYPE_HOST_PROTECTION = "Host Protection";
-    public static final String TYPE_HOST_UNPROTECTION = "Host Unprotection";
-    public static final String TYPE_HELATHCHECK_MANAUALLY = "MANUALLY_TRIGGERED Health Check";
-
-    public static final String TYPE_OTHER = "Others";
+    public static final String CLIENT_ERROR_SHORT = "short";
 }

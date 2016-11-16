@@ -27,6 +27,7 @@ from deploy_board.webapp.agent_report import UNKNOWN_HOSTS_CODE, PROVISION_HOST_
 from deploy_board.webapp.common import is_agent_failed, BUILD_STAGE
 from deploy_board.webapp.helpers import environs_helper
 from deploy_board.webapp.helpers.tags_helper import TagValue
+import ast
 
 register = template.Library()
 logger = logging.getLogger(__name__)
@@ -262,6 +263,9 @@ def get_promote_fail_policies(context):
 def get_promote_disable_policies(context):
     return environs_helper.PROMOTE_DISABLE_POLICY_VALUES
 
+@register.assignment_tag(takes_context=True)
+def get_override_policies(context):
+    return environs_helper.OVERRIDE_POLICY_VALUES
 
 @register.assignment_tag(takes_context=True)
 def get_advanced_config_names(context):
@@ -784,12 +788,12 @@ def genSubnetId(value):
 
 @register.filter("genImageInfo")
 def genImageInfo(value):
-    temp_time = datetime.fromtimestamp(value.get("publishDate") / 1000,
+    temp_time = datetime.fromtimestamp(value.get("publish_date") / 1000,
                                        pytz.timezone('America/Los_Angeles'))
     symbol = "X"
     if value.get("qualified"):
         symbol = "V"
-    return "{} | {} | {} | {}".format(value.get("id"), value.get("app_name"),
+    return "{} | {} | {} | {}".format(value.get("abstract_name"), value.get("provider_name"),
                                       temp_time.strftime("%Y-%m-%d %H:%M:%S"), symbol)
 
 
@@ -904,3 +908,21 @@ def canReplaceCluster(cluster):
     if cluster and cluster.get('state') and cluster.get('state') != 'NORMAL':
         return False
     return True
+
+@register.filter("getType")
+def get_type(object):
+    return type(object).__name__
+
+
+@register.filter("convertConfigHistoryString")
+def convertConfigHistoryString(change):
+    change = str(change)
+    change = change.replace("false", "False")
+    change = change.replace("true", "True")
+    if change[:1] == "{" or change[:1] == "[":
+        try: 
+            converted_string = ast.literal_eval(change)
+            return converted_string
+        except: 
+            pass
+    return change

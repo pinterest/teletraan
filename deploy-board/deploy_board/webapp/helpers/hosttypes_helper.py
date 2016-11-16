@@ -14,23 +14,23 @@
 
 # -*- coding: utf-8 -*-
 
-from deploy_board.webapp.helpers.deployclient import DeployClient
+from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
-deploy_client = DeployClient()
+rodimus_client = RodimusClient()
 
 
 def create_host_type(request, host_type_info):
-    return deploy_client.post("/host_types", request.teletraan_user_id.token, data=host_type_info)
+    return rodimus_client.post("/host_types", request.teletraan_user_id.token, data=host_type_info)
 
 
 def get_all(request, index, size):
     params = [('pageIndex', index), ('pageSize', size)]
-    return deploy_client.get("/host_types", request.teletraan_user_id.token, params=params)
+    return rodimus_client.get("/host_types", request.teletraan_user_id.token, params=params)
 
 
 def get_by_provider(request, provider):
-    return deploy_client.get("/host_types/provider/%s" % provider, request.teletraan_user_id.token)
+    return rodimus_client.get("/host_types/provider/%s" % provider, request.teletraan_user_id.token)
 
 
 def get_by_id(request, host_type_id):
-    return deploy_client.get("/host_types/%s" % host_type_id, request.teletraan_user_id.token)
+    return rodimus_client.get("/host_types/%s" % host_type_id, request.teletraan_user_id.token)

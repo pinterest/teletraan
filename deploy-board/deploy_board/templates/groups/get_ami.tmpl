@@ -1,10 +1,10 @@
 {%load utils %}
 <select class="form-control" name="imageId" required="true">
 {% for image in aws_images %}
-{% if image.id == curr_image_id %}
-    <option value="{{ image.id }}" selected>{{ image|genImageInfo }}</option>
+{% if image.provider_name == curr_image_id %}
+    <option value="{{ image.provider_name }}" selected>{{ image|genImageInfo }}</option>
 {% else %}
-    <option value="{{ image.id }}">{{ image|genImageInfo }}</option>
+    <option value="{{ image.provider_name }}">{{ image|genImageInfo }}</option>
 {% endif %}
 {% endfor %}
 </select>

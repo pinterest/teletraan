@@ -69,6 +69,31 @@ def get_ongoing_deploys(request):
     })
     return HttpResponse(html)
 
+def get_daily_deploy_count(request):
+    daily_deploy_count = deploys_helper.get_daily_deploy_count(request);
+    html = render_to_string('deploys/daily_deploy_count.tmpl', {
+        "daily_deploy_count": daily_deploy_count,
+    })
+    return HttpResponse(html)
+
+
+def get_duplicate_commit_deploy_message(request, name, stage, buildId):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    if env.get('deployId') is None:
+        return HttpResponse('')
+
+    current_deploy = deploys_helper.get_current(request, name, stage)
+    current_build = builds_helper.get_build(request, current_deploy['buildId'])
+    current_commit = current_build['commit']
+
+    next_build = builds_helper.get_build(request, buildId)
+    next_commit = next_build['commit']
+
+    if current_commit == next_commit:
+        return render(request, 'deploys/duplicate_commit_deploy_message.tmpl',{
+                      "commit":next_build['commitShort']})
+    return HttpResponse('')
+
 
 class DeployView(View):
     def get(self, request, deploy_id):

@@ -170,4 +170,14 @@ public class Deploys {
         deployDAO.delete(id);
         LOG.info("Successfully deleted deploy {} by {}", id, userName);
     }
+
+    @GET
+    @Path("/dailycount")
+    @ApiOperation(
+            value = "Get deploys per day",
+            notes = "Get total numbers of deploys on the current day",
+            response = Long.class)
+    public Long dailyCount() throws Exception{
+        return deployDAO.getDailyDeployCount();
+    }
 }

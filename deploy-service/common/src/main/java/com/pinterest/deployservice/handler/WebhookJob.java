@@ -78,7 +78,7 @@ public class WebhookJob implements Callable<Void> {
             try {
                 // TODO currently only support http GET and POST
                 if (method.equalsIgnoreCase("GET")) {
-                    httpClient.get(url, null, headers, RETRIES);
+                    httpClient.get(url, null, null, headers, RETRIES);
                 } else if (method.equalsIgnoreCase("POST")) {
                     httpClient.post(url, bodyString, headers, RETRIES);
                 } else {

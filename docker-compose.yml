@@ -1,0 +1,42 @@
+version: '2'
+services:
+  deploy-board:
+    build: ./deploy-board
+    ports:
+      - "8888:8888"
+    command: "python /opt/deploy-board/manage.py runserver 0.0.0.0:8888"
+    volumes: 
+      - "../teletraan/deploy-board:/opt/deploy-board"
+      - "../tmp/deploy_board:/tmp/deploy_board"
+    environment:
+      - PYTHONPATH=/opt/deploy-board/
+      - TELETRAAN_SERVICE_URL=http://deploy-service:8080
+    depends_on:
+      - deploy-service
+
+  deploy-service:
+    build: ./deploy-service/teletraanservice
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    command: "/opt/deploy-service/teletraanservice/bin/run.sh -c /opt/deploy-service/teletraanservice/bin/server.yaml"
+    environment:
+      - TELETRAAN_DB_HOST=mysql
+      - TELETRAAN_DASHBOARD_URL=http://deploy-board:8888
+    volumes: 
+      - "./deploy-service:/opt/deploy-service"
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:5.5
+    ports:
+      - "3306:3306"
+    container_name: teletraan_mysql
+    volumes:
+      - "/tmp/.data/deploydb:/var/lib/mysql"
+      - "./deploy-service/common/src/main/resources/sql:/var/teletraan/sql"
+      - "./tools/mysql:/var/teletraan/tools"
+    environment:
+      MYSQL_ROOT_PASSWORD: ""
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
