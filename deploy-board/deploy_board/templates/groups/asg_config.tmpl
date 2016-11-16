@@ -135,9 +135,9 @@
                             <input class="form-control" name="sensitivityRatio" required="true"
                                 type="text" value="{{ asg.sensitivityRatio|default_if_none:'' }}"/>
                         <span class="input-group-addon">%</span>
+                        </div>
                     </div>
-                </div>
-
+               </div>
             </div>
 
             <div class="form-group">
@@ -178,9 +178,11 @@
             </div>
         </fieldset>
       {% csrf_token %}
-    </form>
+       </form>
 </div>
 </div>
+
+
 <div class="panel-footer clearfix">
     <div class="pull-right">
         <button id="resetEnvConfigBtnId" class="btn btn-default" data-loading-text="Reloading...">
@@ -195,10 +197,6 @@
 <div id="scheduledActionsPid"></div>
 <div id="scalingPolicyPid"></div>
 <div id="alarmMetricPid"></div>
-
-<div id="pasConfigPid" class="panel panel-default">
-    {% include "groups/pase_config.tmpl" %}
-</div>
 
 <script>
 $(function() {
