@@ -17,6 +17,10 @@
 """
 
 
+class FailedAuthenticationException(Exception):
+    pass
+
+
 class NotAuthorizedException(Exception):
     pass
 

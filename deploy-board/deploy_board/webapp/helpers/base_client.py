@@ -15,7 +15,7 @@ import logging
 import requests
 from decorators import retry
 
-from exceptions import NotAuthorizedException, TeletraanException
+from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
 
 DEFAULT_TIMEOUT = 30
 
@@ -39,7 +39,7 @@ class BaseClient(object):
                                                  timeout=DEFAULT_TIMEOUT, verify=False)
 
             if response.status_code == 401:
-                raise NotAuthorizedException(
+                raise FailedAuthenticationException(
                     "Oops! Teletraan was unable to authenticate you. Contact an environment ADMIN for "
                     "assistance. " + response.content)
 
