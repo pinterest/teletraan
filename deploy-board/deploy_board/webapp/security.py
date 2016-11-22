@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
 from auth import OAuth
-from auth import OAuthException
+from auth import OAuthException, OAuthExpiredTokenException
 from deploy_board import settings
 import traceback
 import logging
@@ -83,6 +83,7 @@ class DelegatedOAuthMiddleware(object):
 
         return HttpResponseRedirect('/')
 
+
 class FixedOAuthMiddleware(object):
     """
     Use test oauth credentials to talk to backend instead of getting them
@@ -102,6 +103,7 @@ class FixedOAuthMiddleware(object):
 
     def logout(self, request):
         pass
+
 
 def login_authorized(request):
     logger.debug("Redirect back from oauth!")
@@ -132,6 +134,15 @@ def login_authorized(request):
         return render(request, 'oauth_failure.html', {
             "message": e.message,
         })
+
+    except OAuthExpiredTokenException as e:
+        # When auth.pinadmin.com returns a 401 error
+        logger.error(traceback.format_exc())
+
+        # remove access token from session cookie and redirect to / page
+        # this will cause a re trigger of auth.pinadmin.com login process
+        oauth.oauth_handler.token_remove(session=request.session)
+        return HttpResponseRedirect("/")
 
     logger.debug("get user_name %s and data %s back from oauth!" % (user_name, data))
     request.session['teletraan_user'] = user_name
