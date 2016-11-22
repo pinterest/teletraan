@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -67,6 +67,13 @@ def is_equal(a, b):
 
 
 class OAuthException(Exception):
+    pass
+
+
+class OAuthExpiredTokenException(Exception):
+    """
+    Used to raise an exception when the access token has expired and auth.pinadmin.com returns 401 error code
+    """
     pass
 
 
@@ -201,6 +208,11 @@ class OAuth(object):
             data=unicode(body) if body else None,
             method='POST',
         )
+
+        if resp.code is 401:
+            # When auth.pinadmin.com returns a 401 error. remove token and redirect to / page
+            raise OAuthExpiredTokenException("Expired Token")
+
         if resp.code not in (200, 201):
             raise OAuthException("Invalid OAuth response")
         try:
