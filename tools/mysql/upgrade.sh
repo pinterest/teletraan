@@ -91,7 +91,7 @@ done
 [ ! -z "$PORT" ] && PORT="--port=$PORT" 
 [ ! -z "$PASSWORD" ] && PASSWORD="--password=$PASSWORD" 
 
-CURRENT_VERSION=$(mysql $HOST $PORT -u $USER $PASSWORD $DATABASE -s -N < check_version.sql)
+CURRENT_VERSION=$(mysql $HOST $PORT -u $USER $PASSWORD $DATABASE -s -N < /var/teletraan/tools/check_version.sql)
 [ -z "$TARGET_VERSION" ] && resolve_target_version
 echo "Will upgrade schema from version ${CURRENT_VERSION} to version ${TARGET_VERSION}"
 
@@ -100,7 +100,7 @@ for ((i=CURRENT_VERSION+1;i<=TARGET_VERSION;i++)); do
     if [ "$DRYRUN" == "true" ]; then
         continue
     fi
-    mysql $HOST $PORT -u $USER $PASSWORD $DATABASE < schema-update-$i.sql
+    mysql $HOST $PORT -u $USER $PASSWORD $DATABASE < /var/teletraan/tools/schema-update-$i.sql
 done
 
 echo "Successfully upgraded schema from version ${CURRENT_VERSION} to version ${TARGET_VERSION}"
