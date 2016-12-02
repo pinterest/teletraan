@@ -79,11 +79,17 @@
         {% block navbar-search %}
         {% endblock %}
         <ul class="nav navbar-nav">
-            <li><a href="https://github.com/pinterest/teletraan/wiki/Performing-a-deploy">Help</a></li>
+            <li><a href="https://github.com/pinterest/teletraan/wiki">Help</a></li>
             {% if isPinterest %}
                 <li><a href="#" data-toggle="modal" data-target="#feedbackModal">Feedback</a></li>
             {% endif %}
-            <li><a>{{request.teletraan_user_id.name }}</a></li>
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{request.teletraan_user_id.name }}
+                    <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/logout">Logout</a></li>
+                    </ul>
+            </li>
         </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->

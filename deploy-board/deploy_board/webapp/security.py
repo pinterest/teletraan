@@ -74,15 +74,6 @@ class DelegatedOAuthMiddleware(object):
             logger.debug("Redirect oauth for authentication!, url = " + url)
             return HttpResponseRedirect(url)
 
-    # TODO not currently used, need to add logout button on the UI and call this
-    def logout(self, request):
-        self.oauth.logout(session=request.session)
-
-        if 'teletraan_user' in request.session:
-            del request.session['teletraan_user']
-
-        return HttpResponseRedirect('/')
-
 
 class FixedOAuthMiddleware(object):
     """
@@ -151,3 +142,25 @@ def login_authorized(request):
         return HttpResponseRedirect(data['origin_path'])
 
     return HttpResponseRedirect('/')
+
+def logout(request):
+    logger.debug("Logout!")
+    if not settings.OAUTH_ENABLED:
+        logger.error("OAuth is not enabled!")
+        return HttpResponseRedirect('/')
+
+    oauth = OAuth(
+        key=settings.OAUTH_CLIENT_ID,
+        secret=settings.OAUTH_CLIENT_SECRET,
+        callback_url=settings.OAUTH_CALLBACK,
+        domain=settings.OAUTH_DOMAIN,
+        access_token_url=settings.OAUTH_ACCESS_TOKEN_URL,
+        authorize_url=settings.OAUTH_AUTHORIZE_URL,
+        scope=settings.OAUTH_DEFAULT_SCOPE
+    )
+
+    oauth.logout(session=request.session)
+    if 'teletraan_user' in request.session:
+        del request.session['teletraan_user']
+
+    return HttpResponseRedirect('/loggedout/')

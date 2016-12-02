@@ -1,0 +1,92 @@
+#
+# Dropwizard server configs. refer
+# http://www.dropwizard.io/0.9.1/docs/manual/configuration.html
+# for details.
+#
+server:
+  applicationConnectors:
+    - type: http
+      port: 8080
+  adminConnectors:
+    - type: http
+      port: 8081
+  requestLog:
+    appenders:
+      - type: file
+        threshold: ALL
+        archive: false
+        currentLogFilename: /tmp/teletraan/access.log
+        timeZone: UTC
+  registerDefaultExceptionMappers: false
+
+#
+# Logging settings. refer
+# http://www.dropwizard.io/0.9.1/docs/manual/configuration.html
+# for details.
+#
+logging:
+  level: INFO
+  loggers:
+    "com.pinterest.teletraan": DEBUG
+    "com.pinterest.deployservice": DEBUG
+  appenders:
+    - type: file
+      timeZone: UTC
+      threshold: DEBUG
+      archive: false
+      currentLogFilename: /tmp/teletraan/service.log
+    - type: console
+      threshold: ALL
+      timeZone: UTC
+      target: stdout
+
+
+#
+# Mysql connection config. By default, we use the real mysql as the backend.
+# Note: the embeded mysql is for demo or test purpose only. Use the official Mysql
+# installs for production usage.
+#
+db:
+  type: embedded
+
+  # Optional - embedded mysql working directory. This is for embedded mysql only,
+  # default is /tmp/teletraan/db.
+  # Sometimes when the embedded mysql failed to start for whatever the reasons,
+  # delete the working dir often resolve the issue.
+  workDir: /tmp/teletraan/db
+
+#
+# Miscellaneous settings of the system
+#
+system:
+  # Teletraan needs to refer Deploy Dashboard url in its notify etc.
+  dashboardUrl: ${TELETRAAN_DASHBOARD_URL:-default http://localhost:8888}
+  # Display full stack trace or just the error to user.
+  #clientError: long|short
+
+#
+# Worker settings: disable all the workers if you do not want to run
+# workers together with the service. See documentations for more details.
+#
+workers:
+  # StateTransitioner looks for active deploys, set deploy status and
+  # transition deploys to their next states.
+  - name: StateTransitioner
+    properties:
+      initialDelay: 10
+      period: 30
+
+  # AutoPromoter provides the Auto Deploy support. It finds the deploy
+  # cadidates from preceeding stage and promote them to next stages.
+  - name: AutoPromoter
+    properties:
+      initialDelay: 20
+      period: 30
+
+  # AgentJanitor cleans up any obsoleted hosts or agents records
+  - name: SimpleAgentJanitor
+    properties:
+      initialDelay: 30
+      period: 300
+      minStaleHostThreshold: 150
+      maxStaleHostThreshold: 600

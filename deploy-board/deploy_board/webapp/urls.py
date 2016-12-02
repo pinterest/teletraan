@@ -202,6 +202,8 @@ urlpatterns = [
     # mix
     url(r'^health_check/$', util_views.health_check),
     url(r'^auth/$', security.login_authorized),
+    url(r'^logout/$', security.logout),
+    url(r'^loggedout/$', util_views.loggedout),
     url(r'^api-docs/$', docs_views.SwaggerUIView.as_view()),
     url(r'^$', deploy_views.get_landing_page),
 ]

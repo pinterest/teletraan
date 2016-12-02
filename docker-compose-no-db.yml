@@ -1,0 +1,28 @@
+version: '2'
+services:
+  deploy-board:
+    build: ./deploy-board
+    ports:
+      - "8888:8888"
+    command: "python /opt/deploy-board/manage.py runserver 0.0.0.0:8888"
+    volumes: 
+      - "../teletraan/deploy-board:/opt/deploy-board"
+      - "../tmp/deploy_board:/tmp/deploy_board"
+    environment:
+      - PYTHONPATH=/opt/deploy-board/
+      - TELETRAAN_SERVICE_URL=http://deploy-service:8080
+    user: $UID
+    depends_on:
+      - deploy-service
+
+  deploy-service:
+    build: ./deploy-service/teletraanservice
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    command: "/opt/deploy-service/teletraanservice/bin/run.sh -c /opt/deploy-service/teletraanservice/bin/server-no-db.yaml"
+    environment:
+      - TELETRAAN_DASHBOARD_URL=http://deploy-board:8888
+    user: $UID
+    volumes: 
+      - "./deploy-service:/opt/deploy-service"
