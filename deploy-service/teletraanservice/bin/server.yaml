@@ -51,7 +51,7 @@ db:
   type: mysql
 
   # Mysql instance configurations
-  host: ${TELETRAAN_DB_HOST:-default localhost}
+  host: ${TELETRAAN_DB_HOST:-localhost}
   port: 3306
   userName: root
   password:
@@ -140,7 +140,7 @@ db:
 #
 system:
   # Teletraan needs to refer Deploy Dashboard url in its notify etc.
-  dashboardUrl: ${TELETRAAN_DASHBOARD_URL:-default http://localhost:8888}
+  dashboardUrl: ${TELETRAAN_DASHBOARD_URL:-http://localhost:8888}
   # Display full stack trace or just the error to user.
   #clientError: long|short
 
