@@ -144,7 +144,7 @@ def login_authorized(request):
     return HttpResponseRedirect('/')
 
 def logout(request):
-    logger.debug("Logout!")
+    logger.debug("Logout %s!" % request.session.get("teletraan_user", "anonymous"))
     if not settings.OAUTH_ENABLED:
         logger.error("OAuth is not enabled!")
         return HttpResponseRedirect('/')
