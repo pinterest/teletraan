@@ -18,7 +18,7 @@ from django.views.generic import View
 import logging
 from helpers import environs_helper, agents_helper, autoscaling_groups_helper
 from helpers import environ_hosts_helper, hosts_helper
-from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST
+from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
 from datetime import datetime
 import pytz
 import requests
@@ -103,13 +103,10 @@ def get_host_details(host_id):
      'Launch Time': launch_time,
      'AMI Id': ami_id,
     }
-    if IS_PINTEREST:
-        from brood.client import Brood
-        cmdb = Brood()
-        host_ip = cmdb.get_query(query="id:" + ami_id,
-                                 fields="config.internal_address")[0]['config.internal_address']
+    if IS_PINTEREST and PHOBOS_URL:
+        host_ip = instance.get('config.internal_address', None)
         phobos_link = PHOBOS_URL + host_ip
-        host.details['Phobos Link'] = "<a href=\"" + phobos_link + "\">" + phobos_link + "</a>"
+        host.details['Phobos Link'] = '<a href="%s%s">'.format(PHOBOS_URL, host_ip)
     return host_details
 
 
