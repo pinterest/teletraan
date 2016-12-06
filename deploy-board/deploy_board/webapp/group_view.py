@@ -1070,7 +1070,7 @@ def get_health_check_details(request, id):
             host_ip = cmdb.get_query(query="id:" + health_check['host_id'],
                                      fields="config.internal_address")[0]['config.internal_address']
             health_check_error['error_message'] = health_check_error['error_message'] + \
-                                                  '<a href="%s%s">'.format(PHOBOS_URL, host_ip)
+                                                  ' <a href="%s%s">'.format(PHOBOS_URL, host_ip)
 
     return render(request, 'groups/health_check_details.html', {
         "health_check": health_check,
