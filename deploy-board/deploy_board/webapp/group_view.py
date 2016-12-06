@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from deploy_board.settings import IS_PINTEREST
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -34,6 +35,7 @@ log = logging.getLogger(__name__)
 
 
 DEFAULT_PAGE_SIZE = 50
+PHOBOS_URL = "https://phobos.pinadmin.com/phobos/"
 
 ScalingType = ["ChangeInCapacity", "ExactCapacity", "PercentChangeInCapacity"]
 
@@ -1061,6 +1063,15 @@ def get_health_check_details(request, id):
         env = environs_helper.get(request, health_check.get('env_id'))
         health_check_error['env_name'] = env.get('envName')
         health_check_error['stage_name'] = env.get('stageName')
+
+    if 'error_message' in health_check and not health_check_error:
+        if IS_PINTEREST:
+            from brood.client import Brood
+            cmdb = Brood()
+            host_ip = cmdb.get_query(query="id:" + health_check['host_id'],
+                                     fields="config.internal_address")[0]['config.internal_address']
+            health_check_error['error_message'] = health_check_error['error_message'] + \
+                                                  " <a href=\"" + PHOBOS_URL + host_ip + "\">Phobos Link</a>"
 
     return render(request, 'groups/health_check_details.html', {
         "health_check": health_check,
