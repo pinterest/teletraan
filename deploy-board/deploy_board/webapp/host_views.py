@@ -103,6 +103,13 @@ def get_host_details(host_id):
      'Launch Time': launch_time,
      'AMI Id': ami_id,
     }
+    if IS_PINTEREST:
+        from brood.client import Brood
+        cmdb = Brood()
+        host_ip = cmdb.get_query(query="id:" + ami_id,
+                                 fields="config.internal_address")[0]['config.internal_address']
+        phobos_link = PHOBOS_URL + host_ip
+        host.details['Phobos Link'] = "<a href=\"" + phobos_link + "\">" + phobos_link + "</a>"
     return host_details
 
 
