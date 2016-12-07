@@ -59,7 +59,7 @@
                                 <aws-config-modal id="newConfigModalId" v-bind:options="configOptions" v-on:click="addConfig"></aws-config-modal>
                             </div>
                         </div>
-                        <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" inadvanced="inAdvanced"></aws-user-data>
+                        <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" v-on:change="configChange" inadvanced="inAdvanced"></aws-user-data>
                     </div>
                 </fieldset>
             </form>
@@ -196,7 +196,17 @@ var capacitySetting = new Vue({
                     capacitySetting.showBaseImageHelp = true 
                 })
             }
-        },        
+        },   
+        configChange: function(input){
+                this.allUserData = this.allUserData.map(function(item){ 
+                    if (item.name===input.name){
+                        return input
+                    }
+                    else{
+                        return item
+                    }
+                 })
+        },             
         deleteConfig: function (name) {
             this.allUserData = this.allUserData.filter(function (config) { return config.name != name })
         },
@@ -284,6 +294,28 @@ var capacitySetting = new Vue({
 
             if (clusterInfo.placement == null || clusterInfo.placement.length === 0) {
                 globalNotificationBanner.error = "Placement is not specified"
+            }
+
+            if (this.imageNameValue === 'cmp_base'){
+                if (clusterInfo.configs['cmp_group'] == undefined || clusterInfo.configs['cmp_group'].indexOf('CMP,')<0){
+                    globalNotificationBanner.error = "cmp_base image must have cmp_group defined and CMP in it"
+                    return false                    
+                }
+
+                if (clusterInfo.configs['pinfo_role'] == undefined || clusterInfo.configs['pinfo_role']!='cmp_base'){
+                    globalNotificationBanner.error = "cmp_base image must have pinfo_role set to be cmp_base"
+                    return false                    
+                }
+
+                if (clusterInfo.configs['pinfo_team'] == undefined || clusterInfo.configs['pinfo_team']!='cloudeng'){
+                    globalNotificationBanner.error = "cmp_base image must have pinfo_team set to be cloudeng"
+                    return false                    
+                }
+
+                if (clusterInfo.configs['pinfo_environment'] == undefined || clusterInfo.configs['pinfo_environment']!='prod'){
+                    globalNotificationBanner.error = "cmp_base image must have pinfo_environment set to be prod"
+                    return false                    
+                }
             }
             return true
         },
