@@ -41,7 +41,6 @@
         <div class="row">
             <side-button styleclass="fa fa-gears" text="General Config"  title="Return the generic configuration page"></side-button>
         </div>
-    </div>
     {% endif %} 
 
 </div>
@@ -68,6 +67,9 @@ window.groups = info.groups;
 
 if (info.is_pinterest){
     hasCMPCluster = env.clusterName || $.inArray(env.envName+"-"+env.stageName, groups) >= 0;
+}
+else{
+    hasCMPCluster = false
 }
 var sidebar = new Vue({
     el:"#side-panel",

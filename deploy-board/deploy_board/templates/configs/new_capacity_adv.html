@@ -38,8 +38,9 @@
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
-                        v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange">
+                        v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" inadvanced="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
+                    <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
                     <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"
                         showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
@@ -58,9 +59,8 @@
                                 <aws-config-modal id="newConfigModalId" v-bind:options="configOptions" v-on:click="addConfig"></aws-config-modal>
                             </div>
                         </div>
-                        <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig"></aws-user-data>
+                        <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" inadvanced="inAdvanced"></aws-user-data>
                     </div>
-
                 </fieldset>
             </form>
         </div>
@@ -96,6 +96,7 @@ var capacitySetting = new Vue({
                     value: info.defaultCMPConfigs[key] 
                 } 
             }),
+        baseImageHelpData: [],
         baseimages: info.baseImages.map(
             function (o) { 
                 return { 
@@ -160,6 +161,7 @@ var capacitySetting = new Vue({
         selectedHostTypeValue: info.hostTypes[0].abstract_name,
         selectedSecurityZoneValue: info.securityZones[0].abstract_name,
         selectedPlacements: [],
+        showBaseImageHelp: false,
         showHostTypeHelp: false,
         showSecurityZoneHelp: false,
         showPlacementsHelp: false, 
@@ -177,6 +179,24 @@ var capacitySetting = new Vue({
         baseImageChange: function (value) {
             this.baseImageValue = value
         },
+        baseImageHelpClick: function(){
+            if (this.showBaseImageHelp){
+                this.showBaseImageHelp = false;
+            }
+            else{
+                this.getHelpInfo('get_base_image_info/' + this.imageNameValue, function(data){
+                    data = data.map(function(item){
+                                item.publish_date=new Date(item.publish_date)
+                                if (item.description == null || item.description.length==0){
+                                    item.description = "None"
+                                }
+                                return item
+                            })
+                    capacitySetting.baseImageHelpData = data
+                    capacitySetting.showBaseImageHelp = true 
+                })
+            }
+        },        
         deleteConfig: function (name) {
             this.allUserData = this.allUserData.filter(function (config) { return config.name != name })
         },

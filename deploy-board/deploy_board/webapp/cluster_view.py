@@ -19,7 +19,9 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.views.generic import View
 
-from deploy_board.settings import IS_PINTEREST, DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING
+from deploy_board.settings import IS_PINTEREST
+if IS_PINTEREST:
+    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING
 import json
 import logging
 

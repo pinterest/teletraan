@@ -14,9 +14,9 @@ Vue.component('cloudprovider-select', {
 Vue.component('baseimage-select', {
     template: '<div class="form-group">\
 <label-select small="true" showhelp="true" label="Image Name" title="Image Name" v-bind:value="imagenamevalue" v-bind:selectoptions="imagenames"  \
-v-on:input="updateimagename(value)" v-bind:selected="imagenamevalue" v-on:change="updateImageName" v-show="inadvanced" v-on:helpclick="helpClick"> </label-select>\
+ v-bind:selected="imagenamevalue" v-on:input="updateImageName" v-show="inadvanced" v-on:helpclick="helpClick"> </label-select>\
 <label-select small="true"  label="Image" title="Base Image" v-bind:value="baseimagevalue"\
-    v-bind:selectoptions="baseimages" v-on:change="updateBaseImage" v-bind:selected="baseimagevalue"></label-select>\
+    v-bind:selectoptions="baseimages" v-on:input="updateBaseImage" v-bind:selected="baseimagevalue"></label-select>\
 </div>',
     props: ['imagenames', 'baseimages', 'imagenamevalue', 'baseimagevalue', 'inadvanced'],
     methods: {

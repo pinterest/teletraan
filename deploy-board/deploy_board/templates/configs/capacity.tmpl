@@ -44,7 +44,7 @@
             confirmDialogId:"configdialog",
             headingtoggleclass: "glyphicon glyphicon-chevron-down",
             isEnvEnabled: env != null && env.state==="NORMAL",
-            showExistingCapacity: getUrlParameter("addexisting") || (hosts!=null && hosts.length>0)||(groups!=null && groups.length>0)
+            showExistingCapacity: !window.info.is_pinterest || getUrlParameter("addexisting") || (hosts!=null && hosts.length>0)||(groups!=null && groups.length>0)
         },
         methods:{
             "hostTagClick": function(value){
@@ -108,3 +108,4 @@
       }
     )
 </script>
+
