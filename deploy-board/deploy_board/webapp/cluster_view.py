@@ -503,91 +503,6 @@ def parse_cluster_info(request, env_name, env_stage, cluster_name):
     return cluster_info
 
 
-# TODO merge cmp functions and templates
-def create_cmp_cluster(request, name, stage):
-    params = request.POST
-    cluster_name = '{}-{}'.format(name, stage)
-    cluster_info = parse_cluster_info(request, name, stage, cluster_name)
-    config_map = get_default_cmp_configs(name, stage)
-    user_data_configs = parse_configs(params)
-    config_map.update(user_data_configs)
-    cluster_info['configs'] = config_map
-    clusters_helper.create_cluster(request, cluster_name, cluster_info)
-
-    # set up env and group relationship
-    environs_helper.add_env_capacity(request, name, stage, capacity_type="GROUP", data=cluster_name)
-    return get_cmp_cluster(request, name, stage)
-
-
-def create_cluster(request, name, stage):
-    params = request.POST
-    cluster_name = '{}-{}'.format(name, stage)
-    cluster_name = cluster_name.lower()
-    cluster_info = parse_cluster_info(request, name, stage, cluster_name)
-    user_data_configs = parse_configs(params)
-    cluster_info['configs'] = user_data_configs
-    clusters_helper.create_cluster(request, cluster_name, cluster_info)
-
-    # set up env and group relationship
-    environs_helper.add_env_capacity(request, name, stage, capacity_type="GROUP", data=cluster_name)
-    return get_basic_cluster(request, name, stage)
-
-
-def update_cluster(request, name, stage):
-    params = request.POST
-    cluster_name = common.get_cluster_name(request, name, stage)
-    cluster_info = parse_cluster_info(request, name, stage, cluster_name)
-    user_data_configs = parse_configs(params)
-    cluster_info['configs'] = user_data_configs
-    clusters_helper.update_cluster(request, cluster_name, cluster_info)
-    return get_basic_cluster(request, name, stage)
-
-
-def get_basic_cluster(request, name, stage):
-    envs = environs_helper.get_all_env_stages(request, name)
-    stages, env = common.get_all_stages(envs, stage)
-    provider_list = baseimages_helper.get_all_providers(request)
-    basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-    html = render_to_string('clusters/clusters.tmpl', {
-        'env': env,
-        'envs': envs,
-        'stages': stages,
-        'provider_list': provider_list,
-        'basic_cluster_info': basic_cluster_info,
-        'csrf_token': get_token(request),
-    })
-    return HttpResponse(json.dumps(html), content_type="application/json")
-
-
-def get_cluster(request, name, stage):
-    envs = environs_helper.get_all_env_stages(request, name)
-    stages, env = common.get_all_stages(envs, stage)
-    provider_list = baseimages_helper.get_all_providers(request)
-    basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-    adv = False
-    is_cmp = False
-    if basic_cluster_info:
-        base_image_id = basic_cluster_info.get('baseImageId')
-        base_image = baseimages_helper.get_by_id(request, base_image_id)
-        if base_image.get('abstract_name') != DEFAULT_CMP_IMAGE:
-            adv = True
-        else:
-            is_cmp = True
-
-    params = request.GET
-    if params.get('adv'):
-        adv = params.get('adv')
-
-    return render(request, 'clusters/clusters.html', {
-        'env': env,
-        'envs': envs,
-        'stages': stages,
-        'provider_list': provider_list,
-        'basic_cluster_info': basic_cluster_info,
-        'adv': adv,
-        'is_cmp': is_cmp,
-    })
-
 
 def delete_cluster(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -626,40 +541,6 @@ def get_aws_config_name_list_by_image(image_name):
             config_map['pinfo_role'] = ''
             config_map['pinfo_team'] = ''
     return config_map
-
-
-def get_advanced_cluster(request):
-    params = request.GET
-    provider = params['provider']
-    name = params['env']
-    stage = params['stage']
-    image_name = params['image_name']
-    cluster_name = common.get_cluster_name(request, name, stage)
-    config_list = None
-    advanced_cluster_info = {}
-    if provider == DEFAULT_PROVIDER:
-        config_list = get_aws_config_name_list_by_image(image_name)
-        basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
-        if not basic_cluster_info:
-            if image_name != DEFAULT_CMP_IMAGE:
-                advanced_cluster_info['aws_role'] = 'base'
-            else:
-                advanced_cluster_info = get_default_cmp_configs(name, stage)
-        else:
-            if image_name != DEFAULT_CMP_IMAGE:
-                advanced_cluster_info = basic_cluster_info.get('configs')
-            else:
-                cmp_configs = get_default_cmp_configs(name, stage)
-                advanced_cluster_info = basic_cluster_info.get('configs')
-                for key, value in cmp_configs.iteritems():
-                    if advanced_cluster_info.get(key) == value:
-                        advanced_cluster_info.pop(key)
-    contents = render_to_string('clusters/get_advanced_config.tmpl', {
-        'provider': provider,
-        'advanced_cluster_info': advanced_cluster_info,
-        'config_list': config_list,
-    })
-    return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
 def launch_hosts(request, name, stage):
