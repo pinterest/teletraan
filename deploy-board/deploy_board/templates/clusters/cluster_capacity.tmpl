@@ -69,7 +69,7 @@
                             window.location.href=window.location.href   
                         },
                         error: function (data) {
-                            globalNotificationBanner.error = data
+                            globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
                         }
                     });
                 },
@@ -150,7 +150,7 @@
                             globalNotificationBanner.info = "Capacity updated successfully"    
                         },
                         error: function (data) {
-                            globalNotificationBanner.error = data
+                            globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
                         }
                     });
                 }

@@ -248,7 +248,7 @@
                             onSuccess(data)
                         },
                         error: function(data) {
-                            globalNotificationBanner.error = data
+                            globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
                         }
                     });
             },
@@ -325,7 +325,7 @@
                         globalNotificationBanner.info = "Request sent successfully"
                     },
                     error: function(data) {
-                        globalNotificationBanner.error = data
+                        globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
                     }
                 });
             },
