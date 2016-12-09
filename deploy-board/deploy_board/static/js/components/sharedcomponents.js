@@ -130,7 +130,7 @@ Vue.component('label-input', {
   template: '<div class="form-group"><label class="control-label col-xs-2">{{label}}</label>\
   <div class="col-xs-4">\
    <input class="form-control" required="false" v-bind:placeholder="placeholder" type="text" \
-    v-on:input="updateValue($event.target.value)"></input>\
+    v-on:input="updateValue($event.target.value)" v-bind:value="value"></input>\
   </div></div>',
   props: ['label', 'value', 'placeholder'],
   methods: {
@@ -261,7 +261,7 @@ Vue.component("multi-label-select", {
     </label>\
     <div class="col-xs-10"><div v-bind:class="groupStyle">\
           <select class="form-control chosen-select"  v-on:change="updateValue($event.target.value)" multiple>\
-            <option v-for="option in options" v-bind:value="option.value" v-bind:selected="option.isSelected">{{option.text}}</option>\
+            <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected">{{option.text}}</option>\
           </select>\
     <span v-if="showhelp" class="input-group-btn">\
     <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" v-on:click="helpClick" title="click to see more information">\
@@ -272,7 +272,6 @@ Vue.component("multi-label-select", {
   props: ['label', 'title', 'selectoptions','showhelp'],
   data: function () {
     return {
-      options: this.selectoptions,
       groupStyle: this.showhelp ? 'input-group' : ''
     }
   },

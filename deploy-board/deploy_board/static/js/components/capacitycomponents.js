@@ -34,34 +34,34 @@ Vue.component('delete-cluster', {
  *      Pause: Pause Button and Resume Button
  */
 Vue.component('replace-cluster', {
-    template: '<div button-group pull-right>\
-    <modal-panel-heading-button v-show="showreplace" confirmDiaglog="#replaceClusterDialogId" \
-        text="Replace" title="Click to replace cluster with new launch configuration" styleclass="glyphicon glyphicon-random">\
-    </modal-panel-heading-button>\
+    template: '<div>\
+    <side-button-modal-confirm v-show="showreplace" confirmDiaglog="#replaceClusterDialogId" \
+        text="Replace Cluster" title="Click to replace cluster with new launch configuration" styleclass="glyphicon glyphicon-random">\
+    </side-button-modal-confirm>\
     <modal title="Replace Cluster Confirm" id="replaceClusterDialogId" v-on:input="replaceClickDialog">\
         <div slot="body">\
             Are you sure to <strong>REPLACE</strong> every host in this cluster?\
         </div>\
     </modal>\
-    <modal-panel-heading-button v-show="showpause" confirmDiaglog="#pauseClusterDialogId" \
-        text="Pause" title="Click to pause ongoing cluster replacement" styleclass="glyphicon glyphicon-pause">\
-    </modal-panel-heading-button>\
+    <side-button-modal-confirm v-show="showpause" confirmDiaglog="#pauseClusterDialogId" \
+        text="Pause Replacement" title="Click to pause ongoing cluster replacement" styleclass="glyphicon glyphicon-pause">\
+    </side-button-modal-confirm>\
     <modal title="Pause Ongoing Cluster Replacement Confirm" id="pauseClusterDialogId" v-on:input="pauseClickDialog">\
         <div slot="body">\
           Are you sure to pause cluster replacement?\
         </div>\
     </modal>\
-    <modal-panel-heading-button v-show="showcancel" confirmDiaglog="#cancelClusterDialogId" \
-        text="Cancel" title="Click to cancel ongoing cluster replacement" styleclass="glyphicon glyphicon-step-backward">\
-    </modal-panel-heading-button>\
+    <side-button-modal-confirm v-show="showcancel" confirmDiaglog="#cancelClusterDialogId" \
+        text="Cancel Replacement" title="Click to cancel ongoing cluster replacement" styleclass="glyphicon glyphicon-step-backward">\
+    </side-button-modal-confirm>\
     <modal title="Cancel Ongoing Cluster Replacement Confirm" id="cancelClusterDialogId" v-on:input="cancelClickDialog">\
         <div slot="body">\
           Are you sure to cancel ongoing cluster replacement?\
         </div>\
     </modal>\
-    <modal-panel-heading-button v-show="showresume" confirmDiaglog="#resumeClusterDialogId" \
-        text="Resume" title="Click to resume ongoing cluster replacement" styleclass="glyphicon glyphicon-play">\
-    </modal-panel-heading-button>\
+    <side-button-modal-confirm v-show="showresume" confirmDiaglog="#resumeClusterDialogId" \
+        text="Resume Replacement" title="Click to resume ongoing cluster replacement" styleclass="glyphicon glyphicon-play">\
+    </side-button-modal-confirm>\
     <modal title="Resume Ongoing Cluster Replacement Confirm" id="resumeClusterDialogId" v-on:input="resumeClickDialog">\
         <div slot="body">\
           Are you sure to resume cluster replacement?\
@@ -105,11 +105,8 @@ Vue.component("cluster-capacity-panel-heading", {
             {{ title }}\
         </a>\
     </h4>\
-    <div class="button-group pull-right">\
-    <replace-cluster v-bind:clusterstate="clusterstate" v-on:input="input"></replace-cluster>\
-    </div>\
 </div>',
-    props: ['title', 'target', 'initcollapse', 'clusterstate'],
+    props: ['title', 'target', 'initcollapse'],
     data: function () {
         return {
             collapse: this.initcollapse,
@@ -121,9 +118,6 @@ Vue.component("cluster-capacity-panel-heading", {
                 return "glyphicon glyphicon-chevron-right"
             else
                 return "glyphicon glyphicon-chevron-down"
-        },
-        input: function (value) {
-            this.$emit('input', value)
         },
         toggle: function () {
             this.collapse = !this.collapse
@@ -139,8 +133,9 @@ Vue.component('in-rolling-alert', {
     <div class="alert alert-info">\
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
         <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.\
-        You cannot update this page unless you cancel cluster replacement.\
-    </div>'
+        You cannot update this page unless you <a v-bind:href="actionlink">cancel cluster replacement.</a>\
+    </div>',
+    props:['actionlink']
 });
 
 

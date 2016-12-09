@@ -32,7 +32,7 @@
         <div v-if="!noCluster" class="row">
             <side-button styleclass="fa fa-cloud" text="Autoscaling Settings" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Advanced auto scaling configuration page"></side-button>
         </div>
-         <div v-if="!noCluster&&!showExistingCapacity" class="row">
+         <div v-if="showAddExistingCapacity" class="row">
             <side-button styleclass="fa fa-plus" text="Add Existing Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?addexisting" title="Add Existing Capacity"></side-button>
         </div>
 
@@ -54,7 +54,7 @@
 {% block main %}
 
 <div id = "clusterAlert">
-    <in-rolling-alert v-show="showReplaceAlert"></in-rolling-alert>
+    <in-rolling-alert v-show="showReplaceAlert" actionlink="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/"></in-rolling-alert>
 </div>
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 
@@ -64,6 +64,7 @@ window.info = {{info | safe}}
 window.env = info.env;
 window.hosts = info.hosts;
 window.groups = info.groups;
+window.showExistingCapacity = !window.info.is_pinterest || getUrlParameter("addexisting") || (hosts!=null && hosts.length>0)||(groups!=null && groups.length>0)
 
 if (info.is_pinterest){
     hasCMPCluster = env.clusterName || $.inArray(env.envName+"-"+env.stageName, groups) >= 0;
@@ -74,8 +75,8 @@ else{
 var sidebar = new Vue({
     el:"#side-panel",
     data:{
-        noCluster: !hasCMPCluster ,
-        showExistingCapacity: (hosts!=null && hosts.length>0)||(groups!=null && groups.length>0)
+        noCluster: !hasCMPCluster,
+        showAddExistingCapacity: !window.showExistingCapacity
     },
     methods:{
         //Send delete request

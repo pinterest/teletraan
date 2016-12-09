@@ -7,9 +7,7 @@
         <form id="clusterConfigFormId" class="form-horizontal" role="form">
             <fieldset id="clusterConfigFieldSetId">
                 <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
-                <label-info title="Instance Type" name="Instance Type" v-bind:text="instancetype" styleclass="text-muted"></label-info>
                 <static-capacity-config v-if="!autoscalingEnabled" v-bind:capacity="desiredCapacity" v-on:change="updateStatic">
-
                 </static-capacity-config>
                 <asg-capacity-config v-if="autoscalingEnabled" v-bind:minsize="minsize" v-bind:maxsize="maxsize" v-on:minchange="updateMin" v-on:maxchange="updateMax">
                 </asg-capacity-config>
@@ -20,7 +18,7 @@
 
 <div class="panel-footer clearfix">
     <div class="pull-right">
-        <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary"
+        <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity"
                 data-loading-text="Saving..." v-on:click="save">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
@@ -51,60 +49,9 @@
                 minsize: asg_launch_info.minSize,
                 maxsize: asg_launch_info.maxSize,
                 autoscalingEnabled:autoscalingEnabled,
+                canSaveCapacity: cluster.state === "NORMAL" 
             },
             methods:{
-                sendClusterActionRequest: function(action_url){
-                    $.ajax({
-                        type: 'POST',
-                        url: '/env/{{ env.envName }}/{{ env.stageName }}/'+action_url+"/",
-                        data: "",
-                        dataType: "json",
-                        beforeSend: function(xhr, settings) {
-                            var csrftoken = getCookie('csrftoken')
-                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                        
-                        },
-                        success: function (data) {
-                            globalNotificationBanner.info = "Replacement request sent successfully"
-                            window.location.href=window.location.href   
-                        },
-                        error: function (data) {
-                            globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
-                        }
-                    });
-                },
-                replaceCluster: function(){
-                    this.sendClusterActionRequest('enable_replacement')
-                },
-                cancelReplaceCluster:function(){
-                    this.sendClusterActionRequest('cancel_replacement')
-                },
-                pauseReplaceCluster:function(){
-                    this.sendClusterActionRequest('pause_replacement')
-                },
-                resumeReplaceCluster:function(){
-                    this.sendClusterActionRequest('resume_replacement')
-                },
-                clusterAction: function(confirmedAction){
-                    //Check if action is a confirm action
-                    if (confirmedAction.value){
-                        if (confirmedAction.action === "replace"){
-                            this.replaceCluster()        
-                        }
-                        else if (confirmedAction.action === 'cancel'){
-                            this.cancelReplaceCluster()
-                        }
-                        else if (confirmedAction.action === 'resume'){
-                            this.resumeReplaceCluster()
-                        }
-                        else if (confirmedAction.action === 'pause'){
-                            this.pauseReplaceCluster()
-                        }
-                        else{
-                            globalNotificationBanner.error = "Unrecongized action "+confirmedAction.action
-                        }
-                    }
-                },
                 updateStatic: function(value){
                    this.desiredCapacity = Number(value)
                 },
