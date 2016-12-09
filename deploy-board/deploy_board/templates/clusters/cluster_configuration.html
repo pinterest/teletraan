@@ -1,0 +1,459 @@
+{% extends 'environs/env_base.html'%} {% load utils %} {% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/config">General Config</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity">Capacity</a></li>
+    <li class="active">Cluster Configuration</li>
+</ul>
+{% endblock %} {% load static %} {% block side-panel-actions %}
+<script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}"></script>
+<script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}"></script>
+
+<div class="panel panel-default" id="side-panel">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Capacity</h4>
+    </div>
+    <div v-if="noCluster" class="row">
+        <side-button styleclass="fa fa-cloud" text="Create New Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/" title="Create New Cluster"></side-button>
+    </div>
+    <div v-if="!noCluster" class="row">
+        <side-button-nolink styleclass="fa fa-gears" v-on:click="buttonClick" v-bind:text="settingText" title="Cluster Configuration"></side-button-nolink>
+    </div>
+    <replace-cluster v-bind:clusterstate="clusterState" v-on:input="clusterAction"></replace-cluster>
+</div>
+{% endblock %} {% block new-builds-panel %} {% endblock %} {% block new-pred-deploys-panel %} {% endblock %} {% block main %}
+
+<div id="clusterAlert">
+    <in-rolling-alert v-show="showReplaceAlert" actionlink="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/"></in-rolling-alert>
+</div>
+{% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
+
+
+<div id="mainPanel" class="panel panel-default">
+    <panel-heading title="Cluster Settings" target="#envCapacityId" initcollapse="false"></panel-heading>
+    <div id="envCapacityId" class="collapse in panel-body" v-on:show.bs.collapse="showcontent" v-on:hide.bs.collapse="hidecontent">
+        <div class="container-fluid">
+            <form id="clusterConfigFormId" class="form-horizontal" role="form">
+                <fieldset id="clusterConfigFieldSetId">
+                    <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
+                    <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue" 
+                    v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" v-on:helpclick="baseImageHelpClick">
+                    </baseimage-select>
+                    <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
+                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
+                    <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
+                    <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones" 
+                    showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
+                    <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
+                    <multi-label-select label="Placements" title="Placements" v-model="selectedPlacements" v-bind:selectoptions="placements" showhelp="true" v-on:helpclick="placementsHelpClick"></multi-label-select>
+                    <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
+                    <label-input v-if="!inAdvanced" label="aws_role" v-bind:value="awsRole" v-on:input="updateAwsRole"></label-input>
+                    <div v-if="inAdvanced">
+                        <div class="form-group"></div>
+                        <div class="form-group">
+                            <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip"  title="Customize user data">User data configs:</label>
+                            <div class="pull-right">
+                                <add-config-button target="#newConfigModalId"></add-config-button>
+                                <aws-config-modal id="newConfigModalId" v-bind:options="availableConfigOptions()" v-on:click="addConfig"></aws-config-modal>
+                            </div>
+                        </div>
+                        <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" v-on:change="configChange" v-bind:inadvanced="inAdvanced"></aws-user-data>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+    <modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">
+        <div slot="body">Are you sure to save the changes?</div>
+    </modal>
+
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button id="saveEnvCapacityBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity" data-target="#updateClusterSettings" data-toggle="modal" data-loading-text="Creating...">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var info = {{capacity_creation_info | safe}}
+    var env = info.environment;
+    var currentCluster = info.currentCluster;
+    if (currentCluster!=null){
+        var placement = currentCluster.placement.split(',')
+        var showReplaceAlert = currentCluster != null && currentCluster.state != "NORMAL"
+        var alert = new Vue({
+            el: "#clusterAlert",
+            data: {
+                showReplaceAlert: showReplaceAlert
+            }
+        });
+
+        var sorted = info.baseImages.sort(function(item1, item2) {
+            return item1.publish_date > item2.publish_data;
+        })
+
+        var capacitySetting = new Vue({
+            el: "#mainPanel",
+            data: {
+                allUserData:  Object.keys(currentCluster.configs).map(
+                        function(key) {
+                            return {
+                                name: key,
+                                value: currentCluster.configs[key]
+                            }
+                        }).filter(function(item){return item.name!='cmp_group'}),
+                awsRole: currentCluster.configs.aws_role,
+                baseimages: info.baseImages.map(function(o) {
+                    return {
+                        value: o.id,
+                        text: o.provider_name,
+                        isSelected: o.id === currentCluster.baseImageId
+                    }
+                }),
+                baseImageValue: currentCluster.baseImageId,
+                confirmDialogTitle: "Update Cluster Settings",
+                confirmDialogId: "updateClusterSettings",
+                currentProvider: currentCluster.provider,
+                hostTypeOptions: info.hostTypes.map(function(item, idx) {
+                    return {
+                        value: item.abstract_name,
+                        text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ")",
+                        isSelected: item.abstract_name === currentCluster.hostType
+                    }
+                }),
+                imageNameValue: info.defaultBaseImage,
+                imagenames: info.baseImageNames.map(function(o) {
+                    return {
+                        value: o,
+                        text: o,
+                        isSelected: o === info.defaultBaseImage
+                    }
+                }),
+                inAdvanced: false,
+                placements: info.placements.map(function(item) {
+                    return {
+                        value: item.abstract_name,
+                        text: item.abstract_name,
+                        isSelected: $.inArray(item.abstract_name, placement) >= 0
+                    }
+                }),
+                providers: info.providerList.map(function(o) {
+                    return {
+                        value: o,
+                        text: o
+                    }
+                }),
+                securityZones: info.securityZones.map(function(item) {
+                    return {
+                        value: item.abstract_name,
+                        text: item.abstract_name,
+                        isSelected: item.abstract_name === currentCluster.securityZone
+                    }
+                }),
+                selectedHostTypeValue: currentCluster.hostType,
+                selectedSecurityZoneValue: currentCluster.securityZone,
+                selectedPlacements: placement,
+                showBaseImageHelp: false,
+                baseImageHelpData: [],
+                showHostTypeHelp: false,
+                hostTypeHelpData:[],
+                showSecurityZoneHelp: false,
+                securityZoneHelpData: [],
+                showPlacementsHelp: false,
+                placementsHelpData: [],
+                canSaveCapacity: !showReplaceAlert
+
+            },
+            methods: {
+                addConfig: function(config) {
+                    var filter = this.allUserData.filter(function(data) {
+                        return data.name === config.name
+                    })
+                    if (filter.length == 0) {
+                        this.allUserData.push(config)
+                    } else {
+                        filter[0].value = config.value
+                    }
+                },
+                availableConfigOptions: function() {
+                    var options = Object.keys(info.configList).map(function(key) {
+                        return {
+                            name: key,
+                            text: key,
+                            default: info.configList[key]
+                        }
+                    })
+                    if (this.inAdvanced){
+                        return options;
+                    }
+                    else{
+                        return options.filter(function(item){return !item.name.startsWith("pinfo_") && item.name!="cmp_group" });
+                    }
+                },
+                configChange: function(input){
+                    this.allUserData = this.allUserData.map(function(item){ 
+                        if (item.name===input.name){
+                            return input
+                        }
+                        else{
+                            return item
+                        }
+                    })
+                },
+                baseImageHelpClick: function(){
+                    if (this.showBaseImageHelp){
+                        this.showBaseImageHelp = false;
+                    }
+                    else{
+                        this.getHelpInfo('get_base_image_info/' + this.imageNameValue, function(data){
+                            data = data.map(function(item){
+                                item.publish_date=new Date(item.publish_date)
+                                if (item.description == null || item.description.length==0){
+                                    item.description = "None"
+                                }
+                                return item
+                            })
+                            capacitySetting.baseImageHelpData = data
+                            capacitySetting.showBaseImageHelp = true 
+                        })
+                    }
+                },
+                baseImageChange: function(value) {
+                    this.baseImageValue = value
+                },
+                deleteConfig: function(name) {
+                    this.allUserData = this.allUserData.filter(function(config) {
+                        return config.name != name
+                    })
+                },
+                getHelpInfo: function(path, onSuccess){
+                        $.ajax({
+                            type: 'GET',
+                            url: location.protocol + '//' + location.host + '/clouds/'+path+'/',
+                            dataType: "json",
+                            beforeSend: function(xhr, settings) {
+                                var csrftoken = getCookie('csrftoken')
+                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                            },
+                            success: function(data){
+                                onSuccess(data)
+                            },
+                            error: function(data) {
+                                globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                            }
+                        });
+                },
+                hostTypeHelpClick: function(){
+                    if (this.showHostTypeHelp){
+                        this.showHostTypeHelp = false;
+                    }
+                    else{
+                        this.getHelpInfo('get_host_type_info', function(data){
+                                capacitySetting.hostTypeHelpData = data
+                                capacitySetting.showHostTypeHelp = true                        
+                        })
+                    }
+                },
+                imageNameChange: function(value) {
+                    capacitySetting.imageNameValue = value
+                        //Grab all images for this image name
+                    $.ajax({
+                        type: 'GET',
+                        url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '/',
+                        dataType: "json",
+                        beforeSend: function(xhr, settings) {
+                            var csrftoken = getCookie('csrftoken')
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                        },
+                        success: function(data) {
+                            sorted = data.sort(function(item1, item2) {
+                                return item1.publish_date > item2.publish_data;
+                            })
+                            capacitySetting.baseimages = sorted.map(function(o) {
+                                return {
+                                    value: o.id,
+                                    text: o.provider_name
+                                }
+                            })
+                            capacitySetting.baseImageValue = sorted[0].id
+                        },
+                        error: function(data) {
+                            globalNotificationBanner.error = data
+                        }
+                    });
+                },
+                placementsHelpClick: function(){
+                    if (this.showPlacementsHelp){
+                        this.showPlacementsHelp = false
+                    }
+                    else{
+                        this.getHelpInfo('get_placement_infos', function(data){
+                                capacitySetting.placementsHelpData = data
+                                capacitySetting.showPlacementsHelp = true                        
+                        })
+                    }
+                },
+                'validateInput': function(clusterInfo) {
+                    //Validate input data. 
+                    if (clusterInfo.placement == null || clusterInfo.placement.length === 0) {
+                        globalNotificationBanner.error = "Placement is not specified"
+                    }
+                    return true
+                },
+                'sendRequest': function(clusterInfo) {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
+                        data: JSON.stringify(clusterInfo),
+                        dataType: "json",
+                        beforeSend: function(xhr, settings) {
+                            var csrftoken = getCookie('csrftoken')
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                        },
+                        success: function(data) {
+                            globalNotificationBanner.info = "Request sent successfully"
+                        },
+                        error: function(data) {
+                            globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                        }
+                    });
+                },
+                securityZoneHelpClick:function(){
+                    if (this.showSecurityZoneHelp){
+                        this.showSecurityZoneHelp = false
+                    }
+                    else{
+                        this.getHelpInfo('get_security_zone_info', function(data){
+                                capacitySetting.securityZoneHelpData = data
+                                capacitySetting.showSecurityZoneHelp = true                        
+                        })
+                    }
+                },
+                updateAwsRole:function(value){
+                    this.awsRole = value
+                },
+                updateCapacity: function() {
+                    //Create the default capacity. The input here aligns to the Rodimus new cluster 
+                    var clusterInfo = {};
+                    clusterInfo['provider'] = this.currentProvider;
+                    clusterInfo['baseImageId'] = this.baseImageValue;
+                    clusterInfo['hostType'] = this.selectedHostTypeValue;
+                    clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
+                    clusterInfo['placement'] = this.selectedPlacements.join(',');
+                    clusterInfo['configs'] = this.allUserData.reduce(function(map, obj) {
+                        map[obj.name] = obj.value;
+                        return map
+                    }, {})
+
+                    if (!this.inAdvanced){
+                        clusterInfo.configs['aws_role'] = this.awsRole
+                    }
+                    if (this.validateInput(clusterInfo)) {
+                        //Send request
+                        this.sendRequest(clusterInfo);
+                    }
+                },
+                clickDialog: function(value) {
+                    if (value) {
+                        this.updateCapacity();
+                    }
+                }
+            }
+        })
+
+        var sidebar = new Vue({
+            el: "#side-panel",
+            data: {
+                noCluster: !(env.clusterName || $.inArray(env.envName + "-" + env.stageName, groups) >= 0),
+                settingText: 'Advanced Settings',
+                clusterState: currentCluster.state
+            },
+            methods: {
+                    sendClusterActionRequest: function(action_url){
+                        $.ajax({
+                            type: 'POST',
+                            url: '/env/{{ env.envName }}/{{ env.stageName }}/'+action_url+"/",
+                            data: "",
+                            dataType: "json",
+                            beforeSend: function(xhr, settings) {
+                                var csrftoken = getCookie('csrftoken')
+                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                            
+                            },
+                            success: function (data) {
+                                globalNotificationBanner.info = "Replacement request sent successfully"
+                                window.location.href=window.location.href   
+                            },
+                            error: function (data) {
+                                globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                            }
+                        });
+                    },
+                    replaceCluster: function(){
+                        this.sendClusterActionRequest('enable_replacement')
+                    },
+                    cancelReplaceCluster:function(){
+                        this.sendClusterActionRequest('cancel_replacement')
+                    },
+                    pauseReplaceCluster:function(){
+                        this.sendClusterActionRequest('pause_replacement')
+                    },
+                    resumeReplaceCluster:function(){
+                        this.sendClusterActionRequest('resume_replacement')
+                    },
+                    clusterAction: function(confirmedAction){
+                        //Check if action is a confirm action
+                        if (confirmedAction.value){
+                            if (confirmedAction.action === "replace"){
+                                this.replaceCluster()        
+                            }
+                            else if (confirmedAction.action === 'cancel'){
+                                this.cancelReplaceCluster()
+                            }
+                            else if (confirmedAction.action === 'resume'){
+                                this.resumeReplaceCluster()
+                            }
+                            else if (confirmedAction.action === 'pause'){
+                                this.pauseReplaceCluster()
+                            }
+                            else{
+                                globalNotificationBanner.error = "Unrecongized action "+confirmedAction.action
+                            }
+                        }
+                    },
+                buttonClick: function() {
+                    capacitySetting.inAdvanced = !capacitySetting.inAdvanced
+                    if (capacitySetting.inAdvanced) {
+                        this.settingText = 'Basic Settings'
+                    } else {
+                        this.settingText = 'Advanced Settings'
+                    }
+                }
+            }
+        });
+
+        $(document).ready(function() {
+                $(".chosen-select").chosen({
+                        "width": "100%"
+                    })
+                    .change(function() {
+                        capacitySetting.selectedPlacements = $('.chosen-select').val()
+                    })
+        });
+    }
+    else{
+        globalNotificationBanner.error = "Cannot find the cluster"
+    }
+
+</script>
+
+{% endblock %}

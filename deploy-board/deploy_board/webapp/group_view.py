@@ -218,7 +218,7 @@ def update_group_config(request, group_name):
         groupRequest["emailRecipients"] = params.get("email_recipients")
         groupRequest["pagerRecipients"] = params.get("pager_recipients")
         groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
-        groupRequest["loadBalancers"] = params.get("load_balancers") 
+        groupRequest["loadBalancers"] = params.get("load_balancers")
 
         if "healthcheck_state" in params:
             groupRequest["healthcheckState"] = True
@@ -856,11 +856,11 @@ class GroupConfigView(View):
                     asg_vm_info["subnetArrays"] = asg_vm_info["subnets"].split(',')
             group_info = asg_cluster.get("groupInfo")
             group_info = get_group_config_internal(group_info)
-            envs = environs_helper.get_all_envs_by_group(request, group_name)
-            for env in envs:
-                basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-                if basic_cluster_info:
-                    is_cmp = True
+            #Directly search the cluster name. As long as there exists a cluster, treat this as cmp and hide
+            #Launch Configuration
+            basic_cluster_info = clusters_helper.get_cluster(request, group_name)
+            if basic_cluster_info:
+                is_cmp = True
         else:
             asg_vm_info = None
             group_info = None

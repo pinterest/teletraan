@@ -1,0 +1,230 @@
+{% extends 'environs/env_base.html'%}
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/config">General Config</a></li>
+    <li class="active">New Capacity</li>
+</ul>
+{% endblock %}
+{% load static %}
+
+{% block side-panel-actions %}
+<script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}"></script>
+<div class="panel panel-default" id="side-panel">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Capacity</h4>
+    </div>
+    <div class="row">
+            <side-button styleclass="fa fa-gears" text="Advanced Settings" href="/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/advanced/" title="Advanced Settings"></side-button>
+    </div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+{% if not basic_cluster_info|canReplaceCluster %}
+    <div class="alert alert-info">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
+        You cannot update this page unless you cancel cluster replacement.
+    </div>
+{% endif %}
+
+{% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
+<script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}"></script>
+<script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}"></script>
+<div class="panel panel-default" id="capacityPanel">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left pointer-cursor">Basic Settings</h4>
+    </div>
+    <div id="envCapacityId" class="panel-body">
+        <div class="container-fluid">
+            <form id="envCapacityFormId" class="form-horizontal" role="form">
+                <div class="row">
+                    <label>This is for CMP docker only hosts. For other type, click the Advanced Settings on the left</label>
+                </div>
+                <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
+                        v-on:baseimagechange="baseImageChange">
+                </baseimage-select>
+                <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
+                <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"></label-select>
+                <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-on:input="updateSecurityZone" v-bind:selectoptions="securityZoneOptions"></label-select>
+                <multi-label-select label="Placements" title="Placements" v-model="selectedPlacements" v-bind:selectoptions="placements" showplaceholder="true" placeholder="Use Default"></multi-label-select>
+                <label-input label="aws_role" v-bind:value="awsRole" v-on:input="updateAwsRole"></label-input>
+            </form>
+        </div>
+    </div>
+    <modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">
+        <div slot="body">Are you sure to create a new CMP cluster for environment {{env.envName}}({{env.stageName}})?</div>
+    </modal>
+
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#createHostGroup" data-toggle="modal" 
+                data-loading-text="Creating...">
+                <span class="glyphicon glyphicon-floppy-save"></span> Create
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+var capacityView = new Vue({
+    el:"#side-panel",
+ }
+)
+
+var capacityCreationInfo = {{capacity_creation_info|safe}}
+
+getDefaultPlacement = function(securityZone){
+            //This function set the default 
+            //placements based on security zones
+            var mappings = capacityCreationInfo.defaultMappings[securityZone]
+            var placements = capacityCreationInfo.placements.filter(function(item){return $.inArray(item.abstract_name,mappings)>=0;})
+            var sorted = placements.sort(function(item1,item2){return item1.capacity<item2.capacity;})
+
+            //Returnt the top 3 of capacity
+            return sorted.map(function(item){return item.abstract_name;}).slice(0,3)
+}
+
+getDefaultBaseImage = function(){
+            var sorted = capacityCreationInfo.baseImages.sort(function(item1,item2){
+                return item1.publish_date>item2.publish_data;})
+
+            return sorted[0].id;
+}
+
+var capacitySetting = new Vue({
+    el:"#capacityPanel",
+    data:{
+        awsRole: "base",
+        baseimages: capacityCreationInfo.baseImages.map(
+            function (o) { 
+                return { 
+                    value: o.id, 
+                    text: o.provider_name, 
+                    isSelected: o.id === getDefaultBaseImage() 
+                } 
+            }),
+        baseImageValue: getDefaultBaseImage(),
+        confirmDialogTitle:"Confirm New Capacity Creation",
+        confirmDialogId:"createHostGroup",
+        imageNameValue: 'cmp_base',
+        imagenames: ['cmp_base'],
+        instanceCount:"",
+        hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){return {value:item.abstract_name,text:item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.storage+")"}}),
+        placements: capacityCreationInfo.placements.map(function(item) {
+                return {
+                    value: item.abstract_name,
+                    text: item.abstract_name,
+                    isSelected: false
+                }
+            }),
+        securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){return {value:item.abstract_name, text:item.abstract_name+" ("+item.description+")"}}),
+        selectedHostTypeValue: capacityCreationInfo.hostTypes[0].abstract_name,
+        selectedSecurityZoneValue: capacityCreationInfo.securityZones[0].abstract_name,
+        selectedPlacements: ""
+    },
+    methods:{
+        validateInput: function(clusterInfo){
+            //Validate input data. 
+            var count = clusterInfo['capacity']
+            if (count === undefined || count === null || isNaN(count) || count<=0 || count>1000 ) {
+                // do something
+                globalNotificationBanner.error = "Capacity must be a number between 0 and 1000"
+                return false 
+            }
+            return true
+        },
+        baseImageChange: function (value) {
+            this.baseImageValue = value
+        },
+        sendRequest: function(clusterInfo){
+                $.ajax({
+                    type: 'POST',
+                    url: '/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/',
+                    data: JSON.stringify(clusterInfo),
+                    dataType: "json",
+                    beforeSend: function(xhr, settings) {
+                        var csrftoken = getCookie('csrftoken')
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    
+                    },
+                    success: function (data) {
+                        globalNotificationBanner.info = "Request sent successfully"    
+                    },
+                    error: function (data) {
+                        globalNotificationBanner.error = data
+                    }
+            });
+        },
+        createCapacity:function(){
+                //Create the default capacity. The input here aligns to the Rodimus new cluster 
+            var clusterInfo = {};
+            clusterInfo['provider'] = capacityCreationInfo['defaultProvider'];
+            clusterInfo['capacity'] = Number(this.instanceCount);
+            clusterInfo['baseImageId'] = this.baseImageValue;
+            clusterInfo['hostType'] = this.selectedHostTypeValue;
+            clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
+            if (this.selectedPlacements === ""){
+                clusterInfo['placement'] = getDefaultPlacement(this.selectedSecurityZoneValue).join(',')
+            }
+            else{
+                clusterInfo['placement'] = this.selectedPlacements.join(',');
+            }
+            clusterInfo['configs'] = capacityCreationInfo['defaultCMPConfigs']
+            clusterInfo.configs['aws_role'] = this.awsRole
+            if (this.selectedSecurityZoneValue.endsWith('public-service')){
+                clusterInfo.configs['assign_public_ip'] = true
+            }
+            
+            if (this.validateInput(clusterInfo)){
+                //Send request
+                this.sendRequest(clusterInfo);
+            }
+        },
+        clickDialog:function(value){
+            if (value){
+                this.createCapacity();
+            }
+        },
+        updateAwsRole: function(value){
+            this.awsRole = value
+        },
+        updateSecurityZone: function(value){
+            this.selectedSecurityZoneValue = value
+            this.placements = capacityCreationInfo.placements.map(function(item) {
+                return {
+                    value: item.abstract_name,
+                    text: item.abstract_name,
+                    isSelected: $.inArray(item.abstract_name, getDefaultPlacement(value))>=0
+                }
+            })
+        }
+    }
+ }
+)
+
+$(document).ready(function() {
+    $(".chosen-select").chosen({
+            width: "100%",
+            placeholder_text_multiple: "Use Default"
+        })
+        .change(function() {
+            capacitySetting.selectedPlacements = $('.chosen-select').val()
+        })
+});
+
+</script>
+
+{% endblock %}
