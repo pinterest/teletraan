@@ -78,7 +78,7 @@ class EnvCapacityBasicCreateView(View):
             environs_helper.add_env_capacity(request, name, stage, capacity_type="GROUP", data=cluster_name)
             return HttpResponse("{}", content_type="application/json")
         except Exception as e:
-            log.info("Have an error {}", e)
+            log.info("Have an error {}".format(e))
             return HttpResponse(e, status=500, content_type="application/json")
 
 
@@ -508,7 +508,7 @@ def parse_cluster_info(request, env_name, env_stage, cluster_name):
 
 def delete_cluster(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
-    log.info("Delete cluster {}", cluster_name);
+    log.info("Delete cluster {}".format(cluster_name));
     clusters_helper.delete_cluster(request, cluster_name)
 
     # Update isDocker and cluster name in

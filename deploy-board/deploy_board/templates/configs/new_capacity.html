@@ -52,6 +52,9 @@
                 <div class="row">
                     <label>This is for CMP docker only hosts. For other type, click the Advanced Settings on the left</label>
                 </div>
+                <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
+                        v-on:baseimagechange="baseImageChange">
+                </baseimage-select>
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                 <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"></label-select>
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-on:input="updateSecurityZone" v-bind:selectoptions="securityZoneOptions"></label-select>
@@ -94,12 +97,30 @@ getDefaultPlacement = function(securityZone){
             return sorted.map(function(item){return item.abstract_name;}).slice(0,3)
 }
 
+getDefaultBaseImage = function(){
+            var sorted = capacityCreationInfo.baseImages.sort(function(item1,item2){
+                return item1.publish_date>item2.publish_data;})
+
+            return sorted[0].id;
+}
+
 var capacitySetting = new Vue({
     el:"#capacityPanel",
     data:{
         awsRole: "base",
+        baseimages: capacityCreationInfo.baseImages.map(
+            function (o) { 
+                return { 
+                    value: o.id, 
+                    text: o.provider_name, 
+                    isSelected: o.id === getDefaultBaseImage() 
+                } 
+            }),
+        baseImageValue: getDefaultBaseImage(),
         confirmDialogTitle:"Confirm New Capacity Creation",
         confirmDialogId:"createHostGroup",
+        imageNameValue: 'cmp_base',
+        imagenames: ['cmp_base'],
         instanceCount:"",
         hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){return {value:item.abstract_name,text:item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.storage+")"}}),
         placements: capacityCreationInfo.placements.map(function(item) {
@@ -125,12 +146,8 @@ var capacitySetting = new Vue({
             }
             return true
         },
-        
-        getDefaultBaseImage: function(){
-            var sorted = capacityCreationInfo.baseImages.sort(function(item1,item2){
-                return item1.publish_date>item2.publish_data;})
-
-            return sorted[0].id;
+        baseImageChange: function (value) {
+            this.baseImageValue = value
         },
         sendRequest: function(clusterInfo){
                 $.ajax({
@@ -156,11 +173,11 @@ var capacitySetting = new Vue({
             var clusterInfo = {};
             clusterInfo['provider'] = capacityCreationInfo['defaultProvider'];
             clusterInfo['capacity'] = Number(this.instanceCount);
-            clusterInfo['baseImageId'] = this.getDefaultBaseImage();
+            clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             if (this.selectedPlacements === ""){
-                clusterInfo['placement'] = getDefaultPlacement(this.selectedSecurityZoneValue)
+                clusterInfo['placement'] = getDefaultPlacement(this.selectedSecurityZoneValue).join(',')
             }
             else{
                 clusterInfo['placement'] = this.selectedPlacements.join(',');

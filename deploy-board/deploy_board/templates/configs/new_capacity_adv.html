@@ -95,7 +95,7 @@ var capacitySetting = new Vue({
                     name: key, 
                     value: info.defaultCMPConfigs[key] 
                 } 
-            }),
+            }).filter(function(item){return item.name!='cmp_group'}),
         baseImageHelpData: [],
         baseimages: info.baseImages.map(
             function (o) { 

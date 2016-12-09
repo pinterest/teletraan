@@ -150,7 +150,7 @@ Vue.component("static-capacity-config", {
     </label>\
     <div class="col-xs-2" >\
     <input class="form-control" v-bind:value="capacity" v-on:change="updateValue($event.target.value)"></input>\
-    </div>',
+    </div></div>',
     props: ['capacity'],
     methods: {
         updateValue: function (value) {
@@ -168,18 +168,19 @@ Vue.component("asg-capacity-config", {
     <label for="capacity" class="deployToolTip control-label col-xs-4" title="Number of hosts for this service">\
         Capacity\
     </label>\
-        <div class="col-xs-6">\
-        <div class="row form-group">\
             <div class="col-xs-2">\
                 <div class="input-group" >\
                     <span class="input-group-addon">Min Size</span>\
                     <input class="form-control" v-bind:value="minsize" v-on:change="updateMinSize($event.target.value)"></input>\
-                </div></div>\
-            <div class="col-xs-2"><div class="input-group" >\
-                <span class="input-group-addon">Max Size</span><input class="form-control" v-bind:value="maxsize" v-on:change="updateMaxSize($event.target.value)"></input>\
-            </div></div>\
+                </div>\
             </div>\
-    </div></div>',
+            <div class="col-xs-2">\
+                <div class="input-group" >\
+                    <span class="input-group-addon">Max Size</span>\
+                    <input class="form-control" v-bind:value="maxsize" v-on:change="updateMaxSize($event.target.value)"></input>\
+                </div>\
+            </div>\
+    </div>',
     props: ['minsize', 'maxsize'],
     methods: {
         updateMinSize: function (value) {
