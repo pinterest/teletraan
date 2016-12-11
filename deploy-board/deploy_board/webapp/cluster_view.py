@@ -141,13 +141,16 @@ class ClusterConfigurationView(View):
         cluster_name = '{}-{}'.format(name, stage)
         current_cluster = clusters_helper.get_cluster(request, cluster_name)
         host_types = hosttypes_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        current_image = baseimages_helper.get_by_id(request, current_cluster['baseImageId'])
+        current_cluster['baseImageName'] = current_image['abstract_name']
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
-        security_zones = securityzones_helper.get_by_provider(request, DEFAULT_PROVIDER)
-        placements = placements_helper.get_by_provider(request, DEFAULT_PROVIDER)
-        base_images = baseimages_helper.get_by_name(request, DEFAULT_CMP_IMAGE)
-        base_images_names = baseimages_helper.get_image_names(request, DEFAULT_PROVIDER)
+        security_zones = securityzones_helper.get_by_provider(request, current_cluster['provider'])
+        placements = placements_helper.get_by_provider(request, current_cluster['provider'])
+        base_images = baseimages_helper.get_by_name(request, current_image['abstract_name'])
+        base_images_names = baseimages_helper.get_image_names(request, current_cluster['provider'])
+
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)

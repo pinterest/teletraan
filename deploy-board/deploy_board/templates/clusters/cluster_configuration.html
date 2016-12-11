@@ -127,12 +127,12 @@
                         isSelected: item.abstract_name === currentCluster.hostType
                     }
                 }),
-                imageNameValue: info.defaultBaseImage,
+                imageNameValue: currentCluster.baseImageName,
                 imagenames: info.baseImageNames.map(function(o) {
                     return {
                         value: o,
                         text: o,
-                        isSelected: o === info.defaultBaseImage
+                        isSelected: o === currentCluster.baseImageName
                     }
                 }),
                 inAdvanced: false,
