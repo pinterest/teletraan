@@ -106,7 +106,7 @@ def get_host_details(host_id):
     if IS_PINTEREST and PHOBOS_URL:
         host_ip = instance['config']['internal_address']
         phobos_link = PHOBOS_URL + host_ip
-        host_details['Phobos Link'] = '<a href="%s%s">' %(PHOBOS_URL, host_ip)
+        host_details['Phobos Link'] = phobos_link
     return host_details
 
 
