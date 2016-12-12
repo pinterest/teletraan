@@ -90,7 +90,11 @@
         {% if value|getType == 'dict' %}
         <div>
             {% for k, v in value.items %}
-            <i>{{ k }}: </i>{{ v }},
+                {% if k == 'Phobos Link' %}
+                    <i>{{ k }}: </i><a href="{{ v }}">,
+                {% else %}
+                    <i>{{ k }}: </i>{{ v }},
+                {% endif %}
             {% endfor %}
         </div>
         {% elif value|getType == 'list' %}
