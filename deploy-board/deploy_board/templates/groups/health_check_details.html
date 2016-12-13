@@ -205,6 +205,12 @@
                     <td class="col-lg-2">Agent Last Update</td>
                     <td>{{ health_check_error.agent_last_update | convertTimestamp  }}</td>
                 </tr>
+                {% if defined?(health_check_error.phobos_link) %}
+                <tr>
+                    <td class="col-lg-2">Phobos Link</td>
+                    <td><pre><a href="{{ health_check_error.phobos_link }}"></pre></td>
+                </tr>
+                {% endif %}
             </table>
         {% endif %}
     </form>
