@@ -1062,15 +1062,13 @@ def get_health_check_details(request, id):
         env = environs_helper.get(request, health_check.get('env_id'))
         health_check_error['env_name'] = env.get('envName')
         health_check_error['stage_name'] = env.get('stageName')
-
-    if 'error_message' in health_check and not health_check_error:
         if IS_PINTEREST and PHOBOS_URL:
             from brood.client import Brood
             cmdb = Brood()
             host_ip = cmdb.get_query(query="id:" + health_check['host_id'],
                                      fields="config.internal_address")[0]['config.internal_address']
-            health_check_error['error_message'] = health_check_error['error_message'] + \
-                                                  ' <a href="%s%s">'.format(PHOBOS_URL, host_ip)
+            if host_ip is not None:
+                health_check_error['phobos_link'] = PHOBOS_URL + host_ip
 
     return render(request, 'groups/health_check_details.html', {
         "health_check": health_check,
