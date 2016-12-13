@@ -178,14 +178,9 @@ class ClusterConfigurationView(View):
         try:
             env = environs_helper.get_env_by_stage(request, name, stage)
             cluster_name = env.get('clusterName')
-            isDocker = env['isDocker']
             cluster_info = json.loads(request.body)
             log.info("Update Cluster Configuration with {}", cluster_info)
             image = baseimages_helper.get_by_id(request, cluster_info['baseImageId'])
-            isDockerAMI =  image['abstract_name'] == DEFAULT_CMP_IMAGE
-            if isDocker!=isDockerAMI:
-                #AMI and env isDocker doesn't match
-                environs_helper.update_env_basic_config(request, name, stage, data={'isDocker': isDockerAMI})
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except Exception as e:
             log.info("Post to cluster configuration view has an error {}", e)
@@ -513,12 +508,6 @@ def delete_cluster(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     log.info("Delete cluster {}".format(cluster_name));
     clusters_helper.delete_cluster(request, cluster_name)
-
-    # Update isDocker and cluster name in
-    env_info = {}
-    env_info['clusterName'] = ''
-    env_info['isDocker'] = False
-    environs_helper.update_env_basic_config(request, name, stage, data=env_info)
 
     # Remove group and env relationship
     environs_helper.remove_env_capacity(request, name, stage, capacity_type="GROUP", data=cluster_name)
