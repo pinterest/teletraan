@@ -957,16 +957,24 @@ def add_instance(request, group_name):
     params = request.POST
     num = int(params["instanceCnt"])
     subnet = None
+    placement_group = None
     asg_status = params['asgStatus']
     launch_in_asg = True
     if 'subnet' in params:
         subnet = params['subnet']
         if asg_status == 'UNKNOWN':
             launch_in_asg = False
+
         elif 'customSubnet' in params:
             launch_in_asg = False
+            # custom subnet is selected for launching hosts. Only then make a check for Placement Group
+            if 'customPlacementGroup' in params and 'placementGroup' in params:
+                # The check box is ticked and placement group is entered.
+                placement_group = params['placementGroup']
+
     try:
         if not launch_in_asg:
+            # Launch static hosts
             if not subnet:
                 content = 'Failed to launch hosts to group {}. Please choose subnets in' \
                           ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>.' \
@@ -974,7 +982,13 @@ def add_instance(request, group_name):
                           ' for immediate assistance!'.format(group_name, group_name)
                 messages.add_message(request, messages.ERROR, content)
             else:
-                host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet)
+                # Subnet is present and static hosts are being launched.
+                if placement_group is not None:
+                    # Launch static hosts in the given PG
+                    host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet, placement_group)
+                else:
+                    host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet)
+
                 if len(host_ids) > 0:
                     content = '{} hosts have been launched to group {} (host ids: {})'.format(num, group_name, host_ids)
                     messages.add_message(request, messages.SUCCESS, content)
@@ -990,9 +1004,41 @@ def add_instance(request, group_name):
                       '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
                       'to check new hosts information.'.format(num, group_name, group_name)
             messages.add_message(request, messages.SUCCESS, content)
-    except:
+
+    except Exception as e:
+        messages.add_message(request, messages.ERROR, str(e))
         log.error(traceback.format_exc())
         raise
+
+    return redirect('/groups/{}'.format(group_name))
+
+
+# Terminate all instances
+def terminate_all_hosts(request, group_name):
+    try:
+        if request.method != 'DELETE':
+            content = "terminate_all_hosts only accepts http DELETE method"
+            messages.add_message(request, messages.ERROR, content)
+
+        else:
+            response = autoscaling_groups_helper.terminate_all_hosts(request, group_name)
+            if response is not None and type(response) is dict:
+
+                content = "Following hosts have been requested for termination. Below is the termination status.\n"
+                content += "{} hosts marked for termination \n".format(len(response))
+                for id, status in response.iteritems():
+                    content += "{} : {}\t|\t".format(id, status)
+
+                messages.add_message(request, messages.SUCCESS, content)
+            else:
+                content = "Unexpected response from rodimus backend"
+                messages.add_message(request, messages.ERROR, content)
+
+    except Exception as e:
+        messages.add_message(request, messages.ERROR, str(e))
+        log.error(traceback.format_exc())
+        raise
+
     return redirect('/groups/{}'.format(group_name))
 
 
