@@ -84,6 +84,7 @@ var capacityView = new Vue({
 )
 
 var info = {{capacity_creation_info|safe}}
+var environment = info.environment
 var sorted = info.baseImages.sort(function(item1,item2){return item1.publish_date>item2.publish_data;})
 
 var capacitySetting = new Vue({
@@ -322,7 +323,7 @@ var capacitySetting = new Vue({
         sendRequest: function (clusterInfo) {
             $.ajax({
                 type: 'POST',
-                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/',
+                url:  '/env/'+environment.envName+'/'+environment.stageName + '/config/newcapacity/',
                 data: JSON.stringify(clusterInfo),
                 dataType: "json",
                 beforeSend: function (xhr, settings) {
@@ -332,6 +333,7 @@ var capacitySetting = new Vue({
                 },
                 success: function (data) {
                     globalNotificationBanner.info = "Request sent successfully"
+                    window.location.href='/env/'+environment.envName+'/'+environment.stageName 
                 },
                 error: function (data) {
                     globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
@@ -348,6 +350,10 @@ var capacitySetting = new Vue({
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             clusterInfo['placement'] = this.selectedPlacements.join(',');
             clusterInfo['configs'] = this.allUserData.reduce(function (map, obj) { map[obj.name] = obj.value; return map }, {})
+
+            if (this.imageNameValue === 'cmp_base'){
+                clusterInfo['configs']['cmp_group'] = info.defaultCMPConfigs['cmp_group']
+            }
 
             if (this.validateInput(clusterInfo)) {
                 //Send request

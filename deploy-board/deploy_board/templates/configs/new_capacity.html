@@ -85,6 +85,7 @@ var capacityView = new Vue({
 )
 
 var capacityCreationInfo = {{capacity_creation_info|safe}}
+var environment = capacityCreationInfo.environment
 
 getDefaultPlacement = function(securityZone){
             //This function set the default
@@ -152,16 +153,19 @@ var capacitySetting = new Vue({
         sendRequest: function(clusterInfo){
                 $.ajax({
                     type: 'POST',
-                    url: '/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/',
+                    url: '/env/'+environment.envName+'/'+environment.stageName+'/config/newcapacity/',
                     data: JSON.stringify(clusterInfo),
                     dataType: "json",
                     beforeSend: function(xhr, settings) {
                         var csrftoken = getCookie('csrftoken')
                         xhr.setRequestHeader("X-CSRFToken", csrftoken);
-
                     },
                     success: function (data) {
                         globalNotificationBanner.info = "Request sent successfully"
+                    },
+                    success: function (data) {
+                        globalNotificationBanner.info = "Request sent successfully"
+                        window.location.href='/env/'+environment.envName+'/'+environment.stageName 
                     },
                     error: function (data) {
                         globalNotificationBanner.error = data
