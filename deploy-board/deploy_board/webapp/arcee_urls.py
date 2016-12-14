@@ -105,4 +105,5 @@ urlpatterns = [
         group_view.add_scheduled_actions),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/update_scheduled_actions/$',
         group_view.update_scheduled_actions),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/terminate/all/$', group_view.terminate_all_hosts),
 ]

@@ -6,8 +6,8 @@
     <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/config">General Config</a></li>
     <li class="active">New Capacity</li>
 </ul>
-{% endblock %} 
-{% load static %} 
+{% endblock %}
+{% load static %}
 {% block side-panel-actions %}
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}"></script>
 <div class="panel panel-default" id="side-panel">
@@ -19,12 +19,12 @@
             title="Basic Settings"></side-button>
     </div>
 </div>
-{% endblock %} 
-{% block new-builds-panel %} 
-{% endblock %} 
-{% block new-pred-deploys-panel %} 
-{% endblock %} 
-{% block main%} 
+{% endblock %}
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+{% block main%}
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 <script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js "%}"></script>
 
@@ -91,73 +91,73 @@ var capacitySetting = new Vue({
     el: "#mainPanel",
     data: {
         allUserData: Object.keys(info.defaultCMPConfigs).map(
-            function (key) { 
-                return { 
-                    name: key, 
-                    value: info.defaultCMPConfigs[key] 
-                } 
+            function (key) {
+                return {
+                    name: key,
+                    value: info.defaultCMPConfigs[key]
+                }
             }).filter(function(item){return item.name!='cmp_group'}),
         baseImageHelpData: [],
         baseimages: info.baseImages.map(
-            function (o) { 
-                return { 
-                    value: o.id, 
-                    text: o.provider_name, 
-                    isSelected: o.id === sorted[0].id 
-                } 
+            function (o) {
+                return {
+                    value: o.id,
+                    text: o.provider_name,
+                    isSelected: o.id === sorted[0].id
+                }
             }),
         baseImageValue: sorted[0].id,
         configOptions: Object.keys(info.configList).map(
-            function (key) { 
-                return { 
-                    name: key, 
-                    text: key, 
-                    default: info.configList[key] 
-                } 
+            function (key) {
+                return {
+                    name: key,
+                    text: key,
+                    default: info.configList[key]
+                }
             }),
         confirmDialogTitle: "Confirm New Capacity Creation",
         confirmDialogId: "createHostGroup",
         currentProvider: info.defaultProvider,
         hostTypeHelpData:[],
         hostTypeOptions: info.hostTypes.map(
-            function (item, idx) { 
-                return { 
-                    value: item.abstract_name, 
-                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ")" 
-                } 
+            function (item, idx) {
+                return {
+                    value: item.abstract_name,
+                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ")"
+                }
             }),
         imageNameValue: info.defaultBaseImage,
         imagenames: info.baseImageNames.map(
-            function (o) { 
-                return { 
-                    value: o, 
-                    text: o, isSelected: o === info.defaultBaseImage 
-                } 
+            function (o) {
+                return {
+                    value: o,
+                    text: o, isSelected: o === info.defaultBaseImage
+                }
             }),
-        instanceCount: "",      
+        instanceCount: "",
         placements: info.placements.map(
-            function (item) { 
-                return { 
-                    value: item.abstract_name, 
-                    text: item.abstract_name, 
-                    isSelected: false 
-                } 
+            function (item) {
+                return {
+                    value: item.abstract_name,
+                    text: item.abstract_name,
+                    isSelected: false
+                }
             }),
         placementsHelpData: [],
         providers: info.providerList.map(
-            function (o) { 
-                return { 
-                    value: o, text: o 
-                } 
+            function (o) {
+                return {
+                    value: o, text: o
+                }
             }),
         securityZoneHelpData: [],
         securityZones: info.securityZones.map(
-            function (item) { 
-                return { 
-                    value: item.abstract_name, 
-                    text: item.abstract_name, 
-                    isSelected: item.id === info.securityZones[0].id 
-                } 
+            function (item) {
+                return {
+                    value: item.abstract_name,
+                    text: item.abstract_name,
+                    isSelected: item.id === info.securityZones[0].id
+                }
             }),
         selectedHostTypeValue: info.hostTypes[0].abstract_name,
         selectedSecurityZoneValue: info.securityZones[0].abstract_name,
@@ -165,7 +165,7 @@ var capacitySetting = new Vue({
         showBaseImageHelp: false,
         showHostTypeHelp: false,
         showSecurityZoneHelp: false,
-        showPlacementsHelp: false, 
+        showPlacementsHelp: false,
     },
     methods: {
         addConfig: function (config) {
@@ -194,12 +194,12 @@ var capacitySetting = new Vue({
                                 return item
                             })
                     capacitySetting.baseImageHelpData = data
-                    capacitySetting.showBaseImageHelp = true 
+                    capacitySetting.showBaseImageHelp = true
                 })
             }
-        },   
+        },
         configChange: function(input){
-                this.allUserData = this.allUserData.map(function(item){ 
+                this.allUserData = this.allUserData.map(function(item){
                     if (item.name===input.name){
                         return input
                     }
@@ -207,7 +207,7 @@ var capacitySetting = new Vue({
                         return item
                     }
                  })
-        },             
+        },
         deleteConfig: function (name) {
             this.allUserData = this.allUserData.filter(function (config) { return config.name != name })
         },
@@ -236,7 +236,7 @@ var capacitySetting = new Vue({
                 else{
                     this.getHelpInfo('get_host_type_info', function(data){
                             capacitySetting.hostTypeHelpData = data
-                            capacitySetting.showHostTypeHelp = true                        
+                            capacitySetting.showHostTypeHelp = true
                     })
                 }
         },
@@ -269,7 +269,7 @@ var capacitySetting = new Vue({
                 else{
                     this.getHelpInfo('get_placement_infos', function(data){
                             capacitySetting.placementsHelpData = data
-                            capacitySetting.showPlacementsHelp = true                        
+                            capacitySetting.showPlacementsHelp = true
                     })
                 }
             },
@@ -280,14 +280,14 @@ var capacitySetting = new Vue({
                 else{
                     this.getHelpInfo('get_security_zone_info', function(data){
                             capacitySetting.securityZoneHelpData = data
-                            capacitySetting.showSecurityZoneHelp = true                        
+                            capacitySetting.showSecurityZoneHelp = true
                     })
                 }
         },
         validateInput: function (clusterInfo) {
-            //Validate input data. 
+            //Validate input data.
             var count = clusterInfo['capacity']
-            if (count == null || isNaN(count) || count <= 0 || count > 1000) {
+            if (count == null || isNaN(count) || count < 0 || count > 1000) {
                 // do something
                 globalNotificationBanner.error = "Capacity must be a number between 0 and 1000"
                 return false
@@ -300,22 +300,22 @@ var capacitySetting = new Vue({
             if (this.imageNameValue === 'cmp_base'){
                 if (clusterInfo.configs['cmp_group'] == undefined || clusterInfo.configs['cmp_group'].indexOf('CMP,')<0){
                     globalNotificationBanner.error = "cmp_base image must have cmp_group defined and CMP in it"
-                    return false                    
+                    return false
                 }
 
                 if (clusterInfo.configs['pinfo_role'] == undefined || clusterInfo.configs['pinfo_role']!='cmp_base'){
                     globalNotificationBanner.error = "cmp_base image must have pinfo_role set to be cmp_base"
-                    return false                    
+                    return false
                 }
 
                 if (clusterInfo.configs['pinfo_team'] == undefined || clusterInfo.configs['pinfo_team']!='cloudeng'){
                     globalNotificationBanner.error = "cmp_base image must have pinfo_team set to be cloudeng"
-                    return false                    
+                    return false
                 }
 
                 if (clusterInfo.configs['pinfo_environment'] == undefined || clusterInfo.configs['pinfo_environment']!='prod'){
                     globalNotificationBanner.error = "cmp_base image must have pinfo_environment set to be prod"
-                    return false                    
+                    return false
                 }
             }
             return true
@@ -341,7 +341,7 @@ var capacitySetting = new Vue({
             });
         },
         createCapacity: function () {
-            //Create the default capacity. The input here aligns to the Rodimus new cluster 
+            //Create the default capacity. The input here aligns to the Rodimus new cluster
             var clusterInfo = {};
             clusterInfo['provider'] = this.currentProvider;
             clusterInfo['capacity'] = Number(this.instanceCount);
