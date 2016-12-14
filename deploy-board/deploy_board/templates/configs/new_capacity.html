@@ -69,7 +69,7 @@
 
     <div class="panel-footer clearfix">
         <div class="pull-right">
-            <button id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#createHostGroup" data-toggle="modal" 
+            <button id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#createHostGroup" data-toggle="modal"
                 data-loading-text="Creating...">
                 <span class="glyphicon glyphicon-floppy-save"></span> Create
             </button>
@@ -87,7 +87,7 @@ var capacityView = new Vue({
 var capacityCreationInfo = {{capacity_creation_info|safe}}
 
 getDefaultPlacement = function(securityZone){
-            //This function set the default 
+            //This function set the default
             //placements based on security zones
             var mappings = capacityCreationInfo.defaultMappings[securityZone]
             var placements = capacityCreationInfo.placements.filter(function(item){return $.inArray(item.abstract_name,mappings)>=0;})
@@ -109,12 +109,12 @@ var capacitySetting = new Vue({
     data:{
         awsRole: "base",
         baseimages: capacityCreationInfo.baseImages.map(
-            function (o) { 
-                return { 
-                    value: o.id, 
-                    text: o.provider_name, 
-                    isSelected: o.id === getDefaultBaseImage() 
-                } 
+            function (o) {
+                return {
+                    value: o.id,
+                    text: o.provider_name,
+                    isSelected: o.id === getDefaultBaseImage()
+                }
             }),
         baseImageValue: getDefaultBaseImage(),
         confirmDialogTitle:"Confirm New Capacity Creation",
@@ -137,12 +137,12 @@ var capacitySetting = new Vue({
     },
     methods:{
         validateInput: function(clusterInfo){
-            //Validate input data. 
+            //Validate input data.
             var count = clusterInfo['capacity']
-            if (count === undefined || count === null || isNaN(count) || count<=0 || count>1000 ) {
+            if (count === undefined || count === null || isNaN(count) || count<0 || count>1000 ) {
                 // do something
                 globalNotificationBanner.error = "Capacity must be a number between 0 and 1000"
-                return false 
+                return false
             }
             return true
         },
@@ -158,10 +158,10 @@ var capacitySetting = new Vue({
                     beforeSend: function(xhr, settings) {
                         var csrftoken = getCookie('csrftoken')
                         xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                    
+
                     },
                     success: function (data) {
-                        globalNotificationBanner.info = "Request sent successfully"    
+                        globalNotificationBanner.info = "Request sent successfully"
                     },
                     error: function (data) {
                         globalNotificationBanner.error = data
@@ -169,7 +169,7 @@ var capacitySetting = new Vue({
             });
         },
         createCapacity:function(){
-                //Create the default capacity. The input here aligns to the Rodimus new cluster 
+                //Create the default capacity. The input here aligns to the Rodimus new cluster
             var clusterInfo = {};
             clusterInfo['provider'] = capacityCreationInfo['defaultProvider'];
             clusterInfo['capacity'] = Number(this.instanceCount);
@@ -187,7 +187,7 @@ var capacitySetting = new Vue({
             if (this.selectedSecurityZoneValue.endsWith('public-service')){
                 clusterInfo.configs['assign_public_ip'] = true
             }
-            
+
             if (this.validateInput(clusterInfo)){
                 //Send request
                 this.sendRequest(clusterInfo);
