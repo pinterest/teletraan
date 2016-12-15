@@ -55,10 +55,11 @@ def launch_hosts(request, group_name, host_count, subnet):
     return rodimus_client.put("/groups/%s/hosts" % group_name, request.teletraan_user_id.token, params=params)
 
 
-def launch_hosts(request, group_name, host_count, subnet, placement_group):
+def launch_hosts_with_placement_group(request, group_name, host_count, subnet, placement_group):
     data = {"hostCount": host_count,
             "cloudLaunchConfig": {"subnet": subnet, "placementGroup": placement_group}}
 
+    # Note: this sends a post request while above sends a put
     return rodimus_client.post("/groups/%s/hosts" % group_name, request.teletraan_user_id.token, data=data)
 
 

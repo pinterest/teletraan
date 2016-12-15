@@ -985,7 +985,8 @@ def add_instance(request, group_name):
                 # Subnet is present and static hosts are being launched.
                 if placement_group is not None:
                     # Launch static hosts in the given PG
-                    host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet, placement_group)
+                    host_ids = autoscaling_groups_helper.launch_hosts_with_placement_group(
+                        request, group_name, num, subnet, placement_group)
                 else:
                     host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet)
 
