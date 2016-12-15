@@ -60,9 +60,9 @@
     <div id="privateBldUploadBtnId" class="row">
        <button class="deployToolTip btn btn-default btn-block"
             data-toggle="tooltip"
-           title="Publish a local private build"> 
+           title="Publish a local private build">
             <span class="glyphicon glyphicon-upload"></span> Publish Private Build
-        </a>        
+        </button>
     </div>
 
     {% endif %}
@@ -106,24 +106,10 @@
             <span class="glyphicon glyphicon-cog"></span> Configure
         </a>
     </div>
-    {% if pinterest and env|isEnvEnabled %}
-    <div class="row">
-        <button id="addNewInstancesBtnId" class="deployToolTip btn btn-default btn-block"
-                data-target="#launchHostModalId" data-toggle="modal" title="Launch new hosts">
-                <span class="glyphicon glyphicon-plus-sign"></span> Launch Hosts
-        </button>
-    </div>
-    {% endif %}
-    {% if basic_cluster_info %}
-    <div class="row">
-        <a href="/groups/{{ env.clusterName }}/"
-           type="button" class="deployToolTip btn btn-default btn-block"
-           data-toggle="tooltip"
-           title="Show auto scaling statistics">
-            <span class="glyphicon glyphicon-cloud"></span> Auto Scaling
-        </a>
-    </div>
-    {% endif %}
+
+    <!-- Removed - Add new hosts to group button -->
+
+    <!-- Removed - Auto scaling a href -->
 </div>
 
 {% if pinterest %}
@@ -198,96 +184,7 @@
 
 {% include "builds/upload_private_build.tmpl" with form=form %}
 
-{% if basic_cluster_info %}
-<div class="modal fade" id="launchHostModalId" tabindex="-1" role="dialog" aria-labelledby="launchHostModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <form id="createBaseImageFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/launch_hosts/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Launch Hosts Confirm</h4>
-                </div>
-                <div class="modal-body" id="launchHostModal">
-                    <div class="form-group">
-                        <label class="deployToolTip control-label text-center col-xs-6">
-                            Number of hosts to launch
-                        </label>
-                        <div class="col-md-6">
-                            <input class="form-control" name="num" required="true" type="text" value=""/>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button id="modalConfirmBtnId" type="submit" class="btn btn-primary">Launch</button>
-                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div>
-    </div>
-</div>
-{% else %}
-<!-- TODO deprecate it-->
-<div class="modal fade" id="launchHostModalId" tabindex="-1" role="dialog"
-     aria-labelledby="newInstanceModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <form id="addInstanceFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env.envName }}/{{ env.stageName }}/addinstance/">
-                {% if groups %}
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                        <h4 class="modal-title">Launch Confirm</h4>
-                    </div>
-                    <div class="modal-body" id="newMetricModal">
-                        <div class="form-group">
-                            <label class="deployToolTip control-label text-center col-xs-6">
-                                Number of hosts to launch:
-                            </label>
-                            <div class="col-md-6">
-                                <input class="form-control" name="instanceCnt" required="true" type="text" value=""/>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="groupName" class="deployToolTip control-label col-xs-6">
-                                Choose a group to launch hosts to:
-                            </label>
-                            <div class ="col-md-6">
-                                <select class="form-control" id="group_name" name="groupName" required="true">
-                                    {% for group_name in groups %}
-                                        <option value="{{ group_name }}">{{ group_name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <div class ="col-md-12" id="config_div_id"></div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button id="addMetricBtnId" type="submit" class="btn btn-primary">Launch</button>
-                        <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                    </div>
-                    {% csrf_token %}
-                {% else %}
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                        <h4 class="modal-title">Launch Confirm</h4>
-                    </div>
-                    <div class="modal-body" id="newMetricModal">
-                        <p>
-                            There is no group associated with this environment.
-                            Please specify the group in Configure/Capacity Config, and make sure the Group Launch Configuration is correct. <br>
-                            If you have any question, please contact your friendly Teletraan owners for immediate assistance!
-                        </p>
-                    </div>
-                {% endif %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-{% endif %}
+<!-- Removed launch Host modals -->
 
 {% if pinterest %}
 <script>

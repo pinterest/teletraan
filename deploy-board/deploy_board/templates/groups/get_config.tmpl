@@ -72,10 +72,10 @@
         (or let Teletraan choose)
         <div class="chooseSubnet" hidden>
             <label for="subnet" class="deployToolTip control-label col-xs-6">
-                Choose a subnet to launch to:
+                Choose a subnet:
             </label>
             <div class="deployToolTip control-label col-md-6">
-            <select class="form-control" name="subnet">
+            <select class="form-control" name="subnet" id="subnet">
                 {% for subnet in subnets %}
                     {% if subnet.id in config.subnetArrays %}
                         <option value="{{ subnet.id }}">{{ subnet | genSubnetIdZone }}</option>
@@ -85,14 +85,49 @@
             </div>
         </div>
     </div>
+
+    <!-- Add placement Group input box -->
+    <div class="row">
+        <div id="placementGroupInput" hidden>
+            <input type="checkbox" class="checkToCustomizePG" name="customPlacementGroup" id="customPlacementGroup">
+            Check to specify a placement Group
+            <div class="choosePlacementGroup" id="choosePlacementGroup" hidden>
+                <label for="placementGroup" class="deployToolTip control-label col-xs-6">
+                    Enter a placement Group:
+                </label>
+                <div class="deployToolTip control-label col-md-6">
+                    <input class="form-control" name="placementGroup" id="placementGroup" required>
+                </div>
+            </div>
+        </div>
+    </div>
     {% endif %}
 {% endif %}
 
 <script>
    $('input.checkToCustomize').change(function(){
-        if ($(this).is(':checked')) $(this).next('div.chooseSubnet').show();
-        else $('div.chooseSubnet').hide();
+
+       if ($(this).is(':checked')) {
+
+            $(this).next('div.chooseSubnet').show();
+            $('#placementGroupInput').show();
+        }
+        else {
+            $('div.chooseSubnet').hide();
+            $('#placementGroupInput').hide();
+        }
     }).change();
+
+   $('#customPlacementGroup').change(function () {
+
+       if ($(this).is(':checked')) {
+
+           $('#choosePlacementGroup').show();
+       } else {
+           $('#choosePlacementGroup').hide();
+       }
+   }).change();
+
    $(document).ready(function() {
         {% if not config %}
         $('#addMetricBtnId', window.parent.document).prop('disabled', true);
