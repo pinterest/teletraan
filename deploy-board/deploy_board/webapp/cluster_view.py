@@ -21,7 +21,7 @@ from django.views.generic import View
 
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
-    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING
+    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE
 import json
 import logging
 
@@ -50,7 +50,6 @@ class EnvCapacityBasicCreateView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
-            'defaultMappings': PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING,
             'baseImages': default_base_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER
@@ -101,7 +100,6 @@ class EnvCapacityAdvCreateView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
-            'defaultMappings': PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
@@ -160,7 +158,6 @@ class ClusterConfigurationView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
-            'defaultMappings': PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,

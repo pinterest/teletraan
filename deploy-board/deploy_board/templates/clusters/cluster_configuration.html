@@ -8,9 +8,9 @@
     <li class="active">Cluster Configuration</li>
 </ul>
 {% endblock %} {% load static %} {% block side-panel-actions %}
-<script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}"></script>
-<script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}"></script>
+<script type="text/javascript" src="{% static "js/components/sharedcomponents.js?changedate=2016.12.19.150000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2016.12.19.150000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2016.12.19.150000"%}"></script>
 
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
@@ -48,7 +48,8 @@
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones" 
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
-                    <multi-label-select label="Placements" title="Placements" v-model="selectedPlacements" v-bind:selectoptions="placements" showhelp="true" v-on:helpclick="placementsHelpClick"></multi-label-select>
+                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" 
+                    showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <label-input v-if="!inAdvanced" label="aws_role" v-bind:value="awsRole" v-on:input="updateAwsRole"></label-input>
                     <div v-if="inAdvanced">
@@ -85,7 +86,8 @@
     var env = info.environment;
     var currentCluster = info.currentCluster;
     if (currentCluster!=null){
-        var placement = currentCluster.placement.split(',')
+        var currentPlacements = currentCluster.placement.split(',')
+        var placements = getDefaultPlacement(info)
         var showReplaceAlert = currentCluster != null && currentCluster.state != "NORMAL"
         var alert = new Vue({
             el: "#clusterAlert",
@@ -108,6 +110,7 @@
                                 value: currentCluster.configs[key]
                             }
                         }).filter(function(item){return item.name!='cmp_group'}),
+                assignPublicIP: currentCluster.configs.assign_public_ip ? true : false,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
                     return {
@@ -136,13 +139,9 @@
                     }
                 }),
                 inAdvanced: false,
-                placements: info.placements.map(function(item) {
-                    return {
-                        value: item.abstract_name,
-                        text: item.abstract_name,
-                        isSelected: $.inArray(item.abstract_name, placement) >= 0
-                    }
-                }),
+                placements: this.inAdvanced ? 
+                    placements.getFullList(currentCluster.configs.assign_public_ip, currentPlacements) : 
+                    placements.getSimpleList(currentCluster.configs.assign_public_ip, currentPlacements),
                 providers: info.providerList.map(function(o) {
                     return {
                         value: o,
@@ -158,7 +157,7 @@
                 }),
                 selectedHostTypeValue: currentCluster.hostType,
                 selectedSecurityZoneValue: currentCluster.securityZone,
-                selectedPlacements: placement,
+                selectedPlacements: currentPlacements,
                 showBaseImageHelp: false,
                 baseImageHelpData: [],
                 showHostTypeHelp: false,
@@ -301,14 +300,14 @@
                         })
                     }
                 },
-                'validateInput': function(clusterInfo) {
+                validateInput: function(clusterInfo) {
                     //Validate input data. 
                     if (clusterInfo.placement == null || clusterInfo.placement.length === 0) {
                         globalNotificationBanner.error = "Placement is not specified"
                     }
                     return true
                 },
-                'sendRequest': function(clusterInfo) {
+                sendRequest: function(clusterInfo) {
                     $.ajax({
                         type: 'POST',
                         url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
@@ -338,6 +337,16 @@
                         })
                     }
                 },
+                selectpublicip: function(value){
+                    this.assignPublicIP = value
+                    if (this.inAdvanced){
+                        this.placements = placements.getFullList(this.assignPublicIP, currentPlacements)
+                    }
+                    else{
+                        this.placements = placements.getSimpleList(this.assignPublicIP, currentPlacements)
+                    }
+
+                },
                 updateAwsRole:function(value){
                     this.awsRole = value
                 },
@@ -355,8 +364,9 @@
                     }, {})
 
                     clusterInfo['configs']['cmp_group'] = currentCluster.configs['cmp_group']
-            
-
+                    if (this.assignPublicIP){
+                        clusterInfo.configs['assign_public_ip'] = true
+                    }
                     if (!this.inAdvanced){
                         clusterInfo.configs['aws_role'] = this.awsRole
                     }
@@ -370,7 +380,17 @@
                         this.updateCapacity();
                     }
                 }
+            },
+            watch: {
+                placements: function(){
+                    //Schedule this to nextTick that calls after next DOM refresh
+                    //as JQuery chosen call must happen after DOM updates finished
+                    Vue.nextTick(function(){
+                        $(".chosen-select").trigger("chosen:updated")            
+                    })
+                }
             }
+
         })
 
         var sidebar = new Vue({
@@ -437,8 +457,10 @@
                     capacitySetting.inAdvanced = !capacitySetting.inAdvanced
                     if (capacitySetting.inAdvanced) {
                         this.settingText = 'Basic Settings'
+                        capacitySetting.placements = placements.getFullList(capacitySetting.assignPublicIP, currentPlacements) 
                     } else {
                         this.settingText = 'Advanced Settings'
+                        capacitySetting.placements = placements.getSimpleList(capacitySetting.assignPublicIP, currentPlacements) 
                     }
                 }
             }

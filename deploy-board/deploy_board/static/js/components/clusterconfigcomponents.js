@@ -26,29 +26,29 @@ Vue.component('baseimage-select', {
         updateImageName: function (value) {
             this.$emit('imagenamechange', value)
         },
-        helpClick: function(value){
+        helpClick: function (value) {
             this.$emit('helpclick')
         }
     }
 });
 
-Vue.component('base-image-help',{
+Vue.component('base-image-help', {
     template: '<help-table v-bind:headers="baseImageHelpHeaders" v-bind:data="data" v-bind:keys="keys" ></help-table>',
     props: ['data'],
     data: function () {
-    return {
-      baseImageHelpHeaders: [{name:'Publish Date', headerClass:'col-sm-2'}, 
-        {name:'Name', headerClass:'col-sm-1'}, 
-        {name:'Id', headerClass:'col-sm-1'}, 
-        {name: 'Qualified', headerClass:'col-sm-1'}, 
-        {name: 'Description', headerClass:'col-sm-4'}],
-      keys: ['publish_date', 'abstract_name', 'provider_name', 'qualified','description']
-    }
-  },
- }
+        return {
+            baseImageHelpHeaders: [{ name: 'Publish Date', headerClass: 'col-sm-2' },
+            { name: 'Name', headerClass: 'col-sm-1' },
+            { name: 'Id', headerClass: 'col-sm-1' },
+            { name: 'Qualified', headerClass: 'col-sm-1' },
+            { name: 'Description', headerClass: 'col-sm-4' }],
+            keys: ['publish_date', 'abstract_name', 'provider_name', 'qualified', 'description']
+        }
+    },
+}
 )
 
-                    
+
 
 Vue.component('add-config-button', {
     template: '<div class="pull-right">\
@@ -201,45 +201,88 @@ Vue.component('aws-config-modal', {
     }
 });
 
-Vue.component('hostype-help',{
+Vue.component('hostype-help', {
     template: '<help-table v-bind:headers="headers" v-bind:data="data" v-bind:keys="keys" ></help-table>',
     props: ['data'],
     data: function () {
-    return {
-      headers: [{name:'Name', headerClass:'col-sm-1'}, 
-        {name:'Id', headerClass:'col-sm-1'}, 
-        {name: 'Cores', headerClass:'col-sm-1'}, 
-        {name: 'Memory(GB)', headerClass:'col-sm-1'},
-        {name: 'Storage', headerClass:'col-sm-2'},
-        {name: 'Description', headerClass:'col-sm-5'}],
-      keys: ['abstract_name', 'provider_name', 'core','mem','storage', 'description']
-    }
-  },
- })
+        return {
+            headers: [{ name: 'Name', headerClass: 'col-sm-1' },
+            { name: 'Id', headerClass: 'col-sm-1' },
+            { name: 'Cores', headerClass: 'col-sm-1' },
+            { name: 'Memory(GB)', headerClass: 'col-sm-1' },
+            { name: 'Storage', headerClass: 'col-sm-2' },
+            { name: 'Description', headerClass: 'col-sm-5' }],
+            keys: ['abstract_name', 'provider_name', 'core', 'mem', 'storage', 'description']
+        }
+    },
+})
 
- Vue.component('securityzone-help',{
+Vue.component('securityzone-help', {
     template: '<help-table v-bind:headers="headers" v-bind:data="data" v-bind:keys="keys" ></help-table>',
     props: ['data'],
     data: function () {
-    return {
-      headers: [{name:'Name', headerClass:'col-sm-1'}, 
-        {name:'Id', headerClass:'col-sm-1'}, 
-        {name: 'Description', headerClass:'col-sm-9'}],
-      keys: ['abstract_name', 'provider_name', 'description']
-    }
-  },
- })
+        return {
+            headers: [{ name: 'Name', headerClass: 'col-sm-1' },
+            { name: 'Id', headerClass: 'col-sm-1' },
+            { name: 'Description', headerClass: 'col-sm-9' }],
+            keys: ['abstract_name', 'provider_name', 'description']
+        }
+    },
+})
 
-  Vue.component('placements-help',{
+Vue.component('placements-help', {
     template: '<help-table v-bind:headers="headers" v-bind:data="data" v-bind:keys="keys" ></help-table>',
     props: ['data'],
     data: function () {
-    return {
-      headers: [{name:'Name', headerClass:'col-sm-3'}, 
-        {name:'Id', headerClass:'col-sm-2'}, 
-        {name:'Capacity', headerClass:'col-sm-2'},
-        {name: 'Description', headerClass:'col-sm-5'}],
-      keys: ['abstract_name', 'provider_name', 'capacity', 'description']
+        return {
+            headers: [{ name: 'Name', headerClass: 'col-sm-2' },
+            { name: 'Id', headerClass: 'col-sm-2' },
+            { name: 'Capacity', headerClass: 'col-sm-1' },
+            { name: 'Assign Public IP', headerClass: 'col-sm-2' },
+            { name: 'Description', headerClass: 'col-sm-4' }],
+            keys: ['abstract_name', 'provider_name', 'capacity', 'assign_public_ip', 'description',]
+        }
+    },
+});
+
+
+/**
+* A form control with a label and multiple selection box
+*/
+Vue.component("placements-select", {
+    template: '<div class="form-group">\
+    <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">\
+      {{label}}\
+    </label>\
+    <div class="col-xs-7"><div v-bind:class="groupStyle">\
+          <select class="form-control chosen-select"  v-on:change="updateValue($event.target.value)" multiple>\
+            <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected">{{option.text}}</option>\
+          </select>\
+    <span v-if="showhelp" class="input-group-btn">\
+    <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" v-on:click="helpClick" title="click to see more information">\
+        <span class="glyphicon glyphicon-question-sign"></span>\
+    </button>\
+   </span></div>\
+    </div>\
+    <div class="col-xs-3">\
+      <input type="checkbox" id="checkbox" v-bind:checked="assignpublicip" v-on:click="assignipchange($event.target.checked)">\
+      <label for="checkbox">Assign Public IP</label>\
+    <div></div>',
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip'],
+    data: function () {
+        return {
+            groupStyle: this.showhelp ? 'input-group' : ''
+        }
+    },
+    methods: {
+        updateValue: function (value) {
+            this.$emit('input', value)
+        },
+        helpClick: function () {
+            this.$emit('helpclick')
+        },
+        assignipchange: function (value) {
+            this.$emit('assignpublicipclick', value)
+        }
     }
-  },
- })
+});
