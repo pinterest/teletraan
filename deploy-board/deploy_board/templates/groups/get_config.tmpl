@@ -96,7 +96,7 @@
                     Enter a placement Group:
                 </label>
                 <div class="deployToolTip control-label col-md-6">
-                    <input class="form-control" name="placementGroup" id="placementGroup" required>
+                    <input class="form-control" name="placementGroup" id="placementGroup">
                 </div>
             </div>
         </div>
@@ -123,10 +123,13 @@
        if ($(this).is(':checked')) {
 
            $('#choosePlacementGroup').show();
+           $('#placementGroup').prop('required',true);
        } else {
            $('#choosePlacementGroup').hide();
+           $('#placementGroup').removeAttr('required');
        }
    }).change();
+
 
    $(document).ready(function() {
         {% if not config %}
