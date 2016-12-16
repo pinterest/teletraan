@@ -354,6 +354,9 @@
                         return map
                     }, {})
 
+                    clusterInfo['configs']['cmp_group'] = currentCluster.configs['cmp_group']
+            
+
                     if (!this.inAdvanced){
                         clusterInfo.configs['aws_role'] = this.awsRole
                     }
