@@ -51,104 +51,111 @@ import javax.ws.rs.core.UriInfo;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvCapacities {
-    public enum CapacityType {
-        GROUP,
-        HOST
+
+  private static final Logger LOG = LoggerFactory.getLogger(EnvCapacities.class);
+  @Context
+  UriInfo uriInfo;
+  private EnvironHandler environHandler;
+  private ConfigHistoryHandler configHistoryHandler;
+  private EnvironDAO environDAO;
+  private GroupDAO groupDAO;
+  private Authorizer authorizer;
+
+  public EnvCapacities(TeletraanServiceContext context) {
+    environHandler = new EnvironHandler(context);
+    configHistoryHandler = new ConfigHistoryHandler(context);
+    environDAO = context.getEnvironDAO();
+    groupDAO = context.getGroupDAO();
+    authorizer = context.getAuthorizer();
+  }
+
+  @GET
+  public List<String> get(@PathParam("envName") String envName,
+                          @PathParam("stageName") String stageName,
+                          @QueryParam("capacityType") Optional<CapacityType> capacityType)
+      throws Exception {
+    EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+    if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
+      return groupDAO.getCapacityGroups(envBean.getEnv_id());
+    } else {
+      return groupDAO.getCapacityHosts(envBean.getEnv_id());
     }
+  }
 
-    private static final Logger LOG = LoggerFactory.getLogger(EnvCapacities.class);
-    private EnvironHandler environHandler;
-    private ConfigHistoryHandler configHistoryHandler;
-    private EnvironDAO environDAO;
-    private GroupDAO groupDAO;
-    private Authorizer authorizer;
-
-    @Context
-    UriInfo uriInfo;
-
-    public EnvCapacities(TeletraanServiceContext context) {
-        environHandler = new EnvironHandler(context);
-        configHistoryHandler = new ConfigHistoryHandler(context);
-        environDAO = context.getEnvironDAO();
-        groupDAO = context.getGroupDAO();
-        authorizer = context.getAuthorizer();
+  @PUT
+  public void update(@PathParam("envName") String envName,
+                     @PathParam("stageName") String stageName,
+                     @QueryParam("capacityType") Optional<CapacityType> capacityType,
+                     @NotEmpty List<String> names, @Context SecurityContext sc) throws Exception {
+    EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+    authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+    String operator = sc.getUserPrincipal().getName();
+    if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
+      environHandler.updateGroups(envBean, names, operator);
+      configHistoryHandler
+          .updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_GROUP_CAPACITY, names,
+              operator);
+      configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(),
+          Constants.TYPE_ENV_GROUP_CAPACITY, operator);
+    } else {
+      environHandler.updateHosts(envBean, names, operator);
+      configHistoryHandler
+          .updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_HOST_CAPACITY, names,
+              operator);
+      configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(),
+          Constants.TYPE_ENV_HOST_CAPACITY, operator);
     }
+    LOG.info("Successfully updated env {}/{} capacity config as {} by {}.",
+        envName, stageName, names, operator);
+  }
 
-    @GET
-    public List<String> get(@PathParam("envName") String envName,
-        @PathParam("stageName") String stageName,
-        @QueryParam("capacityType") Optional<CapacityType> capacityType) throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
-            return groupDAO.getCapacityGroups(envBean.getEnv_id());
-        } else {
-            return groupDAO.getCapacityHosts(envBean.getEnv_id());
-        }
+  @POST
+  public void add(@PathParam("envName") String envName,
+                  @PathParam("stageName") String stageName,
+                  @QueryParam("capacityType") Optional<CapacityType> capacityType,
+                  @NotEmpty String name, @Context SecurityContext sc) throws Exception {
+    EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+    authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+    String operator = sc.getUserPrincipal().getName();
+    name = name.replaceAll("\"", "");
+    if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
+      groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
+    } else {
+      groupDAO.addHostCapacity(envBean.getEnv_id(), name);
     }
+    LOG.info("Successfully added {} to env {}/{} capacity config by {}.",
+        name, envName, stageName, operator);
+  }
 
-    @PUT
-    public void update(@PathParam("envName") String envName,
-        @PathParam("stageName") String stageName,
-        @QueryParam("capacityType") Optional<CapacityType> capacityType,
-        @NotEmpty List<String> names, @Context SecurityContext sc) throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
-        String operator = sc.getUserPrincipal().getName();
-        if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
-            environHandler.updateGroups(envBean, names, operator);
-            configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_GROUP_CAPACITY, names, operator);
-            configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_GROUP_CAPACITY, operator);
-        } else {
-            environHandler.updateHosts(envBean, names, operator);
-            configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_HOST_CAPACITY, names, operator);
-            configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_HOST_CAPACITY, operator);
-        }
-        LOG.info("Successfully updated env {}/{} capacity config as {} by {}.",
-            envName, stageName, names, operator);
+  @DELETE
+  public void delete(@PathParam("envName") String envName,
+                     @PathParam("stageName") String stageName,
+                     @QueryParam("capacityType") Optional<CapacityType> capacityType,
+                     @NotEmpty String name, @Context SecurityContext sc) throws Exception {
+    EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+    authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+    String operator = sc.getUserPrincipal().getName();
+    name = name.replaceAll("\"", "");
+    if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
+      LOG.info("Delete group {} from environment {} stage {} capacity", name,
+          envName, stageName);
+      groupDAO.removeGroupCapacity(envBean.getEnv_id(), name);
+      if (StringUtils.equalsIgnoreCase(envBean.getCluster_name(), name)) {
+        LOG.info("Delete cluster {} from environment {} stage {}", name, envName, stageName);
+        //The group is set to be the cluster
+        environDAO.deleteCluster(envName, stageName);
+      }
+    } else {
+      LOG.info("Delete host {} from environment {} stage {} capacity", name,
+          envName, stageName);
+      groupDAO.removeHostCapacity(envBean.getEnv_id(), name);
     }
+    LOG.info("Successfully deleted {} from env {}/{} capacity config by {}.",
+        name, envName, stageName, operator);
+  }
 
-    @POST
-    public void add(@PathParam("envName") String envName,
-        @PathParam("stageName") String stageName,
-        @QueryParam("capacityType") Optional<CapacityType> capacityType,
-        @NotEmpty String name, @Context SecurityContext sc) throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
-        String operator = sc.getUserPrincipal().getName();
-        name = name.replaceAll("\"", "");
-        if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
-            groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
-        } else {
-            groupDAO.addHostCapacity(envBean.getEnv_id(), name);
-        }
-        LOG.info("Successfully added {} to env {}/{} capacity config by {}.",
-            name, envName, stageName, operator);
-    }
-
-    @DELETE
-    public void delete(@PathParam("envName") String envName,
-        @PathParam("stageName") String stageName,
-        @QueryParam("capacityType") Optional<CapacityType> capacityType,
-        @NotEmpty String name, @Context SecurityContext sc) throws Exception {
-        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
-        String operator = sc.getUserPrincipal().getName();
-        name = name.replaceAll("\"", "");
-        if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
-            LOG.info("Delete group {} from environment {} stage {} capacity", name,
-                envName, stageName);
-            groupDAO.removeGroupCapacity(envBean.getEnv_id(), name);
-            if (StringUtils.equalsIgnoreCase(envBean.getCluster_name(),name)){
-                LOG.info("Delete cluster {} from environment {} stage {}", name, envName, stageName);
-                //The group is set to be the cluster
-                environDAO.deleteCluster(envName, stageName);
-            }
-        } else {
-            LOG.info("Delete host {} from environment {} stage {} capacity", name,
-                envName, stageName);
-            groupDAO.removeHostCapacity(envBean.getEnv_id(), name);
-        }
-        LOG.info("Successfully deleted {} from env {}/{} capacity config by {}.",
-            name, envName, stageName, operator);
-    }
+  public enum CapacityType {
+    GROUP,
+    HOST
+  }
 }
