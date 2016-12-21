@@ -66,4 +66,6 @@ public interface EnvironDAO {
 
     void deleteSchedule(String envName, String stageName) throws Exception;
 
+    void deleteCluster(String envName, String stageName) throws Exception;
+
 }
