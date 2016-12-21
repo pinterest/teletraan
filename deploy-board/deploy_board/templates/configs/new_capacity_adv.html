@@ -360,7 +360,14 @@ var capacitySetting = new Vue({
             clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
-            clusterInfo['placement'] = this.selectedPlacements.join(',');
+            if (this.selectedPlacements != null){
+                clusterInfo['placement'] = this.selectedPlacements.join(',');
+            }
+            else{
+                clusterInfo['placement'] = this.placements.filter(function(item){
+                    return item.isSelected
+                }).map(function(item){ return item.value}).join(',')
+            }
             clusterInfo['configs'] = this.allUserData.reduce(function (map, obj) { map[obj.name] = obj.value; return map }, {})
 
             if (this.imageNameValue === 'cmp_base'){

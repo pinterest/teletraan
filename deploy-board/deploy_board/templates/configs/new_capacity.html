@@ -180,6 +180,12 @@ var capacitySetting = new Vue({
             if (this.selectedPlacements != null){
                 clusterInfo['placement'] = this.selectedPlacements.join(',');
             }
+            else{
+                clusterInfo['placement'] = this.placements.filter(function(item){
+                    return item.isSelected
+                }).map(function(item){ return item.value}).join(',')
+            }
+
             clusterInfo['configs'] = capacityCreationInfo['defaultCMPConfigs']
             clusterInfo.configs['aws_role'] = this.awsRole
             if (this.assignPublicIP){
