@@ -15,7 +15,6 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
@@ -26,28 +25,38 @@ import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
+
+import com.google.common.base.Optional;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.*;
+import java.util.List;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import java.util.List;
-
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/capacity")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class EnvCapacitys {
+public class EnvCapacities {
     public enum CapacityType {
         GROUP,
         HOST
     }
 
-    private static final Logger LOG = LoggerFactory.getLogger(EnvCapacitys.class);
+    private static final Logger LOG = LoggerFactory.getLogger(EnvCapacities.class);
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private EnvironDAO environDAO;
@@ -57,7 +66,7 @@ public class EnvCapacitys {
     @Context
     UriInfo uriInfo;
 
-    public EnvCapacitys(TeletraanServiceContext context) {
+    public EnvCapacities(TeletraanServiceContext context) {
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         environDAO = context.getEnvironDAO();
@@ -126,8 +135,17 @@ public class EnvCapacitys {
         String operator = sc.getUserPrincipal().getName();
         name = name.replaceAll("\"", "");
         if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
+            LOG.info("Delete group {} from environment {} stage {} capacity", name,
+                envName, stageName);
             groupDAO.removeGroupCapacity(envBean.getEnv_id(), name);
+            if (StringUtils.equalsIgnoreCase(envBean.getCluster_name(),name)){
+                LOG.info("Delete cluster {} from environment {} stage {}", name, envName, stageName);
+                //The group is set to be the cluster
+                environDAO.deleteCluster(envName, stageName);
+            }
         } else {
+            LOG.info("Delete host {} from environment {} stage {} capacity", name,
+                envName, stageName);
             groupDAO.removeHostCapacity(envBean.getEnv_id(), name);
         }
         LOG.info("Successfully deleted {} from env {}/{} capacity config by {}.",
