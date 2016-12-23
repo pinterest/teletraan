@@ -40,7 +40,7 @@
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
                     <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue" 
-                    v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" showhelp="true" v-on:helpclick="baseImageHelpClick">
+                    v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
                     <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
