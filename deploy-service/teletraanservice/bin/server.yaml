@@ -73,15 +73,22 @@ db:
 # OAuth based Authentication: by default is disabled.
 #
 #authentication:
-  # Authentication type: allowed values are token, anonymous. The Token based authentication
+  # (Required)Authentication type: allowed values are token, anonymous. The Token based authentication
   # follows the OAuth 2.0 protocol. See documentations for more details.
   # Note: anonymous authentication is the same as disable authentication all together
   #type: token
 
-  # OAuth provider url
-  #userDataUrl: https://auth.pinadmin.com/api/me/
+  # (Required)OAuth provider URI to retrieve user information
+  #userDataUrl: https://www.googleapis.com/oauth2/v3/userinfo
 
-  # Optional. token cache
+  # (Optional)The name of the field in the returned userinfo map which value will be used as username.
+  # If the field is inside a nested userinfo map, use space-separated field names, e.g. "user email"
+  #userNameKey: email
+
+  # (Optional)If username is email address, use the part before @ as the final username
+  #extractUserNameFromEmail: True
+
+  # (Optional)OAuth token cache
   #tokenCacheSpec: maximumSize=1000,expireAfterWrite=10m
 
 #

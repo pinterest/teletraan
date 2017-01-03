@@ -273,17 +273,11 @@ class OAuth(object):
             resp.close()
             return resp, content
 
-    def oauth_data(self, user_info_uri, key, **kwargs):
+    def oauth_data(self, user_info_uri, **kwargs):
         try:
-            resp = self.api_get(user_info_uri, **kwargs)
+            return self.api_get(user_info_uri, **kwargs)
         except Exception:
             raise OAuthException
-        response = resp[key]
-        # Get the username
-        if '@' in response:
-            return response.split('@')[0]
-        else:
-            return response
 
     def logout(self, **kwargs):
         self.oauth_handler.token_remove(**kwargs)

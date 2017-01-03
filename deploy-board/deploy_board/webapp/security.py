@@ -116,9 +116,15 @@ def login_authorized(request):
     state = request.GET.get('state')
     try:
         data = oauth.handle_oauth2_response(code, state, session=request.session)
-        user_name = oauth.oauth_data(user_info_uri=settings.OAUTH_USER_INFO_URI,
-                                     key=settings.OAUTH_USERNAME_INFO_KEY,
-                                     session=request.session)['username']
+        user_name = oauth.oauth_data(user_info_uri=settings.OAUTH_USER_INFO_URI, session=request.session)
+        # extract user_name from oauth_data based on OAUTH_USERNAME_INFO_KEY and OAUTH_EXTRACT_USERNAME_FROM_EMAIL
+        if settings.OAUTH_USERNAME_INFO_KEY:
+            keys = settings.OAUTH_USERNAME_INFO_KEY.split()
+            for key in keys:
+                user_name = user_name[key]
+        if settings.OAUTH_EXTRACT_USERNAME_FROM_EMAIL is not None and settings.OAUTH_EXTRACT_USERNAME_FROM_EMAIL == "TRUE":
+            user_name = user_name.split("@")[0]
+
     except OAuthException as e:
         # failed to login for some reason, do something
         logger.error(traceback.format_exc())

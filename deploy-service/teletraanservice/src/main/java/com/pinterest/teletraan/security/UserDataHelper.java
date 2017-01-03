@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,14 +32,17 @@ import java.util.*;
 public class UserDataHelper {
     private String userDataUrl;
     private String groupDataUrl;
+    private String[] userNameKeys;
+    private Boolean extractUserNameFromEmail;
     private LoadingCache<String, UserSecurityContext> tokenCache;
     private TeletraanServiceContext context;
     private static final Logger LOG = LoggerFactory.getLogger(UserDataHelper.class);
 
-    public UserDataHelper(String userDataUrl, String groupDataUrl, String tokenCacheSpec, TeletraanServiceContext context) {
+    public UserDataHelper(String userDataUrl, String groupDataUrl, String userNameKey, Boolean extractUserNameFromEmail, String tokenCacheSpec, TeletraanServiceContext context) {
         this.userDataUrl = userDataUrl;
         this.groupDataUrl = groupDataUrl;
         this.context = context;
+        this.extractUserNameFromEmail = extractUserNameFromEmail;
         if (!StringUtils.isEmpty(tokenCacheSpec)) {
             tokenCache = CacheBuilder.from(tokenCacheSpec)
                 .build(new CacheLoader<String, UserSecurityContext>() {
@@ -48,6 +51,13 @@ public class UserDataHelper {
                         return loadOauthUserData(token);
                     }
                 });
+        }
+
+        // prepare username keys
+        if (StringUtils.isEmpty(userNameKey)) {
+            userNameKeys = null;
+        } else {
+            userNameKeys = userNameKey.split("\\s+");
         }
     }
 
@@ -81,11 +91,23 @@ public class UserDataHelper {
         HTTPClient httpClient = new HTTPClient();
         Map<String, String> params = ImmutableMap.of("access_token", token);
         String jsonPayload = httpClient.get(userDataUrl, null, params, null, 3);
-        JsonObject jsonObject = new JsonParser().parse(jsonPayload).getAsJsonObject();
-        jsonObject = jsonObject.getAsJsonObject("user");
-        String user = jsonObject.get("username").getAsString();
-        LOG.info("Retrieved username " + user + " from token.");
-        return user;
+        JsonElement e = new JsonParser().parse(jsonPayload);
+        String userName;
+        if (userNameKeys != null && userNameKeys.length > 0) {
+            JsonObject jsonObject = e.getAsJsonObject();
+            int i = 0;
+            for (; i < userNameKeys.length - 1; i++) {
+                jsonObject = jsonObject.getAsJsonObject(userNameKeys[i]);
+            }
+            userName = jsonObject.get(userNameKeys[i]).getAsString();
+        } else {
+            userName = e.getAsString();
+        }
+        if (extractUserNameFromEmail != null && extractUserNameFromEmail) {
+            userName = userName.split("@")[0];
+        }
+        LOG.info("Retrieved username " + userName + " from token.");
+        return userName;
     }
 
     public UserSecurityContext loadOauthUserData(String token) throws Exception {
