@@ -48,7 +48,7 @@
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" showhelp="true" v-model="selectedSecurityZoneValue"
                         v-bind:selectoptions="securityZones" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
-                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements"
+                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" 
                         showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <div>
@@ -98,6 +98,7 @@ var capacitySetting = new Vue({
                     value: info.defaultCMPConfigs[key]
                 }
             }).filter(function(item){return item.name!='cmp_group'}),
+        assignPublicIP: false,
         baseImageHelpData: [],
         baseimages: info.baseImages.map(
             function (o) {
