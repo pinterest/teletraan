@@ -236,6 +236,7 @@ class EnvLandingView(View):
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
                 "basic_cluster_info": basic_cluster_info,
+                "basic_cluster_json": json.dumps(basic_cluster_info),
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
                 "csrf_token": get_token(request),
