@@ -109,13 +109,20 @@
 </div>
 
 {% if pinterest %}
-<div class="panel panel-default">
+<script type="text/javascript" src="{% static "js/components/sharedcomponents.js?changedate=2017.1.4.140000"%}"></script>
+<div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left">Deploy Groups</h4>
+        {% verbatim %}
+        <h4 class="panel-title pull-left">{{title}}</h4>
+        {% endverbatim %}
     </div>
-    <div id="groupsDiv">
+    <div v-if="showCluster" class="row">
+        <side-button styleclass="fa fa-database" text="Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
+    </div>
+    <div v-if="!showCluster" id="groupsDiv">
     </div>
 </div>
+
 {% endif %}
 
 <div class="modal fade" id="restartConfirmModelId" tabindex="-1" role="dialog"
@@ -184,6 +191,8 @@
 
 {% if pinterest %}
 <script>
+
+var cluster_info = {{basic_cluster_json | safe}}
 function loadGroupConfig() {
     var selected_value = $("#group_name option:selected").val();
     var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
@@ -191,15 +200,22 @@ function loadGroupConfig() {
         $("#config_div_id").html(response);
     });
 }
-$(document).ready(function() {
-    loadGroupConfig();
-});
 
-$(function () {
-    $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
-    $("#group_name").change(function() {
-        loadGroupConfig();
-    });
+var capacityPanel = new Vue({
+            el:"#capacityPanel",
+            data:{
+               title: cluster_info != null ? "Cluster" : "Deploy Groups",
+               showCluster: cluster_info != null,
+
+            },
+            mounted: function(){
+                if (cluster_info == null){
+                    $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
+                    $("#group_name").change(function() {
+                            loadGroupConfig();
+                    })
+                }
+            },
 });
 
 $('#privateBldUploadBtnId button').click(function () {
