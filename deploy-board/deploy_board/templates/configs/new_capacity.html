@@ -159,10 +159,7 @@ var capacitySetting = new Vue({
                     },
                     success: function (data) {
                         globalNotificationBanner.info = "Request sent successfully"
-                        window.location.href='/env/'+environment.envName+'/'+environment.stageName
-                    },
-                    success: function (data) {
-                        globalNotificationBanner.info = "Request sent successfully"
+                        window.location.href='/env/'+environment.envName+'/'+environment.stageName+'/config/capacity/'
                     },
                     error: function (data) {
                         globalNotificationBanner.error = data
