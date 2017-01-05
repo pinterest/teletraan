@@ -265,6 +265,7 @@ class EnvLandingView(View):
                 "request_feedback": request_feedback,
                 "groups": groups,
                 "basic_cluster_info": basic_cluster_info,
+                "basic_cluster_json": json.dumps(basic_cluster_info),
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
             })
