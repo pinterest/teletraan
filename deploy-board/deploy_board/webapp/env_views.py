@@ -206,8 +206,10 @@ class EnvLandingView(View):
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
         env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
+        capacity_info = {'groups': groups}
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
+            capacity_info['cluster'] = basic_cluster_info
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -223,7 +225,7 @@ class EnvLandingView(View):
                         faked_host['hostId'] = 'UNKNOWN'
                         faked_host['state'] = 'PROVISIONED'
                         provisioning_hosts.append(faked_host)
-
+          
             response = render(request, 'environs/env_landing.html', {
                 "envs": envs,
                 "env": env,
@@ -236,7 +238,7 @@ class EnvLandingView(View):
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
                 "basic_cluster_info": basic_cluster_info,
-                "basic_cluster_json": json.dumps(basic_cluster_info),
+                "capacity_info": json.dumps(capacity_info),
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
                 "csrf_token": get_token(request),
@@ -265,7 +267,7 @@ class EnvLandingView(View):
                 "request_feedback": request_feedback,
                 "groups": groups,
                 "basic_cluster_info": basic_cluster_info,
-                "basic_cluster_json": json.dumps(basic_cluster_info),
+                "capacity_info": json.dumps(capacity_info),
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
             })
