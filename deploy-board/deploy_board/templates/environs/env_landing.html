@@ -192,7 +192,7 @@
 {% if pinterest %}
 <script>
 
-var cluster_info = {{basic_cluster_json | safe}}
+var capacityInfo = {{capacity_info | safe}}
 function loadGroupConfig() {
     var selected_value = $("#group_name option:selected").val();
     var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
@@ -201,15 +201,19 @@ function loadGroupConfig() {
     });
 }
 
+var renderCapacity = capacityInfo['cluster'] !=null || 
+    capacityInfo['groups'] === null || capacityInfo['groups'].length === 0
+
+
 var capacityPanel = new Vue({
             el:"#capacityPanel",
             data:{
-               title: cluster_info != null ? "Cluster" : "Deploy Groups",
-               showCluster: cluster_info != null,
+               title: renderCapacity ? "Cluster" : "Deploy Groups",
+               showCluster: renderCapacity,
 
             },
             mounted: function(){
-                if (cluster_info == null){
+                if (!renderCapacity){
                     $('#groupsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/groups/');
                     $("#group_name").change(function() {
                             loadGroupConfig();
