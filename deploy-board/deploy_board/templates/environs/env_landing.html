@@ -24,6 +24,7 @@
         <h4 class="panel-title pull-left">Current Deploy</h4>
     </div>
     {% if env|isEnvEnabled %}
+    {% if env.envName != "ngapp2-A" and env.envName != "ngapp2-B" %}
 	<div class="row">
         <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/"
             type="button" class="deployToolTip btn btn-default btn-block"
@@ -31,7 +32,9 @@
             <span class="glyphicon glyphicon-file"></span> Create Deploy
         </a>
     </div>
+    {% endif %}
     {% if has_deploy %}
+    {% if env.envName != "ngapp2-A" and env.envName != "ngapp2-B" %}
 	<div class="row">
         <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback/"
             type="button" class="deployToolTip btn btn-default btn-block"
@@ -39,7 +42,8 @@
             <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback
         </a>
     </div>
-    {% if stages|length > 1 %}
+    {% endif %}
+    {% if stages|length > 1 and env.envName != "ngapp2-A" and env.envName != "ngapp2-B" %}
 	<div class="row">
         <a href="/env/{{ env.envName }}/{{ env.stageName }}/promote/{{ env.deployId }}"
             type="button" class="deployToolTip btn btn-default btn-block"
@@ -48,7 +52,7 @@
         </a>
     </div>
     {% endif %}
-    {% if pinterest %}
+    {% if pinterest and env.envName != "ngapp2-A" and env.envName != "ngapp2-B" %}
     <div class="row">
         <a href="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes/"
             type="button" class="deployToolTip btn btn-default btn-block"
