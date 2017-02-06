@@ -94,7 +94,7 @@ public class Jenkins {
     }
 
     public void startBuild(String jobName, String buildParams) throws Exception {
-        String url = String.format("%s/job/%s/buildWithParameters?%s", JENKINS_URL, jobName, buildParams);
+        String url = String.format("%s/job/%s/buildWithParameters?token=remote_trigger1&%s", JENKINS_URL, jobName, buildParams);
         // startBuild(url);
         // Use GET instead, which is the same as POST but no need for token
         httpClient.get(url, null, null, null, RETRIES);
