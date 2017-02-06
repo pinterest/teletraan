@@ -51,15 +51,11 @@
                 <div class="row">
                     <label>This is for CMP docker only hosts. For other type, click the Advanced Settings on the left</label>
                 </div>
-                <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
-                        v-on:baseimagechange="baseImageChange">
-                </baseimage-select>
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                 <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"></label-select>
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP" 
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
-                <label-input label="aws_role" v-bind:value="awsRole" v-on:input="updateAwsRole"></label-input>
             </form>
         </div>
     </div>
@@ -100,7 +96,7 @@ var capacitySetting = new Vue({
     el:"#capacityPanel",
     data:{
         assignPublicIP: false,
-        awsRole: "base",
+        iamRole: "base",
         baseimages: capacityCreationInfo.baseImages.map(
             function (o) {
                 return {
@@ -144,9 +140,6 @@ var capacitySetting = new Vue({
             }
             return true
         },
-        baseImageChange: function (value) {
-            this.baseImageValue = value
-        },
         sendRequest: function(clusterInfo){
                 $.ajax({
                     type: 'POST',
@@ -184,7 +177,7 @@ var capacitySetting = new Vue({
             }
 
             clusterInfo['configs'] = capacityCreationInfo['defaultCMPConfigs']
-            clusterInfo.configs['aws_role'] = this.awsRole
+            clusterInfo.configs['iam_role'] = this.iamRole
             if (this.assignPublicIP){
                 clusterInfo.configs['assign_public_ip'] = true
             }

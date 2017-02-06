@@ -471,7 +471,7 @@ def parse_configs(query_dict):
 
 def get_default_cmp_configs(name, stage):
     config_map = {}
-    config_map['aws_role'] = 'base'
+    config_map['iam_role'] = 'base'
     config_map['cmp_group'] = 'CMP,{}-{}'.format(name, stage)
     config_map['pinfo_environment'] = 'prod'
     config_map['pinfo_team'] = 'cloudeng'
@@ -513,7 +513,7 @@ def delete_cluster(request, name, stage):
 
 def get_aws_config_name_list_by_image(image_name):
     config_map = {}
-    config_map['aws_role'] = 'base'
+    config_map['iam_role'] = 'base'
     config_map['assign_public_ip'] = 'true'
     if IS_PINTEREST:
         config_map['pinfo_environment'] = 'prod'
