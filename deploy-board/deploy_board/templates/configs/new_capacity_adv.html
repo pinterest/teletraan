@@ -86,7 +86,7 @@ var capacityView = new Vue({
 
 var info = {{capacity_creation_info|safe}}
 var environment = info.environment
-var sorted = info.baseImages.sort(function(item1,item2){return item1.publish_date>item2.publish_date;})
+var sorted = info.baseImages.sort(function(item1,item2){return item2.publish_date-item1.publish_date;})
 var placements = getDefaultPlacement(info)
 var capacitySetting = new Vue({
     el: "#mainPanel", 
@@ -255,7 +255,7 @@ var capacitySetting = new Vue({
 
                 },
                 success: function (data) {
-                    sorted = data.sort(function (item1, item2) { return item1.publish_date > item2.publish_date; })
+                    sorted = data.sort(function (item1, item2) { return item2.publish_date - item1.publish_date; })
                     capacitySetting.baseimages = sorted.map(function (o) { return { value: o.id, text: o.provider_name } })
                     capacitySetting.baseImageValue = sorted[0].id
                 },
