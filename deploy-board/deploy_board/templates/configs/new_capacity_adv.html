@@ -125,7 +125,8 @@ var capacitySetting = new Vue({
             function (item, idx) {
                 return {
                     value: item.abstract_name,
-                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ")"
+                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ")",
+                    isSelected: item.abstract_name === info.defaultHostType
                 }
             }),
         imageNameValue: info.defaultBaseImage,
@@ -161,7 +162,7 @@ var capacitySetting = new Vue({
                     isSelected: item.id === info.securityZones[0].id
                 }
             }),
-        selectedHostTypeValue: info.hostTypes[0].abstract_name,
+        selectedHostTypeValue: info.defaultHostType,
         selectedSecurityZoneValue: info.securityZones[0].abstract_name,
         selectedPlacements: [],
         showBaseImageHelp: false,

@@ -111,7 +111,12 @@ var capacitySetting = new Vue({
         imageNameValue: 'cmp_base',
         imagenames: ['cmp_base'],
         instanceCount:"",
-        hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){return {value:item.abstract_name,text:item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.storage+")"}}),
+        hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){
+            return {
+                value: item.abstract_name,
+                text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.storage+")",
+                isSelected: item.abstract_name === capacityCreationInfo.defaultHostType
+            }}),
         placements: placements.cmpPrivate.map(function(item, index) {
                 return {
                     value: item.id,
@@ -120,7 +125,7 @@ var capacitySetting = new Vue({
                 }
             }),
         securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){return {value:item.abstract_name, text:item.abstract_name+" ("+item.description+")"}}),
-        selectedHostTypeValue: capacityCreationInfo.hostTypes[0].abstract_name,
+        selectedHostTypeValue: capacityCreationInfo.defaultHostType,
         selectedSecurityZoneValue: capacityCreationInfo.securityZones[0].abstract_name,
         selectedPlacements: null
     },
