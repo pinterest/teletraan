@@ -250,4 +250,3 @@ if IS_PINTEREST:
 
     #Pinterest Default Host Type
     DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
-    
