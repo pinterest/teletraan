@@ -21,7 +21,7 @@ from django.views.generic import View
 
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
-    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE
+    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_HOST_TYPE
 import json
 import logging
 
@@ -42,7 +42,7 @@ class EnvCapacityBasicCreateView(View):
 
         security_zones = securityzones_helper.get_by_provider(request, DEFAULT_PROVIDER)
         placements = placements_helper.get_by_provider(request, DEFAULT_PROVIDER)
-        default_base_image = baseimages_helper.get_by_name(request,DEFAULT_CMP_IMAGE)
+        default_base_image = baseimages_helper.get_by_name(request, DEFAULT_CMP_IMAGE)
         env = environs_helper.get_env_by_stage(request, name, stage)
 
         capacity_creation_info = {
@@ -52,7 +52,8 @@ class EnvCapacityBasicCreateView(View):
             'placements': placements,
             'baseImages': default_base_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
-            'defaultProvider': DEFAULT_PROVIDER
+            'defaultProvider': DEFAULT_PROVIDER,
+            'defaultHostType': DEFAULT_CMP_HOST_TYPE
         }
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
@@ -105,6 +106,7 @@ class EnvCapacityAdvCreateView(View):
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
+            'defaultHostType': DEFAULT_CMP_HOST_TYPE,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
         }

@@ -247,3 +247,6 @@ if IS_PINTEREST:
 
     #Pinterest Default AMI image name
     DEFAULT_CMP_IMAGE = 'cmp_base'
+
+    #Pinterest Default Host Type
+    DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
