@@ -1,65 +1,46 @@
-new_local_repository(
+#new_local_repository(
+#    name = 'mock',
+#    path = '/tmp/mock',
+#    build_file_content = '''
+#filegroup(
+#    name = 'lib',
+#    srcs = glob(['mock.py', 'mock.py', 'mock-1.0.1.egg-info']),
+#    visibility = ['//visibility:public'],
+#)
+#''',
+#)
+#
+#new_local_repository(
+#    name = 'socketwhitelist',
+#    path = '/tmp/socketwhitelist',
+#    build_file_content = '''
+#filegroup(
+#    name = 'lib',
+#    srcs = glob(['nose_socket_whitelist-1.0.0.egg-info', 'socketwhitelist/**']),
+#    visibility = ['//visibility:public'],
+#)
+#''',
+#)
+#load("//tools/rules:pypi_package.bzl", "pypi_package")
+#pypi_package(name = "mock", artifact = "mock==1.0.1")
+#pypi_package(name = "socketwhitelist", artifact = "nose-socket-whitelist")
+load("//tools/rules:pypi_repository.bzl", "pypi_repository")
+pypi_repository(
     name = "pypi",
-    path = "bazel-venv/lib/python2.7/site-packages",
-    build_file_content = """
-package(default_visibility = ["//visibility:public"])
-filegroup(
-    name = "daemon",
-    srcs = glob(["daemon/**/*"]),
-)
-filegroup(
-    name = "lockfile",
-    srcs = glob(["lockfile/**/*"]),
-)
-filegroup(
-    name = "boto",
-    srcs = glob(["boto/**/*"]),
-)
-filegroup(
-    name = "requests",
-    srcs = glob(["requests/**/*"]),
-)
-filegroup(
-    name = "gevent",
-    srcs = glob(["gevent/**/*", "greenlet.so"]),
-)
-filegroup(
-    name = "mock",
-    srcs = glob(["mock.py"]),
-)
-filegroup(
-    name = "nose",
-    srcs = glob(["nose/**/*"]),
-)
-filegroup(
-    name = "socketwhitelist",
-    srcs = glob(["socketwhitelist/**/*"]),
-)
-filegroup(
-    name = "django",
-    srcs = glob(["django/**/*"]),
-)
-filegroup(
-    name = "oauthlib",
-    srcs = glob(["oauthlib/**/*"]),
-)
-filegroup(
-    name = "six",
-    srcs = glob(["six.py"]),
-)
-filegroup(
-    name = "dateutil",
-    srcs = glob(["dateutil/**/*"]),
-)
-filegroup(
-    name = "pytz",
-    srcs = glob(["pytz/**/*"]),
-)
-filegroup(
-    name = "diff_match_patch",
-    srcs = glob(["diff_match_patch/**/*"]),
-)
-""",
+    packages = [
+        "mock==1.0.1", 
+#        "mock==1.0.0", 
+        "nose-socket-whitelist",
+        "nose",
+        "requests==2.9.1",
+        "gevent==1.0.2",
+        "greenlet>=0.4.7",
+        "lockfile==0.10.2",
+        "docutils",
+        "python-daemon==2.0.6",
+        "boto>=2.39.0",
+    ],
+#    conf = '',
 )
 
 maven_jar(name = "c3p0_c3p0_0_9_1_1", artifact = "c3p0:c3p0:jar:0.9.1.1")
