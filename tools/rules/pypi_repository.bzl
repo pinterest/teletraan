@@ -88,6 +88,7 @@ def _need_install(repository_ctx, package_ctx):
             signature = signature.strip("\n")
         if package_ctx.artifact == signature:
             # signature matched, skip install
+            print("signature matched, skip install of %s" % package_ctx.artifact)
             return False
 
     _uninstall_package(repository_ctx, package_ctx)

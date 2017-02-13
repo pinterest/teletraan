@@ -21,27 +21,35 @@
 #)
 #''',
 #)
-#load("//tools/rules:pypi_package.bzl", "pypi_package")
-#pypi_package(name = "mock", artifact = "mock==1.0.1")
-#pypi_package(name = "socketwhitelist", artifact = "nose-socket-whitelist")
-load("//tools/rules:pypi_repository.bzl", "pypi_repository")
-pypi_repository(
-    name = "pypi",
-    packages = [
-        "mock==1.0.1", 
-#        "mock==1.0.0", 
-        "nose-socket-whitelist",
-        "nose",
-        "requests==2.9.1",
-        "gevent==1.0.2",
-        "greenlet>=0.4.7",
-        "lockfile==0.10.2",
-        "docutils",
-        "python-daemon==2.0.6",
-        "boto>=2.39.0",
-    ],
+load("//tools/rules:pypi_package.bzl", "pypi_package")
+pypi_package(name = "pypi_mock", artifact = "mock==1.0.1")
+pypi_package(name = "pypi_nosesocketwhitelist", artifact = "nose-socket-whitelist")
+pypi_package(name = "pypi_nose", artifact = "nose")
+pypi_package(name = "pypi_requests", artifact = "requests==2.9.1")
+pypi_package(name = "pypi_gevent", artifact = "gevent==1.0.2")
+pypi_package(name = "pypi_greenlet", artifact = "greenlet>=0.4.7")
+pypi_package(name = "pypi_lockfile", artifact = "lockfile==0.10.2")
+pypi_package(name = "pypi_docutils", artifact = "docutils")
+pypi_package(name = "pypi_python_daemon", artifact = "python-daemon==2.0.6")
+pypi_package(name = "pypi_boto", artifact = "boto>=2.39.0")
+#load("//tools/rules:pypi_repository.bzl", "pypi_repository")
+#pypi_repository(
+#    name = "pypi",
+#    packages = [
+#        "mock==1.0.1", 
+##        "mock==1.0.2", 
+#        "nose-socket-whitelist",
+#        "nose",
+#        "requests==2.9.1",
+#        "gevent==1.0.2",
+#        "greenlet>=0.4.7",
+#        "lockfile==0.10.2",
+#        "docutils",
+#        "python-daemon==2.0.6",
+#        "boto>=2.39.0",
+#    ],
 #    conf = '',
-)
+#)
 
 maven_jar(name = "c3p0_c3p0_0_9_1_1", artifact = "c3p0:c3p0:jar:0.9.1.1")
 maven_jar(name = "ch_qos_logback_logback_classic_1_1_2", artifact = "ch.qos.logback:logback-classic:jar:1.1.2")
