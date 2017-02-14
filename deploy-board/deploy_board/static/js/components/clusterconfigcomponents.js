@@ -87,7 +87,7 @@ Vue.component('aws-user-data', {
     <data-config-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:inadvanced="inadvanced"\
      v-show="shouldShow(data.name)" v-on:change="change" v-on:deleteConfig="deleteConfig"></data-config-field>\
   </div>',
-    props: ['alluserdata', 'inadvanced'],
+    props: ['alluserdata', 'inadvanced', 'showcmpgroup'],
     methods: {
         change: function (value) {
             this.$emit("change", value)
@@ -97,7 +97,7 @@ Vue.component('aws-user-data', {
         },
         shouldShow: function (name) {
             if (this.inadvanced) {
-                return true
+                return this.showcmpgroup ? true : name != "cmp_group"
             }
             else {
                 return !name.startsWith("pinfo_") && name != "cmp_group"
