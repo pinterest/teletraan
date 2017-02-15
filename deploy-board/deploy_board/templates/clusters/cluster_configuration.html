@@ -10,7 +10,7 @@
 {% endblock %} {% load static %} {% block side-panel-actions %}
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js?changedate=2016.12.19.150000"%}"></script>
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2016.12.19.150000"%}"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2016.12.19.150000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.02.14.123000"%}"></script>
 
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
@@ -60,7 +60,7 @@
                                 <aws-config-modal id="newConfigModalId" v-bind:options="availableConfigOptions()" v-on:click="addConfig"></aws-config-modal>
                             </div>
                         </div>
-                        <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" v-on:change="configChange" v-bind:inadvanced="inAdvanced"></aws-user-data>
+                        <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" v-on:change="configChange" v-bind:inadvanced="inAdvanced" v-bind:showcmpgroup="showCmpGroup"></aws-user-data>
                     </div>
                 </fieldset>
             </form>
@@ -106,9 +106,9 @@
                         function(key) {
                             return {
                                 name: key,
-                                value: currentCluster.configs[key]
+                                value: currentCluster.configs[key],
                             }
-                        }).filter(function(item){return item.name!='cmp_group'}),
+                        }),
                 assignPublicIP: currentCluster.configs.assign_public_ip ? true : false,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
@@ -165,8 +165,8 @@
                 securityZoneHelpData: [],
                 showPlacementsHelp: false,
                 placementsHelpData: [],
-                canSaveCapacity: !showReplaceAlert
-
+                canSaveCapacity: !showReplaceAlert,
+                showCmpGroup: Boolean(getUrlParameter("showcmpgroup"))
             },
             methods: {
                 addConfig: function(config) {
@@ -361,8 +361,10 @@
                         map[obj.name] = obj.value;
                         return map
                     }, {})
-
-                    clusterInfo['configs']['cmp_group'] = currentCluster.configs['cmp_group']
+                    if (!this.showCmpGroup){
+                        //Unless showcmpgroup is set, cmp_group is set back
+                        clusterInfo['configs']['cmp_group'] = currentCluster.configs['cmp_group']
+                    }
                     if (this.assignPublicIP){
                         clusterInfo.configs['assign_public_ip'] = true
                     }
