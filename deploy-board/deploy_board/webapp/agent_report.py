@@ -161,17 +161,6 @@ def gen_report(request, env, progress, sortByStatus="false"):
             deprecatedDeployStats.append(value)
 
     provisioning_hosts = progress["provisioningHosts"]
-    if IS_PINTEREST:
-        basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-        if basic_cluster_info and basic_cluster_info.get('capacity'):
-            hosts_in_cluster = groups_helper.get_group_hosts(request, env.get('clusterName'))
-            num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
-            for i in range(num_to_fake):
-                faked_host = {}
-                faked_host['hostName'] = 'UNKNOWN'
-                faked_host['hostId'] = 'UNKNOWN'
-                faked_host['state'] = 'PROVISIONED'
-                provisioning_hosts.append(faked_host)
 
     return AgentReport(firstTimeAgentStats=firstTimeAgentStats,
                        agentStats=agentStats,
