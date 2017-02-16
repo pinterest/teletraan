@@ -214,17 +214,6 @@ class EnvLandingView(View):
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
-            if IS_PINTEREST:
-                basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-                if basic_cluster_info and basic_cluster_info.get('capacity'):
-                    hosts_in_cluster = groups_helper.get_group_hosts(request, env.get('clusterName'))
-                    num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
-                    for i in range(num_to_fake):
-                        faked_host = {}
-                        faked_host['hostName'] = 'UNKNOWN'
-                        faked_host['hostId'] = 'UNKNOWN'
-                        faked_host['state'] = 'PROVISIONED'
-                        provisioning_hosts.append(faked_host)
           
             response = render(request, 'environs/env_landing.html', {
                 "envs": envs,
