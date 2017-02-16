@@ -79,7 +79,7 @@ public class ConfigHelper {
         context.setTagDAO(new DBTagDAOImpl(dataSource));
         context.setScheduleDAO(new DBScheduleDAOImpl(dataSource));
 
-        // Inject proper implemetation based on config
+        // Inject proper implementation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
         context.setSourceControlManager(configuration.getSourceControlFactory().create());
         context.setChatManager(configuration.getChatFactory().create());
@@ -111,7 +111,7 @@ public class ConfigHelper {
          unit - the time unit for the keepAliveTime argument
          workQueue - the queue to use for holding tasks before they are executed. This queue will hold only the Runnable tasks submitted by the execute method.
          */
-        // TODO make the thread configrable
+        // TODO make the thread configurable
         ExecutorService jobPool = new ThreadPoolExecutor(1, 10, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         context.setJobPool(jobPool);
 
@@ -163,7 +163,7 @@ public class ConfigHelper {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold", DEFAULT_MIN_STALE_HOST_THRESHOLD);
                 int maxStaleHostThreshold = MapUtils.getIntValue(properties, "maxStaleHostThreshold", DEFAULT_MAX_STALE_HOST_THRESHOLD);
-                int maxLaunchLatencyThreshold = MapUtils.getIntValue(properties, "maxLaunchLaencyThreshold", DEFAULT_LAUNCH_LATENCY_THRESHOLD);
+                int maxLaunchLatencyThreshold = MapUtils.getIntValue(properties, "maxLaunchLatencyThreshold", DEFAULT_LAUNCH_LATENCY_THRESHOLD);
                 Runnable worker = new AgentJanitor(serviceContext, minStaleHostThreshold, maxStaleHostThreshold, maxLaunchLatencyThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled AgentJanitor.");

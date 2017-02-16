@@ -18,7 +18,7 @@ package com.pinterest.deployservice.dao;
 import com.pinterest.deployservice.bean.DataBean;
 
 /**
- * A collection of methods to help arbitary data
+ * A collection of methods to help arbitrary data
  */
 public interface DataDAO {
     DataBean getById(String id) throws Exception;

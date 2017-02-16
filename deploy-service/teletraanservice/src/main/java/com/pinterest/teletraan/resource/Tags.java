@@ -24,7 +24,7 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.handler.BuildTagHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +65,7 @@ public class Tags {
         throws Exception {
         TagBean ret = tagDAO.getById(id);
         if (ret == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND,
                 String.format("Tag %s does not exist.", id));
         }
         return ret;
@@ -80,7 +80,7 @@ public class Tags {
     public List<TagBean> getByTargetId(@PathParam("id") String targetId) throws Exception {
 
         if (StringUtils.isEmpty(targetId)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+            throw new TeletraanInternalException(Response.Status.BAD_REQUEST,
                 "Require at least one of targetId, targetType, value specified in the request.");
         }
 
@@ -95,7 +95,7 @@ public class Tags {
             response = List.class)
     public TagBean getLatestByTargetId(@PathParam("id") String targetId) throws Exception {
         if (StringUtils.isEmpty(targetId)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+            throw new TeletraanInternalException(Response.Status.BAD_REQUEST,
                     "Require at least one of targetId, targetType, value specified in the request.");
         }
         return tagDAO.getLatestByTargetId(targetId);
@@ -112,7 +112,7 @@ public class Tags {
         throws Exception {
 
         if (StringUtils.isEmpty(value)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+            throw new TeletraanInternalException(Response.Status.BAD_REQUEST,
                 "Require at least one of targetId, targetType, value specified in the request.");
         }
 
@@ -120,7 +120,7 @@ public class Tags {
             return tagDAO.getByValue(TagValue.valueOf(value.toUpperCase()));
 
         } catch (IllegalArgumentException e) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+            throw new TeletraanInternalException(Response.Status.BAD_REQUEST,
                 String.format("%s is not a valid tag Value.", value));
         }
     }
@@ -166,7 +166,7 @@ public class Tags {
         @ApiParam(value = "tag id", required = true) @PathParam("id") String id) throws Exception {
         TagBean tagBean = tagDAO.getById(id);
         if (tagBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND,
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND,
                 String.format("Tag %s does not exist.", id));
         }
         tagDAO.delete(id);

@@ -154,8 +154,8 @@ public class DeployHandler {
         }
 
         public Void call() {
-            String additonalMessage = generateMentions(envBean, newDeployBean, oldDeployBean);
-            sendStartDeployMessage(additonalMessage);
+            String additionalMessage = generateMentions(envBean, newDeployBean, oldDeployBean);
+            sendStartDeployMessage(additionalMessage);
             LOG.info("Successfully send deploy start message for deploy {}", newDeployBean.getDeploy_id());
 
             if (!StringUtils.isEmpty(changeFeedUrl)) {

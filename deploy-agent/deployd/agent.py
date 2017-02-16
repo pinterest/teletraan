@@ -122,7 +122,7 @@ class DeployAgent(object):
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
                                              AgentStatus.TOO_MANY_RETRY,
                                              AgentStatus.SCRIPT_TIMEOUT]:
-                log.error('Unexpeted exceptions: {}, error message {}'.format(
+                log.error('Unexpected exceptions: {}, error message {}'.format(
                     deploy_report.status_code, deploy_report.output_msg))
                 return
 
@@ -194,7 +194,7 @@ class DeployAgent(object):
             if curr_stage == DeployStage.DOWNLOADING:
                 return self._executor.run_cmd(self.get_download_script(deploy_goal=deploy_goal))
             elif curr_stage == DeployStage.STAGING:
-                log.info("set up symbolink for the package: {}".format(deploy_goal.deployId))
+                log.info("set up symlink for the package: {}".format(deploy_goal.deployId))
                 return self._executor.run_cmd(self.get_staging_script())
             else:
                 return self._executor.execute_command(curr_stage)
@@ -296,10 +296,10 @@ class DeployAgent(object):
         if (self._envs is None) or (self._envs.get(env_name) is None):
             self._envs[env_name] = DeployStatus()
 
-        # update deploy_status from response for the environemnt
+        # update deploy_status from response for the environment
         self._envs[env_name].update_by_response(response)
 
-        # update script varibales
+        # update script variables
         if deploy_goal.scriptVariables:
             log.info('Start to generate script variables for deploy: {}'.
             format(deploy_goal.deployId))

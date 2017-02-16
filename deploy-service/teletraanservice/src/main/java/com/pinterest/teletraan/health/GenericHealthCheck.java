@@ -48,7 +48,7 @@ public class GenericHealthCheck extends HealthCheck {
             return Result.healthy("Teletraan looks healthy!");
         } else {
             return Result.unhealthy("Teletraan failed on Healthcheck, " +
-                "incorrect ammount of deploys returned: " + deploys.size());
+                "incorrect amount of deploys returned: " + deploys.size());
         }
     }
 }

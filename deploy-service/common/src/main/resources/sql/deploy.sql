@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS promotes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*
-Arbitrary text data table, leave the application to interprate the text
+Arbitrary text data table, leave the application to interpret the text
 The data_kind could be config, envvar or script
 */
 CREATE TABLE IF NOT EXISTS datas (

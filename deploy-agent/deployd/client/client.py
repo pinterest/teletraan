@@ -105,7 +105,7 @@ class Client(BaseClient):
                 if isinstance(report.errorMessage, str):
                     report.errorMessage = unicode(report.errorMessage, "utf-8")
 
-                # We ignore non-ascii charater for now, we should further solve this problem on
+                # We ignore non-ascii character for now, we should further solve this problem on
                 # the server side:
                 # https://app.asana.com/0/11815463290546/40714916594784
                 if report.errorMessage:

@@ -18,7 +18,7 @@ package com.pinterest.deployservice.bean;
 /**
  * NORMAL:
  *      Normal state
- * PAUSED_BY_STSTEM:
+ * PAUSED_BY_SYSTEM:
  *      Agent being paused by system automatically
  * PAUSED_BY_USER:
  *      Agent being paused by user manually

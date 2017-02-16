@@ -109,7 +109,7 @@ public class HostTerminator implements Runnable {
             LOG.info("Start to run HostTerminator");
             processBatch();
         } catch (Throwable t) {
-            LOG.error("Faile to run HostTerminator", t);
+            LOG.error("Failed to run HostTerminator", t);
         }
     }
 }

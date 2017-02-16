@@ -2,7 +2,7 @@ CREATE DATABASE IF NOT EXISTS deploy;
 
 USE deploy;
 
-/* This is for unit tests only - it will wipe all data - do NOT run it in prodution!*/
+/* This is for unit tests only - it will wipe all data - do NOT run it in production!*/
 
 DROP TABLE IF EXISTS schema_versions;
 DROP TABLE IF EXISTS agents;

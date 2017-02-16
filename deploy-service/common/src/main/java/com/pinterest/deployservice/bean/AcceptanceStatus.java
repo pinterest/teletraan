@@ -17,9 +17,9 @@ package com.pinterest.deployservice.bean;
 
 /**
  * - PENDING_DEPLOY
- *    Deploy has not compelted yet
- * OUSTANDING:
- *    Deploy has not compelted yet
+ *    Deploy has not completed yet
+ * OUTSTANDING:
+ *    Deploy has not completed yet
  */
 public enum AcceptanceStatus {
     /*

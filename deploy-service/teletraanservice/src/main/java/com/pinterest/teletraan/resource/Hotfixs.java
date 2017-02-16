@@ -24,7 +24,7 @@ import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.deployservice.scm.GithubManager;
 import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +62,7 @@ public class Hotfixs {
     private HotfixBean getHotfixBean(String id) throws Exception {
         HotfixBean hotfixBean = hotfixDAO.getByHotfixId(id);
         if (hotfixBean == null) {
-            throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("Hotfix %s does not exist.", id));
+            throw new TeletraanInternalException(Response.Status.NOT_FOUND, String.format("Hotfix %s does not exist.", id));
         }
         return hotfixBean;
     }

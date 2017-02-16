@@ -20,7 +20,7 @@ import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.dao.UserRolesDAO;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -81,7 +81,7 @@ public class UserTokenAuthorizerTest {
     private void checkNegative(String userName, Resource resource, Role role) throws Exception {
         try {
             authorizer.checkUserPermission(userName, resource, null, role);
-        } catch (TeletaanInternalException e) {
+        } catch (TeletraanInternalException e) {
             // expected
             return;
         }

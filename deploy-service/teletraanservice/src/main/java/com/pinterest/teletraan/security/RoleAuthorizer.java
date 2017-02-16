@@ -19,7 +19,7 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,7 @@ public class RoleAuthorizer implements Authorizer {
         // Consider group role(s)
         Set<String> groupsSet = new HashSet<>();
         if(groups != null && !groups.isEmpty()) {
-            // Convert to Set for lookup convienience
+            // Convert to Set for lookup convenience
             groupsSet.addAll(groups);
 
             List<GroupRolesBean> resourceGroupBeans = groupRolesDAO.getByResource(resource.getId(), resource.getType());
@@ -83,7 +83,7 @@ public class RoleAuthorizer implements Authorizer {
         }
 
         // Otherwise not authorized
-        throw new TeletaanInternalException(Response.Status.FORBIDDEN, "Not authorized!");
+        throw new TeletraanInternalException(Response.Status.FORBIDDEN, "Not authorized!");
     }
 
     public void checkAPITokenPermission(TokenRolesBean bean, Resource requiredResource, Role requiredRole) throws Exception {
@@ -100,7 +100,7 @@ public class RoleAuthorizer implements Authorizer {
         }
 
         // Otherwise, no way
-        throw new TeletaanInternalException(Response.Status.FORBIDDEN, "Not authorized!");
+        throw new TeletraanInternalException(Response.Status.FORBIDDEN, "Not authorized!");
     }
 
     @Override

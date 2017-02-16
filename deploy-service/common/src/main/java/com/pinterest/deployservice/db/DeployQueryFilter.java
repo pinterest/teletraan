@@ -61,7 +61,7 @@ public class DeployQueryFilter {
             sb.append("=? OR ");
             values.add(value);
         }
-        // remove the trialing OR and space
+        // remove the trailing OR and space
         sb.setLength(sb.length() - 3);
         sb.append(") AND ");
         return sb;
@@ -78,7 +78,7 @@ public class DeployQueryFilter {
             sb.append("=? OR ");
             values.add(value.toString());
         }
-        // remove the trialing OR and space
+        // remove the trailing OR and space
         sb.setLength(sb.length() - 3);
         sb.append(") AND ");
         return sb;
@@ -124,7 +124,7 @@ public class DeployQueryFilter {
 
 
         if (sb.length() > 1) {
-            // remove the trialing AND and space
+            // remove the trailing AND and space
             sb.setLength(sb.length() - 4);
             sb.insert(0, "WHERE ");
         }

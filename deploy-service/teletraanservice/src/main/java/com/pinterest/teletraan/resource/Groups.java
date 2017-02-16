@@ -21,7 +21,7 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.teletraan.exception.TeletraanInternalException;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -77,7 +77,7 @@ public class Groups {
                 hostIds = hostDAO.getRetiredAndFailedHostIdsByGroup(groupName);
                 break;
             default:
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
+                throw new TeletraanInternalException(Response.Status.BAD_REQUEST, "No action found.");
         }
         return hostIds;
     }

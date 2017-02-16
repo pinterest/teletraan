@@ -71,7 +71,7 @@ public class CommonHandler {
             try {
                 message = generateMessage(buildId, envBean, state, deployBean);
             } catch (Exception e) {
-                LOG.error("Failed to genereate message", e);
+                LOG.error("Failed to generate message", e);
                 return;
             }
 
@@ -100,7 +100,7 @@ public class CommonHandler {
                 LOG.info("Start to work on FinishNotifyJob for deploy {}", deployBean.getDeploy_id());
                 sendMessage();
                 sendDeployEvents(deployBean, newPartialDeployBean, envBean);
-                LOG.info("Completed NoitfyJob for deploy {}", deployBean.getDeploy_id());
+                LOG.info("Completed NotifyJob for deploy {}", deployBean.getDeploy_id());
             } catch (Throwable t) {
                 LOG.error("FinishNotifyJob job failed for deploy !" + deployBean.getDeploy_id(), t);
             }
@@ -192,7 +192,7 @@ public class CommonHandler {
         List<String> watchers = Arrays.asList(watcherStr.split(","));
         for (String watcher : watchers) {
             try {
-                // TODO verify that send to peoper actually works
+                // TODO verify that send to operator actually works
                 chatManager.sendToUser(operator, watcher.trim(), message, color);
             } catch (Exception e) {
                 LOG.error(String.format("Failed to send message '%s' to watcher %s",
@@ -268,11 +268,11 @@ public class CommonHandler {
         long succeeded = agentDAO.countSucceededAgent(envId, deployId);
         LOG.debug("Among them, {} agents are succeeded", succeeded);
 
-        long stucked = agentDAO.countStuckAgent(envId, deployId);
-        LOG.debug("Among them, {} agents are stuck", stucked);
+        long stuck = agentDAO.countStuckAgent(envId, deployId);
+        LOG.debug("Among them, {} agents are stuck", stuck);
 
         newDeployBean.setSuc_total((int) succeeded);
-        newDeployBean.setFail_total((int) stucked);
+        newDeployBean.setFail_total((int) stuck);
         newDeployBean.setTotal((int) total);
         newDeployBean.setState(oldState);
         newDeployBean.setLast_update(System.currentTimeMillis());
@@ -287,7 +287,7 @@ public class CommonHandler {
                 EnvWebHookBean webhooks = dataHandler.getDataById(envBean.getWebhooks_config_id(), WebhookDataFactory.class);
                 if (webhooks != null && !CollectionUtils.isEmpty(webhooks.getPostDeployHooks())) {
                     jobPool.submit(new WebhookJob(webhooks.getPostDeployHooks(), deployBean, envBean));
-                    LOG.info("Submited post deploy hook job for deploy {}.", deployId);
+                    LOG.info("Submitted post deploy hook job for deploy {}.", deployId);
                 }
 
                 if (envBean.getAccept_type() == AcceptanceType.AUTO) {
@@ -301,9 +301,9 @@ public class CommonHandler {
             return;
         }
 
-        if (stucked * 10000 > (10000 - sucThreshold) * total) {
+        if (stuck * 10000 > (10000 - sucThreshold) * total) {
             newDeployBean.setState(DeployState.FAILING);
-            LOG.info("Set deploy {} as FAILING since {} agents are stuck.", deployId, stucked);
+            LOG.info("Set deploy {} as FAILING since {} agents are stuck.", deployId, stuck);
             return;
         }
 

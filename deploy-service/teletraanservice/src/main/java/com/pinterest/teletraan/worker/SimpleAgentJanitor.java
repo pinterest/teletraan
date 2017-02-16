@@ -35,7 +35,7 @@ import java.util.*;
  * Housekeeping on stuck and dead agents
  * <p>
  * if an agent has not ping server for certain time, we will cross check with
- * authoritive source to confirm if the host is terminated, and set agent status
+ * authoritative source to confirm if the host is terminated, and set agent status
  * accordingly
  */
 public class SimpleAgentJanitor implements Runnable {
@@ -98,7 +98,7 @@ public class SimpleAgentJanitor implements Runnable {
             maxStaleHostIds.add(host.getHost_id());
         }
         if (!maxStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found the following hosts (Explicite capacity) exceeded maxStaleThreshold: ",
+            LOG.info("AgentJanitor found the following hosts (Explicit capacity) exceeded maxStaleThreshold: ",
                 maxStaleHostIds);
             processStaleHosts(maxStaleHostIds, true);
         }
@@ -113,7 +113,7 @@ public class SimpleAgentJanitor implements Runnable {
             minStaleHostIds.add(host.getHost_id());
         }
         if (!minStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found following hosts (Explicite capacity) excceeded minStaleThreshold: ",
+            LOG.info("AgentJanitor found following hosts (Explicit capacity) exceeded minStaleThreshold: ",
                 minStaleHostIds);
             processStaleHosts(minStaleHostIds, false);
         }
@@ -144,12 +144,12 @@ public class SimpleAgentJanitor implements Runnable {
         }
 
         if (!maxStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found the following hosts excceeded maxStaleThreshold: ",
+            LOG.info("AgentJanitor found the following hosts exceeded maxStaleThreshold: ",
                 maxStaleHostIds);
             processStaleHosts(maxStaleHostIds, true);
         }
         if (!minStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found the following hosts excceeded minStaleThreshold: ",
+            LOG.info("AgentJanitor found the following hosts exceeded minStaleThreshold: ",
                 minStaleHostIds);
             processStaleHosts(minStaleHostIds, false);
         }
@@ -171,7 +171,7 @@ public class SimpleAgentJanitor implements Runnable {
         }
 
         // For those hosts do not belong to any host, but still associate with certain envs
-        LOG.info("AgentJanitor process explicite capacity hosts");
+        LOG.info("AgentJanitor process explicit capacity hosts");
         processIndividualHosts();
     }
 

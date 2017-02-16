@@ -39,7 +39,7 @@ class Executor(object):
         self.LOG_FILENAME = config.get_subprocess_log_name()
         self.MAX_RUNNING_TIME = config.get_subprocess_running_timeout()
         self.MIN_RUNNING_TIME = config.get_agent_ping_interval()
-        self.MAX_RETRY = config.get_subproces_max_retry()
+        self.MAX_RETRY = config.get_subprocess_max_retry()
         self.MAX_TAIL_BYTES = config.get_subprocess_max_log_bytes()
         self.PROCESS_POLL_INTERVAL = config.get_subprocess_poll_interval()
         self.BACK_OFF = config.get_backoff_factor()

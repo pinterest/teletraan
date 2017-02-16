@@ -19,8 +19,8 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-public class TeletaanInternalException extends WebApplicationException {
-    public TeletaanInternalException(Response.Status code, String message) {
+public class TeletraanInternalException extends WebApplicationException {
+    public TeletraanInternalException(Response.Status code, String message) {
         super(Response.status(code)
             .entity(String.format("{\"code\":%d,\"message\":\"%s\"}", code.getStatusCode(), message))
             .type(MediaType.APPLICATION_JSON).build());

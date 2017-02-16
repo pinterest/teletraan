@@ -261,7 +261,7 @@ Deletes a script token by given environment and script name.
 
 * application/json
 
-#### Update an envrionment's script token
+#### Update an environment's script token
 ```
 PUT /v1/envs/{envName}/token_roles/{scriptName}
 ```

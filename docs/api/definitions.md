@@ -277,7 +277,7 @@
 
      Deploy has not completed yet
 
-  OUSTANDING:
+  OUTSTANDING:
 
      Deploy has not completed yet
 
@@ -299,7 +299,7 @@
 
        Normal state
 
-  PAUSED_BY_STSTEM:
+  PAUSED_BY_SYSTEM:
 
        Agent being paused by system automatically
 

@@ -230,7 +230,7 @@ public class PingHandler {
         if (connection != null) {
             LOG.info("Successfully get lock on {}", deployLockName);
             try {
-                LOG.debug("Got lock on behavor of host {}, verify active agents", host);
+                LOG.debug("Got lock on behavior of host {}, verify active agents", host);
                 long totalActiveAgents = agentDAO.countDeployingAgent(envId);
                 if (totalActiveAgents >= parallelThreshold) {
                     LOG.debug("Got lock, but there are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalActiveAgents, envId, host);
@@ -352,7 +352,7 @@ public class PingHandler {
         String hostId = pingRequest.getHostId();
         if (StringUtils.isEmpty(hostId)) {
             LOG.error("Missing host id in request: ", pingRequest);
-            throw new DeployInternalException("Missing host id in PingReqest");
+            throw new DeployInternalException("Missing host id in PingRequest");
         }
 
         if (StringUtils.isEmpty(pingRequest.getHostName())) {
@@ -519,11 +519,11 @@ public class PingHandler {
             if (scriptConfigId != null) {
                 Map<String, String> variables = dataHandler.getMapById(scriptConfigId);
                 goal.setScriptVariables(variables);
-                LOG.debug("Add script varibles {} to goal at {} stage", variables, updateBean.getDeploy_stage());
+                LOG.debug("Add script variables {} to goal at {} stage", variables, updateBean.getDeploy_stage());
             }
         }
 
-        // Pass step specfic agent configurations
+        // Pass step specific agent configurations
         Map<String, String> configs = null;
         String agentConfigId = envBean.getAdv_config_id();
         if (agentConfigId != null) {
@@ -586,7 +586,7 @@ public class PingHandler {
     public final static int getFinalMaxParallelCount(EnvironBean environBean, long totalHosts) throws Exception {
 
         int ret = Constants.DEFAULT_MAX_PARALLEL_HOSTS;
-        LOG.debug("Get final maximum parallel count for total capactiy {}", totalHosts);
+        LOG.debug("Get final maximum parallel count for total capacity {}", totalHosts);
         boolean numIsApplicable = isApplicable(environBean.getMax_parallel());
         boolean percentageIsApplicable = isApplicable(environBean.getMax_parallel_pct());
 
