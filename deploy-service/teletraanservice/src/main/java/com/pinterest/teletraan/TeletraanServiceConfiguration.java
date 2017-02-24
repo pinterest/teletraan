@@ -69,6 +69,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("rodimus")
     private RodimusFactory rodimusFactory;
 
+    @Valid
+    @JsonProperty("jenkins")
+    private JenkinsFactory jenkinsFactory;
+
     public DataSourceFactory getDataSourceFactory() {
         if (dataSourceFactory == null) {
             return new EmbeddedDataSourceFactory();
@@ -172,6 +176,14 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setRodimusFactory(RodimusFactory rodimusFactory) {
         this.rodimusFactory = rodimusFactory;
+    }
+
+    public JenkinsFactory getJenkinsFactory() {
+        return jenkinsFactory;
+    }
+
+    public void setJenkinsFactory(JenkinsFactory jenkinsFactory) {
+        this.jenkinsFactory = jenkinsFactory;
     }
 
     public List<WorkerConfig> getWorkerConfigs() {
