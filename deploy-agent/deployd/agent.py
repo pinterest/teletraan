@@ -150,10 +150,13 @@ class DeployAgent(object):
     def serve_once(self):
         log.info("Running deploy agent in non daemon mode")
         try:
-            # randomly sleep some time before pinging server
-            sleep_secs = randrange(self._config.get_init_sleep_time())
-            log.info("Randomly sleep {} seconds before starting.".format(sleep_secs))
-            time.sleep(sleep_secs)
+            if len(self._envs) == 0:
+                # randomly sleep some time before pinging server
+                sleep_secs = randrange(self._config.get_init_sleep_time())
+                log.info("Randomly sleep {} seconds before starting.".format(sleep_secs))
+                time.sleep(sleep_secs)
+            else:
+                log.info("No status file. Could be first time agent ran")
             self.serve_build()
         except Exception:
             log.exception("Deploy Agent got exceptions: {}".format(traceback.format_exc()))
