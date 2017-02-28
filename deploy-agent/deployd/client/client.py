@@ -84,7 +84,11 @@ class Client(BaseClient):
             self._hostname = socket.gethostname()
 
         if not self._id:
-            self._id = self._hostname
+            if self._use_facter:
+                #Must fail here as it cannot identify the host if id is missing
+                return False
+            else:
+                self._id = self._hostname
 
         if not self._ip:
             try:
@@ -96,30 +100,36 @@ class Client(BaseClient):
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, group: {}".format(self._hostname, self._ip,
                                                                         self._id,  self._hostgroup))
+        return True
 
     def send_reports(self, env_reports=None):
         try:
-            self._read_host_info()
-            reports = [status.report for status in env_reports.values()]
-            for report in reports:
-                if isinstance(report.errorMessage, str):
-                    report.errorMessage = unicode(report.errorMessage, "utf-8")
+            if self._read_host_info():
+                reports = [status.report for status in env_reports.values()]
+                for report in reports:
+                    if isinstance(report.errorMessage, str):
+                        report.errorMessage = unicode(report.errorMessage, "utf-8")
 
-                # We ignore non-ascii charater for now, we should further solve this problem on
-                # the server side:
-                # https://app.asana.com/0/11815463290546/40714916594784
-                if report.errorMessage:
-                    report.errorMessage = report.errorMessage.encode('ascii', 'ignore')
-            ping_request = PingRequest(hostId=self._id, hostName=self._hostname, hostIp=self._ip,
-                                       groups=self._hostgroup, reports=reports)
+                    # We ignore non-ascii charater for now, we should further solve this problem on
+                    # the server side:
+                    # https://app.asana.com/0/11815463290546/40714916594784
+                    if report.errorMessage:
+                        report.errorMessage = report.errorMessage.encode('ascii', 'ignore')
+                ping_request = PingRequest(hostId=self._id, hostName=self._hostname, hostIp=self._ip,
+                                        groups=self._hostgroup, reports=reports)
 
-            with create_stats_timer('deploy.agent.request.latency',
-                                    sample_rate=1.0,
-                                    tags={'host': self._hostname}):
-                ping_response = self.send_reports_internal(ping_request)
+                with create_stats_timer('deploy.agent.request.latency',
+                                        sample_rate=1.0,
+                                        tags={'host': self._hostname}):
+                    ping_response = self.send_reports_internal(ping_request)
 
-            log.debug('%s -> %s' % (ping_request, ping_response))
-            return ping_response
+                log.debug('%s -> %s' % (ping_request, ping_response))
+                return ping_response
+            else:
+                log.error("Fail to read host info")
+                create_sc_increment(stats='deploy.failed.agent.hostinfocollection',
+                                sample_rate=1.0,
+                                tags={'host': self._hostname})
         except Exception:
             log.error(traceback.format_exc())
             create_sc_increment(stats='deploy.failed.agent.requests',
