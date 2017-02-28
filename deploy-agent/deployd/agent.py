@@ -151,7 +151,7 @@ class DeployAgent(object):
         log.info("Running deploy agent in non daemon mode")
         try:
             # randomly sleep some time before pinging server
-            sleep_secs = randrange(10)
+            sleep_secs = randrange(self._config.get_init_sleep_time())
             log.info("Randomly sleep {} seconds before starting.".format(sleep_secs))
             time.sleep(sleep_secs)
             self.serve_build()
