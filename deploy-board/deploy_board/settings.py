@@ -250,3 +250,6 @@ if IS_PINTEREST:
 
     #Pinterest Default Host Type
     DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
+
+    #Pinterest Default Puppet Environment
+    DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON',default='prod')
