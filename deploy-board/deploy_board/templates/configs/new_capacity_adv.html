@@ -327,8 +327,9 @@ var capacitySetting = new Vue({
                     return false
                 }
 
-                if (clusterInfo.configs['pinfo_environment'] == undefined || clusterInfo.configs['pinfo_environment']!='prod'){
-                    globalNotificationBanner.error = "cmp_base image must have pinfo_environment set to be prod"
+                if (clusterInfo.configs['pinfo_environment'] == undefined || 
+                (clusterInfo.configs['pinfo_environment']!='prod' && clusterInfo.configs['pinfo_environment']!='dev')){
+                    globalNotificationBanner.error = "cmp_base image must have pinfo_environment set to be dev or prod"
                     return false
                 }
             }
