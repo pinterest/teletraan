@@ -21,7 +21,8 @@ from django.views.generic import View
 
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
-    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_HOST_TYPE
+    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
+    DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON
 import json
 import logging
 
@@ -475,7 +476,7 @@ def get_default_cmp_configs(name, stage):
     config_map = {}
     config_map['iam_role'] = 'base'
     config_map['cmp_group'] = 'CMP,{}-{}'.format(name, stage)
-    config_map['pinfo_environment'] = 'prod'
+    config_map['pinfo_environment'] = DEFAULT_CMP_PINFO_ENVIRON
     config_map['pinfo_team'] = 'cloudeng'
     config_map['pinfo_role'] = 'cmp_base'
     return config_map
