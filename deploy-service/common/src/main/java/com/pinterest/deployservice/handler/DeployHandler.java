@@ -217,7 +217,7 @@ public class DeployHandler {
                     continue;
                 }
                 // TODO hipchat is different, screw it for now
-                authors.add(String.format("<@%s>", commit.getAuthor()));
+                authors.add(String.format("<@%s|%s>", commit.getAuthor(), commit.getAuthor()));
             }
 
             String mentions = Joiner.on(",").join(authors);
