@@ -971,7 +971,7 @@ def add_instance(request, group_name):
                 placement_group = params['placementGroup']
 
         # Check if asg is enabled. Then launch in asg
-        if asg_status == "ENABLED":
+        if str(asg_status).upper() == "ENABLED":
             launch_in_asg = True
 
         if launch_in_asg:
