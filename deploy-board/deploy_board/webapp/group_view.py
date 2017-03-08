@@ -960,6 +960,7 @@ def add_instance(request, group_name):
     placement_group = None
     asg_status = params['asgStatus']
     launch_in_asg = False
+    use_placement_group = False
 
     try:
         # Configure subnet to launch hosts
@@ -969,9 +970,10 @@ def add_instance(request, group_name):
             if 'customSubnet' in params and 'customPlacementGroup' in params and 'placementGroup' in params:
                 # The check box is ticked and placement group is entered.
                 placement_group = params['placementGroup']
+                use_placement_group = True
 
-        # Check if asg is enabled. Then launch in asg
-        if str(asg_status).upper() == "ENABLED":
+        # Check if asg is enabled and does not use placement group. Then launch in asg
+        if str(asg_status).upper() == "ENABLED" and not use_placement_group:
             launch_in_asg = True
 
         if launch_in_asg:
