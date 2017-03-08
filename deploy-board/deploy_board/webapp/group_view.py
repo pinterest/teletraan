@@ -959,30 +959,41 @@ def add_instance(request, group_name):
     subnet = None
     placement_group = None
     asg_status = params['asgStatus']
-    launch_in_asg = True
-    if 'subnet' in params:
-        subnet = params['subnet']
-        if asg_status == 'UNKNOWN':
-            launch_in_asg = False
-
-        elif 'customSubnet' in params:
-            launch_in_asg = False
-            # custom subnet is selected for launching hosts. Only then make a check for Placement Group
-            if 'customPlacementGroup' in params and 'placementGroup' in params:
-                # The check box is ticked and placement group is entered.
-                placement_group = params['placementGroup']
+    launch_in_asg = False
+    use_placement_group = False
 
     try:
-        if not launch_in_asg:
-            # Launch static hosts
+        # Configure subnet to launch hosts
+        if 'subnet' in params:
+            subnet = params['subnet']
+            # check if custom subnet is specified and custom placement group is in it.
+            if 'customSubnet' in params and 'customPlacementGroup' in params and 'placementGroup' in params:
+                # The check box is ticked and placement group is entered.
+                placement_group = params['placementGroup']
+                use_placement_group = True
+
+        # Check if asg is enabled and does not use placement group. Then launch in asg
+        if str(asg_status).upper() == "ENABLED" and not use_placement_group:
+            launch_in_asg = True
+
+        if launch_in_asg:
+            # Launch hosts inside ASG / Bump ASG size by required instances
+            autoscaling_groups_helper.launch_hosts(request, group_name, num, None)
+            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
+                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
+                      'to check new hosts information.'.format(num, group_name, group_name)
+            messages.add_message(request, messages.SUCCESS, content)
+        else:
+            # Launch hosts outside ASG / static hosts
             if not subnet:
+                # No subnet specified show error message
                 content = 'Failed to launch hosts to group {}. Please choose subnets in' \
                           ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>.' \
                           ' If you have any question, please contact your friendly Teletraan owners' \
                           ' for immediate assistance!'.format(group_name, group_name)
                 messages.add_message(request, messages.ERROR, content)
             else:
-                # Subnet is present and static hosts are being launched.
+                # Subnet is specified. Toggle based on presence of placement group param
                 if placement_group is not None:
                     # Launch static hosts in the given PG
                     host_ids = autoscaling_groups_helper.launch_hosts_with_placement_group(
@@ -999,12 +1010,6 @@ def add_instance(request, group_name):
                               ' is correct. If you have any question, please contact your friendly Teletraan owners' \
                               ' for immediate assistance!'.format(group_name, group_name)
                     messages.add_message(request, messages.ERROR, content)
-        else:
-            autoscaling_groups_helper.launch_hosts(request, group_name, num, None)
-            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
-                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
-                      'to check new hosts information.'.format(num, group_name, group_name)
-            messages.add_message(request, messages.SUCCESS, content)
 
     except Exception as e:
         messages.add_message(request, messages.ERROR, str(e))
