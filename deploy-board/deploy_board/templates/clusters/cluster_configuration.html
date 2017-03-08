@@ -261,7 +261,8 @@
                 },
                 imageNameChange: function(value) {
                     capacitySetting.imageNameValue = value
-                        //Grab all images for this image name
+                    //Grab all images for this image name
+
                     $.ajax({
                         type: 'GET',
                         url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '/',
@@ -299,11 +300,26 @@
                         })
                     }
                 },
-                validateInput: function(clusterInfo) {
+                validateInput: function(clusterInfo, imageNameValue) {
                     //Validate input data. 
                     if (clusterInfo.placement == null || clusterInfo.placement.length === 0) {
                         globalNotificationBanner.error = "Placement is not specified"
+                        return false
                     }
+
+                    if (imageNameValue === 'cmp_base' || imageNameValue === 'cmp_base_12'){
+                        if (!('pinfo_role' in clusterInfo.configs && clusterInfo.configs['pinfo_role']==='cmp_base')){
+                            globalNotificationBanner.error = "cmp_base image must have pinfo_role set to cmp_base"
+                            return false
+                        }
+                    }
+                    else{
+                        if ('pinfo_role' in clusterInfo.configs && clusterInfo.configs['pinfo_role']==='cmp_base'){
+                            globalNotificationBanner.error = "Non cmp_base image cannot have pinfo_role set to cmp_base"
+                            return false
+                        }
+                    }
+
                     return true
                 },
                 sendRequest: function(clusterInfo) {
@@ -361,7 +377,7 @@
                         map[obj.name] = obj.value;
                         return map
                     }, {})
-                    if (!this.showCmpGroup){
+                    if (!this.showCmpGroup && 'cmp_group' in currentCluster.configs){
                         //Unless showcmpgroup is set, cmp_group is set back
                         clusterInfo['configs']['cmp_group'] = currentCluster.configs['cmp_group']
                     }
@@ -371,7 +387,21 @@
                     if (!this.inAdvanced){
                         clusterInfo.configs['aws_role'] = this.awsRole
                     }
-                    if (this.validateInput(clusterInfo)) {
+
+                    if (this.imageNameValue === 'cmp_base' || this.imageNameValue === 'cmp_base_12'){
+                        //cmp_base must have cmp_group set.
+                        if (!('cmp_group' in clusterInfo['configs'])||clusterInfo['configs']['cmp_group'] === undefined){
+                            clusterInfo['configs']['cmp_group'] = info.defaultCMPConfigs['cmp_group']
+                        }
+                    }
+                    else{
+                       //non_cmp_base must have cmp_group cleared if it has
+                       if ('cmp_group' in clusterInfo['configs']){
+                           delete clusterInfo['configs']['cmp_group']
+                       }
+                    }
+
+                    if (this.validateInput(clusterInfo, this.imageNameValue)) {
                         //Send request
                         this.sendRequest(clusterInfo);
                     }
