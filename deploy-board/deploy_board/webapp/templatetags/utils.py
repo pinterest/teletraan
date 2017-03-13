@@ -154,7 +154,7 @@ def convertTimestamp(timestamp):
     # return datetime.fromtimestamp(timestamp / 1000).strftime('%Y-%m-%d
     # %H:%M:%S')
     temp_time = datetime.fromtimestamp(
-        timestamp / 1000, pytz.timezone('America/Los_Angeles'))
+        float(timestamp) / 1000, pytz.timezone('America/Los_Angeles'))
     return temp_time.strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -920,9 +920,9 @@ def convertConfigHistoryString(change):
     change = change.replace("false", "False")
     change = change.replace("true", "True")
     if change[:1] == "{" or change[:1] == "[":
-        try: 
+        try:
             converted_string = ast.literal_eval(change)
             return converted_string
-        except: 
+        except:
             pass
     return change
