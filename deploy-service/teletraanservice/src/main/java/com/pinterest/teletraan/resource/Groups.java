@@ -42,7 +42,7 @@ public class Groups {
         RETIRED,
         FAILED,
         RETIRED_AND_FAILED,
-        NEW_AND_FAILED
+        CANNOT_RETIRED_AND_FAILED
     }
 
     private EnvironDAO environDAO;
@@ -77,7 +77,7 @@ public class Groups {
             case RETIRED_AND_FAILED:
                 hostIds = hostDAO.getRetiredAndFailedHostIdsByGroup(groupName);
                 break;
-            case NEW_AND_FAILED:
+            case CANNOT_RETIRED_AND_FAILED:
                 hostIds = hostDAO.getCanNotRetireButFailedHostIdsByGroup(groupName);
                 break;
             default:
