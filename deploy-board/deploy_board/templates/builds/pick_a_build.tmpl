@@ -21,7 +21,9 @@
                       class="glyphicon glyphicon-chevron-down">
                       {% endif %}
                 </span>
-                {{ buildInfo.build.publishDate|convertTimestamp }}
+                {% if buildInfo.build.publishDate %}
+                    {{ buildInfo.build.publishDate|convertTimestamp }}
+                {% endif %}
             </a>
             <input class="hiddenBuildId" type="hidden" value="{{ buildInfo.build.id }}"/>
             <input class="hiddenCommit" type="hidden" value="{{ buildInfo.build.commit }}"/>
