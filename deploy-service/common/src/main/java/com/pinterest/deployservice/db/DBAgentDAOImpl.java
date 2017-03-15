@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.AgentDAO;
@@ -71,7 +72,8 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String COUNT_ALL_AGENT_BY_ENV = "SELECT COUNT(*) FROM agents WHERE env_id=?";
     private static final String COUNT_ALL_AGENT_BY_ENV_NAME = "SELECT COUNT(*) FROM agents WHERE env_name=?";
     private static final String COUNT_SERVING_TOTAL = "SELECT COUNT(*) FROM agents WHERE env_id=? AND deploy_stage=?";
-    private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY = 
+    private static final String COUNT_SERVING_AND_NORMAL_TOTAL = "SELECT COUNT(*) FROM agents WHERE env_id=? AND deploy_stage=? AND state=?";
+    private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=? AND (deploy_stage='SERVING_BUILD' OR state='PAUSED_BY_USER' OR state='PAUSED_BY_SYSTEM')";
     private static final String COUNT_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=?";
@@ -218,6 +220,13 @@ public class DBAgentDAOImpl implements AgentDAO {
     public long countServingTotal(String envId) throws Exception {
         Long n = new QueryRunner(dataSource).query(COUNT_SERVING_TOTAL, SingleResultSetHandlerFactory.<Long>newObjectHandler(),
                 envId, DeployStage.SERVING_BUILD.toString());
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long countServingAndNormalTotal(String envId) throws Exception {
+        Long n = new QueryRunner(dataSource).query(COUNT_SERVING_AND_NORMAL_TOTAL, SingleResultSetHandlerFactory.<Long>newObjectHandler(),
+                envId, DeployStage.SERVING_BUILD.toString(), AgentState.NORMAL.toString());
         return n == null ? 0 : n;
     }
 

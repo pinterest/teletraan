@@ -48,6 +48,7 @@ public class EnvAgents {
 
     public enum CountActionType {
         SERVING,
+        SERVING_AND_NORMAL,
         FIRST_DEPLOY,
         FAILED_FIRST_DEPLOY
     }
@@ -141,6 +142,9 @@ public class EnvAgents {
         switch (actionType) {
             case SERVING:
                 count = agentDAO.countServingTotal(envBean.getEnv_id());
+                break;
+            case SERVING_AND_NORMAL:
+                count = agentDAO.countServingAndNormalTotal(envBean.getEnv_id());
                 break;
             case FIRST_DEPLOY:
                 count = agentDAO.countFirstDeployingAgent(envBean.getEnv_id());
