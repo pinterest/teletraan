@@ -71,7 +71,7 @@ if __name__ == "__main__":
     #os.environ.setdefault("OAUTH_EXTRACT_USERNAME_FROM_EMAIL", 'TRUE')
 
     # If true, display STOPPING and STOPPED hosts on the environment status page
-    os.environ.setdefault("DISPLAY_STOPPING_HOSTS", "false")
+    os.environ.setdefault("DISPLAY_STOPPING_HOSTS", "true")
 
     from django.core.management import execute_from_command_line
     execute_from_command_line(sys.argv)
