@@ -70,13 +70,12 @@
 </div>
 {% endif %}
 
-
 <div class="panel panel-default table-responsive">
     <table class="table table-condensed table-hover">
         <tr>
             <td class="col-lg-1 text-right"></td>
             {% for key, value in report.currentDeployStat.stageDistMap.items %}
-                {% if key != "STOPPING" and key != "STOPPED" %}
+                {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
                 <td class="text-right">
                     <span class="pointer-cursor deployToolTip" data-toggle="tooltip" title="{{ key|deployStageTip }}">
                         <small>{{ key }}</small>
@@ -86,7 +85,6 @@
             {% endfor %}
             <td class="col-lg-1 text-right"><small>Total</small></td>
         </tr>
-
         <tr>
             <td>
                 <span class="deployToolTip" data-toggle="tooltip" title="Detailed deploy steps statistics for current deploy.">
@@ -94,7 +92,7 @@
                 </span>
             </td>
             {% for key, value in report.currentDeployStat.stageDistMap.items %}
-                {% if key != "STOPPING" and key != "STOPPED" %}
+                {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
                 <td class="text-right">
                     <small>
                         <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts?hostStage={{ key }}"
@@ -125,7 +123,7 @@
                 </a>
             </td>
             {% for key, value in deployStat.stageDistMap.items %}
-                {% if key != "STOPPING" and key != "STOPPED" %}
+                {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
                 <td class="text-right">
                   <small>
                   <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts?hostStage={{ key }}" class="deployToolTip" data-toggle="tooltip"

@@ -22,6 +22,7 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from django.conf import settings
 import agent_report
 import common
@@ -119,6 +120,7 @@ def update_deploy_progress(request, name, stage):
     html = render_to_string('deploys/deploy_progress.tmpl', {
         "report": report,
         "env": env,
+        "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
     })
 
     response = HttpResponse(html)
@@ -231,6 +233,7 @@ class EnvLandingView(View):
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
                 "csrf_token": get_token(request),
+                "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -259,6 +262,7 @@ class EnvLandingView(View):
                 "capacity_info": json.dumps(capacity_info),
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
+                "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
             })
 
         # save preferences
