@@ -67,7 +67,7 @@ public interface HostDAO {
 
     Collection<String> getRetiredAndFailedHostIdsByGroup(String groupName) throws Exception;
 
-    Collection<String> getCanNotRetireButFailedHostIdsByGroup(String groupName) throws Exception;
+    Collection<String> getCanNotRetireAndServingBuildHostIdsByGroup(String groupName) throws Exception;
 
     Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception;
 }

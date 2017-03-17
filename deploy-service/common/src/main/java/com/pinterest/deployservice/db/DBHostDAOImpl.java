@@ -16,6 +16,8 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.AgentStatus;
+import com.pinterest.deployservice.bean.DeployStage;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.SetClause;
@@ -61,8 +63,8 @@ public class DBHostDAOImpl implements HostDAO {
             "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire=1 AND h.group_name=? AND h.state not in (?,?) and a.status not in (?,?)";
     private static final String GET_FAILED_HOSTIDS_BY_GROUP =
             "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.group_name=? AND h.state not in (?,?) and a.status not in (?,?)";
-    private static final String GET_CAN_NOT_RETIRE_AND_FAILED_HOSTIDS_BY_GROUP =
-            "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire!=1 AND h.group_name=? AND h.state not in (?,?) and a.status not in (?,?)";
+    private static final String GET_CAN_NOT_RETIRE_AND_SERVING_BUILD_HOSTIDS_BY_GROUP =
+            "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire!=1 AND h.group_name=? AND h.state not in (?,?) AND a.deploy_stage = ? AND a.state = ?";
 
     private BasicDataSource dataSource;
 
@@ -244,11 +246,11 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public Collection<String> getCanNotRetireButFailedHostIdsByGroup(String groupName) throws Exception {
-        return new QueryRunner(dataSource).query(GET_CAN_NOT_RETIRE_AND_FAILED_HOSTIDS_BY_GROUP,
+    public Collection<String> getCanNotRetireAndServingBuildHostIdsByGroup(String groupName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_CAN_NOT_RETIRE_AND_SERVING_BUILD_HOSTIDS_BY_GROUP,
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
+                DeployStage.SERVING_BUILD.toString(), AgentState.NORMAL.toString());
     }
 
     @Override

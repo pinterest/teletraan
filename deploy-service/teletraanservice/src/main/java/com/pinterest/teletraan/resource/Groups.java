@@ -42,7 +42,7 @@ public class Groups {
         RETIRED,
         FAILED,
         RETIRED_AND_FAILED,
-        CANNOT_RETIRED_AND_FAILED
+        CANNOT_RETIRED_AND_SERVING_BUILD
     }
 
     private EnvironDAO environDAO;
@@ -77,8 +77,8 @@ public class Groups {
             case RETIRED_AND_FAILED:
                 hostIds = hostDAO.getRetiredAndFailedHostIdsByGroup(groupName);
                 break;
-            case CANNOT_RETIRED_AND_FAILED:
-                hostIds = hostDAO.getCanNotRetireButFailedHostIdsByGroup(groupName);
+            case CANNOT_RETIRED_AND_SERVING_BUILD:
+                hostIds = hostDAO.getCanNotRetireAndServingBuildHostIdsByGroup(groupName);
                 break;
             default:
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
