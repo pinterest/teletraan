@@ -49,7 +49,7 @@ public interface AgentDAO {
 
     void deleteAllById(String hostId) throws Exception;
 
-    // return how many agents are deploying for this env, regardless of deployId
+    // return how many agents are deploying and agent state is STOP (because agent with STOP state won't deploy in future) for this env, regardless of deployId
     long countDeployingAgent(String envId) throws Exception;
 
     // return how many agents are doing first time deploy for this env.

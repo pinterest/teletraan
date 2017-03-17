@@ -204,10 +204,10 @@ public class PingHandler {
         long parallelThreshold = getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents);
 
         try {
-            //Note: This count already excludes first deploy agents
-            long totalActiveagents = agentDAO.countDeployingAgent(envId);
-            if (totalActiveagents >= parallelThreshold) {
-                LOG.debug("There are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalActiveagents, envId, host);
+            //Note: This count already excludes first deploy agents, includes agents in STOP state
+            long totalDeployingAgents = agentDAO.countDeployingAgent(envId);
+            if (totalDeployingAgents >= parallelThreshold) {
+                LOG.debug("There are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalDeployingAgents, envId, host);
                 return false;
             }
         } catch (Exception e) {
