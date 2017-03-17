@@ -193,6 +193,9 @@ SITE_METRICS_CONFIGS = []
 # Deep Teletraan backend health check url
 TELETRAAN_SERVICE_HEALTHCHECK_URL = os.getenv("TELETRAAN_SERVICE_HEALTHCHECK_URL", None)
 
+# Show hosts that are STOPPING or STOPPED in the environments page
+DISPLAY_STOPPING_HOSTS = os.getenv("DISPLAY_STOPPING_HOSTS", "true")
+
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = "https://jenkins.pinadmin.com/job/"
