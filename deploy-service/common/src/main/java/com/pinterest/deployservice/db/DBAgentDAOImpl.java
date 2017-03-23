@@ -76,7 +76,7 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String COUNT_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=?";
     private static final String COUNT_ALL_DEPLOYED_HOSTS =
-            "SELECT COUNT(distinct(host_name)) FROM agents WHERE deploy_id IS NOT NULL";
+            "SELECT COUNT(DISTINCT(host_id)) FROM agents WHERE deploy_id IS NOT NULL";
 
    
 
