@@ -83,4 +83,10 @@ public class Agents {
         @ApiParam(value = "Env Id", required = true)@PathParam("envId") String envId) throws Exception {
         return agentDAO.countAgentByEnv(envId);    
     }
+
+    @GET
+    @Path("/hostcount")
+    public long getCountTotalHosts() throws Exception {
+        return agentDAO.countDeployedHosts();
+    }
 }
