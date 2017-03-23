@@ -85,7 +85,7 @@ public class Agents {
     }
 
     @GET
-    @Path("/total")
+    @Path("/hostcount")
     public long getCountTotalHosts() throws Exception {
         return agentDAO.countDeployedHosts();
     }
