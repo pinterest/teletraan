@@ -75,6 +75,8 @@ public class DBAgentDAOImpl implements AgentDAO {
         "SELECT COUNT(*) FROM agents WHERE deploy_id=? AND (deploy_stage='SERVING_BUILD' OR state='PAUSED_BY_USER' OR state='PAUSED_BY_SYSTEM')";
     private static final String COUNT_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=?";
+    private static final String COUNT_ALL_DEPLOYED_HOSTS =
+            "SELECT COUNT(distinct(host_name)) FROM agents WHERE deploy_id IS NOT NULL";
 
    
 
@@ -232,6 +234,13 @@ public class DBAgentDAOImpl implements AgentDAO {
     public long countAgentsByDeploy(String deployId) throws Exception {
         Long n = new QueryRunner(dataSource).query(COUNT_AGENTS_BY_DEPLOY,
             SingleResultSetHandlerFactory.<Long>newObjectHandler(), deployId);
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long countDeployedHosts() throws Exception {
+        Long n = new QueryRunner(dataSource).query(COUNT_ALL_DEPLOYED_HOSTS,
+                SingleResultSetHandlerFactory.<Long>newObjectHandler());
         return n == null ? 0 : n;
     }
 }

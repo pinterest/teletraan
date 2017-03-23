@@ -75,4 +75,7 @@ public interface AgentDAO {
     long countFinishedAgentsByDeploy(String deployId) throws Exception;
 
     long countAgentsByDeploy(String deployId) throws Exception;
+
+    // return how many hosts that are deployed
+    long countDeployedHosts() throws Exception;
 }
