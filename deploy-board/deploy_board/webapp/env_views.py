@@ -131,6 +131,48 @@ def update_deploy_progress(request, name, stage):
 
     return response
 
+
+def update_cluster_replace_progress(request, name, stage):
+    cluster_name = '{}-{}'.format(name, stage)
+    basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+    total = basic_cluster_info.get("capacity")
+
+    replace_progresses = clusters_helper.get_cluster_replacement_progress(request, cluster_name)
+    progresses = []
+    if not replace_progresses:
+        progress_report = {
+            'progressType': 'failure',
+            'progressTip': 'There is no cluster replace event.',
+            'successRatePercentage': 0,
+            'successRate': '0%'
+        }
+        progresses.append(progress_report)
+    else:
+        for progress in replace_progresses:
+            host_ids = progress.get('host_ids')
+            succeeded = len(host_ids.split(',')) if host_ids else 0
+            progress_rate = succeeded * 100 / total
+            progress_report = {
+                'state': progress.get('state'),
+                'status': progress.get('status'),
+                'startDate': progress.get('start_time'),
+                'lastUpdateDate': progress.get('last_worked_on'),
+                'progressType': 'success',
+                'progressTip': 'Among total {} hosts, {} successfully replaced and {} are stuck'.format(
+                        total, succeeded, total - succeeded),
+                'successRatePercentage': progress_rate,
+                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, total),
+                'operator': ''  #TODO add operator here
+            }
+            progresses.append(progress_report)
+
+    html = render_to_string('clusters/replace_progress.tmpl', {
+        "progress": progresses
+    })
+    response = HttpResponse(html)
+    return response
+
+
 def removeEnvCookie(request, name):
     if ENV_COOKIE_NAME in request.COOKIES:
         cookie = request.COOKIES[ENV_COOKIE_NAME]
@@ -216,7 +258,7 @@ class EnvLandingView(View):
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
-          
+
             response = render(request, 'environs/env_landing.html', {
                 "envs": envs,
                 "env": env,

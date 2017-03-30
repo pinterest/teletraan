@@ -1,0 +1,46 @@
+{% load utils %}
+{% load static %}
+<div class="panel panel-default table-responsive">
+  <table class="table table-striped table-condensed table-hover">
+   <tr>
+        <th class="col-lg-1">State</th>
+        <th class="col-lg-2">Cluster Replace Progress</th>
+        <th class="col-lg-1">Elapsed</th>
+        <th class="col-lg-1">Operator</th>
+   </tr>
+   {% for replaceProgress in progress %}
+   <tr>
+        <td>
+            <span class="replaceToolTip pointer-cursor {{ replaceProgress.state }}"
+                  data-toggle="tooltip" title="replaceProgress.state">
+            </span>
+            <small>{{ replaceProgress.state }}</small>
+        </td>
+        <td>
+            <div class="progress replaceToolTip" data-toggle="tooltip">
+                <div class="replaceToolTip progress-bar {{ replaceProgress.progressType }}"
+                     data-toggle="tooltip" title="{{ replaceProgress.progressTip }}"
+                     role="progressbar" aria-valuenow="{{ replaceProgress.successRatePercentage }}"
+                     aria-valuemin="0" aria-valuemax="100"
+                     style="width: {{ replaceProgress.successRatePercentage }}%;">
+                    <span class="show">{{ replaceProgress.successRate }}</span>
+                </div>
+            </div>
+        </td>
+        <td>
+            <span class="deployToolTip label label-default" data-toggle="tooltip"
+                  title="{{ replaceProgress|computeElapsedTime }}">
+                {{ replaceProgress.startDate|computeDuration }}
+            </span>
+        </td>
+        <td>{{ replaceProgress.operator }}</td>
+   </tr>
+   {% endfor %}
+</table>
+</div>
+
+<script>
+    $(function () {
+        $('.replaceToolTip').tooltip({container: "#toolTipContent", delay: { show: 400, hide: 10 }});
+    });
+</script>

@@ -205,7 +205,7 @@ function loadGroupConfig() {
     });
 }
 
-var renderCapacity = capacityInfo['cluster'] !=null || 
+var renderCapacity = capacityInfo['cluster'] !=null ||
     capacityInfo['groups'] === null || capacityInfo['groups'].length === 0
 
 
@@ -381,6 +381,13 @@ $('#privateBldUploadBtnId button').click(function () {
         <div id="activeDeployId" class="collapse in panel-body">
             {% include "deploys/deploy_progress.tmpl" %}
         </div>
+
+        {% if not basic_cluster_info|canReplaceCluster %}
+            <div id="activeClusterReplaceId" class="collapse in panel-body">
+                {% include "clusters/replace_progress.tmpl" %}
+             </div>
+        {% endif %}
+
     </div>
 
     <script>
@@ -392,6 +399,17 @@ $('#privateBldUploadBtnId button').click(function () {
             }
             $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}');
         }, 30000);
+
+        var canReplace = '{{basic_cluster_info|canReplaceCluster}}';
+        if(canReplace == 'False') {
+            // meaning a cluster replace is going-on
+            var replaceProgressInterval = setInterval(function() {
+                if(new Date().getTime() - startTime > 3600000) {
+                    clearInterval(replaceProgressInterval);
+                }
+                $('#activeClusterReplaceId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_cluster_replace_progress/');
+            }, 30000);
+        }
 
         $(".dropdown-menu li").click(function() {
             query_string = $("#updateModeFormId").serialize();
