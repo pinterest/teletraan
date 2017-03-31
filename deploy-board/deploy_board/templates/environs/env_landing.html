@@ -254,6 +254,9 @@ $('#privateBldUploadBtnId button').click(function () {
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
     </div>
+    <div id="activeClusterReplaceId" class="collapse in panel-body">
+        {% include "clusters/replace_progress.tmpl" %}
+     </div>
 {% endif %}
 
 {% if messages %}
@@ -381,13 +384,6 @@ $('#privateBldUploadBtnId button').click(function () {
         <div id="activeDeployId" class="collapse in panel-body">
             {% include "deploys/deploy_progress.tmpl" %}
         </div>
-
-        {% if not basic_cluster_info|canReplaceCluster %}
-            <div id="activeClusterReplaceId" class="collapse in panel-body">
-                {% include "clusters/replace_progress.tmpl" %}
-             </div>
-        {% endif %}
-
     </div>
 
     <script>
@@ -399,17 +395,6 @@ $('#privateBldUploadBtnId button').click(function () {
             }
             $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}');
         }, 30000);
-
-        var canReplace = '{{basic_cluster_info|canReplaceCluster}}';
-        if(canReplace == 'False') {
-            // meaning a cluster replace is going-on
-            var replaceProgressInterval = setInterval(function() {
-                if(new Date().getTime() - startTime > 3600000) {
-                    clearInterval(replaceProgressInterval);
-                }
-                $('#activeClusterReplaceId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_cluster_replace_progress/');
-            }, 30000);
-        }
 
         $(".dropdown-menu li").click(function() {
             query_string = $("#updateModeFormId").serialize();

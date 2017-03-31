@@ -36,6 +36,9 @@
         <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
         You cannot update this page unless you cancel cluster replacement.
     </div>
+    <div id="activeClusterReplaceId" class="collapse in panel-body">
+        {% include "clusters/replace_progress.tmpl" %}
+     </div>
 {% endif %}
 
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
@@ -54,7 +57,7 @@
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                 <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"></label-select>
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
-                <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP" 
+                <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
             </form>
         </div>
@@ -220,7 +223,7 @@ var capacitySetting = new Vue({
             //Schedule this to nextTick that calls after next DOM refresh
             //as JQuery chosen call must happen after DOM updates finished
             Vue.nextTick(function(){
-                $(".chosen-select").trigger("chosen:updated")            
+                $(".chosen-select").trigger("chosen:updated")
             })
         }
     }

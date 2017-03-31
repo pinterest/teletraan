@@ -137,37 +137,33 @@ def update_cluster_replace_progress(request, name, stage):
     basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
     total = basic_cluster_info.get("capacity")
 
-    replace_progresses = clusters_helper.get_cluster_replacement_progress(request, cluster_name)
+    events = clusters_helper.get_cluster_replacement_progress(request, cluster_name)
+
+    if not events:
+        log.error("There is no on-going replacement event for cluster %s !" % cluster_name)
+        return HttpResponse("There is no on-going replacement.")
+
     progresses = []
-    if not replace_progresses:
+    for progress in events:
+        host_ids = progress.get('host_ids')
+        succeeded = len(host_ids.split(',')) if host_ids else 0
+        progress_rate = succeeded * 100 / total
         progress_report = {
-            'progressType': 'failure',
-            'progressTip': 'There is no cluster replace event.',
-            'successRatePercentage': 0,
-            'successRate': '0%'
+            'state': progress.get('state'),
+            'status': progress.get('status'),
+            'startDate': progress.get('start_time'),
+            'lastUpdateDate': progress.get('last_worked_on'),
+            'progressType': 'success',
+            'progressTip': 'Among total {} hosts, {} successfully replaced and {} are stuck'.format(
+                    total, succeeded, total - succeeded),
+            'successRatePercentage': progress_rate,
+            'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, total),
+            'operator': ''  #TODO add operator here
         }
         progresses.append(progress_report)
-    else:
-        for progress in replace_progresses:
-            host_ids = progress.get('host_ids')
-            succeeded = len(host_ids.split(',')) if host_ids else 0
-            progress_rate = succeeded * 100 / total
-            progress_report = {
-                'state': progress.get('state'),
-                'status': progress.get('status'),
-                'startDate': progress.get('start_time'),
-                'lastUpdateDate': progress.get('last_worked_on'),
-                'progressType': 'success',
-                'progressTip': 'Among total {} hosts, {} successfully replaced and {} are stuck'.format(
-                        total, succeeded, total - succeeded),
-                'successRatePercentage': progress_rate,
-                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, total),
-                'operator': ''  #TODO add operator here
-            }
-            progresses.append(progress_report)
 
     html = render_to_string('clusters/replace_progress.tmpl', {
-        "progress": progresses
+        "progresses": progresses
     })
     response = HttpResponse(html)
     return response
