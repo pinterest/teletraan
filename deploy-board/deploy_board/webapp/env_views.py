@@ -133,37 +133,36 @@ def update_deploy_progress(request, name, stage):
 
 
 def update_cluster_replace_progress(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+
     cluster_name = '{}-{}'.format(name, stage)
     basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
     total = basic_cluster_info.get("capacity")
 
-    events = clusters_helper.get_cluster_replacement_progress(request, cluster_name)
+    event = clusters_helper.get_cluster_replacement_progress(request, cluster_name)
 
-    if not events:
-        log.error("There is no on-going replacement event for cluster %s !" % cluster_name)
+    if not event:
+        log.info("There is no on-going replacement event for cluster %s." % cluster_name)
         return HttpResponse("There is no on-going replacement.")
 
-    progresses = []
-    for progress in events:
-        host_ids = progress.get('host_ids')
-        succeeded = len(host_ids.split(',')) if host_ids else 0
-        progress_rate = succeeded * 100 / total
-        progress_report = {
-            'state': progress.get('state'),
-            'status': progress.get('status'),
-            'startDate': progress.get('start_time'),
-            'lastUpdateDate': progress.get('last_worked_on'),
-            'progressType': 'success',
-            'progressTip': 'Among total {} hosts, {} successfully replaced and {} are stuck'.format(
-                    total, succeeded, total - succeeded),
-            'successRatePercentage': progress_rate,
-            'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, total),
-            'operator': ''  #TODO add operator here
-        }
-        progresses.append(progress_report)
+    host_ids = event.get('host_ids')
+    succeeded = len(host_ids.split(',')) if host_ids else 0
+    progress_rate = succeeded * 100 / total
 
     html = render_to_string('clusters/replace_progress.tmpl', {
-        "progresses": progresses
+        "env": env,
+        "replace_progress_report": {
+            'state': event.get('state'),
+            'status': event.get('status'),
+            'startDate': event.get('start_time'),
+            'lastUpdateDate': event.get('last_worked_on'),
+            'progressType': 'success',
+            'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending'.format(
+                total, succeeded, total - succeeded),
+            'successRatePercentage': progress_rate,
+            'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, total),
+            'operator': ''  # TODO add operator here
+        }
     })
     response = HttpResponse(html)
     return response

@@ -8,35 +8,35 @@
         <th class="col-lg-1">Elapsed</th>
         <th class="col-lg-1">Operator</th>
    </tr>
-   {% if progresses %}
-        {% for replaceProgress in progresses %}
-           <tr>
-                <td>
-                    <span class="replaceToolTip pointer-cursor {{ replaceProgress.state }}"
-                          data-toggle="tooltip" title="replaceProgress.state">
-                    </span>
-                    <small>{{ replaceProgress.state }}</small>
-                </td>
-                <td>
-                    <div class="progress replaceToolTip" data-toggle="tooltip">
-                        <div class="replaceToolTip progress-bar {{ replaceProgress.progressType }}"
-                             data-toggle="tooltip" title="{{ replaceProgress.progressTip }}"
-                             role="progressbar" aria-valuenow="{{ replaceProgress.successRatePercentage }}"
-                             aria-valuemin="0" aria-valuemax="100"
-                             style="width: {{ replaceProgress.successRatePercentage }}%;">
-                            <span class="show">{{ replaceProgress.successRate }}</span>
-                        </div>
+   {% if replace_progress_report %}
+
+       <tr>
+            <td>
+                <span class="replaceToolTip pointer-cursor {{ replace_progress_report.state }}"
+                      data-toggle="tooltip" title="replace_progress_report.state">
+                </span>
+                <small>{{ replace_progress_report.state }}</small>
+            </td>
+            <td>
+                <div class="progress replaceToolTip" data-toggle="tooltip">
+                    <div class="replaceToolTip progress-bar {{ replace_progress_report.progressType }}"
+                         data-toggle="tooltip" title="{{ replace_progress_report.progressTip }}"
+                         role="progressbar" aria-valuenow="{{ replace_progress_report.successRatePercentage }}"
+                         aria-valuemin="0" aria-valuemax="100"
+                         style="width: {{ replace_progress_report.successRatePercentage }}%;">
+                        <span class="show">{{ replace_progress_report.successRate }}</span>
                     </div>
-                </td>
-                <td>
-                    <span class="deployToolTip label label-default" data-toggle="tooltip"
-                          title="{{ replaceProgress|computeElapsedTime }}">
-                        {{ replaceProgress.startDate|computeDuration }}
-                    </span>
-                </td>
-                <td>{{ replaceProgress.operator }}</td>
-           </tr>
-        {% endfor %}
+                </div>
+            </td>
+            <td>
+                <span class="deployToolTip label label-default" data-toggle="tooltip"
+                      title="{{ replace_progress_report|computeElapsedTime }}">
+                    {{ replace_progress_report.startDate|computeDuration }}
+                </span>
+            </td>
+            <td>{{ replace_progress_report.operator }}</td>
+       </tr>
+
    {% endif %}
 
 </table>
@@ -45,16 +45,13 @@
 <script>
 
     $(function () {
-        var canReplace = '{{basic_cluster_info|canReplaceCluster}}';
-        if(canReplace == 'False') {
-            // meaning a cluster replace is going-on
-            var replaceProgressInterval = setInterval(function() {
-                if(new Date().getTime() - startTime > 3600000) {
-                    clearInterval(replaceProgressInterval);
-                }
-                $('#activeClusterReplaceId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_cluster_replace_progress/');
-            }, 30000);
-        }
+        // include this tmpl, meaning a cluster replace is going-on, need to check its progress
+        var replaceProgressInterval = setInterval(function() {
+            if(new Date().getTime() - startTime > 3600000) {
+                clearInterval(replaceProgressInterval);
+            }
+            $('#activeClusterReplaceId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_cluster_replace_progress/');
+        }, 30000);
         //TODO: need to hide it when replace finished
         //$('.replaceToolTip').tooltip({container: "#toolTipContent", delay: { show: 400, hide: 10 }});
     });
