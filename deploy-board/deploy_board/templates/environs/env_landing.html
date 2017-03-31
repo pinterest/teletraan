@@ -205,7 +205,7 @@ function loadGroupConfig() {
     });
 }
 
-var renderCapacity = capacityInfo['cluster'] !=null || 
+var renderCapacity = capacityInfo['cluster'] !=null ||
     capacityInfo['groups'] === null || capacityInfo['groups'].length === 0
 
 
@@ -254,6 +254,9 @@ $('#privateBldUploadBtnId button').click(function () {
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
     </div>
+    <div id="activeClusterReplaceId" class="collapse in panel-body">
+        {% include "clusters/replace_progress.tmpl" %}
+     </div>
 {% endif %}
 
 {% if messages %}
