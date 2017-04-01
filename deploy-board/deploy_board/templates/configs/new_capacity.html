@@ -35,10 +35,10 @@
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
         You cannot update this page unless you cancel cluster replacement.
+        <div id="activeClusterReplaceId" class="collapse in panel-body">
+            {% include "clusters/replace_progress.tmpl" %}
+         </div>
     </div>
-    <div id="activeClusterReplaceId" class="collapse in panel-body">
-        {% include "clusters/replace_progress.tmpl" %}
-     </div>
 {% endif %}
 
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
