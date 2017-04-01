@@ -15,16 +15,19 @@
  */
 package com.pinterest.teletraan.config;
 
+import com.pinterest.deployservice.db.DatabaseUtil;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.pinterest.deployservice.db.DatabaseUtil;
 import org.apache.commons.dbcp.BasicDataSource;
 
+import java.util.Map;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
 @JsonTypeName("mysql")
 public class MysqlDataSourceFactory implements DataSourceFactory {
+
     @JsonProperty
     private String host;
 
@@ -41,6 +44,10 @@ public class MysqlDataSourceFactory implements DataSourceFactory {
 
     @JsonProperty
     private String pool;
+
+    @JsonProperty
+    private Map<String,String> connectionProperties;
+
 
     public String getHost() {
         return host;
@@ -82,7 +89,17 @@ public class MysqlDataSourceFactory implements DataSourceFactory {
         this.pool = pool;
     }
 
+    public Map<String, String> getConnectionProperties() {
+        return connectionProperties;
+    }
+
+    public void setConnectionProperties(
+        Map<String, String> connectionProperties) {
+        this.connectionProperties = connectionProperties;
+    }
+
+
     public BasicDataSource build() throws Exception {
-        return DatabaseUtil.createMysqlDataSource(host, port, userName, password, pool);
+        return DatabaseUtil.createMysqlDataSource(host, port, userName, password, pool, connectionProperties);
     }
 }
