@@ -36,9 +36,6 @@
         <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
         You cannot update this page unless you cancel cluster replacement.
     </div>
-    <div id="activeClusterReplaceId" class="collapse in panel-body">
-        {% include "clusters/replace_progress.tmpl" %}
-     </div>
 {% endif %}
 
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
