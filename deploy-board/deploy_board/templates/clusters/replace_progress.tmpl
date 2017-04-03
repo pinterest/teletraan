@@ -41,36 +41,3 @@
 
 </table>
 </div>
-
-<script>
-
-    $(function () {
-        // include this tmpl, meaning a cluster replace is going-on, need to check its progress
-
-        function setIntervalAndExecute(fn, t) {
-            fn();
-            return(setInterval(fn, t));
-        }
-        // update every 1 min, and execute now
-
-        var replaceStartTime = new Date().getTime();
-        var replaceProgressInterval = setIntervalAndExecute(function() {
-            if(new Date().getTime() - replaceStartTime > 1800000) {  // if more than 30 mins, clear it
-                console.log('cleared time interval');
-                clearInterval(replaceProgressInterval);
-            }
-            $('#activeClusterReplaceId').load(
-                    '/env/{{ env.envName }}/{{ env.stageName }}/update_cluster_replace_progress/',
-                    function(response, status, xhr) {
-                        console.log(response);
-                        if(response == 'There is no on-going replacement.') {
-                            clearInterval(replaceProgressInterval);
-                            console.log('cleared time interval');
-                            // hide the parent warning banner when replace finished as well
-                            $('#activeClusterReplaceId').closest(".alert").alert('close');
-                        }
-                    }
-            );
-        }, 60000);
-    });
-</script>
