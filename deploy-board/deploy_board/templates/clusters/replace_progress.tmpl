@@ -52,8 +52,8 @@
             return(setInterval(fn, t));
         }
         // update every 1 min, and execute now
-        
-        var startTime = new Date().getTime();
+
+        var replaceStartTime = new Date().getTime();
         var replaceProgressInterval = setIntervalAndExecute(function() {
             if(new Date().getTime() - replaceStartTime > 1800000) {  // if more than 30 mins, clear it
                 console.log('cleared time interval');
