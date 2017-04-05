@@ -1,0 +1,58 @@
+{% load utils %}
+<table class="table table-striped table-bordered table-condensed table-hover">
+    <tr>
+        <td>Replacement ID</td>
+        <td>{{ replace.id }}</td>
+    </tr>
+    <tr>
+        <td>Description</td>
+        <td>
+            {% if not replace.description %}
+            <a href="#" id="edit_desc" class="replaceToolTip" data-name="description"
+               title="Click to update replace description"
+               data-placeholder="type replace description...">
+            </a>
+            {% else %}
+                {{ replace.description }}
+            {% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td>Operator</td>
+        <td>{{ replace.operator }}</td>
+    </tr>
+    <tr>
+        <td>State</td>
+        <td>
+            <span class="replaceToolTip pointer-cursor {{ replace.state }}"
+                  data-toggle="tooltip" title="{{ replace.state }}">
+            </span>
+            {{ replace.state }}
+        </td>
+    </tr>
+    <tr>
+        <td>Status</td>
+        <td>
+            <span class="replaceToolTip pointer-cursor {{ replace.status|replaceStatusIcon }}"
+                  data-toggle="tooltip" title="{{ replace.status|replaceStatusTip }}">
+            </span>
+            {{ replace.status }}
+        </td>
+    </tr>
+    <tr>
+        <td>Start</td>
+        <td>{{ replace.startDate|convertTimestamp }}</td>
+    </tr>
+    <tr>
+        <td>Last Update</td>
+        <td>{{ replace.lastUpdateDate|convertTimestamp}}</td>
+    </tr>
+    <tr>
+        <td>Operator</td>
+        <td>{{ replace.operator}}</td>
+    </tr>
+    <tr>
+        <td>Success Rate</td>
+        <td>{{ replace.successRate }}</td>
+    </tr>
+</table>

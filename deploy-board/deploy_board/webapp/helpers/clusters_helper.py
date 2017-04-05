@@ -78,6 +78,22 @@ def update_cluster_capacity(request, cluster_name, min_size, max_size):
     return rodimus_client.put("/clusters/%s/capacity" % cluster_name, request.teletraan_user_id.token, params=params)
 
 
-def get_cluster_replacement_progress(request, cluster_name):
-    return rodimus_client.get("/clusters/%s/replace/current/progress" % cluster_name,
+def get_latest_cluster_replacement_progress(request, cluster_name):
+    return rodimus_client.get("/clusters/%s/replace/progress" % cluster_name,
                               request.teletraan_user_id.token)
+
+
+def get_cluster_replacement_info(request, cluster_name, replacement_id):
+    return rodimus_client.get("/clusters/%s/replace/%s" % (cluster_name, replacement_id),
+                              request.teletraan_user_id.token)
+
+
+def get_cluster_replacement_schedule(request, cluster_name, replacement_id):
+    return rodimus_client.get("/clusters/%s/replace/%s/schedule" % (cluster_name, replacement_id),
+                              request.teletraan_user_id.token)
+
+
+def get_cluster_replacement_histories(request, cluster_name, limit):
+    params = [('limit', limit)]
+    return rodimus_client.get("/clusters/%s/replace/histories" % cluster_name,
+                              request.teletraan_user_id.token, params=params)
