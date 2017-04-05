@@ -539,13 +539,7 @@
                         clearInterval(replaceProgressInterval);
                     }
                     $('#activeClusterReplaceId').load(
-                            '/env/{{ env.envName }}/{{ env.stageName }}/get_replacement_progress/',
-                            function(response, status, xhr) {
-                                if(response == 'There is no on-going replacement.') {
-                                    clearInterval(replaceProgressInterval);
-                                    console.log('cleared time interval');
-                                }
-                            }
+                            '/env/{{ env.envName }}/{{ env.stageName }}/get_replacement_progress/'
                     );
                 }, 60000);
            }
