@@ -22,9 +22,6 @@
     <div v-if="!noCluster" class="row">
         <side-button-nolink styleclass="fa fa-gears" v-on:click="buttonClick" v-bind:text="settingText" title="Cluster Configuration"></side-button-nolink>
     </div>
-    <div class="row">
-        <side-button-nolink styleclass="fa fa-gears" v-on:click="historyClick" text="Replacement History" title="Replacement History"></side-button-nolink>
-    </div>
     <replace-cluster v-bind:clusterstate="clusterState" v-on:input="clusterAction"></replace-cluster>
 </div>
 {% endblock %} {% block new-builds-panel %} {% endblock %} {% block new-pred-deploys-panel %} {% endblock %} {% block main %}
@@ -92,15 +89,6 @@
     </div>
     <div id="activeClusterReplaceId" class="collapse in panel-body">
         {% include "clusters/replace_progress.tmpl" %}
-    </div>
-</div>
-
-<div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
-    <panel-heading title="Replacement History" target="#replaceHistoryId" initcollapse="false"></panel-heading>
-    <div id="replaceHistoryId" class="collapse in panel-body" v-on:show.bs.collapse="showcontent" v-on:hide.bs.collapse="hidecontent">
-        <div class="container-fluid">
-            <div id="clusterReplaceHistoryId"></div>
-        </div>
     </div>
 </div>
 
@@ -456,13 +444,6 @@
              }
         });
 
-        var replaceHistoryPanel = new Vue({
-             el: "#replaceHistoryPanel",
-             data: {
-                 "show": false
-             }
-        });
-
         var sidebar = new Vue({
             el: "#side-panel",
             data: {
@@ -532,10 +513,6 @@
                         this.settingText = 'Advanced Settings'
                         capacitySetting.placements = placements.getSimpleList(capacitySetting.assignPublicIP, currentPlacements)
                     }
-                },
-                historyClick: function() {
-                    replaceHistoryPanel.show = true;
-                    $('#clusterReplaceHistoryId').load('/env/{{ env.envName }}/{{ env.stageName }}/replacement/');
                 }
             }
         });

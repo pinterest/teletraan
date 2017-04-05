@@ -18,10 +18,6 @@
         </td>
     </tr>
     <tr>
-        <td>Operator</td>
-        <td>{{ replace.operator }}</td>
-    </tr>
-    <tr>
         <td>State</td>
         <td>
             <span class="replaceToolTip pointer-cursor {{ replace.state }}"
@@ -48,11 +44,37 @@
         <td>{{ replace.lastUpdateDate|convertTimestamp}}</td>
     </tr>
     <tr>
-        <td>Operator</td>
-        <td>{{ replace.operator}}</td>
-    </tr>
-    <tr>
         <td>Success Rate</td>
         <td>{{ replace.successRate }}</td>
     </tr>
 </table>
+<div class="panel panel-default table-responsive">
+    <table class="table table-condensed table-striped table-hover">
+        <tr>
+            <th>Cluster Name</th>
+            <th>Operator</th>
+            <th>Action Type</th>
+            <th>Change</th>
+            <th>Update Time(-08:00)</th>
+        </tr>
+        {% for config_history in config_histories %}
+        <tr>
+            <td>
+                {{ config_history.id }}
+            </td>
+            <td>
+                {{ config_history.operator }}
+            </td>
+            <td>
+                {{ config_history.type }}
+            </td>
+            <td>
+                <small>{{ config_history.configChange }}</small>
+            </td>
+            <td>
+                {{ config_history.createTime|convertTimestamp }}
+            </td>
+        </tr>
+        {% endfor%}
+    </table>
+</div>

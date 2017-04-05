@@ -93,7 +93,12 @@ def get_cluster_replacement_schedule(request, cluster_name, replacement_id):
                               request.teletraan_user_id.token)
 
 
-def get_cluster_replacement_histories(request, cluster_name, limit):
-    params = [('limit', limit)]
+def get_cluster_replacement_histories(request, cluster_name, page_index, page_size):
+    params = [('pageIndex', page_index), ('pageSize', page_size)]
     return rodimus_client.get("/clusters/%s/replace/histories" % cluster_name,
                               request.teletraan_user_id.token, params=params)
+
+
+def get_cluster_replacement_config_histories(request, cluster_name, event_id):
+    return rodimus_client.get("/clusters/%s/replace/%s/config_histories" % (cluster_name, event_id),
+                              request.teletraan_user_id.token)
