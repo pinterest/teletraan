@@ -123,9 +123,6 @@
     <div v-if="showCluster" class="row">
         <side-button styleclass="fa fa-database" text="Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
-    <div v-if="" class="row">
-        <side-button styleclass="glyphicon glyphicon-time" text="Replacement History" href="/env/{{ env.envName }}/{{ env.stageName }}/replacement" title="Replacement History"></side-button>
-    </div>
     <div v-if="!showCluster" id="groupsDiv">
     </div>
 </div>
