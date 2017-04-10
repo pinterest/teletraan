@@ -608,18 +608,19 @@ def cancel_cluster_replacement(request, name, stage):
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
 
-def get_replacement_summary(event, total_capacity):
+def get_replacement_summary(event, current_capacity):
     host_ids = event.get('host_ids')
     state = event.get('state')
     status = event.get('status')
     progress_type = 'success' if status in ['SUCCEEDING', 'SUCCEEDED'] else 'danger'
-    if state == 'COMPLETED':
-        succeeded = total_capacity
-        progress_rate = 100
+    if not host_ids:
+        num_finished_host_ids = 0
     else:
-        succeeded = len(host_ids.split(',')) - 1 if host_ids else 0
-        progress_rate = succeeded * 100 / total_capacity
-    return {
+        num_finished_host_ids = len(host_ids.split(','))
+    if state == 'COMPLETED':
+        succeeded = num_finished_host_ids
+        progress_rate = 100
+        return {
             'id': event.get('id'),
             'state': state,
             'status': status,
@@ -627,12 +628,30 @@ def get_replacement_summary(event, total_capacity):
             'lastUpdateDate': event.get('last_worked_on'),
             'progressType': progress_type,
             'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending'.format(
-                total_capacity, succeeded, total_capacity - succeeded),
+                succeeded, succeeded, 0),
             'successRatePercentage': progress_rate,
-            'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, total_capacity),
+            'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, succeeded),
             'operator': '',  # TODO add operator here
             'description': ''  # TODO add description here
         }
+    else:
+        # on-going event
+        succeeded = num_finished_host_ids - 1 if host_ids else 0
+        progress_rate = succeeded * 100 / current_capacity
+        return {
+                'id': event.get('id'),
+                'state': state,
+                'status': status,
+                'startDate': event.get('start_time'),
+                'lastUpdateDate': event.get('last_worked_on'),
+                'progressType': progress_type,
+                'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending'.format(
+                    current_capacity, succeeded, current_capacity - succeeded),
+                'successRatePercentage': progress_rate,
+                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity),
+                'operator': '',  # TODO add operator here
+                'description': ''  # TODO add description here
+            }
 
 
 def cluster_replacement_progress(request, name, stage):

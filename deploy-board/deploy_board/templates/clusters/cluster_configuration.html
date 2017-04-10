@@ -22,6 +22,9 @@
     <div v-if="!noCluster" class="row">
         <side-button-nolink styleclass="fa fa-gears" v-on:click="buttonClick" v-bind:text="settingText" title="Cluster Configuration"></side-button-nolink>
     </div>
+    <div v-if="!noCluster" class="row">
+        <side-button styleclass="glyphicon glyphicon-time" text="Replacement History" href="/env/{{ env.envName }}/{{ env.stageName }}/replacement" title="Replacement History"></side-button>
+    </div>
     <replace-cluster v-bind:clusterstate="clusterState" v-on:input="clusterAction"></replace-cluster>
 </div>
 {% endblock %} {% block new-builds-panel %} {% endblock %} {% block new-pred-deploys-panel %} {% endblock %} {% block main %}
@@ -83,7 +86,9 @@
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left pointer-cursor">
             <a data-toggle="collapse" data-target="#activeClusterReplaceId">
-                <span class="glyphicon glyphicon-chevron-down"></span><div v-if="state == 'REPLACE'">Active Replacement</div><div v-if="state == 'PAUSE'">Active Replacement (Paused)</div>
+                <span class="glyphicon glyphicon-chevron-down"></span>
+                <span v-if="state == 'REPLACE'">Active Replacement</span>
+                <span v-if="state == 'PAUSE'">Active Replacement (Paused)</span>
             </a>
         </h4>
     </div>

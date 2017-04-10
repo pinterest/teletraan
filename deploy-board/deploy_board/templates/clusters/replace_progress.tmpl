@@ -7,7 +7,6 @@
         <th class="col-lg-1">Status</th>
         <th class="col-lg-2">Cluster Replace Progress</th>
         <th class="col-lg-1">Elapsed</th>
-        <th class="col-lg-1">Operator</th>
         <th class="col-lg-1">Details</th>
         <th class="col-lg-1">Schedule</th>
    </tr>
@@ -42,7 +41,6 @@
                     {{ replace_progress_report.startDate|computeDuration }}
                 </span>
             </td>
-            <td>{{ replace_progress_report.operator }}</td>
             <td><a href="/env/{{ env.envName }}/{{ env.stageName }}/replacement/{{ replace_progress_report.id }}/details/">view</a></td>
             <td><a href="/env/{{ env.envName }}/{{ env.stageName }}/replacement/{{ replace_progress_report.id }}/schedule/">view</a></td>
        </tr>
