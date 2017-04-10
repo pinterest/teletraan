@@ -64,6 +64,8 @@ public class Groups {
     public Collection<String> getHostIds(@PathParam("groupName") String groupName,
                                          @NotEmpty @QueryParam("actionType") HostInfoActionType actionType) throws Exception {
         Collection<String> hostIds;
+        EnvironBean env = environDAO.getByCluster(groupName);
+
         switch (actionType) {
             case ALL:
                 hostIds = hostDAO.getHostIdsByGroup(groupName);
@@ -72,13 +74,13 @@ public class Groups {
                 hostIds = hostDAO.getRetiredHostIdsByGroup(groupName);
                 break;
             case FAILED:
-                hostIds = hostDAO.getFailedHostIdsByGroup(groupName);
+                hostIds = hostDAO.getFailedHostIdsByGroup(groupName, env.getEnv_id());
                 break;
             case RETIRED_AND_FAILED:
-                hostIds = hostDAO.getRetiredAndFailedHostIdsByGroup(groupName);
+                hostIds = hostDAO.getRetiredAndFailedHostIdsByGroup(groupName, env.getEnv_id());
                 break;
             case CANNOT_RETIRED_AND_SERVING_BUILD:
-                hostIds = hostDAO.getCanNotRetireAndServingBuildHostIdsByGroup(groupName);
+                hostIds = hostDAO.getCanNotRetireAndServingBuildHostIdsByGroup(groupName, env.getEnv_id());
                 break;
             default:
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
