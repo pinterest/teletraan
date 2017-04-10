@@ -49,6 +49,13 @@ urlpatterns = [
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause_replacement/$', cluster_view.pause_cluster_replacement),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume_replacement/$', cluster_view.resume_cluster_replacement),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cancel_replacement/$', cluster_view.cancel_cluster_replacement),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/$',
+        cluster_view.ClusterHistoriesView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/get_replacement_progress/$', cluster_view.cluster_replacement_progress),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/(?P<replacement_id>[a-zA-Z0-9\-_]+)/details/$',
+        cluster_view.view_cluster_replacement_details),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/(?P<replacement_id>[a-zA-Z0-9\-_]+)/schedule/$',
+        cluster_view.view_cluster_replacement_schedule),
 
     # CMP specific util
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/cluster/capacity/$', cluster_view.ClusterCapacityUpdateView.as_view()),

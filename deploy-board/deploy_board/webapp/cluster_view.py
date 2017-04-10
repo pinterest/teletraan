@@ -606,3 +606,105 @@ def cancel_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     clusters_helper.cancel_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
+
+
+def get_replacement_summary(event, total_capacity):
+    host_ids = event.get('host_ids')
+    state = event.get('state')
+    status = event.get('status')
+    progress_type = 'success' if status in ['SUCCEEDING', 'SUCCEEDED'] else 'danger'
+    if state == 'COMPLETED':
+        succeeded = total_capacity
+        progress_rate = 100
+    else:
+        succeeded = len(host_ids.split(',')) - 1 if host_ids else 0
+        progress_rate = succeeded * 100 / total_capacity
+    return {
+            'id': event.get('id'),
+            'state': state,
+            'status': status,
+            'startDate': event.get('start_time'),
+            'lastUpdateDate': event.get('last_worked_on'),
+            'progressType': progress_type,
+            'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending'.format(
+                total_capacity, succeeded, total_capacity - succeeded),
+            'successRatePercentage': progress_rate,
+            'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, total_capacity),
+            'operator': '',  # TODO add operator here
+            'description': ''  # TODO add description here
+        }
+
+
+def cluster_replacement_progress(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+
+    cluster_name = '{}-{}'.format(name, stage)
+    replacement_event = clusters_helper.get_latest_cluster_replacement_progress(request, cluster_name)
+    if not replacement_event:
+        log.info("There is no on-going replacement event for cluster %s." % cluster_name)
+        return HttpResponse("There is no on-going replacement.")
+
+    basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+    capacity = basic_cluster_info.get("capacity")
+    replacement_progress = get_replacement_summary(replacement_event, capacity)
+
+    html = render_to_string('clusters/replace_progress.tmpl', {
+        "env": env,
+        "replace_progress_report": replacement_progress
+    })
+    response = HttpResponse(html)
+    return response
+
+
+def view_cluster_replacement_details(request, name, stage, replacement_id):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+
+    replacement_event = clusters_helper.get_cluster_replacement_info(request, cluster_name, replacement_id)
+    if not replacement_event:
+        raise Exception("Replacement Id: %s Not Found.")
+
+    basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+    capacity = basic_cluster_info.get("capacity")
+    replacement_details = get_replacement_summary(replacement_event, capacity)
+    config_histories = clusters_helper.get_cluster_replacement_config_histories(request, cluster_name, replacement_id)
+
+    return render(request, 'clusters/cluster_replace_details.html', {
+        "replace": replacement_details,
+        "config_histories": config_histories,
+        "env": env
+    })
+
+
+def view_cluster_replacement_schedule(request, name, stage, replacement_id):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+    schedule = clusters_helper.get_cluster_replacement_schedule(request, cluster_name, replacement_id)
+    return render(request, 'clusters/replace_schedule.html', {
+        "env": env,
+        "schedule": schedule
+    })
+
+
+class ClusterHistoriesView(View):
+    def get(self, request, name, stage):
+        env = environs_helper.get_env_by_stage(request, name, stage)
+        cluster_name = '{}-{}'.format(name, stage)
+        page_index = request.GET.get('index')
+        page_size = request.GET.get('size')
+        histories = clusters_helper.get_cluster_replacement_histories(request, cluster_name, page_index, page_size)
+        if not histories:
+            return HttpResponse('')
+
+        replace_summaries = []
+        basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+        capacity = basic_cluster_info.get("capacity")
+
+        for history in histories:
+            replace_summaries.append(get_replacement_summary(history, capacity))
+
+        data = {
+            "env": env,
+            "replace_summaries": replace_summaries
+        }
+        return render(request, 'clusters/replace_histories.html', data)

@@ -123,6 +123,9 @@
     <div v-if="showCluster" class="row">
         <side-button styleclass="fa fa-database" text="Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
+    <div v-if="" class="row">
+        <side-button styleclass="glyphicon glyphicon-time" text="Replacement History" href="/env/{{ env.envName }}/{{ env.stageName }}/replacement" title="Replacement History"></side-button>
+    </div>
     <div v-if="!showCluster" id="groupsDiv">
     </div>
 </div>
@@ -253,9 +256,6 @@ $('#privateBldUploadBtnId button').click(function () {
     <div class="alert alert-info">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
-        <div id="activeClusterReplaceId" class="collapse in panel-body">
-            {% include "clusters/replace_progress.tmpl" %}
-         </div>
     </div>
     <script>
         $(function () {

@@ -69,8 +69,6 @@ urlpatterns = [
         env_views.EnvNewDeployView.as_view()),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/update_deploy_progress/$',
         env_views.update_deploy_progress),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/update_cluster_replace_progress/$',
-        env_views.update_cluster_replace_progress),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/deploys/$',
         env_views.get_env_deploys),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/new_commits/$',

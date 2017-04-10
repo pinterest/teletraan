@@ -1,0 +1,77 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li class="active">Replacement History</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Replacement History</h4>
+    </div>
+	<div class="row">
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-flash"></span> Current Replacement
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+<div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Replacement History</h4>
+    </div>
+    <div id="replaceHistoryId" class="collapse in panel-body">
+        <div class="container-fluid">
+            <table id="deployHistoryTableId" class="table table-condensed table-striped table-hover">
+                    <tr>
+                        <th>Start(-08:00)</th>
+                        <th>Finish(-08:00)</th>
+                        <th>Status</th>
+                        <th>Success</th>
+                        <th>Details</th>
+                        <th>Schedule</th>
+                    </tr>
+                    {% for replace_summary in replace_summaries %}
+                    <tr>
+                        <td>
+                            {{ replace_summary.startDate|convertTimestamp }}
+                        </td>
+                        <td>
+                            {{ replace_summary.lastUpdateDate|convertTimestamp }}
+                        </td>
+                        <td>
+                            <span class="replaceToolTip pointer-cursor {{ replace_summary.status|replaceStatusIcon }}"
+                                  data-toggle="tooltip" title="{{ replace_summary.status|replaceStatusTip }}">
+                            </span>
+                            <small>{{ replace_summary.status }}</small>
+                        </td>
+                        <td>
+                            <span class="replaceToolTip pointer-cursor" data-toggle="tooltip" title="{{ replace_summary.progressTip }}">
+                            <small>{{ replace_summary.successRate }}</small>
+                            </span>
+                        </td>
+                        <td><a href="/env/{{ env.envName }}/{{ env.stageName }}/replacement/{{ replace_summary.id }}/details/">Details</a></td>
+                        <td><a href="/env/{{ env.envName }}/{{ env.stageName }}/replacement/{{ replace_summary.id }}/schedule/">Schedule</a></td>
+                    </tr>
+                    {% endfor%}
+                </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

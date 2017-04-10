@@ -4,22 +4,30 @@
   <table class="table table-striped table-condensed table-hover">
    <tr>
         <th class="col-lg-1">State</th>
+        <th class="col-lg-1">Status</th>
         <th class="col-lg-2">Cluster Replace Progress</th>
         <th class="col-lg-1">Elapsed</th>
         <th class="col-lg-1">Operator</th>
+        <th class="col-lg-1">Details</th>
+        <th class="col-lg-1">Schedule</th>
    </tr>
    {% if replace_progress_report %}
-
        <tr>
             <td>
                 <span class="replaceToolTip pointer-cursor {{ replace_progress_report.state }}"
-                      data-toggle="tooltip" title="replace_progress_report.state">
+                      data-toggle="tooltip" title="{{ replace_progress_report.state }}">
                 </span>
                 <small>{{ replace_progress_report.state }}</small>
             </td>
             <td>
+                <span class="replaceToolTip pointer-cursor {{ replace_progress_report.status|replaceStatusIcon }}"
+                      data-toggle="tooltip" title="{{ replace_progress_report.status|replaceStatusTip }}">
+                </span>
+                <small>{{ replace_progress_report.status }}</small>
+            </td>
+            <td>
                 <div class="progress replaceToolTip" data-toggle="tooltip">
-                    <div class="replaceToolTip progress-bar {{ replace_progress_report.progressType }}"
+                    <div class="replaceToolTip progress-bar progress-bar-{{ replace_progress_report.progressType }}"
                          data-toggle="tooltip" title="{{ replace_progress_report.progressTip }}"
                          role="progressbar" aria-valuenow="{{ replace_progress_report.successRatePercentage }}"
                          aria-valuemin="0" aria-valuemax="100"
@@ -35,6 +43,8 @@
                 </span>
             </td>
             <td>{{ replace_progress_report.operator }}</td>
+            <td><a href="/env/{{ env.envName }}/{{ env.stageName }}/replacement/{{ replace_progress_report.id }}/details/">view</a></td>
+            <td><a href="/env/{{ env.envName }}/{{ env.stageName }}/replacement/{{ replace_progress_report.id }}/schedule/">view</a></td>
        </tr>
 
    {% endif %}
