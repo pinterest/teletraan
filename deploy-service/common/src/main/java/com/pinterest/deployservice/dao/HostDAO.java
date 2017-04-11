@@ -15,7 +15,6 @@
  */
 package com.pinterest.deployservice.dao;
 
-import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 
 import java.util.Collection;
