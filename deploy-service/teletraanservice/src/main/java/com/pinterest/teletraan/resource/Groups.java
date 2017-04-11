@@ -42,7 +42,7 @@ public class Groups {
         RETIRED,
         FAILED,
         RETIRED_AND_FAILED,
-        CANNOT_RETIRED_AND_SERVING_BUILD
+        NEW_AND_SERVING_BUILD
     }
 
     private EnvironDAO environDAO;
@@ -64,23 +64,21 @@ public class Groups {
     public Collection<String> getHostIds(@PathParam("groupName") String groupName,
                                          @NotEmpty @QueryParam("actionType") HostInfoActionType actionType) throws Exception {
         Collection<String> hostIds;
-        EnvironBean env = environDAO.getByCluster(groupName);
-
         switch (actionType) {
             case ALL:
                 hostIds = hostDAO.getHostIdsByGroup(groupName);
                 break;
             case RETIRED:
-                hostIds = hostDAO.getRetiredHostIdsByGroup(groupName);
+                hostIds = hostDAO.getToBeRetiredHostIdsByGroup(groupName);
                 break;
             case FAILED:
-                hostIds = hostDAO.getFailedHostIdsByGroup(groupName, env.getEnv_id());
+                hostIds = hostDAO.getFailedHostIdsByGroup(groupName);
                 break;
             case RETIRED_AND_FAILED:
-                hostIds = hostDAO.getRetiredAndFailedHostIdsByGroup(groupName, env.getEnv_id());
+                hostIds = hostDAO.getToBeRetiredAndFailedHostIdsByGroup(groupName);
                 break;
-            case CANNOT_RETIRED_AND_SERVING_BUILD:
-                hostIds = hostDAO.getCanNotRetireAndServingBuildHostIdsByGroup(groupName, env.getEnv_id());
+            case NEW_AND_SERVING_BUILD:
+                hostIds = hostDAO.getNewAndServingBuildHostIdsByGroup(groupName);
                 break;
             default:
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");

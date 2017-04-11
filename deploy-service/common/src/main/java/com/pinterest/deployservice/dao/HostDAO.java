@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.dao;
 
+import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 
 import java.util.Collection;
@@ -63,11 +64,11 @@ public interface HostDAO {
 
     Collection<HostBean> getByEnvIdAndHostName(String envId, String hostName) throws Exception;
 
-    Collection<String> getRetiredHostIdsByGroup(String groupName) throws Exception;
+    Collection<String> getToBeRetiredHostIdsByGroup(String groupName) throws Exception;
 
-    Collection<String> getRetiredAndFailedHostIdsByGroup(String groupName, String envId) throws Exception;
+    Collection<String> getToBeRetiredAndFailedHostIdsByGroup(String groupName) throws Exception;
 
-    Collection<String> getCanNotRetireAndServingBuildHostIdsByGroup(String groupName, String envId) throws Exception;
+    Collection<String> getNewAndServingBuildHostIdsByGroup(String groupName) throws Exception;
 
-    Collection<String> getFailedHostIdsByGroup(String groupName, String envId) throws Exception;
+    Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception;
 }

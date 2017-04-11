@@ -15,12 +15,7 @@
  */
 package com.pinterest.deployservice.db;
 
-import com.pinterest.deployservice.bean.AgentStatus;
-import com.pinterest.deployservice.bean.DeployStage;
-import com.pinterest.deployservice.bean.AgentState;
-import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.bean.SetClause;
+import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.dao.HostDAO;
 
 import org.apache.commons.dbcp.BasicDataSource;
@@ -63,9 +58,10 @@ public class DBHostDAOImpl implements HostDAO {
             "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire=1 AND h.group_name=? AND a.env_id = ? AND h.state not in (?,?) and a.status not in (?,?)";
     private static final String GET_FAILED_HOSTIDS_BY_GROUP =
             "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.group_name=? AND a.env_id = ? AND h.state not in (?,?) and a.status not in (?,?)";
-    private static final String GET_CAN_NOT_RETIRE_AND_SERVING_BUILD_HOSTIDS_BY_GROUP =
-            "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire!=1 AND h.group_name=? AND a.env_id = ? AND h.state not in (?,?) AND a.deploy_stage = ? AND a.state = ?";
-
+    private static final String GET_NEW_AND_SERVING_BUILD_HOSTIDS_BY_GROUP =
+            "SELECT host_id FROM agents x WHERE x.state = ? AND x.deploy_stage = ? " +
+            "AND x.host_id IN (SELECT DISTINCT h.host_id AS host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire!=1 AND h.group_name=? AND h.state not in (?,?)) " +
+            "GROUP BY x.host_id HAVING count(*) = (SELECT count(*) FROM agents y WHERE y.host_id = x.host_id)";
     private BasicDataSource dataSource;
 
     public DBHostDAOImpl(BasicDataSource dataSource) {
@@ -231,32 +227,32 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public Collection<String> getRetiredHostIdsByGroup(String groupName) throws Exception {
+    public Collection<String> getToBeRetiredHostIdsByGroup(String groupName) throws Exception {
         return new QueryRunner(dataSource).query(GET_RETIRED_HOSTIDS_BY_GROUP,
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString());
     }
 
     @Override
-    public Collection<String> getRetiredAndFailedHostIdsByGroup(String groupName, String envId) throws Exception {
+    public Collection<String> getToBeRetiredAndFailedHostIdsByGroup(String groupName) throws Exception {
         return new QueryRunner(dataSource).query(GET_RETIRED_AND_FAILED_HOSTIDS_BY_GROUP,
-                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName, envId,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
                 AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
     }
 
     @Override
-    public Collection<String> getCanNotRetireAndServingBuildHostIdsByGroup(String groupName, String envId) throws Exception {
-        return new QueryRunner(dataSource).query(GET_CAN_NOT_RETIRE_AND_SERVING_BUILD_HOSTIDS_BY_GROUP,
-                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName, envId,
-                HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                DeployStage.SERVING_BUILD.toString(), AgentState.NORMAL.toString());
+    public Collection<String> getNewAndServingBuildHostIdsByGroup(String groupName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_NEW_AND_SERVING_BUILD_HOSTIDS_BY_GROUP,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(),
+                AgentState.NORMAL.toString(), DeployStage.SERVING_BUILD.toString(), groupName,
+                HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString());
     }
 
     @Override
-    public Collection<String> getFailedHostIdsByGroup(String groupName, String envId) throws Exception {
+    public Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception {
         return new QueryRunner(dataSource).query(GET_FAILED_HOSTIDS_BY_GROUP,
-                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName, envId,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
                 AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
     }
