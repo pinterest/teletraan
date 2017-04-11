@@ -63,11 +63,11 @@ public interface HostDAO {
 
     Collection<HostBean> getByEnvIdAndHostName(String envId, String hostName) throws Exception;
 
-    Collection<String> getRetiredHostIdsByGroup(String groupName) throws Exception;
+    Collection<String> getToBeRetiredHostIdsByGroup(String groupName) throws Exception;
 
-    Collection<String> getRetiredAndFailedHostIdsByGroup(String groupName) throws Exception;
+    Collection<String> getToBeRetiredAndFailedHostIdsByGroup(String groupName) throws Exception;
 
-    Collection<String> getCanNotRetireAndServingBuildHostIdsByGroup(String groupName) throws Exception;
+    Collection<String> getNewAndServingBuildHostIdsByGroup(String groupName) throws Exception;
 
     Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception;
 }

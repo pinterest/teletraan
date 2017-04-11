@@ -693,13 +693,13 @@ public class DBDAOTest {
         hostBean7.setCan_retire(true);
         hostDAO.insert(hostBean7);
 
-        Collection<String> retiredHostBeanIds = hostDAO.getRetiredHostIdsByGroup("retire-group");
+        Collection<String> retiredHostBeanIds = hostDAO.getToBeRetiredHostIdsByGroup("retire-group");
         assertEquals(retiredHostBeanIds.size(), 2);
 
         AgentBean agentBean1 = genDefaultAgentBean("i-11", "i-11", "e-1", "d-1", DeployStage.RESTARTING);
         agentBean1.setStatus(AgentStatus.AGENT_FAILED);
         agentDAO.insertOrUpdate(agentBean1);
-        Collection<String> retiredAndFailedHostIds = hostDAO.getRetiredAndFailedHostIdsByGroup("retire-group");
+        Collection<String> retiredAndFailedHostIds = hostDAO.getToBeRetiredAndFailedHostIdsByGroup("retire-group");
         assertEquals(retiredAndFailedHostIds.size(), 1);
 
         Collection<String> failedHostIds = hostDAO.getFailedHostIdsByGroup("retire-group");
