@@ -15,7 +15,12 @@
  */
 package com.pinterest.deployservice.db;
 
-import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.bean.AgentStatus;
+import com.pinterest.deployservice.bean.DeployStage;
+import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.HostDAO;
 
 import org.apache.commons.dbcp.BasicDataSource;
