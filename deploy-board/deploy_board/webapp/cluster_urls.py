@@ -51,9 +51,12 @@ urlpatterns = [
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cancel_replacement/$', cluster_view.cancel_cluster_replacement),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/$',
         cluster_view.ClusterHistoriesView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/get_replacement_details/$', cluster_view.cluster_replacement_details),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/get_replacement_progress/$', cluster_view.cluster_replacement_progress),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/(?P<replacement_id>[a-zA-Z0-9\-_]+)/details/$',
         cluster_view.view_cluster_replacement_details),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/scaling_activities/$',
+        cluster_view.view_cluster_replacement_scaling_activities),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/(?P<replacement_id>[a-zA-Z0-9\-_]+)/schedule/$',
         cluster_view.view_cluster_replacement_schedule),
 

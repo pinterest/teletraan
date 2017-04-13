@@ -608,7 +608,7 @@ def cancel_cluster_replacement(request, name, stage):
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
 
-def get_replacement_summary(event, current_capacity):
+def get_replacement_summary(event, current_capacity, max_para):
     host_ids = event.get('host_ids')
     state = event.get('state')
     status = event.get('status')
@@ -618,27 +618,11 @@ def get_replacement_summary(event, current_capacity):
     else:
         num_finished_host_ids = len(host_ids.split(','))
     if state == 'COMPLETED':
-        succeeded = num_finished_host_ids
-        progress_rate = 100
-        return {
-            'id': event.get('id'),
-            'state': state,
-            'status': status,
-            'startDate': event.get('start_time'),
-            'lastUpdateDate': event.get('last_worked_on'),
-            'progressType': progress_type,
-            'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending'.format(
-                succeeded, succeeded, 0),
-            'successRatePercentage': progress_rate,
-            'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, succeeded),
-            'operator': '',  # TODO add operator here
-            'description': ''  # TODO add description here
-        }
-    else:
-        # on-going event
-        succeeded = num_finished_host_ids - 1 if host_ids else 0
-        progress_rate = succeeded * 100 / current_capacity
-        return {
+        if status == 'SUCCEEDED':
+            # successful
+            succeeded = num_finished_host_ids
+            progress_rate = 100
+            return {
                 'id': event.get('id'),
                 'state': state,
                 'status': status,
@@ -646,7 +630,47 @@ def get_replacement_summary(event, current_capacity):
                 'lastUpdateDate': event.get('last_worked_on'),
                 'progressType': progress_type,
                 'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending'.format(
-                    current_capacity, succeeded, current_capacity - succeeded),
+                    succeeded, succeeded, 0),
+                'successRatePercentage': progress_rate,
+                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, succeeded),
+                'operator': '',  # TODO add operator here
+                'description': ''  # TODO add description here
+            }
+        else:
+            # failed
+            succeeded = num_finished_host_ids
+            progress_rate = succeeded * 100 / current_capacity
+            msg = event.get('error_message')
+            return {
+                'id': event.get('id'),
+                'state': state,
+                'status': status,
+                'startDate': event.get('start_time'),
+                'lastUpdateDate': event.get('last_worked_on'),
+                'progressType': progress_type,
+                'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending. Reason: {}'.format(
+                    current_capacity, succeeded, current_capacity - succeeded, msg),
+                'successRatePercentage': progress_rate,
+                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity),
+                'operator': '',  # TODO add operator here
+                'description': ''  # TODO add description here
+            }
+
+    else:
+        # on-going event
+        succeeded = num_finished_host_ids - max_para if host_ids else 0
+        progress_rate = succeeded * 100 / current_capacity
+        # its not necessarily error message
+        on_going_msg = event.get('error_message')
+        return {
+                'id': event.get('id'),
+                'state': state,
+                'status': status,
+                'startDate': event.get('start_time'),
+                'lastUpdateDate': event.get('last_worked_on'),
+                'progressType': progress_type,
+                'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending. {}'.format(
+                    current_capacity, succeeded, current_capacity - succeeded, on_going_msg),
                 'successRatePercentage': progress_rate,
                 'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity),
                 'operator': '',  # TODO add operator here
@@ -654,8 +678,16 @@ def get_replacement_summary(event, current_capacity):
             }
 
 
+def get_max_parallel_replacement_count(env):
+    count = env.get("maxParallelRp")
+    if count <= 0:
+        count = 1
+    return count
+
+
 def cluster_replacement_progress(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
+    max_parallel_replacement_count = get_max_parallel_replacement_count(env)
 
     cluster_name = '{}-{}'.format(name, stage)
     replacement_event = clusters_helper.get_latest_cluster_replacement_progress(request, cluster_name)
@@ -665,7 +697,7 @@ def cluster_replacement_progress(request, name, stage):
 
     basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
     capacity = basic_cluster_info.get("capacity")
-    replacement_progress = get_replacement_summary(replacement_event, capacity)
+    replacement_progress = get_replacement_summary(replacement_event, capacity, max_parallel_replacement_count)
 
     html = render_to_string('clusters/replace_progress.tmpl', {
         "env": env,
@@ -675,8 +707,17 @@ def cluster_replacement_progress(request, name, stage):
     return response
 
 
+def cluster_replacement_details(request, name, stage):
+    cluster_name = '{}-{}'.format(name, stage)
+    replacement_event = clusters_helper.get_latest_cluster_replacement_progress(request, cluster_name)
+    if not replacement_event:
+        return HttpResponse("{}", content_type="application/json")
+    return HttpResponse(json.dumps(replacement_event), content_type="application/json")
+
+
 def view_cluster_replacement_details(request, name, stage, replacement_id):
     env = environs_helper.get_env_by_stage(request, name, stage)
+    max_parallel_replacement_count = get_max_parallel_replacement_count(env)
     cluster_name = '{}-{}'.format(name, stage)
 
     replacement_event = clusters_helper.get_cluster_replacement_info(request, cluster_name, replacement_id)
@@ -685,14 +726,20 @@ def view_cluster_replacement_details(request, name, stage, replacement_id):
 
     basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
     capacity = basic_cluster_info.get("capacity")
-    replacement_details = get_replacement_summary(replacement_event, capacity)
+    replacement_details = get_replacement_summary(replacement_event, capacity, max_parallel_replacement_count)
     config_histories = clusters_helper.get_cluster_replacement_config_histories(request, cluster_name, replacement_id)
-
     return render(request, 'clusters/cluster_replace_details.html', {
         "replace": replacement_details,
         "config_histories": config_histories,
         "env": env
     })
+
+
+def view_cluster_replacement_scaling_activities(request, name, stage):
+    cluster_name = '{}-{}'.format(name, stage)
+    scaling_activities = autoscaling_groups_helper.get_scaling_activities(request, cluster_name, 20, '')
+    activities = json.dumps(scaling_activities["activities"])
+    return HttpResponse(activities, content_type="application/json")
 
 
 def view_cluster_replacement_schedule(request, name, stage, replacement_id):
@@ -708,6 +755,8 @@ def view_cluster_replacement_schedule(request, name, stage, replacement_id):
 class ClusterHistoriesView(View):
     def get(self, request, name, stage):
         env = environs_helper.get_env_by_stage(request, name, stage)
+        max_parallel_replacement_count = get_max_parallel_replacement_count(env)
+
         cluster_name = '{}-{}'.format(name, stage)
         page_index = request.GET.get('index')
         page_size = request.GET.get('size')
@@ -720,7 +769,7 @@ class ClusterHistoriesView(View):
         capacity = basic_cluster_info.get("capacity")
 
         for history in histories:
-            replace_summaries.append(get_replacement_summary(history, capacity))
+            replace_summaries.append(get_replacement_summary(history, capacity, max_parallel_replacement_count))
 
         data = {
             "env": env,
