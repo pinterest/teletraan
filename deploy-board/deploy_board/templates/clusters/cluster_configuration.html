@@ -8,18 +8,17 @@
     <li class="active">Cluster Configuration</li>
 </ul>
 {% endblock %} {% load static %} {% block side-panel-actions %}
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
-    <style>
-        .ct-series-a .ct-bar {
-            stroke: #2a7b86;
-        }
+<link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+<style>
+    .ct-series-a .ct-bar {
+        stroke: #2a7b86;
+    }
 
-        .ct-chart table td {
-            text-align: center;
-        }
-    </style>
-     <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
-
+    .ct-chart table td {
+        text-align: center;
+    }
+</style>
+<script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js?changedate=2016.12.19.150000"%}"></script>
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2016.12.19.150000"%}"></script>
 <script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.02.14.123000"%}"></script>
@@ -107,11 +106,19 @@
     <div id="activeClusterReplaceId" class="collapse in panel-body">
         {% include "clusters/replace_progress.tmpl" %}
     </div>
+</div>
 
-    <div id="activeClusterReplaceGraph" class="collapse in panel-body">
-        <div class="ct-chart"></div>
-        <div id="tooltip" class="alert alert-info" style="display:none;  top: 10px; right:20px;"></div>
+<div id="activeClusterReplaceGraph" v-show="show" class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left pointer-cursor">
+            <a data-toggle="collapse" data-target="#activeClusterReplaceGraph">
+                <span class="glyphicon glyphicon-chevron-down"></span>
+                <span>Host Activities during Replacement</span>
+            </a>
+        </h4>
     </div>
+    <div class="ct-chart"></div>
+    <div id="tooltip" class="alert alert-info" style="display:none; top: 10px; right:20px;"></div>
 </div>
 <script>
 /**
@@ -293,7 +300,7 @@
         return time;
     }
 
-    function getData(activities) {
+    function normalizeGraphData(activities) {
         var times = {};
         for (var i = activities.length - 1; i >= 0; i--) {
             var scalingTime = activities[i]['scalingTime'];
@@ -302,7 +309,6 @@
             }
             times[scalingTime].push(activities[i]);
         }
-        var data_points = [];
         var labels = [], series1 = [], series2 = [];
         for (var time in times) {
             if (times.hasOwnProperty(time)) {
@@ -320,10 +326,6 @@
                         isLaunching = true;
                     }
                 }
-                var color = '#2a7b86';
-                if (isLaunching) {
-                    color = '#008000';
-                }
                 labels.push(timeConverter(parseInt(time)));
                 var tooltip = descriptions.join('<br/>');
                 var causeTooltip = causes.join('');
@@ -334,12 +336,7 @@
                     series1.push({name: '', meta: '', value: 0 });
                     series2.push({name: tooltip, meta: causeTooltip, value: events.length });
                 }
-                data_points.push({
-                    label: timeConverter(parseInt(time)),
-                    y: events.length,
-                    color: color,
-                    toolTipContent: descriptions.join('<br/>')
-                });
+
             }
         }
         return [labels, [series1, series2]];
@@ -363,7 +360,7 @@
                     left: 10
                 },
                 width: width,
-                height: 400,
+                height: 200,
                 axisX: {
                     labelInterpolationFnc: function (value) {
                         return value;
@@ -761,6 +758,13 @@
              }
         });
 
+        var activeClusterReplaceGraph = new Vue({
+             el: "#activeClusterReplaceGraph",
+             data: {
+                 "show": currentCluster.state != 'NORMAL'
+             }
+        });
+
         var sidebar = new Vue({
             el: "#side-panel",
             data: {
@@ -877,7 +881,7 @@
                                         var timestamp = v['scalingTime'];
                                         return parseInt(timestamp) - parseInt(startTime) > 0;
                                     });
-                                    var raw_data = getData(response);
+                                    var raw_data = normalizeGraphData(response);
                                     accessibility(raw_data[0], raw_data[1][0], raw_data[1][1]);
                             });
                     }, 120000);

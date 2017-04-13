@@ -27,7 +27,7 @@ import json
 import logging
 
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
-    autoscaling_groups_helper
+    autoscaling_groups_helper, groups_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
 import common
 
@@ -608,7 +608,7 @@ def cancel_cluster_replacement(request, name, stage):
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
 
-def get_replacement_summary(event, current_capacity, max_para):
+def get_replacement_summary(request, cluster_name, event, current_capacity):
     host_ids = event.get('host_ids')
     state = event.get('state')
     status = event.get('status')
@@ -658,7 +658,8 @@ def get_replacement_summary(event, current_capacity, max_para):
 
     else:
         # on-going event
-        succeeded = num_finished_host_ids - max_para if host_ids else 0
+        replaced_and_succeeded_hosts = groups_helper.get_replaced_and_good_hosts(request, cluster_name)
+        succeeded = len(replaced_and_succeeded_hosts)
         progress_rate = succeeded * 100 / current_capacity
         # its not necessarily error message
         on_going_msg = event.get('error_message')
@@ -678,16 +679,8 @@ def get_replacement_summary(event, current_capacity, max_para):
             }
 
 
-def get_max_parallel_replacement_count(env):
-    count = env.get("maxParallelRp")
-    if count <= 0:
-        count = 1
-    return count
-
-
 def cluster_replacement_progress(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    max_parallel_replacement_count = get_max_parallel_replacement_count(env)
 
     cluster_name = '{}-{}'.format(name, stage)
     replacement_event = clusters_helper.get_latest_cluster_replacement_progress(request, cluster_name)
@@ -697,7 +690,7 @@ def cluster_replacement_progress(request, name, stage):
 
     basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
     capacity = basic_cluster_info.get("capacity")
-    replacement_progress = get_replacement_summary(replacement_event, capacity, max_parallel_replacement_count)
+    replacement_progress = get_replacement_summary(request, cluster_name, replacement_event, capacity)
 
     html = render_to_string('clusters/replace_progress.tmpl', {
         "env": env,
@@ -717,7 +710,6 @@ def cluster_replacement_details(request, name, stage):
 
 def view_cluster_replacement_details(request, name, stage, replacement_id):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    max_parallel_replacement_count = get_max_parallel_replacement_count(env)
     cluster_name = '{}-{}'.format(name, stage)
 
     replacement_event = clusters_helper.get_cluster_replacement_info(request, cluster_name, replacement_id)
@@ -726,7 +718,7 @@ def view_cluster_replacement_details(request, name, stage, replacement_id):
 
     basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
     capacity = basic_cluster_info.get("capacity")
-    replacement_details = get_replacement_summary(replacement_event, capacity, max_parallel_replacement_count)
+    replacement_details = get_replacement_summary(request, cluster_name, replacement_event, capacity)
     config_histories = clusters_helper.get_cluster_replacement_config_histories(request, cluster_name, replacement_id)
     return render(request, 'clusters/cluster_replace_details.html', {
         "replace": replacement_details,
@@ -755,7 +747,6 @@ def view_cluster_replacement_schedule(request, name, stage, replacement_id):
 class ClusterHistoriesView(View):
     def get(self, request, name, stage):
         env = environs_helper.get_env_by_stage(request, name, stage)
-        max_parallel_replacement_count = get_max_parallel_replacement_count(env)
 
         cluster_name = '{}-{}'.format(name, stage)
         page_index = request.GET.get('index')
@@ -769,7 +760,7 @@ class ClusterHistoriesView(View):
         capacity = basic_cluster_info.get("capacity")
 
         for history in histories:
-            replace_summaries.append(get_replacement_summary(history, capacity, max_parallel_replacement_count))
+            replace_summaries.append(get_replacement_summary(request, cluster_name, history, capacity))
 
         data = {
             "env": env,
