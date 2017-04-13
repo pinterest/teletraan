@@ -169,7 +169,7 @@
     valueTransform: Chartist.noop,
     summary: undefined, className: 'panel',
     elementId: function () {
-      return 'ct-accessibility-table-' + (+new Date());
+      return 'ct-accessibility-table';
     },
     visuallyHiddenStyles: 'position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;'
   };
@@ -177,6 +177,7 @@
   Chartist.plugins = Chartist.plugins || {};
 
   Chartist.plugins.ctAccessibility = function (options) {
+      $('#ct-accessibility-table').remove();
 
     options = Chartist.extend({}, defaultOptions, options);
 
