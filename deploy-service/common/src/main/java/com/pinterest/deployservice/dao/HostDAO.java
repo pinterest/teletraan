@@ -69,5 +69,7 @@ public interface HostDAO {
 
     Collection<String> getNewAndServingBuildHostIdsByGroup(String groupName) throws Exception;
 
+    Collection<String> getNewHostIdsByGroup(String groupName) throws Exception;
+
     Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception;
 }
