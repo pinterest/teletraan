@@ -42,7 +42,8 @@ public class Groups {
         RETIRED,
         FAILED,
         RETIRED_AND_FAILED,
-        NEW_AND_SERVING_BUILD
+        NEW_AND_SERVING_BUILD,
+        NEW
     }
 
     private EnvironDAO environDAO;
@@ -79,6 +80,9 @@ public class Groups {
                 break;
             case NEW_AND_SERVING_BUILD:
                 hostIds = hostDAO.getNewAndServingBuildHostIdsByGroup(groupName);
+                break;
+            case NEW:
+                hostIds = hostDAO.getNewHostIdsByGroup(groupName);
                 break;
             default:
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");
