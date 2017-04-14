@@ -113,7 +113,7 @@
         <h4 class="panel-title pull-left pointer-cursor">
             <a data-toggle="collapse" data-target="#activeClusterReplaceGraph">
                 <span class="glyphicon glyphicon-chevron-down"></span>
-                <span>Host Activities during Replacement</span>
+                <span>Host Activities During Replacement</span>
             </a>
         </h4>
     </div>
@@ -174,7 +174,7 @@
     caption: 'A graphical chart',
     seriesHeader: 'Series name',
     valueTransform: Chartist.noop,
-    summary: undefined, className: 'panel',
+    summary: undefined,
     elementId: function () {
       return 'ct-accessibility-table';
     },
@@ -212,10 +212,9 @@
 
         // Create table body with caption
         var tBody = element.elem('table', {
+          class: 'table table-striped table-condensed table-hover',
           summary: options.summary
-        }).elem('caption')
-          .text(options.caption)
-          .elem('tbody');
+        }).elem('tbody');
 
         var firstRow = tBody.elem('tr');
 
@@ -372,8 +371,7 @@
                 },
                 plugins: [
                     Chartist.plugins.ctAccessibility({
-                        caption: 'Host Activities during Replacement',
-                        seriesHeader: 'chronological timeline',
+                        seriesHeader: 'timeline',
                         valueTransform: function (data) {
                             return data.name;
                         },
@@ -867,11 +865,11 @@
                 $.get('/env/{{ env.envName }}/{{ env.stageName }}/get_replacement_details/', function(event_details) {
                     var startTime = event_details['start_time'];
                     console.log('startTime:', startTime);
-                    // every 2 mins, ask
+                    // every 2 mins, request graph update
                     var graphStartTime = new Date().getTime();
                     var graphProgressInterval = setIntervalAndExecute(function() {
 
-                        if(new Date().getTime() - graphStartTime > 1800000) {  // if more than 30 mins, clear it
+                        if(new Date().getTime() - graphStartTime > 3600000) {  // if more than 60 mins, clear it
                             console.log('cleared time interval');
                             clearInterval(graphProgressInterval);
                         }
