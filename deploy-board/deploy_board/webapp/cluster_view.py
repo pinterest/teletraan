@@ -622,6 +622,7 @@ def get_replacement_summary(request, cluster_name, event, current_capacity):
             # successful
             succeeded = num_finished_host_ids
             progress_rate = 100
+            msg = event.get('error_message', '')
             return {
                 'id': event.get('id'),
                 'state': state,
@@ -633,14 +634,13 @@ def get_replacement_summary(request, cluster_name, event, current_capacity):
                     succeeded, succeeded, 0),
                 'successRatePercentage': progress_rate,
                 'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, succeeded),
-                'operator': '',  # TODO add operator here
-                'description': ''  # TODO add description here
+                'description': msg
             }
         else:
             # failed
             succeeded = num_finished_host_ids
             progress_rate = succeeded * 100 / current_capacity
-            msg = event.get('error_message')
+            msg = event.get('error_message', '')
             return {
                 'id': event.get('id'),
                 'state': state,
@@ -652,8 +652,7 @@ def get_replacement_summary(request, cluster_name, event, current_capacity):
                     current_capacity, succeeded, current_capacity - succeeded, msg),
                 'successRatePercentage': progress_rate,
                 'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity),
-                'operator': '',  # TODO add operator here
-                'description': ''  # TODO add description here
+                'description': msg
             }
 
     else:
@@ -673,9 +672,7 @@ def get_replacement_summary(request, cluster_name, event, current_capacity):
                 'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending. {}'.format(
                     current_capacity, succeeded, current_capacity - succeeded, on_going_msg),
                 'successRatePercentage': progress_rate,
-                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity),
-                'operator': '',  # TODO add operator here
-                'description': ''  # TODO add description here
+                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity)
             }
 
 
