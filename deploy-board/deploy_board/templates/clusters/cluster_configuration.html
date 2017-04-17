@@ -853,19 +853,18 @@
                 }
                 var replaceStartTime = new Date().getTime();
                 var replaceProgressInterval = setIntervalAndExecute(function() {
-                    if(new Date().getTime() - replaceStartTime > 1800000) {  // if more than 30 mins, clear it
+                    if(new Date().getTime() - replaceStartTime > 3600000) {  // if more than 60 mins, clear it
                         console.log('cleared time interval');
                         clearInterval(replaceProgressInterval);
                     }
                     $('#activeClusterReplaceId').load(
                             '/env/{{ env.envName }}/{{ env.stageName }}/get_replacement_progress/'
                     );
-                }, 60000);
+                }, 60000);  // request every 1 min
 
                 $.get('/env/{{ env.envName }}/{{ env.stageName }}/get_replacement_details/', function(event_details) {
                     var startTime = event_details['start_time'];
                     console.log('startTime:', startTime);
-                    // every 2 mins, request graph update
                     var graphStartTime = new Date().getTime();
                     var graphProgressInterval = setIntervalAndExecute(function() {
 
@@ -882,7 +881,7 @@
                                     var raw_data = normalizeGraphData(response);
                                     accessibility(raw_data[0], raw_data[1][0], raw_data[1][1]);
                             });
-                    }, 120000);
+                    }, 120000);  // request every 2 min
                 });
 
            }

@@ -752,15 +752,14 @@ class ClusterHistoriesView(View):
         page_index = request.GET.get('index')
         page_size = request.GET.get('size')
         histories = clusters_helper.get_cluster_replacement_histories(request, cluster_name, page_index, page_size)
-        if not histories:
-            return HttpResponse('')
 
         replace_summaries = []
-        basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
-        capacity = basic_cluster_info.get("capacity")
+        if histories:
+            basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+            capacity = basic_cluster_info.get("capacity")
 
-        for history in histories:
-            replace_summaries.append(get_replacement_summary(request, cluster_name, history, capacity))
+            for history in histories:
+                replace_summaries.append(get_replacement_summary(request, cluster_name, history, capacity))
 
         data = {
             "env": env,
