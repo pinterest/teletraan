@@ -18,17 +18,17 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.ScheduleBean;
+import com.pinterest.deployservice.bean.UpdateStatement;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 
+import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.deployservice.common.CommonUtils;
 
+import org.apache.commons.dbcp.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.swagger.annotations.*;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -36,7 +36,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 
 @Path("/v1/schedules")
@@ -47,11 +47,13 @@ public class Schedules {
     private static final Logger LOG = LoggerFactory.getLogger(Schedules.class);
     private ScheduleDAO scheduleDAO;
     private EnvironDAO environDAO;
+    private BasicDataSource dataSource;
 
 
     public Schedules(TeletraanServiceContext context) {
         scheduleDAO = context.getScheduleDAO();
         environDAO = context.getEnvironDAO();
+        dataSource = context.getDataSource();
     }
 
     @GET
@@ -77,26 +79,27 @@ public class Schedules {
             @Context SecurityContext sc,
             @PathParam("envName") String envName,
             @PathParam("stageName") String stageName,
-            @Valid ScheduleBean bean) throws Exception {
+            @Valid ScheduleBean scheduleBean) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         EnvironBean envBean = environDAO.getByStage(envName, stageName);
         String scheduleId = envBean.getSchedule_id();
-        String cooldownTimes = bean.getCooldown_times();
-        String hostNumbers = bean.getHost_numbers();
-        Integer totalSessions = bean.getTotal_sessions();
-        if (totalSessions > 0) { // there is a schedule  
-            ScheduleBean scheduleBean = new ScheduleBean();
+        Integer totalSessions = scheduleBean.getTotal_sessions();
+        if (totalSessions > 0) { // there is a schedule
             scheduleBean.setState_start_time(System.currentTimeMillis());
-            scheduleBean.setCooldown_times(cooldownTimes);
-            scheduleBean.setHost_numbers(hostNumbers);
-            scheduleBean.setTotal_sessions(totalSessions);
-            LOG.info(scheduleBean.toString());
+
             if (scheduleId == null) {
+                List<UpdateStatement> statements = new ArrayList<>();
+                // generate id, insert a schedule
                 scheduleId = CommonUtils.getBase64UUID();
-                envBean.setSchedule_id(scheduleId);
-                environDAO.update(envName, stageName, envBean);
                 scheduleBean.setId(scheduleId);
-                scheduleDAO.insert(scheduleBean);
+                statements.add(scheduleDAO.genInsertStatement(scheduleBean));
+
+                // update envBean's schedule_id
+                EnvironBean updateEnvBean = new EnvironBean();
+                updateEnvBean.setSchedule_id(scheduleId);
+                statements.add(environDAO.genUpdateStatement(envBean.getEnv_id(), updateEnvBean));
+                DatabaseUtil.transactionalUpdate(dataSource, statements);
+
                 LOG.info(String.format("Successfully inserted one env %s (%s)'s schedule by %s: %s", envName, stageName, operator, scheduleBean.toString()));
             } else {
                 scheduleBean.setId(scheduleId);

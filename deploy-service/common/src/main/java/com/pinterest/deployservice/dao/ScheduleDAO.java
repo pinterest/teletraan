@@ -18,8 +18,6 @@ package com.pinterest.deployservice.dao;
 import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.UpdateStatement;
 
-import java.util.Collection;
-import java.util.List;
 
 /**
  * A collection of methods to help interact with Environments tables
@@ -32,6 +30,8 @@ public interface ScheduleDAO {
 
     void delete(String scheduleId) throws Exception;
         
-    ScheduleBean getById(String scheduleId) throws Exception; 
+    ScheduleBean getById(String scheduleId) throws Exception;
+
+    UpdateStatement genInsertStatement(ScheduleBean scheduleBean);
 
 }

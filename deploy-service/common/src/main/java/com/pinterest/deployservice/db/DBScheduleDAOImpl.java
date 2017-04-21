@@ -16,18 +16,11 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.*;
-import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.dbutils.DbUtils;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
-import org.apache.commons.dbutils.handlers.BeanListHandler;
-import org.apache.commons.lang.StringUtils;
-
-import java.sql.Connection;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,5 +68,12 @@ public class DBScheduleDAOImpl implements ScheduleDAO {
         ResultSetHandler<ScheduleBean> h = new BeanHandler<ScheduleBean>(ScheduleBean.class);
         ScheduleBean bean = new QueryRunner(dataSource).query(GET_SCHEDULE_BY_ID, h, scheduleId);
         return bean;
+    }
+
+    @Override
+    public UpdateStatement genInsertStatement(ScheduleBean scheduleBean) {
+        SetClause setClause = scheduleBean.genSetClause();
+        String clause = String.format(INSERT_SCHEDULE, setClause.getClause());
+        return new UpdateStatement(clause, setClause.getValueArray());
     }
 }
