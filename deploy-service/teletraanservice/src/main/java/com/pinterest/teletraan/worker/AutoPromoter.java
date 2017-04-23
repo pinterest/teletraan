@@ -126,6 +126,34 @@ public class AutoPromoter implements Runnable {
         promoBean.getLast_update() != null ? promoBean.getLast_update().longValue() : 0L);
   }
 
+  public long getCurrentDeployStartDate(DeployBean currDeployBean, EnvironBean precededEnvBean,
+                                        EnvironBean currEnvBean) throws Exception {
+    long currentDeployDate = 0;
+    if (currDeployBean != null) {
+      String fromDeployId = currDeployBean.getFrom_deploy();
+      if (fromDeployId != null) {
+        DeployBean fromDeployBean = deployDAO.getById(fromDeployId);
+        if (fromDeployBean.getEnv_id().equals(precededEnvBean.getEnv_id())) {
+          currentDeployDate = fromDeployBean.getStart_date();
+        } else {
+          LOG.info(
+              "Current deploy {} in env {} was not promoted from pred env {}, but from env {}! "
+                  + "Use the current deploy startDate",
+              currDeployBean.getDeploy_id(), currEnvBean.getEnv_id(), precededEnvBean.getEnv_id(),
+              fromDeployBean.getEnv_id());
+          currentDeployDate = currDeployBean.getStart_date();
+        }
+      } else {
+        LOG.info(
+            "Current deploy {} in env {} was not promoted from anywhere! Use the current deploy "
+                + "startDate",
+            currDeployBean.getDeploy_id(), currEnvBean.getEnv_id());
+        currentDeployDate = currDeployBean.getStart_date();
+      }
+    }
+    return currentDeployDate;
+  }
+
   boolean isCurrentDeployRetirable(String envId, DeployBean currDeployBean) throws Exception {
     if (currDeployBean == null) {
       return true;
@@ -159,7 +187,7 @@ public class AutoPromoter implements Runnable {
     return false;
   }
 
-  //This contains the logic about if there is a promote build pending
+  //This contains the logic about if there is build should be promoted
   public PromoteResult computePromoteBuildResult(EnvironBean currEnvBean, DeployBean currDeployBean,
                                                  int size,
                                                  PromoteBean promoteBean) throws Exception {
@@ -167,8 +195,10 @@ public class AutoPromoter implements Runnable {
     long end_time = Long.MAX_VALUE;
     String schedule = promoteBean.getSchedule();
     if (!StringUtils.isEmpty(schedule)) {
+      //If we have a cron schedule set, looking into the due time of cron and only try to promote
+      //if we have a dued schedule.
+      //The due time is computed as the next due since the start_date
       long start_date = getScheduleStartTime(currEnvBean, currDeployBean, promoteBean);
-
       //Get the time that we should deploy per schedule
       Date autoDeployDueDate = getScheduledCheckDueTime(start_date, schedule);
       if (autoDeployDueDate.getTime() != 0) {
@@ -189,7 +219,7 @@ public class AutoPromoter implements Runnable {
       currentBuildDate = buildBean.getPublish_date();
     }
 
-    //Get builds available between the deployed build and mustBefore.
+    //Get builds available between the deployed build and end time.
     //It is either Long.MAX_VALUE (Get all builds) or the due time for scheduled deployment
     if (currentBuildDate < end_time) {
       BuildBean
@@ -221,17 +251,17 @@ public class AutoPromoter implements Runnable {
     }
   }
 
-  //This contains the logic about if there should be a promote deploy from the pred environment.
+  //This contains the logic about if there should be a promote deploy from the preceded environment.
   public PromoteResult computePromoteDeployResult(EnvironBean currEnvBean,
                                                   DeployBean currDeployBean,
                                                   int size, PromoteBean promoteBean)
       throws Exception {
-    String predStage = promoteBean.getPred_stage();
-    // Special case when there is no pred deploy
-    EnvironBean precededEnvBean = environDAO.getByStage(currEnvBean.getEnv_name(), predStage);
+    String precededStage = promoteBean.getPred_stage();
+    // Special case when there is no preceded environment
+    EnvironBean precededEnvBean = environDAO.getByStage(currEnvBean.getEnv_name(), precededStage);
     if (precededEnvBean == null) {
       LOG.warn("Pred env {}/{} does not exist, bail out!", currEnvBean.getEnv_name(),
-          predStage);
+          precededStage);
       return new PromoteResult()
           .withResultCode(PromoteResult.ResultCode.NoPredEnvironment);
     }
@@ -239,62 +269,45 @@ public class AutoPromoter implements Runnable {
     String predDeployId = precededEnvBean.getDeploy_id();
     if (predDeployId == null) {
       LOG.debug("Pred env {}/{} does not have deploy yet, bail out!",
-          currEnvBean.getEnv_name(), predStage);
+          currEnvBean.getEnv_name(), precededStage);
       return new PromoteResult().withResultCode(PromoteResult.ResultCode.NoPredEnvironmentDeploy);
     }
 
     Date now = new Date();
-    long mustBefore = Long.MAX_VALUE;
+    long endTime = Long.MAX_VALUE;
     String schedule = promoteBean.getSchedule();
     if (!StringUtils.isEmpty(schedule)) {
+      //If we have a cron schedule set, looking into the due time of cron and only try to promote
+      //if we have a dued schedule.
       long start_date = getScheduleStartTime(currEnvBean, currDeployBean, promoteBean);
-
       //Get the time that we should deploy per schedule
       Date autoDeployDueDate = getScheduledCheckDueTime(start_date, schedule);
       if (autoDeployDueDate.getTime() != 0) {
-        mustBefore = autoDeployDueDate.getTime();
+        endTime = autoDeployDueDate.getTime();
       }
       if (now.before(autoDeployDueDate)) {
         return new PromoteResult()
             .withResultCode(PromoteResult.ResultCode.NotInScheduledTime);
       }
-      // For cron auto promote, we only choose the latest one.
-      size = Math.min(size, 1);
     }
 
-    long currentDeployDate = 0;
-    if (currDeployBean != null) {
-      String fromDeployId = currDeployBean.getFrom_deploy();
-      if (fromDeployId != null) {
-        DeployBean fromDeployBean = deployDAO.getById(fromDeployId);
-        if (fromDeployBean.getEnv_id().equals(precededEnvBean.getEnv_id())) {
-          currentDeployDate = fromDeployBean.getStart_date();
-        } else {
-          LOG.info(
-              "Current deploy {} in env {} was not promoted from pred env {}, but from env {}! "
-                  + "Use the current deploy startDate",
-              currDeployBean.getDeploy_id(), currEnvBean.getEnv_id(), precededEnvBean.getEnv_id(),
-              fromDeployBean.getEnv_id());
-          currentDeployDate = currDeployBean.getStart_date();
-        }
-      } else {
-        LOG.info(
-            "Current deploy {} in env {} was not promoted from anywhere! Use the current deploy "
-                + "startDate",
-            currDeployBean.getDeploy_id(), currEnvBean.getEnv_id());
-        currentDeployDate = currDeployBean.getStart_date();
-      }
-    }
+    //Get the start time to find a deploy in preceded environment. If current deploy is promoted
+    //from preceded environment, use the last promoted deploy start_date in preceded environment.
+    //Otherwise (current deploy is not promoted from preceded environment), use the current deploy
+    // start_date
+    long
+        currentDeployDate =
+        getCurrentDeployStartDate(currDeployBean, precededEnvBean, currEnvBean);
 
-    DeployBean predDeployBean;
+    DeployBean precededDeployBean;
     if (promoteBean.getDelay() != 0) {
       long
           before =
-          Math.min(System.currentTimeMillis() - promoteBean.getDelay() * 60 * 1000, mustBefore);
-      predDeployBean =
+          Math.min(System.currentTimeMillis() - promoteBean.getDelay() * 60 * 1000, endTime);
+      precededDeployBean =
           getDeployCandidateDelayed(precededEnvBean.getEnv_id(),
               new Interval(currentDeployDate, before));
-      if (predDeployBean == null) {
+      if (precededDeployBean == null) {
         LOG.debug("Could not find any deploy candidate within delay period for {}/{}",
             precededEnvBean.getEnv_name(), precededEnvBean.getStage_name());
         return new PromoteResult()
@@ -302,7 +315,8 @@ public class AutoPromoter implements Runnable {
       }
       Long
           count =
-          deployDAO.countNonRegularDeploys(precededEnvBean.getEnv_id(), predDeployBean.getStart_date());
+          deployDAO.countNonRegularDeploys(precededEnvBean.getEnv_id(),
+              precededDeployBean.getStart_date());
       if (count != 0) {
         LOG.debug("not deploying due to nonregular deploy in delay period for {}/{}",
             precededEnvBean.getEnv_name(), precededEnvBean.getStage_name());
@@ -310,14 +324,14 @@ public class AutoPromoter implements Runnable {
             PromoteResult.ResultCode.NoRegularDeployWithinDelayPeriod);
       }
     } else {
-      predDeployBean =
+      precededDeployBean =
           getDeployCandidateDelayed(precededEnvBean.getEnv_id(),
-              new Interval(currentDeployDate, mustBefore));
+              new Interval(currentDeployDate, endTime));
     }
 
-    if (predDeployBean != null) {
+    if (precededDeployBean != null) {
       return new PromoteResult().withResultCode(PromoteResult.ResultCode.PromoteDeploy)
-          .withPredDeployBean(predDeployBean, precededEnvBean);
+          .withPredDeployBean(precededDeployBean, precededEnvBean);
     } else {
       return new PromoteResult()
           .withResultCode(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod);

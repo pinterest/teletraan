@@ -294,9 +294,9 @@ public class AutoPromoteDeployTest {
 
     }
     else{
-      prevDeploy.setStart_date(now.minusHours(3).getMillis());
-      currentDeploy.setStart_date(now.minusHours(2).getMillis());
-      newDeploy.setStart_date(now.minusHours(1).getMillis());
+      prevDeploy.setStart_date(now.minusHours(27).getMillis());
+      currentDeploy.setStart_date(now.minusHours(26).getMillis());
+      newDeploy.setStart_date(now.minusHours(25).getMillis());
       AutoPromoter promoter = new AutoPromoter(context);
       PromoteResult result = promoter.computePromoteDeployResult(environBean, currentDeploy, 10, promoteBean);
       Assert.assertEquals(PromoteResult.ResultCode.PromoteDeploy, result.getResult());
