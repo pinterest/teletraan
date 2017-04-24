@@ -36,6 +36,8 @@ import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.MutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.Interval;
 import org.quartz.CronExpression;
 import org.slf4j.Logger;
@@ -105,12 +107,37 @@ public class AutoPromoter implements Runnable {
 
     }
 
+    private Pair<Boolean, Long> getScheduleCheckResult(EnvironBean currEnvBean,
+                                                       DeployBean currDeployBean,
+                                                       PromoteBean promoteBean) throws Exception {
+
+        Date now = new Date();
+        MutablePair<Boolean, Long> ret = new MutablePair<>(false, Long.MAX_VALUE);
+
+        //If we have a cron schedule set, looking into the due time of cron and only try to
+        // promote
+        //if we have a dued schedule.
+        //The due time is computed as the next due since the startDate
+        long startDate = getScheduleStartTime(currEnvBean, currDeployBean, promoteBean);
+        //Get the time that we should deploy per schedule
+        Date autoDeployDueDate = getScheduledCheckDueTime(startDate, promoteBean.getSchedule());
+
+        if (autoDeployDueDate.getTime() != 0) {
+            ret.setRight(autoDeployDueDate.getTime());
+        }
+
+        ret.setLeft(now.after(autoDeployDueDate));
+
+        return ret;
+
+    }
+
     public long getScheduleStartTime(EnvironBean currEnvBean, DeployBean currDeployBean,
                                      PromoteBean promoBean) throws Exception {
-        long start_time = 0;
+        long startTime = 0;
         if (currDeployBean != null) {
             //If there is a current deploy, we check the schedule after that deploy
-            start_time = currDeployBean.getStart_date();
+            startTime = currDeployBean.getStart_date();
         } else {
             //Never deploy. We should only check against the time of the latest build. Otherwise
             //it will trigger any build to be deployed immediately
@@ -118,13 +145,13 @@ public class AutoPromoter implements Runnable {
                 buildBean =
                 getBuildCandidate(currEnvBean, new Interval(0, Long.MAX_VALUE), 1);
             if (buildBean != null) {
-                start_time = buildBean.getPublish_date();
+                startTime = buildBean.getPublish_date();
             }
         }
         //If promoBean setting has been updated, we should only check after that.
         //For example, if user first creates a schedule and a build is available.
         //We want it to be executed on schedule time instead of immediately
-        return Math.max(start_time,
+        return Math.max(startTime,
             promoBean.getLast_update() != null ? promoBean.getLast_update().longValue() : 0L);
     }
 
@@ -198,25 +225,18 @@ public class AutoPromoter implements Runnable {
                                                    DeployBean currDeployBean,
                                                    int size,
                                                    PromoteBean promoteBean) throws Exception {
-        Date now = new Date();
+
         long endTime = Long.MAX_VALUE;
         String schedule = promoteBean.getSchedule();
         if (!StringUtils.isEmpty(schedule)) {
-            //If we have a cron schedule set, looking into the due time of cron and only try to
-          // promote
-            //if we have a dued schedule.
-            //The due time is computed as the next due since the start_date
-            long start_date = getScheduleStartTime(currEnvBean, currDeployBean, promoteBean);
-            //Get the time that we should deploy per schedule
-            Date autoDeployDueDate = getScheduledCheckDueTime(start_date, schedule);
-            if (autoDeployDueDate.getTime() != 0) {
-                endTime = autoDeployDueDate.getTime();
-            }
-            if (now.before(autoDeployDueDate)) {
+            Pair<Boolean, Long> scheduleResult = getScheduleCheckResult(currEnvBean,
+                currDeployBean, promoteBean);
+
+            if (!scheduleResult.getLeft()){
                 return new PromoteResult()
                     .withResultCode(PromoteResult.ResultCode.NotInScheduledTime);
             }
-            // For cron auto promote, we only choose the latest one.
+            endTime = scheduleResult.getRight();
             size = Math.min(size, 1);
         }
 
@@ -247,8 +267,7 @@ public class AutoPromoter implements Runnable {
     public void promoteBuild(EnvironBean currEnvBean, DeployBean currDeployBean, int size,
                              PromoteBean promoteBean) throws Exception {
 
-        PromoteResult
-            result =
+        PromoteResult result =
             computePromoteBuildResult(currEnvBean, currDeployBean, size, promoteBean);
         LOG.info("Promote result {0} for env {1}", result.getResult().toString(),
             currEnvBean.getEnv_name());
@@ -262,19 +281,16 @@ public class AutoPromoter implements Runnable {
     //This contains the logic about if there should be a promote deploy from the preceded
     // environment.
     public PromoteResult computePromoteDeployResult(EnvironBean currEnvBean,
-                                                    DeployBean currDeployBean,
-                                                    int size, PromoteBean promoteBean)
-        throws Exception {
+                                                    DeployBean currDeployBean, int size,
+                                                    PromoteBean promoteBean) throws Exception {
         String precededStage = promoteBean.getPred_stage();
         // Special case when there is no preceded environment
-        EnvironBean
-            precededEnvBean =
+        EnvironBean precededEnvBean =
             environDAO.getByStage(currEnvBean.getEnv_name(), precededStage);
         if (precededEnvBean == null) {
             LOG.warn("Pred env {}/{} does not exist, bail out!", currEnvBean.getEnv_name(),
                 precededStage);
-            return new PromoteResult()
-                .withResultCode(PromoteResult.ResultCode.NoPredEnvironment);
+            return new PromoteResult().withResultCode(PromoteResult.ResultCode.NoPredEnvironment);
         }
 
         String predDeployId = precededEnvBean.getDeploy_id();
@@ -285,33 +301,27 @@ public class AutoPromoter implements Runnable {
                 .withResultCode(PromoteResult.ResultCode.NoPredEnvironmentDeploy);
         }
 
-        Date now = new Date();
         long endTime = Long.MAX_VALUE;
         String schedule = promoteBean.getSchedule();
         if (!StringUtils.isEmpty(schedule)) {
-            //If we have a cron schedule set, looking into the due time of cron and only try to
-          // promote
-            //if we have a dued schedule.
-            long start_date = getScheduleStartTime(currEnvBean, currDeployBean, promoteBean);
-            //Get the time that we should deploy per schedule
-            Date autoDeployDueDate = getScheduledCheckDueTime(start_date, schedule);
-            if (autoDeployDueDate.getTime() != 0) {
-                endTime = autoDeployDueDate.getTime();
-            }
-            if (now.before(autoDeployDueDate)) {
+            Pair<Boolean, Long>
+                scheduleResult =
+                getScheduleCheckResult(currEnvBean, currDeployBean, promoteBean);
+
+            if (!scheduleResult.getLeft()) {
                 return new PromoteResult()
                     .withResultCode(PromoteResult.ResultCode.NotInScheduledTime);
             }
+            endTime = scheduleResult.getRight();
         }
 
         //Get the start time to find a deploy in preceded environment. If current deploy is promoted
-        //from preceded environment, use the last promoted deploy start_date in preceded
-      // environment.
+        //from preceded environment, use the last promoted deploy startDate in preceded
+        // environment.
         //Otherwise (current deploy is not promoted from preceded environment), use the current
-      // deploy
-        // start_date
-        long
-            currentDeployDate =
+        // deploy
+        // startDate
+        long currentDeployDate =
             getCurrentDeployStartDate(currDeployBean, precededEnvBean, currEnvBean);
 
         DeployBean precededDeployBean;
@@ -335,8 +345,8 @@ public class AutoPromoter implements Runnable {
             if (count != 0) {
                 LOG.debug("not deploying due to nonregular deploy in delay period for {}/{}",
                     precededEnvBean.getEnv_name(), precededEnvBean.getStage_name());
-                return new PromoteResult().withResultCode(
-                    PromoteResult.ResultCode.NoRegularDeployWithinDelayPeriod);
+                return new PromoteResult()
+                    .withResultCode(PromoteResult.ResultCode.NoRegularDeployWithinDelayPeriod);
             }
         } else {
             precededDeployBean =
@@ -356,8 +366,7 @@ public class AutoPromoter implements Runnable {
 
     DeployBean promoteDeploy(EnvironBean currEnvBean, DeployBean currDeployBean, int size,
                              PromoteBean promoteBean) throws Exception {
-        PromoteResult
-            result =
+        PromoteResult result =
             computePromoteDeployResult(currEnvBean, currDeployBean, size, promoteBean);
         LOG.info("Promote result {0} for env {1}", result.getResult().toString(),
             currEnvBean.getEnv_name());
@@ -492,8 +501,7 @@ public class AutoPromoter implements Runnable {
         String buildName = envBean.getBuild_name();
         String scmBranch = envBean.getBranch();
 
-        List<BuildBean>
-            buildBeans =
+        List<BuildBean> buildBeans =
             buildDAO.getAcceptedBuilds(buildName, scmBranch, interval, size);
         if (buildBeans.size() < 1) {
             LOG.debug("Looks like all builds been deployed in env {}", envBean.getEnv_id());
