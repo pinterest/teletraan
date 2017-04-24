@@ -232,7 +232,7 @@ public class AutoPromoter implements Runnable {
             Pair<Boolean, Long> scheduleResult = getScheduleCheckResult(currEnvBean,
                 currDeployBean, promoteBean);
 
-            if (!scheduleResult.getLeft()){
+            if (!scheduleResult.getLeft()) {
                 return new PromoteResult()
                     .withResultCode(PromoteResult.ResultCode.NotInScheduledTime);
             }
@@ -304,8 +304,7 @@ public class AutoPromoter implements Runnable {
         long endTime = Long.MAX_VALUE;
         String schedule = promoteBean.getSchedule();
         if (!StringUtils.isEmpty(schedule)) {
-            Pair<Boolean, Long>
-                scheduleResult =
+            Pair<Boolean, Long> scheduleResult =
                 getScheduleCheckResult(currEnvBean, currDeployBean, promoteBean);
 
             if (!scheduleResult.getLeft()) {
@@ -326,8 +325,7 @@ public class AutoPromoter implements Runnable {
 
         DeployBean precededDeployBean;
         if (promoteBean.getDelay() != 0) {
-            long
-                before =
+            long before =
                 Math.min(System.currentTimeMillis() - promoteBean.getDelay() * 60 * 1000, endTime);
             precededDeployBean =
                 getDeployCandidateDelayed(precededEnvBean.getEnv_id(),
@@ -537,13 +535,14 @@ public class AutoPromoter implements Runnable {
             LOG.info("Successfully get lock on {}", promoteLockName);
             try {
                 // Read the env again, make sure the current deploy is still the same deploy we
-              // think it is
+                // think it is
                 currEnvBean = environDAO.getById(currEnvBean.getEnv_id());
                 if ((currDeployBean == null && currEnvBean.getDeploy_id() != null) ||
                     (currDeployBean != null && !currEnvBean.getDeploy_id()
                         .equals(currDeployBean.getDeploy_id()))) {
                     LOG.info(
-                        "Env {} has a new deploy already, previously was {}, now is {}, no need to promote,"
+                        "Env {} has a new deploy already, previously was {}, now is {}, no need "
+                            + "to promote,"
                             + " bail out!",
                         currEnvBean.getEnv_id(),
                         currDeployBean == null ? "NULL" : currDeployBean.getDeploy_id(),
