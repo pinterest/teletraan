@@ -447,19 +447,7 @@ public class AutoPromoter implements Runnable {
         // Promote build if preStage is BUILD
         if (promoteBean.getPred_stage().equals(Constants.BUILD_STAGE)) {
             promoteBuild(currEnvBean, currDeployBean, size, promoteBean);
-            return;
         } else {
-
-            // If the service owner specify the cron expression, check if it's due for auto promote.
-            String schedule = promoteBean.getSchedule();
-            if (!StringUtils.isEmpty(schedule)) {
-                if (!autoDeployDue(currDeployBean, schedule)) {
-                    return;
-                }
-                // For cron auto promote, we only choose the latest one.
-                size = Math.min(size, 1);
-            }
-
             // Otherwise, promote from pred env deploys
             promoteDeploy(currEnvBean, currDeployBean, size, promoteBean);
         }
