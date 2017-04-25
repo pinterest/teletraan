@@ -269,8 +269,8 @@ CREATE INDEX tags_target_type_idx ON tags(target_type, created_date);
 CREATE TABLE IF NOT EXISTS schedules (
     id                  VARCHAR(22)     NOT NULL,
     total_sessions      INT             NOT NULL DEFAULT 0,
-    cooldown_times      VARCHAR(32)     NOT NULL,
-    host_numbers        VARCHAR(32)     NOT NULL,
+    cooldown_times      VARCHAR(2048)     NOT NULL,
+    host_numbers        VARCHAR(2048)     NOT NULL,
     current_session     INT             NOT NULL DEFAULT 0,
     state               VARCHAR(32)     NOT NULL DEFAULT "NOT_STARTED",
     state_start_time    BIGINT          NOT NULL,
