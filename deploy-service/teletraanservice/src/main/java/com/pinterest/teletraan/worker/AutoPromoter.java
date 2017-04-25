@@ -38,7 +38,9 @@ import com.pinterest.deployservice.handler.DeployHandler;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.MutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.joda.time.DateTime;
 import org.joda.time.Interval;
+import org.joda.time.format.ISODateTimeFormat;
 import org.quartz.CronExpression;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,9 +121,12 @@ public class AutoPromoter implements Runnable {
         //if we have a dued schedule.
         //The due time is computed as the next due since the startDate
         long startDate = getScheduleStartTime(currEnvBean, currDeployBean, promoteBean);
+        DateTime dt = new DateTime(startDate);
+        LOG.info("Schedule startdate {}", dt.toString(ISODateTimeFormat.dateTime()));
         //Get the time that we should deploy per schedule
         Date autoDeployDueDate = getScheduledCheckDueTime(startDate, promoteBean.getSchedule());
-
+        dt = new DateTime(autoDeployDueDate);
+        LOG.info("Auto deploy due time is {}", dt.toString(ISODateTimeFormat.dateTime()));
         if (autoDeployDueDate.getTime() != 0) {
             ret.setRight(autoDeployDueDate.getTime());
         }
@@ -141,8 +146,7 @@ public class AutoPromoter implements Runnable {
         } else {
             //Never deploy. We should only check against the time of the latest build. Otherwise
             //it will trigger any build to be deployed immediately
-            BuildBean
-                buildBean =
+            BuildBean buildBean =
                 getBuildCandidate(currEnvBean, new Interval(0, Long.MAX_VALUE), 1);
             if (buildBean != null) {
                 startTime = buildBean.getPublish_date();
@@ -269,7 +273,7 @@ public class AutoPromoter implements Runnable {
 
         PromoteResult result =
             computePromoteBuildResult(currEnvBean, currDeployBean, size, promoteBean);
-        LOG.info("Promote result {0} for env {1}", result.getResult().toString(),
+        LOG.info("Promote result {} for env {}", result.getResult().toString(),
             currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteBuild &&
             StringUtils.isNotEmpty(result.getPromotedBuild())) {
@@ -331,7 +335,7 @@ public class AutoPromoter implements Runnable {
                 getDeployCandidateDelayed(precededEnvBean.getEnv_id(),
                     new Interval(currentDeployDate, before));
             if (precededDeployBean == null) {
-                LOG.debug("Could not find any deploy candidate within delay period for {}/{}",
+                LOG.info("Could not find any deploy candidate within delay period for {}/{}",
                     precededEnvBean.getEnv_name(), precededEnvBean.getStage_name());
                 return new PromoteResult()
                     .withResultCode(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod);
@@ -366,7 +370,7 @@ public class AutoPromoter implements Runnable {
                              PromoteBean promoteBean) throws Exception {
         PromoteResult result =
             computePromoteDeployResult(currEnvBean, currDeployBean, size, promoteBean);
-        LOG.info("Promote result {0} for env {1}", result.getResult().toString(),
+        LOG.info("Promote result {} for env {}", result.getResult().toString(),
             currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteDeploy
             && result.getPredDeployInfo() != null) {
