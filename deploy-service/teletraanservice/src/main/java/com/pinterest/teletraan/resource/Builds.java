@@ -131,6 +131,14 @@ public class Builds {
         return buildDAO.get(scmCommit, buildName, scmBranch, pageIndex, pageSize, before, after);
     }
 
+    @GET
+    public List<BuildBean> getBuildsWithGroupName(@QueryParam("group") String groupName) throws Exception {
+        if (StringUtils.isEmpty(groupName)) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                "Require group name in the request.");
+        }
+        return buildDAO.getByGroupName(groupName);
+    }
 
     @GET
     @Path("/tags")

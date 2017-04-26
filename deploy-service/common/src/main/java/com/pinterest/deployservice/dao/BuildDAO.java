@@ -63,4 +63,6 @@ public interface BuildDAO {
     List<BuildBean> get(String scmCommit, String buildName, String scmBranch,
         Optional<Integer> pageIndex, Optional<Integer> pageSize, Long before, Long after)
         throws Exception;
+
+    List<BuildBean> getByGroupName(String groupName) throws Exception;
 }
