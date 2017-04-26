@@ -109,7 +109,7 @@ public class AutoPromoter implements Runnable {
 
     }
 
-    private Pair<Boolean, Long> getScheduleCheckResult(EnvironBean currEnvBean,
+    public Pair<Boolean, Long> getScheduleCheckResult(EnvironBean currEnvBean,
                                                        DeployBean currDeployBean,
                                                        PromoteBean promoteBean) throws Exception {
 
@@ -131,7 +131,7 @@ public class AutoPromoter implements Runnable {
             ret.setRight(autoDeployDueDate.getTime());
         }
 
-        ret.setLeft(now.after(autoDeployDueDate));
+        ret.setLeft(!now.before(autoDeployDueDate));
 
         return ret;
 

@@ -13,6 +13,7 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.PromoteBean;
 import com.pinterest.deployservice.dao.BuildDAO;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Before;
@@ -42,8 +43,10 @@ public class AutoPromotBuildTest {
 
   }
 
+
+
   @Test
-  public void testGetScheduledCheckDueTime() {
+  public void testGetScheduledCheckDueTime() throws Exception{
     DeployBean currentDeploy = new DeployBean();
     AutoPromoter promoter = new AutoPromoter(context);
     DateTime now = new DateTime(new Date());
@@ -63,6 +66,38 @@ public class AutoPromotBuildTest {
           start =
           new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(), 10, 0, 0);
       Assert.assertEquals(due, start);
+    }
+  }
+
+  @Test
+  public void testGetScheduledCheckDueResult() throws Exception{
+    PromoteBean promoteBean = new PromoteBean();
+    AutoPromoter promoter = new AutoPromoter(context);
+    DeployBean currentDeploy = new DeployBean();
+    currentDeploy.setStart_date(DateTime.now().minusDays(1).getMillis());
+    currentDeploy.setBuild_id("prev123");
+    DateTime now = DateTime.now();
+
+    promoteBean.setSchedule("* * * * * ?");
+    Pair<Boolean, Long> result =
+        promoter.getScheduleCheckResult(environBean, currentDeploy, promoteBean);
+    Assert.assertTrue(result.getLeft().booleanValue());
+    promoteBean.setSchedule(CronTenAMPerDay);
+    result =
+        promoter.getScheduleCheckResult(environBean, currentDeploy, promoteBean);
+
+    if (now.getHourOfDay() < 10) {
+      DateTime yesterday = now.minusDays(-1);
+      DateTime
+          start =
+          new DateTime(yesterday.getYear(), yesterday.getMonthOfYear(), yesterday.getDayOfMonth(),
+              10, 0, 0);
+      Assert.assertEquals(result.getRight().longValue(), start.getMillis());
+    } else {
+      DateTime
+          start =
+          new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(), 10, 0, 0);
+      Assert.assertEquals(result.getRight().longValue(), start.getMillis());
     }
   }
 
