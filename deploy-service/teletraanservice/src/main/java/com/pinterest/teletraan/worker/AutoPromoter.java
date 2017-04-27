@@ -122,11 +122,13 @@ public class AutoPromoter implements Runnable {
         //The due time is computed as the next due since the startDate
         long startDate = getScheduleStartTime(currEnvBean, currDeployBean, promoteBean);
         DateTime dt = new DateTime(startDate);
-        LOG.info("Schedule startdate {}", dt.toString(ISODateTimeFormat.dateTime()));
+        LOG.info("Schedule startdate {} for environment {}",
+            dt.toString(ISODateTimeFormat.dateTime()), currEnvBean.getEnv_name());
         //Get the time that we should deploy per schedule
         Date autoDeployDueDate = getScheduledCheckDueTime(startDate, promoteBean.getSchedule());
         dt = new DateTime(autoDeployDueDate);
-        LOG.info("Auto deploy due time is {}", dt.toString(ISODateTimeFormat.dateTime()));
+        LOG.info("Auto deploy due time is {} for Environment {}",
+            dt.toString(ISODateTimeFormat.dateTime()), currEnvBean.getEnv_name());
         if (autoDeployDueDate.getTime() != 0) {
             ret.setRight(autoDeployDueDate.getTime());
         }
@@ -475,6 +477,11 @@ public class AutoPromoter implements Runnable {
             CronExpression cronExpression = new CronExpression(cronExpressionString);
             Date lastCheckDate = new Date(start_date);
             ret = cronExpression.getNextValidTimeAfter(lastCheckDate);
+            LOG.info("Get cron {} due time is {} for check time {}",
+                cronExpressionString,
+                new DateTime(ret).toString(ISODateTimeFormat.dateTime()),
+                new DateTime(lastCheckDate).toString(ISODateTimeFormat.dateTime()));
+
             return ret;
         } catch (ParseException e) {
             LOG.error(String.format("Failed to parse cron expression: %s. Reason: %s",
@@ -510,6 +517,10 @@ public class AutoPromoter implements Runnable {
     }
 
     DeployBean getDeployCandidateDelayed(String envId, Interval interval) throws Exception {
+        LOG.info("Search Deploy candidates between {} and {} for environment {}",
+            interval.getStart().toString(ISODateTimeFormat.dateTime()),
+            interval.getEnd().toString(ISODateTimeFormat.dateTime()),
+            envId);
         List<DeployBean> deployBeans = deployDAO.getAcceptedDeploysDelayed(envId, interval);
         if (deployBeans.size() < 1) {
             LOG.info("There is no accepted deploy in env {}", envId);
