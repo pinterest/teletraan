@@ -16,11 +16,16 @@
 package com.pinterest.deployservice.common;
 
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class CommonUtilsTest {
     @Test
@@ -45,5 +50,20 @@ public class CommonUtilsTest {
 
         assertEquals(decoded.get("simple"), "How are you!");
         assertEquals(decoded.get("complicate"), script);
+    }
+
+    @Test
+    public void testURLIncludesDot() throws Exception {
+        Pattern p = Pattern.compile("^[a-zA-Z0-9\\-_.]+$");
+        Matcher m = p.matcher("username");
+        assertTrue(m.find());
+        m = p.matcher("username___000--valid");
+        assertTrue(m.find());
+        m = p.matcher("username_..d.000--valid");
+        assertTrue(m.find());
+        m = p.matcher("username***..d.000||invalid");
+        assertFalse(m.find());
+        m = p.matcher("***..d.000||invalid");
+        assertFalse(m.find());
     }
 }
