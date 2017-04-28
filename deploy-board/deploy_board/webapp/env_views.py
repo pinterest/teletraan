@@ -185,11 +185,15 @@ def get_recent_envs(request):
 
 def check_feedback_eligible(request, username):
     # Checks to see if a user should be asked for feedback or not.
-    if username and ratings_helper.is_user_eligible(request, username) and IS_PINTEREST:
-        num = random.randrange(0, 100)
-        if num <= 10:
-            return True
-    return False
+    try:
+        if username and ratings_helper.is_user_eligible(request, username) and IS_PINTEREST:
+            num = random.randrange(0, 100)
+            if num <= 10:
+                return True
+        return False
+    except:
+        log.error(traceback.format_exc())
+        return False
 
 
 class EnvLandingView(View):
