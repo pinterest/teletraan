@@ -64,5 +64,5 @@ public interface BuildDAO {
         Optional<Integer> pageIndex, Optional<Integer> pageSize, Long before, Long after)
         throws Exception;
 
-    List<BuildBean> getByGroupName(String groupName) throws Exception;
+    List<BuildBean> getCurrentBuildsByGroupName(String groupName) throws Exception;
 }

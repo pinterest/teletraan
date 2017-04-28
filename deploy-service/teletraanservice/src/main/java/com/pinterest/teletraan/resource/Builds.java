@@ -132,12 +132,13 @@ public class Builds {
     }
 
     @GET
-    public List<BuildBean> getBuildsWithGroupName(@QueryParam("group") String groupName) throws Exception {
+    @Path("/current")
+    public List<BuildBean> getCurrentBuildsWithGroupName(@QueryParam("group") String groupName) throws Exception {
         if (StringUtils.isEmpty(groupName)) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                 "Require group name in the request.");
         }
-        return buildDAO.getByGroupName(groupName);
+        return buildDAO.getCurrentBuildsByGroupName(groupName);
     }
 
     @GET
