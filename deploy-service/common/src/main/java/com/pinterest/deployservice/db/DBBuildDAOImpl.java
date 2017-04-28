@@ -94,6 +94,12 @@ public class DBBuildDAOImpl implements BuildDAO {
             + "AND NOT EXISTS (SELECT 1 FROM deploys WHERE deploys.build_id = builds.build_id) "
             + "ORDER BY publish_date ASC LIMIT ?";
 
+    private static final String GET_CURRENT_BUILD_BY_GROUP_NAME = "SELECT * FROM builds WHERE build_id IN " +
+        "(SELECT build_id FROM deploys WHERE deploy_id IN " +
+        "(SELECT deploy_id FROM environs WHERE env_id IN" +
+        " (SELECT env_id FROM groups_and_envs WHERE group_name = '%s')" +
+        "))";
+
 
     private BasicDataSource dataSource;
 
@@ -264,5 +270,11 @@ public class DBBuildDAOImpl implements BuildDAO {
         }
 
         return new ArrayList<>();
+    }
+
+    @Override
+    public List<BuildBean> getCurrentBuildsByGroupName(String groupName) throws Exception {
+        ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
+        return new QueryRunner(dataSource).query(String.format(GET_CURRENT_BUILD_BY_GROUP_NAME, groupName), h);
     }
 }
