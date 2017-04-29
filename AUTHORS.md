@@ -6,7 +6,6 @@ Contributors
 * Nick DeChant <nickd@pinterest.com>
 * Linda Lo <lo@pinterest.com>
 * Suman Karumuri <skarumuri@pinterest.com>
-* Hao Ming <haom@pinterest.com>
 * Lida Li <lidali@pinterest.com>
 * Suli Xu <suli@pinterest.com>
 * Saurabh Joshi <sjoshi@pinterest.com>
