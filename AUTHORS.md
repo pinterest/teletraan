@@ -10,3 +10,4 @@ Contributors
 * Suli Xu <suli@pinterest.com>
 * Saurabh Joshi <sjoshi@pinterest.com>
 * Yongwen Xu <yongwen@pinterest.com>
+* Ming Hao <haom@pinterest.com>
