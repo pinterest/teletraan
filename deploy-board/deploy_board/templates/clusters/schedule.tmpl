@@ -1,0 +1,27 @@
+<div class="collapse in panel-body">
+    <div class="container-fluid">
+        <form class="form-horizontal" role="form">
+            <table id="sessionTable" class="table">
+            <tr>
+                <th class="col-md-2">Session #</th>
+                <th class="col-md-2">Number of Hosts</th>
+                <th class="col-md-2">Cooldown Period (min)</th>
+                <th class="col-md-2">State</th>
+                <th class="col-md-2"></th>
+            </tr>
+                <td class="sessionNumber"><strong>FINAL</strong></td>
+                <td class="hostNumber">
+                    <div>N/A</div>
+                </td>
+                <td class="cooldownTime">
+                    <div>N/A</div>
+                </td>
+                <td class="state"></td>
+                <td class="text-right">
+                </td>
+            </tr>
+            </table>
+            {% csrf_token %}
+        </form>
+    </div>
+</div>

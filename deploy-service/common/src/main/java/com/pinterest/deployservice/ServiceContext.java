@@ -64,6 +64,8 @@ public class ServiceContext {
     private boolean deployCacheEnabled;
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
+    private String jenkinsUrl;
+    private String jenkinsRemoteToken;
 
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;
@@ -313,6 +315,22 @@ public class ServiceContext {
 
     public void setChangeFeedUrl(String changeFeedUrl) {
         this.changeFeedUrl = changeFeedUrl;
+    }
+
+    public String getJenkinsUrl() {
+        return jenkinsUrl;
+    }
+
+    public void setJenkinsUrl(String jenkinsUrl) {
+        this.jenkinsUrl = jenkinsUrl;
+    }
+
+    public String getJenkinsRemoteToken() {
+        return jenkinsRemoteToken;
+    }
+
+    public void setJenkinsRemoteToken(String jenkinsRemoteToken) {
+        this.jenkinsRemoteToken = jenkinsRemoteToken;
     }
 
     public TagDAO getTagDAO() {

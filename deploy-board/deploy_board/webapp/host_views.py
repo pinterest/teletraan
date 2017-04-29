@@ -85,7 +85,13 @@ def get_host_details(host_id):
         return None
     host_url = CMDB_API_HOST + CMDB_INSTANCE_URL + host_id
     response = requests.get(host_url)
-    instance = response.json()
+
+    try:
+        instance = response.json()
+    except:
+        # the host not found in CMDB
+        return None
+
     cloud_info = _get_cloud(instance)
     if not cloud_info:
         return None

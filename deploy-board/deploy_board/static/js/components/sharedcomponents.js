@@ -251,39 +251,7 @@ Vue.component("panel-heading", {
   }
 });
 
-/**
- * A form control with a label and multiple selection box
- */
-Vue.component("multi-label-select", {
-  template: '<div class="form-group">\
-    <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">\
-      {{label}}\
-    </label>\
-    <div class="col-xs-10"><div v-bind:class="groupStyle">\
-          <select class="form-control chosen-select"  v-on:change="updateValue($event.target.value)" multiple>\
-            <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected">{{option.text}}</option>\
-          </select>\
-    <span v-if="showhelp" class="input-group-btn">\
-    <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" v-on:click="helpClick" title="click to see more information">\
-        <span class="glyphicon glyphicon-question-sign"></span>\
-    </button>\
-   </span></div>\
-    </div></div>',
-  props: ['label', 'title', 'selectoptions','showhelp'],
-  data: function () {
-    return {
-      groupStyle: this.showhelp ? 'input-group' : ''
-    }
-  },
-  methods: {
-    updateValue: function (value) {
-      this.$emit('input', value)
-    },
-    helpClick: function(){
-      this.$emit('helpclick')
-    }
-  }
-});
+
 
 /**
  * A form table

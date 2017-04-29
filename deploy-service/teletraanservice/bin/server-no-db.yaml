@@ -1,8 +1,3 @@
-#
-# Dropwizard server configs. refer
-# http://www.dropwizard.io/0.9.1/docs/manual/configuration.html
-# for details.
-#
 server:
   applicationConnectors:
     - type: http
@@ -19,11 +14,6 @@ server:
         timeZone: UTC
   registerDefaultExceptionMappers: false
 
-#
-# Logging settings. refer
-# http://www.dropwizard.io/0.9.1/docs/manual/configuration.html
-# for details.
-#
 logging:
   level: INFO
   loggers:
@@ -40,34 +30,12 @@ logging:
       timeZone: UTC
       target: stdout
 
-
-#
-# Mysql connection config. By default, we use the real mysql as the backend.
-# Note: the embeded mysql is for demo or test purpose only. Use the official Mysql
-# installs for production usage.
-#
 db:
   type: embedded
 
-  # Optional - embedded mysql working directory. This is for embedded mysql only,
-  # default is /tmp/teletraan/db.
-  # Sometimes when the embedded mysql failed to start for whatever the reasons,
-  # delete the working dir often resolve the issue.
-  workDir: /tmp/teletraan/db
-
-#
-# Miscellaneous settings of the system
-#
 system:
-  # Teletraan needs to refer Deploy Dashboard url in its notify etc.
-  dashboardUrl: ${TELETRAAN_DASHBOARD_URL:-default http://localhost:8888}
-  # Display full stack trace or just the error to user.
-  #clientError: long|short
+  dashboardUrl: ${TELETRAAN_DASHBOARD_URL:-http://localhost:8888}
 
-#
-# Worker settings: disable all the workers if you do not want to run
-# workers together with the service. See documentations for more details.
-#
 workers:
   # StateTransitioner looks for active deploys, set deploy status and
   # transition deploys to their next states.

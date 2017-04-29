@@ -87,14 +87,12 @@
     {% for key, value in host_details.items %}
     <div class="row">
         <div class="col-lg-2"><strong> {{ key }} </strong></div>
-        {% if value|getType == 'dict' %}
+        {% if key == 'Phobos Link' %}
+            <div><a href="{{ value }}">{{ value }}</a></div>
+        {% elif value|getType == 'dict' %}
         <div>
             {% for k, v in value.items %}
-                {% if k == 'Phobos Link' %}
-                    <i>{{ k }}: </i><a href="{{ v }}">,
-                {% else %}
-                    <i>{{ k }}: </i>{{ v }},
-                {% endif %}
+                <i>{{ k }}: </i>{{ v }},
             {% endfor %}
         </div>
         {% elif value|getType == 'list' %}

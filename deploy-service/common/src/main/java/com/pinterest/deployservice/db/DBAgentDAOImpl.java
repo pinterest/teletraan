@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.AgentDAO;
@@ -56,7 +57,7 @@ public class DBAgentDAOImpl implements AgentDAO {
         "SELECT * FROM agents WHERE host_id=? AND env_id=?";
     private static final String GET_DEPLOYING_TOTAL =
         "SELECT COUNT(*) FROM agents " +
-            "WHERE env_id=? AND deploy_stage!=? AND state!='PAUSED_BY_USER' AND first_deploy=?";
+            "WHERE env_id=? AND ((deploy_stage!=? AND state!='PAUSED_BY_USER' AND first_deploy=?) OR state = 'STOP' )";
     private static final String GET_FAILED_FIRST_DEPLOY_TOTAL =
         "SELECT COUNT(*) FROM agents " +
                 "WHERE env_id=? AND deploy_stage!=? AND status !='SUCCEEDED' AND status!= 'UNKNOWN' AND first_deploy=1";
@@ -71,10 +72,13 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String COUNT_ALL_AGENT_BY_ENV = "SELECT COUNT(*) FROM agents WHERE env_id=?";
     private static final String COUNT_ALL_AGENT_BY_ENV_NAME = "SELECT COUNT(*) FROM agents WHERE env_name=?";
     private static final String COUNT_SERVING_TOTAL = "SELECT COUNT(*) FROM agents WHERE env_id=? AND deploy_stage=?";
-    private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY = 
+    private static final String COUNT_SERVING_AND_NORMAL_TOTAL = "SELECT COUNT(*) FROM agents WHERE env_id=? AND deploy_stage=? AND state=?";
+    private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=? AND (deploy_stage='SERVING_BUILD' OR state='PAUSED_BY_USER' OR state='PAUSED_BY_SYSTEM')";
     private static final String COUNT_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=?";
+    private static final String COUNT_ALL_DEPLOYED_HOSTS =
+            "SELECT COUNT(DISTINCT(host_id)) FROM agents WHERE deploy_id IS NOT NULL";
 
    
 
@@ -222,6 +226,13 @@ public class DBAgentDAOImpl implements AgentDAO {
     }
 
     @Override
+    public long countServingAndNormalTotal(String envId) throws Exception {
+        Long n = new QueryRunner(dataSource).query(COUNT_SERVING_AND_NORMAL_TOTAL, SingleResultSetHandlerFactory.<Long>newObjectHandler(),
+                envId, DeployStage.SERVING_BUILD.toString(), AgentState.NORMAL.toString());
+        return n == null ? 0 : n;
+    }
+
+    @Override
     public long countFinishedAgentsByDeploy(String deployId) throws Exception {
         Long n = new QueryRunner(dataSource).query(COUNT_FINISHED_AGENTS_BY_DEPLOY,
             SingleResultSetHandlerFactory.<Long>newObjectHandler(), deployId);
@@ -232,6 +243,13 @@ public class DBAgentDAOImpl implements AgentDAO {
     public long countAgentsByDeploy(String deployId) throws Exception {
         Long n = new QueryRunner(dataSource).query(COUNT_AGENTS_BY_DEPLOY,
             SingleResultSetHandlerFactory.<Long>newObjectHandler(), deployId);
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long countDeployedHosts() throws Exception {
+        Long n = new QueryRunner(dataSource).query(COUNT_ALL_DEPLOYED_HOSTS,
+                SingleResultSetHandlerFactory.<Long>newObjectHandler());
         return n == null ? 0 : n;
     }
 }

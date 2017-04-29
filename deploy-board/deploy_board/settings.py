@@ -56,6 +56,7 @@ else:
     OAUTH_AUTHORIZE_URL = os.getenv("OAUTH_AUTHORIZE_URL")
     OAUTH_DEFAULT_SCOPE = os.getenv("OAUTH_DEFAULT_SCOPE")
     OAUTH_USERNAME_INFO_KEY = os.getenv("OAUTH_USERNAME_INFO_KEY")
+    OAUTH_EXTRACT_USERNAME_FROM_EMAIL = os.getenv("OAUTH_EXTRACT_USERNAME_FROM_EMAIL")
 
 # Teletraan backend service url
 TELETRAAN_SERVICE_URL = os.getenv("TELETRAAN_SERVICE_URL")
@@ -192,6 +193,9 @@ SITE_METRICS_CONFIGS = []
 # Deep Teletraan backend health check url
 TELETRAAN_SERVICE_HEALTHCHECK_URL = os.getenv("TELETRAAN_SERVICE_HEALTHCHECK_URL", None)
 
+# Show hosts that are STOPPING or STOPPED in the environments page
+DISPLAY_STOPPING_HOSTS = os.getenv("DISPLAY_STOPPING_HOSTS", "true")
+
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = "https://jenkins.pinadmin.com/job/"
@@ -247,54 +251,8 @@ if IS_PINTEREST:
     #Pinterest Default AMI image name
     DEFAULT_CMP_IMAGE = 'cmp_base'
 
-    # Pinterest default placement strategy mapping.
-    PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING = {
-        'dev-private-service': ['dev-private-service-us-east-1a',
-                                'dev-private-service-us-east-1c',
-                                'dev-private-service-us-east-1d',
-                                'dev-private-service-us-east-1e'],
-        'dev-public-service': ['dev-public-service-us-east-1a',
-                               'dev-public-service-us-east-1c',
-                               'dev-public-service-us-east-1d',
-                               'dev-public-service-us-east-1e'],
-        'dev-private-storage': ['dev-private-service-us-east-1a',
-                                'dev-private-service-us-east-1c',
-                                'dev-private-service-us-east-1d',
-                                'dev-private-service-us-east-1e'],
-        'prod-private-service': ['prod-private-service-us-east-1a',
-                                 'prod-private-service-us-east-1c',
-                                 'prod-private-service-us-east-1d',
-                                 'prod-private-service-us-east-1e',
-                                 'prod-private-tools-us-east-1a',
-                                 'prod-private-tools-us-east-1c',
-                                 'prod-private-tools-us-east-1d',
-                                 'prod-private-tools-us-east-1e'],
-        'prod-private-tools': ['prod-private-service-us-east-1a',
-                               'prod-private-service-us-east-1c',
-                               'prod-private-service-us-east-1d',
-                               'prod-private-service-us-east-1e',
-                               'prod-private-tools-us-east-1a',
-                               'prod-private-tools-us-east-1c',
-                               'prod-private-tools-us-east-1d',
-                               'prod-private-tools-us-east-1e'],
-        'prod-public-service': ['prod-public-service-us-east-1a',
-                                'prod-public-service-us-east-1c',
-                                'prod-public-service-us-east-1d',
-                                'prod-public-service-us-east-1e'],
-        'prod-private-storage': ['prod-private-service-us-east-1a',
-                                 'prod-private-service-us-east-1c',
-                                 'prod-private-service-us-east-1d',
-                                 'prod-private-service-us-east-1e',
-                                 'prod-private-tools-us-east-1a',
-                                 'prod-private-tools-us-east-1c',
-                                 'prod-private-tools-us-east-1d',
-                                 'prod-private-tools-us-east-1e'],
-        'rtp-prod-private-service': ['prod-private-service-us-east-1a',
-                                     'prod-private-service-us-east-1c',
-                                     'prod-private-service-us-east-1d',
-                                     'prod-private-service-us-east-1e',
-                                     'prod-private-tools-us-east-1a',
-                                     'prod-private-tools-us-east-1c',
-                                     'prod-private-tools-us-east-1d',
-                                     'prod-private-tools-us-east-1e']
-    }
+    #Pinterest Default Host Type
+    DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
+
+    #Pinterest Default Puppet Environment
+    DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON',default='prod')

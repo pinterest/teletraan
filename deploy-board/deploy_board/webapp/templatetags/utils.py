@@ -98,6 +98,25 @@ _STATE_TO_ICONS = {
     "ABORTED": "fa fa-minus-circle",
 }
 
+_REPLACE_STATUS_TO_ICONS = {
+    "UNKNOWN": "fa fa-spinner fa-spin",
+    "FAILED": "fa fa-circle fa-blink color-red",
+    "SUCCEEDING": "fa fa-circle color-green",
+    "SUCCEEDED": "fa fa-check-circle color-green",
+    "ABORT": "fa fa-minus-circle",
+    "TIMEOUT": "fa fa-minus-circle",
+}
+
+_REPLACE_STATUS_TO_TIPS = {
+    "UNKNOWN": "Replacement is ongoing as expected",
+    "FAILED": "Replacement is stuck",
+    "SUCCEEDING": "Replacement is successful and still active",
+    "SUCCEEDED": "Replacement was completed successfully",
+    "ABORT": "Replacement was canceled",
+    "TIMEOUT": "Replacement was timed-out due to no activity within a certain time (default 30 mins)",
+}
+
+
 _JENKINS_TO_ICONS = {
     "RUNNING": "fa fa-spinner fa-spin",
     "FAILURE": "fa fa-circle fa-blink color-red",
@@ -154,7 +173,7 @@ def convertTimestamp(timestamp):
     # return datetime.fromtimestamp(timestamp / 1000).strftime('%Y-%m-%d
     # %H:%M:%S')
     temp_time = datetime.fromtimestamp(
-        timestamp / 1000, pytz.timezone('America/Los_Angeles'))
+        float(timestamp) / 1000, pytz.timezone('America/Los_Angeles'))
     return temp_time.strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -288,6 +307,11 @@ def deployStateIcon(state):
     return _STATE_TO_ICONS[state]
 
 
+@register.filter("replaceStatusIcon")
+def replaceStatusIcon(state):
+    return _REPLACE_STATUS_TO_ICONS[state]
+
+
 @register.filter("hotfixStateIcon")
 def hotfixStateIcon(state):
     return _HOTFIX_STATES_TO_ICONS[state]
@@ -330,6 +354,11 @@ def progressTip(deploy):
 @register.filter("deployStateTip")
 def deployStateTip(state):
     return _STATES_TO_TIPS[state]
+
+
+@register.filter("replaceStatusTip")
+def replaceStatusTip(state):
+    return _REPLACE_STATUS_TO_TIPS[state]
 
 
 @register.filter("hotfixStateTip")
@@ -920,9 +949,9 @@ def convertConfigHistoryString(change):
     change = change.replace("false", "False")
     change = change.replace("true", "True")
     if change[:1] == "{" or change[:1] == "[":
-        try: 
+        try:
             converted_string = ast.literal_eval(change)
             return converted_string
-        except: 
+        except:
             pass
     return change

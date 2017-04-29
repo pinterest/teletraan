@@ -23,6 +23,7 @@ import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.teletraan.config.AutoScalingFactory;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
+import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 import com.pinterest.teletraan.worker.*;
 
@@ -98,6 +99,12 @@ public class ConfigHelper {
             context.setRodimusManager(new RodimusManagerImpl(rodimusFactory.getRodimusUrl(), rodimusFactory.getToken()));
         } else {
             context.setRodimusManager(new DefaultRodimusManager());
+        }
+
+        JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
+        if (jenkinsFactory != null) {
+            context.setJenkinsUrl(jenkinsFactory.getJenkinsUrl());
+            context.setJenkinsRemoteToken(jenkinsFactory.getRemoteToken());
         }
 
         /**

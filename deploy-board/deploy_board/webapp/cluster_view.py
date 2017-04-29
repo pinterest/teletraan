@@ -21,12 +21,13 @@ from django.views.generic import View
 
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
-    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING
+    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
+    DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON
 import json
 import logging
 
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
-    autoscaling_groups_helper
+    autoscaling_groups_helper, groups_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
 import common
 
@@ -42,7 +43,7 @@ class EnvCapacityBasicCreateView(View):
 
         security_zones = securityzones_helper.get_by_provider(request, DEFAULT_PROVIDER)
         placements = placements_helper.get_by_provider(request, DEFAULT_PROVIDER)
-        default_base_image = baseimages_helper.get_by_name(request,DEFAULT_CMP_IMAGE)
+        default_base_image = baseimages_helper.get_by_name(request, DEFAULT_CMP_IMAGE)
         env = environs_helper.get_env_by_stage(request, name, stage)
 
         capacity_creation_info = {
@@ -50,10 +51,10 @@ class EnvCapacityBasicCreateView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
-            'defaultMappings': PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING,
             'baseImages': default_base_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
-            'defaultProvider': DEFAULT_PROVIDER
+            'defaultProvider': DEFAULT_PROVIDER,
+            'defaultHostType': DEFAULT_CMP_HOST_TYPE
         }
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
@@ -101,12 +102,12 @@ class EnvCapacityAdvCreateView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
-            'defaultMappings': PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
+            'defaultHostType': DEFAULT_CMP_HOST_TYPE,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
         }
@@ -160,7 +161,6 @@ class ClusterConfigurationView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
-            'defaultMappings': PINTEREST_SECURITY_GROUP_PLACEMENTMAPPING,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
@@ -474,9 +474,9 @@ def parse_configs(query_dict):
 
 def get_default_cmp_configs(name, stage):
     config_map = {}
-    config_map['aws_role'] = 'base'
+    config_map['iam_role'] = 'base'
     config_map['cmp_group'] = 'CMP,{}-{}'.format(name, stage)
-    config_map['pinfo_environment'] = 'prod'
+    config_map['pinfo_environment'] = DEFAULT_CMP_PINFO_ENVIRON
     config_map['pinfo_team'] = 'cloudeng'
     config_map['pinfo_role'] = 'cmp_base'
     return config_map
@@ -516,7 +516,7 @@ def delete_cluster(request, name, stage):
 
 def get_aws_config_name_list_by_image(image_name):
     config_map = {}
-    config_map['aws_role'] = 'base'
+    config_map['iam_role'] = 'base'
     config_map['assign_public_ip'] = 'true'
     if IS_PINTEREST:
         config_map['pinfo_environment'] = 'prod'
@@ -606,3 +606,160 @@ def cancel_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     clusters_helper.cancel_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
+
+
+def get_replacement_summary(request, cluster_name, event, current_capacity):
+    host_ids = event.get('host_ids')
+    state = event.get('state')
+    status = event.get('status')
+    progress_type = 'success' if status in ['SUCCEEDING', 'SUCCEEDED'] else 'danger'
+    if not host_ids:
+        num_finished_host_ids = 0
+    else:
+        num_finished_host_ids = len(host_ids.split(','))
+    if state == 'COMPLETED':
+        if status == 'SUCCEEDED':
+            # successful
+            succeeded = num_finished_host_ids
+            progress_rate = 100
+            msg = event.get('error_message', '')
+            return {
+                'id': event.get('id'),
+                'state': state,
+                'status': status,
+                'startDate': event.get('start_time'),
+                'lastUpdateDate': event.get('last_worked_on'),
+                'progressType': progress_type,
+                'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending'.format(
+                    succeeded, succeeded, 0),
+                'successRatePercentage': progress_rate,
+                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, succeeded),
+                'description': msg
+            }
+        else:
+            # failed
+            succeeded = num_finished_host_ids
+            progress_rate = succeeded * 100 / current_capacity
+            msg = event.get('error_message', '')
+            return {
+                'id': event.get('id'),
+                'state': state,
+                'status': status,
+                'startDate': event.get('start_time'),
+                'lastUpdateDate': event.get('last_worked_on'),
+                'progressType': progress_type,
+                'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending. Reason: {}'.format(
+                    current_capacity, succeeded, current_capacity - succeeded, msg),
+                'successRatePercentage': progress_rate,
+                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity),
+                'description': msg
+            }
+
+    else:
+        # on-going event
+        replaced_and_succeeded_hosts = groups_helper.get_replaced_and_good_hosts(request, cluster_name)
+        succeeded = len(replaced_and_succeeded_hosts)
+        progress_rate = succeeded * 100 / current_capacity
+        # its not necessarily error message
+        on_going_msg = event.get('error_message')
+        return {
+                'id': event.get('id'),
+                'state': state,
+                'status': status,
+                'startDate': event.get('start_time'),
+                'lastUpdateDate': event.get('last_worked_on'),
+                'progressType': progress_type,
+                'progressTip': 'Among total {} hosts, {} successfully replaced and {} are pending. {}'.format(
+                    current_capacity, succeeded, current_capacity - succeeded, on_going_msg),
+                'successRatePercentage': progress_rate,
+                'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity)
+            }
+
+
+def cluster_replacement_progress(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+
+    cluster_name = '{}-{}'.format(name, stage)
+    replacement_event = clusters_helper.get_latest_cluster_replacement_progress(request, cluster_name)
+    if not replacement_event:
+        log.info("There is no on-going replacement event for cluster %s." % cluster_name)
+        return HttpResponse("There is no on-going replacement.")
+
+    basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+    capacity = basic_cluster_info.get("capacity")
+    replacement_progress = get_replacement_summary(request, cluster_name, replacement_event, capacity)
+
+    html = render_to_string('clusters/replace_progress.tmpl', {
+        "env": env,
+        "replace_progress_report": replacement_progress
+    })
+    response = HttpResponse(html)
+    return response
+
+
+def cluster_replacement_details(request, name, stage):
+    cluster_name = '{}-{}'.format(name, stage)
+    replacement_event = clusters_helper.get_latest_cluster_replacement_progress(request, cluster_name)
+    if not replacement_event:
+        return HttpResponse("{}", content_type="application/json")
+    return HttpResponse(json.dumps(replacement_event), content_type="application/json")
+
+
+def view_cluster_replacement_details(request, name, stage, replacement_id):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+
+    replacement_event = clusters_helper.get_cluster_replacement_info(request, cluster_name, replacement_id)
+    if not replacement_event:
+        raise Exception("Replacement Id: %s Not Found.")
+
+    basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+    capacity = basic_cluster_info.get("capacity")
+    replacement_details = get_replacement_summary(request, cluster_name, replacement_event, capacity)
+    config_histories = clusters_helper.get_cluster_replacement_config_histories(request, cluster_name, replacement_id)
+    return render(request, 'clusters/cluster_replace_details.html', {
+        "replace": replacement_details,
+        "config_histories": config_histories,
+        "env": env
+    })
+
+
+def view_cluster_replacement_scaling_activities(request, name, stage):
+    cluster_name = '{}-{}'.format(name, stage)
+    scaling_activities = autoscaling_groups_helper.get_scaling_activities(request, cluster_name, 20, '')
+    activities = json.dumps(scaling_activities["activities"])
+    return HttpResponse(activities, content_type="application/json")
+
+
+def view_cluster_replacement_schedule(request, name, stage, replacement_id):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+    schedule = clusters_helper.get_cluster_replacement_schedule(request, cluster_name, replacement_id)
+    return render(request, 'clusters/replace_schedule.html', {
+        "env": env,
+        "schedule": schedule
+    })
+
+
+class ClusterHistoriesView(View):
+    def get(self, request, name, stage):
+        env = environs_helper.get_env_by_stage(request, name, stage)
+
+        cluster_name = '{}-{}'.format(name, stage)
+        page_index = request.GET.get('index')
+        page_size = request.GET.get('size')
+        histories = clusters_helper.get_cluster_replacement_histories(request, cluster_name, page_index, page_size)
+
+        replace_summaries = []
+        if histories:
+            basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+            capacity = basic_cluster_info.get("capacity")
+
+            for history in histories:
+                replace_summaries.append(get_replacement_summary(request, cluster_name, history, capacity))
+
+        data = {
+            "env": env,
+            "replace_summaries": replace_summaries
+        }
+        return render(request, 'clusters/replace_histories.html', data)

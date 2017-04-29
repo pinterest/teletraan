@@ -97,6 +97,7 @@
                             globalNotificationBanner.error = data;
                         } else {
                             globalNotificationBanner.info = "Saved Successfully";
+                            window.location.href='/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/'
                         }
                     },
                     error: function (data) {

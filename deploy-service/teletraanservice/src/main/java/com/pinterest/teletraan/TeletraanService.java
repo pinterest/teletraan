@@ -24,7 +24,7 @@ import com.pinterest.teletraan.resource.Deploys;
 import com.pinterest.teletraan.resource.EnvAgentConfigs;
 import com.pinterest.teletraan.resource.EnvAgents;
 import com.pinterest.teletraan.resource.EnvAlarms;
-import com.pinterest.teletraan.resource.EnvCapacitys;
+import com.pinterest.teletraan.resource.EnvCapacities;
 import com.pinterest.teletraan.resource.EnvDeploys;
 import com.pinterest.teletraan.resource.EnvGroupRoles;
 import com.pinterest.teletraan.resource.EnvHistory;
@@ -107,7 +107,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         EnvDeploys envDeploys = new EnvDeploys(context);
         environment.jersey().register(envDeploys);
 
-        EnvCapacitys envCapacitys = new EnvCapacitys(context);
+        EnvCapacities envCapacitys = new EnvCapacities(context);
         environment.jersey().register(envCapacitys);
 
         Environs envs = new Environs(context);

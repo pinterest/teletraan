@@ -9,7 +9,7 @@
 {% endblock %}
 {% load static %}
 {% block side-panel-actions %}
-<script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}"></script>
+<script type="text/javascript" src="{% static "js/components/sharedcomponents.js?changedate=2016.12.19.150000"%}"></script>
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Capacity</h4>
@@ -26,7 +26,8 @@
 {% endblock %}
 {% block main%}
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js "%}"></script>
+<script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2016.12.19.150000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2016.12.19.150000"%}"></script>
 
 <div id="mainPanel" class="panel panel-default">
 
@@ -47,8 +48,8 @@
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" showhelp="true" v-model="selectedSecurityZoneValue"
                         v-bind:selectoptions="securityZones" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
-                    <multi-label-select label="Placements" title="Placements" v-model="selectedPlacements" v-bind:selectoptions="placements"
-                        showhelp="true" v-on:helpclick="placementsHelpClick"></multi-label-select>
+                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" 
+                        showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <div>
                         <div class="form-group"></div>
@@ -85,10 +86,10 @@ var capacityView = new Vue({
 
 var info = {{capacity_creation_info|safe}}
 var environment = info.environment
-var sorted = info.baseImages.sort(function(item1,item2){return item1.publish_date>item2.publish_data;})
-
+var sorted = info.baseImages.sort(function(item1,item2){return item2.publish_date-item1.publish_date;})
+var placements = getDefaultPlacement(info)
 var capacitySetting = new Vue({
-    el: "#mainPanel",
+    el: "#mainPanel", 
     data: {
         allUserData: Object.keys(info.defaultCMPConfigs).map(
             function (key) {
@@ -97,6 +98,7 @@ var capacitySetting = new Vue({
                     value: info.defaultCMPConfigs[key]
                 }
             }).filter(function(item){return item.name!='cmp_group'}),
+        assignPublicIP: false,
         baseImageHelpData: [],
         baseimages: info.baseImages.map(
             function (o) {
@@ -123,7 +125,8 @@ var capacitySetting = new Vue({
             function (item, idx) {
                 return {
                     value: item.abstract_name,
-                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ")"
+                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ")",
+                    isSelected: item.abstract_name === info.defaultHostType
                 }
             }),
         imageNameValue: info.defaultBaseImage,
@@ -135,12 +138,12 @@ var capacitySetting = new Vue({
                 }
             }),
         instanceCount: "",
-        placements: info.placements.map(
+        placements: placements.allPrivate.map(
             function (item) {
                 return {
-                    value: item.abstract_name,
-                    text: item.abstract_name,
-                    isSelected: false
+                    value: item.id,
+                    text: item.provider_name,
+                    isSelected: placements.inDefault(item)
                 }
             }),
         placementsHelpData: [],
@@ -159,7 +162,7 @@ var capacitySetting = new Vue({
                     isSelected: item.id === info.securityZones[0].id
                 }
             }),
-        selectedHostTypeValue: info.hostTypes[0].abstract_name,
+        selectedHostTypeValue: info.defaultHostType,
         selectedSecurityZoneValue: info.securityZones[0].abstract_name,
         selectedPlacements: [],
         showBaseImageHelp: false,
@@ -253,7 +256,7 @@ var capacitySetting = new Vue({
 
                 },
                 success: function (data) {
-                    sorted = data.sort(function (item1, item2) { return item1.publish_date > item2.publish_data; })
+                    sorted = data.sort(function (item1, item2) { return item2.publish_date - item1.publish_date; })
                     capacitySetting.baseimages = sorted.map(function (o) { return { value: o.id, text: o.provider_name } })
                     capacitySetting.baseImageValue = sorted[0].id
                 },
@@ -284,6 +287,17 @@ var capacitySetting = new Vue({
                     })
                 }
         },
+        selectpublicip: function(value){
+            this.assignPublicIP = value
+            var arr = value ? placements.allPublic : placements.allPrivate
+            this.placements = arr.map(function(item, index) {
+                return {
+                    value: item.id,
+                    text: item.provider_name,
+                    isSelected:  placements.inDefault(item)//Select Top 3 by default
+                }
+            })
+        },
         validateInput: function (clusterInfo) {
             //Validate input data.
             var count = clusterInfo['capacity']
@@ -313,10 +327,15 @@ var capacitySetting = new Vue({
                     return false
                 }
 
-                if (clusterInfo.configs['pinfo_environment'] == undefined || clusterInfo.configs['pinfo_environment']!='prod'){
-                    globalNotificationBanner.error = "cmp_base image must have pinfo_environment set to be prod"
+                if (clusterInfo.configs['pinfo_environment'] == undefined || 
+                (clusterInfo.configs['pinfo_environment']!='prod' && clusterInfo.configs['pinfo_environment']!='dev')){
+                    globalNotificationBanner.error = "cmp_base image must have pinfo_environment set to be dev or prod"
                     return false
                 }
+            }
+            else if ('pinfo_role' in clusterInfo.configs && clusterInfo.configs['pinfo_role']==='cmp_base'){
+                globalNotificationBanner.error = "Non cmp_base image cannot have pinfo_role set to cmp_base"
+                return false
             }
             return true
         },
@@ -333,7 +352,7 @@ var capacitySetting = new Vue({
                 },
                 success: function (data) {
                     globalNotificationBanner.info = "Request sent successfully"
-                    window.location.href='/env/'+environment.envName+'/'+environment.stageName 
+                    window.location.href='/env/'+environment.envName+'/'+environment.stageName+'/config/capacity/'
                 },
                 error: function (data) {
                     globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
@@ -348,11 +367,22 @@ var capacitySetting = new Vue({
             clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
-            clusterInfo['placement'] = this.selectedPlacements.join(',');
+            if (this.selectedPlacements != null && this.selectedPlacements.length>0){
+                clusterInfo['placement'] = this.selectedPlacements.join(',');
+            }
+            else{
+                clusterInfo['placement'] = this.placements.filter(function(item){
+                    return item.isSelected
+                }).map(function(item){ return item.value}).join(',')
+            }
             clusterInfo['configs'] = this.allUserData.reduce(function (map, obj) { map[obj.name] = obj.value; return map }, {})
 
-            if (this.imageNameValue === 'cmp_base'){
+            if (this.imageNameValue === 'cmp_base' || this.imageNameValue === 'cmp_base_12'){
                 clusterInfo['configs']['cmp_group'] = info.defaultCMPConfigs['cmp_group']
+            }
+
+            if (this.assignPublicIP){
+                clusterInfo.configs['assign_public_ip'] = true
             }
 
             if (this.validateInput(clusterInfo)) {
@@ -364,6 +394,15 @@ var capacitySetting = new Vue({
             if (value) {
                 this.createCapacity();
             }
+        }
+    },
+    watch: {
+        placements: function(){
+            //Schedule this to nextTick that calls after next DOM refresh
+            //as JQuery chosen call must happen after DOM updates finished
+            Vue.nextTick(function(){
+                $(".chosen-select").trigger("chosen:updated")            
+            })
         }
     }
 })
