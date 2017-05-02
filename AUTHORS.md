@@ -7,6 +7,7 @@ Contributors
 * Linda Lo <lo@pinterest.com>
 * Suman Karumuri <skarumuri@pinterest.com>
 * Lida Li <lidali@pinterest.com>
+* Ming Hao <haom@pinterest.com>
 * Suli Xu <suli@pinterest.com>
 * Saurabh Joshi <sjoshi@pinterest.com>
 * Yongwen Xu <yongwen@pinterest.com>
