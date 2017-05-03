@@ -33,7 +33,7 @@ public class Constants {
     public static final String BUILD_STAGE = "BUILD";
     public static final String DEFAULT_BRANCH_NAME = "master";
     public static final int DEFAULT_MAX_PROMOTE_QUEUE_SIZE = 10;
-    public static final int DEFAULT_PROMOTE_QUEUE_SIZE = 10;
+    public static final int DEFAULT_PROMOTE_QUEUE_SIZE = 1;
     public static final int DEFAULT_PROMOTE_DELAY_MINUTES = 0;
     public static final String AUTO_PROMOTER_NAME = "AutoPromoter";
     public static final int DEFAULT_DEPLOY_NUM = 5000;
