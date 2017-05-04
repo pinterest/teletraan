@@ -18,6 +18,7 @@ package com.pinterest.teletraan;
 import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.Agents;
+import com.pinterest.teletraan.resource.DeployCandidates;
 import com.pinterest.teletraan.resource.Builds;
 import com.pinterest.teletraan.resource.Commits;
 import com.pinterest.teletraan.resource.Deploys;
@@ -161,6 +162,9 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         // Support pings as well
         Pings pings = new Pings(context);
         environment.jersey().register(pings);
+
+        DeployCandidates buildCandidates = new DeployCandidates(context);
+        environment.jersey().register(buildCandidates);
 
         Schedules schedules = new Schedules(context);
         environment.jersey().register(schedules);

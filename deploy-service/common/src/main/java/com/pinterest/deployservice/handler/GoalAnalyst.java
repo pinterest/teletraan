@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
-class GoalAnalyst {
+public class GoalAnalyst {
     private static final Logger LOG = LoggerFactory.getLogger(GoalAnalyst.class);
     // Define lower value for hotfix and rollback priority to make sure they deploy first
     // Notice hotfix and rollback priority should still lower than system service priority
