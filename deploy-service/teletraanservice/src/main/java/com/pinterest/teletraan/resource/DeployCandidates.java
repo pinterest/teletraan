@@ -46,7 +46,7 @@ public class DeployCandidates {
         value = "Get a set of deploy candidates to deploy",
         notes = "Returns a list of build bean",
         response = DeployCandidatesResponse.class)
-    public DeployCandidatesResponse ping(@Context SecurityContext sc,
+    public DeployCandidatesResponse getDeployCandidates(@Context SecurityContext sc,
                                          @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
         LOG.info("Receive ping request " + requestBean);
         authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PINGER);
