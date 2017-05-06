@@ -27,6 +27,8 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
 
 import com.google.common.base.Optional;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
@@ -48,6 +50,7 @@ import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/capacity")
+@Api(tags = "Environments")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvCapacities {
@@ -70,6 +73,9 @@ public class EnvCapacities {
   }
 
   @GET
+  @ApiOperation(
+      value = "Get the capacities for Group and hosts",
+      notes = "Get the capacities for Group and hosts")
   public List<String> get(@PathParam("envName") String envName,
                           @PathParam("stageName") String stageName,
                           @QueryParam("capacityType") Optional<CapacityType> capacityType)
@@ -83,6 +89,9 @@ public class EnvCapacities {
   }
 
   @PUT
+  @ApiOperation(
+      value = "Update the capacities for Group and hosts",
+      notes = "Update the capacities for Group and hosts")
   public void update(@PathParam("envName") String envName,
                      @PathParam("stageName") String stageName,
                      @QueryParam("capacityType") Optional<CapacityType> capacityType,
@@ -110,6 +119,9 @@ public class EnvCapacities {
   }
 
   @POST
+  @ApiOperation(
+      value = "Create the capacities for Group and hosts",
+      notes = "Create the capacities for Group and hosts")
   public void add(@PathParam("envName") String envName,
                   @PathParam("stageName") String stageName,
                   @QueryParam("capacityType") Optional<CapacityType> capacityType,
@@ -128,6 +140,9 @@ public class EnvCapacities {
   }
 
   @DELETE
+  @ApiOperation(
+      value = "Delete the capacities for Group and hosts",
+      notes = "Delete the capacities for Group and hosts")
   public void delete(@PathParam("envName") String envName,
                      @PathParam("stageName") String stageName,
                      @QueryParam("capacityType") Optional<CapacityType> capacityType,
