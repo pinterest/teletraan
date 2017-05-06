@@ -15,18 +15,27 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.ConfigHistoryBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.dao.ConfigHistoryDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
+import com.google.common.base.Optional;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 import java.util.List;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/history")
+@Api(tags = "Environments")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvHistory {
@@ -40,6 +49,9 @@ public class EnvHistory {
     }
 
     @GET
+    @ApiOperation(
+        value = "Get the config history for the environment",
+        notes = "Get the config history for the environment")
     public List<ConfigHistoryBean> get(@PathParam("envName") String envName,
         @PathParam("stageName") String stageName,
         @QueryParam("pageIndex") Optional<Integer> pageIndex,
