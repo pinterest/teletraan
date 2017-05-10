@@ -511,9 +511,7 @@ public class PingHandler {
          */
         if (updateBean.getDeploy_stage() == StateMachines.getDownloadStage()) {
             LOG.debug("Set build info for goal at {} stage", StateMachines.getDownloadStage());
-            DeployBean deployBean = deployCache == null ? deployDAO.getById(deployId) : getFromCache(deployCache, deployId);
-            BuildBean buildBean = buildCache == null ? buildDAO.getById(deployBean.getBuild_id()) : getFromCache(buildCache, deployBean.getBuild_id());
-            goal.setBuild(buildBean);
+            fillBuildForDeployGoal(goal);
         }
 
         // Pre-Download Stage
@@ -553,6 +551,14 @@ public class PingHandler {
 
         response.setDeployGoal(goal);
         return response;
+    }
+
+    public void fillBuildForDeployGoal(DeployGoalBean goal) throws Exception {
+        DeployBean deployBean = deployCache == null ? deployDAO.getById(goal.getDeployId())
+                                : getFromCache(deployCache, goal.getDeployId());
+        BuildBean buildBean = buildCache == null ? buildDAO.getById(deployBean.getBuild_id())
+                               : getFromCache(buildCache, deployBean.getBuild_id());
+        goal.setBuild(buildBean);
     }
 
     PingResponseBean generateDeleteResponse(GoalAnalyst.UninstallCandidate candidate) throws Exception {

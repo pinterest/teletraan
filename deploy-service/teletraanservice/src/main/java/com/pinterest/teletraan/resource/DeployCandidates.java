@@ -52,10 +52,15 @@ public class DeployCandidates {
         authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PINGER);
         PingResult result = pingHandler.ping(requestBean);
         DeployCandidatesResponse resp = new DeployCandidatesResponse();
-        if (result.getInstallCandidates()!=null){
-            for(GoalAnalyst.InstallCandidate candidate:result.getInstallCandidates()){
+        if (result.getInstallCandidates() != null) {
+            for (GoalAnalyst.InstallCandidate candidate : result.getInstallCandidates()) {
                 PingResponseBean pingResponse = pingHandler.generateInstallResponse(candidate);
-                if (pingResponse!=null){
+                if (pingResponse != null) {
+                    if (pingResponse.getDeployGoal().getBuild() == null &&
+                        pingResponse.getDeployGoal().getDeployId() != null) {
+                        //By default, build is not filled unless in downloading stage
+                        pingHandler.fillBuildForDeployGoal(pingResponse.getDeployGoal());
+                    }
                     resp.getCandidates().add(pingResponse);
                 }
             }
