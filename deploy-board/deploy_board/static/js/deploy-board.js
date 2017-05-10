@@ -63,6 +63,9 @@ function getDefaultPlacement(capacityCreationInfo) {
     var allPrivateIPPlacements = []
     var allPublicIPPlacements = []
 
+    //The abstract name of group can be default assigned 
+    var defaultAssignedGroup = new Set(['us-east-1a','us-east-1c', 'us-east-1d', 'us-east-1e'])
+
     //Save the maximum subnet for each abstract_name
     function addToMaxGroup(item, group) {
         if (item.abstract_name in group) {
@@ -96,11 +99,15 @@ function getDefaultPlacement(capacityCreationInfo) {
     $.each(this.capacityCreationInfo.placements, function (index, item) {
         if (item.assign_public_ip) {
             allPublicIPPlacements.push(item)
-            addToMaxGroup(item, cmpPublicIPPlacements)
+            if (defaultAssignedGroup.has(item.abstract_name)){
+                addToMaxGroup(item, cmpPublicIPPlacements)
+            }
         }
         else {
             allPrivateIPPlacements.push(item)
-            addToMaxGroup(item, cmpPrivateIPPlacements)
+            if (defaultAssignedGroup.has(item.abstract_name)){
+                addToMaxGroup(item, cmpPrivateIPPlacements)
+            }
         }
     })
     return {
