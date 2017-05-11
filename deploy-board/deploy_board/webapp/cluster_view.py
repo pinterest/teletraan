@@ -288,8 +288,14 @@ def get_base_image_info(request, name):
 
 def get_base_images_by_name_json(request, name):
     base_images = baseimages_helper.get_acceptance_by_name(request, name)
-
-    return HttpResponse(json.dumps(base_images), content_type="application/json")
+    rs = []
+    if base_images:
+        for image in base_images:
+            r = image.get('baseImage')
+            if r:
+                r['acceptance'] = image.get('acceptance', 'UNKNOWN')
+                rs.append(r)
+    return HttpResponse(json.dumps(rs), content_type="application/json")
 
 
 def create_host_type(request):
