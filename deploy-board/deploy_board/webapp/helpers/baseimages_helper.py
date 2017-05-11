@@ -37,6 +37,10 @@ def get_by_name(request, name):
     return rodimus_client.get("/base_images/names/%s" % name, request.teletraan_user_id.token)
 
 
+def get_acceptance_by_name(request, name):
+    return rodimus_client.get("/base_images/acceptances/%s" % name, request.teletraan_user_id.token)
+
+
 def get_by_provider_name(request, name):
     return rodimus_client.get("/base_images/provider_names/%s" % name, request.teletraan_user_id.token)
 

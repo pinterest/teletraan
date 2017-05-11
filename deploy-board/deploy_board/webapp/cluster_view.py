@@ -287,7 +287,8 @@ def get_base_image_info(request, name):
 
 
 def get_base_images_by_name_json(request, name):
-    base_images = baseimages_helper.get_by_name(request, name)
+    base_images = baseimages_helper.get_acceptance_by_name(request, name)
+
     return HttpResponse(json.dumps(base_images), content_type="application/json")
 
 
