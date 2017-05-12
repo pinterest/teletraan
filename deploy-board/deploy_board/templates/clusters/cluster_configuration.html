@@ -436,7 +436,7 @@
                 assignPublicIP: currentCluster.configs.assign_public_ip ? true : false,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
-                    var acceptance = o.acceptance ? ' [' + acceptance + ']' : '';
+                    var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
                     return {
                         value: o.id,
                         text: o.provider_name + acceptance,
@@ -602,7 +602,7 @@
                                 return item2.publish_date - item1.publish_date;
                             })
                             capacitySetting.baseimages = sorted.map(function(o) {
-                                var acceptance = o.acceptance ? ' [' + acceptance + ']' : '';
+                                var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
                                 return {
                                     value: o.id,
                                     text: o.provider_name + acceptance
