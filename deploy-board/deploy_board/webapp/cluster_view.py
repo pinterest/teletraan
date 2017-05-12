@@ -149,7 +149,12 @@ class ClusterConfigurationView(View):
 
         security_zones = securityzones_helper.get_by_provider(request, current_cluster['provider'])
         placements = placements_helper.get_by_provider(request, current_cluster['provider'])
-        base_images = baseimages_helper.get_by_name(request, current_image['abstract_name'])
+        abstract_name = current_image['abstract_name']
+        if abstract_name.startswith('cmp_base'):
+            # for cmp_base images , we did validation on it, need to display the results
+            base_images = get_base_image_info_with_acceptance(request, abstract_name)
+        else:
+            base_images = baseimages_helper.get_by_name(request, abstract_name)
         base_images_names = baseimages_helper.get_image_names(request, current_cluster['provider'])
 
 
@@ -281,21 +286,26 @@ def get_base_images_by_name(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
+def get_base_image_info_with_acceptance(request, name):
+    base_images = baseimages_helper.get_acceptance_by_name(request, name)
+    with_acceptance_rs = []
+    if base_images:
+        for image in base_images:
+            r = image.get('baseImage')
+            if r:
+                r['acceptance'] = image.get('acceptance', 'UNKNOWN')
+                with_acceptance_rs.append(r)
+    return with_acceptance_rs
+
+
 def get_base_image_info(request, name):
     base_images = baseimages_helper.get_by_name(request, name)
     return HttpResponse(json.dumps(base_images), content_type="application/json")
 
 
 def get_base_images_by_name_json(request, name):
-    base_images = baseimages_helper.get_acceptance_by_name(request, name)
-    rs = []
-    if base_images:
-        for image in base_images:
-            r = image.get('baseImage')
-            if r:
-                r['acceptance'] = image.get('acceptance', 'UNKNOWN')
-                rs.append(r)
-    return HttpResponse(json.dumps(rs), content_type="application/json")
+    base_images = get_base_image_info_with_acceptance(request, name)
+    return HttpResponse(json.dumps(base_images), content_type="application/json")
 
 
 def create_host_type(request):
