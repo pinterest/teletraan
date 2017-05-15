@@ -41,8 +41,9 @@ Vue.component('base-image-help', {
             { name: 'Name', headerClass: 'col-sm-1' },
             { name: 'Id', headerClass: 'col-sm-1' },
             { name: 'Qualified', headerClass: 'col-sm-1' },
-            { name: 'Description', headerClass: 'col-sm-4' }],
-            keys: ['publish_date', 'abstract_name', 'provider_name', 'qualified', 'description']
+            { name: 'Description', headerClass: 'col-sm-4' },
+            { name: 'Acceptance', headerClass: 'col-sm-4' }],
+            keys: ['publish_date', 'abstract_name', 'provider_name', 'qualified', 'description', 'acceptance']
         }
     },
 }
