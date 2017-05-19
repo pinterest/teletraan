@@ -27,7 +27,7 @@
 {% block main%}
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2016.12.19.150000"%}"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2016.12.19.150000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.05.16.123000"%}"></script>
 
 <div id="mainPanel" class="panel panel-default">
 
@@ -48,7 +48,7 @@
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" showhelp="true" v-model="selectedSecurityZoneValue"
                         v-bind:selectoptions="securityZones" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
-                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" 
+                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP"
                         showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <div>
@@ -89,7 +89,7 @@ var environment = info.environment
 var sorted = info.baseImages.sort(function(item1,item2){return item2.publish_date-item1.publish_date;})
 var placements = getDefaultPlacement(info)
 var capacitySetting = new Vue({
-    el: "#mainPanel", 
+    el: "#mainPanel",
     data: {
         allUserData: Object.keys(info.defaultCMPConfigs).map(
             function (key) {
@@ -327,7 +327,7 @@ var capacitySetting = new Vue({
                     return false
                 }
 
-                if (clusterInfo.configs['pinfo_environment'] == undefined || 
+                if (clusterInfo.configs['pinfo_environment'] == undefined ||
                 (clusterInfo.configs['pinfo_environment']!='prod' && clusterInfo.configs['pinfo_environment']!='dev')){
                     globalNotificationBanner.error = "cmp_base image must have pinfo_environment set to be dev or prod"
                     return false
@@ -401,7 +401,7 @@ var capacitySetting = new Vue({
             //Schedule this to nextTick that calls after next DOM refresh
             //as JQuery chosen call must happen after DOM updates finished
             Vue.nextTick(function(){
-                $(".chosen-select").trigger("chosen:updated")            
+                $(".chosen-select").trigger("chosen:updated")
             })
         }
     }
