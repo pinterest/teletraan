@@ -100,7 +100,7 @@ class EnvCapacityAdvCreateView(View):
             request, DEFAULT_PROVIDER)
         placements = placements_helper.get_by_provider(
             request, DEFAULT_PROVIDER)
-        base_images = baseimages_helper.get_by_name(request, DEFAULT_CMP_IMAGE)
+        base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE)
         base_images_names = baseimages_helper.get_image_names(
             request, DEFAULT_PROVIDER)
 
