@@ -512,7 +512,7 @@ def get_default_cmp_configs(name, stage):
     config_map['pinfo_environment'] = DEFAULT_CMP_PINFO_ENVIRON
     config_map['pinfo_team'] = 'cloudeng'
     config_map['pinfo_role'] = 'cmp_base'
-    config_map['access_role'] = '{}-{}'.format(name, stage)
+    config_map['access_role'] = DEFAULT_CMP_ACCESS_ROLE
     return config_map
 
 
