@@ -47,8 +47,7 @@ class EnvCapacityBasicCreateView(View):
             request, DEFAULT_PROVIDER)
         placements = placements_helper.get_by_provider(
             request, DEFAULT_PROVIDER)
-        default_base_image = baseimages_helper.get_by_name(
-            request, DEFAULT_CMP_IMAGE)
+        default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE)
         env = environs_helper.get_env_by_stage(request, name, stage)
 
         capacity_creation_info = {
