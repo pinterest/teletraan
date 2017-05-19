@@ -256,3 +256,4 @@ if IS_PINTEREST:
 
     #Pinterest Default Puppet Environment
     DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON',default='prod')
+    DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE',default='engineering')
