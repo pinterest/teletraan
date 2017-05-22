@@ -3,7 +3,7 @@
 ![](https://github.com/pinterest/teletraan/blob/master/docs/misc/images/TeletraanIntro.png)
 
 ### What is Teletraan?
-Teletraan is Pinterest's deploy system. It deploys hundreds of Pinterest internal services, supports tens of thousands hosts, and has been running in production for over a few years. It empowers Pinterest Engineers to deliver their code to pinners fast and safe. Check out the [wiki](https://github.com/pinterest/teletraan/wiki) or blog post: [Under the hood: Teletraan Deploy System] (https://engineering.pinterest.com/blog/under-hood-teletraan-deploy-system) for more details.
+Teletraan is Pinterest's deploy system. It deploys hundreds of Pinterest internal services, supports tens of thousands hosts, and has been running in production for over a few years. It empowers Pinterest Engineers to deliver their code to pinners fast and safe. Check out the [wiki](https://github.com/pinterest/teletraan/wiki) or blog post [Under the hood: Teletraan Deploy System](https://engineering.pinterest.com/blog/under-hood-teletraan-deploy-system) for more details.
 
 The name Teletraan comes from a character in Transformer TV series! [wikipedia](https://en.wikipedia.org/wiki/List_of_Transformers_supporting_characters#Teletran_3)
 
