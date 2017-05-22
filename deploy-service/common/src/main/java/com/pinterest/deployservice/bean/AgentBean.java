@@ -230,6 +230,7 @@ public class AgentBean implements Updatable {
 
     public final static String UPDATE_CLAUSE =
         "host_id=VALUES(host_id)," +
+            "host_name=VALUES(host_name),"+
             "deploy_id=VALUES(deploy_id)," +
             "deploy_stage=VALUES(deploy_stage)," +
             "start_date=VALUES(start_date)," +
