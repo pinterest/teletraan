@@ -8,7 +8,7 @@ Teletraan is Pinterest's deploy system. It deploys hundreds of Pinterest interna
 The name Teletraan comes from a character in Transformer TV series! [wikipedia](https://en.wikipedia.org/wiki/List_of_Transformers_supporting_characters#Teletran_3)
 
 ### Why use Teletraan?
-Teletraan is designed to do one thing and one thing only - deploy. It supports critical features such as 0 downtime deploy, rollback, staging, continuous deploy; and many convenient features such as showing commit details, comparing different deploys, notifying deploy state changes through email or chat, displaying metrics and more. Teletraan currently does not support container based deploy yet, it is on our roadmap to support next.
+Teletraan is designed to do one thing and one thing only - deploy. It supports critical features such as 0 downtime deploy, rollback, staging, continuous deploy; and many convenient features such as showing commit details, comparing different deploys, notifying deploy state changes through email or chat, displaying metrics and more. Teletraan does not support container based deploy yet, it is on our roadmap to support next. Currently you can still use Teletraan Deploy Scripts to call docker or docker-compose to run containers.
 
 ### How to use Teletraan?
 Teletraan is designed to be a flexible building block. You can plug Teletraan into your existing release workflow given the following requirements met:
