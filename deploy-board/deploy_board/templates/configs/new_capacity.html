@@ -76,12 +76,12 @@
 
 <script>
 var capacityView = new Vue({
-    el:"#side-panel",
+    el:"#side-panel"
  }
-)
+);
 
-var capacityCreationInfo = {{capacity_creation_info|safe}}
-var environment = capacityCreationInfo.environment
+var capacityCreationInfo = {{capacity_creation_info|safe}};
+var environment = capacityCreationInfo.environment;
 
 getDefaultBaseImage = function(){
     var accepted = capacityCreationInfo.baseImages.filter(function (e) {
@@ -91,9 +91,9 @@ getDefaultBaseImage = function(){
         return item2.publish_date - item1.publish_date;});
 
     return sorted[0].id;
-}
+};
 
-var placements = getDefaultPlacement(capacityCreationInfo)
+var placements = getDefaultPlacement(capacityCreationInfo);
 
 var capacitySetting = new Vue({
     el:"#capacityPanel",
