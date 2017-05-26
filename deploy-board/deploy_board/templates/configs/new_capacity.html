@@ -136,18 +136,18 @@ var capacitySetting = new Vue({
     methods:{
         validateInput: function(clusterInfo){
             //Validate input data.
-            var count = clusterInfo['capacity']
+            var count = clusterInfo['capacity'];
             if (count === undefined || count === null || isNaN(count) || count<0 || count>1000 ) {
                 // do something
-                globalNotificationBanner.error = "Capacity must be a number between 0 and 1000"
-                return false
+                globalNotificationBanner.error = "Capacity must be a number between 0 and 1000";
+                return false;
             }
-            var placement = clusterInfo['placement']
+            var placement = clusterInfo['placement'];
             if (placement ===undefined || placement === null || placement.length===0){
-                globalNotificationBanner.error = "Placement must be specified"
-                return false
+                globalNotificationBanner.error = "Placement must be specified";
+                return false;
             }
-            return true
+            return true;
         },
         sendRequest: function(clusterInfo){
                 $.ajax({
