@@ -202,8 +202,8 @@ var capacitySetting = new Vue({
             }
         },
         selectpublicip: function(value){
-            this.assignPublicIP = value
-            var arr = value ? placements.cmpPublic : placements.cmpPrivate
+            this.assignPublicIP = value;
+            var arr = value ? placements.cmpPublic : placements.cmpPrivate;
             this.placements = arr.map(function(item, index) {
                 return {
                     value: item.id,
