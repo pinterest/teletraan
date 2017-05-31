@@ -29,11 +29,13 @@ import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -44,10 +46,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/hosts")
 @Api(tags = "Hosts")
@@ -73,7 +71,7 @@ public class EnvHosts {
     @ApiOperation(
             value = "Get hosts for env stage",
             notes = "Returns a Collections of hosts given an environment and stage",
-            response = HostBean.class, responseContainer = "Collection")
+            response = HostBean.class, responseContainer = "List")
     public Collection<HostBean> get(
             @ApiParam(value = "Environment name", required = true) @PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName") String stageName) throws Exception {
@@ -86,7 +84,7 @@ public class EnvHosts {
     @ApiOperation(
             value = "Get host details for stage and host name",
             notes = "Returns a host given an environment, stage and host name",
-            response = HostBean.class)
+            response = HostBean.class, responseContainer = "List")
     public Collection<HostBean> getHostByHostName(
             @ApiParam(value = "Environment name", required = true) @PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName") String stageName,
