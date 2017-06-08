@@ -140,6 +140,11 @@ class EnvCapacityAdvCreateView(View):
             environs_helper.update_env_basic_config(request, name, stage,
                                                     data={"clusterName": cluster_name, "IsDocker": True})
 
+            log.info("Update capacity to the environment")
+            # set up env and group relationship
+            environs_helper.add_env_capacity(
+                request, name, stage, capacity_type="GROUP", data=cluster_name)
+
             return HttpResponse("{}", content_type="application/json")
         except Exception as e:
             log.info("Have an error {}", e)
