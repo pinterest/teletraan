@@ -23,7 +23,8 @@ import os
 from django.conf import settings
 from django.http import HttpResponse
 
-def handle_uploaded_build(request, file, name, stage): 
+
+def handle_uploaded_build(request, file, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     build_name = env['buildName']
 
@@ -35,9 +36,9 @@ def handle_uploaded_build(request, file, name, stage):
     if not os.path.isdir(save_path):
         os.makedirs(save_path)
 
-    if file_name.endswith('.tar.gz'): 
+    if file_name.endswith('.tar.gz'):
         file_extension = "tar.gz"
-    else: 
+    else:
         file_extension = file_name.split('.').pop()
 
     file_name = '%s.%s' % (build_name + '-' + request.POST['commitIdFull'][0:7], file_extension)
@@ -52,7 +53,7 @@ def handle_uploaded_build(request, file, name, stage):
     except:
         return HttpResponse("Error uploading to Teletraan server", status=422)
 
-    # upload onto S3/Pinrepo 
+    # upload onto S3/Pinrepo
     return _upload_to_s3(request, build_url, file_name, build_name, name, stage)
 
 
@@ -65,10 +66,10 @@ def _upload_to_s3(request, build_url, file_name, build_name, name, stage):
     except:
         os.remove(build_url)
         return HttpResponse("Error uploading to Amazon S3 -- please check your connection and access rights.", status=422)
-    
+
     # wait until file is finished succcesfully uploading into the bucket. Sets timeout to 10 seconds
     total_wait_time = 0
-    while not s3.exists(key): 
+    while not s3.exists(key):
         time.sleep(10)
         total_wait_time += 10
         if (total_wait_time > 50000):
@@ -76,10 +77,10 @@ def _upload_to_s3(request, build_url, file_name, build_name, name, stage):
             return HttpResponse("Upload has timed out. Please check your connection to Amazon S3.", status=422)
     # deletes private build tarball from django server
     os.remove(build_url)
-    return _upload_to_teletraan(request, build_url, file_name, build_name, name, stage) 
-    
+    return _upload_to_teletraan(request, build_url, file_name, build_name, name, stage)
 
-def _upload_to_teletraan(request, build_url, file_name, build_name, name, stage): 
+
+def _upload_to_teletraan(request, build_url, file_name, build_name, name, stage):
     post_params = request.POST
 
     build = {}
