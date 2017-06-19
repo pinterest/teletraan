@@ -29,7 +29,7 @@ Vue.component('delete-cluster', {
  * Clone Cluster button on the side panel
  */
 Vue.component('clone-cluster', {
-    template: '<div v-show="showclone" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="cloneClusterFormIdModalLabel" aria-hidden="true">\
+    template: '<div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="cloneClusterFormIdModalLabel" aria-hidden="true">\
     <div class="modal-dialog modal-lg">\
         <div class="modal-content">\
             <form id="cloneClusterFormId" class="form-horizontal" method="post" role="form">\
@@ -37,22 +37,22 @@ Vue.component('clone-cluster', {
                     <button type="button" class="close" data-dismiss="modal"><span\
                             aria-hidden="true">&times;</span><span class="sr-only">Close</span>\
                     </button>\
-                    <h4 class="modal-title" id="newEnvModalLabel">Clone cluster</h4>\
+                    <h4 class="modal-title">Clone cluster</h4>\
                 </div>\
                 <div class="modal-body">\
                     <div class="form-group">\
-                <label for="capacity" class="deployToolTip control-label col-xs-4" title="Clone to Environment and stage name">\
+                <label class="deployToolTip control-label col-xs-4" title="Clone to Environment and stage name">\
                 </label>\
                         <div class="col-xs-2">\
                             <div class="input-group" >\
                                 <span class="input-group-addon">Environment Name</span>\
-                                <input class="form-control" v-bind:value="new_environment" v-on:change="updateNewEnvironment($event.target.value)"></input>\
+                                <input class="form-control" v-on:change="updateNewEnvironment($event.target.value)"></input>\
                             </div>\
                         </div>\
                         <div class="col-xs-2">\
                             <div class="input-group" >\
                                 <span class="input-group-addon">Stage Name</span>\
-                                <input class="form-control" v-bind:value="new_stage" v-on:change="updateNewStage($event.target.value)"></input>\
+                                <input class="form-control" v-on:change="updateNewStage($event.target.value)"></input>\
                             </div>\
                         </div>\
             </div>\
@@ -62,7 +62,7 @@ Vue.component('clone-cluster', {
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>\
                 </div>\
             </form></div></div></div>',
-    props: ['showclone', 'new_environment', 'new_stage'],
+    props: ['showclone'],
     methods: {
         cloneConfig: function (value) {
             var new_environment = this.new_environment;
