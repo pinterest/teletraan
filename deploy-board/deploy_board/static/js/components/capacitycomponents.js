@@ -29,31 +29,42 @@ Vue.component('delete-cluster', {
  * Clone Cluster button on the side panel
  */
 Vue.component('clone-cluster', {
-    template: '<div v-show="showclone">\
-    <side-button-modal-confirm confirmDiaglog="#cloneClusterDialogId" \
-        text="Clone Cluster" title="Clone Cluster" styleclass="glyphicon">\
-    </side-button-modal-confirm>\
-    <modal title="Clone Cluster Confirm" id="cloneClusterDialogId" v-on:input="clickDialog">\
-         <div class="form-group">\
-            <label for="capacity" class="deployToolTip control-label col-xs-4" title="Clone to Environment and stage name">\
-            </label>\
-                    <div class="col-xs-2">\
-                        <div class="input-group" >\
-                            <span class="input-group-addon">Environment Name</span>\
-                            <input class="form-control" v-bind:value="new_environment" v-on:change="updateNewEnvironment($event.target.value)"></input>\
+    template: '<div v-show="showclone" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="cloneClusterFormIdModalLabel" aria-hidden="true">\
+    <div class="modal-dialog modal-lg">\
+        <div class="modal-content">\
+            <form id="cloneClusterFormId" class="form-horizontal" method="post" role="form">\
+                <div class="modal-header">\
+                    <button type="button" class="close" data-dismiss="modal"><span\
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>\
+                    </button>\
+                    <h4 class="modal-title" id="newEnvModalLabel">Clone cluster</h4>\
+                </div>\
+                <div class="modal-body">\
+                    <div class="form-group">\
+                <label for="capacity" class="deployToolTip control-label col-xs-4" title="Clone to Environment and stage name">\
+                </label>\
+                        <div class="col-xs-2">\
+                            <div class="input-group" >\
+                                <span class="input-group-addon">Environment Name</span>\
+                                <input class="form-control" v-bind:value="new_environment" v-on:change="updateNewEnvironment($event.target.value)"></input>\
+                            </div>\
                         </div>\
-                    </div>\
-                    <div class="col-xs-2">\
-                        <div class="input-group" >\
-                            <span class="input-group-addon">Stage Name</span>\
-                            <input class="form-control" v-bind:value="new_stage" v-on:change="updateNewStage($event.target.value)"></input>\
+                        <div class="col-xs-2">\
+                            <div class="input-group" >\
+                                <span class="input-group-addon">Stage Name</span>\
+                                <input class="form-control" v-bind:value="new_stage" v-on:change="updateNewStage($event.target.value)"></input>\
+                            </div>\
                         </div>\
-                    </div>\
             </div>\
-    </modal></div>',
+                </div>\
+                <div class="modal-footer">\
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="cloneConfig">Clone</button>\
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>\
+                </div>\
+            </form></div></div></div>',
     props: ['showclone', 'new_environment', 'new_stage'],
     methods: {
-        clickDialog: function (value) {
+        cloneConfig: function (value) {
             var new_environment = this.new_environment;
             var new_stage = this.new_stage;
             this.$emit('input', value, new_environment, new_stage);
