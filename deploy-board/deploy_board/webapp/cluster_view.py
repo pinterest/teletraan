@@ -553,6 +553,57 @@ def delete_cluster(request, name, stage):
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
 
+def clone_cluster(request, src_name, src_stage):
+    params = request.POST
+    dest_name = params.get('new_environment', src_name)
+    dest_stage = params.get('new_stage', src_stage + '_clone')
+
+    ##1. teletraan service create a new env
+    dest_env = environs_helper.create_env(request, {
+        'envName': dest_name,
+        'stageName': dest_stage
+    })
+
+    ##2. rodimus service get src_cluster config
+    src_cluster_name = '{}-{}'.format(src_name, src_stage)
+    src_cluster_info = clusters_helper.get_cluster(request, src_cluster_name)
+
+    ##3. rodimus service post create cluster
+    dest_cluster_name = '{}-{}'.format(dest_name, dest_stage)
+    src_cluster_info['clusterName'] = dest_cluster_name
+    src_cluster_info['capacity'] = 0
+    clusters_helper.create_cluster(request, dest_cluster_name, src_cluster_info)
+
+    ##4. teletraan service update_env_basic_config
+    environs_helper.update_env_basic_config(request, dest_name, dest_stage,
+                                            data={"clusterName": dest_cluster_name}
+                                            )
+    ##5. teletraan service set up env and group relationship
+    environs_helper.update_env_capacity(request, dest_name, dest_stage, capacity_type="GROUP",
+                                        data=dest_cluster_name)
+
+    ##6. get src script_config
+    src_script_configs = environs_helper.get_env_script_config(request, src_name, src_stage)
+    src_agent_configs = environs_helper.get_env_agent_config(request, src_name, src_stage)
+    src_alarms_configs = environs_helper.get_env_alarms_config(request, src_name, src_stage)
+    src_metrics_configs = environs_helper.get_env_metrics_config(request, src_name, src_stage)
+    src_webhooks_configs = environs_helper.get_env_hooks_config(request, src_name, src_stage)
+
+
+    ##8. clone all the extra configs
+    if src_agent_configs:
+        environs_helper.update_env_agent_config(request, dest_name, dest_stage, src_agent_configs)
+    if src_script_configs:
+        environs_helper.update_env_script_config(request, dest_name, dest_stage, src_script_configs)
+    if src_alarms_configs:
+        environs_helper.update_env_alarms_config(request, dest_name, dest_stage, src_alarms_configs)
+    if src_metrics_configs:
+        environs_helper.update_env_metrics_config(request, dest_name, dest_stage, src_metrics_configs)
+    if src_webhooks_configs:
+        environs_helper.update_env_hooks_config(request, dest_name, dest_stage, src_webhooks_configs)
+    return dest_env
+
+
 def get_aws_config_name_list_by_image(image_name):
     config_map = {}
     config_map['iam_role'] = 'base'

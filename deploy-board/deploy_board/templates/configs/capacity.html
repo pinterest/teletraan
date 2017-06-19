@@ -35,13 +35,13 @@
          <div v-if="showAddExistingCapacity" class="row">
             <side-button styleclass="fa fa-plus" text="Add Existing Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?addexisting" title="Add Existing Capacity"></side-button>
         </div>
-
+        <clone-cluster v-bind:showclone="!noCluster" v-on:input="cloneClick"></clone-cluster>
         <delete-cluster v-bind:showdelete="!noCluster" v-on:input="deleteClick"></delete-cluster>
     {% else %}
         <div class="row">
             <side-button styleclass="fa fa-gears" text="General Config"  title="Return the generic configuration page"></side-button>
         </div>
-    {% endif %} 
+    {% endif %}
 
 </div>
 {% endblock %}
@@ -107,6 +107,37 @@ var sidebar = new Vue({
                 this.sendDelete()
             }
         },
+
+        sendClone: function (new_environment, new_stage) {
+            $.ajax({
+                    type: 'POST',
+                    url: '/env/{{ env.envName }}/{{ env.stageName }}/config/clone_cluster/',
+                    data: {
+                        'new_environment': new_environment,
+                        'new_stage': new_stage
+                    },
+                    dataType: "json",
+                    beforeSend: function(xhr, settings) {
+                        var csrftoken = getCookie('csrftoken')
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                    },
+                    success: function(data) {
+                        globalNotificationBanner.info = "Request sent successfully";
+                        //Reload page
+                        window.location.href=window.location.href
+                    },
+                    error: function(data) {
+                        globalNotificationBanner.error = data
+                    }
+                });
+        },
+
+        cloneClick: function(new_environment, new_stage) {
+            if(new_environment && new_stage) {
+                this.sendClone(new_environment, new_stage);
+            }
+        }
     }
  });
 
@@ -119,7 +150,7 @@ var alert = new Vue({
 </script>
 
 <div id="mainPanel">
-    {% if is_pinterest %} 
+    {% if is_pinterest %}
         {% include "clusters/cluster_capacity.tmpl" %}
     {% endif %}
     {% include "configs/capacity.tmpl" %}
