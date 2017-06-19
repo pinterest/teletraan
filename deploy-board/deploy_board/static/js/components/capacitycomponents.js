@@ -67,7 +67,7 @@ Vue.component('clone-cluster', {
         cloneConfig: function (value) {
             var new_environment = this.new_environment;
             var new_stage = this.new_stage;
-            this.$emit('input', value, new_environment, new_stage);
+            this.$emit('input', new_environment, new_stage);
         },
         updateNewEnvironment: function (value) {
             this.new_environment = value;

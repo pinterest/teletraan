@@ -35,7 +35,7 @@
          <div v-if="showAddExistingCapacity" class="row">
             <side-button styleclass="fa fa-plus" text="Add Existing Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity?addexisting" title="Add Existing Capacity"></side-button>
         </div>
-        <clone-cluster v-bind:showclone="!noCluster" v-on:input="cloneClick"></clone-cluster>
+        <clone-cluster v-bind:showclone="!noCluster" v-bind:new_environment="{{ env.envName }}" v-bind:new_stage="{{ env.stageName }}-clone" v-on:input="cloneClick"></clone-cluster>
         <delete-cluster v-bind:showdelete="!noCluster" v-on:input="deleteClick"></delete-cluster>
     {% else %}
         <div class="row">
