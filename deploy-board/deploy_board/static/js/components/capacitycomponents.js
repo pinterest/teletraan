@@ -35,20 +35,24 @@ Vue.component('clone-cluster', {
     </side-button-modal-confirm>\
     <modal title="Clone Cluster Confirm" id="cloneClusterDialogId" v-on:input="clickDialog">\
         <div slot="body">\
-            <div class="form-group">\
-            <div class="col-xs-10">\
-                <div class="input-group" >\
-                    <span class="input-group-addon">Environment Name</span>\
-                    <input class="form-control" v-on:change="updateNewEnvironment($event.target.value)"></input>\
+           <div class="panel-body">\
+                <div class="form-group">\
+                    <div class="col-xs-10">\
+                        <div class="input-group" >\
+                            <span class="input-group-addon">Environment Name</span>\
+                            <input class="form-control" v-on:change="updateNewEnvironment($event.target.value)"></input>\
+                        </div>\
+                    </div>\
                 </div>\
-            </div>\
-            <div class="col-xs-10">\
-                <div class="input-group" >\
-                    <span class="input-group-addon">Stage Name</span>\
-                    <input class="form-control" v-on:change="updateNewStage($event.target.value)"></input>\
+                <div class="form-group">\
+                    <div class="col-xs-10">\
+                        <div class="input-group" >\
+                            <span class="input-group-addon">Stage Name</span>\
+                            <input class="form-control" v-on:change="updateNewStage($event.target.value)"></input>\
+                        </div>\
+                    </div>\
                 </div>\
-            </div>\
-            </div>\
+             </div>\
         </div>\
     </modal>\
     </div>',
