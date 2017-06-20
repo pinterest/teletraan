@@ -573,24 +573,29 @@ def clone_cluster(request, src_name, src_stage):
             'stageName': dest_stage,
             'buildName': build_name
         })
+        log.info('clone_cluster, created a new env %s' % dest_env)
 
         ##2. rodimus service get src_cluster config
-
         src_cluster_info = clusters_helper.get_cluster(request, src_cluster_name)
+        log.info('clone_cluster, src cluster info %s' % src_cluster_info)
         configs = src_cluster_info.get('configs')
         if configs:
             cmp_group = configs.get('cmp_group')
             if cmp_group:
                 cmp_groups_set = set(cmp_group.split(','))
                 cmp_groups_set.remove(src_cluster_name)
+                cmp_groups_set.remove('CMP')
                 cmp_groups_set.add(dest_cluster_name)
-                configs['cmp_group'] = ','.join(list(cmp_groups_set))
+                # CMP needs to be the first in the list
+                configs['cmp_group'] = ','.join(['CMP'] + list(cmp_groups_set))
                 src_cluster_info['configs'] = configs
 
         ##3. rodimus service post create cluster
         src_cluster_info['clusterName'] = dest_cluster_name
         src_cluster_info['capacity'] = 0
-        clusters_helper.create_cluster(request, dest_cluster_name, src_cluster_info)
+        log.info('clone_cluster, request clone cluster info %s' % src_cluster_info)
+        dest_cluster_info = clusters_helper.create_cluster(request, dest_cluster_name, src_cluster_info)
+        log.info('clone_cluster, cloned cluster info %s' % dest_cluster_info)
 
         ##4. teletraan service update_env_basic_config
         environs_helper.update_env_basic_config(request, dest_name, dest_stage,
@@ -606,7 +611,6 @@ def clone_cluster(request, src_name, src_stage):
         src_alarms_configs = environs_helper.get_env_alarms_config(request, src_name, src_stage)
         src_metrics_configs = environs_helper.get_env_metrics_config(request, src_name, src_stage)
         src_webhooks_configs = environs_helper.get_env_hooks_config(request, src_name, src_stage)
-
 
         ##8. clone all the extra configs
         if src_agent_configs:
