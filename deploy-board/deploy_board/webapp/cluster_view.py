@@ -558,10 +558,15 @@ def clone_cluster(request, src_name, src_stage):
     dest_name = params.get('new_environment', src_name)
     dest_stage = params.get('new_stage', src_stage + '_clone')
 
+    ##0. teletraan service get src env buildName
+    src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
+    build_name = src_env.get('buildName', None)
+
     ##1. teletraan service create a new env
     dest_env = environs_helper.create_env(request, {
         'envName': dest_name,
-        'stageName': dest_stage
+        'stageName': dest_stage,
+        'buildName': build_name
     })
 
     ##2. rodimus service get src_cluster config
@@ -580,7 +585,7 @@ def clone_cluster(request, src_name, src_stage):
                                             )
     ##5. teletraan service set up env and group relationship
     environs_helper.update_env_capacity(request, dest_name, dest_stage, capacity_type="GROUP",
-                                        data=dest_cluster_name)
+                                        data=[dest_cluster_name])
 
     ##6. get src script_config
     src_script_configs = environs_helper.get_env_script_config(request, src_name, src_stage)
