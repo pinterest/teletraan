@@ -30,6 +30,7 @@ from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, p
     autoscaling_groups_helper, groups_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
 import common
+import traceback
 
 log = logging.getLogger(__name__)
 
@@ -554,59 +555,76 @@ def delete_cluster(request, name, stage):
 
 
 def clone_cluster(request, src_name, src_stage):
-    params = request.POST
-    dest_name = params.get('new_environment', src_name)
-    dest_stage = params.get('new_stage', src_stage + '_clone')
+    try:
+        params = request.POST
+        dest_name = params.get('new_environment', src_name)
+        dest_stage = params.get('new_stage', src_stage + '_clone')
 
-    ##0. teletraan service get src env buildName
-    src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
-    build_name = src_env.get('buildName', None)
+        src_cluster_name = '{}-{}'.format(src_name, src_stage)
+        dest_cluster_name = '{}-{}'.format(dest_name, dest_stage)
 
-    ##1. teletraan service create a new env
-    dest_env = environs_helper.create_env(request, {
-        'envName': dest_name,
-        'stageName': dest_stage,
-        'buildName': build_name
-    })
+        ##0. teletraan service get src env buildName
+        src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
+        build_name = src_env.get('buildName', None)
 
-    ##2. rodimus service get src_cluster config
-    src_cluster_name = '{}-{}'.format(src_name, src_stage)
-    src_cluster_info = clusters_helper.get_cluster(request, src_cluster_name)
+        ##1. teletraan service create a new env
+        dest_env = environs_helper.create_env(request, {
+            'envName': dest_name,
+            'stageName': dest_stage,
+            'buildName': build_name
+        })
 
-    ##3. rodimus service post create cluster
-    dest_cluster_name = '{}-{}'.format(dest_name, dest_stage)
-    src_cluster_info['clusterName'] = dest_cluster_name
-    src_cluster_info['capacity'] = 0
-    clusters_helper.create_cluster(request, dest_cluster_name, src_cluster_info)
+        ##2. rodimus service get src_cluster config
 
-    ##4. teletraan service update_env_basic_config
-    environs_helper.update_env_basic_config(request, dest_name, dest_stage,
-                                            data={"clusterName": dest_cluster_name}
-                                            )
-    ##5. teletraan service set up env and group relationship
-    environs_helper.update_env_capacity(request, dest_name, dest_stage, capacity_type="GROUP",
-                                        data=[dest_cluster_name])
+        src_cluster_info = clusters_helper.get_cluster(request, src_cluster_name)
+        configs = src_cluster_info.get('configs')
+        if configs:
+            cmp_group = configs.get('cmp_group')
+            if cmp_group:
+                cmp_groups_set = set(cmp_group.split(','))
+                cmp_groups_set.remove(src_cluster_name)
+                cmp_groups_set.add(dest_cluster_name)
+                configs['cmp_group'] = ','.join(list(cmp_groups_set))
+                src_cluster_info['configs'] = configs
 
-    ##6. get src script_config
-    src_script_configs = environs_helper.get_env_script_config(request, src_name, src_stage)
-    src_agent_configs = environs_helper.get_env_agent_config(request, src_name, src_stage)
-    src_alarms_configs = environs_helper.get_env_alarms_config(request, src_name, src_stage)
-    src_metrics_configs = environs_helper.get_env_metrics_config(request, src_name, src_stage)
-    src_webhooks_configs = environs_helper.get_env_hooks_config(request, src_name, src_stage)
+        ##3. rodimus service post create cluster
+        src_cluster_info['clusterName'] = dest_cluster_name
+        src_cluster_info['capacity'] = 0
+        clusters_helper.create_cluster(request, dest_cluster_name, src_cluster_info)
+
+        ##4. teletraan service update_env_basic_config
+        environs_helper.update_env_basic_config(request, dest_name, dest_stage,
+                                                data={"clusterName": dest_cluster_name}
+                                                )
+        ##5. teletraan service set up env and group relationship
+        environs_helper.update_env_capacity(request, dest_name, dest_stage, capacity_type="GROUP",
+                                            data=[dest_cluster_name])
+
+        ##6. get src script_config
+        src_script_configs = environs_helper.get_env_script_config(request, src_name, src_stage)
+        src_agent_configs = environs_helper.get_env_agent_config(request, src_name, src_stage)
+        src_alarms_configs = environs_helper.get_env_alarms_config(request, src_name, src_stage)
+        src_metrics_configs = environs_helper.get_env_metrics_config(request, src_name, src_stage)
+        src_webhooks_configs = environs_helper.get_env_hooks_config(request, src_name, src_stage)
 
 
-    ##8. clone all the extra configs
-    if src_agent_configs:
-        environs_helper.update_env_agent_config(request, dest_name, dest_stage, src_agent_configs)
-    if src_script_configs:
-        environs_helper.update_env_script_config(request, dest_name, dest_stage, src_script_configs)
-    if src_alarms_configs:
-        environs_helper.update_env_alarms_config(request, dest_name, dest_stage, src_alarms_configs)
-    if src_metrics_configs:
-        environs_helper.update_env_metrics_config(request, dest_name, dest_stage, src_metrics_configs)
-    if src_webhooks_configs:
-        environs_helper.update_env_hooks_config(request, dest_name, dest_stage, src_webhooks_configs)
-    return dest_env
+        ##8. clone all the extra configs
+        if src_agent_configs:
+            environs_helper.update_env_agent_config(request, dest_name, dest_stage, src_agent_configs)
+        if src_script_configs:
+            environs_helper.update_env_script_config(request, dest_name, dest_stage, src_script_configs)
+        if src_alarms_configs:
+            environs_helper.update_env_alarms_config(request, dest_name, dest_stage, src_alarms_configs)
+        if src_metrics_configs:
+            environs_helper.update_env_metrics_config(request, dest_name, dest_stage, src_metrics_configs)
+        if src_webhooks_configs:
+            environs_helper.update_env_hooks_config(request, dest_name, dest_stage, src_webhooks_configs)
+
+        return HttpResponse(json.dumps(src_cluster_info), content_type="application/json")
+    except Exception as e:
+        log.error("Failed to clone cluster env_name: %s, stage_name: %s" % (src_name, src_stage))
+        log.error(traceback.format_exc())
+        return HttpResponse(e, status=500, content_type="application/json")
 
 
 def get_aws_config_name_list_by_image(image_name):
