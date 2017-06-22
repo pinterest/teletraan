@@ -938,7 +938,7 @@ def get_hosts(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
     if agents:
-        sorted(agents, key=lambda x:x.hostName)
+        sorted(agents, key=lambda x:x['hostName'])
     title = "All hosts"
 
     agents_wrapper = {}
