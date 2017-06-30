@@ -1031,6 +1031,7 @@ public class DBDAOTest {
         assertEquals(bean.getState_start_time(), time);
 
         ScheduleBean updateBean = new ScheduleBean();
+        updateBean.setTotal_sessions(3);
         updateBean.setCurrent_session(1);
         updateBean.setState(ScheduleState.RUNNING);
         scheduleDAO.update(updateBean, id);
