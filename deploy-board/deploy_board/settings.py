@@ -248,6 +248,9 @@ if IS_PINTEREST:
     #Pinterest Default Cloud Provider
     DEFAULT_PROVIDER = 'AWS'
 
+    #Pinterest Default cell id
+    DEFAULT_CELL = 'us-east-1'
+
     #Pinterest Default AMI image name
     DEFAULT_CMP_IMAGE = 'cmp_base'
 
