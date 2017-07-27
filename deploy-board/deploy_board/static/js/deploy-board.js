@@ -55,6 +55,7 @@ function getUrlParameter(sParam) {
         }
     }
 }
+
 function getDefaultPlacement(capacityCreationInfo) {
     this.capacityCreationInfo = capacityCreationInfo
     var cmpPublicIPPlacements = {}
