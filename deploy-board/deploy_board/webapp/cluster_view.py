@@ -22,12 +22,12 @@ from django.views.generic import View
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
-        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE
+        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_REGION
 import json
 import logging
 
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
-    autoscaling_groups_helper, groups_helper
+    autoscaling_groups_helper, groups_helper, cells_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
 import common
 import traceback
@@ -101,6 +101,7 @@ class EnvCapacityAdvCreateView(View):
             request, DEFAULT_PROVIDER)
         placements = placements_helper.get_by_provider(
             request, DEFAULT_PROVIDER)
+        cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
         base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE)
         base_images_names = baseimages_helper.get_image_names(
             request, DEFAULT_PROVIDER)
@@ -113,11 +114,13 @@ class EnvCapacityAdvCreateView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
+            'cells': cells,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
+            'defaultRegion': DEFAULT_REGION,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)

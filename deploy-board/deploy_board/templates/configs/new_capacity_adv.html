@@ -37,6 +37,7 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
+                    <region-select v-bind:cells="cells" v-bind:value="currentRegion"></region-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
                         v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" inadvanced="true" v-on:helpclick="baseImageHelpClick">
@@ -126,6 +127,7 @@ var capacitySetting = new Vue({
         confirmDialogTitle: "Confirm New Capacity Creation",
         confirmDialogId: "createHostGroup",
         currentProvider: info.defaultProvider,
+        currentRegion: info.defaultRegion,
         hostTypeHelpData:[],
         hostTypeOptions: info.hostTypes.map(
             function (item, idx) {
@@ -157,6 +159,14 @@ var capacitySetting = new Vue({
             function (o) {
                 return {
                     value: o, text: o
+                }
+            }),
+        cells: info.cells.map(
+            function (item) {
+                return {
+                    value: item.id,
+                    text: item.provider_name,
+                    isSelected: info.defaultRegion
                 }
             }),
         securityZoneHelpData: [],
@@ -369,6 +379,7 @@ var capacitySetting = new Vue({
             //Create the default capacity. The input here aligns to the Rodimus new cluster
             var clusterInfo = {};
             clusterInfo['provider'] = this.currentProvider;
+            clusterInfo['region'] = this.currentRegion;
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
