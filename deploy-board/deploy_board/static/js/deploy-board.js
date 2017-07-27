@@ -64,7 +64,7 @@ function getDefaultPlacement(capacityCreationInfo) {
     var allPublicIPPlacements = []
 
     //The abstract name of group can be default assigned
-    var defaultAssignedGroup = new Set(['us-east-1a','us-east-1c', 'us-east-1d', 'us-east-1e'])
+    var defaultAssignedGroup = new Set(['us-east-1a','us-east-1c', 'us-east-1d', 'us-east-1e', 'us-west-2b'])
 
     //Save the maximum subnet for each abstract_name
     function addToMaxGroup(item, group) {
