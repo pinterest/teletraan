@@ -55,7 +55,6 @@ function getUrlParameter(sParam) {
         }
     }
 }
-
 function getDefaultPlacement(capacityCreationInfo) {
     this.capacityCreationInfo = capacityCreationInfo
     var cmpPublicIPPlacements = {}
@@ -63,7 +62,7 @@ function getDefaultPlacement(capacityCreationInfo) {
     var allPrivateIPPlacements = []
     var allPublicIPPlacements = []
 
-    //The abstract name of group can be default assigned 
+    //The abstract name of group can be default assigned
     var defaultAssignedGroup = new Set(['us-east-1a','us-east-1c', 'us-east-1d', 'us-east-1e'])
 
     //Save the maximum subnet for each abstract_name
@@ -139,7 +138,7 @@ function getDefaultPlacement(capacityCreationInfo) {
         },
         getSimpleList: function (assignPublicIp, existingItems) {
             //Return a simple list fo selection.
-            //Simple list is grouped by the abstract_name, 
+            //Simple list is grouped by the abstract_name,
             //for each abstract_name, we have one candidate.
             //If existingItems is null or empty, the abstract_name
             //will be the existing one

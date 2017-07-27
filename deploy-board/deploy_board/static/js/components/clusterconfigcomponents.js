@@ -10,6 +10,19 @@ Vue.component('cloudprovider-select', {
     }
 });
 
+Vue.component('region-select', {
+    template: '<div>\
+  <label-select label="Region" title="Region" \
+  v-bind:value="value" v-bind:selectoptions="cells" v-on:input="updateValue(value)"></label-select></div>',
+    props: ['cells', 'value'],
+    methods: {
+        updateValue: function (value) {
+            this.$emit('input', value)
+        }
+    }
+});
+
+
 
 Vue.component('baseimage-select', {
     template: '<div class="form-group">\
