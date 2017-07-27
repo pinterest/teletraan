@@ -13,11 +13,14 @@ Vue.component('cloudprovider-select', {
 Vue.component('region-select', {
     template: '<div>\
   <label-select label="Region" title="Region" \
-  v-bind:value="value" v-bind:selectoptions="cells" v-on:input="updateValue(value)"></label-select></div>',
+  v-bind:value="value" v-bind:selectoptions="cells" v-bind:selected="cellvalue" v-on:input="updateCellValue" v-on:input="updateValue(value)"></label-select></div>',
     props: ['cells', 'value'],
     methods: {
         updateValue: function (value) {
-            this.$emit('input', value)
+            this.$emit('input', value);
+        },
+        updateCellValue: function(value) {
+            this.$emit('regionchange', value);
         }
     }
 });
