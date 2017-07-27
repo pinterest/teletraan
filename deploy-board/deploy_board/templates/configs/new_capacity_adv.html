@@ -27,7 +27,7 @@
 {% block main%}
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2017.07.05.180000"%}"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.05.16.123000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.07.27.153000"%}"></script>
 
 <div id="mainPanel" class="panel panel-default">
 
@@ -37,7 +37,7 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
-                    <region-select v-bind:cells="cells" v-bind:value="currentRegion"></region-select>
+                    <region-select v-bind:cells="cells" v-on:regionchange="regionChange"  v-bind:value="currentRegion"></region-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
                         v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" inadvanced="true" v-on:helpclick="baseImageHelpClick">
@@ -137,6 +137,7 @@ var capacitySetting = new Vue({
                     isSelected: item.abstract_name === info.defaultHostType
                 }
             }),
+        regionValue: info.defaultRegion,
         imageNameValue: info.defaultBaseImage,
         imagenames: info.baseImageNames.map(
             function (o) {
@@ -258,6 +259,10 @@ var capacitySetting = new Vue({
                             capacitySetting.showHostTypeHelp = true
                     })
                 }
+        },
+        regionChange: function(value) {
+            capacitySetting.regionValue = value;
+            capacitySetting.currentRegion = value;
         },
         imageNameChange: function (value) {
             capacitySetting.imageNameValue = value

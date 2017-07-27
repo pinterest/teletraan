@@ -21,7 +21,7 @@
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js?changedate=2016.12.19.150000"%}"></script>
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2017.07.05.180000"%}"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.07.27.123000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.07.27.153000"%}"></script>
 
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
@@ -53,7 +53,7 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
-                    <region-select v-bind:cells="cells" v-bind:value="currentRegion"></region-select>
+                    <region-select v-bind:cells="cells" v-on:regionchange="regionChange"  v-bind:value="currentRegion"></region-select>
                     <baseimage-select v-show="inAdvanced" v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
                     v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
@@ -705,6 +705,7 @@
                     //Create the default capacity. The input here aligns to the Rodimus new cluster
                     var clusterInfo = {};
                     clusterInfo['provider'] = this.currentProvider;
+                    clusterInfo['region'] = this.currentRegion;
                     clusterInfo['baseImageId'] = this.baseImageValue;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
