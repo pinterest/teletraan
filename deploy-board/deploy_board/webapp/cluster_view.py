@@ -168,6 +168,7 @@ class ClusterConfigurationView(View):
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
+        cells = cells_helper.get_by_provider(request, current_cluster['provider'])
         security_zones = securityzones_helper.get_by_provider(
             request, current_cluster['provider'])
         placements = placements_helper.get_by_provider(
@@ -182,6 +183,7 @@ class ClusterConfigurationView(View):
 
         capacity_creation_info = {
             'environment': env,
+            'cells': cells,
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
