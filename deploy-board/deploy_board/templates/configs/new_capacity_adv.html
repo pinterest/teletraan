@@ -165,7 +165,7 @@ var capacitySetting = new Vue({
         cells: info.cells.map(
             function (item) {
                 return {
-                    value: item.id,
+                    value: item.provider_name,
                     text: item.provider_name,
                     isSelected: info.defaultRegion
                 }
