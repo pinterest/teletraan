@@ -254,7 +254,7 @@ def get_base_images(request):
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     base_images = baseimages_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
-    regions_list = cells_helper.get_by_provider(request)
+    regions_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/base_images.html', {
         'base_images': base_images,
