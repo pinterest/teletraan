@@ -6,6 +6,7 @@
         <tr>
             <th class="col-lg-1">Basic</th>
             <th class="col-lg-2">ID</th>
+            <th class="col-lg-2">Region</th>
             <th class="col-lg-2">Abstract Name</th>
             <th class="col-lg-2">Provider Name</th>
             <th class="col-lg-1">Cloud Provider</th>
@@ -19,6 +20,7 @@
             <td><span class="deployToolTip pointer-cursor {{ base_image.basic | basicIcon }}"></span></td>
             <td> {{ base_image.id }} </td>
             <td> {{ base_image.abstract_name }} </td>
+            <td> {{ base_image.cell_id }} </td>
             <td> {{ base_image.provider_name }}  </td>
             <td> {{ base_image.provider }}  </td>
             <td><span class="deployToolTip pointer-cursor {{ base_image.qualified | qualifiedIcon }}"></span></td>
