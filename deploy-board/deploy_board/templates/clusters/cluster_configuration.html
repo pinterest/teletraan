@@ -599,12 +599,12 @@
                     capacitySetting.currentRegion = value;
                 },
                 imageNameChange: function(value) {
-                    capacitySetting.imageNameValue = value
+                    capacitySetting.imageNameValue = value;
                     //Grab all images for this image name
-
+                    var region = capacitySetting.regionValue;
                     $.ajax({
                         type: 'GET',
-                        url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '/',
+                        url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?region=' + region,
                         dataType: "json",
                         beforeSend: function(xhr, settings) {
                             var csrftoken = getCookie('csrftoken')

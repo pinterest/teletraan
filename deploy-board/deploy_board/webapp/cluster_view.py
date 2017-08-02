@@ -241,6 +241,7 @@ def create_base_image(request):
     base_image_info['provider_name'] = params['providerName']
     base_image_info['provider'] = params['provider']
     base_image_info['description'] = params['description']
+    base_image_info['cell_id'] = params['region']
     if 'basic' in params:
         base_image_info['basic'] = True
     else:
@@ -332,7 +333,11 @@ def get_base_image_info(request, name):
 
 
 def get_base_images_by_name_json(request, name):
-    base_images = get_base_image_info_by_name(request, name)
+    region = DEFAULT_REGION
+    params = request.GET
+    if params:
+        region = params.get('region', DEFAULT_REGION)
+    base_images = get_base_image_info_by_name(request, name, region)
     return HttpResponse(json.dumps(base_images), content_type="application/json")
 
 
