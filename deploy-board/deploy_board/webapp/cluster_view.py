@@ -175,7 +175,7 @@ class ClusterConfigurationView(View):
             request, current_cluster['provider'])
         base_images = get_base_image_info_by_name(
             request, current_image['abstract_name'], current_cluster['region'])
-        base_images_names = baseimages_helper.get_image_names(
+        base_images_names = baseimages_helper.get_all_by(
             request, current_cluster['provider'], current_cluster['region'])
 
         env = environs_helper.get_env_by_stage(request, name, stage)
