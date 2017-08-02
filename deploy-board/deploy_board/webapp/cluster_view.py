@@ -268,9 +268,9 @@ def get_base_images(request):
     })
 
 
-def get_image_names_by_provider_and_region(request, provider, region):
-    image_names = baseimages_helper.get_image_names(request, provider, region)
-    return HttpResponse(json.dumps(image_names), content_type="application/json")
+def get_images_by_provider_and_region(request, provider, region):
+    images = baseimages_helper.get_all_by(request, provider, region)
+    return HttpResponse(json.dumps(images), content_type="application/json")
 
 
 def get_image_names(request):
