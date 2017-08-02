@@ -69,8 +69,8 @@ window.showExistingCapacity = !window.info.is_pinterest || getUrlParameter("adde
 if (info.is_pinterest){
     hasCMPCluster = (info.basic_cluster_info != null) || $.inArray(env.envName+"-"+env.stageName, groups) >= 0;
     region = (info.basic_cluster_info != null) ;
-    if(info.info.basic_cluster_info) {
-        region = info.info.basic_cluster_info.region || 'us-east-1';
+    if(info.basic_cluster_info) {
+        region = info.basic_cluster_info.region || 'us-east-1';
     }
 }
 else{
