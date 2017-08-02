@@ -48,7 +48,7 @@ class EnvCapacityBasicCreateView(View):
             request, DEFAULT_PROVIDER)
         placements = placements_helper.get_by_provider(
             request, DEFAULT_PROVIDER)
-        default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE)
+        default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_REGION)
         env = environs_helper.get_env_by_stage(request, name, stage)
 
         capacity_creation_info = {
@@ -102,9 +102,9 @@ class EnvCapacityAdvCreateView(View):
         placements = placements_helper.get_by_provider(
             request, DEFAULT_PROVIDER)
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
-        base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE)
+        base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_REGION)
         base_images_names = baseimages_helper.get_image_names(
-            request, DEFAULT_PROVIDER)
+            request, DEFAULT_PROVIDER, DEFAULT_REGION)
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -174,9 +174,9 @@ class ClusterConfigurationView(View):
         placements = placements_helper.get_by_provider(
             request, current_cluster['provider'])
         base_images = get_base_image_info_by_name(
-            request, current_image['abstract_name'])
+            request, current_image['abstract_name'], current_cluster['region'])
         base_images_names = baseimages_helper.get_image_names(
-            request, current_cluster['provider'])
+            request, current_cluster['provider'], current_cluster['region'])
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -268,12 +268,18 @@ def get_base_images(request):
     })
 
 
+def get_image_names_by_provider_and_region(request, provider, region):
+    image_names = baseimages_helper.get_image_names(request, provider, region)
+    return HttpResponse(json.dumps(image_names), content_type="application/json")
+
+
 def get_image_names(request):
     params = request.GET
     provider = params['provider']
     env_name = params['env']
     stage_name = params['stage']
-    image_names = baseimages_helper.get_image_names(request, provider)
+    region = params.get('region', DEFAULT_REGION)
+    image_names = baseimages_helper.get_image_names(request, provider, region)
     curr_image_name = None
     curr_base_image = None
     if 'curr_base_image' in params:
@@ -294,17 +300,18 @@ def get_image_names(request):
 
 def get_base_images_by_name(request):
     params = request.GET
+    region = params.get('region', DEFAULT_REGION)
     base_images = None
     if 'name' in params:
         name = params['name']
-        base_images = baseimages_helper.get_by_name(request, name)
+        base_images = baseimages_helper.get_by_name(request, name, region)
 
     curr_base_image = None
     if 'curr_base_image' in params:
         curr_base_image = params['curr_base_image']
         image = baseimages_helper.get_by_id(request, curr_base_image)
         curr_image_name = image.get('abstract_name')
-        base_images = baseimages_helper.get_by_name(request, curr_image_name)
+        base_images = baseimages_helper.get_by_name(request, curr_image_name, region)
 
     contents = render_to_string("clusters/get_base_image.tmpl", {
         'base_images': base_images,
@@ -313,9 +320,9 @@ def get_base_images_by_name(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
-def get_base_image_info_by_name(request, name):
+def get_base_image_info_by_name(request, name, region):
     if name.startswith('cmp_base'):
-        base_images = baseimages_helper.get_acceptance_by_name(request, name)
+        base_images = baseimages_helper.get_acceptance_by_name(request, name, region)
         with_acceptance_rs = []
         if base_images:
             for image in base_images:
@@ -324,12 +331,7 @@ def get_base_image_info_by_name(request, name):
                     r['acceptance'] = image.get('acceptance', 'UNKNOWN')
                     with_acceptance_rs.append(r)
         return with_acceptance_rs
-    return baseimages_helper.get_by_name(request, name)
-
-
-def get_base_image_info(request, name):
-    base_images = baseimages_helper.get_by_name(request, name)
-    return HttpResponse(json.dumps(base_images), content_type="application/json")
+    return baseimages_helper.get_by_name(request, name, region)
 
 
 def get_base_images_by_name_json(request, name):

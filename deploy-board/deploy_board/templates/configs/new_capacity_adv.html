@@ -263,13 +263,35 @@ var capacitySetting = new Vue({
         regionChange: function(value) {
             capacitySetting.regionValue = value;
             capacitySetting.currentRegion = value;
+            // grab all the image names
+            var scope = this;
+            var provider = capacitySetting.currentProvider;
+            var region = value;
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + region,
+                dataType: "json",
+                beforeSend: function (xhr, settings) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                },
+                success: function (data) {
+                    capacitySetting.baseimages = data;
+                    capacitySetting.baseImageValue = data[0];
+                    scope.imageNameChange(data[0], region);
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            })
         },
-        imageNameChange: function (value) {
-            capacitySetting.imageNameValue = value
+        imageNameChange: function (value, region) {
+            capacitySetting.imageNameValue = value;
             //Grab all images for this image name
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '/',
+                url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?region=' + region,
                 dataType: "json",
                 beforeSend: function (xhr, settings) {
                     var csrftoken = getCookie('csrftoken')

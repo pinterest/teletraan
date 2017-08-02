@@ -21,6 +21,7 @@ Vue.component('region-select', {
         },
         updateCellValue: function(value) {
             this.$emit('regionchange', value);
+            this.$emit('imagenamechange', value)
         }
     }
 });
