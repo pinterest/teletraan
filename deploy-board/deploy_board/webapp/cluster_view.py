@@ -45,9 +45,9 @@ class EnvCapacityBasicCreateView(View):
             host_type['mem'] = float(host_type['mem']) / 1024
 
         security_zones = securityzones_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+            request, DEFAULT_PROVIDER, DEFAULT_REGION)
         placements = placements_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+            request, DEFAULT_PROVIDER, DEFAULT_REGION)
         default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_REGION)
         env = environs_helper.get_env_by_stage(request, name, stage)
 
@@ -98,9 +98,9 @@ class EnvCapacityAdvCreateView(View):
             host_type['mem'] = float(host_type['mem']) / 1024
 
         security_zones = securityzones_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+            request, DEFAULT_PROVIDER, DEFAULT_REGION)
         placements = placements_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+            request, DEFAULT_PROVIDER, DEFAULT_REGION)
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
         base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_REGION)
         base_images_names = baseimages_helper.get_image_names(
@@ -170,9 +170,9 @@ class ClusterConfigurationView(View):
 
         cells = cells_helper.get_by_provider(request, current_cluster['provider'])
         security_zones = securityzones_helper.get_by_provider(
-            request, current_cluster['provider'])
+            request, current_cluster['provider'], current_cluster['region'])
         placements = placements_helper.get_by_provider(
-            request, current_cluster['provider'])
+            request, current_cluster['provider'], current_cluster['region'])
         base_images = get_base_image_info_by_name(
             request, current_image['abstract_name'], current_cluster['region'])
         base_images_names = baseimages_helper.get_image_names(
@@ -448,8 +448,9 @@ def get_security_zones_by_provider(request):
     curr_security_zone = None
     if 'curr_security_zone' in params:
         curr_security_zone = params['curr_security_zone']
+    region = params.get('region', DEFAULT_REGION)
 
-    security_zones = securityzones_helper.get_by_provider(request, provider)
+    security_zones = securityzones_helper.get_by_provider(request, provider, region)
     contents = render_to_string("clusters/get_security_zone.tmpl", {
         'security_zones': security_zones,
         'curr_security_zone': curr_security_zone,
@@ -498,12 +499,13 @@ def get_placements(request):
 def get_placements_by_provider(request):
     params = request.GET
     provider = params['provider']
+    region = params.get('region', DEFAULT_REGION)
     curr_placement_arrays = None
     if 'curr_placement' in params:
         curr_placement = params['curr_placement']
         curr_placement_arrays = curr_placement.split(',')
 
-    placements = placements_helper.get_by_provider(request, provider)
+    placements = placements_helper.get_by_provider(request, provider, region)
     contents = render_to_string("clusters/get_placement.tmpl", {
         'placements': placements,
         'curr_placement_arrays': curr_placement_arrays,
