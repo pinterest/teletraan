@@ -284,14 +284,15 @@ var capacitySetting = new Vue({
                                 }
                             });
                     capacitySetting.imageNameValue = data[0];
-                    scope.imageNameChange(data[0], region);
+                    scope.imageNameChange(data[0]);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
                 }
             })
         },
-        imageNameChange: function (value, region) {
+        imageNameChange: function (value) {
+            var region = capacitySetting.currentRegion;
             capacitySetting.imageNameValue = value;
             //Grab all images for this image name
             $.ajax({

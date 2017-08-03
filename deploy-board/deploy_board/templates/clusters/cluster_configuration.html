@@ -597,11 +597,38 @@
                 regionChange: function(value) {
                     capacitySetting.regionValue = value;
                     capacitySetting.currentRegion = value;
+                    // grab all the image names
+                    var scope = this;
+                    var provider = capacitySetting.currentProvider;
+                    var region = value;
+                    $.ajax({
+                        type: 'GET',
+                        url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + region,
+                        dataType: "json",
+                        beforeSend: function (xhr) {
+                            var csrftoken = getCookie('csrftoken');
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        },
+                        success: function (data) {
+                            capacitySetting.imagenames = data.map(
+                                    function (o) {
+                                        return {
+                                            value: o,
+                                            text: o, isSelected: o === data[0]
+                                        }
+                                    });
+                            capacitySetting.imageNameValue = data[0];
+                            scope.imageNameChange(data[0]);
+                        },
+                        error: function (data) {
+                            globalNotificationBanner.error = data
+                        }
+                    })
                 },
                 imageNameChange: function(value) {
+                    var region = capacitySetting.currentRegion;
                     capacitySetting.imageNameValue = value;
                     //Grab all images for this image name
-                    var region = capacitySetting.regionValue;
                     $.ajax({
                         type: 'GET',
                         url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?region=' + region,
