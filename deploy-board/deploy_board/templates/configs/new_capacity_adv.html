@@ -331,7 +331,7 @@ var capacitySetting = new Vue({
                         function (item, index) {
                             return {
                                 value: item.id,
-                                text: item.id,
+                                text: item.provider_name,
                                 isSelected: index < 3 //Select Top 3 by default
                             }
                         });
@@ -339,7 +339,7 @@ var capacitySetting = new Vue({
                 error: function (data) {
                     globalNotificationBanner.error = data
                 }
-            })
+            });
         },
         imageNameChange: function (value) {
             var region = capacitySetting.currentRegion;

@@ -623,7 +623,58 @@
                         error: function (data) {
                             globalNotificationBanner.error = data
                         }
-                    })
+                    });
+
+                     // grab all security zone for this region
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + region,
+                dataType: "json",
+                beforeSend: function (xhr) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    capacitySetting.securityZones = data.map(
+                        function (item) {
+                            return {
+                                value: item.abstract_name,
+                                text: item.abstract_name,
+                                isSelected: item.id === data[0].id
+                            }
+                        });
+                    capacitySetting.selectedSecurityZoneValue = data[0].abstract_name;
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            });
+            // grab all placement for this region
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + region,
+                dataType: "json",
+                beforeSend: function (xhr) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    var placements = getDefaultPlacement({'placements': data});
+
+                    capacitySetting.placements =  placements.allPrivate.map(
+                        function (item, index) {
+                            return {
+                                value: item.id,
+                                text: item.provider_name,
+                                isSelected: index < 3 //Select Top 3 by default
+                            }
+                        });
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            })
+
                 },
                 imageNameChange: function(value) {
                     var region = capacitySetting.currentRegion;
