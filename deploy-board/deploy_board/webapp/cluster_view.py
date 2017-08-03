@@ -175,7 +175,7 @@ class ClusterConfigurationView(View):
             request, current_cluster['provider'])
         base_images = get_base_image_info_by_name(
             request, current_image['abstract_name'], current_cluster['region'])
-        base_images_names = baseimages_helper.get_all_by(
+        base_images_names = baseimages_helper.get_image_names(
             request, current_cluster['provider'], current_cluster['region'])
 
         env = environs_helper.get_env_by_stage(request, name, stage)
@@ -266,6 +266,11 @@ def get_base_images(request):
         'disablePrevious': index <= 1,
         'disableNext': len(base_images) < DEFAULT_PAGE_SIZE,
     })
+
+
+def get_image_names_by_provider_and_region(request, provider, region):
+    image_names = baseimages_helper.get_image_names(request, provider, region)
+    return HttpResponse(json.dumps(image_names), content_type="application/json")
 
 
 def get_images_by_provider_and_region(request, provider, region):
