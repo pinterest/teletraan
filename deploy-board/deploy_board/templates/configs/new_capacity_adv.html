@@ -328,11 +328,11 @@ var capacitySetting = new Vue({
                     var placements = getDefaultPlacement({'placements': data});
 
                     capacitySetting.placements =  placements.allPrivate.map(
-                        function (item) {
+                        function (item, index) {
                             return {
                                 value: item.id,
-                                text: item.provider_name,
-                                isSelected: placements.inDefault(item)
+                                text: item.id,
+                                isSelected: index < 3 //Select Top 3 by default
                             }
                         });
                 },
