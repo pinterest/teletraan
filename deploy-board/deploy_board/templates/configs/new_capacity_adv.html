@@ -263,7 +263,7 @@ var capacitySetting = new Vue({
         regionChange: function(value) {
             capacitySetting.regionValue = value;
             capacitySetting.currentRegion = value;
-            // grab all the image names
+            // grab all the image names for this region
             var scope = this;
             var provider = capacitySetting.currentProvider;
             var region = value;
@@ -285,6 +285,56 @@ var capacitySetting = new Vue({
                             });
                     capacitySetting.imageNameValue = data[0];
                     scope.imageNameChange(data[0]);
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            });
+
+            // grab all security zone for this region
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/clouds/get_security_zones?region=' + region,
+                dataType: "json",
+                beforeSend: function (xhr) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    capacitySetting.securityZones = data.map(
+                        function (item) {
+                            return {
+                                value: item.abstract_name,
+                                text: item.abstract_name,
+                                isSelected: item.id === data[0].id
+                            }
+                        });
+                    capacitySetting.selectedSecurityZoneValue = data[0].abstract_name;
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            });
+            // grab all placement for this region
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/clouds/get_placements?region=' + region,
+                dataType: "json",
+                beforeSend: function (xhr) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    var placements = getDefaultPlacement({'placements': data});
+
+                    capacitySetting.placements =  placements.allPrivate.map(
+                        function (item) {
+                            return {
+                                value: item.id,
+                                text: item.provider_name,
+                                isSelected: placements.inDefault(item)
+                            }
+                        });
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
