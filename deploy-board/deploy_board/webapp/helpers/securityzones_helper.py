@@ -28,8 +28,9 @@ def get_all(request, index, size):
     return rodimus_client.get("/security_zones", request.teletraan_user_id.token, params=params)
 
 
-def get_by_provider(request, provider):
-    return rodimus_client.get("/security_zones/provider/%s" % provider, request.teletraan_user_id.token)
+def get_by_provider(request, provider, cell_name):
+    params = [('cellName', cell_name), ('provider', provider)]
+    return rodimus_client.get("/security_zones/", request.teletraan_user_id.token, params=params)
 
 
 def get_by_id(request, security_zone_id):
