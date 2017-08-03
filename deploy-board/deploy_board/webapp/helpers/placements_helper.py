@@ -29,8 +29,8 @@ def get_all(request, index, size):
 
 
 def get_by_provider(request, provider, cell_name):
-    params = [('cellName', cell_name)]
-    return rodimus_client.get("/placements/provider/%s" % provider, request.teletraan_user_id.token, params=params)
+    params = [('cellName', cell_name), ('provider', provider)]
+    return rodimus_client.get("/placements/", request.teletraan_user_id.token, params=params)
 
 
 def get_by_id(request, placement_id):
