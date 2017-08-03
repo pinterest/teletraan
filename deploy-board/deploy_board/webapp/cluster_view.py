@@ -278,6 +278,16 @@ def get_images_by_provider_and_region(request, provider, region):
     return HttpResponse(json.dumps(images), content_type="application/json")
 
 
+def get_placements_by_provider_and_region(request, provider, region):
+    data = placements_helper.get_by_provider(request, provider, region)
+    return HttpResponse(json.dumps(data), content_type="application/json")
+
+
+def get_security_zones_by_provider_and_region(request, provider, region):
+    data = securityzones_helper.get_by_provider(request, provider, region)
+    return HttpResponse(json.dumps(data), content_type="application/json")
+
+
 def get_image_names(request):
     params = request.GET
     provider = params['provider']

@@ -294,7 +294,7 @@ var capacitySetting = new Vue({
             // grab all security zone for this region
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/get_security_zones?region=' + region,
+                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + region,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
@@ -318,7 +318,7 @@ var capacitySetting = new Vue({
             // grab all placement for this region
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/get_placements?region=' + region,
+                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + region,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
