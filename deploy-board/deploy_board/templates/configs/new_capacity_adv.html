@@ -37,7 +37,7 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
-                    <region-select v-bind:cells="cells" v-on:regionchange="regionChange"  v-bind:value="currentRegion"></region-select>
+                    <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
                         v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" inadvanced="true" v-on:helpclick="baseImageHelpClick">
@@ -127,7 +127,7 @@ var capacitySetting = new Vue({
         confirmDialogTitle: "Confirm New Capacity Creation",
         confirmDialogId: "createHostGroup",
         currentProvider: info.defaultProvider,
-        currentRegion: info.defaultRegion,
+        currentCell: info.defaultCell,
         hostTypeHelpData:[],
         hostTypeOptions: info.hostTypes.map(
             function (item, idx) {
@@ -137,7 +137,7 @@ var capacitySetting = new Vue({
                     isSelected: item.abstract_name === info.defaultHostType
                 }
             }),
-        regionValue: info.defaultRegion,
+        cellValue: info.defaultCell,
         imageNameValue: info.defaultBaseImage,
         imagenames: info.baseImageNames.map(
             function (o) {
@@ -167,7 +167,7 @@ var capacitySetting = new Vue({
                 return {
                     value: item.provider_name,
                     text: item.provider_name,
-                    isSelected: info.defaultRegion
+                    isSelected: info.defaultCell
                 }
             }),
         securityZoneHelpData: [],
@@ -260,16 +260,16 @@ var capacitySetting = new Vue({
                     })
                 }
         },
-        regionChange: function(value) {
-            capacitySetting.regionValue = value;
-            capacitySetting.currentRegion = value;
-            // grab all the image names for this region
+        cellChange: function(value) {
+            capacitySetting.cellValue = value;
+            capacitySetting.currentCell = value;
+            // grab all the image names for this cell
             var scope = this;
             var provider = capacitySetting.currentProvider;
-            var region = value;
+            var cell = value;
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + region,
+                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
@@ -291,10 +291,10 @@ var capacitySetting = new Vue({
                 }
             });
 
-            // grab all security zone for this region
+            // grab all security zone for this cell
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + region,
+                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + cell,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
@@ -315,10 +315,10 @@ var capacitySetting = new Vue({
                     globalNotificationBanner.error = data
                 }
             });
-            // grab all placement for this region
+            // grab all placement for this cell
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + region,
+                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + cell,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
@@ -342,12 +342,12 @@ var capacitySetting = new Vue({
             });
         },
         imageNameChange: function (value) {
-            var region = capacitySetting.currentRegion;
+            var cell = capacitySetting.currentCell;
             capacitySetting.imageNameValue = value;
             //Grab all images for this image name
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?region=' + region,
+                url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?cell=' + cell,
                 dataType: "json",
                 beforeSend: function (xhr, settings) {
                     var csrftoken = getCookie('csrftoken')
@@ -462,7 +462,7 @@ var capacitySetting = new Vue({
             //Create the default capacity. The input here aligns to the Rodimus new cluster
             var clusterInfo = {};
             clusterInfo['provider'] = this.currentProvider;
-            clusterInfo['region'] = this.currentRegion;
+            clusterInfo['cellName'] = this.currentCell;
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['hostType'] = this.selectedHostTypeValue;

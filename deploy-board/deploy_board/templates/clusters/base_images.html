@@ -81,12 +81,12 @@
                     </div>
                     <div class="form-group">
                         <label class="deployToolTip control-label text-center col-xs-6">
-                            Region
+                            Cell
                         </label>
                         <div class="col-md-6">
-                            <select class="form-control" name="region" required id="regionId">
-                                {% for region in regions_list %}
-                                    <option value="{{ region.id }}" >{{ region.provider_name }}</option>
+                            <select class="form-control" name="cellName" required id="cellName">
+                                {% for cell in cells_list %}
+                                    <option value="{{ cell.name }}" >{{ cell.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>

@@ -10,9 +10,9 @@ Vue.component('cloudprovider-select', {
     }
 });
 
-Vue.component('region-select', {
+Vue.component('cell-select', {
     template: '<div>\
-  <label-select label="Region" title="Region" \
+  <label-select label="Cell" title="Cell" \
   v-bind:value="value" v-bind:selectoptions="cells" v-bind:selected="value" v-on:input="updateCellValue" v-on:input="updateValue(value)"></label-select></div>',
     props: ['cells', 'value'],
     methods: {
@@ -20,7 +20,7 @@ Vue.component('region-select', {
             this.$emit('input', value);
         },
         updateCellValue: function(value) {
-            this.$emit('regionchange', value);
+            this.$emit('cellchange', value);
             this.$emit('imagenamechange', value)
         }
     }
