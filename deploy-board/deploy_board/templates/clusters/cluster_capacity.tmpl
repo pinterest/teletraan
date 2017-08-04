@@ -7,7 +7,7 @@
         <form id="clusterConfigFormId" class="form-horizontal" role="form">
             <fieldset id="clusterConfigFieldSetId">
                 <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
-                <label-info title="Region" name="Region" v-bind:text="clusterregion"></label-info>
+                <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
                 <static-capacity-config v-if="!autoscalingEnabled" v-bind:capacity="desiredCapacity" v-on:change="updateStatic">
                 </static-capacity-config>
                 <asg-capacity-config v-if="autoscalingEnabled" v-bind:minsize="minsize" v-bind:maxsize="maxsize" v-on:minchange="updateMin" v-on:maxchange="updateMax">
@@ -43,7 +43,7 @@
             el:"#clusterPanelId",
             data:{
                 hasCluster: !getUrlParameter("addexisting"),
-                clusterregion: cluster.region,
+                cell: cluster.cellName,
                 clusterstate: cluster.state,
                 clusterStateStyle: cluster.state === "NORMAL" ? "text-success" : "text-danger",
                 desiredCapacity: cluster.capacity,

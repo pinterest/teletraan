@@ -34,7 +34,9 @@ def get_image_names(request, provider, cell_name):
 
 
 def get_all_by(request, provider, cell_name):
-    params = [('provider', provider), ('cellName', cell_name)]
+    if cell_name:
+        return rodimus_client.get("/base_images/cell/%s" % cell_name, request.teletraan_user_id.token)
+    params = [('provider', provider)]
     return rodimus_client.get("/base_images", request.teletraan_user_id.token, params=params)
 
 

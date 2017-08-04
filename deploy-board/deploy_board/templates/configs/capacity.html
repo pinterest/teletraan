@@ -68,9 +68,9 @@ window.showExistingCapacity = !window.info.is_pinterest || getUrlParameter("adde
 
 if (info.is_pinterest){
     hasCMPCluster = (info.basic_cluster_info != null) || $.inArray(env.envName+"-"+env.stageName, groups) >= 0;
-    region = (info.basic_cluster_info != null) ;
+
     if(info.basic_cluster_info) {
-        region = info.basic_cluster_info.region || 'us-east-1';
+        window.cellName = info.basic_cluster_info.cellName || 'aws-us-east-1';
     }
 }
 else{
@@ -81,7 +81,7 @@ var sidebar = new Vue({
     data:{
         noCluster: !hasCMPCluster,
         showAddExistingCapacity: !window.showExistingCapacity,
-        region: region
+        cellName: window.cellName
     },
     methods:{
         //Send delete request
@@ -89,7 +89,6 @@ var sidebar = new Vue({
              $.ajax({
                     type: 'POST',
                     url: '/env/{{ env.envName }}/{{ env.stageName }}/config/delete_cluster/',
-                    data: JSON.stringify({'region': region}),
                     dataType: "json",
                     beforeSend: function(xhr, settings) {
                         var csrftoken = getCookie('csrftoken')
@@ -120,7 +119,7 @@ var sidebar = new Vue({
                     data: {
                         'new_environment': new_environment,
                         'new_stage': new_stage,
-                        'region': region
+                        'cellName': window.cellName
                     },
                     dataType: "json",
                     beforeSend: function(xhr, settings) {

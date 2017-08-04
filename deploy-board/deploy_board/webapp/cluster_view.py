@@ -22,7 +22,7 @@ from django.views.generic import View
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
-        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_REGION
+        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL
 import json
 import logging
 
@@ -44,11 +44,11 @@ class EnvCapacityBasicCreateView(View):
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
-        security_zones = securityzones_helper.get_by_provider(
-            request, DEFAULT_PROVIDER, DEFAULT_REGION)
-        placements = placements_helper.get_by_provider(
-            request, DEFAULT_PROVIDER, DEFAULT_REGION)
-        default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_REGION)
+        security_zones = securityzones_helper.get_by_provider_and_cell_name(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+        placements = placements_helper.get_by_provider_and_cell_name(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+        default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         env = environs_helper.get_env_by_stage(request, name, stage)
 
         capacity_creation_info = {
@@ -97,14 +97,14 @@ class EnvCapacityAdvCreateView(View):
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
-        security_zones = securityzones_helper.get_by_provider(
-            request, DEFAULT_PROVIDER, DEFAULT_REGION)
-        placements = placements_helper.get_by_provider(
-            request, DEFAULT_PROVIDER, DEFAULT_REGION)
+        security_zones = securityzones_helper.get_by_provider_and_cell_name(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+        placements = placements_helper.get_by_provider_and_cell_name(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
-        base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_REGION)
+        base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         base_images_names = baseimages_helper.get_image_names(
-            request, DEFAULT_PROVIDER, DEFAULT_REGION)
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -120,7 +120,7 @@ class EnvCapacityAdvCreateView(View):
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
-            'defaultRegion': DEFAULT_REGION,
+            'defaultCell': DEFAULT_CELL,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
@@ -169,14 +169,14 @@ class ClusterConfigurationView(View):
             host_type['mem'] = float(host_type['mem']) / 1024
 
         cells = cells_helper.get_by_provider(request, current_cluster['provider'])
-        security_zones = securityzones_helper.get_by_provider(
-            request, current_cluster['provider'], current_cluster['region'])
-        placements = placements_helper.get_by_provider(
-            request, current_cluster['provider'], current_cluster['region'])
+        security_zones = securityzones_helper.get_by_provider_and_cell_name(
+            request, current_cluster['provider'], current_cluster['cellName'])
+        placements = placements_helper.get_by_provider_and_cell_name(
+            request, current_cluster['provider'], current_cluster['cellName'])
         base_images = get_base_image_info_by_name(
-            request, current_image['abstract_name'], current_cluster['region'])
+            request, current_image['abstract_name'], current_cluster['cellName'])
         base_images_names = baseimages_helper.get_image_names(
-            request, current_cluster['provider'], current_cluster['region'])
+            request, current_cluster['provider'], current_cluster['cellName'])
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -241,7 +241,7 @@ def create_base_image(request):
     base_image_info['provider_name'] = params['providerName']
     base_image_info['provider'] = params['provider']
     base_image_info['description'] = params['description']
-    base_image_info['cell_id'] = params['region']
+    base_image_info['cell_name'] = params['cellName']
     if 'basic' in params:
         base_image_info['basic'] = True
     else:
@@ -255,12 +255,12 @@ def get_base_images(request):
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     base_images = baseimages_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
-    regions_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+    cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/base_images.html', {
         'base_images': base_images,
         'provider_list': provider_list,
-        'regions_list': regions_list,
+        'cells_list': cells_list,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -268,23 +268,23 @@ def get_base_images(request):
     })
 
 
-def get_image_names_by_provider_and_region(request, provider, region):
-    image_names = baseimages_helper.get_image_names(request, provider, region)
+def get_image_names_by_provider_and_cell(request, provider, cell):
+    image_names = baseimages_helper.get_image_names(request, provider, cell)
     return HttpResponse(json.dumps(image_names), content_type="application/json")
 
 
-def get_images_by_provider_and_region(request, provider, region):
-    images = baseimages_helper.get_all_by(request, provider, region)
+def get_images_by_provider_and_cell(request, provider, cell):
+    images = baseimages_helper.get_all_by(request, provider, cell)
     return HttpResponse(json.dumps(images), content_type="application/json")
 
 
-def get_placements_by_provider_and_region(request, provider, region):
-    data = placements_helper.get_by_provider(request, provider, region)
+def get_placements_by_provider_and_cell(request, provider, cell):
+    data = placements_helper.get_by_provider_and_cell_name(request, provider, cell)
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
-def get_security_zones_by_provider_and_region(request, provider, region):
-    data = securityzones_helper.get_by_provider(request, provider, region)
+def get_security_zones_by_provider_and_cell(request, provider, cell):
+    data = securityzones_helper.get_by_provider_and_cell_name(request, provider, cell)
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 
@@ -293,8 +293,8 @@ def get_image_names(request):
     provider = params['provider']
     env_name = params['env']
     stage_name = params['stage']
-    region = params.get('region', DEFAULT_REGION)
-    image_names = baseimages_helper.get_image_names(request, provider, region)
+    cell = params.get('cellName', DEFAULT_CELL)
+    image_names = baseimages_helper.get_image_names(request, provider, cell)
     curr_image_name = None
     curr_base_image = None
     if 'curr_base_image' in params:
@@ -315,18 +315,18 @@ def get_image_names(request):
 
 def get_base_images_by_name(request):
     params = request.GET
-    region = params.get('region', DEFAULT_REGION)
+    cell = params.get('cell', DEFAULT_CELL)
     base_images = None
     if 'name' in params:
         name = params['name']
-        base_images = baseimages_helper.get_by_name(request, name, region)
+        base_images = baseimages_helper.get_by_name(request, name, cell)
 
     curr_base_image = None
     if 'curr_base_image' in params:
         curr_base_image = params['curr_base_image']
         image = baseimages_helper.get_by_id(request, curr_base_image)
         curr_image_name = image.get('abstract_name')
-        base_images = baseimages_helper.get_by_name(request, curr_image_name, region)
+        base_images = baseimages_helper.get_by_name(request, curr_image_name, cell)
 
     contents = render_to_string("clusters/get_base_image.tmpl", {
         'base_images': base_images,
@@ -335,9 +335,9 @@ def get_base_images_by_name(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
-def get_base_image_info_by_name(request, name, region):
+def get_base_image_info_by_name(request, name, cell):
     if name.startswith('cmp_base'):
-        base_images = baseimages_helper.get_acceptance_by_name(request, name, region)
+        base_images = baseimages_helper.get_acceptance_by_name(request, name, cell)
         with_acceptance_rs = []
         if base_images:
             for image in base_images:
@@ -346,15 +346,15 @@ def get_base_image_info_by_name(request, name, region):
                     r['acceptance'] = image.get('acceptance', 'UNKNOWN')
                     with_acceptance_rs.append(r)
         return with_acceptance_rs
-    return baseimages_helper.get_by_name(request, name, region)
+    return baseimages_helper.get_by_name(request, name, cell)
 
 
 def get_base_images_by_name_json(request, name):
-    region = DEFAULT_REGION
+    cell = DEFAULT_CELL
     params = request.GET
     if params:
-        region = params.get('region', DEFAULT_REGION)
-    base_images = get_base_image_info_by_name(request, name, region)
+        cell = params.get('cellName', DEFAULT_CELL)
+    base_images = get_base_image_info_by_name(request, name, cell)
     return HttpResponse(json.dumps(base_images), content_type="application/json")
 
 
@@ -458,9 +458,9 @@ def get_security_zones_by_provider(request):
     curr_security_zone = None
     if 'curr_security_zone' in params:
         curr_security_zone = params['curr_security_zone']
-    region = params.get('region', DEFAULT_REGION)
+    cell = params.get('cellName', DEFAULT_CELL)
 
-    security_zones = securityzones_helper.get_by_provider(request, provider, region)
+    security_zones = securityzones_helper.get_by_provider_and_cell_name(request, provider, cell)
     contents = render_to_string("clusters/get_security_zone.tmpl", {
         'security_zones': security_zones,
         'curr_security_zone': curr_security_zone,
@@ -509,13 +509,13 @@ def get_placements(request):
 def get_placements_by_provider(request):
     params = request.GET
     provider = params['provider']
-    region = params.get('region', DEFAULT_REGION)
+    cell = params.get('cellName', DEFAULT_CELL)
     curr_placement_arrays = None
     if 'curr_placement' in params:
         curr_placement = params['curr_placement']
         curr_placement_arrays = curr_placement.split(',')
 
-    placements = placements_helper.get_by_provider(request, provider, region)
+    placements = placements_helper.get_by_provider_and_cell_name(request, provider, cell)
     contents = render_to_string("clusters/get_placement.tmpl", {
         'placements': placements,
         'curr_placement_arrays': curr_placement_arrays,

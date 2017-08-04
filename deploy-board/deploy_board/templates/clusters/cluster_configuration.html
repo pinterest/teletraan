@@ -53,7 +53,7 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
-                    <region-select v-bind:cells="cells" v-on:regionchange="regionChange"  v-bind:value="currentRegion"></region-select>
+                    <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <baseimage-select v-show="inAdvanced" v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
                     v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
@@ -448,7 +448,7 @@
                 confirmDialogTitle: "Update Cluster Settings",
                 confirmDialogId: "updateClusterSettings",
                 currentProvider: currentCluster.provider,
-                currentRegion: currentCluster.region,
+                currentCell: currentCluster.cellName,
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
                         value: item.abstract_name,
@@ -477,9 +477,9 @@
                 cells: info.cells.map(
                     function (item) {
                         return {
-                            value: item.provider_name,
-                            text: item.provider_name,
-                            isSelected: item.provider_name == currentCluster.region
+                            value: item.name,
+                            text: item.name,
+                            isSelected: item.name == currentCluster.cellName
                         }
                     }),
                 securityZones: info.securityZones.map(function(item) {
@@ -594,16 +594,16 @@
                         })
                     }
                 },
-                regionChange: function(value) {
-                    capacitySetting.regionValue = value;
-                    capacitySetting.currentRegion = value;
+                cellChange: function(value) {
+                    capacitySetting.cellValue = value;
+                    capacitySetting.currentCell = value;
                     // grab all the image names
                     var scope = this;
                     var provider = capacitySetting.currentProvider;
-                    var region = value;
+                    var cell = value;
                     $.ajax({
                         type: 'GET',
-                        url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + region,
+                        url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell,
                         dataType: "json",
                         beforeSend: function (xhr) {
                             var csrftoken = getCookie('csrftoken');
@@ -625,10 +625,10 @@
                         }
                     });
 
-                     // grab all security zone for this region
+                     // grab all security zone for this cell
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + region,
+                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + cell,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
@@ -649,10 +649,10 @@
                     globalNotificationBanner.error = data
                 }
             });
-            // grab all placement for this region
+            // grab all placement for this cell
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + region,
+                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + cell,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
@@ -677,12 +677,12 @@
 
                 },
                 imageNameChange: function(value) {
-                    var region = capacitySetting.currentRegion;
+                    var cell = capacitySetting.currentCell;
                     capacitySetting.imageNameValue = value;
                     //Grab all images for this image name
                     $.ajax({
                         type: 'GET',
-                        url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?region=' + region,
+                        url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?cell=' + cell,
                         dataType: "json",
                         beforeSend: function(xhr, settings) {
                             var csrftoken = getCookie('csrftoken')
@@ -787,7 +787,7 @@
                     //Create the default capacity. The input here aligns to the Rodimus new cluster
                     var clusterInfo = {};
                     clusterInfo['provider'] = this.currentProvider;
-                    clusterInfo['region'] = this.currentRegion;
+                    clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['baseImageId'] = this.baseImageValue;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
