@@ -68,10 +68,6 @@ window.showExistingCapacity = !window.info.is_pinterest || getUrlParameter("adde
 
 if (info.is_pinterest){
     hasCMPCluster = (info.basic_cluster_info != null) || $.inArray(env.envName+"-"+env.stageName, groups) >= 0;
-
-    if(info.basic_cluster_info) {
-        cellName = info.basic_cluster_info.cellName || 'aws-us-east-1';
-    }
 }
 else{
     hasCMPCluster = false
@@ -80,8 +76,7 @@ var sidebar = new Vue({
     el:"#side-panel",
     data:{
         noCluster: !hasCMPCluster,
-        showAddExistingCapacity: !window.showExistingCapacity,
-        cellName: cellName
+        showAddExistingCapacity: !window.showExistingCapacity
     },
     methods:{
         //Send delete request
@@ -118,8 +113,8 @@ var sidebar = new Vue({
                     url: '/env/{{ env.envName }}/{{ env.stageName }}/config/clone_cluster/',
                     data: {
                         'new_environment': new_environment,
-                        'new_stage': new_stage,
-                        'cellName': cellName
+                        'new_stage': new_stage
+
                     },
                     dataType: "json",
                     beforeSend: function(xhr, settings) {
