@@ -70,7 +70,7 @@ if (info.is_pinterest){
     hasCMPCluster = (info.basic_cluster_info != null) || $.inArray(env.envName+"-"+env.stageName, groups) >= 0;
 
     if(info.basic_cluster_info) {
-        window.cellName = info.basic_cluster_info.cellName || 'aws-us-east-1';
+        cellName = info.basic_cluster_info.cellName || 'aws-us-east-1';
     }
 }
 else{
@@ -81,7 +81,7 @@ var sidebar = new Vue({
     data:{
         noCluster: !hasCMPCluster,
         showAddExistingCapacity: !window.showExistingCapacity,
-        cellName: window.cellName
+        cellName: cellName
     },
     methods:{
         //Send delete request
@@ -119,7 +119,7 @@ var sidebar = new Vue({
                     data: {
                         'new_environment': new_environment,
                         'new_stage': new_stage,
-                        'cellName': window.cellName
+                        'cellName': cellName
                     },
                     dataType: "json",
                     beforeSend: function(xhr, settings) {
