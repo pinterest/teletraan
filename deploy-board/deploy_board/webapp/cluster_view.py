@@ -293,7 +293,7 @@ def get_image_names(request):
     provider = params['provider']
     env_name = params['env']
     stage_name = params['stage']
-    cell = params.get('cellName', DEFAULT_CELL)
+    cell = params.get('cell', DEFAULT_CELL)
     image_names = baseimages_helper.get_image_names(request, provider, cell)
     curr_image_name = None
     curr_base_image = None
@@ -353,7 +353,7 @@ def get_base_images_by_name_json(request, name):
     cell = DEFAULT_CELL
     params = request.GET
     if params:
-        cell = params.get('cellName', DEFAULT_CELL)
+        cell = params.get('cell', DEFAULT_CELL)
     base_images = get_base_image_info_by_name(request, name, cell)
     return HttpResponse(json.dumps(base_images), content_type="application/json")
 
@@ -458,7 +458,7 @@ def get_security_zones_by_provider(request):
     curr_security_zone = None
     if 'curr_security_zone' in params:
         curr_security_zone = params['curr_security_zone']
-    cell = params.get('cellName', DEFAULT_CELL)
+    cell = params.get('cell', DEFAULT_CELL)
 
     security_zones = securityzones_helper.get_by_provider_and_cell_name(request, provider, cell)
     contents = render_to_string("clusters/get_security_zone.tmpl", {
@@ -509,7 +509,7 @@ def get_placements(request):
 def get_placements_by_provider(request):
     params = request.GET
     provider = params['provider']
-    cell = params.get('cellName', DEFAULT_CELL)
+    cell = params.get('cell', DEFAULT_CELL)
     curr_placement_arrays = None
     if 'curr_placement' in params:
         curr_placement = params['curr_placement']
