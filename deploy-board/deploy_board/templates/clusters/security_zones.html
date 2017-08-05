@@ -81,6 +81,18 @@
                     </div>
                     <div class="form-group">
                         <label class="deployToolTip control-label text-center col-xs-6">
+                            Cell
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="cellName" required id="cellName">
+                                {% for cell in cells_list %}
+                                    <option value="{{ cell.name }}" >{{ cell.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
                             Abstract Name
                         </label>
                         <div class="col-md-6">
