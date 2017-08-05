@@ -441,10 +441,12 @@ def get_security_zones(request):
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     security_zones = securityzones_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
+    cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/security_zones.html', {
         'security_zones': security_zones,
         'provider_list': provider_list,
+        'cells_list': cells_list,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -495,10 +497,12 @@ def get_placements(request):
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     placements = placements_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
+    cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/placements.html', {
         'placements': placements,
         'provider_list': provider_list,
+        'cells_list': cells_list,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,

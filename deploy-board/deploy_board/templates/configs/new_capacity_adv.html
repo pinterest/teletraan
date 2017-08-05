@@ -168,7 +168,7 @@ var capacitySetting = new Vue({
                 return {
                     value: item.name,
                     text: item.name,
-                    isSelected: info.defaultCell
+                    isSelected: item.name == info.defaultCell
                 }
             }),
         securityZoneHelpData: [],
