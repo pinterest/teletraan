@@ -428,6 +428,7 @@ def create_security_zone(request):
     security_zone_info['provider_name'] = params['providerName']
     security_zone_info['provider'] = params['provider']
     security_zone_info['description'] = params['description']
+    security_zone_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
     if 'basic' in params:
         security_zone_info['basic'] = True
     else:
@@ -484,6 +485,7 @@ def create_placement(request):
     placement_info['provider_name'] = params['providerName']
     placement_info['provider'] = params['provider']
     placement_info['description'] = params['description']
+    placement_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
     if 'basic' in params:
         placement_info['basic'] = True
     else:
