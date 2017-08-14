@@ -725,7 +725,7 @@
                         return false
                     }
 
-                    if (imageNameValue === 'cmp_base' || imageNameValue === 'cmp_base_12'){
+                    if (imageNameValue.startsWith('cmp_base')){
                         if (!('pinfo_role' in clusterInfo.configs && clusterInfo.configs['pinfo_role']==='cmp_base')){
                             globalNotificationBanner.error = "cmp_base image must have pinfo_role set to cmp_base"
                             return false
@@ -807,7 +807,7 @@
                         clusterInfo.configs['aws_role'] = this.awsRole
                     }
 
-                    if (this.imageNameValue === 'cmp_base' || this.imageNameValue === 'cmp_base_12'){
+                    if (this.imageNameValue.startsWith('cmp_base')){
                         //cmp_base must have cmp_group set.
                         if (!('cmp_group' in clusterInfo['configs'])||clusterInfo['configs']['cmp_group'] === undefined){
                             clusterInfo['configs']['cmp_group'] = info.defaultCMPConfigs['cmp_group']

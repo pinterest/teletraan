@@ -411,7 +411,7 @@ var capacitySetting = new Vue({
                 globalNotificationBanner.error = "Placement is not specified"
             }
 
-            if (this.imageNameValue === 'cmp_base'){
+            if (this.imageNameValue.startsWith('cmp_base')){
                 if (clusterInfo.configs['cmp_group'] == undefined || clusterInfo.configs['cmp_group'].indexOf('CMP,')<0){
                     globalNotificationBanner.error = "cmp_base image must have cmp_group defined and CMP in it"
                     return false
