@@ -478,7 +478,7 @@ var capacitySetting = new Vue({
             }
             clusterInfo['configs'] = this.allUserData.reduce(function (map, obj) { map[obj.name] = obj.value; return map }, {})
 
-            if (this.imageNameValue === 'cmp_base' || this.imageNameValue === 'cmp_base_12'){
+            if (this.imageNameValue.startsWith('cmp_base')){
                 clusterInfo['configs']['cmp_group'] = info.defaultCMPConfigs['cmp_group']
             }
 
