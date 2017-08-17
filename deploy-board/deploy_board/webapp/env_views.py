@@ -23,8 +23,10 @@ from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
+from deploy_board.settings import GUINEA_PIG_ENVS
 from django.conf import settings
 import agent_report
+import service_add_ons
 import common
 import random
 import json
@@ -104,6 +106,62 @@ def _fetch_param_with_cookie(request, param_name, cookie_name, default):
     saved_value = request.COOKIES.get(cookie_name, default)
     return request.GET.get(param_name, saved_value)
 
+def logging_status(request, name, stage):
+
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    envs = environs_helper.get_all_env_stages(request, name)
+    showMode = _fetch_param_with_cookie(
+        request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    sortByStatus = _fetch_param_with_cookie(
+        request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
+
+    html = render_to_string('deploys/deploy_logging_check_landing.tmpl', {
+        "envs": envs,
+        "csrf_token": get_token(request),
+        "panel_title": "Kafka logging for %s (%s)" % (name, stage),
+        "env": env,
+        "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
+        "pinterest": IS_PINTEREST
+    })
+
+    response = HttpResponse(html)
+
+    # save preferences
+    response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
+
+    return response
+
+def check_logging_status(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    progress = deploys_helper.update_progress(request, name, stage)
+    showMode = _fetch_param_with_cookie(
+        request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    sortByStatus = _fetch_param_with_cookie(
+        request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
+
+    lognames = request.GET.get('lognames', '')
+    topics = request.GET.get('topics', '')
+
+    configStr = "%s:%s" % (topics, lognames)
+
+    report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
+    kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=name,
+                                                             report=report,
+                                                             configStr=configStr)
+    report.showMode = showMode
+    report.sortByStatus = sortByStatus
+    html = render_to_string('deploys/deploy_logging_check_update.tmpl', {
+        "logHealthResult": kafkaLoggingAddOn.logHealthReport
+    })
+
+    response = HttpResponse(html)
+
+    # save preferences
+    response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
+
+    return response
 
 def update_deploy_progress(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
@@ -121,6 +179,7 @@ def update_deploy_progress(request, name, stage):
         "report": report,
         "env": env,
         "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
+        "pinterest": IS_PINTEREST
     })
 
     response = HttpResponse(html)
@@ -131,6 +190,32 @@ def update_deploy_progress(request, name, stage):
 
     return response
 
+def update_service_add_ons(request, name, stage):
+    serviceAddOns = []
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    progress = deploys_helper.update_progress(request, name, stage)
+    report = agent_report.gen_report(request, env, progress)
+
+    # TODO: temporary addition for development, remove if statement to activate on all environments.
+    if name in GUINEA_PIG_ENVS:
+
+        # Currently we assume that the servicename is the same as the environment name.
+        serviceName = name
+        rateLimitingAddOn = service_add_ons.getRatelimitingAddOn(serviceName=serviceName,
+                                                                 report=report)
+        kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=serviceName,
+                                                                 report=report)
+        serviceAddOns.append(rateLimitingAddOn)
+        serviceAddOns.append(kafkaLoggingAddOn)
+
+
+    html = render_to_string('deploys/deploy_add_ons.tmpl', {
+        "serviceAddOns": serviceAddOns,
+        "pinterest": IS_PINTEREST
+    })
+
+    response = HttpResponse(html)
+    return response
 
 def removeEnvCookie(request, name):
     if ENV_COOKIE_NAME in request.COOKIES:
