@@ -258,7 +258,7 @@ def getRatelimitingReport(serviceName, agentStats):
                                             totalHostsOn=totalHostsOn,
                                             totalHostsOff=totalHostsOff,
                                             totalHostsUnknown=totalHostsUnknown)
-    
+
     if totalHostsOn > 0 and totalHostsOff == 0:
         rateLimitingReport.state = ServiceAddOn.ON
         return rateLimitingReport
@@ -451,7 +451,8 @@ def getCommonHostPrefix(agentStats):
     """
     hosts = []
     for agentStat in agentStats:
-        hosts.append(agentStat.agent.hostName)
+        if "hostName" in agentStat.agent:
+            hosts.append(agentStat.agent["hostName"])
 
     if len(hosts) == 0:
         return ""
