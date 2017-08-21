@@ -32,6 +32,7 @@ class ServiceAddOn(object):
 
     OFF = "OFF"
     ON = "ON"
+    PARTIAL = "PARTIAL"
 
     ERROR = "ERROR"
     LOADING = "LOADING"
@@ -103,8 +104,11 @@ class RatelimitingAddOn(ServiceAddOn):
             tagInfo_ = tagInfo_.format(status="OFF")
             buttonUrl_ = ENABLING_SERVICE_RATELIMIT_URL
 
-        else:
-            tagHoverInfo_ = "Checking rate limiting status... "
+        else: # Partial
+            health = "Rate limiting seems to be ON only on some of the hosts here. "
+            linkBlurb = " Click to see current rate limiting configuration."
+            tagInfo_ = tagInfo_.format(status="PARTIAL")
+            buttonUrl_ = "{url}#{serviceName}".format(url=SERVICE_RATELIMIT_CONFIG_URL, serviceName=serviceName)
 
         tagHoverInfo_ = tagHoverInfo_.format(health=health, hosts=hosts, linkBlurb=linkBlurb, questions=questions)
 
@@ -174,7 +178,7 @@ class LogHealthReport(object):
         self.errorMsg = errorMsg
 
 
-class RateLimitingReport(object): 
+class RateLimitingReport(object):
     """
     The results of a ratelimiting status query.  Used by the rate limiting add on.
     """
@@ -194,23 +198,23 @@ def getRatelimitingReport(serviceName, agentStats):
     """
     Current per-stage state assumption for rate limiting:
 
-        +-------------------------+----+-----+---------+-------+
-        |  At least one host is...| ON | OFF | UNKNOWN | STATE |
-        +                         +----+-----+---------+-------+
-        |                         |  X |     |         |  ON   |
-        +                         +----+-----+---------+-------+
-        |                         |    |  X  |         |  OFF  |
-        +                         +----+-----+---------+-------+
-        |                         |    |     |    X    |   ?   |
-        +                         +----+-----+---------+-------+
-        |                         |  X |  X  |         |  ON   |
-        +                         +----+-----+---------+-------+
-        |                         |  X |     |    X    |  ON   |
-        +                         +----+-----+---------+-------+
-        |                         |    |  X  |    X    |  OFF  |
-        +                         +----+-----+---------+-------+
-        |                         |  X |  X  |    X    |  ON   |
-        +-------------------------+----+-----+---------+-------+
+        +-------------------------+----+-----+---------+------------+
+        |  At least one host is...| ON | OFF | UNKNOWN | STATE      |
+        +                         +----+-----+---------+------------+
+        |                         |  X |     |         |  ON        |
+        +                         +----+-----+---------+------------+
+        |                         |    |  X  |         |  OFF       |
+        +                         +----+-----+---------+------------+
+        |                         |    |     |    X    |   ?        |
+        +                         +----+-----+---------+------------+
+        |                         |  X |  X  |         |  PARTIAL   |
+        +                         +----+-----+---------+------------+
+        |                         |  X |     |    X    |  ON        |
+        +                         +----+-----+---------+------------+
+        |                         |    |  X  |    X    |  OFF       |
+        +                         +----+-----+---------+------------+
+        |                         |  X |  X  |    X    |  PARTIAL   |
+        +-------------------------+----+-----+---------+------------+
 
     """
     commonHostPrefix = getCommonHostPrefix(agentStats)
@@ -227,7 +231,6 @@ def getRatelimitingReport(serviceName, agentStats):
     if totalHosts > 1:
         commonHostPrefix += "*"
 
-    # TODO: don't forget that I need to add simple JSON to Teletraan machines.
     metricStr = RATELIMIT_ENABLED_METRIC_FORMAT.format(serviceName=serviceName)
     apiUrl = STATSBOARD_API_FORMAT.format(metric=metricStr,
                                           tags="host=%s" % commonHostPrefix,
@@ -255,12 +258,17 @@ def getRatelimitingReport(serviceName, agentStats):
                                             totalHostsOn=totalHostsOn,
                                             totalHostsOff=totalHostsOff,
                                             totalHostsUnknown=totalHostsUnknown)
-    if totalHostsOn > 0:
+
+    if totalHostsOn > 0 and totalHostsOff == 0:
         rateLimitingReport.state = ServiceAddOn.ON
         return rateLimitingReport
 
-    if totalHostsOff > 0:
+    if totalHostsOff > 0 and totalHostsOn == 0:
         rateLimitingReport.state = ServiceAddOn.OFF
+        return rateLimitingReport
+
+    if totalHostsOff > 0 and totalHostsOn > 0:
+        rateLimitingReport.state = ServiceAddOn.PARTIAL
         return rateLimitingReport
 
     return rateLimitingReport
@@ -375,6 +383,10 @@ def getRatelimitingAddOn(serviceName, report):
     # TODO: keep for now, until testing phase is over.
     if serviceName == "helloworlddummyservice-server" or serviceName == "sample-service-0":
         serviceName = "helloworlddummyservice"
+
+    # TODO: keep for now, until testing phase is over.
+    if serviceName == "genesis_services_shared":
+        serviceName = report.stageName
 
     serviceName = serviceName.lower()
     rateLimitingReport = getRatelimitingReport(serviceName, report.agentStats)

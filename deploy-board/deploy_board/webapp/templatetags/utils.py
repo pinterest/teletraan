@@ -825,6 +825,8 @@ def addOnButton(addOn):
         return "btn-success"
     elif addOn.state == ServiceAddOn.UNKNOWN:
         return ""
+    elif addOn.state == ServiceAddOn.PARTIAL:
+        return "btn-warning"
     return "btn-default"
 
 @register.filter("addOnIcon")
