@@ -1,0 +1,23 @@
+{% load utils %}
+{% load static %}
+
+
+{% if logHealthResult != None %}
+    <div class="panel panel-default">
+        <div class="panel-body">
+
+            {% if logHealthResult.state != "ERROR" %}
+                <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            {% endif %}
+
+            {{ logHealthResult | logHealthMetricTitle }}
+
+            <div id="hostInfo" class="panel panel-default">
+                <div class="panel-heading">
+                    <span class="{{ logHealthResult | logHealthClass}}"></span>
+                    <strong>{{ logHealthResult | logHealthMessage}} </strong>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}

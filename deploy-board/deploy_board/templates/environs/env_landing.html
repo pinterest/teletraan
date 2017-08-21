@@ -410,14 +410,22 @@ $('#privateBldUploadBtnId button').click(function () {
                 });
             });
         </script>
-        <div id="activeDeployId" class="collapse in panel-body">
-            {% include "deploys/deploy_progress.tmpl" %}
+        <div class="collapse in panel-body">
+            <div id="activeDeployId">
+                {% include "deploys/deploy_progress.tmpl" %}
+            </div>
+            <div class="row" id="serviceAddOnsId">
+                {% include "deploys/deploy_add_ons.tmpl" %}
+            </div>
         </div>
     </div>
+
 
     <script>
     $(function () {
         var startTime = new Date().getTime();
+        $('#serviceAddOnsId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_service_add_ons/');
+
         var interval = setInterval(function() {
             if(new Date().getTime() - startTime > 3600000) {
                 clearInterval(interval);

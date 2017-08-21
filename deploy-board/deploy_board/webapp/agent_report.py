@@ -19,6 +19,7 @@ from common import is_agent_failed
 from helpers import builds_helper, deploys_helper, environs_helper, clusters_helper, groups_helper
 from deploy_board.settings import IS_PINTEREST
 import time
+import service_add_ons
 from collections import OrderedDict
 
 # Constants used to distinguish the action to generate the host report
@@ -67,7 +68,6 @@ class AgentReport(object):
         self.stageName = stageName
         self.showMode = 'complete'
         self.sortByStatus = 'false'
-
 
 def genStageDistMap():
     stageDistMap = OrderedDict()
