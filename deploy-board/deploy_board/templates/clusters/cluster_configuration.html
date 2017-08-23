@@ -579,7 +579,7 @@
                                 onSuccess(data)
                             },
                             error: function(data) {
-                                globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                                globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                             }
                         });
                 },
@@ -755,7 +755,7 @@
                             globalNotificationBanner.info = "Request sent successfully"
                         },
                         error: function(data) {
-                            globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                            globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                         }
                     });
                 },
@@ -882,7 +882,7 @@
                                 window.location.href=window.location.href
                             },
                             error: function (data) {
-                                globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                                globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                             }
                         });
                     },

@@ -100,7 +100,7 @@
                             window.location.href='/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/'
                         },
                         error: function (data) {
-                            globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                            globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                         }
                     });
                 }
