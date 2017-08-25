@@ -29,6 +29,7 @@ import logging
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
+from helpers.exceptions import NotAuthorizedException
 import common
 import traceback
 
@@ -85,8 +86,11 @@ class EnvCapacityBasicCreateView(View):
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
             return HttpResponse("{}", content_type="application/json")
+        except NotAuthorizedException as e:
+            log.error("Have an NotAuthorizedException error {}".format(e))
+            return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
-            log.info("Have an error {}".format(e))
+            log.error("Have an error {}".format(e))
             return HttpResponse(e, status=500, content_type="application/json")
 
 
@@ -150,8 +154,11 @@ class EnvCapacityAdvCreateView(View):
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
             return HttpResponse("{}", content_type="application/json")
+        except NotAuthorizedException as e:
+            log.error("Have an NotAuthorizedException error {}".format(e))
+            return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
-            log.info("Have an error {}", e)
+            log.error("Have an error {}", e)
             return HttpResponse(e, status=500, content_type="application/json")
 
 
@@ -209,8 +216,11 @@ class ClusterConfigurationView(View):
             image = baseimages_helper.get_by_id(
                 request, cluster_info['baseImageId'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
+        except NotAuthorizedException as e:
+            log.error("Have an NotAuthorizedException error {}".format(e))
+            return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
-            log.info("Post to cluster configuration view has an error {}", e)
+            log.error("Post to cluster configuration view has an error {}", e)
             return HttpResponse(e, status=500, content_type="application/json")
         return HttpResponse(json.dumps(cluster_info), content_type="application/json")
 
@@ -227,10 +237,12 @@ class ClusterCapacityUpdateView(View):
             maxSize = int(settings['maxsize'])
             clusters_helper.update_cluster_capacity(
                 request, cluster_name, minSize, maxSize)
+        except NotAuthorizedException as e:
+            log.error("Have an NotAuthorizedException error {}".format(e))
+            return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
-            log.info("Post to cluster capacity view has an error {}", e)
+            log.error("Post to cluster capacity view has an error {}", e)
             return HttpResponse(e, status=500, content_type="application/json")
-
         return HttpResponse(json.dumps(settings), content_type="application/json")
 
 
@@ -662,6 +674,9 @@ def clone_cluster(request, src_name, src_stage):
             environs_helper.update_env_hooks_config(request, dest_name, dest_stage, src_webhooks_configs)
 
         return HttpResponse(json.dumps(src_cluster_info), content_type="application/json")
+    except NotAuthorizedException as e:
+        log.error("Have an NotAuthorizedException error {}".format(e))
+        return HttpResponse(e, status=403, content_type="application/json")
     except Exception as e:
         log.error("Failed to clone cluster env_name: %s, stage_name: %s" % (src_name, src_stage))
         log.error(traceback.format_exc())

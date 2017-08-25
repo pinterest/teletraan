@@ -451,7 +451,8 @@ def getCommonHostPrefix(agentStats):
     """
     hosts = []
     for agentStat in agentStats:
-        hosts.append(agentStat.agent.hostName)
+        if "hostName" in agentStat.agent:
+            hosts.append(agentStat.agent["hostName"])
 
     if len(hosts) == 0:
         return ""
