@@ -45,7 +45,7 @@ class LocalDownloadFunctionsTest(unittest.TestCase):
             downloader = LocalDownloadHelper(self.url)
             downloader.download(self.target)
             log_contents = log_capture_string.getvalue()
-            assert('Failed' in log_contents, False)
+            assert 'Failed' not in log_contents
         finally:
             log_capture_string.close()
             logger.removeHandler(stream_handler)
