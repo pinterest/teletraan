@@ -205,7 +205,6 @@ def update_service_add_ons(request, name, stage):
                                                                  report=report)
         kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=serviceName,
                                                                  report=report)
-
         serviceAddOns.append(rateLimitingAddOn)
         serviceAddOns.append(kafkaLoggingAddOn)
 
