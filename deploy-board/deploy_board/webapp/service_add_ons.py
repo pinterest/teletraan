@@ -238,7 +238,7 @@ def getRatelimitingReport(serviceName, agentStats):
     hosts = getHosts(agentStats)
 
     if totalHosts > 1:
-      commonHostPrefix += "*"
+        commonHostPrefix += "*"
 
     apiUrl = STATSBOARD_API_FORMAT.format(metric=metricStr,
                                           tags="host=%s" % commonHostPrefix,
