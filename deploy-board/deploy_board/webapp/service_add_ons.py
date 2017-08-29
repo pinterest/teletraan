@@ -15,7 +15,8 @@
 
 from deploy_board.settings import IS_PINTEREST, SERVICE_RATELIMIT_CONFIG_URL, \
                                   STATSBOARD_API_FORMAT, RATELIMIT_ENABLED_METRIC_FORMAT, \
-                                  ENABLING_SERVICE_RATELIMIT_URL, KAFKA_MSGS_DELIVERED_METRIC
+                                  ENABLING_SERVICE_RATELIMIT_URL, KAFKA_MSGS_DELIVERED_METRIC, \
+                                  DASHBOARD_URL_ENDPOINT_FORMAT
 import urllib2
 import simplejson as json
 import socket
@@ -149,6 +150,30 @@ class KafkaLoggingAddOn(ServiceAddOn):
 
         self.logHealthReport = logHealthReport
 
+class DashboardAddOn(ServiceAddOn):
+    """
+    Encapsulates the information managed by the statsboard dashboard add-on tag.
+    """
+
+    def __init__(self,
+                 dashboardStateReport=None,
+                 serviceName=None,
+                 buttonUrl=None,
+                 tagHoverInfo="Click to see the metrics dashboard for this service.",
+                 tagInfo="Metrics Dashboard",
+                 state=ServiceAddOn.UNKNOWN):
+        ServiceAddOn.__init__(self,
+                              serviceName=serviceName,
+                              addOnName="dashboard",
+                              buttonUrl=buttonUrl,
+                              tagHoverInfo=tagHoverInfo,
+                              tagInfo=tagInfo,
+                              state=state)
+        self.dashboardStateReport = dashboardStateReport
+        if dashboardStateReport is not None:
+            self.state = dashboardStateReport.state
+        if serviceName is not None:
+            self.buttonUrl = DASHBOARD_URL_ENDPOINT_FORMAT.format(serviceName=serviceName)
 
 class LogHealthReport(object):
     """
@@ -198,6 +223,14 @@ class RateLimitingReport(object):
         self.totalHosts = totalHosts
         self.state = state
 
+class DashboardStateReport(object):
+    """
+    Encapsulates the state of a dashboard tag for a given service.
+    """
+    def __init__(self,
+                 state=ServiceAddOn.UNKNOWN):
+        self.state = state
+
 def getRatelimitingReport(serviceName, agentStats):
     """
     Current per-stage state assumption for rate limiting:
@@ -226,7 +259,7 @@ def getRatelimitingReport(serviceName, agentStats):
     commonHostPrefix = getCommonHostPrefix(agentStats)
 
     # Don't make a claim if no lengthy common prefix or if there are no hosts on the stage.
-    # smallest prefix name for an env-stage combination is x-y-, length 4.
+    # smallest prefix name for an env-stage combination is x-y-, length 4. 
     if len(commonHostPrefix) < 4 or totalHosts == 0:
         return RateLimitingReport(state=ServiceAddOn.UNKNOWN)
 
@@ -395,6 +428,19 @@ def getLogHealthReport(configStr, report):
                            lastLogMinutesAgo=lastLogMinutesAgo,
                            errorMsg=errorMsg)
 
+def getDashboardReport(serviceName, report):
+    try:
+      dashboardPage = urllib2.urlopen(DASHBOARD_URL_ENDPOINT_FORMAT.format(serviceName=serviceName), timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
+    except:
+      return DashboardStateReport(state=ServiceAddOn.UNKNOWN)
+
+    dashboardPageHtml = dashboardPage.read()
+    state = ServiceAddOn.DEFAULT
+    dashboardDneString = "%s dashboard does not exist" % serviceName
+    if dashboardDneString in dashboardPageHtml:
+      state = ServiceAddOn.UNKNOWN
+    return DashboardStateReport(state=state)
+
 def getRatelimitingAddOn(serviceName, report):
     # TODO: keep for now, until testing phase is over.
     if serviceName == "helloworlddummyservice-server" or serviceName == "sample-service-0":
@@ -418,6 +464,18 @@ def getKafkaLoggingAddOn(serviceName, report, configStr=None):
                              state=ServiceAddOn.DEFAULT,
                              logHealthReport=logHealthReport)
 
+def getDashboardAddOn(serviceName, report):
+    if serviceName == "helloworlddummyservice-server" or serviceName == "sample-service-0":
+        serviceName = "helloworlddummyservice"
+
+    if serviceName == "genesis_services_shared":
+        serviceName = report.stageName
+
+    serviceName = serviceName.lower()
+    dashboardStateReport = getDashboardReport(serviceName, report)
+
+    return DashboardAddOn(serviceName=serviceName,
+                          dashboardStateReport=dashboardStateReport)
 
 """ --- Utility functions live below here --- """
 
@@ -517,7 +575,7 @@ def statsboardDataConsistent(statsboardData, hostsOnStage):
     if len(set(hostsFound)) > numHostsOnCurrStage:
         return False
 
-    # We should not receive results for any host that is not on the current stage.
+    # We should not receive results for any host that is not on the current stage. 
     for h in hostsFound:
         if h not in hostsOnStage:
             return False
@@ -526,15 +584,15 @@ def statsboardDataConsistent(statsboardData, hostsOnStage):
 
 def restrictToHostsOnCurrentStage(statsboardData, hostsOnCurrentStage):
     """
-    Removes data for hosts not on current stage from statsboardData, and
-    returns the new version.
+    Removes data for hosts not on current stage from statsboardData, and 
+    returns the new version. 
 
     :param statsboardData:
     :param hostsOnCurrentStage:
     :return:
     """
 
-    # NOTE: can be optimized if necessary.
+    # NOTE: can be optimized if necessary. 
     newData = []
     for dataSlice in statsboardData:
         if "tags" in dataSlice:
