@@ -180,7 +180,7 @@ class DeployAgent(object):
             if envName in self._envs:
                 del self._envs[envName]
             else:
-                log.info('Cannot find env {} in the ping report'.format(env_name))
+                log.info('Cannot find env {} in the ping report'.format(envName))
 
             if self._curr_report.report.envName == deploy_goal.envName:
                 self._curr_report = None

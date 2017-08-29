@@ -61,6 +61,10 @@ class RatelimitingAddOn(ServiceAddOn):
     """
     Encapsulates the information managed by the ratelimiting add on tag.
     """
+
+    # The number of minutes back to check for ratelimiting enabled data.
+    MINUTES_BACK_TO_SEARCH = "2"
+
     def __init__(self,
                  serviceName=None,
                  buttonUrl=None,
@@ -217,28 +221,36 @@ def getRatelimitingReport(serviceName, agentStats):
         +-------------------------+----+-----+---------+------------+
 
     """
-    commonHostPrefix = getCommonHostPrefix(agentStats)
-    totalHosts = len(agentStats)
 
-    # Don't make a claim if can't find a common prefix or there are no hosts on the stage.
-    if commonHostPrefix == "" or totalHosts == 0:
+    totalHosts = len(agentStats)
+    commonHostPrefix = getCommonHostPrefix(agentStats)
+
+    # Don't make a claim if no lengthy common prefix or if there are no hosts on the stage.
+    # smallest prefix name for an env-stage combination is x-y-, length 4.
+    if len(commonHostPrefix) < 4 or totalHosts == 0:
         return RateLimitingReport(state=ServiceAddOn.UNKNOWN)
 
     totalHostsOn = 0
     totalHostsOff = 0
     totalHostsUnknown = 0
 
+    metricStr = RATELIMIT_ENABLED_METRIC_FORMAT.format(serviceName=serviceName)
+    hosts = getHosts(agentStats)
+
     if totalHosts > 1:
         commonHostPrefix += "*"
 
-    metricStr = RATELIMIT_ENABLED_METRIC_FORMAT.format(serviceName=serviceName)
     apiUrl = STATSBOARD_API_FORMAT.format(metric=metricStr,
                                           tags="host=%s" % commonHostPrefix,
-                                          startTime="-1min")
+                                          startTime="-%smin" % RatelimitingAddOn.MINUTES_BACK_TO_SEARCH)
 
     try:
-        statsboardData = getStatsboardData(apiUrl)
+        statsboardData = restrictToHostsOnCurrentStage(getStatsboardData(apiUrl), hosts)
         for dataSlice in statsboardData:
+            if "datapoints" not in dataSlice:
+                totalHostsUnknown += 1
+                continue
+
             dataPoints = dataSlice["datapoints"]
             if dataPoints is None or len(dataPoints) == 0:
                 totalHostsUnknown += 1
@@ -250,7 +262,7 @@ def getRatelimitingReport(serviceName, agentStats):
         # In any error we abstain from making a claim, including request timeouts.
         return RateLimitingReport(state=ServiceAddOn.UNKNOWN)
 
-    if not statsboardDataConsistent(statsboardData, totalHosts):
+    if not statsboardDataConsistent(statsboardData, hosts):
         return RateLimitingReport(state=ServiceAddOn.UNKNOWN)
 
     totalHostsUnknown += totalHosts - (totalHostsUnknown + totalHostsOff + totalHostsOn)
@@ -274,7 +286,7 @@ def getRatelimitingReport(serviceName, agentStats):
     return rateLimitingReport
 
 
-def getLatestLogUnixTime(topics, lognames, numHostsOnStage, commonHostPrefix):
+def getLatestLogUnixTime(topics, lognames, hostsOnStage, commonHostPrefix):
     """
 
     Returns the latest unix time at which any log in lognames reached
@@ -291,6 +303,7 @@ def getLatestLogUnixTime(topics, lognames, numHostsOnStage, commonHostPrefix):
     """
     topicsApiStr = '|'.join(topics)
     lognamesApiStr = '|'.join(lognames)
+    numHostsOnStage = len(hostsOnStage)
 
     if numHostsOnStage > 1:
         commonHostPrefix += "*"
@@ -303,8 +316,10 @@ def getLatestLogUnixTime(topics, lognames, numHostsOnStage, commonHostPrefix):
 
     earliestMessages = []
     try:
-        statsboardData = getStatsboardData(apiUrl)
+        statsboardData = restrictToHostsOnCurrentStage(getStatsboardData(apiUrl), hostsOnStage)
         for dataSlice in statsboardData:
+            if "datapoints" not in dataSlice:
+                continue
             dataPoints = dataSlice["datapoints"]
             for k in reversed(range(len(dataPoints))):
                 if dataPoints[k][1] > 0:
@@ -313,7 +328,7 @@ def getLatestLogUnixTime(topics, lognames, numHostsOnStage, commonHostPrefix):
     except:
         return None
 
-    if not statsboardDataConsistent(statsboardData, numHostsOnStage):
+    if not statsboardDataConsistent(statsboardData, hostsOnStage):
         return None
 
     if len(earliestMessages) == 0:
@@ -358,7 +373,8 @@ def getLogHealthReport(configStr, report):
                                state=LogHealthReport.ERROR,
                                errorMsg="Invalid topics or lognames")
 
-    lastLogUnixTime = getLatestLogUnixTime(topics, lognames, total_hosts, commonHostPrefix)
+    hostsOnStage = getHosts(report.agentStats)
+    lastLogUnixTime = getLatestLogUnixTime(topics, lognames, hostsOnStage, commonHostPrefix)
     lastLogMinutesAgo = None
     errorMsg = ""
 
@@ -384,7 +400,6 @@ def getRatelimitingAddOn(serviceName, report):
     if serviceName == "helloworlddummyservice-server" or serviceName == "sample-service-0":
         serviceName = "helloworlddummyservice"
 
-    # TODO: keep for now, until testing phase is over.
     if serviceName == "genesis_services_shared":
         serviceName = report.stageName
 
@@ -459,16 +474,24 @@ def getCommonHostPrefix(agentStats):
 
     return os.path.commonprefix(hosts)
 
-def statsboardDataConsistent(statsboardData, numHostsOnCurrStage):
+def getHosts(agentStats):
+    hosts = []
+    for agentStat in agentStats:
+        if "hostName" in agentStat.agent:
+            hosts.append(agentStat.agent["hostName"])
+    return hosts
+
+def statsboardDataConsistent(statsboardData, hostsOnStage):
     """
     Utility function validates the consistency of statsboard data fetched
     for use by service add ons.
 
     :param statsboardData:
-    :param numHostsOnCurrStage:
+    :param hostsOnStage:
     :return:
     """
 
+    numHostsOnCurrStage = len(hostsOnStage)
     if not statsboardData:
         return False
 
@@ -494,7 +517,32 @@ def statsboardDataConsistent(statsboardData, numHostsOnCurrStage):
     if len(set(hostsFound)) > numHostsOnCurrStage:
         return False
 
+    # We should not receive results for any host that is not on the current stage.
+    for h in hostsFound:
+        if h not in hostsOnStage:
+            return False
+
     return True
+
+def restrictToHostsOnCurrentStage(statsboardData, hostsOnCurrentStage):
+    """
+    Removes data for hosts not on current stage from statsboardData, and
+    returns the new version.
+
+    :param statsboardData:
+    :param hostsOnCurrentStage:
+    :return:
+    """
+
+    # NOTE: can be optimized if necessary.
+    newData = []
+    for dataSlice in statsboardData:
+        if "tags" in dataSlice:
+            if "host" in dataSlice["tags"]:
+                if dataSlice["tags"]["host"] in hostsOnCurrentStage:
+                    newData.append(dataSlice)
+
+    return newData
 
 def getStatsboardData(apiUrl):
     """
