@@ -91,7 +91,6 @@ class DeployAgent(object):
         # start to ping server to get the latest deploy goal
         self._response = self._client.send_reports(self._envs)
 
-        # self._response = response
         if self._response:
             report = self._update_internal_deploy_goal(self._response)
             # failed to update
