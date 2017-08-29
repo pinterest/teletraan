@@ -259,7 +259,7 @@ def getRatelimitingReport(serviceName, agentStats):
     commonHostPrefix = getCommonHostPrefix(agentStats)
 
     # Don't make a claim if no lengthy common prefix or if there are no hosts on the stage.
-    # smallest prefix name for an env-stage combination is x-y-, length 4. 
+    # smallest prefix name for an env-stage combination is x-y-, length 4.
     if len(commonHostPrefix) < 4 or totalHosts == 0:
         return RateLimitingReport(state=ServiceAddOn.UNKNOWN)
 
@@ -575,7 +575,7 @@ def statsboardDataConsistent(statsboardData, hostsOnStage):
     if len(set(hostsFound)) > numHostsOnCurrStage:
         return False
 
-    # We should not receive results for any host that is not on the current stage. 
+    # We should not receive results for any host that is not on the current stage.
     for h in hostsFound:
         if h not in hostsOnStage:
             return False
@@ -584,15 +584,15 @@ def statsboardDataConsistent(statsboardData, hostsOnStage):
 
 def restrictToHostsOnCurrentStage(statsboardData, hostsOnCurrentStage):
     """
-    Removes data for hosts not on current stage from statsboardData, and 
-    returns the new version. 
+    Removes data for hosts not on current stage from statsboardData, and
+    returns the new version.
 
     :param statsboardData:
     :param hostsOnCurrentStage:
     :return:
     """
 
-    # NOTE: can be optimized if necessary. 
+    # NOTE: can be optimized if necessary.
     newData = []
     for dataSlice in statsboardData:
         if "tags" in dataSlice:
