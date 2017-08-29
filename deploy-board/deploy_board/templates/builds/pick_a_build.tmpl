@@ -153,10 +153,11 @@
             $(btn).button('loading');
             $(btn).tooltip('hide');
             trid = $(this).closest('tr');
-            startSha = trid.prev().find(".hiddenCommit").val();
+            prevSha = trid.prev().find(".hiddenCommit").val();
+            currentSha = trid.find(".hiddenCommit").val();
             contentId = trid.find('.showContent');
-            url = '/commits/compare_commits/?start_sha=' + startSha +
-                '&end_sha={{ current_build.commit }}&repo={{ current_build.repo }}';
+            url = '/commits/compare_commits/?start_sha=' + prevSha +
+                '&end_sha=' + currentSha + '&repo={{ current_build.repo }}';
             contentId.load(url, function () {
                 $(btn).button('reset');
             });
