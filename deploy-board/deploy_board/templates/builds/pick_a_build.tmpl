@@ -77,13 +77,12 @@
                             title="Show all the new commits since last deploy">
                         <span class="glyphicon glyphicon-zoom-in"></span> Show New Commits
                     </button>
-                    {% else %}
-                     <button class="showdiffbetween deployToolTip btn btn-default"
+                    {% endif %}
+                    <button class="showdiffbetween deployToolTip btn btn-default"
                             data-loading-text="Loading..." data-toggle="tooltip"
                             title="Show commits between two adjacent builds">
                         <span class="glyphicon glyphicon-zoom-in"></span> Show Commits Between Builds
                     </button>
-                    {% endif %}
                     {% if current_build.type == "Github" %}
                     <button class="githuber deployToolTip btn btn-default" data-toggle="tooltip"
                             title="Show all the new commits in Gitbhub">
