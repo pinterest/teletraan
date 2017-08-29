@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -77,7 +77,8 @@ class Client(BaseClient):
                     if host_group:
                         self._hostgroup = host_group.split(",")
             else:
-                log.warn("Cannot find host information file {}. See doc for more details".format(host_info_fn))
+                log.warn("Cannot find host information file {}. See doc for more details".format(
+                    host_info_fn))
 
         # patch missing part
         if not self._hostname:
@@ -85,7 +86,7 @@ class Client(BaseClient):
 
         if not self._id:
             if self._use_facter:
-                #Must fail here as it cannot identify the host if id is missing
+                # Must fail here as it cannot identify the host if id is missing
                 return False
             else:
                 self._id = self._hostname
@@ -115,8 +116,9 @@ class Client(BaseClient):
                     # https://app.asana.com/0/11815463290546/40714916594784
                     if report.errorMessage:
                         report.errorMessage = report.errorMessage.encode('ascii', 'ignore')
-                ping_request = PingRequest(hostId=self._id, hostName=self._hostname, hostIp=self._ip,
-                                        groups=self._hostgroup, reports=reports)
+                ping_request = PingRequest(hostId=self._id, hostName=self._hostname,
+                                           hostIp=self._ip, groups=self._hostgroup,
+                                           reports=reports)
 
                 with create_stats_timer('deploy.agent.request.latency',
                                         sample_rate=1.0,
@@ -128,8 +130,8 @@ class Client(BaseClient):
             else:
                 log.error("Fail to read host info")
                 create_sc_increment(stats='deploy.failed.agent.hostinfocollection',
-                                sample_rate=1.0,
-                                tags={'host': self._hostname})
+                                    sample_rate=1.0,
+                                    tags={'host': self._hostname})
         except Exception:
             log.error(traceback.format_exc())
             create_sc_increment(stats='deploy.failed.agent.requests',
