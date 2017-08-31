@@ -205,8 +205,11 @@ def update_service_add_ons(request, name, stage):
                                                                  report=report)
         kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=serviceName,
                                                                  report=report)
+        dashboardAddOn = service_add_ons.getDashboardAddOn(serviceName=serviceName,
+                                                           report=report)
         serviceAddOns.append(rateLimitingAddOn)
         serviceAddOns.append(kafkaLoggingAddOn)
+        serviceAddOns.append(dashboardAddOn)
 
 
     html = render_to_string('deploys/deploy_add_ons.tmpl', {
