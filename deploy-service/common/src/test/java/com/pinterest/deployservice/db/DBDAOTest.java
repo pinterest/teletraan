@@ -531,7 +531,7 @@ public class DBDAOTest {
     @Test
     public void testEnvDAO() throws Exception {
 
-        // Test insert
+        // Test insertOrUpdate
         EnvironBean envBean = genDefaultEnvBean("env-1", "s-1", "prod", "deploy-1");
         environDAO.insert(envBean);
 
@@ -728,7 +728,7 @@ public class DBDAOTest {
         assertEquals(hostBean3.iterator().next().getHost_name(), "host-3");
         groupDAO.removeGroupCapacity("e-3", "new_group");
 
-        // test host insert
+        // test host insertOrUpdate
         HostBean hostBean1 = new HostBean();
         hostBean1.setHost_name("i-9");
         hostBean1.setHost_id("i-9");

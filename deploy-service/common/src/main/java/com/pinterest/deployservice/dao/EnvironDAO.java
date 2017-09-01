@@ -68,4 +68,6 @@ public interface EnvironDAO {
 
     void deleteCluster(String envName, String stageName) throws Exception;
 
+    void deleteDeployRule(String envName, String stageName) throws Exception;
+
 }

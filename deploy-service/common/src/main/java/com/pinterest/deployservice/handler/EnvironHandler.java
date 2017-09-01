@@ -318,7 +318,7 @@ public class EnvironHandler {
 
         PromoteBean originBean = promoteDAO.getById(envId);
         if (originBean == null) {
-            // Provide all the defaults if this is an insert
+            // Provide all the defaults if this is an insertOrUpdate
             updatePromoteBeanDefault(promoteBean);
             promoteBean.setEnv_id(envId);
             promoteDAO.insert(promoteBean);

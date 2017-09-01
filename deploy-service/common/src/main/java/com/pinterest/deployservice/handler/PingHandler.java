@@ -16,33 +16,11 @@
 package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.AgentBean;
-import com.pinterest.deployservice.bean.AgentErrorBean;
-import com.pinterest.deployservice.bean.AgentState;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.DeployBean;
-import com.pinterest.deployservice.bean.DeployGoalBean;
-import com.pinterest.deployservice.bean.DeployStage;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.bean.OpCode;
-import com.pinterest.deployservice.bean.PingReportBean;
-import com.pinterest.deployservice.bean.PingRequestBean;
-import com.pinterest.deployservice.bean.PingResponseBean;
-import com.pinterest.deployservice.bean.PingResult;
-import com.pinterest.deployservice.bean.ScheduleBean;
-import com.pinterest.deployservice.bean.ScheduleState;
+import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.StateMachines;
-import com.pinterest.deployservice.dao.AgentDAO;
-import com.pinterest.deployservice.dao.AgentErrorDAO;
-import com.pinterest.deployservice.dao.BuildDAO;
-import com.pinterest.deployservice.dao.DeployDAO;
-import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.dao.ScheduleDAO;
-import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.dao.*;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -88,6 +66,8 @@ public class PingHandler {
     private HostDAO hostDAO;
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
+    private HostTagDAO hostTagDAO;
+    private DeployRuleDAO deployRuleDAO;
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
     private LoadingCache<String, DeployBean> deployCache;
@@ -101,6 +81,8 @@ public class PingHandler {
         hostDAO = serviceContext.getHostDAO();
         utilDAO = serviceContext.getUtilDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
+        hostTagDAO = serviceContext.getHostTagDAO();
+        deployRuleDAO = serviceContext.getDeployRuleDAO();
         dataHandler = new DataHandler(serviceContext);
 
         if (serviceContext.isBuildCacheEnabled()) {
@@ -140,6 +122,27 @@ public class PingHandler {
             if (!groups.contains(recordedGroup)) {
                 LOG.warn("Remove host {} from group {}", pingRequest.getHostName(), recordedGroup);
                 this.hostDAO.removeHostFromGroup(pingRequest.getHostId(), recordedGroup);
+            }
+        }
+    }
+
+    void updateHostTag(PingRequestBean pingRequestBean) throws Exception {
+        String hostId = pingRequestBean.getHostId();
+        String hostName = pingRequestBean.getHostName();
+        List<Map<String, String>> tags = pingRequestBean.getTags();
+        if(tags != null) {
+            for(Map<String, String> tag: tags) {
+                String tagName = tag.get("Key");
+                String tagValue = tag.get("Value");
+                if(hostTagDAO.get(hostId, tagName, tagValue) == null) {
+                    HostTagBean hostTagBean = new HostTagBean();
+                    hostTagBean.setHost_id(hostId);
+                    hostTagBean.setHost_name(hostName);
+                    hostTagBean.setTag_name(tagName);
+                    hostTagBean.setTag_value(tagValue);
+                    hostTagBean.setCreate_date(System.currentTimeMillis());
+                    hostTagDAO.insertOrUpdate(hostTagBean);
+                }
             }
         }
     }
@@ -189,7 +192,7 @@ public class PingHandler {
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
      */
-    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean, String scheduleId) throws Exception {
+    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean, String scheduleId, String deployRuleId) throws Exception {
         // first deploy should always proceed
         if (agentBean.getFirst_deploy()) {
             agentDAO.insertOrUpdate(agentBean);
@@ -223,6 +226,14 @@ public class PingHandler {
             }
         }
 
+        // Make sure we also follow the deploy rule if specified
+        if(deployRuleId != null) {
+            if (!canDeployWithRule(agentBean.getHost_id(), envBean)) {
+                LOG.debug("Env {} deploy rule does not allow host {} to proceed.", envId, host);
+                return false;
+            }
+        }
+
         // Looks like we can proceed with deploy, but let us double check with lock, and
         // Update table to occupy one seat if condition still hold
         String deployLockName = String.format("DEPLOY-%s", envId);
@@ -243,6 +254,14 @@ public class PingHandler {
                         return false;
                     }
                 }
+
+                // Make sure we also follow the deploy rule if specified
+                if(deployRuleId != null) {
+                    if (!canDeployWithRule(agentBean.getHost_id(), envBean)) {
+                        LOG.debug("Env {} deploy rule does not allow host {} to proceed.", envId, host);
+                        return false;
+                    }
+                }
                 agentDAO.insertOrUpdate(agentBean);
                 LOG.debug("There are currently only {} agent is actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
                 return true;
@@ -255,6 +274,29 @@ public class PingHandler {
             }
         } else {
             LOG.warn("Failed to grab PARALLEL_LOCK for env = {}, host = {}, return false.", envId, host);
+            return false;
+        }
+    }
+
+    boolean canDeployWithRule(String hostId, EnvironBean envBean) throws Exception{
+        String envId = envBean.getEnv_id();
+        String ruleId = envBean.getDeploy_rule_id();
+
+        try {
+            LOG.debug("verify active agents for host {} rule {}", hostId, ruleId);
+            DeployRuleBean deployRuleBean = deployRuleDAO.getById(ruleId);
+            String tagValue = deployRuleBean.getCondition_key();
+            String tagName = deployRuleBean.getCondition_value();
+
+            long maxParallelWithHostTag = deployRuleBean.getMax_parallel();
+            long totalActiveAgentsWithHostTag = agentDAO.countDeployingAgentWithHostTag(envBean.getEnv_id(), tagName, tagValue);
+            if(totalActiveAgentsWithHostTag >= maxParallelWithHostTag) {
+                LOG.info("already exceed {} for env = {}, host = {}, rule = {}, return false", maxParallelWithHostTag, envId, hostId, deployRuleBean.toString());
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            LOG.error(String.format("Failed to check if can deploy or not for env = %s, host = %s for rule %s", envId, hostId, ruleId), e);
             return false;
         }
     }
@@ -412,9 +454,15 @@ public class PingHandler {
             EnvironBean env = installCandidate.env;
             String scheduleId = env.getSchedule_id();
 
+            String deployRuleId = env.getDeploy_rule_id();
+            if(deployRuleId != null) {
+                // always save the tags from ping request if deployRuleId is not null
+                updateHostTag(pingRequest);
+            }
+
             if (installCandidate.needWait) {
                 LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
-                if (canDeploy(env, hostName, updateBean, scheduleId)) {
+                if (canDeploy(env, hostName, updateBean, scheduleId, deployRuleId)) {
                     LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
                     updateBeans.put(updateBean.getEnv_id(), updateBean);
                     response = generateInstallResponse(installCandidate);

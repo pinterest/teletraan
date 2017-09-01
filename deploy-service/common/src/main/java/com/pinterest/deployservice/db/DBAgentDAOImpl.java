@@ -58,6 +58,11 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String GET_DEPLOYING_TOTAL =
         "SELECT COUNT(*) FROM agents " +
             "WHERE env_id=? AND ((deploy_stage!=? AND state!='PAUSED_BY_USER' AND first_deploy=?) OR state = 'STOP' )";
+    private static final String GET_DEPLOYING_TOTAL_WITH_HOST_TAG =
+        "SELECT COUNT(*) FROM agents INNER JOIN host_tags ON host_tags.host_id = agents.host_id " +
+            "WHERE agents.env_id=? AND ((agents.deploy_stage!=? AND agents.state!='PAUSED_BY_USER' AND agents.first_deploy=?) OR agents.state = 'STOP' ) " +
+            "AND host_tags.tag_name = ? AND host_tags.tag_value = ?";
+
     private static final String GET_FAILED_FIRST_DEPLOY_TOTAL =
         "SELECT COUNT(*) FROM agents " +
                 "WHERE env_id=? AND deploy_stage!=? AND status !='SUCCEEDED' AND status!= 'UNKNOWN' AND first_deploy=1";
@@ -243,6 +248,13 @@ public class DBAgentDAOImpl implements AgentDAO {
     public long countAgentsByDeploy(String deployId) throws Exception {
         Long n = new QueryRunner(dataSource).query(COUNT_AGENTS_BY_DEPLOY,
             SingleResultSetHandlerFactory.<Long>newObjectHandler(), deployId);
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long countDeployingAgentWithHostTag(String envId, String tagName, String tagValue) throws Exception {
+        Long n = new QueryRunner(dataSource).query(GET_DEPLOYING_TOTAL_WITH_HOST_TAG,
+            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, DeployStage.SERVING_BUILD.toString(), 0, tagName, tagValue);
         return n == null ? 0 : n;
     }
 

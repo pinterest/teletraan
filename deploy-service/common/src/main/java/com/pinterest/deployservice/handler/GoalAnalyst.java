@@ -270,9 +270,9 @@ public class GoalAnalyst {
 
     // Generate new agent bean based on the report & current agent record,
     // This is intended to be used for update agent record, not for goal,
-    // We populate all the fields, since this could be used for insert as well
+    // We populate all the fields, since this could be used for insertOrUpdate as well
     AgentBean genUpdateBeanByReport(PingReportBean report, AgentBean agent) {
-        // We generate complete bean in case we need to insert it into agents table
+        // We generate complete bean in case we need to insertOrUpdate it into agents table
         AgentBean updateBean = new AgentBean();
         updateBean.setHost_name(host);
         updateBean.setHost_id(host_id);

@@ -19,6 +19,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class PingRequestBean {
@@ -32,6 +33,8 @@ public class PingRequestBean {
     private Set<String> groups;
 
     private List<PingReportBean> reports;
+
+    private List<Map<String, String>> tags;
 
     public String getHostId() {
         return hostId;
@@ -71,6 +74,15 @@ public class PingRequestBean {
 
     public void setReports(List<PingReportBean> reports) {
         this.reports = reports;
+    }
+
+
+    public List<Map<String, String>> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<Map<String, String>> tags) {
+        this.tags = tags;
     }
 
     @Override
