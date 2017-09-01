@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,14 +35,16 @@ class RestfulClient(object):
         def api(path, params=None, data=None):
             url = '%s/%s%s' % (self.url_prefix, self.url_version, path)
             if self.token:
-                headers = {'Authorization': 'token %s' % self.token, 'Content-type': 'application/json'}
+                headers = {'Authorization': 'token %s' % self.token,
+                           'Content-type': 'application/json'}
             else:
                 headers = {'Content-type': 'application/json'}
             response = getattr(requests, method)(url, headers=headers, params=params, json=data,
                                                  timeout=self.default_timeout, verify=False)
 
             if response.status_code > 300:
-                msg = "Teletraan failed to call backend server. Hint: %s, %s" % (response.status_code, response.content)
+                msg = "Teletraan failed to call backend server. Hint: %s, %s" % (
+                    response.status_code, response.content)
                 log.error(msg)
                 raise AgentException(msg)
 
