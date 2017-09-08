@@ -228,7 +228,7 @@ public class GoalAnalyst {
         if (agent != null && agent.getState() == AgentState.STOP) {
             // agent has been explicitly STOP, do not override
             if (agent.getDeploy_stage() == DeployStage.STOPPING && FATAL_AGENT_STATUSES.contains(status)) {
-                LOG.debug("Agent DeployStage is STPPPING, but report status is {}, propose new agent state as {} ", status, AgentState.PAUSED_BY_SYSTEM);
+                LOG.debug("Agent DeployStage is STOPPING, but report status is {}, propose new agent state as {} ", status, AgentState.PAUSED_BY_SYSTEM);
                 return AgentState.PAUSED_BY_SYSTEM;
             }
             return AgentState.STOP;
