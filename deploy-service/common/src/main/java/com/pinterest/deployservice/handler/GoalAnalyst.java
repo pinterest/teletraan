@@ -419,6 +419,19 @@ public class GoalAnalyst {
         }
     }
 
+    void installNewUpdateBean(EnvironBean env, PingReportBean report, AgentBean agent) {
+        AgentBean newUpdateBean = genNewUpdateBean(env, agent);
+        boolean needWait = (report.getDeployStage() == DeployStage.SERVING_BUILD);
+        if (needWait) {
+            // A special case when even report suggests wait, for agent record disagree
+            if (agent != null && agent.getDeploy_stage() != DeployStage.SERVING_BUILD) {
+                needWait = false;
+            }
+        }
+        installCandidates.add(new InstallCandidate(env, needWait, newUpdateBean, report));
+        return;
+    }
+
     /**
      * Compute suggested next step based on current env deploy, report deploy and agent status
      */
@@ -530,17 +543,9 @@ public class GoalAnalyst {
             if (env.getDeploy_id().equals(report.getDeployId())) {
                 // Special case when agent state is RESET, start from beginning
                 if (updateBean.getState() == AgentState.RESET) {
-                    newUpdateBean = genNewUpdateBean(env, agent);
-                    boolean needWait = (report.getDeployStage() == DeployStage.SERVING_BUILD);
-                    if (needWait) {
-                        // A special case when even report suggests wait, for agent record disagree
-                        if (agent != null && agent.getDeploy_stage() != DeployStage.SERVING_BUILD) {
-                            needWait = false;
-                        }
-                    }
-                    installCandidates.add(new InstallCandidate(env, needWait, newUpdateBean, report));
+                    installNewUpdateBean(env, report, agent);
                     LOG.debug("GoalAnalyst case 1.0 - host {} work on the same deploy {}, but agent state is RESET, set env {} as a goal candidate and start from beginning.",
-                        host, report.getDeployStage(), env.getDeploy_id(), envId, newUpdateBean.getDeploy_stage());
+                        host, env.getDeploy_id(), envId);
                     return;
                 }
 
@@ -594,17 +599,9 @@ public class GoalAnalyst {
                  *           This is an install candidate. Need to also check if agent is already in restarting mode,
                  *           so that we know if we need to wait in the line or not
                  */
-                newUpdateBean = genNewUpdateBean(env, agent);
-                boolean needWait = (report.getDeployStage() == DeployStage.SERVING_BUILD);
-                if (needWait) {
-                    // A special case when even report suggests wait, for agent record disagree
-                    if (agent != null && agent.getDeploy_stage() != DeployStage.SERVING_BUILD) {
-                        needWait = false;
-                    }
-                }
+                installNewUpdateBean(env, report, agent);
                 LOG.debug("GoalAnalyst case 1.5 - add env {} as a candidate for host {} to install the new deploy {}, agent is reported as in stage {}",
                     env.getEnv_id(), host, env.getDeploy_id(), report.getDeployStage());
-                installCandidates.add(new InstallCandidate(env, needWait, newUpdateBean, report));
             }
             return;
         }
