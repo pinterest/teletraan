@@ -24,6 +24,7 @@ from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import GUINEA_PIG_ENVS
+from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
 from django.conf import settings
 import agent_report
 import service_add_ons
@@ -203,14 +204,15 @@ def update_service_add_ons(request, name, stage):
         serviceName = name
         rateLimitingAddOn = service_add_ons.getRatelimitingAddOn(serviceName=serviceName,
                                                                  report=report)
-        kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=serviceName,
-                                                                 report=report)
         dashboardAddOn = service_add_ons.getDashboardAddOn(serviceName=serviceName,
                                                            report=report)
         serviceAddOns.append(rateLimitingAddOn)
-        serviceAddOns.append(kafkaLoggingAddOn)
         serviceAddOns.append(dashboardAddOn)
 
+        if name in KAFKA_LOGGING_ADD_ON_ENVS:
+            kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=serviceName,
+                                                                     report=report)
+            serviceAddOns.append(kafkaLoggingAddOn)
 
     html = render_to_string('deploys/deploy_add_ons.tmpl', {
         "serviceAddOns": serviceAddOns,
