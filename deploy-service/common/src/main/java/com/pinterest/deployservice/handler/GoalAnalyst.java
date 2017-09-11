@@ -91,17 +91,17 @@ public class GoalAnalyst {
 
         int getDeployPriority(EnvironBean env) {
             if (env.getDeploy_type() == null) {
-              return DeployPriority.NORMAL.getValue();
+                return DeployPriority.NORMAL.getValue();
             } else {
-              // System level deploy, or sidecar service deploy mostly, will use dedicated system
-              // priority. Notice for system level deploy, we disregard the priorities of hotfix
-              // or rollback.
-              Integer systemPriority = env.getSystem_priority();
-              if (systemPriority != null) {
-                return systemPriority;
-              }
+                // System level deploy, or sidecar service deploy mostly, will use dedicated system
+                // priority. Notice for system level deploy, we disregard the priorities of hotfix
+                // or rollback.
+                Integer systemPriority = env.getSystem_priority();
+                if (systemPriority != null) {
+                    return systemPriority;
+                }
 
-              DeployType deployType = env.getDeploy_type();
+                DeployType deployType = env.getDeploy_type();
                 if (deployType == DeployType.HOTFIX) {
                     return HOT_FIX_PRIORITY;
                 } else if (deployType == DeployType.ROLLBACK) {
@@ -419,10 +419,24 @@ public class GoalAnalyst {
         }
     }
 
+    boolean isSystemEnvFailed(Set<String> envIds) throws Exception {
+        for (String envId : envIds) {
+            EnvironBean environBean = envs.get(envId);
+            PingReportBean pingReportBean = reports.get(envId);
+            if (environBean != null && pingReportBean != null) {
+                if (environBean.getSystem_priority() != null && FATAL_AGENT_STATUSES.contains(pingReportBean.getAgentStatus())) {
+                    LOG.debug(String.format("system env %s is failed, agent status %s", envId, pingReportBean.getAgentStatus().toString()));
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Compute suggested next step based on current env deploy, report deploy and agent status
      */
-    void process(String envId, EnvironBean env, PingReportBean report, AgentBean agent) throws Exception {
+    void process(String envId, EnvironBean env, PingReportBean report, AgentBean agent, boolean isSystemEnvFailed) throws Exception {
         LOG.debug("GoalAnalyst process env {}, report = {}, env = {} and agent = {}.", envId, report, env, agent);
 
         /**
@@ -516,6 +530,14 @@ public class GoalAnalyst {
                     return;
                 }
             }
+        }
+
+        /**
+         * Case 0.5: Previous system env is failed, do not install remaining envs
+         */
+        if (isSystemEnvFailed) {
+            LOG.debug(String.format("GoalAnalyst case 0.5 - env %s is on hold due to system env is failed, not a goal candidate.", envId));
+            return;
         }
 
         /**
@@ -656,10 +678,10 @@ public class GoalAnalyst {
 
     void analysis() throws Exception {
         Set<String> envIds = gatherAllEnvIds();
-
+        boolean isSystemEnvFailed = isSystemEnvFailed(envIds);
         // Handle all the cases, for all possible envs
         for (String envId : envIds) {
-            process(envId, envs.get(envId), reports.get(envId), agents.get(envId));
+            process(envId, envs.get(envId), reports.get(envId), agents.get(envId), isSystemEnvFailed);
         }
 
         // Sort the install candidates

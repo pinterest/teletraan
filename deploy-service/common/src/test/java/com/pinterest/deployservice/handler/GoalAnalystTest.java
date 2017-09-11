@@ -787,22 +787,53 @@ public class GoalAnalystTest {
         agent66.setEnv_id("e66");
         agents.put(agent66.getEnv_id(), agent66);
 
+        // Case 5: system env
+        EnvironBean envBean77 = genDefaultEnvBean();
+        envBean77.setEnv_id("e77");
+        envBean77.setSystem_priority(100);
+        envs.put(envBean77.getEnv_id(), envBean77);
+
+        PingReportBean report77 = genDefaultReport();
+        report77.setEnvId("e77");
+        report77.setDeployStage(DeployStage.PRE_RESTART);
+        reports.put(report77.getEnvId(), report77);
+
+        AgentBean agent77 = genDefaultAgent();
+        agent77.setEnv_id("e77");
+        agents.put(envBean77.getEnv_id(), agent77);
+
+        EnvironBean envBean78 = genDefaultEnvBean();
+        envBean78.setEnv_id("e78");
+        envBean78.setSystem_priority(90);
+        envs.put(envBean78.getEnv_id(), envBean78);
+
+        PingReportBean report78 = genDefaultReport();
+        report78.setEnvId("e78");
+        report78.setDeployStage(DeployStage.PRE_RESTART);
+        reports.put(report78.getEnvId(), report78);
+
+        AgentBean agent78 = genDefaultAgent();
+        agent78.setEnv_id("e78");
+        agents.put(envBean78.getEnv_id(), agent78);
+
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
         analyst.analysis();
 
-        assertEquals(analyst.getNeedUpdateAgents().size(), 13);
+        assertEquals(analyst.getNeedUpdateAgents().size(), 15);
         assertEquals(analyst.getNeedDeleteAgentEnvIds().size(), 1);
-        assertEquals(analyst.getInstallCandidates().size(), 7);
+        assertEquals(analyst.getInstallCandidates().size(), 9);
 
         // Making sure the candidates are sorted as expected
         List<GoalAnalyst.InstallCandidate> candidates = analyst.getInstallCandidates();
-        assertEquals(candidates.get(0).env.getEnv_id(), "e5");
-        assertEquals(candidates.get(1).env.getEnv_id(), "e6");
-        assertEquals(candidates.get(2).env.getEnv_id(), "e9");
-        assertEquals(candidates.get(3).env.getEnv_id(), "e33");
-        assertEquals(candidates.get(4).env.getEnv_id(), "e11");
-        assertEquals(candidates.get(5).env.getEnv_id(), "e44");
-        assertEquals(candidates.get(6).env.getEnv_id(), "e22");
+        assertEquals(candidates.get(0).env.getEnv_id(), "e78");
+        assertEquals(candidates.get(1).env.getEnv_id(), "e77");
+        assertEquals(candidates.get(2).env.getEnv_id(), "e5");
+        assertEquals(candidates.get(3).env.getEnv_id(), "e6");
+        assertEquals(candidates.get(4).env.getEnv_id(), "e9");
+        assertEquals(candidates.get(5).env.getEnv_id(), "e33");
+        assertEquals(candidates.get(6).env.getEnv_id(), "e11");
+        assertEquals(candidates.get(7).env.getEnv_id(), "e44");
+        assertEquals(candidates.get(8).env.getEnv_id(), "e22");
     }
 
     @Test
@@ -974,6 +1005,56 @@ public class GoalAnalystTest {
         AgentBean needUpdateAgents = analyst.getNeedUpdateAgents().get(environBean.getEnv_id());
         assertEquals(needUpdateAgents.getState(), AgentState.STOP);
         assertEquals(analyst.getNeedDeleteAgentEnvIds().size(), 0);
+        assertEquals(analyst.getInstallCandidates().size(), 0);
+    }
+
+    @Test
+    public void testNEnvsNReportsAndFailedSystemEnvs() throws Exception {
+        EnvironBean envBean1 = genDefaultEnvBean();
+        envBean1.setEnv_id("e1");
+        envBean1.setSystem_priority(100);
+        envs.put(envBean1.getEnv_id(), envBean1);
+
+        PingReportBean report1 = genDefaultReport();
+        report1.setEnvId("e1");
+        report1.setDeployStage(DeployStage.PRE_RESTART);
+        report1.setAgentStatus(AgentStatus.AGENT_FAILED);
+        reports.put(report1.getEnvId(), report1);
+
+        AgentBean agent1 = genDefaultAgent();
+        agent1.setEnv_id("e1");
+        agents.put(envBean1.getEnv_id(), agent1);
+
+        EnvironBean envBean2 = genDefaultEnvBean();
+        envBean2.setEnv_id("e2");
+        envBean2.setSystem_priority(90);
+        envs.put(envBean2.getEnv_id(), envBean2);
+
+        PingReportBean report2 = genDefaultReport();
+        report2.setEnvId("e2");
+        report2.setDeployStage(DeployStage.PRE_RESTART);
+        reports.put(report2.getEnvId(), report2);
+
+        AgentBean agent2 = genDefaultAgent();
+        agent2.setEnv_id("e2");
+        agents.put(envBean2.getEnv_id(), agent2);
+
+        EnvironBean envBean3 = genDefaultEnvBean();
+        envBean3.setEnv_id("e3");
+        envBean3.setPriority(DeployPriority.HIGHER);
+        envs.put(envBean3.getEnv_id(), envBean3);
+
+        PingReportBean report3 = genDefaultReport();
+        report3.setEnvId("e3");
+        report3.setDeployStage(DeployStage.RESTARTING);
+        reports.put(report3.getEnvId(), report3);
+
+        AgentBean agent3 = genDefaultAgent();
+        agent3.setEnv_id("e3");
+        agents.put(agent3.getEnv_id(), agent3);
+
+        GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
+        analyst.analysis();
         assertEquals(analyst.getInstallCandidates().size(), 0);
     }
 }
