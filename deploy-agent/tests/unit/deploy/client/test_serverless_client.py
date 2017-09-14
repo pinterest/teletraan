@@ -12,18 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
 import unittest
-import mock
 import tests
 
-from deployd.agent import DeployAgent
 from deployd.client.serverless_client import ServerlessClient
-from deployd.common.utils import ensure_dirs
-from deployd.common.types import DeployReport, DeployStatus, OpCode, DeployStage, AgentStatus
-from deployd.types.deploy_goal import DeployGoal
+from deployd.common.types import DeployStatus, AgentStatus
 from deployd.types.ping_report import PingReport
-from deployd.types.ping_response import PingResponse
 
 
 class TestServerlessClient(tests.TestCase):
