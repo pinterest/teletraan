@@ -442,8 +442,10 @@ def getDashboardReport(serviceName, report):
     return DashboardStateReport(state=state)
 
 def getRatelimitingAddOn(serviceName, report):
-    # TODO: keep for now, until testing phase is over.
-    if serviceName == "helloworlddummyservice-server" or serviceName == "sample-service-0":
+
+    # Some special-casing - in the future it should be possible to retrieve a service
+    # name from environment information.
+    if serviceName == "helloworlddummyservice-server":
         serviceName = "helloworlddummyservice"
 
     if serviceName == "genesis_services_shared":
@@ -465,7 +467,10 @@ def getKafkaLoggingAddOn(serviceName, report, configStr=None):
                              logHealthReport=logHealthReport)
 
 def getDashboardAddOn(serviceName, report):
-    if serviceName == "helloworlddummyservice-server" or serviceName == "sample-service-0":
+
+    # Some special-casing - in the future it should be possible to retrieve a service
+    # name from environment information.
+    if serviceName == "helloworlddummyservice-server":
         serviceName = "helloworlddummyservice"
 
     if serviceName == "genesis_services_shared":
