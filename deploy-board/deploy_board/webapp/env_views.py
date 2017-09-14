@@ -197,22 +197,21 @@ def update_service_add_ons(request, name, stage):
     progress = deploys_helper.update_progress(request, name, stage)
     report = agent_report.gen_report(request, env, progress)
 
-    # TODO: temporary addition for development, remove if statement to activate on all environments.
-    if name in GUINEA_PIG_ENVS:
 
-        # Currently we assume that the servicename is the same as the environment name.
-        serviceName = name
-        rateLimitingAddOn = service_add_ons.getRatelimitingAddOn(serviceName=serviceName,
+    # Currently we assume that the servicename is the same as the environment name.
+    serviceName = name
+    rateLimitingAddOn = service_add_ons.getRatelimitingAddOn(serviceName=serviceName,
+                                                             report=report)
+    dashboardAddOn = service_add_ons.getDashboardAddOn(serviceName=serviceName,
+                                                       report=report)
+    serviceAddOns.append(rateLimitingAddOn)
+
+    if name in KAFKA_LOGGING_ADD_ON_ENVS:
+        kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=serviceName,
                                                                  report=report)
-        dashboardAddOn = service_add_ons.getDashboardAddOn(serviceName=serviceName,
-                                                           report=report)
-        serviceAddOns.append(rateLimitingAddOn)
-        serviceAddOns.append(dashboardAddOn)
+        serviceAddOns.append(kafkaLoggingAddOn)
 
-        if name in KAFKA_LOGGING_ADD_ON_ENVS:
-            kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=serviceName,
-                                                                     report=report)
-            serviceAddOns.append(kafkaLoggingAddOn)
+    serviceAddOns.append(dashboardAddOn)
 
     html = render_to_string('deploys/deploy_add_ons.tmpl', {
         "serviceAddOns": serviceAddOns,
