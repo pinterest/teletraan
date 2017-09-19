@@ -51,7 +51,7 @@ public class ServiceContext {
     private TagDAO tagDAO;
     private ScheduleDAO scheduleDAO;
     private HostTagDAO hostTagDAO;
-    private DeployRuleDAO deployRuleDAO;
+    private DeployConstraintDAO deployConstraintDAO;
 
     private String serviceStage;
     private MailManager mailManager;
@@ -197,12 +197,12 @@ public class ServiceContext {
         this.hostTagDAO = hostTagDAO;
     }
 
-    public DeployRuleDAO getDeployRuleDAO() {
-        return deployRuleDAO;
+    public DeployConstraintDAO getDeployConstraintDAO() {
+        return deployConstraintDAO;
     }
 
-    public void setDeployRuleDAO(DeployRuleDAO deployRuleDAO) {
-        this.deployRuleDAO = deployRuleDAO;
+    public void setDeployConstraintDAO(DeployConstraintDAO deployConstraintDAO) {
+        this.deployConstraintDAO = deployConstraintDAO;
     }
 
     public void setConfigHistoryDAO(ConfigHistoryDAO configHistoryDAO) {

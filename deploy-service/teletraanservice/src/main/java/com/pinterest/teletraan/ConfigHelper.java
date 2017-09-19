@@ -74,7 +74,7 @@ public class ConfigHelper {
         context.setConfigHistoryDAO(new DBConfigHistoryDAOImpl(dataSource));
         context.setHostDAO(new DBHostDAOImpl(dataSource));
         context.setHostTagDAO(new DBHostTagDAOImpl(dataSource));
-        context.setDeployRuleDAO(new DBDeployRuleDAOImpl(dataSource));
+        context.setDeployConstraintDAO(new DBDeployConstraintDAOImpl(dataSource));
         context.setGroupDAO(new DBGroupDAOImpl(dataSource));
         context.setAgentDAO(new DBAgentDAOImpl(dataSource));
         context.setAgentErrorDAO(new DBAgentErrorDAOImpl(dataSource));
@@ -176,6 +176,13 @@ public class ConfigHelper {
                 Runnable worker = new AgentJanitor(serviceContext, minStaleHostThreshold, maxStaleHostThreshold, maxLaunchLatencyThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled AgentJanitor.");
+            }
+
+            if(workerName.equalsIgnoreCase(DeployTagWorker.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new DeployTagWorker(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
+                LOG.info("Scheduled DeployTagWorker.");
             }
 
             // Schedule cron like jobs

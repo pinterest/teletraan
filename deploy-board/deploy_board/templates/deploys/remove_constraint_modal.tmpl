@@ -1,0 +1,32 @@
+<div class="modal fade" id="removeDeployConstraintModalId" tabindex="-1" role="dialog"
+     aria-labelledby="removeDeployConstraintLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span
+                        aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="removeDeployConstraintLabel">Remove Deploy Constraint</h4>
+            </div>
+            <div class="modal-body">
+                Are you sure you would like to remove deploy constraint for <strong>{{ tag_name }}</strong>?<br/>
+
+                <label for="maxParallelHosts" class="deployToolTip control-label col-xs-2"
+                    data-toggle="tooltip"
+                    title="Maximum number of hosts allowed to deploy with tag {{ tag_name }} at the same time">
+                    Maximum Parallel Number
+                </label>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="{{ max_parallel }}" readonly>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="/env/{{ envName }}/{{ stageName }}/remove_constraint/{{ tag_name }}/" class="btn btn-primary">
+                    Remove
+                </a>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+

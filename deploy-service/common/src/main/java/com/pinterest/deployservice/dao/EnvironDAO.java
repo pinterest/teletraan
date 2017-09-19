@@ -68,6 +68,7 @@ public interface EnvironDAO {
 
     void deleteCluster(String envName, String stageName) throws Exception;
 
-    void deleteDeployRule(String envName, String stageName) throws Exception;
+    EnvironBean getEnvByDeployConstraintId(String constraintId) throws Exception;
 
+    void deleteConstraint(String envName, String stageName) throws Exception;
 }

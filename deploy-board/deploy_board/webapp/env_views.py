@@ -175,12 +175,19 @@ def update_deploy_progress(request, name, stage):
 
     report.showMode = showMode
     report.sortByStatus = sortByStatus
-    html = render_to_string('deploys/deploy_progress.tmpl', {
+    context = {
         "report": report,
         "env": env,
         "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
         "pinterest": IS_PINTEREST
-    })
+    }
+    sortByTag = _fetch_param_with_cookie(
+        request, 'sortByTag', MODE_COOKIE_NAME, None)
+    if sortByTag:
+        report.sortByTag = sortByTag
+        context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
+
+    html = render_to_string('deploys/deploy_progress.tmpl', context)
 
     response = HttpResponse(html)
 
@@ -340,7 +347,7 @@ class EnvLandingView(View):
             report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
             report.showMode = showMode
             report.sortByStatus = sortByStatus
-            response = render(request, 'environs/env_landing.html', {
+            context = {
                 "envs": envs,
                 "env": env,
                 "env_promote": env_promote,
@@ -356,7 +363,12 @@ class EnvLandingView(View):
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
-            })
+            }
+            sortByTag = request.GET.get('sortByTag', None)
+            if sortByTag:
+                report.sortByTag = sortByTag
+                context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
+            response = render(request, 'environs/env_landing.html', context)
 
         # save preferences
         response.set_cookie(ENV_COOKIE_NAME, genEnvCookie(request, name))

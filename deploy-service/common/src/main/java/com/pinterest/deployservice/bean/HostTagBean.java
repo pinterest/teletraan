@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,9 +20,9 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 /**
  * Keep the bean and table in sync
- * CREATE TABLE host_tag (
+ * CREATE TABLE host_tags (
  * host_id         VARCHAR(64)         NOT NULL,
- * host_name       VARCHAR(64),
+ * env_id          VARCHAR(22)         NOT NULL,
  * tag_name        VARCHAR(64)         NOT NULL,
  * tag_value       VARCHAR(256),
  * create_date     BIGINT              NOT NULL,
@@ -30,18 +30,20 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * );
  */
 public class HostTagBean implements Updatable {
+    public final static String UPDATE_CLAUSE =
+        "host_id=VALUES(host_id)," +
+            "env_id=VALUES(env_id)," +
+            "tag_name=VALUES(tag_name)," +
+            "tag_value=VALUES(tag_value)," +
+            "create_date=VALUES(create_date)";
     @JsonProperty("hostId")
     private String host_id;
-
-    @JsonProperty("hostName")
-    private String host_name;
-
+    @JsonProperty("envId")
+    private String env_id;
     @JsonProperty("tagName")
     private String tag_name;
-
     @JsonProperty("tagValue")
     private String tag_value;
-
     @JsonProperty("createDate")
     private Long create_date;
 
@@ -51,14 +53,6 @@ public class HostTagBean implements Updatable {
 
     public void setHost_id(String host_id) {
         this.host_id = host_id;
-    }
-
-    public String getHost_name() {
-        return host_name;
-    }
-
-    public void setHost_name(String host_name) {
-        this.host_name = host_name;
     }
 
     public String getTag_name() {
@@ -85,23 +79,24 @@ public class HostTagBean implements Updatable {
         this.create_date = create_date;
     }
 
+    public String getEnv_id() {
+        return env_id;
+    }
+
+    public void setEnv_id(String env_id) {
+        this.env_id = env_id;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
         clause.addColumn("host_id", host_id);
-        clause.addColumn("host_name", host_name);
+        clause.addColumn("env_id", env_id);
         clause.addColumn("tag_name", tag_name);
         clause.addColumn("tag_value", tag_value);
         clause.addColumn("create_date", create_date);
         return clause;
     }
-
-    public final static String UPDATE_CLAUSE =
-        "host_name=VALUES(host_name)," +
-            "host_id=VALUES(host_id)," +
-            "tag_name=VALUES(tag_name)," +
-            "tag_value=VALUES(tag_value)," +
-            "create_date=VALUES(create_date)";
 
     @Override
     public String toString() {

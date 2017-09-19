@@ -34,8 +34,6 @@ public class PingRequestBean {
 
     private List<PingReportBean> reports;
 
-    private List<Map<String, String>> tags;
-
     public String getHostId() {
         return hostId;
     }
@@ -74,15 +72,6 @@ public class PingRequestBean {
 
     public void setReports(List<PingReportBean> reports) {
         this.reports = reports;
-    }
-
-
-    public List<Map<String, String>> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<Map<String, String>> tags) {
-        this.tags = tags;
     }
 
     @Override

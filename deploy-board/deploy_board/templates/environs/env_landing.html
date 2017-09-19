@@ -430,7 +430,7 @@ $('#privateBldUploadBtnId button').click(function () {
             if(new Date().getTime() - startTime > 3600000) {
                 clearInterval(interval);
             }
-            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}');
+            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}&sortByTag={{ report.sortByTag }}');
         }, 30000);
 
         $(".dropdown-menu li").click(function() {

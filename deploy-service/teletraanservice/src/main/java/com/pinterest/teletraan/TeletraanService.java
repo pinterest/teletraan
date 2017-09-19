@@ -17,36 +17,7 @@ package com.pinterest.teletraan;
 
 import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
-import com.pinterest.teletraan.resource.Agents;
-import com.pinterest.teletraan.resource.DeployCandidates;
-import com.pinterest.teletraan.resource.Builds;
-import com.pinterest.teletraan.resource.Commits;
-import com.pinterest.teletraan.resource.Deploys;
-import com.pinterest.teletraan.resource.EnvAgentConfigs;
-import com.pinterest.teletraan.resource.EnvAgents;
-import com.pinterest.teletraan.resource.EnvAlarms;
-import com.pinterest.teletraan.resource.EnvCapacities;
-import com.pinterest.teletraan.resource.EnvDeploys;
-import com.pinterest.teletraan.resource.EnvGroupRoles;
-import com.pinterest.teletraan.resource.EnvHistory;
-import com.pinterest.teletraan.resource.EnvHosts;
-import com.pinterest.teletraan.resource.EnvMetrics;
-import com.pinterest.teletraan.resource.EnvPromotes;
-import com.pinterest.teletraan.resource.EnvScriptConfigs;
-import com.pinterest.teletraan.resource.EnvStages;
-import com.pinterest.teletraan.resource.EnvTokenRoles;
-import com.pinterest.teletraan.resource.EnvUserRoles;
-import com.pinterest.teletraan.resource.EnvWebHooks;
-import com.pinterest.teletraan.resource.Environs;
-import com.pinterest.teletraan.resource.Groups;
-import com.pinterest.teletraan.resource.Hosts;
-import com.pinterest.teletraan.resource.Hotfixs;
-import com.pinterest.teletraan.resource.Pings;
-import com.pinterest.teletraan.resource.Ratings;
-import com.pinterest.teletraan.resource.Schedules;
-import com.pinterest.teletraan.resource.SystemGroupRoles;
-import com.pinterest.teletraan.resource.Systems;
-import com.pinterest.teletraan.resource.Tags;
+import com.pinterest.teletraan.resource.*;
 
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
@@ -140,6 +111,12 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
 
         EnvHosts envHosts = new EnvHosts(context);
         environment.jersey().register(envHosts);
+
+        EnvHostEc2Tags envHostEc2Tags = new EnvHostEc2Tags(context);
+        environment.jersey().register(envHostEc2Tags);
+
+        DeployConstraints deployConstraints = new DeployConstraints(context);
+        environment.jersey().register(deployConstraints);
 
         Hotfixs hotfixes = new Hotfixs(context);
         environment.jersey().register(hotfixes);

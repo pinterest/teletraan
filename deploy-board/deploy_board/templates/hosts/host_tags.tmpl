@@ -1,0 +1,29 @@
+<div class="panel panel-default">
+  <div class="panel-body table-responsive">
+    {% if ec2 %}
+        {% for tagValue, hostTagInfos in ec2_host_tags.items %}
+             <div class="panel panel-default table-responsive">
+                <small> <span style="background-color: #428bca; padding: 1px 5px; border-radius:3.5px">{{tagValue}} </span> </small>
+                {% for hostTagInfo in hostTagInfos %}
+                    <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ hostTagInfo.hostName }}"
+                       type="button" class="deployToolTip btn btn-xs btn-default host-btn"  title="{{ tagValue }}">
+                       <small>{{ hostTagInfo.hostName }}</small>
+                      </a>
+                {% endfor %}
+             </div>
+        {% endfor %}
+    {% else %}
+        {% for tagValue, hostTagInfos in host_tags.items %}
+             <div class="panel panel-default table-responsive">
+                <small> <span style="background-color: #428bca; padding: 1px 5px; border-radius:3.5px">{{tagValue}} </span> </small>
+                {% for hostTagInfo in hostTagInfos %}
+                    <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ hostTagInfo.hostName }}"
+                       type="button" class="deployToolTip btn btn-xs btn-default host-btn"  title="{{ tagValue }}">
+                       <small>{{ hostTagInfo.hostName }}</small>
+                      </a>
+                {% endfor %}
+             </div>
+        {% endfor %}
+    {% endif %}
+  </div>
+</div>

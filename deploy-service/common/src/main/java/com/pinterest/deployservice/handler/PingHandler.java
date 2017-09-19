@@ -15,16 +15,15 @@
  */
 package com.pinterest.deployservice.handler;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.*;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -32,14 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -67,7 +59,7 @@ public class PingHandler {
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
     private HostTagDAO hostTagDAO;
-    private DeployRuleDAO deployRuleDAO;
+    private DeployConstraintDAO deployConstraintDAO;
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
     private LoadingCache<String, DeployBean> deployCache;
@@ -82,7 +74,7 @@ public class PingHandler {
         utilDAO = serviceContext.getUtilDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
         hostTagDAO = serviceContext.getHostTagDAO();
-        deployRuleDAO = serviceContext.getDeployRuleDAO();
+        deployConstraintDAO = serviceContext.getDeployConstraintDAO();
         dataHandler = new DataHandler(serviceContext);
 
         if (serviceContext.isBuildCacheEnabled()) {
@@ -122,27 +114,6 @@ public class PingHandler {
             if (!groups.contains(recordedGroup)) {
                 LOG.warn("Remove host {} from group {}", pingRequest.getHostName(), recordedGroup);
                 this.hostDAO.removeHostFromGroup(pingRequest.getHostId(), recordedGroup);
-            }
-        }
-    }
-
-    void updateHostTag(PingRequestBean pingRequestBean) throws Exception {
-        String hostId = pingRequestBean.getHostId();
-        String hostName = pingRequestBean.getHostName();
-        List<Map<String, String>> tags = pingRequestBean.getTags();
-        if(tags != null) {
-            for(Map<String, String> tag: tags) {
-                String tagName = tag.get("Key");
-                String tagValue = tag.get("Value");
-                if(hostTagDAO.get(hostId, tagName, tagValue) == null) {
-                    HostTagBean hostTagBean = new HostTagBean();
-                    hostTagBean.setHost_id(hostId);
-                    hostTagBean.setHost_name(hostName);
-                    hostTagBean.setTag_name(tagName);
-                    hostTagBean.setTag_value(tagValue);
-                    hostTagBean.setCreate_date(System.currentTimeMillis());
-                    hostTagDAO.insertOrUpdate(hostTagBean);
-                }
             }
         }
     }
@@ -192,7 +163,7 @@ public class PingHandler {
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
      */
-    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean, String scheduleId, String deployRuleId) throws Exception {
+    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean, String scheduleId, String deployConstraintId) throws Exception {
         // first deploy should always proceed
         if (agentBean.getFirst_deploy()) {
             agentDAO.insertOrUpdate(agentBean);
@@ -226,10 +197,10 @@ public class PingHandler {
             }
         }
 
-        // Make sure we also follow the deploy rule if specified
-        if(deployRuleId != null) {
-            if (!canDeployWithRule(agentBean.getHost_id(), envBean)) {
-                LOG.debug("Env {} deploy rule does not allow host {} to proceed.", envId, host);
+        // Make sure we also follow the deploy constraint if specified
+        if(deployConstraintId != null) {
+            if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
+                LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
                 return false;
             }
         }
@@ -255,10 +226,10 @@ public class PingHandler {
                     }
                 }
 
-                // Make sure we also follow the deploy rule if specified
-                if(deployRuleId != null) {
-                    if (!canDeployWithRule(agentBean.getHost_id(), envBean)) {
-                        LOG.debug("Env {} deploy rule does not allow host {} to proceed.", envId, host);
+                // Make sure we also follow the deploy constraint if specified
+                if(deployConstraintId != null) {
+                    if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
+                        LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
                         return false;
                     }
                 }
@@ -278,25 +249,49 @@ public class PingHandler {
         }
     }
 
-    boolean canDeployWithRule(String hostId, EnvironBean envBean) throws Exception{
+    boolean canDeployWithConstraint(String hostId, EnvironBean envBean) throws Exception {
         String envId = envBean.getEnv_id();
-        String ruleId = envBean.getDeploy_rule_id();
+        String constraintId = envBean.getDeploy_constraint_id();
 
         try {
-            LOG.debug("verify active agents for host {} rule {}", hostId, ruleId);
-            DeployRuleBean deployRuleBean = deployRuleDAO.getById(ruleId);
-            String tagValue = deployRuleBean.getCondition_key();
-            String tagName = deployRuleBean.getCondition_value();
+            LOG.info("DeployWithConstraint env {}: verify active agents for host {} constraint {}", envId, hostId, constraintId);
 
-            long maxParallelWithHostTag = deployRuleBean.getMax_parallel();
+            DeployConstraintBean deployConstraintBean = deployConstraintDAO.getById(constraintId);
+            String tagName = deployConstraintBean.getConstraint_key();
+            HostTagBean hostTagBean = hostTagDAO.get(hostId, tagName);
+            if (deployConstraintBean.getState() != TagSyncState.FINISHED) {
+                // tag sync state is NOT FINISHED, means not ready for deploy
+                LOG.info("DeployWithConstraint env {}: tag sync state is {} , waiting for tag sync state to be FINISHED",
+                    envId, deployConstraintBean.getState());
+                return false;
+            } else {
+                // tag sync state is FINISHED
+                if (hostTagBean == null) {
+                    // but host tag is MISSING
+                    LOG.info("DeployWithConstraint env {}: could not find host {} with tagName {}", envId, hostId, tagName);
+                    // need to update deployConstraintBean state back into PROCESSING
+                    deployConstraintBean.setState(TagSyncState.PROCESSING);
+                    deployConstraintBean.setLast_update(System.currentTimeMillis());
+                    deployConstraintDAO.updateById(constraintId, deployConstraintBean);
+                    LOG.info("DeployWithConstraint env {}: host tag missing, updated state into PROCESSING", envId);
+                    return false;
+                }
+            }
+            String tagValue = hostTagBean.getTag_value();
+
+            long maxParallelWithHostTag = deployConstraintBean.getMax_parallel();
             long totalActiveAgentsWithHostTag = agentDAO.countDeployingAgentWithHostTag(envBean.getEnv_id(), tagName, tagValue);
-            if(totalActiveAgentsWithHostTag >= maxParallelWithHostTag) {
-                LOG.info("already exceed {} for env = {}, host = {}, rule = {}, return false", maxParallelWithHostTag, envId, hostId, deployRuleBean.toString());
+            LOG.info("DeployWithConstraint env {} with tag {}:{} : host {} waiting for deploy, current {} deploying hosts",
+                envId, tagName, tagValue, hostId, totalActiveAgentsWithHostTag);
+            if (totalActiveAgentsWithHostTag >= maxParallelWithHostTag) {
+                LOG.info("DeployWithConstraint env {} with tag {}:{} : host {} can not deploy, {} already exceed {} for constraint = {}, return false",
+                    envId, tagName, tagValue, hostId, totalActiveAgentsWithHostTag, maxParallelWithHostTag, deployConstraintBean.toString());
                 return false;
             }
+            LOG.info("DeployWithConstraint env {} with tag {}:{} : host {} can deploy", envId, tagName, tagValue, hostId);
             return true;
         } catch (Exception e) {
-            LOG.error(String.format("Failed to check if can deploy or not for env = %s, host = %s for rule %s", envId, hostId, ruleId), e);
+            LOG.error(String.format("DeployWithConstraint env %s, failed to check if can deploy or not for host = %s for constraint %s", envId, hostId, constraintId), e);
             return false;
         }
     }
@@ -453,16 +448,11 @@ public class PingHandler {
             AgentBean updateBean = installCandidate.updateBean;
             EnvironBean env = installCandidate.env;
             String scheduleId = env.getSchedule_id();
-
-            String deployRuleId = env.getDeploy_rule_id();
-            if(deployRuleId != null) {
-                // always save the tags from ping request if deployRuleId is not null
-                updateHostTag(pingRequest);
-            }
+            String deployConstraintId = env.getDeploy_constraint_id();
 
             if (installCandidate.needWait) {
                 LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
-                if (canDeploy(env, hostName, updateBean, scheduleId, deployRuleId)) {
+                if (canDeploy(env, hostName, updateBean, scheduleId, deployConstraintId)) {
                     LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
                     updateBeans.put(updateBean.getEnv_id(), updateBean);
                     response = generateInstallResponse(installCandidate);

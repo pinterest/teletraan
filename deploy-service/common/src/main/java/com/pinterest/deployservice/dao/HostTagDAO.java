@@ -16,12 +16,24 @@
 package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.HostTagBean;
+import com.pinterest.deployservice.bean.HostTagInfo;
+import com.pinterest.deployservice.bean.UpdateStatement;
+
+import java.util.List;
 
 
 public interface HostTagDAO {
     void insertOrUpdate(HostTagBean hostTagBean) throws Exception;
 
-    HostTagBean get(String hostId, String key, String value) throws Exception;
+    UpdateStatement genInsertOrUpdate(HostTagBean hostTagBean);
 
-    void deleteAllByHostId(String hostId) throws Exception;
+    HostTagBean get(String hostId, String key) throws Exception;
+
+    void deleteAllByEnvId(String envId, String tagName) throws Exception;
+
+    void deleteAllByEnvIdAndHostIds(String envId, List<String> hostIds) throws Exception;
+
+    List<HostTagBean> getAllByEnvIdAndTagName(String envId, String tagName) throws Exception;
+
+    List<HostTagInfo> getHostsByEnvIdAndTagName(String envId, String tagName) throws Exception;
 }

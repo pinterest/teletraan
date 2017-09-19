@@ -31,6 +31,7 @@ import user_views
 import docs_views
 import cluster_view
 import schedule_views
+import host_tags_views
 
 urlpatterns = [
     # deploy related
@@ -153,6 +154,18 @@ urlpatterns = [
         webhook_views.EnvWebhooksView.as_view()),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/schedule/$',
         schedule_views.EnvScheduleView.as_view()),
+
+    # host tags related
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/host_tags/(?P<tag_name>[a-zA-Z0-9\-:_]+)/',
+        host_tags_views.HostTagsView.as_view()),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/add_constraint',
+        host_tags_views.add_constraint),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/edit_constraint',
+        host_tags_views.edit_constraint),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/remove_constraint/(?P<tag_name>[a-zA-Z0-9\-:_]+)/',
+        host_tags_views.remove_constraint),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/deploy_constraint',
+        host_tags_views.get_constraint),
 
     # host related
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/unknowns/$',

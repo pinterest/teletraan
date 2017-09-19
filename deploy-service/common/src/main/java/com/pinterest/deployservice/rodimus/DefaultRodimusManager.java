@@ -18,6 +18,8 @@ package com.pinterest.deployservice.rodimus;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultRodimusManager implements RodimusManager {
 
@@ -33,5 +35,10 @@ public class DefaultRodimusManager implements RodimusManager {
     @Override
     public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
         return null;
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
+        return new HashMap<String, Map<String, String>>();
     }
 }
