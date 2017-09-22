@@ -80,7 +80,7 @@ class Helper(object):
             # Remove build directory from disk
             shutil.rmtree(os.path.join(base_dir, builds))
         except BaseException as e::
-            # Catch base exception class, as there's a mulitude of reasons a rmtree can fail
+            # Catch base exception class, as there's a multitude of reasons a rmtree can fail
             log.exception("Failed: remove build directory from disk")
 
         try:
