@@ -92,7 +92,7 @@
                     <label for="headers_post{{ forloop.counter }}" class="col-md-2 control-label">Headers</label>
                     <div class="col-md-10">
                         <input type="text" class="form-control" name="headers_post{{ forloop.counter }}"
-                            value="{{ webhook.headers }}" placeholder="name1=value1;name2=value2">
+                            value="{{ webhook.headers }}" placeholder="name1:value1;name2:value2">
                     </div>
                 </div>
                 <div class="form-group">
@@ -178,7 +178,7 @@
                             <label for="headers" class="col-md-2 control-label">Headers</label>
                             <div class="input-group col-md-9">
                                 <input type="text" class="form-control" name="headers" value=""
-                                       placeholder="name1=value1;name2=value2">
+                                       placeholder="name1:value1;name2:value2">
                             </div>
                         </div>
 

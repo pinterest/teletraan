@@ -30,7 +30,7 @@
         </a>
     </div>
     <div class="row">
-        <a type="button" href="/groups/{{ group_name }}/config/"
+        <a type="button" href="/groups/{{ health_check.group_name }}/config/"
             class="deployToolTip btn btn-default btn-block" data-toggle="tooltip">
             <span class="glyphicon glyphicon-cog"></span> Configuration
         </a>
@@ -205,6 +205,12 @@
                     <td class="col-lg-2">Agent Last Update</td>
                     <td>{{ health_check_error.agent_last_update | convertTimestamp  }}</td>
                 </tr>
+                {% if health_check_error.phobos_link %}
+                <tr>
+                    <td class="col-lg-2">Phobos Link</td>
+                    <td><pre><a href="{{ health_check_error.phobos_link }}">{{ health_check_error.phobos_link }}</a></pre></td>
+                </tr>
+                {% endif %}
             </table>
         {% endif %}
     </form>

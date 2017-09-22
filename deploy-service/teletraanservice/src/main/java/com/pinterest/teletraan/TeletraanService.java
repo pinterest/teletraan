@@ -18,13 +18,14 @@ package com.pinterest.teletraan;
 import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.Agents;
+import com.pinterest.teletraan.resource.DeployCandidates;
 import com.pinterest.teletraan.resource.Builds;
 import com.pinterest.teletraan.resource.Commits;
 import com.pinterest.teletraan.resource.Deploys;
 import com.pinterest.teletraan.resource.EnvAgentConfigs;
 import com.pinterest.teletraan.resource.EnvAgents;
 import com.pinterest.teletraan.resource.EnvAlarms;
-import com.pinterest.teletraan.resource.EnvCapacitys;
+import com.pinterest.teletraan.resource.EnvCapacities;
 import com.pinterest.teletraan.resource.EnvDeploys;
 import com.pinterest.teletraan.resource.EnvGroupRoles;
 import com.pinterest.teletraan.resource.EnvHistory;
@@ -107,7 +108,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         EnvDeploys envDeploys = new EnvDeploys(context);
         environment.jersey().register(envDeploys);
 
-        EnvCapacitys envCapacitys = new EnvCapacitys(context);
+        EnvCapacities envCapacitys = new EnvCapacities(context);
         environment.jersey().register(envCapacitys);
 
         Environs envs = new Environs(context);
@@ -161,6 +162,9 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         // Support pings as well
         Pings pings = new Pings(context);
         environment.jersey().register(pings);
+
+        DeployCandidates buildCandidates = new DeployCandidates(context);
+        environment.jersey().register(buildCandidates);
 
         Schedules schedules = new Schedules(context);
         environment.jersey().register(schedules);

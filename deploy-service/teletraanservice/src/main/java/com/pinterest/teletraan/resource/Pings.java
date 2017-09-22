@@ -18,6 +18,7 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.PingRequestBean;
 import com.pinterest.deployservice.bean.PingResponseBean;
+import com.pinterest.deployservice.bean.PingResult;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.handler.PingHandler;
@@ -62,8 +63,8 @@ public class Pings {
                                  @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
         LOG.info("Receive ping request " + requestBean);
         authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PINGER);
-        PingResponseBean response = pingHandler.ping(requestBean);
-        LOG.info("Send ping response " + response);
-        return response;
+        PingResult result= pingHandler.ping(requestBean);
+        LOG.info("Send ping response " + result.getResponseBean());
+        return result.getResponseBean();
     }
 }

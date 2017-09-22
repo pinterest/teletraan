@@ -76,11 +76,15 @@ public class WebhookJob implements Callable<Void> {
             }
 
             try {
-                // TODO currently only support http GET and POST
+                // Supports http GET, PUT, POST, DELETE
                 if (method.equalsIgnoreCase("GET")) {
                     httpClient.get(url, null, null, headers, RETRIES);
                 } else if (method.equalsIgnoreCase("POST")) {
                     httpClient.post(url, bodyString, headers, RETRIES);
+                } else if (method.equalsIgnoreCase("PUT")) {
+                    httpClient.put(url, bodyString, headers, RETRIES);
+                } else if (method.equalsIgnoreCase("DELETE")) {
+                    httpClient.delete(url, bodyString, headers, RETRIES);
                 } else {
                     LOG.error("Current http method " + method + " is not supported!");
                 }

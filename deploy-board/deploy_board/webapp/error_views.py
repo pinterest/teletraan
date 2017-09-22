@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,8 +16,8 @@ import logging
 import traceback
 import json
 from django.shortcuts import render
-from django.http import HttpResponse
-from helpers.exceptions import NotAuthorizedException
+from django.http import HttpResponse, HttpResponseRedirect
+from helpers.exceptions import NotAuthorizedException, FailedAuthenticationException
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,12 @@ class ExceptionHandlerMiddleware(object):
                 return render(request, 'users/not_authorized.html', {
                     "message": exception.message,
                 })
+
+            elif isinstance(exception, FailedAuthenticationException):
+                request.session.modified = True
+                request.session.flush()
+                return HttpResponseRedirect("/")
+
             return render(request, 'error.html', {
                 'message': exception.message,
                 'stacktrace': traceback.format_exc(),

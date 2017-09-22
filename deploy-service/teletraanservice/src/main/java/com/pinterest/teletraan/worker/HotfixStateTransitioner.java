@@ -44,8 +44,10 @@ public class HotfixStateTransitioner implements Runnable {
     private UtilDAO utilDAO;
     private EnvironDAO environDAO;
     private CommonHandler commonHandler;
+    private String jenkinsUrl;
+    private String jenkinsRemoteToken;
     // TODO make this configurable
-    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 30;
+    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 60;
 
     public HotfixStateTransitioner(ServiceContext serviceContext) {
         hotfixDAO = serviceContext.getHotfixDAO();
@@ -54,6 +56,8 @@ public class HotfixStateTransitioner implements Runnable {
         utilDAO = serviceContext.getUtilDAO();
         environDAO = serviceContext.getEnvironDAO();
         commonHandler = new CommonHandler(serviceContext);
+        jenkinsUrl = serviceContext.getJenkinsUrl();
+        jenkinsRemoteToken = serviceContext.getJenkinsRemoteToken();
     }
 
     void processBatch() throws Exception {
@@ -106,7 +110,7 @@ public class HotfixStateTransitioner implements Runnable {
                 HotfixState state = hotBean.getState();
                 String hotfixId = hotBean.getId();
                 String jobNum = hotBean.getJob_num();
-                Jenkins jenkins = new Jenkins();
+                Jenkins jenkins = new Jenkins(jenkinsUrl, jenkinsRemoteToken);
 
                 if (state == HotfixState.INITIAL) {
                     // Initial state, need to start job

@@ -114,6 +114,9 @@ def health_check(request):
     return HttpResponse("FAILED", status=500, content_type="text/plain")
 
 
+def loggedout(request):
+    return HttpResponse("Goodbye!", content_type="text/plain")
+
 def get_latency_metrics(request, group_name):
     envs = environs_helper.get_all_envs_by_group(request, group_name)
     launch_config = autoscaling_groups_helper.get_group_info(request, group_name)

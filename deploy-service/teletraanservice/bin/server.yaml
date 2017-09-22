@@ -51,7 +51,7 @@ db:
   type: mysql
 
   # Mysql instance configurations
-  host: ${TELETRAAN_DB_HOST:-default localhost}
+  host: ${TELETRAAN_DB_HOST:-localhost}
   port: 3306
   userName: root
   password:
@@ -73,15 +73,22 @@ db:
 # OAuth based Authentication: by default is disabled.
 #
 #authentication:
-  # Authentication type: allowed values are token, anonymous. The Token based authentication
+  # (Required)Authentication type: allowed values are token, anonymous. The Token based authentication
   # follows the OAuth 2.0 protocol. See documentations for more details.
   # Note: anonymous authentication is the same as disable authentication all together
   #type: token
 
-  # OAuth provider url
-  #userDataUrl: https://auth.pinadmin.com/api/me/
+  # (Required)OAuth provider URI to retrieve user information
+  #userDataUrl: https://www.googleapis.com/oauth2/v3/userinfo
 
-  # Optional. token cache
+  # (Optional)The name of the field in the returned userinfo map which value will be used as username.
+  # If the field is inside a nested userinfo map, use space-separated field names, e.g. "user email"
+  #userNameKey: email
+
+  # (Optional)If username is email address, use the part before @ as the final username
+  #extractUserNameFromEmail: True
+
+  # (Optional)OAuth token cache
   #tokenCacheSpec: maximumSize=1000,expireAfterWrite=10m
 
 #
@@ -140,7 +147,7 @@ db:
 #
 system:
   # Teletraan needs to refer Deploy Dashboard url in its notify etc.
-  dashboardUrl: ${TELETRAAN_DASHBOARD_URL:-default http://localhost:8888}
+  dashboardUrl: ${TELETRAAN_DASHBOARD_URL:-http://localhost:8888}
   # Display full stack trace or just the error to user.
   #clientError: long|short
 

@@ -69,6 +69,12 @@ urlpatterns = [
         env_views.EnvNewDeployView.as_view()),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/update_deploy_progress/$',
         env_views.update_deploy_progress),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/check_log_status/$',
+        env_views.logging_status),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/check_log_status_action/$',
+        env_views.check_logging_status),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/update_service_add_ons/$',
+        env_views.update_service_add_ons),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/deploys/$',
         env_views.get_env_deploys),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/new_commits/$',
@@ -202,6 +208,8 @@ urlpatterns = [
     # mix
     url(r'^health_check/$', util_views.health_check),
     url(r'^auth/$', security.login_authorized),
+    url(r'^logout/$', security.logout),
+    url(r'^loggedout/$', util_views.loggedout),
     url(r'^api-docs/$', docs_views.SwaggerUIView.as_view()),
     url(r'^$', deploy_views.get_landing_page),
 ]

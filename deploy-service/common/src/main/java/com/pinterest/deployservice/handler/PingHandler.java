@@ -15,10 +15,6 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentErrorBean;
@@ -33,6 +29,7 @@ import com.pinterest.deployservice.bean.OpCode;
 import com.pinterest.deployservice.bean.PingReportBean;
 import com.pinterest.deployservice.bean.PingRequestBean;
 import com.pinterest.deployservice.bean.PingResponseBean;
+import com.pinterest.deployservice.bean.PingResult;
 import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.common.Constants;
@@ -47,6 +44,9 @@ import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -204,10 +204,10 @@ public class PingHandler {
         long parallelThreshold = getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents);
 
         try {
-            //Note: This count already excludes first deploy agents
-            long totalActiveagents = agentDAO.countDeployingAgent(envId);
-            if (totalActiveagents >= parallelThreshold) {
-                LOG.debug("There are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalActiveagents, envId, host);
+            //Note: This count already excludes first deploy agents, includes agents in STOP state
+            long totalDeployingAgents = agentDAO.countDeployingAgent(envId);
+            if (totalDeployingAgents >= parallelThreshold) {
+                LOG.debug("There are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalDeployingAgents, envId, host);
                 return false;
             }
         } catch (Exception e) {
@@ -371,7 +371,7 @@ public class PingHandler {
     /**
      * This is the core function to update agent status and compute deploy goal
      */
-    public PingResponseBean ping(PingRequestBean pingRequest) throws Exception {
+    public PingResult ping(PingRequestBean pingRequest) throws Exception {
         // handle empty or unexpected request fields
         pingRequest = normalizePingRequest(pingRequest);
 
@@ -390,7 +390,7 @@ public class PingHandler {
         List<EnvironBean> groupEnvs = environDAO.getEnvsByGroups(groups);
         Map<String, EnvironBean> envs = convergeEnvs(hostName, hostEnvs, groupEnvs);
         LOG.debug("Found the following envs {} associated with host {} and group {}.",
-                envs.keySet(), hostName, groups);
+            envs.keySet(), hostName, groups);
 
         // Find all agent records for this host, convert to envId based map
         List<AgentBean> agentBeans = agentDAO.getByHost(hostName);
@@ -420,7 +420,7 @@ public class PingHandler {
                     response = generateInstallResponse(installCandidate);
                 } else {
                     LOG.debug("Host {} for env {} needs to wait for its turn to install.",
-                              hostName, updateBean.getEnv_id());
+                        hostName, updateBean.getEnv_id());
                 }
             } else {
                 LOG.debug("Host {} is in the middle of deploy, no need to wait, updateBean = {}",
@@ -445,20 +445,23 @@ public class PingHandler {
 
         if (response != null) {
             LOG.info("Return response {} for host {}.", response, hostName);
-            return response;
+            return new PingResult().withResponseBean(response)
+                .withInstallCandidates(installCandidates);
         }
 
         List<GoalAnalyst.UninstallCandidate> uninstallCandidates = analyst.getUninstallCandidates();
         if (uninstallCandidates.isEmpty()) {
             LOG.info("Return NOOP for host {} ping, no install or uninstall candidates.", hostName);
-            return NOOP;
+            return new PingResult().withResponseBean(NOOP)
+                .withUnInstallCandidates(uninstallCandidates);
         }
 
         // otherwise, we do uninstall
         GoalAnalyst.UninstallCandidate uninstallCandidate = uninstallCandidates.get(0);
         response = generateDeleteResponse(uninstallCandidate);
         LOG.info("Return uninstall response {} for host {}.", response, hostName);
-        return response;
+        return new PingResult().withResponseBean(response)
+            .withUnInstallCandidates(uninstallCandidates);
     }
 
     // TODO need to refactor for different opCode
@@ -466,7 +469,7 @@ public class PingHandler {
         return agentBean.getDeploy_stage() == StateMachines.getFirstStage();
     }
 
-    PingResponseBean generateInstallResponse(GoalAnalyst.InstallCandidate installCandidate) throws Exception {
+    public PingResponseBean generateInstallResponse(GoalAnalyst.InstallCandidate installCandidate) throws Exception {
         EnvironBean envBean = installCandidate.env;
         AgentBean updateBean = installCandidate.updateBean;
         PingReportBean report = installCandidate.report;
@@ -508,9 +511,7 @@ public class PingHandler {
          */
         if (updateBean.getDeploy_stage() == StateMachines.getDownloadStage()) {
             LOG.debug("Set build info for goal at {} stage", StateMachines.getDownloadStage());
-            DeployBean deployBean = deployCache == null ? deployDAO.getById(deployId) : getFromCache(deployCache, deployId);
-            BuildBean buildBean = buildCache == null ? buildDAO.getById(deployBean.getBuild_id()) : getFromCache(buildCache, deployBean.getBuild_id());
-            goal.setBuild(buildBean);
+            fillBuildForDeployGoal(goal);
         }
 
         // Pre-Download Stage
@@ -550,6 +551,14 @@ public class PingHandler {
 
         response.setDeployGoal(goal);
         return response;
+    }
+
+    public void fillBuildForDeployGoal(DeployGoalBean goal) throws Exception {
+        DeployBean deployBean = deployCache == null ? deployDAO.getById(goal.getDeployId())
+                                : getFromCache(deployCache, goal.getDeployId());
+        BuildBean buildBean = buildCache == null ? buildDAO.getById(deployBean.getBuild_id())
+                               : getFromCache(buildCache, deployBean.getBuild_id());
+        goal.setBuild(buildBean);
     }
 
     PingResponseBean generateDeleteResponse(GoalAnalyst.UninstallCandidate candidate) throws Exception {

@@ -39,7 +39,7 @@
 <!-- Placed at the end of the document so the pages load faster (but it does not work ) -->
 <script src="{% static "js/jquery-1.11.1.min.js" %}"></script>
 <script src="{% static "js/bootstrap.min.js" %}"></script>
-<script src="{% static "js/deploy-board.js" %}"></script>
+<script src="{% static "js/deploy-board.js?changedate=2017.07.26.150000" %}"></script>
 <script src="{% static "js/fuelux.min.js" %}"></script>
 <script src="{% static "js/typeahead.bundle.min.js" %}"></script>
 <script src="{% static "js/star-rating.min.js" %}"></script>
@@ -50,6 +50,7 @@
 <script src="{% static "editable/js/bootstrap-editable.js" %}"></script>
 <script src="{% static "js/bootstrap-uploadprogress.js" %}"></script>
 <script src="{% static "js/bootstrap-sortable.js" %}"></script>
+<script src="{% static "js/vue.min.js" %}"></script>
 </head>
 
 <body>
@@ -79,11 +80,17 @@
         {% block navbar-search %}
         {% endblock %}
         <ul class="nav navbar-nav">
-            <li><a href="https://github.com/pinterest/teletraan/wiki/Performing-a-deploy">Help</a></li>
+            <li><a href="https://github.com/pinterest/teletraan/wiki">Help</a></li>
             {% if isPinterest %}
                 <li><a href="#" data-toggle="modal" data-target="#feedbackModal">Feedback</a></li>
             {% endif %}
-            <li><a>{{request.teletraan_user_id.name }}</a></li>
+            <li class="dropdown">
+                <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{request.teletraan_user_id.name }}
+                    <span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="/logout/">Logout</a></li>
+                    </ul>
+            </li>
         </ul>
     </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
@@ -93,9 +100,28 @@
 {% block breadcrumb-items %}
 {% endblock %}
     <div id="tagMessageDetailsId"></div>
-    <div id="errorBannerId" style="display:none; text-align:center;" class="alert alert-danger alert-dismissible" role="alert">
+    <div id="errorBannerId" style="display:none; text-align:center;" class="alert alert-danger alert-dismissible" role="alert" >
       <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
     </div>
+    {% verbatim %}
+    <div id="pageNotificationPanel">
+        <div id="vuePageInfomessage" style="display:none; text-align:center" class="alert alert-success alert-dismissible" v-show="info">{{info}}
+           <button type="button" class="close" v-on:click="info=''" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        </div>
+        <div id="vuePageErrorBanner" style="display:none; text-align:center" class="alert alert-danger alert-dismissible" v-show="error" role="alert">{{error}}
+            <button type="button" class="close" v-on:click="error=''" ><span aria-hidden="true">&times;</span></button>
+        </div>
+    </div>
+    <script type="text/javascript">
+        globalNotificationBanner = new Vue({
+            el:"#pageNotificationPanel",
+            data:{
+                error:"",
+                info:"",
+            }
+        });
+    </script>
+    {% endverbatim %}
 </div>
 
 <script>
@@ -113,7 +139,7 @@ $(document).ready(function() {
 </script>
 
 {% include "feedbacks/feedback_modal.tmpl" %}
-<div class="container-fluid">
+<div class="container-fluid" id="pageMainContent">
 <div class="row">
   <div class="col-sm-2">
     {% block side-panel %}

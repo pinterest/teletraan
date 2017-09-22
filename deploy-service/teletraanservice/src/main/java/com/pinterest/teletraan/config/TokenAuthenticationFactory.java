@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -33,6 +33,12 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
     private String groupDataUrl;
 
     @JsonProperty
+    private String userNameKey;
+
+    @JsonProperty
+    private Boolean extractUserNameFromEmail;
+
+    @JsonProperty
     private String tokenCacheSpec;
 
     public String getUserDataUrl() {
@@ -41,6 +47,22 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
     public void setUserDataUrl(String userDataUrl) {
         this.userDataUrl = userDataUrl;
+    }
+
+    public String getUserNameKey() {
+        return userNameKey;
+    }
+
+    public void setUserNameKey(String userNameKey) {
+        this.userNameKey = userNameKey;
+    }
+
+    public Boolean getExtractUserNameFromEmail() {
+        return extractUserNameFromEmail;
+    }
+
+    public void setExtractUserNameFromEmail(Boolean extractUserNameFromEmail) {
+        this.extractUserNameFromEmail = extractUserNameFromEmail;
     }
 
     public String getTokenCacheSpec() {
@@ -61,6 +83,6 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
-        return new TokenAuthFilter(userDataUrl, groupDataUrl, tokenCacheSpec, context);
+        return new TokenAuthFilter(userDataUrl, groupDataUrl, userNameKey, extractUserNameFromEmail, tokenCacheSpec, context);
     }
 }

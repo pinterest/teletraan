@@ -19,6 +19,7 @@ from common import is_agent_failed
 from helpers import builds_helper, deploys_helper, environs_helper, clusters_helper, groups_helper
 from deploy_board.settings import IS_PINTEREST
 import time
+import service_add_ons
 from collections import OrderedDict
 
 # Constants used to distinguish the action to generate the host report
@@ -67,7 +68,6 @@ class AgentReport(object):
         self.stageName = stageName
         self.showMode = 'complete'
         self.sortByStatus = 'false'
-
 
 def genStageDistMap():
     stageDistMap = OrderedDict()
@@ -161,17 +161,6 @@ def gen_report(request, env, progress, sortByStatus="false"):
             deprecatedDeployStats.append(value)
 
     provisioning_hosts = progress["provisioningHosts"]
-    if IS_PINTEREST:
-        basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-        if basic_cluster_info and basic_cluster_info.get('capacity'):
-            hosts_in_cluster = groups_helper.get_group_hosts(request, env.get('clusterName'))
-            num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
-            for i in range(num_to_fake):
-                faked_host = {}
-                faked_host['hostName'] = 'UNKNOWN'
-                faked_host['hostId'] = 'UNKNOWN'
-                faked_host['state'] = 'PROVISIONED'
-                provisioning_hosts.append(faked_host)
 
     return AgentReport(firstTimeAgentStats=firstTimeAgentStats,
                        agentStats=agentStats,

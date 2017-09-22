@@ -49,7 +49,7 @@ public interface AgentDAO {
 
     void deleteAllById(String hostId) throws Exception;
 
-    // return how many agents are deploying for this env, regardless of deployId
+    // return how many agents are deploying for this env, including agents whose state is STOP
     long countDeployingAgent(String envId) throws Exception;
 
     // return how many agents are doing first time deploy for this env.
@@ -72,7 +72,12 @@ public interface AgentDAO {
 
     long countServingTotal(String envId) throws Exception;
 
+    long countServingAndNormalTotal(String envId) throws Exception;
+
     long countFinishedAgentsByDeploy(String deployId) throws Exception;
 
     long countAgentsByDeploy(String deployId) throws Exception;
+
+    // return how many hosts that are deployed
+    long countDeployedHosts() throws Exception;
 }

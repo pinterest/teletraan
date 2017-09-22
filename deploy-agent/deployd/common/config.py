@@ -224,6 +224,9 @@ class Config(object):
 
     def get_daemon_sleep_time(self):
         return self.get_intvar("daemon_sleep_time", 30)
+    
+    def get_init_sleep_time(self):
+        return self.get_intvar("init_sleep_time", 50)
 
     def get_log_level(self):
         log_level = self.get_var("log_level", 'DEBUG')
@@ -244,3 +247,5 @@ class Config(object):
 
     def get_facter_group_key(self):
         return self.get_var('agent_group_key', None)
+    
+

@@ -15,25 +15,32 @@
  */
 package com.pinterest.deployservice.group;
 
+import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.common.CommonUtils;
+import com.pinterest.deployservice.common.HTTPClient;
+
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.common.CommonUtils;
-import com.pinterest.deployservice.common.HTTPClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 
 public class CMDBHostGroupManager implements HostGroupManager {
     private static int TOTAL_RETRY = 10;
     private static final Logger LOG = LoggerFactory.getLogger(CMDBHostGroupManager.class);
     private String cmdbServer = null;
-
+    private Gson gson = new Gson();
     public CMDBHostGroupManager(String cmdbServer) {
         this.cmdbServer = cmdbServer;
     }
@@ -41,7 +48,7 @@ public class CMDBHostGroupManager implements HostGroupManager {
     @Override
     public Map<String, HostBean> getHostIdsByGroup(String groupName) throws Exception {
         HashMap<String, HostBean> hosts = new HashMap<>();
-        String url = String.format("%s/getquery", cmdbServer);
+        String url = String.format("%s/v2/query", cmdbServer);
 
         // construct data
         String query = String.format("state:running AND (facts.deploy_service:\"%s\" facts.puppet_groups:\"%s\")", groupName, groupName);
@@ -51,10 +58,10 @@ public class CMDBHostGroupManager implements HostGroupManager {
 
         // construct head
         Map<String, String> headers = new HashMap<>();
-        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        headers.put("Content-Type", "application/json");
 
         HTTPClient client = new HTTPClient();
-        String result = client.post(url, constructQuery(data), headers, TOTAL_RETRY);
+        String result = client.post(url, gson.toJson(data), headers, TOTAL_RETRY);
         JsonParser parser = new JsonParser();
         JsonElement elements = parser.parse(result);
         if (elements.isJsonNull()) {
@@ -81,7 +88,7 @@ public class CMDBHostGroupManager implements HostGroupManager {
 
     @Override
     public String getLastInstanceId(String groupName) throws Exception {
-        String url = String.format("%s/getquery", cmdbServer);
+        String url = String.format("%s/v2/query", cmdbServer);
 
         // construct data
         String query = String.format("state:running AND (facts.deploy_service:\"%s\" facts.puppet_groups:\"%s\")", groupName, groupName);
@@ -91,10 +98,10 @@ public class CMDBHostGroupManager implements HostGroupManager {
 
         // construct head
         Map<String, String> headers = new HashMap<>();
-        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        headers.put("Content-Type", "application/json");
 
         HTTPClient client = new HTTPClient();
-        String result = client.post(url, constructQuery(data), headers, TOTAL_RETRY);
+        String result = client.post(url, gson.toJson(data), headers, TOTAL_RETRY);
         JsonParser parser = new JsonParser();
         JsonElement elements = parser.parse(result);
 

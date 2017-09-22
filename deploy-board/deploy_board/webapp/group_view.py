@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from deploy_board.settings import IS_PINTEREST, PHOBOS_URL
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -67,7 +68,7 @@ def get_launch_config(request, group_name):
 
         if launch_config and launch_config.get("subnets"):
             launch_config["subnetArrays"] = launch_config["subnets"].split(',')
-        appNames = baseimages_helper.get_image_names(request, 'AWS')
+        appNames = baseimages_helper.get_image_names(request, 'AWS', settings.DEFAULT_CELL)
         appNames = sorted(appNames)
         curr_image = baseimages_helper.get_by_provider_name(request, launch_config["imageId"])
         html = render_to_string('groups/launch_config.tmpl', {
@@ -217,7 +218,7 @@ def update_group_config(request, group_name):
         groupRequest["emailRecipients"] = params.get("email_recipients")
         groupRequest["pagerRecipients"] = params.get("pager_recipients")
         groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
-        groupRequest["loadBalancers"] = params.get("load_balancers") 
+        groupRequest["loadBalancers"] = params.get("load_balancers")
 
         if "healthcheck_state" in params:
             groupRequest["healthcheckState"] = True
@@ -843,7 +844,7 @@ class GenerateDiff(diff_match_patch):
 class GroupConfigView(View):
     def get(self, request, group_name):
         asg_cluster = autoscaling_groups_helper.get_group_info(request, group_name)
-        appNames = baseimages_helper.get_image_names(request, 'AWS')
+        appNames = baseimages_helper.get_image_names(request, 'AWS', settings.DEFAULT_CELL)
         appNames = sorted(appNames)
         is_cmp = False
         if asg_cluster:
@@ -855,11 +856,11 @@ class GroupConfigView(View):
                     asg_vm_info["subnetArrays"] = asg_vm_info["subnets"].split(',')
             group_info = asg_cluster.get("groupInfo")
             group_info = get_group_config_internal(group_info)
-            envs = environs_helper.get_all_envs_by_group(request, group_name)
-            for env in envs:
-                basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-                if basic_cluster_info:
-                    is_cmp = True
+            #Directly search the cluster name. As long as there exists a cluster, treat this as cmp and hide
+            #Launch Configuration
+            basic_cluster_info = clusters_helper.get_cluster(request, group_name)
+            if basic_cluster_info:
+                is_cmp = True
         else:
             asg_vm_info = None
             group_info = None
@@ -911,7 +912,7 @@ class GroupDetailView(View):
 def get_aws_settings(request):
     params = request.GET
     app_name = params["app_name"]
-    images = baseimages_helper.get_by_name(request, app_name)
+    images = baseimages_helper.get_by_name(request, app_name, settings.DEFAULT_CELL)
     contents = render_to_string("groups/get_ami.tmpl",
                                 {"aws_images": images,
                                  "curr_image_id": params["curr_image_id"]})
@@ -956,24 +957,50 @@ def add_instance(request, group_name):
     params = request.POST
     num = int(params["instanceCnt"])
     subnet = None
+    placement_group = None
     asg_status = params['asgStatus']
-    launch_in_asg = True
-    if 'subnet' in params:
-        subnet = params['subnet']
-        if asg_status == 'UNKNOWN':
-            launch_in_asg = False
-        elif 'customSubnet' in params:
-            launch_in_asg = False
+    launch_in_asg = False
+    use_placement_group = False
+
     try:
-        if not launch_in_asg:
+        # Configure subnet to launch hosts
+        if 'subnet' in params:
+            subnet = params['subnet']
+            # check if custom subnet is specified and custom placement group is in it.
+            if 'customSubnet' in params and 'customPlacementGroup' in params and 'placementGroup' in params:
+                # The check box is ticked and placement group is entered.
+                placement_group = params['placementGroup']
+                use_placement_group = True
+
+        # Check if asg is enabled and does not use placement group. Then launch in asg
+        if str(asg_status).upper() == "ENABLED" and not use_placement_group:
+            launch_in_asg = True
+
+        if launch_in_asg:
+            # Launch hosts inside ASG / Bump ASG size by required instances
+            autoscaling_groups_helper.launch_hosts(request, group_name, num, None)
+            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
+                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
+                      'to check new hosts information.'.format(num, group_name, group_name)
+            messages.add_message(request, messages.SUCCESS, content)
+        else:
+            # Launch hosts outside ASG / static hosts
             if not subnet:
+                # No subnet specified show error message
                 content = 'Failed to launch hosts to group {}. Please choose subnets in' \
                           ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>.' \
                           ' If you have any question, please contact your friendly Teletraan owners' \
                           ' for immediate assistance!'.format(group_name, group_name)
                 messages.add_message(request, messages.ERROR, content)
             else:
-                host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet)
+                # Subnet is specified. Toggle based on presence of placement group param
+                if placement_group is not None:
+                    # Launch static hosts in the given PG
+                    host_ids = autoscaling_groups_helper.launch_hosts_with_placement_group(
+                        request, group_name, num, subnet, placement_group)
+                else:
+                    host_ids = autoscaling_groups_helper.launch_hosts(request, group_name, num, subnet)
+
                 if len(host_ids) > 0:
                     content = '{} hosts have been launched to group {} (host ids: {})'.format(num, group_name, host_ids)
                     messages.add_message(request, messages.SUCCESS, content)
@@ -983,15 +1010,50 @@ def add_instance(request, group_name):
                               ' is correct. If you have any question, please contact your friendly Teletraan owners' \
                               ' for immediate assistance!'.format(group_name, group_name)
                     messages.add_message(request, messages.ERROR, content)
-        else:
-            autoscaling_groups_helper.launch_hosts(request, group_name, num, None)
-            content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
-                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
-                      'to check new hosts information.'.format(num, group_name, group_name)
-            messages.add_message(request, messages.SUCCESS, content)
-    except:
+
+    except Exception as e:
+        messages.add_message(request, messages.ERROR, str(e))
         log.error(traceback.format_exc())
         raise
+
+    return redirect('/groups/{}'.format(group_name))
+
+
+# Terminate all instances
+def terminate_all_hosts(request, group_name):
+
+    try:
+        response = autoscaling_groups_helper.terminate_all_hosts(request, group_name)
+        if response is not None and type(response) is dict:
+
+            success_count = 0
+            failed_count = 0
+            failed_instance_ids = []
+
+            content = "{} hosts were marked for termination \n".format(len(response))
+
+            for id, status in response.iteritems():
+                if status == "UNKNOWN" or status == "FAILED":
+                    failed_count += 1
+                    failed_instance_ids.append(id)
+                else:
+                    success_count += 1
+
+            content += "{} hosts successfully terminating...\n".format(success_count)
+            content += "{} hosts failed to terminate \n".format(failed_count)
+            content += ",".join(failed_instance_ids)
+
+            messages.add_message(request, messages.SUCCESS, content)
+
+        else:
+            content = "Unexpected response from rodimus backend"
+            messages.add_message(request, messages.ERROR, content)
+
+    except Exception as e:
+        messages.add_message(request, messages.ERROR, str(e))
+        log.error(traceback.format_exc())
+        raise
+
     return redirect('/groups/{}'.format(group_name))
 
 
@@ -1061,6 +1123,13 @@ def get_health_check_details(request, id):
         env = environs_helper.get(request, health_check.get('env_id'))
         health_check_error['env_name'] = env.get('envName')
         health_check_error['stage_name'] = env.get('stageName')
+        if IS_PINTEREST and PHOBOS_URL:
+            from brood.client import Brood
+            cmdb = Brood()
+            host_ip = cmdb.get_query(query="id:" + health_check['host_id'],
+                                     fields="config.internal_address")[0]['config.internal_address']
+            if host_ip is not None:
+                health_check_error['phobos_link'] = PHOBOS_URL + host_ip
 
     return render(request, 'groups/health_check_details.html', {
         "health_check": health_check,

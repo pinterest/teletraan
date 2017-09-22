@@ -22,8 +22,12 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import DISPLAY_STOPPING_HOSTS
+from deploy_board.settings import GUINEA_PIG_ENVS
+from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
 from django.conf import settings
 import agent_report
+import service_add_ons
 import common
 import random
 import json
@@ -103,6 +107,62 @@ def _fetch_param_with_cookie(request, param_name, cookie_name, default):
     saved_value = request.COOKIES.get(cookie_name, default)
     return request.GET.get(param_name, saved_value)
 
+def logging_status(request, name, stage):
+
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    envs = environs_helper.get_all_env_stages(request, name)
+    showMode = _fetch_param_with_cookie(
+        request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    sortByStatus = _fetch_param_with_cookie(
+        request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
+
+    html = render_to_string('deploys/deploy_logging_check_landing.tmpl', {
+        "envs": envs,
+        "csrf_token": get_token(request),
+        "panel_title": "Kafka logging for %s (%s)" % (name, stage),
+        "env": env,
+        "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
+        "pinterest": IS_PINTEREST
+    })
+
+    response = HttpResponse(html)
+
+    # save preferences
+    response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
+
+    return response
+
+def check_logging_status(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    progress = deploys_helper.update_progress(request, name, stage)
+    showMode = _fetch_param_with_cookie(
+        request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    sortByStatus = _fetch_param_with_cookie(
+        request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
+
+    lognames = request.GET.get('lognames', '')
+    topics = request.GET.get('topics', '')
+
+    configStr = "%s:%s" % (topics, lognames)
+
+    report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
+    kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=name,
+                                                             report=report,
+                                                             configStr=configStr)
+    report.showMode = showMode
+    report.sortByStatus = sortByStatus
+    html = render_to_string('deploys/deploy_logging_check_update.tmpl', {
+        "logHealthResult": kafkaLoggingAddOn.logHealthReport
+    })
+
+    response = HttpResponse(html)
+
+    # save preferences
+    response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
+
+    return response
 
 def update_deploy_progress(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
@@ -119,6 +179,8 @@ def update_deploy_progress(request, name, stage):
     html = render_to_string('deploys/deploy_progress.tmpl', {
         "report": report,
         "env": env,
+        "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
+        "pinterest": IS_PINTEREST
     })
 
     response = HttpResponse(html)
@@ -127,6 +189,36 @@ def update_deploy_progress(request, name, stage):
     response.set_cookie(MODE_COOKIE_NAME, showMode)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
+    return response
+
+def update_service_add_ons(request, name, stage):
+    serviceAddOns = []
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    progress = deploys_helper.update_progress(request, name, stage)
+    report = agent_report.gen_report(request, env, progress)
+
+
+    # Currently we assume that the servicename is the same as the environment name.
+    serviceName = name
+    rateLimitingAddOn = service_add_ons.getRatelimitingAddOn(serviceName=serviceName,
+                                                             report=report)
+    dashboardAddOn = service_add_ons.getDashboardAddOn(serviceName=serviceName,
+                                                       report=report)
+    serviceAddOns.append(rateLimitingAddOn)
+
+    if name in KAFKA_LOGGING_ADD_ON_ENVS:
+        kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=serviceName,
+                                                                 report=report)
+        serviceAddOns.append(kafkaLoggingAddOn)
+
+    serviceAddOns.append(dashboardAddOn)
+
+    html = render_to_string('deploys/deploy_add_ons.tmpl', {
+        "serviceAddOns": serviceAddOns,
+        "pinterest": IS_PINTEREST
+    })
+
+    response = HttpResponse(html)
     return response
 
 def removeEnvCookie(request, name):
@@ -182,11 +274,15 @@ def get_recent_envs(request):
 
 def check_feedback_eligible(request, username):
     # Checks to see if a user should be asked for feedback or not.
-    if username and ratings_helper.is_user_eligible(request, username) and IS_PINTEREST:
-        num = random.randrange(0, 100)
-        if num <= 10:
-            return True
-    return False
+    try:
+        if username and ratings_helper.is_user_eligible(request, username) and IS_PINTEREST:
+            num = random.randrange(0, 100)
+            if num <= 10:
+                return True
+        return False
+    except:
+        log.error(traceback.format_exc())
+        return False
 
 
 class EnvLandingView(View):
@@ -206,23 +302,14 @@ class EnvLandingView(View):
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
         env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
+        capacity_info = {'groups': groups}
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
+            capacity_info['cluster'] = basic_cluster_info
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
-            if IS_PINTEREST:
-                basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-                if basic_cluster_info and basic_cluster_info.get('capacity'):
-                    hosts_in_cluster = groups_helper.get_group_hosts(request, env.get('clusterName'))
-                    num_to_fake = basic_cluster_info.get('capacity') - len(hosts_in_cluster)
-                    for i in range(num_to_fake):
-                        faked_host = {}
-                        faked_host['hostName'] = 'UNKNOWN'
-                        faked_host['hostId'] = 'UNKNOWN'
-                        faked_host['state'] = 'PROVISIONED'
-                        provisioning_hosts.append(faked_host)
 
             response = render(request, 'environs/env_landing.html', {
                 "envs": envs,
@@ -236,9 +323,11 @@ class EnvLandingView(View):
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
                 "basic_cluster_info": basic_cluster_info,
+                "capacity_info": json.dumps(capacity_info),
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
                 "csrf_token": get_token(request),
+                "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -264,8 +353,10 @@ class EnvLandingView(View):
                 "request_feedback": request_feedback,
                 "groups": groups,
                 "basic_cluster_info": basic_cluster_info,
+                "capacity_info": json.dumps(capacity_info),
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
+                "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
             })
 
         # save preferences
@@ -727,7 +818,7 @@ def upload_private_build(request, name, stage):
 
 
 def get_groups(request, name, stage):
-    groups = common.get_non_cmp_group(request, name, stage)
+    groups = common.get_env_groups(request, name, stage)
     html = render_to_string('groups/simple_groups.tmpl', {
         "groups": groups,
     })
@@ -935,6 +1026,8 @@ def get_hosts(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
     agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
+    if agents:
+        sorted(agents, key=lambda x:x['hostName'])
     title = "All hosts"
 
     agents_wrapper = {}

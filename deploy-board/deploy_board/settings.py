@@ -56,6 +56,7 @@ else:
     OAUTH_AUTHORIZE_URL = os.getenv("OAUTH_AUTHORIZE_URL")
     OAUTH_DEFAULT_SCOPE = os.getenv("OAUTH_DEFAULT_SCOPE")
     OAUTH_USERNAME_INFO_KEY = os.getenv("OAUTH_USERNAME_INFO_KEY")
+    OAUTH_EXTRACT_USERNAME_FROM_EMAIL = os.getenv("OAUTH_EXTRACT_USERNAME_FROM_EMAIL")
 
 # Teletraan backend service url
 TELETRAAN_SERVICE_URL = os.getenv("TELETRAAN_SERVICE_URL")
@@ -67,6 +68,19 @@ TELETRAAN_HOST_INFORMATION_URL = os.getenv("HOST_INFORMATION_URL")
 CMDB_API_HOST = os.getenv("CMDB_API_HOST")
 CMDB_INSTANCE_URL = os.getenv("CMDB_INSTANCE_URL")
 CMDB_UI_HOST = os.getenv("CMDB_UI_HOST")
+PHOBOS_URL = os.getenv("PHOBOS_URL")
+
+# Serviceframework add-on vars
+SERVICE_RATELIMIT_CONFIG_URL = os.getenv("SERVICE_RATELIMIT_CONFIG_URL")
+STATSBOARD_API_FORMAT = os.getenv("STATSBOARD_API_FORMAT")
+RATELIMIT_ENABLED_METRIC_FORMAT = os.getenv("RATELIMIT_ENABLED_METRIC_FORMAT")
+ENABLING_SERVICE_RATELIMIT_URL = os.getenv("ENABLING_SERVICE_RATELIMIT_URL")
+KAFKA_MSGS_DELIVERED_METRIC = os.getenv("KAFKA_MSGS_DELIVERED_METRIC")
+DASHBOARD_URL_ENDPOINT_FORMAT = os.getenv("DASHBOARD_URL_ENDPOINT_FORMAT")
+
+# For rolling out new features
+GUINEA_PIG_ENVS = os.getenv("GUINEA_PIG_ENVS", "").split(",")
+KAFKA_LOGGING_ADD_ON_ENVS = os.getenv("KAFKA_LOGGING_ADD_ON_ENVS", "").split(",")
 
 LOG_DIR = os.getenv("LOG_DIR")
 LOG_LEVEL = os.getenv("LOG_LEVEL")
@@ -92,7 +106,7 @@ LOGGING = {
             'level': LOG_LEVEL,
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': '%s/service.log' % LOG_DIR,
-            'maxBytes': 1024 * 1024 * 5, # 5 MB
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
         },
@@ -100,14 +114,18 @@ LOGGING = {
             'level': LOG_LEVEL,
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': '%s/access.log' % LOG_DIR,
-            'maxBytes': 1024 * 1024 * 5, # 5 MB
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
             'formatter': 'standard',
+        },
+        'console': {
+            'level': LOG_LEVEL,
+            'class': 'logging.StreamHandler',
         },
     },
     'loggers': {
         '': {
-            'handlers': ['default'],
+            'handlers': ['default', 'console'],
             'level': LOG_LEVEL,
             'propagate': True
         },
@@ -187,6 +205,9 @@ SITE_METRICS_CONFIGS = []
 # Deep Teletraan backend health check url
 TELETRAAN_SERVICE_HEALTHCHECK_URL = os.getenv("TELETRAAN_SERVICE_HEALTHCHECK_URL", None)
 
+# Show hosts that are STOPPING or STOPPED in the environments page
+DISPLAY_STOPPING_HOSTS = os.getenv("DISPLAY_STOPPING_HOSTS", "true")
+
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = "https://jenkins.pinadmin.com/job/"
@@ -236,3 +257,17 @@ if IS_PINTEREST:
 
     DEFAULT_START_TIME = "-1d"
 
+    #Pinterest Default Cloud Provider
+    DEFAULT_PROVIDER = 'AWS'
+
+    #Pinterest Default AMI image name
+    DEFAULT_CMP_IMAGE = 'cmp_base'
+
+    #Pinterest Default Host Type
+    DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
+
+    DEFAULT_CELL = 'aws-us-east-1'
+
+    #Pinterest Default Puppet Environment
+    DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON',default='prod')
+    DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE',default='engineering')

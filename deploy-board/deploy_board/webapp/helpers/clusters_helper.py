@@ -71,3 +71,34 @@ def resume_cluster_replacement(request, cluster_name):
 def cancel_cluster_replacement(request, cluster_name):
     params = [('actionType', 'CANCEL_REPLACE')]
     return rodimus_client.put("/clusters/%s/actions" % cluster_name, request.teletraan_user_id.token, params=params)
+
+
+def update_cluster_capacity(request, cluster_name, min_size, max_size):
+    params = [('minsize',min_size), ('maxsize', max_size)]
+    return rodimus_client.put("/clusters/%s/capacity" % cluster_name, request.teletraan_user_id.token, params=params)
+
+
+def get_latest_cluster_replacement_progress(request, cluster_name):
+    return rodimus_client.get("/clusters/%s/replace/progress" % cluster_name,
+                              request.teletraan_user_id.token)
+
+
+def get_cluster_replacement_info(request, cluster_name, replacement_id):
+    return rodimus_client.get("/clusters/%s/replace/%s" % (cluster_name, replacement_id),
+                              request.teletraan_user_id.token)
+
+
+def get_cluster_replacement_schedule(request, cluster_name, replacement_id):
+    return rodimus_client.get("/clusters/%s/replace/%s/schedule" % (cluster_name, replacement_id),
+                              request.teletraan_user_id.token)
+
+
+def get_cluster_replacement_histories(request, cluster_name, page_index, page_size):
+    params = [('pageIndex', page_index), ('pageSize', page_size)]
+    return rodimus_client.get("/clusters/%s/replace/histories" % cluster_name,
+                              request.teletraan_user_id.token, params=params)
+
+
+def get_cluster_replacement_config_histories(request, cluster_name, event_id):
+    return rodimus_client.get("/clusters/%s/replace/%s/config_histories" % (cluster_name, event_id),
+                              request.teletraan_user_id.token)

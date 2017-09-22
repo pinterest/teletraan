@@ -18,7 +18,7 @@ from django.views.generic import View
 import logging
 from helpers import environs_helper, agents_helper, autoscaling_groups_helper
 from helpers import environ_hosts_helper, hosts_helper
-from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST
+from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
 from datetime import datetime
 import pytz
 import requests
@@ -85,7 +85,13 @@ def get_host_details(host_id):
         return None
     host_url = CMDB_API_HOST + CMDB_INSTANCE_URL + host_id
     response = requests.get(host_url)
-    instance = response.json()
+
+    try:
+        instance = response.json()
+    except:
+        # the host not found in CMDB
+        return None
+
     cloud_info = _get_cloud(instance)
     if not cloud_info:
         return None
@@ -103,6 +109,11 @@ def get_host_details(host_id):
      'Launch Time': launch_time,
      'AMI Id': ami_id,
     }
+    if IS_PINTEREST and PHOBOS_URL:
+        host_ip = instance['config']['internal_address']
+        if host_ip is not None:
+            phobos_link = PHOBOS_URL + host_ip
+            host_details['Phobos Link'] = phobos_link
     return host_details
 
 

@@ -1,0 +1,119 @@
+
+<div id="clusterPanelId" v-if="hasCluster" class="panel panel-default">
+<panel-heading title="Cluster Capacity" target="#clusterConfigId" initcollapse="false">
+</panel-heading>
+<div id="clusterConfigId" class="collapse in panel-body">
+    <div class="container-fluid">
+        <form id="clusterConfigFormId" class="form-horizontal" role="form">
+            <fieldset id="clusterConfigFieldSetId">
+                <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
+                <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
+                <static-capacity-config v-if="!autoscalingEnabled" v-bind:capacity="desiredCapacity" v-on:change="updateStatic">
+                </static-capacity-config>
+                <asg-capacity-config v-if="autoscalingEnabled" v-bind:minsize="minsize" v-bind:maxsize="maxsize" v-on:minchange="updateMin" v-on:maxchange="updateMax">
+                </asg-capacity-config>
+            </fieldset>
+        </form>
+    </div>
+</div>
+
+<div class="panel-footer clearfix">
+    <div class="pull-right">
+        <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity"
+                data-loading-text="Saving..." v-on:click="save">
+            <span class="glyphicon glyphicon-floppy-save"></span> Save
+        </button>
+    </div>
+</div>
+</div>
+<script>
+    var cluster = info.basic_cluster_info;
+    if (cluster!=null){
+        var asg_launch_info = cluster.asg_info.launchInfo;
+        //Decide if we show one capacity box or min/max size
+        var autoscalingEnabled = asg_launch_info.asgStatus ==="ENABLED" && asg_launch_info.minSize<asg_launch_info.maxSize;
+        if (asg_launch_info != null && !autoscalingEnabled){
+            //ASG size is the source of truth. If it has been set outside cluster, we should use the value of asg launchInfo
+            if (cluster.capacity!= asg_launch_info.minSize){
+                cluster.capacity = asg_launch_info.minSize
+            }
+        }
+
+        var clusterVue = new Vue({
+            el:"#clusterPanelId",
+            data:{
+                hasCluster: !getUrlParameter("addexisting"),
+                cell: cluster.cellName,
+                clusterstate: cluster.state,
+                clusterStateStyle: cluster.state === "NORMAL" ? "text-success" : "text-danger",
+                desiredCapacity: cluster.capacity,
+                instancetype: cluster.hostType,
+                minsize: asg_launch_info.minSize,
+                maxsize: asg_launch_info.maxSize,
+                autoscalingEnabled:autoscalingEnabled,
+                canSaveCapacity: cluster.state === "NORMAL"
+            },
+            methods:{
+                updateStatic: function(value){
+                   this.desiredCapacity = Number(value)
+                },
+                updateMin:function(value){
+                    this.minsize = Number(value)
+                    if (this.maxsize<this.minsize){
+                        this.maxsize = this.minsize
+                    }
+                },
+                updateMax: function(value){
+                    this.maxsize = Number(value)
+                    if (this.maxsize<this.minsize){
+                        this.minsize = this.maxsize
+                    }
+                },
+                save:function(){
+                    if (!this.autoscalingEnabled){
+                        if (this.desiredCapacity<0){
+                            globalNotificationBanner.error = "Capacity cannot be less than 0"
+                            return
+                        }
+                        //Set min and max size directly to group. Right now, cluster itself has no autoscaling info
+                        this.minsize = this.desiredCapacity
+                        this.maxsize = this.desiredCapacity
+                    }
+
+                    if (this.minsize<0 || this.maxsize<0 || this.minsize > this.maxsize){
+                            globalNotificationBanner.error = "Min and Max size cannot be less than 0 and Max size cannot be less than Min size"
+                            return
+                    }
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/capacity/',
+                        data: JSON.stringify({minsize:this.minsize, maxsize:this.maxsize}),
+                        dataType: "json",
+                        beforeSend: function(xhr, settings) {
+                            var csrftoken = getCookie('csrftoken')
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                        },
+                        success: function (data) {
+                            globalNotificationBanner.info = "Capacity updated successfully"
+                            window.location.href='/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/'
+                        },
+                        error: function (data) {
+                            globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
+                        }
+                    });
+                }
+            }
+          }
+        )
+    }
+    else{
+        new Vue({
+            el:"#clusterPanelId",
+            data:{
+                hasCluster: false
+            }
+        })
+    }
+</script>

@@ -19,11 +19,24 @@ import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.Pings;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
+import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
+import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.setup.Bootstrap;
 
 public class TeletraanAgentService extends Application<TeletraanServiceConfiguration> {
     @Override
     public String getName() {
         return "teletraan-agent-service";
+    }
+
+    @Override
+    public void initialize(Bootstrap<TeletraanServiceConfiguration> bootstrap) {
+        // Enable variable substitution with environment variables
+        bootstrap.setConfigurationSourceProvider(
+                new SubstitutingSourceProvider(bootstrap.getConfigurationSourceProvider(),
+                        new EnvironmentVariableSubstitutor(false)
+                )
+        );
     }
 
     @Override
