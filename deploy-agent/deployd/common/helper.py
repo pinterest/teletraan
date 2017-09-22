@@ -5,7 +5,6 @@
 # You may obtain a copy of the License at
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,9 +65,11 @@ class Helper(object):
     def clean_package(base_dir, builds, build_name):
         local_fn = '{}-{}.*'.format(build_name, builds)
         try:
+            # Remove extracted pointer from disk
             extracted_file = os.path.join(base_dir, '{}.extracted'.format(builds))
             if os.path.exists(extracted_file):
                 os.remove(extracted_file)
+            # Remove staged pointer from disk
             staged_file = os.path.join(base_dir, '{}.staged'.format(builds))
             if os.path.exists(staged_file):
                 os.remove(staged_file)
@@ -76,11 +77,14 @@ class Helper(object):
             log.error(e)
 
         try:
+            # Remove build directory from disk
             shutil.rmtree(os.path.join(base_dir, builds))
-        except OSError as e:
+        except Exception as e::
+            # Catch base exception class, as there's a mulitude of reasons a rmtree can fail
             log.error(e)
 
         try:
+            # Remove archive from disk
             fns = glob.glob(os.path.join(base_dir, local_fn))
             if fns:
                 os.remove(fns[0])
