@@ -73,13 +73,13 @@ class Helper(object):
             staged_file = os.path.join(base_dir, '{}.staged'.format(builds))
             if os.path.exists(staged_file):
                 os.remove(staged_file)
-        except OSError as e:
+        except OSError:
             log.exception("Failed: remove old pointer file from disk")
 
         try:
             # Remove build directory from disk
             shutil.rmtree(os.path.join(base_dir, builds))
-        except BaseException as e::
+        except BaseException:
             # Catch base exception class, as there's a multitude of reasons a rmtree can fail
             log.exception("Failed: remove build directory from disk")
 
@@ -88,5 +88,5 @@ class Helper(object):
             fns = glob.glob(os.path.join(base_dir, local_fn))
             if fns:
                 os.remove(fns[0])
-        except OSError as e:
+        except OSError:
             log.exception("Failed: remove build archive from disk")
