@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -65,19 +65,28 @@ class Helper(object):
     def clean_package(base_dir, builds, build_name):
         local_fn = '{}-{}.*'.format(build_name, builds)
         try:
+            # Remove extracted pointer from disk
             extracted_file = os.path.join(base_dir, '{}.extracted'.format(builds))
             if os.path.exists(extracted_file):
                 os.remove(extracted_file)
+            # Remove staged pointer from disk
             staged_file = os.path.join(base_dir, '{}.staged'.format(builds))
             if os.path.exists(staged_file):
                 os.remove(staged_file)
         except OSError as e:
-            log.error(e)
+            log.exception("Failed: remove old pointer file from disk")
 
         try:
+            # Remove build directory from disk
             shutil.rmtree(os.path.join(base_dir, builds))
+        except BaseException as e::
+            # Catch base exception class, as there's a multitude of reasons a rmtree can fail
+            log.exception("Failed: remove build directory from disk")
+
+        try:
+            # Remove archive from disk
             fns = glob.glob(os.path.join(base_dir, local_fn))
             if fns:
                 os.remove(fns[0])
         except OSError as e:
-            log.error(e)
+            log.exception("Failed: remove build archive from disk")
