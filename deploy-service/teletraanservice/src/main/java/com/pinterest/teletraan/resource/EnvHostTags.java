@@ -23,16 +23,16 @@ import java.util.*;
 
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/host_tags")
-@Api(tags = "Hosts Ec2 Tags")
+@Api(tags = "Hosts Tags")
 @SwaggerDefinition(
     tags = {
-        @Tag(name = "Host Ec2 Tags", description = "Host Ec2 Tags related APIs"),
+        @Tag(name = "Host Tags", description = "Host Tags related APIs"),
     }
 )
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class EnvHostEc2Tags {
-    private static final Logger LOG = LoggerFactory.getLogger(EnvHostEc2Tags.class);
+public class EnvHostTags {
+    private static final Logger LOG = LoggerFactory.getLogger(EnvHostTags.class);
     private HostTagDAO hostTagDAO;
     private EnvironDAO environDAO;
     private HostDAO hostDAO;
@@ -40,7 +40,7 @@ public class EnvHostEc2Tags {
     private Authorizer authorizer;
 
 
-    public EnvHostEc2Tags(TeletraanServiceContext context) {
+    public EnvHostTags(TeletraanServiceContext context) {
         hostDAO = context.getHostDAO();
         hostTagDAO = context.getHostTagDAO();
         environDAO = context.getEnvironDAO();
@@ -57,13 +57,13 @@ public class EnvHostEc2Tags {
     public Map<String, Collection<HostTagInfo>> get(@PathParam("envName") String envName,
                                                     @PathParam("stageName") String stageName,
                                                     @PathParam("tagName") String tagName,
-                                                    @QueryParam("reload") Optional<Boolean> reload,
+                                                    @QueryParam("ec2Tags") Optional<Boolean> ecTags,
                                                     @Context SecurityContext sc) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
 
-        boolean needDynamicReload = reload.or(false);
-        if (needDynamicReload) {
+        Boolean loadEc2Tags = ecTags.or(false);
+        if (loadEc2Tags) {
             // read ec2 tags from CMDB
             return remoteQueryHostEc2Tags(envBean, tagName);
         }

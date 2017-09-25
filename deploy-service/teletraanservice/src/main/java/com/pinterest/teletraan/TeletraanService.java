@@ -112,8 +112,8 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         EnvHosts envHosts = new EnvHosts(context);
         environment.jersey().register(envHosts);
 
-        EnvHostEc2Tags envHostEc2Tags = new EnvHostEc2Tags(context);
-        environment.jersey().register(envHostEc2Tags);
+        EnvHostTags envHostTags = new EnvHostTags(context);
+        environment.jersey().register(envHostTags);
 
         DeployConstraints deployConstraints = new DeployConstraints(context);
         environment.jersey().register(deployConstraints);

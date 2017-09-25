@@ -43,7 +43,7 @@ def remove_host_tags(request, env_name, stage_name, tag_name):
 
 
 def get_ec2_host_tags(request, env_name, stage_name, tag_name):
-    return deploy_client.get("/envs/%s/%s/host_tags/%s?reload=true" % (env_name, stage_name, tag_name),
+    return deploy_client.get("/envs/%s/%s/host_tags/%s?ec2Tags=true" % (env_name, stage_name, tag_name),
                              request.teletraan_user_id.token)
 
 
