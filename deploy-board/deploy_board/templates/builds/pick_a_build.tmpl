@@ -175,7 +175,7 @@
             $(btn).tooltip('hide');
             trid = $(this).closest('tr');
             prevSha = trid.prev().find(".hiddenCommit").val();
-            currentSha = trid.find(".hiddenCommit").val();
+            currentSha = trid.next().find(".hiddenCommit").val();
             contentId = trid.find('.showContent');
             url = '/commits/compare_commits/?start_sha=' + prevSha +
                 '&end_sha=' + currentSha + '&repo={{ current_build.repo }}';
