@@ -11,6 +11,9 @@ public class HostTagInfo {
     @JsonProperty("hostId")
     private String hostId;
 
+    @JsonProperty("tagName")
+    private String tagName;
+
     @JsonProperty("tagValue")
     private String tagValue;
 
@@ -36,6 +39,14 @@ public class HostTagInfo {
 
     public void setTagValue(String tagValue) {
         this.tagValue = tagValue;
+    }
+
+    public String getTagName() {
+        return tagName;
+    }
+
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
     }
 
     @Override

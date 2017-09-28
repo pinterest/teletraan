@@ -52,10 +52,12 @@ public class DeployTagWorker implements Runnable {
         List<String> extras = new ArrayList(CollectionUtils.subtract(envHostIdsWithHostTag, envHostIds));
         if (missings.size() == 0 && extras.size() == 0) {
             LOG.info(String.format("Env %s host tag is in sync", envId));
-            bean.setLast_update(System.currentTimeMillis());
-            bean.setState(TagSyncState.FINISHED);
-            deployConstraintDAO.updateById(bean.getConstraint_id(), bean);
-            LOG.info(String.format("Env %s deploy constraint state has been updated to %s", envId, bean.getState()));
+            if(bean.getState() != TagSyncState.FINISHED) {
+                bean.setLast_update(System.currentTimeMillis());
+                bean.setState(TagSyncState.FINISHED);
+                deployConstraintDAO.updateById(bean.getConstraint_id(), bean);
+                LOG.info(String.format("Env %s deploy constraint state has been updated to %s", envId, bean.getState()));
+            }
             return;
         }
 
@@ -69,20 +71,23 @@ public class DeployTagWorker implements Runnable {
 
 
         // 1. remove host tags from extras in db
-        if (extras.size() > 0) {
+        if (!extras.isEmpty()) {
             hostTagDAO.deleteAllByEnvIdAndHostIds(envId, extras);
             LOG.info(String.format("Env %s host tags of %s have been removed", envId, extras));
         }
 
         // 2. add host tags from missing in db ( query for CMDB for the missing host tags )
-        if (missings.size() > 0) {
+        if (!missings.isEmpty()) {
             List<UpdateStatement> statements = new ArrayList<>();
-            Collection<String> oneBatch = missings.subList(0, Math.min(MAX_QUERY_TAGS_SIZE, missings.size()));
-            LOG.info(String.format("Env %s start get ec2 tags %s for host_ids %s", envId, tagName, oneBatch));
-            Map<String, Map<String, String>> hostMissingEc2Tags = rodimusManager.getEc2Tags(oneBatch);
-            LOG.info(String.format("Env %s host ec2 tags %s results: %s", envId, tagName, hostMissingEc2Tags));
 
-            if (hostMissingEc2Tags != null) {
+            for(int i = 0; i < missings.size(); i += MAX_QUERY_TAGS_SIZE) {
+                Collection<String> oneBatch = missings.subList(i, Math.min(i + MAX_QUERY_TAGS_SIZE, missings.size()));
+                LOG.info(String.format("Env %s start get ec2 tags %s for host_ids %s", envId, tagName, oneBatch));
+                Map<String, Map<String, String>> hostMissingEc2Tags = rodimusManager.getEc2Tags(oneBatch);
+                LOG.info(String.format("Env %s host ec2 tags %s results: %s", envId, tagName, hostMissingEc2Tags));
+                if (hostMissingEc2Tags == null) {
+                    continue;
+                }
                 for (String hostId : hostMissingEc2Tags.keySet()) {
                     Map<String, String> ec2Tags = hostMissingEc2Tags.get(hostId);
                     if (ec2Tags == null) {
@@ -102,9 +107,9 @@ public class DeployTagWorker implements Runnable {
                         statements.add(hostTagDAO.genInsertOrUpdate(hostTagBean));
                     }
                 }
-                DatabaseUtil.transactionalUpdate(dataSource, statements);
-                LOG.info(String.format("Env %s host tags have been updated with %s", envId, oneBatch));
             }
+            DatabaseUtil.transactionalUpdate(dataSource, statements);
+            LOG.info(String.format("Env %s host tags have been updated", envId));
         }
 
     }

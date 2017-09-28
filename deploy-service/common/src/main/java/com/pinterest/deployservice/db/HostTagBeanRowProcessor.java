@@ -41,6 +41,7 @@ public class HostTagBeanRowProcessor extends BasicRowProcessor {
         hostTagInfo.setHostId(rs.getString("host_id"));
         hostTagInfo.setHostName(rs.getString("host_name"));
         hostTagInfo.setTagValue(rs.getString("tag_value"));
+        hostTagInfo.setTagName(rs.getString("tag_name"));
         return hostTagInfo;
     }
 }

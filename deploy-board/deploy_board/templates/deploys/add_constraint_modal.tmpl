@@ -13,13 +13,21 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
-                        <input type="hidden" class="form-control" name="tag_name" value="{{ tag_name }}">
-
-                        <label for="max_parallel" class="col-md-2 control-label">Max Parallel Number of Hosts</label>
-                        <div class="col-md-10">
+                        <label for="tag_name" class="col-md-4 control-label">Exclusive Deploy Tag Name </label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="tag_name"
+                                   required="required"
+                                   placeholder="We've listed all the EC2 Tags related with hosts in this environment, pick one."
+                                   data-toggle="tooltip"
+                                   data-placement="right"
+                                   data-trigger="manual"
+                                   >
+                        </div>
+                        <label for="max_parallel" class="col-md-4 control-label">Max Parallel Number of Hosts</label>
+                        <div class="col-md-8">
                             <input type="text" class="form-control" name="max_parallel"
                                    required="required"
-                                   placeholder="mutually exclusive deploy with tag {{ tag_name }}"
+                                   placeholder="number of hosts in parallel for deployment"
                                    data-toggle="tooltip"
                                    data-placement="right"
                                    data-trigger="manual"

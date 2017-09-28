@@ -181,7 +181,7 @@ public class ConfigHelper {
             if(workerName.equalsIgnoreCase(DeployTagWorker.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
                 Runnable worker = new DeployTagWorker(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled DeployTagWorker.");
             }
 

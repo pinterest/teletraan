@@ -243,7 +243,7 @@ body {
   -webkit-appearance: textfield;
   background-color: white;
   background-color: -moz-field;
-  border: 1px solid #ccc; 
+  border: 1px solid #ccc;
   font: -moz-field;
   font: -webkit-small-control;
   font-size: 14px;
@@ -261,7 +261,7 @@ body {
   margin-top: 1px;
   margin-bottom: 1px;
 
-} 
+}
 
 .tag-editor-placehoder{
   color: gray
@@ -275,4 +275,16 @@ body {
 .tag-hover-button:hover{
   background-color: #5bc0de;
   border-color: #5bc0de
-} 
+}
+
+.fixed-table-loading {
+    display: none;
+    position: absolute;
+    top: 42px;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 99;
+    background-color: #fff;
+    text-align: center;
+}

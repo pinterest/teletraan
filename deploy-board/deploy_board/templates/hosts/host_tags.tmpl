@@ -1,29 +1,60 @@
 <div class="panel panel-default">
   <div class="panel-body table-responsive">
-    {% if ec2 %}
-        {% for tagValue, hostTagInfos in ec2_host_tags.items %}
-             <div class="panel panel-default table-responsive">
-                <small> <span style="background-color: #428bca; padding: 1px 5px; border-radius:3.5px">{{tagValue}} </span> </small>
-                {% for hostTagInfo in hostTagInfos %}
-                    <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ hostTagInfo.hostName }}"
-                       type="button" class="deployToolTip btn btn-xs btn-default host-btn"  title="{{ tagValue }}">
-                       <small>{{ hostTagInfo.hostName }}</small>
-                      </a>
-                {% endfor %}
-             </div>
-        {% endfor %}
+    {% if show_remove_btn %}
+        <div id="hostTagsDiv" class="panel-body table-responsive">
+            {% include "hosts/host_tags_sync_progress.tmpl" %}
+        </div>
+        <script>
+            $(function () {
+                function setIntervalAndExecute(fn, t) {
+                        fn();
+                        return(setInterval(fn, t));
+                    }
+                    var tagSyncStartTime = new Date().getTime();
+                    var tagProgressInterval = setIntervalAndExecute(function() {
+                        if(new Date().getTime() - tagSyncStartTime > 1800000) {  // if more than 30 mins, clear it
+                            console.log('cleared time interval');
+                            clearInterval(tagProgressInterval);
+                        }
+                        $('#hostTagsDiv').load('/env/{{ env.envName }}/{{ env.stageName }}/host_tags/{{tag_name}}');
+                    }, 60000);
+            });
+        </script>
     {% else %}
-        {% for tagValue, hostTagInfos in host_tags.items %}
-             <div class="panel panel-default table-responsive">
-                <small> <span style="background-color: #428bca; padding: 1px 5px; border-radius:3.5px">{{tagValue}} </span> </small>
-                {% for hostTagInfo in hostTagInfos %}
-                    <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ hostTagInfo.hostName }}"
-                       type="button" class="deployToolTip btn btn-xs btn-default host-btn"  title="{{ tagValue }}">
-                       <small>{{ hostTagInfo.hostName }}</small>
-                      </a>
-                {% endfor %}
-             </div>
-        {% endfor %}
+      <table id="hostEc2Table"
+           data-toggle="table"
+           data-filter-control="true"
+           data-filter-show-clear="false">
+        <thead>
+        <tr>
+            <th data-field="hostId">Host Id</th>
+            <th data-field="hostName">Host Name</th>
+            <th data-field="tagName" data-filter-control="select">Tag Name</th>
+            <th data-field="tagValue" data-filter-control="input">Tag Value</th>
+        </tr>
+        </thead>
+    </table>
     {% endif %}
   </div>
 </div>
+<script>
+$(function () {
+    var $table = $('#hostEc2Table');
+    $.ajax({
+        type: 'GET',
+        url: '/env/{{ env.envName }}/{{ env.stageName }}/host_ec2_tags',
+        dataType: "json",
+        beforeSend: function(xhr, settings) {
+            var csrftoken = getCookie('csrftoken')
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        },
+        success: function(data){
+            $table.bootstrapTable('load', data);
+        },
+        error: function(data) {
+            alert(data);
+        }
+    });
+
+});
+</script>

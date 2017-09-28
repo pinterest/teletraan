@@ -33,7 +33,11 @@ public interface HostTagDAO {
 
     void deleteAllByEnvIdAndHostIds(String envId, List<String> hostIds) throws Exception;
 
+    void deleteByHostId(String hostId) throws Exception;
+
     List<HostTagBean> getAllByEnvIdAndTagName(String envId, String tagName) throws Exception;
 
     List<HostTagInfo> getHostsByEnvIdAndTagName(String envId, String tagName) throws Exception;
+
+    List<HostTagInfo> getHostsByEnvId(String envId) throws Exception;
 }

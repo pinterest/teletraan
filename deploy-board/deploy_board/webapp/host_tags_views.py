@@ -11,28 +11,36 @@ log = logging.getLogger(__name__)
 
 
 class HostTagsView(View):
-    def get(self, request, name, stage, tag_name):
-        ec2_host_tags = environ_hosts_helper.get_ec2_host_tags(request, name, stage, tag_name)
-        host_tags = environ_hosts_helper.get_host_tags(request, name, stage, tag_name)
+    def get(self, request, name, stage):
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         context = {
             "envs": envs,
             "env": env,
-            "stages": stages,
-            "host_tags": host_tags,
-            "ec2_host_tags": ec2_host_tags,
-            "tag_name": tag_name,
-            "show_remove_btn": False
+            "stages": stages
         }
         deploy_constraint = environ_hosts_helper.get_deploy_constraint(request, name, stage)
         if deploy_constraint:
             max_parallel = deploy_constraint.get("maxParallel", None)
+            tag_name = deploy_constraint.get("constraintKey", None)
+            context["tag_name"] = tag_name
             context["max_parallel"] = max_parallel
             context["state"] = deploy_constraint.get("state", "UNKNOWN")
             context["show_remove_btn"] = True
+        else:
+            context["show_remove_btn"] = False
 
         return render(request, 'environs/env_host_tags.html', context)
+
+
+def get_host_tags_progress(request, name, stage, tag_name):
+    host_tags = environ_hosts_helper.get_host_tags(request, name, stage, tag_name)
+    return render(request, 'hosts/host_tags_sync_progress.tmpl', {"host_tags": host_tags})
+
+
+def get_host_ec2tags(request, name, stage):
+    ec2_host_tags = environ_hosts_helper.get_ec2_host_tags(request, name, stage)
+    return HttpResponse(json.dumps(ec2_host_tags), content_type="application/json")
 
 
 def add_constraint(request, name, stage):
@@ -43,10 +51,10 @@ def add_constraint(request, name, stage):
             'constraintKey': tag_name,
             'maxParallel': max_parallel
         })
-        return redirect('/env/{}/{}/host_tags/{}'.format(name, stage, tag_name))
+        return redirect('/env/{}/{}/constraint'.format(name, stage))
     except Exception as e:
         log.error("add constraint failed with {}", e)
-        return redirect('/env/{}/{}/host_tags/{}'.format(name, stage, tag_name))
+        return redirect('/env/{}/{}/constraint'.format(name, stage))
 
 
 def edit_constraint(request, name, stage):
@@ -59,22 +67,23 @@ def edit_constraint(request, name, stage):
         environ_hosts_helper.update_deploy_constraint(request, name, stage, {
             'maxParallel': max_parallel
         })
-        tag_name = deploy_constraint.get('constraintKey')
-        return redirect('/env/{}/{}/host_tags/{}'.format(name, stage, tag_name))
+        return redirect('/env/{}/{}/constraint'.format(name, stage))
     except Exception as e:
         log.error("get constraint failed with {}", e)
         return HttpResponse(json.dumps({'html': 'Failed to get deploy constraint.'}), status=500,
                             content_type="application/json")
 
 
-def remove_constraint(request, name, stage, tag_name):
+def remove_constraint(request, name, stage):
     try:
+        deploy_constraint = environ_hosts_helper.get_deploy_constraint(request, name, stage)
+        tag_name = deploy_constraint.get('constraintKey')
         environ_hosts_helper.remove_deploy_constraint(request, name, stage)
         environ_hosts_helper.remove_host_tags(request, name, stage, tag_name)
-        return redirect('/env/{}/{}/host_tags/{}'.format(name, stage, tag_name))
+        return redirect('/env/{}/{}/constraint'.format(name, stage))
     except Exception as e:
         log.error("remove constraint failed with {}", e)
-        return redirect('/env/{}/{}/host_tags/{}'.format(name, stage, tag_name))
+        return redirect('/env/{}/{}/constraint'.format(name, stage))
 
 
 def get_constraint(request, name, stage):

@@ -48,6 +48,29 @@ public class EnvHostTags {
         rodimusManager = context.getRodimusManager();
     }
 
+
+    @GET
+    @ApiOperation(
+        value = "List all the hosts tags",
+        notes = "Returns a map group by tagValue and hosts tagged with tagName:tagValue in an environment",
+        response = HostTagInfo.class)
+    public Collection<HostTagInfo> get(@PathParam("envName") String envName,
+                                                    @PathParam("stageName") String stageName,
+                                                    @QueryParam("ec2Tags") Optional<Boolean> ecTags,
+                                                    @Context SecurityContext sc) throws Exception {
+        EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
+        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+
+        Boolean loadEc2Tags = ecTags.or(false);
+        if (loadEc2Tags) {
+            // read ec2 tags from CMDB
+            return remoteQueryHostEc2Tags(envBean);
+        }
+        List<HostTagInfo> hostTagInfos = hostTagDAO.getHostsByEnvId(envBean.getEnv_id());
+        return hostTagInfos;
+    }
+
+
     @GET
     @Path("/{tagName : [a-zA-Z0-9\\-:_]+}")
     @ApiOperation(
@@ -95,6 +118,36 @@ public class EnvHostTags {
     }
 
 
+    private Collection<HostTagInfo> remoteQueryHostEc2Tags(EnvironBean environBean) throws Exception {
+        Collection<HostBean> hostsByEnvId = hostDAO.getHostsByEnvId(environBean.getEnv_id());
+        Map<String, String> hostId2HostName = new HashMap<String, String>();
+        for (HostBean hostBean : hostsByEnvId) {
+            if (hostBean.getHost_id() != null) {
+                hostId2HostName.put(hostBean.getHost_id(), hostBean.getHost_name());
+            }
+        }
+        Set<String> hostIds = hostId2HostName.keySet();
+        LOG.info(String.format("Env %s start get all ec2 tags for host_ids %s", environBean.getEnv_id(), hostIds));
+        Map<String, Map<String, String>> hostEc2Tags = rodimusManager.getEc2Tags(hostIds);
+        LOG.info(String.format("Env %s host ec2 tags results: %s", environBean.getEnv_id(), hostEc2Tags));
+
+        Collection<HostTagInfo> rs = new ArrayList<HostTagInfo>();
+        if (hostEc2Tags != null) {
+            for (String hostId : hostEc2Tags.keySet()) {
+                Map<String, String> ec2Tags = hostEc2Tags.get(hostId);
+                for(Map.Entry<String, String> entry: ec2Tags.entrySet()) {
+                    HostTagInfo hostTagInfo = new HostTagInfo();
+                    hostTagInfo.setHostId(hostId);
+                    hostTagInfo.setHostName(hostId2HostName.get(hostId));
+                    hostTagInfo.setTagValue(entry.getValue());
+                    hostTagInfo.setTagName(entry.getKey());
+                    rs.add(hostTagInfo);
+                }
+            }
+        }
+        return rs;
+    }
+
     private Map<String, Collection<HostTagInfo>> remoteQueryHostEc2Tags(EnvironBean environBean, String tagName) throws Exception {
         Collection<HostBean> hostsByEnvId = hostDAO.getHostsByEnvId(environBean.getEnv_id());
         Map<String, String> hostId2HostName = new HashMap<String, String>();
@@ -127,6 +180,7 @@ public class EnvHostTags {
                 hostTagInfo.setHostId(hostId);
                 hostTagInfo.setHostName(hostId2HostName.get(hostId));
                 hostTagInfo.setTagValue(tagValue);
+                hostTagInfo.setTagName(tagName);
                 addToHostTagMap(hostTagInfo, rs);
             }
         }

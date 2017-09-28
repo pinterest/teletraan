@@ -35,11 +35,14 @@ public class DBHostTagDAOImpl implements HostTagDAO {
     private static final String INSERT_HOST_TAG_TEMPLATE = "INSERT INTO host_tags SET %s ON DUPLICATE KEY UPDATE %s";
     private static final String DELETE_HOST_TAG_BY_ENV_ID_AND_HOST_ID = "DELETE FROM host_tags WHERE env_id = ? AND host_id IN ( %s ) ";
     private static final String DELETE_HOST_TAG_BY_ENV_ID_AND_TAG_NAME = "DELETE FROM host_tags WHERE env_id = ? AND tag_name = ? ";
+    private static final String DELETE_BY_HOST_ID = "DELETE FROM host_tags WHERE host_id = ?";
     private static final String GET_HOST_TAG_BY_HOST_ID_AND_TAG_NAME = "SELECT * FROM host_tags WHERE host_id = ? AND tag_name = ? ";
-    private static final String GET_HOSTS_BY_ENV_ID_AND_TAG_NAME = "SELECT DISTINCT(host_tags.host_id) AS host_id, host_tags.tag_value AS tag_value, hosts.host_name AS host_name FROM hosts " +
+    private static final String GET_HOSTS_BY_ENV_ID_AND_TAG_NAME = "SELECT DISTINCT(host_tags.host_id) AS host_id, host_tags.tag_value AS tag_value, host_tags.tag_name AS tag_name, hosts.host_name AS host_name FROM hosts " +
         "INNER JOIN host_tags ON hosts.host_id = host_tags.host_id " +
         "WHERE host_tags.tag_name = ? AND host_tags.env_id = ?";
-
+    private static final String GET_HOSTS_BY_ENV_ID = "SELECT DISTINCT(host_tags.host_id) AS host_id, host_tags.tag_value AS tag_value, host_tags.tag_name AS tag_name, hosts.host_name AS host_name FROM hosts " +
+        "INNER JOIN host_tags ON hosts.host_id = host_tags.host_id " +
+        "WHERE host_tags.env_id = ?";
     private static final String GET_ALL_BY_ENV_ID_AND_TAG_NAME = "SELECT * FROM host_tags WHERE env_id = ? AND tag_name = ? ";
     private static final RowProcessor ROW_PROCESSOR = new HostTagBeanRowProcessor();
     private BasicDataSource dataSource;
@@ -76,6 +79,10 @@ public class DBHostTagDAOImpl implements HostTagDAO {
         new QueryRunner(dataSource).update(DELETE_HOST_TAG_BY_ENV_ID_AND_TAG_NAME, envId, tagName);
     }
 
+    @Override
+    public void deleteByHostId(String hostId) throws Exception {
+        new QueryRunner(dataSource).update(DELETE_BY_HOST_ID, hostId);
+    }
 
     @Override
     public void deleteAllByEnvIdAndHostIds(String envId, List<String> hostIds) throws Exception {
@@ -93,5 +100,11 @@ public class DBHostTagDAOImpl implements HostTagDAO {
     public List<HostTagInfo> getHostsByEnvIdAndTagName(String envId, String tagName) throws Exception {
         ResultSetHandler<List<HostTagInfo>> h = new BeanListHandler<>(HostTagInfo.class, ROW_PROCESSOR);
         return new QueryRunner(dataSource).query(GET_HOSTS_BY_ENV_ID_AND_TAG_NAME, h, tagName, envId);
+    }
+
+    @Override
+    public List<HostTagInfo> getHostsByEnvId(String envId) throws Exception {
+        ResultSetHandler<List<HostTagInfo>> h = new BeanListHandler<>(HostTagInfo.class, ROW_PROCESSOR);
+        return new QueryRunner(dataSource).query(GET_HOSTS_BY_ENV_ID, h, envId);
     }
 }

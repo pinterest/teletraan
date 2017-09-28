@@ -3,6 +3,7 @@
 {% load utils %}
 {% load static %}
 
+
 {% block breadcrumb-items %}
     <ul class="breadcrumb">
         <li><a href="/">Home</a></li>
@@ -61,6 +62,26 @@
                 window.location = "/env/{{ env.envName }}/{{ env.stageName }}/deploy?sortByTag={{ tag_name }}";
             });
 
+            $('#viewDeployConstraintModalId').on('shown.bs.modal', function() {
+                var stateField = $('.modal-body input[name="tag_sync_state"]');
+                stateField.html('');
+                $.ajax({
+                        type: 'GET',
+                        url: '/env/{{ env.envName }}/{{ env.stageName }}/deploy_constraint',
+                        dataType: "json",
+                        beforeSend: function(xhr, settings) {
+                            var csrftoken = getCookie('csrftoken');
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        },
+                        success: function (data) {
+                            stateField.html(data['state']);
+                        },
+                        error: function (data) {
+                            alert(data);
+                        }
+                    });
+            });
+
             $('#addDeployConstraintModalId').on('hidden.bs.modal', function () {
                 $('[data-toggle="tooltip"]').tooltip("destroy");
             });
@@ -73,20 +94,15 @@
 {% block main %}
     <div class="panel panel-default">
         <div class="panel-heading clearfix">
-            <h4 class="panel-title pull-left">Hosts Tagged By {{ tag_name }} With Deployment</h4>
+            {% if show_remove_btn %}
+                <h4 class="panel-title pull-left">Hosts Tagged By {{ tag_name }} </h4>
+            {% else %}
+                <h4 class="panel-title pull-left">All Host Tags</h4>
+            {% endif %}
         </div>
         <div class="panel-body table-responsive">
-            {% include "hosts/host_tags.tmpl" with ec2=False %}
+            {% include "hosts/host_tags.tmpl" %}
         </div>
-    </div>
-
-    <div class="panel panel-default">
-        <div class="panel-heading clearfix">
-            <h4 class="panel-title pull-left">Hosts Tagged By {{ tag_name }} On EC2</h4>
-        </div>
-        <div class="panel-body table-responsive">
-            {% include "hosts/host_tags.tmpl" with ec2=True %}
-        </div>
-    </div>
+     </div>
 
 {% endblock %}

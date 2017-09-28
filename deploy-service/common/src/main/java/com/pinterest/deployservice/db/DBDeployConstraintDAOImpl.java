@@ -23,7 +23,7 @@ public class DBDeployConstraintDAOImpl implements DeployConstraintDAO {
 
     private static final String REMOVE_CONSTRAINT_BY_ID = "DELETE FROM deploy_constraints WHERE constraint_id = ?";
 
-    private static final String GET_ALL_ACTIVE = "SELECT * FROM deploy_constraints WHERE state NOT IN (?, ?)";
+    private static final String GET_ALL_ACTIVE = "SELECT * FROM deploy_constraints WHERE state != ?";
 
     private BasicDataSource dataSource;
 
@@ -68,6 +68,6 @@ public class DBDeployConstraintDAOImpl implements DeployConstraintDAO {
     @Override
     public List<DeployConstraintBean> getAllActiveDeployConstraint() throws Exception {
         ResultSetHandler<List<DeployConstraintBean>> h = new BeanListHandler<DeployConstraintBean>(DeployConstraintBean.class);
-        return new QueryRunner(dataSource).query(GET_ALL_ACTIVE, h, TagSyncState.ERROR.toString(), TagSyncState.FINISHED.toString());
+        return new QueryRunner(dataSource).query(GET_ALL_ACTIVE, h, TagSyncState.ERROR.toString());
     }
 }

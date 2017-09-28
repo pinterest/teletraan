@@ -269,11 +269,6 @@ public class PingHandler {
                 if (hostTagBean == null) {
                     // but host tag is MISSING
                     LOG.info("DeployWithConstraint env {}: could not find host {} with tagName {}", envId, hostId, tagName);
-                    // need to update deployConstraintBean state back into PROCESSING
-                    deployConstraintBean.setState(TagSyncState.PROCESSING);
-                    deployConstraintBean.setLast_update(System.currentTimeMillis());
-                    deployConstraintDAO.updateById(constraintId, deployConstraintBean);
-                    LOG.info("DeployWithConstraint env {}: host tag missing, updated state into PROCESSING", envId);
                     return false;
                 }
             }
