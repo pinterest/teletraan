@@ -7,6 +7,7 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.worker.DeployTagWorker;
 import io.swagger.annotations.*;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.slf4j.Logger;
@@ -37,8 +38,10 @@ public class DeployConstraints {
     private EnvironDAO environDAO;
     private Authorizer authorizer;
     private BasicDataSource dataSource;
+    private TeletraanServiceContext serviceContext;
 
     public DeployConstraints(TeletraanServiceContext context) {
+        serviceContext = context;
         deployConstraintDAO = context.getDeployConstraintDAO();
         environDAO = context.getEnvironDAO();
         authorizer = context.getAuthorizer();
@@ -104,6 +107,10 @@ public class DeployConstraints {
         DatabaseUtil.transactionalUpdate(dataSource, statements);
         LOG.info("Successfully updated deploy constraint {} for env {}/{} by {}.",
             deployConstraintBean, envName, stageName, operator);
+
+        Runnable worker = new DeployTagWorker(serviceContext);
+        worker.run();
+        LOG.info("Successfully run DeployTagWorker for env {}/{} by {}.", envName, stageName, operator);
     }
 
 

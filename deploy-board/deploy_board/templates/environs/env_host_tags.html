@@ -95,7 +95,13 @@
     <div class="panel panel-default">
         <div class="panel-heading clearfix">
             {% if show_remove_btn %}
-                <h4 class="panel-title pull-left">Hosts Tagged By {{ tag_name }} </h4>
+                <h4 class="panel-title pull-left">Hosts Tagged By "{{ tag_name }}"
+                </h4>
+                <div>
+                    <small style="margin-left: 7px;"><span class="tag-value-placeholder">tag value</span></small>
+                    <button class="deployToolTip btn btn-xs btn-default host-btn" data-original-title="a list of host names">
+                       <small>host names</small></button>
+                </div>
             {% else %}
                 <h4 class="panel-title pull-left">All Host Tags</h4>
             {% endif %}

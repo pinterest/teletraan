@@ -35,7 +35,8 @@ class HostTagsView(View):
 
 def get_host_tags_progress(request, name, stage, tag_name):
     host_tags = environ_hosts_helper.get_host_tags(request, name, stage, tag_name)
-    return render(request, 'hosts/host_tags_sync_progress.tmpl', {"host_tags": host_tags})
+    return render(request, 'hosts/host_tags_sync_progress.tmpl',
+                  {"host_tags": host_tags, "envName": name, "stageName": stage})
 
 
 def get_host_ec2tags(request, name, stage):

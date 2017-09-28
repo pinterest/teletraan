@@ -2,7 +2,7 @@
   <div class="panel-body table-responsive">
     {% if show_remove_btn %}
         <div id="hostTagsDiv" class="panel-body table-responsive">
-            {% include "hosts/host_tags_sync_progress.tmpl" %}
+            {% include "hosts/host_tags_sync_progress.tmpl" with envName=env.envName stageName=env.stageName %}
         </div>
         <script>
             $(function () {
