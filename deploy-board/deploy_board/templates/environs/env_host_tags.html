@@ -1,0 +1,114 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+{% load static %}
+
+
+{% block breadcrumb-items %}
+    <ul class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li><a href="/envs">Environments</a></li>
+        <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+        <li class="active">Hosts</li>
+    </ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+    <div class="panel panel-default">
+        <div class="panel-heading clearfix">
+            <h4 class="panel-title pull-left">Deploy Constraint</h4>
+        </div>
+        <div class="row">
+            <button id="envDeployWithTagBtn" type="button" class="btn btn-default btn-block">
+                <span class="glyphicon glyphicon-flash"></span> Current Deployment
+            </button>
+        </div>
+        {% if show_remove_btn %}
+            <div class="row">
+                <button id="viewConstraintBtn" type="button" class="deployToolTip btn btn-default btn-block"
+                        data-toggle="modal" data-target="#viewDeployConstraintModalId"
+                        title="View deploy constraint">
+                    <span class="glyphicon glyphicon-time"></span> View Current Constraint
+                </button>
+            </div>
+            <div class="row">
+                <button id="removeConstraintBtn" type="button" class="deployToolTip btn btn-default btn-block"
+                        data-toggle="modal" data-target="#removeDeployConstraintModalId"
+                        title="Remove deploy constraint">
+                    <span class="glyphicon glyphicon-minus"></span> Remove Current Constraint
+                </button>
+            </div>
+        {% else %}
+            <div class="row">
+                <button id="addConstraintBtn" type="button" class="deployToolTip btn btn-default btn-block"
+                        data-toggle="modal" data-target="#addDeployConstraintModalId"
+                        title="Create a deploy constraint">
+                    <span class="glyphicon glyphicon-plus"></span> Create Constraint
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if show_remove_btn %}
+        {% include "deploys/remove_constraint_modal.tmpl" with envName=env.envName stageName=env.stageName %}
+        {% include "deploys/edit_constraint_modal.tmpl" with envName=env.envName stageName=env.stageName %}
+    {% else %}
+        {% include "deploys/add_constraint_modal.tmpl" with envName=env.envName stageName=env.stageName %}
+    {% endif %}
+
+    <script>
+        $(function () {
+            $('#envDeployWithTagBtn').click(function () {
+                window.location = "/env/{{ env.envName }}/{{ env.stageName }}/deploy?sortByTag={{ tag_name }}";
+            });
+
+            $('#viewDeployConstraintModalId').on('shown.bs.modal', function() {
+                var stateField = $('.modal-body input[name="tag_sync_state"]');
+                stateField.html('');
+                $.ajax({
+                        type: 'GET',
+                        url: '/env/{{ env.envName }}/{{ env.stageName }}/deploy_constraint',
+                        dataType: "json",
+                        beforeSend: function(xhr, settings) {
+                            var csrftoken = getCookie('csrftoken');
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        },
+                        success: function (data) {
+                            stateField.html(data['state']);
+                        },
+                        error: function (data) {
+                            alert(data);
+                        }
+                    });
+            });
+
+            $('#addDeployConstraintModalId').on('hidden.bs.modal', function () {
+                $('[data-toggle="tooltip"]').tooltip("destroy");
+            });
+        });
+    </script>
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+    <div class="panel panel-default">
+        <div class="panel-heading clearfix">
+            {% if show_remove_btn %}
+                <h4 class="panel-title pull-left">Hosts Tagged By "{{ tag_name }}"
+                </h4>
+                <div>
+                    <small style="margin-left: 7px;"><span class="tag-value-placeholder">tag value</span></small>
+                    <button class="deployToolTip btn btn-xs btn-default host-btn" data-original-title="a list of host names">
+                       <small>host names</small></button>
+                </div>
+            {% else %}
+                <h4 class="panel-title pull-left">All Host Tags</h4>
+            {% endif %}
+        </div>
+        <div class="panel-body table-responsive">
+            {% include "hosts/host_tags.tmpl" %}
+        </div>
+     </div>
+
+{% endblock %}

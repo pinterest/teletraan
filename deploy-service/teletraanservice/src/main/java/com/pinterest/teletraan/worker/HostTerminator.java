@@ -22,6 +22,7 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 
@@ -36,12 +37,14 @@ public class HostTerminator implements Runnable {
     private final AgentDAO agentDAO;
     private final HostDAO hostDAO;
     private final UtilDAO utilDAO;
+    private final HostTagDAO hostTagDAO;
     private final RodimusManager rodimusManager;
 
     public HostTerminator(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
         utilDAO = serviceContext.getUtilDAO();
+        hostTagDAO = serviceContext.getHostTagDAO();
         rodimusManager = serviceContext.getRodimusManager();
     }
 
@@ -74,6 +77,7 @@ public class HostTerminator implements Runnable {
             LOG.info(String.format("Delete %s in host and agent table", hostId));
             hostDAO.deleteAllById(hostId);
             agentDAO.deleteAllById(hostId);
+            hostTagDAO.deleteByHostId(hostId);
             return true;
         }
         return false;

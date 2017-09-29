@@ -79,6 +79,13 @@
             <span class="glyphicon glyphicon-time"></span> Deploy Schedule
         </a>
     </div>
+    <div class="row">
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/constraint"
+            type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip" title="Check current deploy constraint">
+            <span class="glyphicon glyphicon-time"></span> Deploy Constraint
+        </a>
+    </div>
     <!--div class="row">
         <a href="/builds/{{ env.envName }}/{{ env.stageName }}/start_build/" type="button" class="deployToolTip btn btn-default btn-block"
            data-toggle="tooltip" title="Create a private build for current environment">
@@ -430,7 +437,7 @@ $('#privateBldUploadBtnId button').click(function () {
             if(new Date().getTime() - startTime > 3600000) {
                 clearInterval(interval);
             }
-            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}');
+            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}&sortByTag={{ report.sortByTag }}');
         }, 30000);
 
         $(".dropdown-menu li").click(function() {

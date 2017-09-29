@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS environs (
     max_parallel_rp     INT           NOT NULL DEFAULT 1,
     override_policy     VARCHAR(32)   NOT NULL,
     schedule_id         VARCHAR(22),
+    deploy_constraint_id      VARCHAR(22),
     PRIMARY KEY   (env_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);
@@ -124,6 +125,27 @@ CREATE TABLE IF NOT EXISTS hosts (
 CREATE UNIQUE INDEX rev_group_host_idx ON hosts (group_name, host_name);
 CREATE INDEX hosts_host_name_idx ON hosts (host_name);
 CREATE INDEX hosts_state_idx ON hosts (state);
+
+CREATE TABLE IF NOT EXISTS host_tags (
+    host_id        VARCHAR(64)         NOT NULL,
+    env_id         VARCHAR(22)         NOT NULL,
+    tag_name       VARCHAR(64)         NOT NULL,
+    tag_value      VARCHAR(256),
+    create_date     BIGINT              NOT NULL,
+    PRIMARY KEY    (host_id, env_id, tag_name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+CREATE INDEX host_tags_env_idx ON host_tags (env_id);
+CREATE INDEX host_tags_env_host_idx ON host_tags (env_id, host_id);
+
+CREATE TABLE IF NOT EXISTS deploy_constraints (
+  constraint_id     VARCHAR(22)         NOT NULL,
+  constraint_key    VARCHAR(64)         NOT NULL,
+  max_parallel      BIGINT              NOT NULL,
+  state             VARCHAR(32)         NOT NULL,
+  start_date        BIGINT              NOT NULL,
+  last_update       BIGINT,
+  PRIMARY KEY   (constraint_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*
 Report from certain host per environment

@@ -86,7 +86,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
         });
         LOG.debug("Binary search returns {}", insert);
 
-        // insert will be the (-(insertion point)-1) if not found. Insertion point is the index of the first element that is greater or .size() if all
+        // insertOrUpdate will be the (-(insertion point)-1) if not found. Insertion point is the index of the first element that is greater or .size() if all
         // elements is smaller. This sounds a bit weird. It is basically to ensure negative return when not finding the key.
         // https://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#binarySearch-java.util.List-T-java.util.Comparator-
         // https://stackoverflow.com/questions/31104031/what-is-the-reasoning-behind-java-util-collections-binarysearch-return-value-wh

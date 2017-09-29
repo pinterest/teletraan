@@ -20,7 +20,6 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
@@ -104,5 +103,12 @@ public class RodimusManagerImpl implements RodimusManager {
         }
 
         return launchGracePeriod.getAsLong();
+    }
+
+    @Override
+    public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
+        String url = String.format("%s/v1/host_ec2tags", rodimusUrl);
+        String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
+        return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>(){}.getType());
     }
 }
