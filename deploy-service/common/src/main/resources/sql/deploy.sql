@@ -132,10 +132,10 @@ CREATE TABLE IF NOT EXISTS host_tags (
     tag_name       VARCHAR(64)         NOT NULL,
     tag_value      VARCHAR(256),
     create_date     BIGINT              NOT NULL,
-    PRIMARY KEY    (host_id, tag_name)
+    PRIMARY KEY    (host_id, env_id, tag_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-CREATE INDEX hosts_env_idx ON host_tags (env_id);
-
+CREATE INDEX host_tags_env_idx ON host_tags (env_id);
+CREATE INDEX host_tags_env_host_idx ON host_tags (env_id, host_id);
 
 CREATE TABLE IF NOT EXISTS deploy_constraints (
   constraint_id     VARCHAR(22)         NOT NULL,
