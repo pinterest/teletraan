@@ -531,7 +531,7 @@ public class DBDAOTest {
     @Test
     public void testEnvDAO() throws Exception {
 
-        // Test insertOrUpdate
+        // Test insert
         EnvironBean envBean = genDefaultEnvBean("env-1", "s-1", "prod", "deploy-1");
         environDAO.insert(envBean);
 
