@@ -72,6 +72,17 @@ class TestAgentHelperFunctions(tests.FileTestCase):
                 [('abuild', time1), ('abuild2', time2), ('abuild3', time3)],
                 2)), ['abuild3'])
 
+    def test_get_build_id(self):
+        """
+         Test get_build_id method 
+        """
+        self.assertEqual(Helper.get_build_id("cmp_test-r4TTZfrWQEmgyaYic8uU6w_8ef9007.tar.gz", "cmp_test")[1],
+            "r4TTZfrWQEmgyaYic8uU6w_8ef9007")
+        self.assertEqual(Helper.get_build_id("cmp_test-r4TTZfrWQEmgyaYic8uU6w_8ef9007.zip", "cmp_test")[1],
+            "r4TTZfrWQEmgyaYic8uU6w_8ef9007")
+        self.assertFalse(Helper.get_build_id("whateverfile", "cmp_test")[0])
+        self.assertFalse(Helper.get_build_id("whateverfile.tar.gz", "cmp_test")[0])
+        self.assertFalse(Helper.get_build_id("cmp_test-tmp", "cmp_test")[0])
 
 if __name__ == '__main__':
     unittest.main()
