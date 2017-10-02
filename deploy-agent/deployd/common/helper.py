@@ -33,7 +33,7 @@ class Helper(object):
                 path = os.path.join(builds_dir, filename)
                 if os.path.isfile(path):
                     #Only check downloaded file
-                    found, build = get_build_id(path, env_name)
+                    found, build = Helper.get_build_id(filename, env_name)
                     #Builds are downloaded as env_name-build_id.tar.gz
                     if found:  
                         # We only care about the actual builds.
@@ -45,16 +45,17 @@ class Helper(object):
         finally:
             return builds
 
-    def get_build_id(fullname, env_name):
+    @staticmethod
+    def get_build_id(filename, env_name):
         """
         Extract build id from the file name
         In downloader.py, we have the following name convenion
              local_fn = u'{}-{}.{}'.format(self._build_name, self._build, extension)
         """
         prefix = "{0}-".format(env_name)
-        extension_index = build.index(".")
-        if build.startswith(prefix) and extension_index>0:
-            return True, build[len(prefix):extension_index]
+       
+        if filename.startswith(prefix) and "." in filename:
+            return True, filename[len(prefix):filename.index(".")]
         return False, None
 
     @staticmethod

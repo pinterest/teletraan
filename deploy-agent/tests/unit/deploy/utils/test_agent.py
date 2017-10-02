@@ -27,12 +27,13 @@ class TestAgentHelperFunctions(tests.FileTestCase):
         """This uses the filesystem."""
         config = mock.Mock()
         config.get_var = mock.Mock(return_value=self.builds_dir)
-        self.assertEqual([], Helper(config).builds_available_locally(self.builds_dir))
-        os.mkdir(os.path.join(self.builds_dir, 'fakebuild'))
+        helper = Helper(config)
+        self.assertEqual([], helper.builds_available_locally(self.builds_dir,'fakeenv'))
+        open(os.path.join(self.builds_dir, 'fakeenv-fakebuild.tar.gz'),'a').close()
         # builds_available_locally returns a tuple with buildname and timestamp.
         # let's just look at buildname
         self.assertEqual('fakebuild',
-                         Helper(config).builds_available_locally(self.builds_dir)[0][0])
+                         helper.builds_available_locally(self.builds_dir,'fakeenv')[0][0])
 
     def test_get_stale_builds(self):
         """Test the ``get_stale_builds`` method.
