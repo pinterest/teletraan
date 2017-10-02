@@ -90,11 +90,11 @@ class Helper(object):
         local_fn = '{}-{}.*'.format(build_name, build)
         try:
             # Remove extracted pointer from disk
-            extracted_file = os.path.join(base_dir, '{}.extracted'.format(builds))
+            extracted_file = os.path.join(base_dir, '{}.extracted'.format(build))
             if os.path.exists(extracted_file):
                 os.remove(extracted_file)
             # Remove staged pointer from disk
-            staged_file = os.path.join(base_dir, '{}.staged'.format(builds))
+            staged_file = os.path.join(base_dir, '{}.staged'.format(build))
             if os.path.exists(staged_file):
                 os.remove(staged_file)
         except OSError:
@@ -102,7 +102,7 @@ class Helper(object):
 
         try:
             # Remove build directory from disk
-            shutil.rmtree(os.path.join(base_dir, builds))
+            shutil.rmtree(os.path.join(base_dir, build))
         except BaseException:
             # Catch base exception class, as there's a multitude of reasons a rmtree can fail
             log.exception("Failed: remove build directory from disk")
