@@ -27,12 +27,13 @@ class TestAgentHelperFunctions(tests.FileTestCase):
         """This uses the filesystem."""
         config = mock.Mock()
         config.get_var = mock.Mock(return_value=self.builds_dir)
-        self.assertEqual([], Helper(config).builds_available_locally(self.builds_dir))
-        os.mkdir(os.path.join(self.builds_dir, 'fakebuild'))
+        helper = Helper(config)
+        self.assertEqual([], helper.builds_available_locally(self.builds_dir,'fakeenv'))
+        open(os.path.join(self.builds_dir, 'fakeenv-fakebuild.tar.gz'),'a').close()
         # builds_available_locally returns a tuple with buildname and timestamp.
         # let's just look at buildname
         self.assertEqual('fakebuild',
-                         Helper(config).builds_available_locally(self.builds_dir)[0][0])
+                         helper.builds_available_locally(self.builds_dir,'fakeenv')[0][0])
 
     def test_get_stale_builds(self):
         """Test the ``get_stale_builds`` method.
@@ -72,6 +73,17 @@ class TestAgentHelperFunctions(tests.FileTestCase):
                 [('abuild', time1), ('abuild2', time2), ('abuild3', time3)],
                 2)), ['abuild3'])
 
+    def test_get_build_id(self):
+        """
+         Test get_build_id method 
+        """
+        self.assertEqual(Helper.get_build_id("cmp_test-r4TTZfrWQEmgyaYic8uU6w_8ef9007.tar.gz", "cmp_test")[1],
+            "r4TTZfrWQEmgyaYic8uU6w_8ef9007")
+        self.assertEqual(Helper.get_build_id("cmp_test-r4TTZfrWQEmgyaYic8uU6w_8ef9007.zip", "cmp_test")[1],
+            "r4TTZfrWQEmgyaYic8uU6w_8ef9007")
+        self.assertFalse(Helper.get_build_id("whateverfile", "cmp_test")[0])
+        self.assertFalse(Helper.get_build_id("whateverfile.tar.gz", "cmp_test")[0])
+        self.assertFalse(Helper.get_build_id("cmp_test-tmp", "cmp_test")[0])
 
 if __name__ == '__main__':
     unittest.main()

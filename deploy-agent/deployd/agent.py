@@ -275,18 +275,18 @@ class DeployAgent(object):
                           if status.build_info]
         builds_dir = self._config.get_builds_directory()
         num_retain_builds = self._config.get_num_builds_retain()
-        build_name = self._curr_report.report.envName
+        env_name = self._curr_report.report.envName
         # clear stale builds
         if len(builds_to_keep) > 0:
-            self.clean_stale_files(build_name, builds_dir, builds_to_keep, num_retain_builds)
+            self.clean_stale_files(env_name, builds_dir, builds_to_keep, num_retain_builds)
 
-    def clean_stale_files(self, build_name, dir, files_to_keep, num_file_to_retain):
-        for build in self._helper.get_stale_builds(self._helper.builds_available_locally(dir),
+    def clean_stale_files(self, env_name, dir, files_to_keep, num_file_to_retain):
+        for build in self._helper.get_stale_builds(self._helper.builds_available_locally(dir,env_name),
                                                    num_file_to_retain):
             if build not in files_to_keep:
                 log.info("Stale file {} found in {}... removing.".format(
                     build, dir))
-                self._helper.clean_package(dir, build, build_name)
+                self._helper.clean_package(dir, build, env_name)
 
     # private functions: update per deploy step configuration specified by services owner on the
     # environment config page
