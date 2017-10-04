@@ -16,7 +16,7 @@
 """Some common functions
 """
 import logging
-from helpers import environs_helper, deploys_helper, builds_helper, clusters_helper
+from helpers import environs_helper, deploys_helper, builds_helper, clusters_helper, tags_helper
 from deploy_board.settings import IS_PINTEREST
 
 DEFAULT_BUILD_SIZE = 30
@@ -135,6 +135,17 @@ def restart(request, name, stage):
 def rollback_to(request, name, stage, deploy_id):
     query_dict = request.POST
     desc = query_dict.get('description', None)
+    mark_build_as_bad = query_dict.get('mark_build_as_bad', True)
+    if mark_build_as_bad == 'off':
+        mark_build_as_bad = False
+    buildId = query_dict.get('toBeMarkedBuildId', None)
+    if mark_build_as_bad and buildId:
+        tag = {"targetId": buildId,
+               "targetType": "Build",
+               "value": tags_helper.TagValue.BAD_BUILD,
+               "comments": "deploy rollback, mark build as bad." + desc}
+        logger.info("env {} stage {} rollback, mark buildId {} as {}".format(name, stage, buildId, tag))
+        builds_helper.set_build_tag(request, tag)
     return deploys_helper.rollback(request, name, stage, deploy_id, description=desc)
 
 

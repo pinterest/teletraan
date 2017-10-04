@@ -16,23 +16,12 @@
 package com.pinterest.teletraan.worker;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.AcceptanceStatus;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.DeployBean;
-import com.pinterest.deployservice.bean.DeployState;
-import com.pinterest.deployservice.bean.EnvState;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.EnvironState;
-import com.pinterest.deployservice.bean.PromoteBean;
-import com.pinterest.deployservice.bean.PromoteFailPolicy;
-import com.pinterest.deployservice.bean.PromoteType;
+import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.buildtags.BuildTagsManager;
+import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.StateMachines;
-import com.pinterest.deployservice.dao.BuildDAO;
-import com.pinterest.deployservice.dao.DeployDAO;
-import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.dao.PromoteDAO;
-import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.DeployHandler;
 
 import com.google.common.base.Preconditions;
@@ -65,6 +54,7 @@ public class AutoPromoter implements Runnable {
     private DeployDAO deployDAO;
     private UtilDAO utilDAO;
     private DeployHandler deployHandler;
+    private BuildTagsManager buildTagsManager;
     private final int maxCheckBuildsOrDeploys = 100;
 
 
@@ -74,6 +64,7 @@ public class AutoPromoter implements Runnable {
         utilDAO = serviceContext.getUtilDAO();
         deployDAO = serviceContext.getDeployDAO();
         buildDAO = serviceContext.getBuildDAO();
+        buildTagsManager = new BuildTagsManagerImpl(serviceContext.getTagDAO());
         deployHandler = new DeployHandler(serviceContext);
     }
 
@@ -278,8 +269,14 @@ public class AutoPromoter implements Runnable {
             currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteBuild &&
             StringUtils.isNotEmpty(result.getPromotedBuild())) {
-            safePromote(null, result.getPromotedBuild(), Constants.BUILD_STAGE, currDeployBean,
-                currEnvBean);
+            TagBean buildTagBean = getBuildTag(result.getPromotedBuild());
+            if(buildTagBean != null && buildTagBean.getValue() == TagValue.BAD_BUILD) {
+                LOG.warn("Promote build {} for env {} is BAD, ignore auto promote this build {} !", buildTagBean.toString(),
+                    currEnvBean.getEnv_name(), result.getPromotedBuild());
+            } else {
+                safePromote(null, result.getPromotedBuild(), Constants.BUILD_STAGE, currDeployBean,
+                    currEnvBean);
+            }
         }
     }
 
@@ -360,10 +357,17 @@ public class AutoPromoter implements Runnable {
             currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteDeploy
             && result.getPredDeployInfo() != null) {
-            safePromote(result.getPredDeployInfo().getLeft(), null,
-                result.getPredDeployInfo().getRight().getStage_name(),
-                currDeployBean, currEnvBean);
-            return result.predDeployInfo.getLeft();
+            TagBean buildTagBean = getBuildTag(result.getPredDeployInfo().getLeft());
+            if(buildTagBean != null && buildTagBean.getValue() == TagValue.BAD_BUILD) {
+                LOG.warn("Promote deploy {} for env {} is BAD, ignore auto promote this build {} !", buildTagBean.toString(),
+                    currEnvBean.getEnv_name(), result.getPromotedBuild());
+                return null;
+            } else {
+                safePromote(result.getPredDeployInfo().getLeft(), null,
+                    result.getPredDeployInfo().getRight().getStage_name(),
+                    currDeployBean, currEnvBean);
+                return result.predDeployInfo.getLeft();
+            }
         }
         return null;
     }
@@ -491,6 +495,15 @@ public class AutoPromoter implements Runnable {
             interval.getEnd().toString(ISODateTimeFormat.dateTime()),
             envId);
         return deployDAO.getAcceptedDeploys(envId, interval, size);
+    }
+
+    TagBean getBuildTag(DeployBean deployBean) throws Exception {
+        return getBuildTag(deployBean.getBuild_id());
+    }
+
+    TagBean getBuildTag(String buildId) throws Exception {
+        BuildBean buildBean = buildDAO.getById(buildId);
+        return buildTagsManager.getEffectiveBuildTag(buildBean);
     }
 
     // Lock, double check and promote

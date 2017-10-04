@@ -152,16 +152,19 @@
         branch = trid.find(".hiddenBranch").val();
         deployId = trid.find(".hiddenDeployId").val();
         buildId = trid.find(".hiddenBuildId").val();
+        var currentBuildId = '{{ current_build_id }}';
         if (deployId) {
             buildUrl = "/builds/" + buildId;
             $("#confirmCommitLinkId").attr("href", buildUrl);
             $("#confirmCommitLinkId").text(branch + '/' + commit7);
+            $("#confirmCurrentBuildId").val(currentBuildId);
             url = "/env/{{ env.envName }}/{{ env.stageName }}/rollback_to/" + deployId;
             $('#confirmRollbackFormId').attr("action", url);
             $('#rollbackConfirmId').modal();
         } else {
             $('#showNoDeployWarningId').show();
         }
+
     });
 </script>
 

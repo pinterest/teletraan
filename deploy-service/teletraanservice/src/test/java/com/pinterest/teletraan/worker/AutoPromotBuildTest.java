@@ -3,23 +3,26 @@ package com.pinterest.teletraan.worker;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.DeployBean;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.PromoteBean;
+import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.buildtags.BuildTagsManager;
+import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
+import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
 
+import com.pinterest.deployservice.dao.TagDAO;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 
 public class AutoPromotBuildTest {
@@ -29,13 +32,19 @@ public class AutoPromotBuildTest {
   DeployBean second = new DeployBean();
   EnvironBean environBean = new EnvironBean();
   BuildDAO buildDAO;
+  TagDAO tagDAO;
+  BuildTagsManager buildTagsManager;
   final static String CronTenAMPerDay = "0 0 10 * * ?";
 
   @Before
   public void setUp() throws Exception {
     context = new ServiceContext();
     buildDAO = mock(BuildDAO.class);
+    tagDAO = mock(TagDAO.class);
+    buildTagsManager = mock(BuildTagsManager.class);
+    context.setBuildTagsManager(buildTagsManager);
     context.setBuildDAO(buildDAO);
+    context.setTagDAO(tagDAO);
     first.setBuild_id("0000001");
     second.setBuild_id("0000002");
     environBean.setEnv_id("test1");
@@ -125,6 +134,39 @@ public class AutoPromotBuildTest {
     PromoteResult result = promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
     Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
     Assert.assertEquals("123", result.getPromotedBuild());
+  }
+
+  @Test
+  public void testOneBadBuildPromote() throws Exception {
+    String buildName = "xxx";
+    String buildId = "123";
+    PromoteBean promoteBean = new PromoteBean();
+    AutoPromoter promoter = new AutoPromoter(context);
+    AutoPromoter promoterSpy = Mockito.spy(promoter);
+    BuildBean build = new BuildBean();
+    build.setBuild_id(buildId);
+    build.setBuild_name(buildName);
+    build.setCommit_date(DateTime.now().minusHours(1).getMillis());
+    build.setPublish_date(DateTime.now().plusHours(1).getMillis());
+    build.setScm_commit("abcde");
+
+    TagBean tagBean = new TagBean();
+    tagBean.setId(CommonUtils.getBase64UUID());
+    tagBean.setTarget_type(TagTargetType.BUILD);
+    tagBean.setId(build.getBuild_id());
+    tagBean.setValue(TagValue.BAD_BUILD);
+    tagBean.serializeTagMetaInfo(build);
+
+    when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        .thenReturn(Arrays.asList(build));
+    when(buildDAO.getById(buildId)).thenReturn(build);
+    List<TagBean> rs = new ArrayList<TagBean>();
+    rs.add(tagBean);
+    when(tagDAO.getByTargetIdAndType(buildName, TagTargetType.BUILD)).thenReturn(rs);
+    when(buildTagsManager.getEffectiveBuildTag(build)).thenReturn(tagBean);
+    promoter.promoteBuild(environBean, null, 1, promoteBean);
+    // bad build, safe promote never gets called
+    verify(promoterSpy, never()).safePromote(anyObject(), anyString(), anyString(), anyObject(), anyObject());
   }
 
   /* Autopromote enabled for any new build. Have previous deploy but no new build*/
