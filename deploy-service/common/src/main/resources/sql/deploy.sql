@@ -171,6 +171,7 @@ CREATE TABLE IF NOT EXISTS agents (
 CREATE INDEX agent_env_idx ON agents (env_id, host_name);
 CREATE INDEX agent_name_idx ON agents (host_name);
 CREATE INDEX agent_stage_idx ON agents (env_id,deploy_stage);
+CREATE INDEX agent_first_deploy_state_idx ON agents (env_id,first_deploy, deploy_stage ,state);
 
 /*
 Agent detailed error message
@@ -305,4 +306,4 @@ CREATE TABLE IF NOT EXISTS schema_versions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Make sure to update the version everytime we change the schema
-INSERT INTO schema_versions (version) VALUES (1);
+INSERT INTO schema_versions (version) VALUES (2);
