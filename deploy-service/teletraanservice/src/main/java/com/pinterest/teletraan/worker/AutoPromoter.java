@@ -516,17 +516,15 @@ public class AutoPromoter implements Runnable {
 
         List<DeployBean> availableDeploys = deployDAO.getAcceptedDeploys(envId, interval, size);
         if(!availableDeploys.isEmpty()) {
-            List<String> availableBuildIds = new ArrayList<String>();
             Map<String, DeployBean> buildId2DeployBean = new HashMap<String, DeployBean>();
 
             for(DeployBean deployBean: availableDeploys) {
                 String buildId = deployBean.getBuild_id();
                 if(StringUtils.isNotEmpty(buildId)) {
                     buildId2DeployBean.put(buildId, deployBean);
-                    availableBuildIds.add(deployBean.getBuild_id());
                 }
             }
-            List<BuildBean> availableBuilds = buildDAO.getBuildsFromIds(availableBuildIds);
+            List<BuildBean> availableBuilds = buildDAO.getBuildsFromIds(buildId2DeployBean.keySet());
             List<BuildTagBean> buildTagBeanList = buildTagsManager.getEffectiveTagsWithBuilds(availableBuilds);
             for(BuildTagBean buildTagBean: buildTagBeanList) {
                 if(buildTagBean.getTag() != null && buildTagBean.getTag().getValue() == TagValue.BAD_BUILD) {

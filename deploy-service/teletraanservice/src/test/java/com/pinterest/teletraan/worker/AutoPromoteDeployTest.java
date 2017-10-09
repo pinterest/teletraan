@@ -26,6 +26,7 @@ import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class AutoPromoteDeployTest {
@@ -149,7 +150,7 @@ public class AutoPromoteDeployTest {
     when(deployDAO.getById("deploy1")).thenReturn(prevDeploy);
     when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
     when(deployDAO.getAcceptedDeploys(anyString(), anyObject(), anyInt())).thenReturn(Arrays.asList(prevDeploy));
-    when(buildDAO.getBuildsFromIds(Arrays.asList(badBuildId))).thenReturn(Arrays.asList(badBuild));
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList(badBuildId)))).thenReturn(Arrays.asList(badBuild));
 
     when(buildTagsManager.getEffectiveTagsWithBuilds(Arrays.asList(badBuild)))
         .thenReturn(Arrays.asList(BuildTagBean.createFromTagBean(tagBean)));
@@ -274,7 +275,7 @@ public class AutoPromoteDeployTest {
     PromoteResult result = promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
     Assert.assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
 
-    when(buildDAO.getBuildsFromIds(Arrays.asList("build3"))).thenReturn(Arrays.asList(build3));
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("build3")))).thenReturn(Arrays.asList(build3));
 
     //Set predeploy to 11 minutes, delay is 10 minutes
     newDeploy.setStart_date(now.minusMinutes(11).getMillis());
@@ -323,7 +324,7 @@ public class AutoPromoteDeployTest {
     PromoteResult result = promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
     Assert.assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
 
-    when(buildDAO.getBuildsFromIds(Arrays.asList("build1"))).thenReturn(Arrays.asList(build1));
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("build1")))).thenReturn(Arrays.asList(build1));
 
     //Set predeploy to 11 minutes, delay is 10 minutes
     newDeploy.setStart_date(now.minusMinutes(11).getMillis());
@@ -347,7 +348,7 @@ public class AutoPromoteDeployTest {
 
     BuildBean newBuild = new BuildBean();
     newBuild.setBuild_id("newBuild");
-    when(buildDAO.getBuildsFromIds(Arrays.asList("newBuild"))).thenReturn(Arrays.asList(newBuild));
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("newBuild")))).thenReturn(Arrays.asList(newBuild));
 
     DeployBean newDeploy = new DeployBean();
     newDeploy.setDeploy_id("newDeploy");
@@ -417,7 +418,7 @@ public class AutoPromoteDeployTest {
 
     BuildBean newBuild = new BuildBean();
     newBuild.setBuild_id("newBuild");
-    when(buildDAO.getBuildsFromIds(Arrays.asList("newBuild"))).thenReturn(Arrays.asList(newBuild));
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("newBuild")))).thenReturn(Arrays.asList(newBuild));
 
     DeployBean newDeploy = new DeployBean();
     newDeploy.setDeploy_id("newDeploy");
