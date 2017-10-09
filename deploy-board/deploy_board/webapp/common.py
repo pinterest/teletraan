@@ -135,9 +135,7 @@ def restart(request, name, stage):
 def rollback_to(request, name, stage, deploy_id):
     query_dict = request.POST
     desc = query_dict.get('description', None)
-    mark_build_as_bad = query_dict.get('mark_build_as_bad', True)
-    if mark_build_as_bad == 'off':
-        mark_build_as_bad = False
+    mark_build_as_bad = True if query_dict.get('mark_build_as_bad', 'on') == 'on' else False
     buildId = query_dict.get('toBeMarkedBuildId', None)
     if mark_build_as_bad and buildId:
         tag = {"targetId": buildId,
