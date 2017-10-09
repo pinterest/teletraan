@@ -153,20 +153,65 @@ public class AutoPromotBuildTest {
     TagBean tagBean = new TagBean();
     tagBean.setId(CommonUtils.getBase64UUID());
     tagBean.setTarget_type(TagTargetType.BUILD);
-    tagBean.setId(build.getBuild_id());
+    tagBean.setTarget_id(build.getBuild_id());
     tagBean.setValue(TagValue.BAD_BUILD);
     tagBean.serializeTagMetaInfo(build);
-
+    when(tagDAO.getByTargetIdAndType(buildName, TagTargetType.BUILD))
+        .thenReturn(new ArrayList<TagBean>(Arrays.asList(tagBean)));
     when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
         .thenReturn(Arrays.asList(build));
-    when(buildDAO.getById(buildId)).thenReturn(build);
-    List<TagBean> rs = new ArrayList<TagBean>();
-    rs.add(tagBean);
-    when(tagDAO.getByTargetIdAndType(buildName, TagTargetType.BUILD)).thenReturn(rs);
-    when(buildTagsManager.getEffectiveBuildTag(build)).thenReturn(tagBean);
+    PromoteResult result = promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
+    Assert.assertEquals(PromoteResult.ResultCode.NoAvailableBuild, result.getResult());
+
     promoter.promoteBuild(environBean, null, 1, promoteBean);
     // bad build, safe promote never gets called
     verify(promoterSpy, never()).safePromote(anyObject(), anyString(), anyString(), anyObject(), anyObject());
+  }
+
+  @Test
+  public void testOneBadBuildOneGoodBuildPromote() throws Exception {
+//    build1, bad
+//    build2, good
+//    build3, current
+    BuildBean build1 = new BuildBean();
+    build1.setBuild_id("build1bad");
+    build1.setBuild_name("build1bad");
+    build1.setCommit_date(DateTime.now().minusHours(10).getMillis());
+    build1.setPublish_date(DateTime.now().minusHours(10).getMillis());
+    build1.setScm_commit("abcde");
+
+    BuildBean build2 = new BuildBean();
+    build2.setBuild_id("build2good");
+    build2.setBuild_name("build2good");
+    build2.setCommit_date(DateTime.now().minusHours(9).getMillis());
+    build2.setPublish_date(DateTime.now().minusHours(9).getMillis());
+    build2.setScm_commit("abcdxe");
+
+    TagBean tagBean = new TagBean();
+    tagBean.setId(CommonUtils.getBase64UUID());
+    tagBean.setTarget_type(TagTargetType.BUILD);
+    tagBean.setTarget_id(build1.getBuild_id());
+    tagBean.setValue(TagValue.BAD_BUILD);
+    tagBean.serializeTagMetaInfo(build1);
+
+    DeployBean currentDeploy = new DeployBean();
+    currentDeploy.setEnv_id("testenv");
+    currentDeploy.setBuild_id("build3");
+
+    when(tagDAO.getByTargetIdAndType("build1bad", TagTargetType.BUILD))
+        .thenReturn(new ArrayList<TagBean>(Arrays.asList(tagBean)));
+
+    when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+        .thenReturn(Arrays.asList(build1, build2));
+    // build1 is bad
+    when(buildTagsManager.getEffectiveTagsWithBuilds(Arrays.asList(build1)))
+        .thenReturn(Arrays.asList(BuildTagBean.createFromTagBean(tagBean)));
+
+    AutoPromoter promoter = new AutoPromoter(context);
+    PromoteBean promoteBean = new PromoteBean();
+    PromoteResult result = promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
+    Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
+    Assert.assertEquals("build2good", result.getPromotedBuild());
   }
 
   /* Autopromote enabled for any new build. Have previous deploy but no new build*/

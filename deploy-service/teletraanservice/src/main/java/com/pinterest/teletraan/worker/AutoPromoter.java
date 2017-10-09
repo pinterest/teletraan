@@ -21,7 +21,11 @@ import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.StateMachines;
-import com.pinterest.deployservice.dao.*;
+import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.dao.DeployDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
 
 import com.google.common.base.Preconditions;
@@ -35,9 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.text.ParseException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 
@@ -269,14 +271,8 @@ public class AutoPromoter implements Runnable {
             currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteBuild &&
             StringUtils.isNotEmpty(result.getPromotedBuild())) {
-            TagBean buildTagBean = getBuildTag(result.getPromotedBuild());
-            if(buildTagBean != null && buildTagBean.getValue() == TagValue.BAD_BUILD) {
-                LOG.warn("Promote build {} for env {} is BAD, ignore auto promote this build {} !", buildTagBean.toString(),
-                    currEnvBean.getEnv_name(), result.getPromotedBuild());
-            } else {
-                safePromote(null, result.getPromotedBuild(), Constants.BUILD_STAGE, currDeployBean,
-                    currEnvBean);
-            }
+            safePromote(null, result.getPromotedBuild(), Constants.BUILD_STAGE, currDeployBean,
+                currEnvBean);
         }
     }
 
@@ -357,17 +353,10 @@ public class AutoPromoter implements Runnable {
             currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteDeploy
             && result.getPredDeployInfo() != null) {
-            TagBean buildTagBean = getBuildTag(result.getPredDeployInfo().getLeft());
-            if(buildTagBean != null && buildTagBean.getValue() == TagValue.BAD_BUILD) {
-                LOG.warn("Promote deploy {} for env {} is BAD, ignore auto promote this build {} !", buildTagBean.toString(),
-                    currEnvBean.getEnv_name(), result.getPromotedBuild());
-                return null;
-            } else {
-                safePromote(result.getPredDeployInfo().getLeft(), null,
-                    result.getPredDeployInfo().getRight().getStage_name(),
-                    currDeployBean, currEnvBean);
-                return result.predDeployInfo.getLeft();
-            }
+            safePromote(result.getPredDeployInfo().getLeft(), null,
+                result.getPredDeployInfo().getRight().getStage_name(),
+                currDeployBean, currEnvBean);
+            return result.predDeployInfo.getLeft();
         }
         return null;
     }
@@ -481,29 +470,75 @@ public class AutoPromoter implements Runnable {
         }
     }
 
+    /**
+     * get a list of available builds, and filter out the BAD_BUILD builds
+     * @param envBean
+     * @param interval
+     * @param size
+     * @return
+     * @throws Exception
+     */
     List<BuildBean> getBuildCandidates(EnvironBean envBean, Interval interval, int size) throws Exception {
         // By default, buildName is the same as envName
         String buildName = envBean.getBuild_name();
         String scmBranch = envBean.getBranch();
+        List<BuildBean> taggedGoodBuilds = new ArrayList<BuildBean>();
 
-        return buildDAO.getAcceptedBuilds(buildName, scmBranch, interval, size);
+        List<BuildBean> availableBuilds = buildDAO.getAcceptedBuilds(buildName, scmBranch, interval, size);
+        if(!availableBuilds.isEmpty()) {
+            List<BuildTagBean> buildTagBeanList = buildTagsManager.getEffectiveTagsWithBuilds(availableBuilds);
+            for(BuildTagBean buildTagBean: buildTagBeanList) {
+                if(buildTagBean.getTag() != null && buildTagBean.getTag().getValue() == TagValue.BAD_BUILD) {
+                    // bad build,  do not include
+                    LOG.info("Env {} Build {} is tagged as BAD_BUILD, ignore", envBean.getEnv_id(), buildTagBean.getBuild());
+                } else {
+                    taggedGoodBuilds.add(buildTagBean.getBuild());
+                }
+            }
+        }
+        return taggedGoodBuilds;
     }
 
+    /**
+     * get a list of available deploys, and filter out the deploys with BAD_BUILD builds
+     * @param envId
+     * @param interval
+     * @param size
+     * @return
+     * @throws Exception
+     */
     List<DeployBean> getDeployCandidates(String envId, Interval interval, int size) throws Exception {
         LOG.info("Search Deploy candidates between {} and {} for environment {}",
             interval.getStart().toString(ISODateTimeFormat.dateTime()),
             interval.getEnd().toString(ISODateTimeFormat.dateTime()),
             envId);
-        return deployDAO.getAcceptedDeploys(envId, interval, size);
-    }
+        List<DeployBean> taggedGoodDeploys = new ArrayList<DeployBean>();
 
-    TagBean getBuildTag(DeployBean deployBean) throws Exception {
-        return getBuildTag(deployBean.getBuild_id());
-    }
+        List<DeployBean> availableDeploys = deployDAO.getAcceptedDeploys(envId, interval, size);
+        if(!availableDeploys.isEmpty()) {
+            List<String> availableBuildIds = new ArrayList<String>();
+            Map<String, DeployBean> buildId2DeployBean = new HashMap<String, DeployBean>();
 
-    TagBean getBuildTag(String buildId) throws Exception {
-        BuildBean buildBean = buildDAO.getById(buildId);
-        return buildTagsManager.getEffectiveBuildTag(buildBean);
+            for(DeployBean deployBean: availableDeploys) {
+                String buildId = deployBean.getBuild_id();
+                if(StringUtils.isNotEmpty(buildId)) {
+                    buildId2DeployBean.put(buildId, deployBean);
+                    availableBuildIds.add(deployBean.getBuild_id());
+                }
+            }
+            List<BuildBean> availableBuilds = buildDAO.getBuildsFromIds(availableBuildIds);
+            List<BuildTagBean> buildTagBeanList = buildTagsManager.getEffectiveTagsWithBuilds(availableBuilds);
+            for(BuildTagBean buildTagBean: buildTagBeanList) {
+                if(buildTagBean.getTag() != null && buildTagBean.getTag().getValue() == TagValue.BAD_BUILD) {
+                    // bad build,  do not include
+                    LOG.info("Env {} Build {} is tagged as BAD_BUILD, ignore", envId, buildTagBean.getBuild());
+                } else {
+                    String buildId = buildTagBean.getBuild().getBuild_id();
+                    taggedGoodDeploys.add(buildId2DeployBean.get(buildId));
+                }
+            }
+        }
+        return taggedGoodDeploys;
     }
 
     // Lock, double check and promote

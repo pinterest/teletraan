@@ -47,7 +47,7 @@ public interface BuildDAO {
     List<String> getBranches(String buildName) throws Exception;
 
     // Return up to size number of builds whose publish time is after after
-    List<BuildBean> getAcceptedBuilds(String buildName, String branch, Interval interval, int size) throws Exception;
+    List<BuildBean> getAcceptedBuilds(String buildName, String branch, Interval interval, int limit) throws Exception;
 
     // Return all distinct build names
     List<String> getAllBuildNames() throws Exception;
