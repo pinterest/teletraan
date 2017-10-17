@@ -20,6 +20,7 @@ import com.pinterest.deployservice.bean.DataBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.PersistableJSONFactory;
 import com.pinterest.deployservice.dao.DataDAO;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
@@ -45,7 +46,11 @@ public class DataHandler {
         if (StringUtils.isEmpty(id)) {
             return Collections.emptyMap();
         }
-        return CommonUtils.decodeData(dataDAO.getById(id).getData());
+        DataBean bean = dataDAO.getById(id);
+        if (bean !=null) {
+            return CommonUtils.decodeData(bean.getData());
+        }
+        return Collections.EMPTY_MAP;
     }
 
     public String insertMap(Map<String, String> data, String operator) throws Exception {
