@@ -47,7 +47,7 @@ public class DataHandler {
             return Collections.emptyMap();
         }
         DataBean bean = dataDAO.getById(id);
-        if (bean !=null) {
+        if (bean != null) {
             return CommonUtils.decodeData(bean.getData());
         }
         return Collections.EMPTY_MAP;
