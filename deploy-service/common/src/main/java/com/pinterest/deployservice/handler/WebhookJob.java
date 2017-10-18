@@ -48,7 +48,7 @@ public class WebhookJob implements Callable<Void> {
         for (WebHookBean webhook : webhooks) {
             // TODO use method, version and headers, use jersey or apache http client
             // TODO we transform $TELETRAAN_NAME into the actual values, currently we support
-            // $TELETRAAN_DEPLOY_ID, $TELETRAAN_DEPLOY_START, $TELETRAN_NUMERIC_DEPLOY_STATE
+            // $TELETRAAN_DEPLOY_ID, $TELETRAAN_DEPLOY_START, $TELETRAAN_NUMERIC_DEPLOY_STATE
             // We should support more such as $TELETRAAN_COMMIT, $TELETRAAN_ENV_NAME etc.
             String deployId = deployBean.getDeploy_id();
             String numericDeployState = String.valueOf(deployBean.getState().ordinal());
@@ -57,7 +57,7 @@ public class WebhookJob implements Callable<Void> {
             url = url
                 .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
                 .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
-                .replaceAll("\\$TELETRAN_NUMERIC_DEPLOY_STATE", numericDeployState);
+                .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
             LOG.info("Url after transform is {}", url);
 
             String headerString = webhook.getHeaders();
@@ -65,7 +65,7 @@ public class WebhookJob implements Callable<Void> {
                 headerString = headerString
                     .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
                     .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
-                    .replaceAll("\\$TELETRAN_NUMERIC_DEPLOY_STATE", numericDeployState);
+                    .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
             }
             LOG.info("Header string after transform is {}", headerString);
 
@@ -74,7 +74,7 @@ public class WebhookJob implements Callable<Void> {
                 bodyString = bodyString
                     .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
                     .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
-                    .replaceAll("\\$TELETRAN_NUMERIC_DEPLOY_STATE", numericDeployState);
+                    .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
             }
             LOG.info("Body string after transform is {}", bodyString);
 
