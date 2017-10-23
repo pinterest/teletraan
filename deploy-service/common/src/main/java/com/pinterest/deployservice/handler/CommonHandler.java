@@ -16,13 +16,28 @@
 package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.bean.AcceptanceStatus;
+import com.pinterest.deployservice.bean.AcceptanceType;
+import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployState;
+import com.pinterest.deployservice.bean.DeployType;
+import com.pinterest.deployservice.bean.EnvWebHookBean;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.ScheduleBean;
+import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.common.WebhookDataFactory;
-import com.pinterest.deployservice.dao.*;
+import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.dao.DeployDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
+import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.email.MailManager;
 import com.pinterest.deployservice.events.EventSender;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -281,15 +296,6 @@ public class CommonHandler {
         if (succeeded * 10000 >= sucThreshold * total) {
             LOG.debug("Propose deploy {} as SUCCEEDING since {} agents are succeeded.", deployId, succeeded);
             if (deployBean.getSuc_date() == null) {
-                newDeployBean.setSuc_date(System.currentTimeMillis());
-
-                // Submit post-webhooks, if exists
-                EnvWebHookBean webhooks = dataHandler.getDataById(envBean.getWebhooks_config_id(), WebhookDataFactory.class);
-                if (webhooks != null && !CollectionUtils.isEmpty(webhooks.getPostDeployHooks())) {
-                    jobPool.submit(new WebhookJob(webhooks.getPostDeployHooks(), deployBean, envBean));
-                    LOG.info("Submitted post deploy hook job for deploy {}.", deployId);
-                }
-
                 if (envBean.getAccept_type() == AcceptanceType.AUTO) {
                     newDeployBean.setAcc_status(AcceptanceStatus.ACCEPTED);
                 } else {
@@ -448,6 +454,20 @@ public class CommonHandler {
 
         if (shouldSendFinishMessage(state, newPartialDeployBean.getState(), deployBean.getSuc_date())) {
             jobPool.submit(new FinishNotifyJob(envBean, deployBean, newPartialDeployBean, deployBean.getBuild_id()));
+
+            if (newPartialDeployBean.getState() == DeployState.SUCCEEDING) {
+                //Set SucDate to avoid resent SUCCEEDING
+                newPartialDeployBean.setSuc_date(System.currentTimeMillis());
+            }
+
+            // Submit post-webhooks, if exists
+            EnvWebHookBean
+                webhooks = dataHandler.getDataById(envBean.getWebhooks_config_id(), WebhookDataFactory.class);
+            if (webhooks != null && !CollectionUtils.isEmpty(webhooks.getPostDeployHooks())) {
+                jobPool.submit(new WebhookJob(webhooks.getPostDeployHooks(), newPartialDeployBean, envBean));
+                LOG.info("Submitted post deploy hook job for deploy {}.", deployId);
+            }
+
         }
 
 
