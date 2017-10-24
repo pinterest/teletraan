@@ -18,8 +18,6 @@ package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.bean.TagBean;
 
-import javax.ws.rs.core.SecurityContext;
-
 /**
  * An common handler class for handling different type of tags
  */

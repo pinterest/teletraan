@@ -35,10 +35,6 @@ logging:
       threshold: DEBUG
       archive: false
       currentLogFilename: /tmp/teletraan/service.log
-    - type: console
-      threshold: ALL
-      timeZone: UTC
-      target: stdout
 
 
 #
