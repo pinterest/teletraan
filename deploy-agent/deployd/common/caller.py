@@ -27,13 +27,14 @@ class Caller(object):
     @staticmethod
     def call_and_log(cmd, **kwargs):
         output = ""
+        start = time.time()
         try:
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE, **kwargs)
             while process.poll() is None:
                 line = process.stdout.readline()
                 if line:
-                    output = output + "[%s]" % time.time() + line
+                    output = output + "[%s]" % (time.time() - start) + line
             temp, error = process.communicate()
             return output.strip(), error.strip(), process.poll()
         except Exception as e:
