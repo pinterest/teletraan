@@ -37,8 +37,8 @@ public class DBHostTagDAOImpl implements HostTagDAO {
     private static final String DELETE_HOST_TAG_BY_ENV_ID_AND_TAG_NAME = "DELETE FROM host_tags WHERE env_id = ? AND tag_name = ? ";
     private static final String DELETE_BY_HOST_ID = "DELETE FROM host_tags WHERE host_id = ?";
     private static final String GET_HOST_TAG_BY_HOST_ID_AND_TAG_NAME = "SELECT * FROM host_tags WHERE host_id = ? AND tag_name = ? ";
-    private static final String GET_HOSTS_BY_ENV_ID_AND_TAG_NAME = "SELECT host_id, tag_value, tag_name, host_name FROM ( SELECT DISTINCT(host_tags.host_id) AS host_id, host_tags.tag_value AS tag_value, host_tags.tag_name AS tag_name, hosts.host_name AS host_name FROM hosts " +
-        "INNER JOIN host_tags ON hosts.host_id = host_tags.host_id ) AS p1 " +
+    private static final String GET_HOSTS_BY_ENV_ID_AND_TAG_NAME = "SELECT host_id, tag_value, tag_name, host_name FROM ( SELECT DISTINCT(host_tags.host_id) AS host_id, host_tags.tag_value AS tag_value, host_tags.tag_name AS tag_name, agents.host_name AS host_name FROM agents " +
+        "INNER JOIN host_tags ON agents.host_id = host_tags.host_id ) AS p1 " +
         "WHERE p1.tag_name = ? AND p1.env_id = ?";
     private static final String GET_HOSTS_BY_ENV_ID = "SELECT DISTINCT(host_tags.host_id) AS host_id, host_tags.tag_value AS tag_value, host_tags.tag_name AS tag_name, hosts.host_name AS host_name FROM hosts " +
         "INNER JOIN host_tags ON hosts.host_id = host_tags.host_id " +
