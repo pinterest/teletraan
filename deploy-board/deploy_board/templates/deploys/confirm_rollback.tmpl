@@ -12,11 +12,24 @@
         Are you sure to rollback to <a id="confirmCommitLinkId" href="#REPLACE">REPLACE</a>?
         {% csrf_token %}
         <div class="row">
-        <div class="form-group">
-          <input class="form-control" name="description" type="text" required="true"
-                 placeholder="Rollback reason (required)" value=""/>
+            <div class="form-group">
+              <input class="form-control" name="description" type="text" required="true"
+                     placeholder="Rollback reason (required)" value=""/>
+            </div>
         </div>
+        <div class="row">
+            <div class="form-group" align="center">
+                <label class="radio-inline">
+                    <input type="radio" name="mark_build_as_bad" value="off" >Off
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" name="mark_build_as_bad" value="on" checked>On
+                </label>
+                <input id="confirmCurrentBuildId" type="hidden" name="toBeMarkedBuildId" value="" />
+                <label class="radio-inline">Mark Build As bad (bad build will not be auto-deployed) </label>
+            </div>
         </div>
+
       </div>
       <div class="modal-footer">
         <input type="submit" value="Rollback" class="btn btn-primary">

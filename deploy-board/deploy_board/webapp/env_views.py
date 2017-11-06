@@ -915,8 +915,10 @@ def rollback(request, name, stage):
     deploys = result.get("deploys")
 
     # remove the first deploy if exists
+    current_build_id = None
     if deploys:
-        deploys.pop(0)
+        current_deploy = deploys.pop(0)
+        current_build_id = current_deploy['buildId']
 
     # append the build info
     deploy_summaries = []
@@ -949,6 +951,7 @@ def rollback(request, name, stage):
         "branch": branch,
         "commit": commit,
         "build_id": build_id,
+        "current_build_id": current_build_id,
         "csrf_token": get_token(request),
     })
     return HttpResponse(html)

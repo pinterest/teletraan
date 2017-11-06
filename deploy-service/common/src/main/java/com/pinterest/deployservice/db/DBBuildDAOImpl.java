@@ -196,17 +196,17 @@ public class DBBuildDAOImpl implements BuildDAO {
 
     @Override
     public List<BuildBean> getAcceptedBuilds(String buildName, String branch, Interval interval,
-                                             int size) throws Exception {
+                                             int limit) throws Exception {
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         if (StringUtils.isNotEmpty(branch)) {
             return new QueryRunner(dataSource).query(
                 String.format(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2, buildName, branch,
-                    interval.getStartMillis(), interval.getEndMillis(), size), h);
+                    interval.getStartMillis(), interval.getEndMillis(), limit), h);
         } else {
             return new QueryRunner(dataSource).query(
                 String.format(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE, buildName,
                     interval.getStartMillis(),
-                    interval.getEndMillis(), size), h);
+                    interval.getEndMillis(), limit), h);
         }
     }
 

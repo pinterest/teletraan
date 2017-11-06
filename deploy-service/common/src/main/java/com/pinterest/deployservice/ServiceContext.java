@@ -16,6 +16,7 @@
 package com.pinterest.deployservice;
 
 
+import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.email.MailManager;
@@ -59,6 +60,7 @@ public class ServiceContext {
     private ChatManager chatManager;
     private ExecutorService jobPool;
     private RodimusManager rodimusManager;
+    private BuildTagsManager buildTagsManager;
 
     private boolean buildCacheEnabled;
     private String buildCacheSpec;
@@ -365,5 +367,13 @@ public class ServiceContext {
 
     public void setScheduleDAO(ScheduleDAO scheduleDAO) {
         this.scheduleDAO = scheduleDAO;
+    }
+
+    public BuildTagsManager getBuildTagsManager() {
+        return buildTagsManager;
+    }
+
+    public void setBuildTagsManager(BuildTagsManager buildTagsManager) {
+        this.buildTagsManager = buildTagsManager;
     }
 }

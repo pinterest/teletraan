@@ -3,28 +3,30 @@ package com.pinterest.teletraan.worker;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.DeployBean;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.PromoteBean;
+import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.buildtags.BuildTagsManager;
+import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 
+import com.pinterest.deployservice.dao.TagDAO;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class AutoPromoteDeployTest {
@@ -36,6 +38,8 @@ public class AutoPromoteDeployTest {
   BuildDAO buildDAO;
   EnvironDAO environDAO;
   DeployDAO deployDAO;
+  TagDAO tagDAO;
+  BuildTagsManager buildTagsManager;
   final static String CronTenAMPerDay = "0 0 10 * * ?";
   final static String CronWorkTimePerDay = "0 40 9-17 ? * *";
 
@@ -60,6 +64,10 @@ public class AutoPromoteDeployTest {
     buildDAO = mock(BuildDAO.class);
     environDAO = mock(EnvironDAO.class);
     deployDAO = mock(DeployDAO.class);
+    tagDAO = mock(TagDAO.class);
+    buildTagsManager = mock(BuildTagsManager.class);
+    context.setBuildTagsManager(buildTagsManager);
+    context.setTagDAO(tagDAO);
     context.setBuildDAO(buildDAO);
     context.setEnvironDAO(environDAO);
     context.setDeployDAO(deployDAO);
@@ -93,6 +101,70 @@ public class AutoPromoteDeployTest {
     result = promoter.computePromoteDeployResult(environBean, null, 10, promoteBean);
     Assert.assertEquals(PromoteResult.ResultCode.NoPredEnvironment, result.getResult());
 
+  }
+
+  @Test
+  public void testOneBadDeployPromote() throws Exception {
+    // pred badbuild1
+    // current goodbuild2
+    PromoteBean promoteBean = new PromoteBean();
+    promoteBean.setPred_stage("pred");
+    promoteBean.setDelay(100); //minutes
+    DateTime now = DateTime.now();
+
+    String badBuildId = "badbuild1";
+    String goodBuildId = "goodBuild2";
+
+    BuildBean badBuild = new BuildBean();
+    badBuild.setBuild_id(badBuildId);
+    badBuild.setBuild_name(badBuildId);
+    badBuild.setCommit_date(now.minusHours(24).getMillis());
+    badBuild.setPublish_date(now.minusHours(24).getMillis());
+    badBuild.setScm_commit("abcde");
+
+    TagBean tagBean = new TagBean();
+    tagBean.setId(CommonUtils.getBase64UUID());
+    tagBean.setTarget_type(TagTargetType.BUILD);
+    tagBean.setTarget_id(badBuildId);
+    tagBean.setValue(TagValue.BAD_BUILD);
+    tagBean.serializeTagMetaInfo(badBuild);
+
+    predEnvironBean.setDeploy_id("deploy1");
+
+    DeployBean prevDeploy = new DeployBean();
+    prevDeploy.setDeploy_id("deploy1");
+    prevDeploy.setEnv_id(predEnvironBean.getEnv_id());
+    prevDeploy.setStart_date(now.minusHours(23).getMillis());
+    prevDeploy.setBuild_id(badBuildId);
+
+    DeployBean currentDeploy = new DeployBean();
+    currentDeploy.setDeploy_id("deploy2");
+    currentDeploy.setFrom_deploy(prevDeploy.getDeploy_id());
+    currentDeploy.setEnv_id(environBean.getEnv_id());
+    currentDeploy.setStart_date(now.minusHours(22).plusMinutes(40).getMillis());
+    currentDeploy.setBuild_id(goodBuildId);
+
+    allDeployBeans.add(prevDeploy);
+    allDeployBeans.add(currentDeploy);
+
+    when(deployDAO.getById("deploy1")).thenReturn(prevDeploy);
+    when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
+    when(deployDAO.getAcceptedDeploys(anyString(), anyObject(), anyInt())).thenReturn(Arrays.asList(prevDeploy));
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList(badBuildId)))).thenReturn(Arrays.asList(badBuild));
+
+    when(buildTagsManager.getEffectiveTagsWithBuilds(Arrays.asList(badBuild)))
+        .thenReturn(Arrays.asList(BuildTagBean.createFromTagBean(tagBean)));
+
+    when(tagDAO.getByTargetIdAndType(badBuildId, TagTargetType.BUILD)).thenReturn(Arrays.asList(tagBean));
+
+    AutoPromoter promoter = new AutoPromoter(context);
+    AutoPromoter promoterSpy = Mockito.spy(promoter);
+    promoter.promoteDeploy(environBean, currentDeploy, 1, promoteBean);
+
+    PromoteResult result = promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
+    Assert.assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+    // bad build, safe promote never gets called
+    verify(promoterSpy, never()).safePromote(anyObject(), anyString(), anyString(), anyObject(), anyObject());
   }
 
   /* Autopromote enabled. Has pred env but it has no deploys*/
@@ -178,6 +250,11 @@ public class AutoPromoteDeployTest {
     DeployBean newDeploy = new DeployBean();
     newDeploy.setEnv_id(prevDeploy.getEnv_id());
     newDeploy.setDeploy_id("deploy3");
+    newDeploy.setBuild_id("build3");
+
+    BuildBean build3 = new BuildBean();
+    build3.setBuild_id("build3");
+
     allDeployBeans.add(prevDeploy);
     allDeployBeans.add(newDeploy);
     when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
@@ -198,6 +275,8 @@ public class AutoPromoteDeployTest {
     PromoteResult result = promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
     Assert.assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
 
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("build3")))).thenReturn(Arrays.asList(build3));
+
     //Set predeploy to 11 minutes, delay is 10 minutes
     newDeploy.setStart_date(now.minusMinutes(11).getMillis());
     result = promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
@@ -214,11 +293,18 @@ public class AutoPromoteDeployTest {
     promoteBean.setPred_stage("pred");
     promoteBean.setDelay(10); //minutes
     predEnvironBean.setDeploy_id("deploy1");
+
     DeployBean newDeploy = new DeployBean();
     newDeploy.setDeploy_id("deploy1");
+    newDeploy.setBuild_id("build1");
     newDeploy.setEnv_id(predEnvironBean.getEnv_id());
     DeployBean currentDeploy = new DeployBean();
     currentDeploy.setDeploy_id("deploy2");
+
+
+    BuildBean build1 = new BuildBean();
+    build1.setBuild_id("build1");
+
     currentDeploy.setStart_date(now.minusMinutes(25).getMillis());
     allDeployBeans.add(newDeploy);
     when(environDAO.getByStage(environBean.getEnv_name(), "pred")).thenReturn(predEnvironBean);
@@ -237,6 +323,8 @@ public class AutoPromoteDeployTest {
     newDeploy.setStart_date(now.minusMinutes(6).getMillis());
     PromoteResult result = promoter.computePromoteDeployResult(environBean, currentDeploy, 1, promoteBean);
     Assert.assertEquals(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod, result.getResult());
+
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("build1")))).thenReturn(Arrays.asList(build1));
 
     //Set predeploy to 11 minutes, delay is 10 minutes
     newDeploy.setStart_date(now.minusMinutes(11).getMillis());
@@ -258,8 +346,13 @@ public class AutoPromoteDeployTest {
     prevDeploy.setDeploy_id("deploy1");
     prevDeploy.setEnv_id(predEnvironBean.getEnv_id());
 
+    BuildBean newBuild = new BuildBean();
+    newBuild.setBuild_id("newBuild");
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("newBuild")))).thenReturn(Arrays.asList(newBuild));
+
     DeployBean newDeploy = new DeployBean();
     newDeploy.setDeploy_id("newDeploy");
+    newDeploy.setBuild_id("newBuild");
     newDeploy.setEnv_id(predEnvironBean.getEnv_id());
 
     DeployBean currentDeploy = new DeployBean();
@@ -323,8 +416,13 @@ public class AutoPromoteDeployTest {
     prevDeploy.setDeploy_id("deploy1");
     prevDeploy.setEnv_id(predEnvironBean.getEnv_id());
 
+    BuildBean newBuild = new BuildBean();
+    newBuild.setBuild_id("newBuild");
+    when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("newBuild")))).thenReturn(Arrays.asList(newBuild));
+
     DeployBean newDeploy = new DeployBean();
     newDeploy.setDeploy_id("newDeploy");
+    newDeploy.setBuild_id("newBuild");
     newDeploy.setEnv_id(predEnvironBean.getEnv_id());
 
     DeployBean currentDeploy = new DeployBean();
