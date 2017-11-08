@@ -446,7 +446,7 @@ public class DeployHandler {
             ScheduleBean updateScheduleBean = new ScheduleBean();
             updateScheduleBean.setId(scheduleId);
             updateScheduleBean.setState(ScheduleState.RUNNING);
-            updateScheduleBean.setCurrent_session(1, true);
+            updateScheduleBean.setCurrent_session(1);
             updateScheduleBean.setState_start_time(System.currentTimeMillis());
             scheduleDAO.update(updateScheduleBean, scheduleId);   
         }
