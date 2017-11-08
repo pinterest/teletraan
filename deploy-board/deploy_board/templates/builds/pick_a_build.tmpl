@@ -153,6 +153,12 @@
                 $('#confirmDeplyDescId').prop('placeholder',
                     'Simple description of this deploy (required for hotfix)');
             }
+            if(buildId == null) {
+                var submitBtn = $('#deployConfirmFormlId .modal-footer button[type="submit"]');
+                var warning = $('#deployConfirmFormlId .modal-footer span');
+                warning.removeClass('hidden');
+                submitBtn.addClass('hidden');
+            }
         });
 
         $('#buildPickTableId tr .showdiffer').click(function () {
