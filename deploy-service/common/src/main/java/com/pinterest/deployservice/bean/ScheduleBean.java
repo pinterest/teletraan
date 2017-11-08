@@ -94,7 +94,8 @@ public class ScheduleBean implements Updatable {
 
     public void setCurrent_session(Integer current_session) {
         //Do validation here, user input may mess it up. If we get wrong data, UI will crash
-        if (current_session>this.getTotal_sessions()){
+
+        if (this.getTotal_sessions() != null && current_session > this.getTotal_sessions()){
             throw new IllegalArgumentException(String.format("Current session %s cannot be bigger than total_session %s ",
                         current_session,
                 this.getTotal_sessions()
