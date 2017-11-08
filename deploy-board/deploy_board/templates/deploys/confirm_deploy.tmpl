@@ -68,11 +68,8 @@
                                name="current_build_id" value="{{ current_build.id }}" readonly>
                     </div>
                     <div class="modal-footer">
-                        {% if build.id %}
-                            <button type="submit" class="btn btn-primary">Create</button>
-                        {% else %}
-                            <span>Build id is EMPTY! you can not deploy this build.</span>
-                        {% endif %}
+                        <button type="submit" class="btn btn-primary">Create</button>
+                        <span class="hidden">Build id is EMPTY! you can not deploy this build.</span>
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                     </div>
                 </form>
