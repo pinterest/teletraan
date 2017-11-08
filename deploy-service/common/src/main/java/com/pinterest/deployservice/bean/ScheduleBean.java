@@ -103,6 +103,14 @@ public class ScheduleBean implements Updatable {
         this.current_session = current_session;
     }
 
+    public void setCurrent_session(Integer current_session, Boolean reset) {
+        if(reset) {
+            this.current_session = current_session;
+        } else {
+            setCurrent_session(current_session);
+        }
+    }
+
     public ScheduleState getState() {
         return state;
     }
