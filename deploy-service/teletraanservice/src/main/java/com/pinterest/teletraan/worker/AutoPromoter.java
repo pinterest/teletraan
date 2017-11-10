@@ -496,6 +496,16 @@ public class AutoPromoter implements Runnable {
                 }
             }
         }
+        // should order build bean ORDER BY publish_date DESC
+        if(taggedGoodBuilds.size() > 0) {
+            Collections.sort(taggedGoodBuilds, new Comparator<BuildBean>() {
+                @Override
+                public int compare(final BuildBean d1, final BuildBean d2) {
+                    return Long.compare(d2.getPublish_date(), d1.getPublish_date());
+                }
+            });
+            LOG.info("Env {} the first build candidate is {}", envBean.getEnv_id(), taggedGoodBuilds.get(0).getBuild_id());
+        }
         return taggedGoodBuilds;
     }
 
