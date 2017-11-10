@@ -496,6 +496,16 @@ public class AutoPromoter implements Runnable {
                 }
             }
         }
+        // should order build bean ORDER BY publish_date DESC
+        if(taggedGoodBuilds.size() > 0) {
+            Collections.sort(taggedGoodBuilds, new Comparator<BuildBean>() {
+                @Override
+                public int compare(final BuildBean d1, final BuildBean d2) {
+                    return Long.compare(d2.getPublish_date(), d1.getPublish_date());
+                }
+            });
+            LOG.info("Env {} the first build candidate is {}", envBean.getEnv_id(), taggedGoodBuilds.get(0).getBuild_id());
+        }
         return taggedGoodBuilds;
     }
 
@@ -535,6 +545,16 @@ public class AutoPromoter implements Runnable {
                     taggedGoodDeploys.add(buildId2DeployBean.get(buildId));
                 }
             }
+        }
+        // should order deploy bean by start date desc
+        if(taggedGoodDeploys.size() > 0) {
+            Collections.sort(taggedGoodDeploys, new Comparator<DeployBean>() {
+                @Override
+                public int compare(final DeployBean d1, final DeployBean d2) {
+                    return Long.compare(d2.getStart_date(), d1.getStart_date());
+                }
+            });
+            LOG.info("Env {} the first deploy candidate is {}", envId, taggedGoodDeploys.get(0).getBuild_id());
         }
         return taggedGoodDeploys;
     }
