@@ -177,6 +177,10 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         filter.setInitParameter(CrossOriginFilter.ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER, "true");
         filter.setInitParameter("allowedHeaders", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
         filter.setInitParameter("allowCredentials", "true");
+
+        //Set external alerts factory
+        context.setExternalAlertsFactory(configuration.getExternalAlertsConfigs().createExternalAlertFactory());
+
     }
 
     public static void main(String[] args) throws Exception {

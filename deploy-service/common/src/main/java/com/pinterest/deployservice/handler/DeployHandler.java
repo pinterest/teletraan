@@ -15,8 +15,6 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.google.common.base.Joiner;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AcceptanceStatus;
 import com.pinterest.deployservice.bean.BuildBean;
@@ -29,9 +27,10 @@ import com.pinterest.deployservice.bean.DeployType;
 import com.pinterest.deployservice.bean.EnvWebHookBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.PromoteBean;
-import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.PromoteDisablePolicy;
 import com.pinterest.deployservice.bean.PromoteType;
+import com.pinterest.deployservice.bean.ScheduleBean;
+import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.bean.UpdateStatement;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
@@ -48,8 +47,8 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.scm.SourceControlManager;
-import com.pinterest.deployservice.bean.ScheduleState;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
@@ -66,7 +65,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class DeployHandler {
+public class DeployHandler implements DeployHandlerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(DeployHandler.class);
     private static final String FEED_TEMPLATE = "{\"type\":\"Deploy\",\"environment\":\"%s (%s)\",\"description\":\"http://deploy.pinadmin.com/deploy/%s\","
         + "\"author\":\"%s\",\"automation\":\"%s\",\"source\":\"Teletraan\",\"optional-1\":\"%s\",\"optional-2\":\"\"}";
