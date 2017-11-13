@@ -52,6 +52,8 @@
                     <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP"
                         showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
+                    <label-input label="Block Device Mappings" placeholder="a list of json objects" v-model="blockDeviceMappings"></label-input>
+                    <block-device-mappings-help v-show="showBlockDeviceMappingsHelp" v-bind:data="blockDeviceMappingsHelpData"></block-device-mappings-help>
                     <div>
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -468,6 +470,7 @@ var capacitySetting = new Vue({
             clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
+
             if (this.selectedPlacements != null && this.selectedPlacements.length>0){
                 clusterInfo['placement'] = this.selectedPlacements.join(',');
             }
@@ -484,6 +487,12 @@ var capacitySetting = new Vue({
 
             if (this.assignPublicIP){
                 clusterInfo.configs['assign_public_ip'] = true
+            }
+
+            if(this.blockDeviceMappings && this.blockDeviceMappings.trim()) {
+                clusterInfo['rawBlockDeviceMappings'] = this.blockDeviceMappings;
+            } else {
+                clusterInfo['rawBlockDeviceMappings'] = null;
             }
 
             if (this.validateInput(clusterInfo)) {
