@@ -150,8 +150,11 @@ class Config(object):
 
     def get_script_directory(self):
         script_dir = '{}/teletraan/'.format(self.get_target())
+        subscript_dir_env = os.path.join(script_dir, os.environ['TELETRAAN_SCRIPT_DIR']
         subscript_dir = os.path.join(script_dir, os.environ['ENV_NAME'])
-        if os.path.exists(subscript_dir):
+        if os.path.exists(subscript_dir_env):
+            return subscript_dir_env
+        elif os.path.exists(subscript_dir):
             return subscript_dir
         else:
             return script_dir
