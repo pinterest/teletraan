@@ -4,6 +4,10 @@ import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.handler.DeployHandlerInterface;
 import com.pinterest.deployservice.handler.TagHandler;
 
+/**
+ * Context info passed to AlertAction, it should include all information AlertAction depends on. The
+ * main purpose is for writing tests easier.
+ */
 public class AlertContext {
   private DeployHandlerInterface deployHandler;
   private TagHandler tagHandler;

@@ -18,6 +18,8 @@ public class AutoRollbackAction extends AlertAction {
 
   public final static Logger LOG = LoggerFactory.getLogger(AutoRollbackAction.class);
 
+  //Maximum time looks back. May make it pass in from webhook later
+  private final static int MaxLookbackDays = 30;
 
   @Override
   public Object perform(EnvironBean environ, DeployBean lastDeploy, int actionWindowInSeconds,
@@ -27,7 +29,7 @@ public class AutoRollbackAction extends AlertAction {
     List<DeployBean>
         candidates =
         context.getDeployDAO().getAcceptedDeploys(environ.getEnv_id(),
-            new Interval(DateTime.now().minusDays(14),
+            new Interval(DateTime.now().minusDays(MaxLookbackDays),
                 DateTime.now().minusSeconds(actionWindowInSeconds)),
             1);
     if (candidates.size() > 0) {

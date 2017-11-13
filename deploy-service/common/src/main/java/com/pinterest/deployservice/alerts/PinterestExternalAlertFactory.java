@@ -1,7 +1,6 @@
 package com.pinterest.deployservice.alerts;
 
 import com.pinterest.deployservice.bean.ExternalAlert;
-import com.pinterest.deployservice.handler.GoalAnalyst;
 
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
@@ -14,8 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- Sample of an alert
-
+ * PinterestExternalAlertFactory. Building alert from following sample
+ 
  POST / HTTP/1.1
  Host: localhost:6000
  Connection: keep-alive
@@ -32,7 +31,7 @@ import java.util.Map;
  */
 public class PinterestExternalAlertFactory extends ExternalAlertFactory {
 
-  private static final Logger LOG = LoggerFactory.getLogger(GoalAnalyst.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PinterestExternalAlertFactory.class);
 
   private static DateTime tryGetDate(Map<String, String> nvp, String key) {
     DateTime ret = null;
