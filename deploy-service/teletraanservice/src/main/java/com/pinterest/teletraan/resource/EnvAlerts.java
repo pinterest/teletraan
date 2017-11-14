@@ -22,7 +22,6 @@ import com.pinterest.deployservice.alerts.AutoRollbackAction;
 import com.pinterest.deployservice.alerts.DefaultAlertContextBuilder;
 import com.pinterest.deployservice.alerts.ExternalAlertFactory;
 import com.pinterest.deployservice.alerts.MarkBadBuildAction;
-import com.pinterest.deployservice.bean.AlertResponse;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.EnvironBean;
@@ -103,7 +102,7 @@ public class EnvAlerts {
   @ApiOperation(
       value = "The alert response",
       notes = "Return the alert checking result",
-      response = AlertResponse.class)
+      response = Response.class)
   /**
    * This method is supposed to be triggered by the alerting system from a webhook. It means
    * the environment has received an alert

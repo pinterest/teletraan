@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  * PinterestExternalAlertFactory. Building alert from following sample
- 
+
  POST / HTTP/1.1
  Host: localhost:6000
  Connection: keep-alive
