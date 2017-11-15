@@ -22,8 +22,9 @@ public class AutoRollbackAction extends AlertAction {
   private final static int MaxLookbackDays = 30;
 
   @Override
-  public Object perform(EnvironBean environ, DeployBean lastDeploy, int actionWindowInSeconds,
-                        AlertContext context, String operator) throws Exception {
+  public Object perform(AlertContext context, EnvironBean environ, DeployBean lastDeploy,
+                        int actionWindowInSeconds,
+                        String operator) throws Exception {
     //It is tricky to do roll back. Here we basically rollback to the last succeed deploy before
     // the now-window
     List<DeployBean>
@@ -37,7 +38,7 @@ public class AutoRollbackAction extends AlertAction {
         LOG.info("AutoRollback to {}", candidates.get(0).getDeploy_id());
         context.getDeployHandler().rollback(environ, candidates.get(0).getDeploy_id(),
             "Alert triggered autorollback",
-                    operator);
+            operator);
         return candidates.get(0);
 
       } catch (Exception ex) {

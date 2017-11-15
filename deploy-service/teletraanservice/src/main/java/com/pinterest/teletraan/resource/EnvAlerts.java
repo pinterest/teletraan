@@ -125,13 +125,15 @@ public class EnvAlerts {
     }
 
     //Ensure action Window is in a value makes sense.
-    if (actionWindow <= 0 || actionWindow > 3600*4) {
+    if (actionWindow <= 0 || actionWindow > 3600 * 4) {
       //max action window is four hour
       Response.status(400).entity("actionWindow must be between 0 to 14400");
     }
 
     DeployBean lastDeploy = deployHandler.getDeploySafely(environBean.getDeploy_id());
-    boolean inWindow = DateTime.now().minusSeconds(actionWindow).isBefore(lastDeploy.getStart_date());
+    boolean
+        inWindow =
+        DateTime.now().minusSeconds(actionWindow).isBefore(lastDeploy.getStart_date());
     boolean shouldPerformAction = environBean.getState() == EnvironState.NORMAL && (
         lastDeploy.getState() == DeployState.SUCCEEDING
             || lastDeploy.getState() == DeployState.FAILING);
@@ -139,19 +141,21 @@ public class EnvAlerts {
     Map<String, Object> ret = new HashMap<>();
     if (inWindow && shouldPerformAction) {
       //Take actions
-      for(AlertAction action:getActions(actions, supportActions)){
-        try{
-          ret.put(action.getClass().getName(), action.perform(environBean, lastDeploy, actionWindow,
-              getAlertContextBuilder().build(serviceContext), userName));
-        }catch(Exception ex){
+      for (AlertAction action : getActions(actions, supportActions)) {
+        try {
+          ret.put(action.getClass().getName(), action
+              .perform(getAlertContextBuilder().build(serviceContext), environBean, lastDeploy,
+                  actionWindow,
+                  userName));
+        } catch (Exception ex) {
           LOG.error("Failed to perform action {}", ExceptionUtils.getRootCauseMessage(ex));
         }
       }
 
-    }else if (inWindow){
-        LOG.info("Don't perform action because environment state is {} and lastDeploy state is {}",
-            environBean.getState(), lastDeploy.getState());
-    }else{
+    } else if (inWindow) {
+      LOG.info("Don't perform action because environment state is {} and lastDeploy state is {}",
+          environBean.getState(), lastDeploy.getState());
+    } else {
       LOG.info("Last deploy is not in window");
     }
 
@@ -159,11 +163,11 @@ public class EnvAlerts {
 
   }
 
-  public List<AlertAction> getActions(String actions, Map<String, AlertAction> supportedActions){
+  public List<AlertAction> getActions(String actions, Map<String, AlertAction> supportedActions) {
     List<AlertAction> ret = new ArrayList<>();
     String[] tokens = StringUtils.split(actions, "+");
-    for(String token:tokens){
-      if (!StringUtils.isBlank(token) && supportedActions.containsKey(token)){
+    for (String token : tokens) {
+      if (!StringUtils.isBlank(token) && supportedActions.containsKey(token)) {
         ret.add(supportedActions.get(token));
       }
     }

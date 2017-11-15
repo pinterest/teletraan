@@ -16,8 +16,7 @@ public class MarkBadBuildAction extends AlertAction {
   public final static Logger LOG = LoggerFactory.getLogger(MarkBadBuildAction.class);
 
   @Override
-  public Object perform(EnvironBean environ, DeployBean lastDeploy, int actionWindowInSeconds,
-                        AlertContext context,
+  public Object perform( AlertContext context,EnvironBean environ, DeployBean lastDeploy, int actionWindowInSeconds,
                         String operator) throws Exception {
 
     TagBean tagBean = new TagBean();
