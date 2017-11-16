@@ -518,45 +518,7 @@ public class AutoPromoter implements Runnable {
      * @throws Exception
      */
     List<DeployBean> getDeployCandidates(String envId, Interval interval, int size) throws Exception {
-        LOG.info("Search Deploy candidates between {} and {} for environment {}",
-            interval.getStart().toString(ISODateTimeFormat.dateTime()),
-            interval.getEnd().toString(ISODateTimeFormat.dateTime()),
-            envId);
-        List<DeployBean> taggedGoodDeploys = new ArrayList<DeployBean>();
-
-        List<DeployBean> availableDeploys = deployDAO.getAcceptedDeploys(envId, interval, size);
-        if(!availableDeploys.isEmpty()) {
-            Map<String, DeployBean> buildId2DeployBean = new HashMap<String, DeployBean>();
-
-            for(DeployBean deployBean: availableDeploys) {
-                String buildId = deployBean.getBuild_id();
-                if(StringUtils.isNotEmpty(buildId)) {
-                    buildId2DeployBean.put(buildId, deployBean);
-                }
-            }
-            List<BuildBean> availableBuilds = buildDAO.getBuildsFromIds(buildId2DeployBean.keySet());
-            List<BuildTagBean> buildTagBeanList = buildTagsManager.getEffectiveTagsWithBuilds(availableBuilds);
-            for(BuildTagBean buildTagBean: buildTagBeanList) {
-                if(buildTagBean.getTag() != null && buildTagBean.getTag().getValue() == TagValue.BAD_BUILD) {
-                    // bad build,  do not include
-                    LOG.info("Env {} Build {} is tagged as BAD_BUILD, ignore", envId, buildTagBean.getBuild());
-                } else {
-                    String buildId = buildTagBean.getBuild().getBuild_id();
-                    taggedGoodDeploys.add(buildId2DeployBean.get(buildId));
-                }
-            }
-        }
-        // should order deploy bean by start date desc
-        if(taggedGoodDeploys.size() > 0) {
-            Collections.sort(taggedGoodDeploys, new Comparator<DeployBean>() {
-                @Override
-                public int compare(final DeployBean d1, final DeployBean d2) {
-                    return Long.compare(d2.getStart_date(), d1.getStart_date());
-                }
-            });
-            LOG.info("Env {} the first deploy candidate is {}", envId, taggedGoodDeploys.get(0).getBuild_id());
-        }
-        return taggedGoodDeploys;
+        return deployHandler.getDeployCandidates(envId, interval, size, true);
     }
 
     // Lock, double check and promote

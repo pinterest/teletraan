@@ -57,6 +57,7 @@ public class EnvAlertsTest {
   SecurityContext sc;
   AlertContextBuilder alertContextBuilder;
   AlertContext alertContext;
+  DeployHandlerInterface deployHandler;
 
   @Before
   public void setUp() throws Exception {
@@ -68,6 +69,7 @@ public class EnvAlertsTest {
     authorizer = mock(Authorizer.class);
     buildTagsManager = mock(BuildTagsManager.class);
     alertContextBuilder = mock(AlertContextBuilder.class);
+    deployHandler = mock(DeployHandlerInterface.class);
     context.setBuildTagsManager(buildTagsManager);
     context.setTagDAO(tagDAO);
     context.setBuildDAO(buildDAO);
@@ -100,7 +102,7 @@ public class EnvAlertsTest {
     when(buildDAO.getById(recent.getBuild_id())).thenReturn(buildBean);
     alertContext = new AlertContext();
     alertContext.setTagHandler(mock(TagHandler.class));
-    alertContext.setDeployHandler(mock(DeployHandlerInterface.class));
+    alertContext.setDeployHandler(deployHandler);
     alertContext.setDeployDAO(deployDAO);
     when(alertContextBuilder.build(any())).thenReturn(alertContext);
 
@@ -129,7 +131,7 @@ public class EnvAlertsTest {
     Assert.assertEquals(buildBean.getBuild_id(), ((TagBean)entity.get(MarkBadBuildAction.class.getName())).getTarget_id());
 
     //Test case 3, in range, rollback and deploy
-    when(deployDAO.getAcceptedDeploys(eq(environBean.getEnv_id()),any(),eq(1))).thenReturn(Arrays.asList(
+    when(deployHandler.getDeployCandidates(eq(environBean.getEnv_id()),any(),eq(100), eq(true))).thenReturn(Arrays.asList(
         lastKnownGoodDeploy));
     resp = envAlerts.alertsTriggered("testenv","teststage",600, "markbadbuild+rollback",sc, createAlertBody(DateTime.now().minusSeconds(1), true));
     Assert.assertEquals(200,resp.getStatus());
