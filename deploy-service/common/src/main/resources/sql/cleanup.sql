@@ -16,6 +16,7 @@ DROP TABLE IF EXISTS global_envs;
 DROP TABLE IF EXISTS groups_and_envs;
 DROP TABLE IF EXISTS groups_and_roles;
 DROP TABLE IF EXISTS hosts;
+DROP TABLE IF EXISTS host_tags;
 DROP TABLE IF EXISTS hosts_and_envs;
 DROP TABLE IF EXISTS hotfixes;
 DROP TABLE IF EXISTS promotes;
