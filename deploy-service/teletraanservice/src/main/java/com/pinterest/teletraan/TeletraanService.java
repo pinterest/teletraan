@@ -151,6 +151,9 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         Groups groups = new Groups(context);
         environment.jersey().register(groups);
 
+        EnvAlerts envAlerts = new EnvAlerts(context);
+        environment.jersey().register(envAlerts);
+
         // Schedule workers if configured
         ConfigHelper.scheduleWorkers(configuration, context);
 
