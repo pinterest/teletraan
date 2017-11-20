@@ -121,6 +121,8 @@ public class EnvAlerts {
     authorizer
         .authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
     String userName = sc.getUserPrincipal().getName();
+    LOG.info("Get Alert for env {} stage {} actionWindow {} actions with alert body {}", envName,
+        stageName, actionWindow, actions, alertBody);
     ExternalAlert alert = externalAlertFactory.getAlert(alertBody);
     if (alert == null) {
       Response.status(400).build();
