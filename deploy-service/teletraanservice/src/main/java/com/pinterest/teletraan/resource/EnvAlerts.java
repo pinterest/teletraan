@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -115,24 +114,31 @@ public class EnvAlerts {
                                   @PathParam("stageName") String stageName,
                                   @QueryParam("actionWindow") int actionWindow,
                                   @QueryParam("actions") String actions,
-                                  @Context SecurityContext sc, @Valid String alertBody)
+                                  @Context SecurityContext sc, String alertBody)
       throws Exception {
     EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
     authorizer
         .authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
     String userName = sc.getUserPrincipal().getName();
+    LOG.info("Get Alert for env {} stage {} actionWindow {} actions {} with alert body {}", envName,
+        stageName, actionWindow, actions, alertBody);
     ExternalAlert alert = externalAlertFactory.getAlert(alertBody);
     if (alert == null) {
-      Response.status(400).build();
+      return Response.status(400).build();
     }
 
     //Ensure action Window is in a value makes sense.
     if (actionWindow <= 0 || actionWindow > 3600 * 4) {
       //max action window is four hour
-      Response.status(400).entity("actionWindow must be between 0 to 14400");
+      return Response.status(400).entity("actionWindow must be between 0 to 14400").build();
+    }
+
+    if (StringUtils.isBlank(environBean.getDeploy_id())){
+      return Response.status(Response.Status.NO_CONTENT).entity("No deploy").build();
     }
 
     DeployBean lastDeploy = deployHandler.getDeploySafely(environBean.getDeploy_id());
+
     boolean
         inWindow =
         DateTime.now().minusSeconds(actionWindow).isBefore(lastDeploy.getStart_date());

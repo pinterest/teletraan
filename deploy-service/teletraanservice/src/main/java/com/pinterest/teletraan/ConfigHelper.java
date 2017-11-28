@@ -109,6 +109,14 @@ public class ConfigHelper {
             context.setJenkinsRemoteToken(jenkinsFactory.getRemoteToken());
         }
 
+        LOG.info("External alert factory is {}", configuration.getExternalAlertsConfigs());
+        //Set external alerts factory
+        if (configuration.getExternalAlertsConfigs()!= null) {
+            context.setExternalAlertsFactory(
+                configuration.getExternalAlertsConfigs().createExternalAlertFactory());
+        }
+
+
         /**
          Lastly, let us create the in-process background job executor, all transient, long
          running background jobs can be handled by this executor

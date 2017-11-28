@@ -28,12 +28,16 @@ import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 
 public class TeletraanService extends Application<TeletraanServiceConfiguration> {
+    private static final Logger LOG = LoggerFactory.getLogger(TeletraanService.class);
+
     @Override
     public String getName() {
         return "teletraan-service";
@@ -181,11 +185,6 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         filter.setInitParameter("allowedHeaders", "Content-Type,Authorization,X-Requested-With,Content-Length,Accept,Origin");
         filter.setInitParameter("allowCredentials", "true");
 
-        //Set external alerts factory
-        if (configuration.getExternalAlertsConfigs()!= null) {
-            context.setExternalAlertsFactory(
-                configuration.getExternalAlertsConfigs().createExternalAlertFactory());
-        }
     }
 
     public static void main(String[] args) throws Exception {
