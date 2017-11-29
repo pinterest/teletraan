@@ -117,13 +117,13 @@ public class EnvAlertsTest {
 
     //Test case 1, not in range, no actions
     Response
-        resp = envAlerts.alertsTriggered("testenv","teststage",10, "markbadbuild+rollback",sc, createAlertBody(DateTime.now().minusSeconds(1), true));
+        resp = envAlerts.alertsTriggered("testenv","teststage",10, "markbadbuild rollback",sc, createAlertBody(DateTime.now().minusSeconds(1), true));
     Assert.assertEquals(200,resp.getStatus());
     HashMap entity = (HashMap)resp.getEntity();
     Assert.assertEquals(0,entity.size());
 
     //Test case 2, in range, only mark build no deploy
-    resp = envAlerts.alertsTriggered("testenv","teststage",600, "markbadbuild+rollback",sc, createAlertBody(DateTime.now().minusSeconds(1), true));
+    resp = envAlerts.alertsTriggered("testenv","teststage",600, "markbadbuild rollback",sc, createAlertBody(DateTime.now().minusSeconds(1), true));
     Assert.assertEquals(200,resp.getStatus());
     entity = (HashMap)resp.getEntity();
     Assert.assertEquals(2,entity.size());
@@ -133,7 +133,7 @@ public class EnvAlertsTest {
     //Test case 3, in range, rollback and deploy
     when(deployHandler.getDeployCandidates(eq(environBean.getEnv_id()),any(),eq(100), eq(true))).thenReturn(Arrays.asList(
         lastKnownGoodDeploy));
-    resp = envAlerts.alertsTriggered("testenv","teststage",600, "markbadbuild+rollback",sc, createAlertBody(DateTime.now().minusSeconds(1), true));
+    resp = envAlerts.alertsTriggered("testenv","teststage",600, "markbadbuild rollback",sc, createAlertBody(DateTime.now().minusSeconds(1), true));
     Assert.assertEquals(200,resp.getStatus());
     entity = (HashMap)resp.getEntity();
     Assert.assertEquals(2,entity.size());

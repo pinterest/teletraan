@@ -4,6 +4,7 @@ import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
+import com.pinterest.deployservice.bean.TagValue;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ public class MarkBadBuildAction extends AlertAction {
     TagBean tagBean = new TagBean();
     tagBean.setTarget_id(lastDeploy.getBuild_id());
     tagBean.setTarget_type(TagTargetType.BUILD);
+    tagBean.setValue(TagValue.BAD_BUILD);
     tagBean.setComments("Mark build as bad with alert trigger");
     context.getTagHandler().createTag(tagBean, operator);
     return tagBean;
