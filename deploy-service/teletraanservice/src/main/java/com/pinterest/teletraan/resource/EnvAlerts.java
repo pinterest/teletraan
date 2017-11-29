@@ -157,6 +157,7 @@ public class EnvAlerts {
                   userName));
         } catch (Exception ex) {
           LOG.error("Failed to perform action {}", ExceptionUtils.getRootCauseMessage(ex));
+          LOG.error(ExceptionUtils.getFullStackTrace(ex));
         }
       }
 
@@ -173,7 +174,7 @@ public class EnvAlerts {
 
   public List<AlertAction> getActions(String actions, Map<String, AlertAction> supportedActions) {
     List<AlertAction> ret = new ArrayList<>();
-    String[] tokens = StringUtils.split(actions, "+");
+    String[] tokens = StringUtils.split(actions, " ");
     for (String token : tokens) {
       if (!StringUtils.isBlank(token) && supportedActions.containsKey(token)) {
         ret.add(supportedActions.get(token));
