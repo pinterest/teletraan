@@ -17,12 +17,25 @@
 package com.pinterest.deployservice.buildtags;
 
 
-import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.BuildTagBean;
+import com.pinterest.deployservice.bean.TagBean;
+import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.dao.TagDAO;
+
+import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The Manager class that is responsible for managing the build tags
@@ -32,7 +45,22 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
     private static final Logger LOG = LoggerFactory.getLogger(BuildTagsManagerImpl.class);
     private TagDAO tagDAO;
 
-    private HashMap<String, List<BuildTagBean>> currentTags = new HashMap<>();
+    private LoadingCache<String, List<BuildTagBean>> currentTags = CacheBuilder.newBuilder()
+        .expireAfterWrite(1, TimeUnit.MINUTES)
+        .build(
+            new CacheLoader<String, List<BuildTagBean>>() {
+                public List<BuildTagBean> load(String buildName) { // no checked exception
+                    try {
+                        return createFromTagBean(
+                            tagDAO.getByTargetIdAndType(buildName, TagTargetType.BUILD));
+                    }
+                    catch (Exception ex){
+                        LOG.error(ExceptionUtils.getRootCauseMessage(ex));
+                        LOG.error(ExceptionUtils.getFullStackTrace(ex));
+                    }
+                    return new ArrayList<BuildTagBean>();
+                }
+            });;
 
     public BuildTagsManagerImpl(TagDAO t) {
         this.tagDAO = t;
@@ -55,12 +83,8 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
 
     @Override
     public TagBean getEffectiveBuildTag(BuildBean build) throws Exception {
-        if (!this.currentTags.containsKey(build.getBuild_name())) {
-            LOG.debug("Retrieve Tag List for build {}", build.getBuild_name());
-            this.currentTags.put(build.getBuild_name(),
-                    createFromTagBean(tagDAO.getByTargetIdAndType(build.getBuild_name(), TagTargetType.BUILD)));
-        }
-
+        Preconditions.checkNotNull(build);
+        Preconditions.checkNotNull(build.getBuild_name());
         return getEffectiveBuildTag(this.currentTags.get(build.getBuild_name()), build);
 
     }
