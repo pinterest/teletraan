@@ -3,16 +3,25 @@ package com.pinterest.teletraan.worker;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.BuildTagBean;
+import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.PromoteBean;
+import com.pinterest.deployservice.bean.TagBean;
+import com.pinterest.deployservice.bean.TagTargetType;
+import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
-import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
-
 import com.pinterest.deployservice.dao.TagDAO;
+
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,7 +31,6 @@ import org.mockito.Mockito;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 
 public class AutoPromotBuildTest {
@@ -127,6 +135,7 @@ public class AutoPromotBuildTest {
     AutoPromoter promoter = new AutoPromoter(context);
     //Has builds. Have previous deploy
     BuildBean build = new BuildBean();
+    build.setBuild_name("xxx");
     build.setBuild_id("123");
     build.setPublish_date(DateTime.now().minusHours(1).getMillis());
     when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
@@ -248,6 +257,7 @@ public class AutoPromotBuildTest {
     preBuild.setPublish_date(DateTime.now().minusHours(3).getMillis());
 
     BuildBean build = new BuildBean();
+    build.setBuild_name("buildName");
     build.setBuild_id("123");
     build.setPublish_date(DateTime.now().minusHours(1).getMillis());
     when(buildDAO.getById("prev123")).thenReturn(preBuild);
@@ -284,6 +294,7 @@ public class AutoPromotBuildTest {
     AutoPromoter promoter = new AutoPromoter(context);
     //Has builds. Have previous deploy
     BuildBean build = new BuildBean();
+    build.setBuild_name("buildName");
     build.setBuild_id("123");
     DateTime now = DateTime.now();
 
@@ -311,6 +322,7 @@ public class AutoPromotBuildTest {
     AutoPromoter promoter = new AutoPromoter(context);
     //Has builds. Have previous deploy
     BuildBean build = new BuildBean();
+    build.setBuild_name("buildName");
     build.setBuild_id("123");
     DateTime now = DateTime.now();
 
@@ -341,6 +353,7 @@ public class AutoPromotBuildTest {
     previousDeploy.setBuild_id("prev123");
 
     BuildBean preBuild = new BuildBean();
+    preBuild.setBuild_name("buildName");
     preBuild.setBuild_id("prev123");
     preBuild.setPublish_date(DateTime.now().minusHours(3).getMillis());
 
@@ -363,6 +376,7 @@ public class AutoPromotBuildTest {
     previousDeploy.setBuild_id("prev123");
 
     BuildBean preBuild = new BuildBean();
+    preBuild.setBuild_name("buildName");
     preBuild.setBuild_id("prev123");
     preBuild.setPublish_date(DateTime.now().minusHours(3).getMillis());
 
@@ -386,10 +400,12 @@ public class AutoPromotBuildTest {
     previousDeploy.setBuild_id("prev123");
 
     BuildBean preBuild = new BuildBean();
+    preBuild.setBuild_name("buildName");
     preBuild.setBuild_id("prev123");
     preBuild.setPublish_date(DateTime.now().minusHours(25).getMillis());
 
     BuildBean build = new BuildBean();
+    build.setBuild_name("buildName");
     build.setBuild_id("123");
     DateTime now = DateTime.now();
     if (now.getHourOfDay()>10) {

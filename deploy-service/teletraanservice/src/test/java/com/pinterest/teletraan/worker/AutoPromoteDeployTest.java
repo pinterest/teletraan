@@ -253,6 +253,7 @@ public class AutoPromoteDeployTest {
     newDeploy.setBuild_id("build3");
 
     BuildBean build3 = new BuildBean();
+    build3.setBuild_name("buildname");
     build3.setBuild_id("build3");
 
     allDeployBeans.add(prevDeploy);
@@ -303,6 +304,7 @@ public class AutoPromoteDeployTest {
 
 
     BuildBean build1 = new BuildBean();
+    build1.setBuild_name("buildname");
     build1.setBuild_id("build1");
 
     currentDeploy.setStart_date(now.minusMinutes(25).getMillis());
@@ -347,6 +349,7 @@ public class AutoPromoteDeployTest {
     prevDeploy.setEnv_id(predEnvironBean.getEnv_id());
 
     BuildBean newBuild = new BuildBean();
+    newBuild.setBuild_name("buildName");
     newBuild.setBuild_id("newBuild");
     when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("newBuild")))).thenReturn(Arrays.asList(newBuild));
 
@@ -417,6 +420,7 @@ public class AutoPromoteDeployTest {
     prevDeploy.setEnv_id(predEnvironBean.getEnv_id());
 
     BuildBean newBuild = new BuildBean();
+    newBuild.setBuild_name("buildname");
     newBuild.setBuild_id("newBuild");
     when(buildDAO.getBuildsFromIds(new HashSet<>(Arrays.asList("newBuild")))).thenReturn(Arrays.asList(newBuild));
 
