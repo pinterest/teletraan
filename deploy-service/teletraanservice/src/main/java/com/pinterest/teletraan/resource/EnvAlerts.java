@@ -127,6 +127,17 @@ public class EnvAlerts {
       return Response.status(400).build();
     }
 
+    LOG.info("Get Alert triggered: {} time:{}", alert.isTriggered(), alert.getTriggeredDate().toString());
+
+    if (!alert.isTriggered()){
+      LOG.info("No action for alert off");
+      return Response.status(304).build();
+    }
+
+    if (alert.getTriggeredDate().plusMinutes(5).isBefore(DateTime.now())){
+      LOG.info("Alert has been delayed too much. Ignore it");
+      return Response.status(304).build();
+    }
     //Ensure action Window is in a value makes sense.
     if (actionWindow <= 0 || actionWindow > 3600 * 4) {
       //max action window is four hour
