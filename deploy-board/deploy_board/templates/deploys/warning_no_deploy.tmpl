@@ -4,12 +4,23 @@
     <div id="noDeployAlert" class="alert alert-danger" role="alert" align="center" style="{{ hidden }}">
       <a href="#" class="close" data-dismiss="alert">&times;</a>
       <i><b style="font-size:24px;">Hey, code freeze! you should not deploy. </b></i>
-      <p>
-      If you are not in the Ads org, you need a special approval for *any change* to production. You can ask for that approval by emailing changefreeze@. The approval is unlikely to be granted if this is not a change in one of the given categories.
-
-      If you are working in Ads, there are a few very specific approvals given by default, for any other changes, the process is the same.
-</p>
+      <p>Visit pinch/changefreeze for code freeze info and instructions on how to create change freeze tickets .</p>
+      <p>You can create change freeze ticket
+      <button id="changefreezeRequest" type="button" class="btn btn-default btn-sm" > here </button> .</p>
     </div>
+
+<script type="text/javascript" src="https://jira.pinadmin.com/s/be5518e4fe3d7d4da611de525c30ea8f-T/-5a7v9w/75008/d5ce662ce434066877551cbdd6cd6070/2.0.24/_/download/batch/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector/com.atlassian.jira.collector.plugin.jira-issue-collector-plugin:issuecollector.js?locale=en-US&collectorId=81085280"></script>
+<script type="text/javascript">window.ATL_JQ_PAGE_PROPS = {
+"triggerFunction": function(showCollectorDialog) {
+
+	jQuery("#changefreezeRequest").click(function(e) {
+        e.preventDefault();
+        showCollectorDialog();
+	});
+
+}};
+
+</script>
 <script>
 
     function closeBanner() {
