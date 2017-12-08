@@ -214,6 +214,7 @@ IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = "https://jenkins.pinadmin.com/job/"
 
 IS_DURING_CODE_FREEZE = True if os.getenv("TELETRAAN_CODE_FREEZE", "false") == "true" else False
+TELETRAAN_CODE_FREEZE_URL = os.getenv("TELETRAAN_CODE_FREEZE_URL", None)
 
 # use Rodimus if present
 RODIMUS_SERVICE_URL = os.getenv("RODIMUS_SERVICE_URL", None)
