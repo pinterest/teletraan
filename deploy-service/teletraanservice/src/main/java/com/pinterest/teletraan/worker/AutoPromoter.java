@@ -87,6 +87,7 @@ public class AutoPromoter implements Runnable {
                 LOG.error("AutoPromoter failed to process {}", envId, t);
             }
         }
+      LOG.info("AutoPromoter processBatch finishes");
     }
 
     boolean isDeployFailed(DeployBean currDeployBean) {
@@ -485,6 +486,8 @@ public class AutoPromoter implements Runnable {
         List<BuildBean> taggedGoodBuilds = new ArrayList<BuildBean>();
 
         List<BuildBean> availableBuilds = buildDAO.getAcceptedBuilds(buildName, scmBranch, interval, size);
+        LOG.info("Env {} stage {} has {} accepted builds with name {} branch {} between {} and {}", envBean.getEnv_name(),
+            envBean.getStage_name(), availableBuilds.size(), buildName, scmBranch, interval.getStart().toString(), interval.getEnd().toString());
         if(!availableBuilds.isEmpty()) {
             List<BuildTagBean> buildTagBeanList = buildTagsManager.getEffectiveTagsWithBuilds(availableBuilds);
             for(BuildTagBean buildTagBean: buildTagBeanList) {
