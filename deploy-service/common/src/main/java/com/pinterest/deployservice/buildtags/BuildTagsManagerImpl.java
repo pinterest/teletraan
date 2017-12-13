@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,8 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
     private static final Logger LOG = LoggerFactory.getLogger(BuildTagsManagerImpl.class);
     private TagDAO tagDAO;
 
+    public static final int MAXCHECKTAGS = 1000;
+
     private LoadingCache<String, List<BuildTagBean>> currentTags = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.MINUTES)
         .build(
@@ -52,7 +55,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
                 public List<BuildTagBean> load(String buildName) { // no checked exception
                     try {
                         return createFromTagBean(
-                            tagDAO.getByTargetIdAndType(buildName, TagTargetType.BUILD));
+                            tagDAO.getLatestByTargetIdAndType(buildName, TagTargetType.BUILD, MAXCHECKTAGS));
                     }
                     catch (Exception ex){
                         LOG.error(ExceptionUtils.getRootCauseMessage(ex));
@@ -65,6 +68,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
     public BuildTagsManagerImpl(TagDAO t) {
         this.tagDAO = t;
     }
+
 
     @Override
     public List<BuildTagBean> getEffectiveTagsWithBuilds(List<BuildBean> builds) throws Exception{
@@ -141,12 +145,37 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
         for(TagBean tag:tags){
             ret.add(BuildTagBean.createFromTagBean(tag));
         }
-        Collections.sort(ret, new Comparator<BuildTagBean>() {
+        return sortAndDedupTags(ret);
+    }
+
+    public static List<BuildTagBean> sortAndDedupTags(List<BuildTagBean> buildTagBeanList) throws Exception{
+        //Sort by commit date for later search
+        Collections.sort(buildTagBeanList, new Comparator<BuildTagBean>() {
             @Override
             public int compare(BuildTagBean o1, BuildTagBean o2) {
-                return o1.getBuild().getCommit_date().compareTo(o2.getBuild().getCommit_date());
+                if (o1.getBuild().getCommit_date() != o2.getBuild().getCommit_date()) {
+                    return o1.getBuild().getCommit_date().compareTo(o2.getBuild().getCommit_date());
+                }else{
+                    //Same commit. sort by created date
+                    return o1.getTag().getCreated_date().compareTo(o2.getTag().getCreated_date());
+                }
+
             }
         });
-        return ret;
+
+        //In some cases, one commit can have multiple tags applied. Let's only use the latest created
+        List<BuildTagBean> dedup = new ArrayList<>(buildTagBeanList.size());
+        BuildTagBean prev = null;
+        for(BuildTagBean buildTagBean:buildTagBeanList){
+            if (prev == null ||
+                !StringUtils.equals(prev.getBuild().getScm_commit(), buildTagBean.getBuild().getScm_commit())){
+                dedup.add(buildTagBean);
+            }else{
+                //Overwrite as we already sort by commit and tag created date above
+                dedup.set(dedup.size()-1, buildTagBean);
+            }
+            prev = buildTagBean;
+        }
+        return dedup;
     }
 }

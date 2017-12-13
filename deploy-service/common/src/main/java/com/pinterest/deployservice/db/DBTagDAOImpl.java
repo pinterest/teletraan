@@ -49,9 +49,9 @@ public class DBTagDAOImpl implements TagDAO {
         "SELECT * FROM tags WHERE target_id=? AND "
             + " target_type=? ORDER BY created_date DESC";
 
-    private static final String GET_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE =
+    private static final String GET_LATEST_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE =
         "SELECT * FROM tags WHERE target_id=? AND "
-            + " target_type=? ORDER BY created_date DESC LIMIT ";
+            + " target_type=? ORDER BY created_date DESC LIMIT ?";
 
     private static final String GET_LATEST_TAG_BY_TARGET_ID =
         "SELECT * FROM tags WHERE target_id=? ORDER BY created_date DESC LIMIT 0,1";
@@ -93,16 +93,18 @@ public class DBTagDAOImpl implements TagDAO {
     }
 
     @Override
-    List<TagBean> getLatestByTargetIdAndType(String target_id, TagTargetType target_type, int size){
-        Preconditions.checkArgument(size>0);
+    public List<TagBean> getLatestByTargetIdAndType(String target_id, TagTargetType target_type,
+                                                    int size) throws Exception {
+        Preconditions.checkArgument(size > 0);
         ResultSetHandler<List<TagBean>> h = new BeanListHandler<TagBean>(TagBean.class);
         return new QueryRunner(basicDataSource)
-            .query(GET_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE, h, target_id, target_type.toString());
+            .query(GET_LATEST_TAG_BY_TARGET_ID_AND_TYPE_TEMPLATE, h, target_id,
+                target_type.toString(), size);
 
     }
 
     @Override
-    public List<TagBean> getByValue(TagValue value) throws Exception{
+    public List<TagBean> getByValue(TagValue value) throws Exception {
         ResultSetHandler<List<TagBean>> h = new BeanListHandler<TagBean>(TagBean.class);
         return new QueryRunner(basicDataSource)
             .query(GET_TAG_BY_VALUE, h, value.toString());
@@ -112,6 +114,6 @@ public class DBTagDAOImpl implements TagDAO {
     @Override
     public TagBean getLatestByTargetId(String targetId) throws Exception {
         return new QueryRunner(basicDataSource).query(GET_LATEST_TAG_BY_TARGET_ID,
-                new BeanHandler<>(TagBean.class), targetId);
+            new BeanHandler<>(TagBean.class), targetId);
     }
 }
