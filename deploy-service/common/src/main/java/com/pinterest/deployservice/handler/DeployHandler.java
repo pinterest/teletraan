@@ -413,6 +413,7 @@ public class DeployHandler implements DeployHandlerInterface{
             filterBean.setPageIndex(index);
         }
         LOG.warn("Latest {} deploys are all failed for {}. Give up", size*maxPages, envBean.getEnv_id());
+
         return null;
 
     }

@@ -23,6 +23,7 @@ import com.pinterest.deployservice.bean.TagValue;
 import java.util.List;
 
 public interface TagDAO {
+
     void insert(TagBean bean) throws Exception;
 
     void delete(String id) throws Exception;
@@ -33,6 +34,9 @@ public interface TagDAO {
 
     List<TagBean> getByTargetIdAndType(String target_name, TagTargetType target_type)
         throws Exception;
+
+    List<TagBean> getLatestByTargetIdAndType(String target_name, TagTargetType target_type,
+                                             int size) throws Exception;
 
     List<TagBean> getByValue(TagValue value) throws Exception;
 
