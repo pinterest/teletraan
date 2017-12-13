@@ -34,6 +34,8 @@ public interface TagDAO {
     List<TagBean> getByTargetIdAndType(String target_name, TagTargetType target_type)
         throws Exception;
 
+    List<TagBean> getLatestByTargetIdAndType(String target_name, TagTargetType target_type, int size);
+
     List<TagBean> getByValue(TagValue value) throws Exception;
 
     TagBean getLatestByTargetId(String targetId) throws Exception;
