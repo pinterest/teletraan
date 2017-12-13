@@ -395,7 +395,8 @@ public class DeployHandler implements DeployHandlerInterface{
         filterBean.setPageIndex(index);
         filterBean.setPageSize(size);
         int maxPages = 50; //This makes us check at most 5000 deploys
-        while (maxPages-- > 0) {
+        int tocheckPages = maxPages;
+        while (tocheckPages-- > 0) {
             DeployQueryFilter filter = new DeployQueryFilter(filterBean);
             DeployQueryResultBean resultBean = deployDAO.getAllDeploys(filter);
             if (resultBean.getTotal() < 1) {
@@ -411,7 +412,7 @@ public class DeployHandler implements DeployHandlerInterface{
             index += 1;
             filterBean.setPageIndex(index);
         }
-        LOG.warn("Latest 100000 deploys are all failed for {}. Give up", envBean.getEnv_id());
+        LOG.warn("Latest {} deploys are all failed for {}. Give up", size*maxPages, envBean.getEnv_id());
         return null;
 
     }
