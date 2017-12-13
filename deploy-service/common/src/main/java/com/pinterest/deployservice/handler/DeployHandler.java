@@ -389,16 +389,19 @@ public class DeployHandler implements DeployHandlerInterface{
 
     DeployBean getLastSucceededDeploy(EnvironBean envBean) throws Exception {
         int index = 1;
-        int size = 10;
+        int size = 100;
         DeployFilterBean filterBean = new DeployFilterBean();
         filterBean.setEnvIds(Arrays.asList(envBean.getEnv_id()));
         filterBean.setPageIndex(index);
         filterBean.setPageSize(size);
-        while (true) {
+        int maxPages = 50; //This makes us check at most 5000 deploys
+        int tocheckPages = maxPages;
+        while (tocheckPages-- > 0) {
             DeployQueryFilter filter = new DeployQueryFilter(filterBean);
             DeployQueryResultBean resultBean = deployDAO.getAllDeploys(filter);
             if (resultBean.getTotal() < 1) {
-                LOG.warn("Could not find any previous succeeded deploy in env {}", envBean.getEnv_id());
+                LOG.warn("Could not find any previous succeeded deploy in env {}",
+                    envBean.getEnv_id());
                 return null;
             }
             for (DeployBean deploy : resultBean.getDeploys()) {
@@ -407,7 +410,11 @@ public class DeployHandler implements DeployHandlerInterface{
                 }
             }
             index += 1;
+            filterBean.setPageIndex(index);
         }
+        LOG.warn("Latest {} deploys are all failed for {}. Give up", size*maxPages, envBean.getEnv_id());
+        return null;
+
     }
 
     public String rollback(EnvironBean envBean, String toDeployId, String description, String operator) throws Exception {
