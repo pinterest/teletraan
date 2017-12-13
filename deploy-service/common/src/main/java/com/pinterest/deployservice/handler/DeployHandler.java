@@ -397,6 +397,7 @@ public class DeployHandler implements DeployHandlerInterface{
         int maxPages = 50; //This makes us check at most 5000 deploys
         int tocheckPages = maxPages;
         while (tocheckPages-- > 0) {
+        while (maxPages-- > 0) {
             DeployQueryFilter filter = new DeployQueryFilter(filterBean);
             DeployQueryResultBean resultBean = deployDAO.getAllDeploys(filter);
             if (resultBean.getTotal() < 1) {
