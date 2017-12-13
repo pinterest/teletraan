@@ -394,12 +394,13 @@ public class DeployHandler implements DeployHandlerInterface{
         filterBean.setEnvIds(Arrays.asList(envBean.getEnv_id()));
         filterBean.setPageIndex(index);
         filterBean.setPageSize(size);
-        int maxPages = 100; //This makes us check at most 10000 deploys
-        while (maxPages-->0) {
+        int maxPages = 50; //This makes us check at most 5000 deploys
+        while (maxPages-- > 0) {
             DeployQueryFilter filter = new DeployQueryFilter(filterBean);
             DeployQueryResultBean resultBean = deployDAO.getAllDeploys(filter);
             if (resultBean.getTotal() < 1) {
-                LOG.warn("Could not find any previous succeeded deploy in env {}", envBean.getEnv_id());
+                LOG.warn("Could not find any previous succeeded deploy in env {}",
+                    envBean.getEnv_id());
                 return null;
             }
             for (DeployBean deploy : resultBean.getDeploys()) {
