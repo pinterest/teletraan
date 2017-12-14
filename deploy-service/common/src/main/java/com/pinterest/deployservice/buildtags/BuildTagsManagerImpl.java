@@ -153,7 +153,7 @@ public class BuildTagsManagerImpl implements BuildTagsManager {
         Collections.sort(buildTagBeanList, new Comparator<BuildTagBean>() {
             @Override
             public int compare(BuildTagBean o1, BuildTagBean o2) {
-                if (o1.getBuild().getCommit_date() != o2.getBuild().getCommit_date()) {
+                if (!o1.getBuild().getCommit_date().equals(o2.getBuild().getCommit_date())) {
                     return o1.getBuild().getCommit_date().compareTo(o2.getBuild().getCommit_date());
                 }else{
                     //Same commit. sort by created date
