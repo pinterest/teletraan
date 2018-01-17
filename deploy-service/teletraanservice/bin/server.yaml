@@ -180,3 +180,7 @@ workers:
       period: 300
       minStaleHostThreshold: 150
       maxStaleHostThreshold: 600
+
+# Ping Requst validators:
+# pingrequestvalidators:
+#  -  com.pinterest.deployservice.pingrequests.Ec2InstanceValidator
