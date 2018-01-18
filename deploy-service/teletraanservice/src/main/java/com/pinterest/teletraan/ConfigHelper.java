@@ -16,28 +16,66 @@
 package com.pinterest.teletraan;
 
 
+import com.pinterest.deployservice.db.DBAgentDAOImpl;
+import com.pinterest.deployservice.db.DBAgentErrorDAOImpl;
+import com.pinterest.deployservice.db.DBBuildDAOImpl;
+import com.pinterest.deployservice.db.DBConfigHistoryDAOImpl;
+import com.pinterest.deployservice.db.DBDataDAOImpl;
+import com.pinterest.deployservice.db.DBDeployConstraintDAOImpl;
+import com.pinterest.deployservice.db.DBDeployDAOImpl;
+import com.pinterest.deployservice.db.DBEnvironDAOImpl;
+import com.pinterest.deployservice.db.DBGroupDAOImpl;
+import com.pinterest.deployservice.db.DBGroupRolesDAOImpl;
+import com.pinterest.deployservice.db.DBHostDAOImpl;
 import com.pinterest.deployservice.db.DBHostTagDAOImpl;
-import com.pinterest.deployservice.db.*;
+import com.pinterest.deployservice.db.DBHotfixDAOImpl;
+import com.pinterest.deployservice.db.DBPromoteDAOImpl;
+import com.pinterest.deployservice.db.DBRatingsDAOImpl;
+import com.pinterest.deployservice.db.DBScheduleDAOImpl;
+import com.pinterest.deployservice.db.DBTagDAOImpl;
+import com.pinterest.deployservice.db.DBTokenRolesDAOImpl;
+import com.pinterest.deployservice.db.DBUserRolesDAOImpl;
+import com.pinterest.deployservice.db.DBUtilDAOImpl;
 import com.pinterest.deployservice.events.DefaultEventSender;
+import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.teletraan.config.EventSenderFactory;
-import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
+import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
-import com.pinterest.teletraan.worker.*;
+import com.pinterest.teletraan.worker.AgentJanitor;
+import com.pinterest.teletraan.worker.AutoPromoter;
+import com.pinterest.teletraan.worker.BuildJanitor;
+import com.pinterest.teletraan.worker.DeployJanitor;
+import com.pinterest.teletraan.worker.DeployTagWorker;
+import com.pinterest.teletraan.worker.HostTerminator;
+import com.pinterest.teletraan.worker.HotfixStateTransitioner;
+import com.pinterest.teletraan.worker.SimpleAgentJanitor;
+import com.pinterest.teletraan.worker.StateTransitioner;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.dbcp.BasicDataSource;
-import org.quartz.*;
+import org.quartz.CronScheduleBuilder;
+import org.quartz.CronTrigger;
+import org.quartz.JobBuilder;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class ConfigHelper {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigHelper.class);
@@ -114,6 +152,15 @@ public class ConfigHelper {
         if (configuration.getExternalAlertsConfigs()!= null) {
             context.setExternalAlertsFactory(
                 configuration.getExternalAlertsConfigs().createExternalAlertFactory());
+        }
+
+        if (configuration.getPingRequestValidators()!=null){
+            List<PingRequestValidator> validators = new ArrayList<>();
+            for(String validator:configuration.getPingRequestValidators()){
+                LOG.info("Add PingRequestValidator {}", validator);
+                validators.add((PingRequestValidator)  Class.forName(validator).newInstance());
+            }
+            context.setPingRequestValidators(validators);
         }
 
 

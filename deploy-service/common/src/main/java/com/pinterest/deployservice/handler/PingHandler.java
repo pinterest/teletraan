@@ -15,15 +15,44 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentErrorBean;
+import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployConstraintBean;
+import com.pinterest.deployservice.bean.DeployGoalBean;
+import com.pinterest.deployservice.bean.DeployStage;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.bean.HostTagBean;
+import com.pinterest.deployservice.bean.OpCode;
+import com.pinterest.deployservice.bean.PingReportBean;
+import com.pinterest.deployservice.bean.PingRequestBean;
+import com.pinterest.deployservice.bean.PingResponseBean;
+import com.pinterest.deployservice.bean.PingResult;
+import com.pinterest.deployservice.bean.ScheduleBean;
+import com.pinterest.deployservice.bean.ScheduleState;
+import com.pinterest.deployservice.bean.TagSyncState;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.StateMachines;
-import com.pinterest.deployservice.dao.*;
+import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.AgentErrorDAO;
+import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.dao.DeployConstraintDAO;
+import com.pinterest.deployservice.dao.DeployDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.HostTagDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
+import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.pingrequests.PingRequestValidator;
+
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -31,7 +60,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -63,6 +99,7 @@ public class PingHandler {
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
     private LoadingCache<String, DeployBean> deployCache;
+    private List<PingRequestValidator> validators;
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -406,6 +443,11 @@ public class PingHandler {
     public PingResult ping(PingRequestBean pingRequest) throws Exception {
         // handle empty or unexpected request fields
         pingRequest = normalizePingRequest(pingRequest);
+
+        // validate requests
+        for(PingRequestValidator validator:validators){
+            validator.validate(pingRequest);
+        }
 
         // always update the host table
         this.updateHosts(pingRequest);

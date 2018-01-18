@@ -98,6 +98,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("externalAlerts")
     private ExternalAlertsConfigFactory externalAlertsConfigs;
 
+    @Valid
+    @JsonProperty("pingrequestvalidators")
+    private List<String> pingRequestValidators;
+
     public DataSourceFactory getDataSourceFactory() {
         if (dataSourceFactory == null) {
             return new EmbeddedDataSourceFactory();
@@ -230,5 +234,15 @@ public class TeletraanServiceConfiguration extends Configuration {
     public void setExternalAlertsConfigs(
         ExternalAlertsConfigFactory externalAlertsConfigs) {
         this.externalAlertsConfigs = externalAlertsConfigs;
+    }
+
+
+    public List<String> getPingRequestValidators() {
+        return pingRequestValidators;
+    }
+
+    public void setPingRequestValidators(
+        List<String> pingRequestValidators) {
+        this.pingRequestValidators = pingRequestValidators;
     }
 }
