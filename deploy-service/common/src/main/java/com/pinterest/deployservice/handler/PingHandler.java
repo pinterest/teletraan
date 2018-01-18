@@ -113,6 +113,7 @@ public class PingHandler {
         hostTagDAO = serviceContext.getHostTagDAO();
         deployConstraintDAO = serviceContext.getDeployConstraintDAO();
         dataHandler = new DataHandler(serviceContext);
+        validators = serviceContext.getPingRequestValidators();
 
         if (serviceContext.isBuildCacheEnabled()) {
             buildCache = CacheBuilder.from(serviceContext.getBuildCacheSpec().replace(";", ","))
@@ -444,9 +445,11 @@ public class PingHandler {
         // handle empty or unexpected request fields
         pingRequest = normalizePingRequest(pingRequest);
 
-        // validate requests
-        for(PingRequestValidator validator:validators){
-            validator.validate(pingRequest);
+        if (validators != null) {
+            // validate requests
+            for (PingRequestValidator validator : validators) {
+                validator.validate(pingRequest);
+            }
         }
 
         // always update the host table
