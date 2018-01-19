@@ -20,8 +20,8 @@
 </style>
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js?changedate=2016.12.19.150000"%}"></script>
-<script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2016.12.19.150000"%}"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.05.16.123000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2017.07.05.180000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.08.03.153000"%}"></script>
 
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
@@ -53,6 +53,7 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
+                    <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <baseimage-select v-show="inAdvanced" v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
                     v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
@@ -447,6 +448,7 @@
                 confirmDialogTitle: "Update Cluster Settings",
                 confirmDialogId: "updateClusterSettings",
                 currentProvider: currentCluster.provider,
+                currentCell: currentCluster.cellName,
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
                         value: item.abstract_name,
@@ -472,6 +474,14 @@
                         text: o
                     }
                 }),
+                cells: info.cells.map(
+                    function (item) {
+                        return {
+                            value: item.name,
+                            text: item.name,
+                            isSelected: item.name == currentCluster.cellName
+                        }
+                    }),
                 securityZones: info.securityZones.map(function(item) {
                     return {
                         value: item.abstract_name,
@@ -569,7 +579,7 @@
                                 onSuccess(data)
                             },
                             error: function(data) {
-                                globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                                globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                             }
                         });
                 },
@@ -584,13 +594,95 @@
                         })
                     }
                 },
-                imageNameChange: function(value) {
-                    capacitySetting.imageNameValue = value
-                    //Grab all images for this image name
-
+                cellChange: function(value) {
+                    capacitySetting.cellValue = value;
+                    capacitySetting.currentCell = value;
+                    // grab all the image names
+                    var scope = this;
+                    var provider = capacitySetting.currentProvider;
+                    var cell = value;
                     $.ajax({
                         type: 'GET',
-                        url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '/',
+                        url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell,
+                        dataType: "json",
+                        beforeSend: function (xhr) {
+                            var csrftoken = getCookie('csrftoken');
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        },
+                        success: function (data) {
+                            capacitySetting.imagenames = data.map(
+                                    function (o) {
+                                        return {
+                                            value: o,
+                                            text: o, isSelected: o === data[0]
+                                        }
+                                    });
+                            capacitySetting.imageNameValue = data[0];
+                            scope.imageNameChange(data[0]);
+                        },
+                        error: function (data) {
+                            globalNotificationBanner.error = data
+                        }
+                    });
+
+                     // grab all security zone for this cell
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + cell,
+                dataType: "json",
+                beforeSend: function (xhr) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    capacitySetting.securityZones = data.map(
+                        function (item) {
+                            return {
+                                value: item.abstract_name,
+                                text: item.abstract_name,
+                                isSelected: item.id === data[0].id
+                            }
+                        });
+                    capacitySetting.selectedSecurityZoneValue = data[0].abstract_name;
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            });
+            // grab all placement for this cell
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + cell,
+                dataType: "json",
+                beforeSend: function (xhr) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    var placements = getDefaultPlacement({'placements': data});
+
+                    capacitySetting.placements =  placements.allPrivate.map(
+                        function (item, index) {
+                            return {
+                                value: item.id,
+                                text: item.provider_name,
+                                isSelected: index < 3 //Select Top 3 by default
+                            }
+                        });
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            })
+
+                },
+                imageNameChange: function(value) {
+                    var cell = capacitySetting.currentCell;
+                    capacitySetting.imageNameValue = value;
+                    //Grab all images for this image name
+                    $.ajax({
+                        type: 'GET',
+                        url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?cell=' + cell,
                         dataType: "json",
                         beforeSend: function(xhr, settings) {
                             var csrftoken = getCookie('csrftoken')
@@ -633,7 +725,7 @@
                         return false
                     }
 
-                    if (imageNameValue === 'cmp_base' || imageNameValue === 'cmp_base_12'){
+                    if (imageNameValue.startsWith('cmp_base')){
                         if (!('pinfo_role' in clusterInfo.configs && clusterInfo.configs['pinfo_role']==='cmp_base')){
                             globalNotificationBanner.error = "cmp_base image must have pinfo_role set to cmp_base"
                             return false
@@ -663,7 +755,7 @@
                             globalNotificationBanner.info = "Request sent successfully"
                         },
                         error: function(data) {
-                            globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                            globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                         }
                     });
                 },
@@ -692,9 +784,11 @@
                     this.awsRole = value
                 },
                 updateCapacity: function() {
+                    // It's really just update cluster info config without capacity
                     //Create the default capacity. The input here aligns to the Rodimus new cluster
                     var clusterInfo = {};
                     clusterInfo['provider'] = this.currentProvider;
+                    clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['baseImageId'] = this.baseImageValue;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
@@ -714,7 +808,7 @@
                         clusterInfo.configs['aws_role'] = this.awsRole
                     }
 
-                    if (this.imageNameValue === 'cmp_base' || this.imageNameValue === 'cmp_base_12'){
+                    if (this.imageNameValue.startsWith('cmp_base')){
                         //cmp_base must have cmp_group set.
                         if (!('cmp_group' in clusterInfo['configs'])||clusterInfo['configs']['cmp_group'] === undefined){
                             clusterInfo['configs']['cmp_group'] = info.defaultCMPConfigs['cmp_group']
@@ -789,7 +883,7 @@
                                 window.location.href=window.location.href
                             },
                             error: function (data) {
-                                globalNotificationBanner.error = "Request Error: "+data.status+" " +data.statusText
+                                globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                             }
                         });
                     },

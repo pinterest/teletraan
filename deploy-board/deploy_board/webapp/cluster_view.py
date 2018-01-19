@@ -22,14 +22,16 @@ from django.views.generic import View
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
-        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE
+        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL
 import json
 import logging
 
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
-    autoscaling_groups_helper, groups_helper
+    autoscaling_groups_helper, groups_helper, cells_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
+from helpers.exceptions import NotAuthorizedException
 import common
+import traceback
 
 log = logging.getLogger(__name__)
 
@@ -43,11 +45,11 @@ class EnvCapacityBasicCreateView(View):
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
-        security_zones = securityzones_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
-        placements = placements_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
-        default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE)
+        security_zones = securityzones_helper.get_by_provider_and_cell_name(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+        placements = placements_helper.get_by_provider_and_cell_name(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+        default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         env = environs_helper.get_env_by_stage(request, name, stage)
 
         capacity_creation_info = {
@@ -84,8 +86,11 @@ class EnvCapacityBasicCreateView(View):
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
             return HttpResponse("{}", content_type="application/json")
+        except NotAuthorizedException as e:
+            log.error("Have an NotAuthorizedException error {}".format(e))
+            return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
-            log.info("Have an error {}".format(e))
+            log.error("Have an error {}".format(e))
             return HttpResponse(e, status=500, content_type="application/json")
 
 
@@ -96,13 +101,14 @@ class EnvCapacityAdvCreateView(View):
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
-        security_zones = securityzones_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
-        placements = placements_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
-        base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE)
+        security_zones = securityzones_helper.get_by_provider_and_cell_name(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+        placements = placements_helper.get_by_provider_and_cell_name(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+        cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         base_images_names = baseimages_helper.get_image_names(
-            request, DEFAULT_PROVIDER)
+            request, DEFAULT_PROVIDER, DEFAULT_CELL)
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -112,11 +118,13 @@ class EnvCapacityAdvCreateView(View):
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
+            'cells': cells,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
+            'defaultCell': DEFAULT_CELL,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
@@ -140,9 +148,17 @@ class EnvCapacityAdvCreateView(View):
             environs_helper.update_env_basic_config(request, name, stage,
                                                     data={"clusterName": cluster_name, "IsDocker": True})
 
+            log.info("Update capacity to the environment")
+            # set up env and group relationship
+            environs_helper.add_env_capacity(
+                request, name, stage, capacity_type="GROUP", data=cluster_name)
+
             return HttpResponse("{}", content_type="application/json")
+        except NotAuthorizedException as e:
+            log.error("Have an NotAuthorizedException error {}".format(e))
+            return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
-            log.info("Have an error {}", e)
+            log.error("Have an error {}", e)
             return HttpResponse(e, status=500, content_type="application/json")
 
 
@@ -159,20 +175,22 @@ class ClusterConfigurationView(View):
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
-        security_zones = securityzones_helper.get_by_provider(
-            request, current_cluster['provider'])
-        placements = placements_helper.get_by_provider(
-            request, current_cluster['provider'])
+        cells = cells_helper.get_by_provider(request, current_cluster['provider'])
+        security_zones = securityzones_helper.get_by_provider_and_cell_name(
+            request, current_cluster['provider'], current_cluster['cellName'])
+        placements = placements_helper.get_by_provider_and_cell_name(
+            request, current_cluster['provider'], current_cluster['cellName'])
         base_images = get_base_image_info_by_name(
-            request, current_image['abstract_name'])
+            request, current_image['abstract_name'], current_cluster['cellName'])
         base_images_names = baseimages_helper.get_image_names(
-            request, current_cluster['provider'])
+            request, current_cluster['provider'], current_cluster['cellName'])
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
 
         capacity_creation_info = {
             'environment': env,
+            'cells': cells,
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
@@ -198,8 +216,11 @@ class ClusterConfigurationView(View):
             image = baseimages_helper.get_by_id(
                 request, cluster_info['baseImageId'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
+        except NotAuthorizedException as e:
+            log.error("Have an NotAuthorizedException error {}".format(e))
+            return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
-            log.info("Post to cluster configuration view has an error {}", e)
+            log.error("Post to cluster configuration view has an error {}", e)
             return HttpResponse(e, status=500, content_type="application/json")
         return HttpResponse(json.dumps(cluster_info), content_type="application/json")
 
@@ -216,10 +237,12 @@ class ClusterCapacityUpdateView(View):
             maxSize = int(settings['maxsize'])
             clusters_helper.update_cluster_capacity(
                 request, cluster_name, minSize, maxSize)
+        except NotAuthorizedException as e:
+            log.error("Have an NotAuthorizedException error {}".format(e))
+            return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
-            log.info("Post to cluster capacity view has an error {}", e)
+            log.error("Post to cluster capacity view has an error {}", e)
             return HttpResponse(e, status=500, content_type="application/json")
-
         return HttpResponse(json.dumps(settings), content_type="application/json")
 
 
@@ -230,6 +253,7 @@ def create_base_image(request):
     base_image_info['provider_name'] = params['providerName']
     base_image_info['provider'] = params['provider']
     base_image_info['description'] = params['description']
+    base_image_info['cell_name'] = params['cellName']
     if 'basic' in params:
         base_image_info['basic'] = True
     else:
@@ -243,10 +267,12 @@ def get_base_images(request):
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     base_images = baseimages_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
+    cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/base_images.html', {
         'base_images': base_images,
         'provider_list': provider_list,
+        'cells_list': cells_list,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -254,12 +280,33 @@ def get_base_images(request):
     })
 
 
+def get_image_names_by_provider_and_cell(request, provider, cell):
+    image_names = baseimages_helper.get_image_names(request, provider, cell)
+    return HttpResponse(json.dumps(image_names), content_type="application/json")
+
+
+def get_images_by_provider_and_cell(request, provider, cell):
+    images = baseimages_helper.get_all_by(request, provider, cell)
+    return HttpResponse(json.dumps(images), content_type="application/json")
+
+
+def get_placements_by_provider_and_cell(request, provider, cell):
+    data = placements_helper.get_by_provider_and_cell_name(request, provider, cell)
+    return HttpResponse(json.dumps(data), content_type="application/json")
+
+
+def get_security_zones_by_provider_and_cell(request, provider, cell):
+    data = securityzones_helper.get_by_provider_and_cell_name(request, provider, cell)
+    return HttpResponse(json.dumps(data), content_type="application/json")
+
+
 def get_image_names(request):
     params = request.GET
     provider = params['provider']
     env_name = params['env']
     stage_name = params['stage']
-    image_names = baseimages_helper.get_image_names(request, provider)
+    cell = params.get('cell', DEFAULT_CELL)
+    image_names = baseimages_helper.get_image_names(request, provider, cell)
     curr_image_name = None
     curr_base_image = None
     if 'curr_base_image' in params:
@@ -280,17 +327,18 @@ def get_image_names(request):
 
 def get_base_images_by_name(request):
     params = request.GET
+    cell = params.get('cell', DEFAULT_CELL)
     base_images = None
     if 'name' in params:
         name = params['name']
-        base_images = baseimages_helper.get_by_name(request, name)
+        base_images = baseimages_helper.get_by_name(request, name, cell)
 
     curr_base_image = None
     if 'curr_base_image' in params:
         curr_base_image = params['curr_base_image']
         image = baseimages_helper.get_by_id(request, curr_base_image)
         curr_image_name = image.get('abstract_name')
-        base_images = baseimages_helper.get_by_name(request, curr_image_name)
+        base_images = baseimages_helper.get_by_name(request, curr_image_name, cell)
 
     contents = render_to_string("clusters/get_base_image.tmpl", {
         'base_images': base_images,
@@ -299,9 +347,9 @@ def get_base_images_by_name(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
-def get_base_image_info_by_name(request, name):
+def get_base_image_info_by_name(request, name, cell):
     if name.startswith('cmp_base'):
-        base_images = baseimages_helper.get_acceptance_by_name(request, name)
+        base_images = baseimages_helper.get_acceptance_by_name(request, name, cell)
         with_acceptance_rs = []
         if base_images:
             for image in base_images:
@@ -310,16 +358,15 @@ def get_base_image_info_by_name(request, name):
                     r['acceptance'] = image.get('acceptance', 'UNKNOWN')
                     with_acceptance_rs.append(r)
         return with_acceptance_rs
-    return baseimages_helper.get_by_name(request, name)
-
-
-def get_base_image_info(request, name):
-    base_images = baseimages_helper.get_by_name(request, name)
-    return HttpResponse(json.dumps(base_images), content_type="application/json")
+    return baseimages_helper.get_by_name(request, name, cell)
 
 
 def get_base_images_by_name_json(request, name):
-    base_images = get_base_image_info_by_name(request, name)
+    cell = DEFAULT_CELL
+    params = request.GET
+    if params:
+        cell = params.get('cell', DEFAULT_CELL)
+    base_images = get_base_image_info_by_name(request, name, cell)
     return HttpResponse(json.dumps(base_images), content_type="application/json")
 
 
@@ -393,6 +440,7 @@ def create_security_zone(request):
     security_zone_info['provider_name'] = params['providerName']
     security_zone_info['provider'] = params['provider']
     security_zone_info['description'] = params['description']
+    security_zone_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
     if 'basic' in params:
         security_zone_info['basic'] = True
     else:
@@ -406,10 +454,12 @@ def get_security_zones(request):
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     security_zones = securityzones_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
+    cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/security_zones.html', {
         'security_zones': security_zones,
         'provider_list': provider_list,
+        'cells_list': cells_list,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -423,8 +473,9 @@ def get_security_zones_by_provider(request):
     curr_security_zone = None
     if 'curr_security_zone' in params:
         curr_security_zone = params['curr_security_zone']
+    cell = params.get('cell', DEFAULT_CELL)
 
-    security_zones = securityzones_helper.get_by_provider(request, provider)
+    security_zones = securityzones_helper.get_by_provider_and_cell_name(request, provider, cell)
     contents = render_to_string("clusters/get_security_zone.tmpl", {
         'security_zones': security_zones,
         'curr_security_zone': curr_security_zone,
@@ -446,6 +497,7 @@ def create_placement(request):
     placement_info['provider_name'] = params['providerName']
     placement_info['provider'] = params['provider']
     placement_info['description'] = params['description']
+    placement_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
     if 'basic' in params:
         placement_info['basic'] = True
     else:
@@ -459,10 +511,12 @@ def get_placements(request):
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     placements = placements_helper.get_all(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
+    cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/placements.html', {
         'placements': placements,
         'provider_list': provider_list,
+        'cells_list': cells_list,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -473,12 +527,13 @@ def get_placements(request):
 def get_placements_by_provider(request):
     params = request.GET
     provider = params['provider']
+    cell = params.get('cell', DEFAULT_CELL)
     curr_placement_arrays = None
     if 'curr_placement' in params:
         curr_placement = params['curr_placement']
         curr_placement_arrays = curr_placement.split(',')
 
-    placements = placements_helper.get_by_provider(request, provider)
+    placements = placements_helper.get_by_provider_and_cell_name(request, provider, cell)
     contents = render_to_string("clusters/get_placement.tmpl", {
         'placements': placements,
         'curr_placement_arrays': curr_placement_arrays,
@@ -546,6 +601,86 @@ def delete_cluster(request, name, stage):
     environs_helper.remove_env_capacity(
         request, name, stage, capacity_type="GROUP", data=cluster_name)
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
+
+
+def clone_cluster(request, src_name, src_stage):
+    try:
+        params = request.POST
+        dest_name = params.get('new_environment', src_name)
+        dest_stage = params.get('new_stage', src_stage + '_clone')
+
+        src_cluster_name = '{}-{}'.format(src_name, src_stage)
+        dest_cluster_name = '{}-{}'.format(dest_name, dest_stage)
+
+        ##0. teletraan service get src env buildName
+        src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
+        build_name = src_env.get('buildName', None)
+
+        ##1. teletraan service create a new env
+        dest_env = environs_helper.create_env(request, {
+            'envName': dest_name,
+            'stageName': dest_stage,
+            'buildName': build_name
+        })
+        log.info('clone_cluster, created a new env %s' % dest_env)
+
+        ##2. rodimus service get src_cluster config
+        src_cluster_info = clusters_helper.get_cluster(request, src_cluster_name)
+        log.info('clone_cluster, src cluster info %s' % src_cluster_info)
+        configs = src_cluster_info.get('configs')
+        if configs:
+            cmp_group = configs.get('cmp_group')
+            if cmp_group:
+                cmp_groups_set = set(cmp_group.split(','))
+                cmp_groups_set.remove(src_cluster_name)
+                cmp_groups_set.remove('CMP')
+                cmp_groups_set.add(dest_cluster_name)
+                # CMP needs to be the first in the list
+                configs['cmp_group'] = ','.join(['CMP'] + list(cmp_groups_set))
+                src_cluster_info['configs'] = configs
+
+        ##3. rodimus service post create cluster
+        src_cluster_info['clusterName'] = dest_cluster_name
+        src_cluster_info['capacity'] = 0
+        log.info('clone_cluster, request clone cluster info %s' % src_cluster_info)
+        dest_cluster_info = clusters_helper.create_cluster(request, dest_cluster_name, src_cluster_info)
+        log.info('clone_cluster, cloned cluster info %s' % dest_cluster_info)
+
+        ##4. teletraan service update_env_basic_config
+        environs_helper.update_env_basic_config(request, dest_name, dest_stage,
+                                                data={"clusterName": dest_cluster_name}
+                                                )
+        ##5. teletraan service set up env and group relationship
+        environs_helper.update_env_capacity(request, dest_name, dest_stage, capacity_type="GROUP",
+                                            data=[dest_cluster_name])
+
+        ##6. get src script_config
+        src_script_configs = environs_helper.get_env_script_config(request, src_name, src_stage)
+        src_agent_configs = environs_helper.get_env_agent_config(request, src_name, src_stage)
+        src_alarms_configs = environs_helper.get_env_alarms_config(request, src_name, src_stage)
+        src_metrics_configs = environs_helper.get_env_metrics_config(request, src_name, src_stage)
+        src_webhooks_configs = environs_helper.get_env_hooks_config(request, src_name, src_stage)
+
+        ##8. clone all the extra configs
+        if src_agent_configs:
+            environs_helper.update_env_agent_config(request, dest_name, dest_stage, src_agent_configs)
+        if src_script_configs:
+            environs_helper.update_env_script_config(request, dest_name, dest_stage, src_script_configs)
+        if src_alarms_configs:
+            environs_helper.update_env_alarms_config(request, dest_name, dest_stage, src_alarms_configs)
+        if src_metrics_configs:
+            environs_helper.update_env_metrics_config(request, dest_name, dest_stage, src_metrics_configs)
+        if src_webhooks_configs:
+            environs_helper.update_env_hooks_config(request, dest_name, dest_stage, src_webhooks_configs)
+
+        return HttpResponse(json.dumps(src_cluster_info), content_type="application/json")
+    except NotAuthorizedException as e:
+        log.error("Have an NotAuthorizedException error {}".format(e))
+        return HttpResponse(e, status=403, content_type="application/json")
+    except Exception as e:
+        log.error("Failed to clone cluster env_name: %s, stage_name: %s" % (src_name, src_stage))
+        log.error(traceback.format_exc())
+        return HttpResponse(e, status=500, content_type="application/json")
 
 
 def get_aws_config_name_list_by_image(image_name):

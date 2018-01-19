@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,34 +16,48 @@
 package com.pinterest.teletraan;
 
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.alerts.ExternalAlertFactory;
 import com.pinterest.teletraan.security.Authorizer;
 
 public class TeletraanServiceContext extends ServiceContext {
-    private Authorizer authorizer;
-    private int maxDaysToKeep;
-    private int maxBuildsToKeep;
 
-    public Authorizer getAuthorizer() {
-        return authorizer;
-    }
+  private Authorizer authorizer;
+  private int maxDaysToKeep;
+  private int maxBuildsToKeep;
+  private ExternalAlertFactory externalAlertsFactory;
 
-    public void setAuthorizer(Authorizer authz) {
-        this.authorizer = authz;
-    }
 
-    public void setMaxDaysToKeep(int maxDaysToKeep) {
-        this.maxDaysToKeep = maxDaysToKeep;
-    }
+  public ExternalAlertFactory getExternalAlertsFactory() {
+    return externalAlertsFactory;
+  }
 
-    public int getMaxDaysToKeep() {
-        return maxDaysToKeep;
-    }
+  public void setExternalAlertsFactory(
+      ExternalAlertFactory externalAlertsFactory) {
+    this.externalAlertsFactory = externalAlertsFactory;
+  }
 
-    public void setMaxBuildsToKeep(int maxBuildsToKeep) {
-        this.maxBuildsToKeep = maxBuildsToKeep;
-    }
+  public Authorizer getAuthorizer() {
+    return authorizer;
+  }
 
-    public int getMaxBuildsToKeep() {
-        return maxBuildsToKeep;
-    }
+  public void setAuthorizer(Authorizer authz) {
+    this.authorizer = authz;
+  }
+
+  public int getMaxDaysToKeep() {
+    return maxDaysToKeep;
+  }
+
+  public void setMaxDaysToKeep(int maxDaysToKeep) {
+    this.maxDaysToKeep = maxDaysToKeep;
+  }
+
+  public int getMaxBuildsToKeep() {
+    return maxBuildsToKeep;
+  }
+
+  public void setMaxBuildsToKeep(int maxBuildsToKeep) {
+    this.maxBuildsToKeep = maxBuildsToKeep;
+  }
+
 }

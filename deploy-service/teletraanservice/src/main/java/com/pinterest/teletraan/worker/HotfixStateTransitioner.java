@@ -47,7 +47,7 @@ public class HotfixStateTransitioner implements Runnable {
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
     // TODO make this configurable
-    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 30;
+    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 60;
 
     public HotfixStateTransitioner(ServiceContext serviceContext) {
         hotfixDAO = serviceContext.getHotfixDAO();

@@ -18,8 +18,6 @@ import stat
 import tempfile
 import fcntl
 import utils
-import subprocess
-from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
 

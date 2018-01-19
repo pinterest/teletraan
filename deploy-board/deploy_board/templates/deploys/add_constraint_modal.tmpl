@@ -1,0 +1,45 @@
+<div class="modal fade" id="addDeployConstraintModalId" tabindex="-1" role="dialog"
+    aria-labelledby="addDeployConstraintModalLabel" aria-hidden="true">
+     <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form class="form-horizontal" method="post" action="/env/{{ envName }}/{{ stageName }}/add_constraint"
+                  role="form">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="addDeployConstraintModalLabel">Add a deploy constraint</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="tag_name" class="col-md-4 control-label">Exclusive Deploy Tag Name </label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="tag_name"
+                                   required="required"
+                                   placeholder="We've listed all the EC2 Tags related with hosts in this environment, pick one."
+                                   data-toggle="tooltip"
+                                   data-placement="right"
+                                   data-trigger="manual"
+                                   >
+                        </div>
+                        <label for="max_parallel" class="col-md-4 control-label">Max Parallel Number of Hosts</label>
+                        <div class="col-md-8">
+                            <input type="text" class="form-control" name="max_parallel"
+                                   required="required"
+                                   placeholder="number of hosts in parallel for deployment"
+                                   data-toggle="tooltip"
+                                   data-placement="right"
+                                   data-trigger="manual"
+                                   title="numbers only.">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

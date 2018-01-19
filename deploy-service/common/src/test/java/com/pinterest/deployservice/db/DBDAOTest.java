@@ -728,7 +728,7 @@ public class DBDAOTest {
         assertEquals(hostBean3.iterator().next().getHost_name(), "host-3");
         groupDAO.removeGroupCapacity("e-3", "new_group");
 
-        // test host insert
+        // test host insertOrUpdate
         HostBean hostBean1 = new HostBean();
         hostBean1.setHost_name("i-9");
         hostBean1.setHost_id("i-9");
@@ -1031,6 +1031,7 @@ public class DBDAOTest {
         assertEquals(bean.getState_start_time(), time);
 
         ScheduleBean updateBean = new ScheduleBean();
+        updateBean.setTotal_sessions(3);
         updateBean.setCurrent_session(1);
         updateBean.setState(ScheduleState.RUNNING);
         scheduleDAO.update(updateBean, id);

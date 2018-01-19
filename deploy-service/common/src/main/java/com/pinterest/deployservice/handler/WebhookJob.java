@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,11 +15,12 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.google.common.base.Splitter;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.WebHookBean;
 import com.pinterest.deployservice.common.HTTPClient;
+
+import com.google.common.base.Splitter;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,21 +48,33 @@ public class WebhookJob implements Callable<Void> {
         for (WebHookBean webhook : webhooks) {
             // TODO use method, version and headers, use jersey or apache http client
             // TODO we transform $TELETRAAN_NAME into the actual values, currently we support
-            // $TELETRAAN_DEPLOY_ID
+            // $TELETRAAN_DEPLOY_ID, $TELETRAAN_DEPLOY_START, $TELETRAAN_NUMERIC_DEPLOY_STATE
             // We should support more such as $TELETRAAN_COMMIT, $TELETRAAN_ENV_NAME etc.
+            String deployId = deployBean.getDeploy_id();
+            String numericDeployState = String.valueOf(deployBean.getState().ordinal());
+            String deployStart = String.valueOf(deployBean.getStart_date());
             String url = webhook.getUrl();
-            url = url.replaceAll("\\$TELETRAAN_DEPLOY_ID", this.deployBean.getDeploy_id());
+            url = url
+                .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
+                .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
+                .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
             LOG.info("Url after transform is {}", url);
 
             String headerString = webhook.getHeaders();
             if (!StringUtils.isEmpty(headerString)) {
-                headerString = headerString.replaceAll("\\$TELETRAAN_DEPLOY_ID", this.deployBean.getDeploy_id());
+                headerString = headerString
+                    .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
+                    .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
+                    .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
             }
             LOG.info("Header string after transform is {}", headerString);
 
             String bodyString = webhook.getBody();
             if (!StringUtils.isEmpty(bodyString)) {
-                bodyString = bodyString.replaceAll("\\$TELETRAAN_DEPLOY_ID", this.deployBean.getDeploy_id());
+                bodyString = bodyString
+                    .replaceAll("\\$TELETRAAN_DEPLOY_ID", deployId)
+                    .replaceAll("\\$TELETRAAN_DEPLOY_START", deployStart)
+                    .replaceAll("\\$TELETRAAN_NUMERIC_DEPLOY_STATE", numericDeployState);
             }
             LOG.info("Body string after transform is {}", bodyString);
 

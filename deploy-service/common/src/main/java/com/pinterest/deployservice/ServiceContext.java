@@ -16,16 +16,38 @@
 package com.pinterest.deployservice;
 
 
+import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
-import com.pinterest.deployservice.dao.*;
+import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.AgentErrorDAO;
+import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.dao.ConfigHistoryDAO;
+import com.pinterest.deployservice.dao.DataDAO;
+import com.pinterest.deployservice.dao.DeployConstraintDAO;
+import com.pinterest.deployservice.dao.DeployDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.GroupDAO;
+import com.pinterest.deployservice.dao.GroupRolesDAO;
+import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.HostTagDAO;
+import com.pinterest.deployservice.dao.HotfixDAO;
+import com.pinterest.deployservice.dao.PromoteDAO;
+import com.pinterest.deployservice.dao.RatingDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
+import com.pinterest.deployservice.dao.TagDAO;
+import com.pinterest.deployservice.dao.TokenRolesDAO;
+import com.pinterest.deployservice.dao.UserRolesDAO;
+import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.email.MailManager;
 import com.pinterest.deployservice.events.EventSender;
 import com.pinterest.deployservice.group.HostGroupManager;
+import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManager;
 
 import org.apache.commons.dbcp.BasicDataSource;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 public class ServiceContext {
@@ -50,6 +72,8 @@ public class ServiceContext {
     private ConfigHistoryDAO configHistoryDAO;
     private TagDAO tagDAO;
     private ScheduleDAO scheduleDAO;
+    private HostTagDAO hostTagDAO;
+    private DeployConstraintDAO deployConstraintDAO;
 
     private String serviceStage;
     private MailManager mailManager;
@@ -57,6 +81,7 @@ public class ServiceContext {
     private ChatManager chatManager;
     private ExecutorService jobPool;
     private RodimusManager rodimusManager;
+    private BuildTagsManager buildTagsManager;
 
     private boolean buildCacheEnabled;
     private String buildCacheSpec;
@@ -66,6 +91,7 @@ public class ServiceContext {
     private String changeFeedUrl;
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
+    private List<PingRequestValidator> pingRequestValidators;
 
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;
@@ -185,6 +211,22 @@ public class ServiceContext {
 
     public HostGroupManager getHostGroupDAO() {
         return hostGroupDAO;
+    }
+
+    public HostTagDAO getHostTagDAO() {
+        return hostTagDAO;
+    }
+
+    public void setHostTagDAO(HostTagDAO hostTagDAO) {
+        this.hostTagDAO = hostTagDAO;
+    }
+
+    public DeployConstraintDAO getDeployConstraintDAO() {
+        return deployConstraintDAO;
+    }
+
+    public void setDeployConstraintDAO(DeployConstraintDAO deployConstraintDAO) {
+        this.deployConstraintDAO = deployConstraintDAO;
     }
 
     public void setConfigHistoryDAO(ConfigHistoryDAO configHistoryDAO) {
@@ -347,5 +389,22 @@ public class ServiceContext {
 
     public void setScheduleDAO(ScheduleDAO scheduleDAO) {
         this.scheduleDAO = scheduleDAO;
+    }
+
+    public BuildTagsManager getBuildTagsManager() {
+        return buildTagsManager;
+    }
+
+    public void setBuildTagsManager(BuildTagsManager buildTagsManager) {
+        this.buildTagsManager = buildTagsManager;
+    }
+
+    public List<PingRequestValidator> getPingRequestValidators() {
+        return pingRequestValidators;
+    }
+
+    public void setPingRequestValidators(
+        List<PingRequestValidator> pingRequestValidators) {
+        this.pingRequestValidators = pingRequestValidators;
     }
 }

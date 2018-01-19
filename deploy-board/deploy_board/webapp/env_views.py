@@ -22,9 +22,13 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
+from deploy_board.settings import GUINEA_PIG_ENVS
+from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
 from django.conf import settings
 import agent_report
+import service_add_ons
 import common
 import random
 import json
@@ -104,6 +108,62 @@ def _fetch_param_with_cookie(request, param_name, cookie_name, default):
     saved_value = request.COOKIES.get(cookie_name, default)
     return request.GET.get(param_name, saved_value)
 
+def logging_status(request, name, stage):
+
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    envs = environs_helper.get_all_env_stages(request, name)
+    showMode = _fetch_param_with_cookie(
+        request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    sortByStatus = _fetch_param_with_cookie(
+        request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
+
+    html = render_to_string('deploys/deploy_logging_check_landing.tmpl', {
+        "envs": envs,
+        "csrf_token": get_token(request),
+        "panel_title": "Kafka logging for %s (%s)" % (name, stage),
+        "env": env,
+        "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
+        "pinterest": IS_PINTEREST
+    })
+
+    response = HttpResponse(html)
+
+    # save preferences
+    response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
+
+    return response
+
+def check_logging_status(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    progress = deploys_helper.update_progress(request, name, stage)
+    showMode = _fetch_param_with_cookie(
+        request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    sortByStatus = _fetch_param_with_cookie(
+        request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
+
+    lognames = request.GET.get('lognames', '')
+    topics = request.GET.get('topics', '')
+
+    configStr = "%s:%s" % (topics, lognames)
+
+    report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
+    kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=name,
+                                                             report=report,
+                                                             configStr=configStr)
+    report.showMode = showMode
+    report.sortByStatus = sortByStatus
+    html = render_to_string('deploys/deploy_logging_check_update.tmpl', {
+        "logHealthResult": kafkaLoggingAddOn.logHealthReport
+    })
+
+    response = HttpResponse(html)
+
+    # save preferences
+    response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
+
+    return response
 
 def update_deploy_progress(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
@@ -117,11 +177,19 @@ def update_deploy_progress(request, name, stage):
 
     report.showMode = showMode
     report.sortByStatus = sortByStatus
-    html = render_to_string('deploys/deploy_progress.tmpl', {
+    context = {
         "report": report,
         "env": env,
         "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
-    })
+        "pinterest": IS_PINTEREST
+    }
+    sortByTag = _fetch_param_with_cookie(
+        request, 'sortByTag', MODE_COOKIE_NAME, None)
+    if sortByTag:
+        report.sortByTag = sortByTag
+        context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
+
+    html = render_to_string('deploys/deploy_progress.tmpl', context)
 
     response = HttpResponse(html)
 
@@ -131,6 +199,35 @@ def update_deploy_progress(request, name, stage):
 
     return response
 
+def update_service_add_ons(request, name, stage):
+    serviceAddOns = []
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    progress = deploys_helper.update_progress(request, name, stage)
+    report = agent_report.gen_report(request, env, progress)
+
+
+    # Currently we assume that the servicename is the same as the environment name.
+    serviceName = name
+    rateLimitingAddOn = service_add_ons.getRatelimitingAddOn(serviceName=serviceName,
+                                                             report=report)
+    dashboardAddOn = service_add_ons.getDashboardAddOn(serviceName=serviceName,
+                                                       report=report)
+    serviceAddOns.append(rateLimitingAddOn)
+
+    if name in KAFKA_LOGGING_ADD_ON_ENVS:
+        kafkaLoggingAddOn = service_add_ons.getKafkaLoggingAddOn(serviceName=serviceName,
+                                                                 report=report)
+        serviceAddOns.append(kafkaLoggingAddOn)
+
+    serviceAddOns.append(dashboardAddOn)
+
+    html = render_to_string('deploys/deploy_add_ons.tmpl', {
+        "serviceAddOns": serviceAddOns,
+        "pinterest": IS_PINTEREST
+    })
+
+    response = HttpResponse(html)
+    return response
 
 def removeEnvCookie(request, name):
     if ENV_COOKIE_NAME in request.COOKIES:
@@ -230,6 +327,8 @@ class EnvLandingView(View):
                 "metrics": metrics,
                 "alarms": alarms,
                 "request_feedback": request_feedback,
+                "code_freeze": IS_DURING_CODE_FREEZE,
+                "code_freeze_url": TELETRAAN_CODE_FREEZE_URL,
                 "groups": groups,
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
@@ -252,7 +351,7 @@ class EnvLandingView(View):
             report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
             report.showMode = showMode
             report.sortByStatus = sortByStatus
-            response = render(request, 'environs/env_landing.html', {
+            context = {
                 "envs": envs,
                 "env": env,
                 "env_promote": env_promote,
@@ -262,13 +361,20 @@ class EnvLandingView(View):
                 "metrics": metrics,
                 "alarms": alarms,
                 "request_feedback": request_feedback,
+                "code_freeze": IS_DURING_CODE_FREEZE,
+                "code_freeze_url": TELETRAAN_CODE_FREEZE_URL,
                 "groups": groups,
                 "basic_cluster_info": basic_cluster_info,
                 "capacity_info": json.dumps(capacity_info),
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
-            })
+            }
+            sortByTag = request.GET.get('sortByTag', None)
+            if sortByTag:
+                report.sortByTag = sortByTag
+                context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
+            response = render(request, 'environs/env_landing.html', context)
 
         # save preferences
         response.set_cookie(ENV_COOKIE_NAME, genEnvCookie(request, name))
@@ -814,8 +920,10 @@ def rollback(request, name, stage):
     deploys = result.get("deploys")
 
     # remove the first deploy if exists
+    current_build_id = None
     if deploys:
-        deploys.pop(0)
+        current_deploy = deploys.pop(0)
+        current_build_id = current_deploy['buildId']
 
     # append the build info
     deploy_summaries = []
@@ -848,6 +956,7 @@ def rollback(request, name, stage):
         "branch": branch,
         "commit": commit,
         "build_id": build_id,
+        "current_build_id": current_build_id,
         "csrf_token": get_token(request),
     })
     return HttpResponse(html)
@@ -937,6 +1046,8 @@ def get_hosts(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
     agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
+    if agents:
+        sorted(agents, key=lambda x:x['hostName'])
     title = "All hosts"
 
     agents_wrapper = {}

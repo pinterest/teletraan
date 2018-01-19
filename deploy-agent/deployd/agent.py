@@ -43,12 +43,14 @@ class PingServer(object):
     def __call__(self, deploy_report):
         return self._agent.update_deploy_status(deploy_report=deploy_report)
 
+
 class AgentRunMode(object):
     SERVERLESS = "serverless"
 
     @staticmethod
     def is_serverless(mode):
         return AgentRunMode.SERVERLESS == mode
+
 
 class DeployAgent(object):
     _STATUS_FILE = None
@@ -87,9 +89,8 @@ class DeployAgent(object):
             self._executor = Executor(callback=PingServer(self), config=self._config)
 
         # start to ping server to get the latest deploy goal
-        response = self._client.send_reports(self._envs)
+        self._response = self._client.send_reports(self._envs)
 
-        self._response = response
         if self._response:
             report = self._update_internal_deploy_goal(self._response)
             # failed to update
@@ -162,8 +163,9 @@ class DeployAgent(object):
             log.exception("Deploy Agent got exceptions: {}".format(traceback.format_exc()))
 
     def _resolve_deleted_env_name(self, envName, envId):
-        # When server return DELETE goal, the envName might be empty if the env has already been deleted.
-        # This function would try to figure out the envName based on the envId in the DELETE goal
+        # When server return DELETE goal, the envName might be empty if the env has already been
+        # deleted. This function would try to figure out the envName based on the envId in the
+        # DELETE goal.
         if envName:
             return envName
         for name, value in self._envs.iteritems():
@@ -180,7 +182,7 @@ class DeployAgent(object):
             if envName in self._envs:
                 del self._envs[envName]
             else:
-                log.info('Cannot find env {} in the ping report'.format(env_name))
+                log.info('Cannot find env {} in the ping report'.format(envName))
 
             if self._curr_report.report.envName == deploy_goal.envName:
                 self._curr_report = None
@@ -273,18 +275,18 @@ class DeployAgent(object):
                           if status.build_info]
         builds_dir = self._config.get_builds_directory()
         num_retain_builds = self._config.get_num_builds_retain()
-        build_name = self._curr_report.report.envName
+        env_name = self._curr_report.report.envName
         # clear stale builds
         if len(builds_to_keep) > 0:
-            self.clean_stale_files(build_name, builds_dir, builds_to_keep, num_retain_builds)
+            self.clean_stale_files(env_name, builds_dir, builds_to_keep, num_retain_builds)
 
-    def clean_stale_files(self, build_name, dir, files_to_keep, num_file_to_retain):
-        for build in self._helper.get_stale_builds(self._helper.builds_available_locally(dir),
+    def clean_stale_files(self, env_name, dir, files_to_keep, num_file_to_retain):
+        for build in self._helper.get_stale_builds(self._helper.builds_available_locally(dir,env_name),
                                                    num_file_to_retain):
             if build not in files_to_keep:
                 log.info("Stale file {} found in {}... removing.".format(
                     build, dir))
-                self._helper.clean_package(dir, build, build_name)
+                self._helper.clean_package(dir, build, env_name)
 
     # private functions: update per deploy step configuration specified by services owner on the
     # environment config page
@@ -299,13 +301,13 @@ class DeployAgent(object):
         if (self._envs is None) or (self._envs.get(env_name) is None):
             self._envs[env_name] = DeployStatus()
 
-        # update deploy_status from response for the environemnt
+        # update deploy_status from response for the environment
         self._envs[env_name].update_by_response(response)
 
-        # update script varibales
+        # update script variables
         if deploy_goal.scriptVariables:
             log.info('Start to generate script variables for deploy: {}'.
-            format(deploy_goal.deployId))
+                     format(deploy_goal.deployId))
             env_dir = self._config.get_agent_directory()
             working_dir = os.path.join(env_dir, "{}_SCRIPT_CONFIG".format(env_name))
             with open(working_dir, "w+") as f:
@@ -402,10 +404,12 @@ def main():
         pinlogger.LOG_TO_STDERR = True
     else:
         log_filename = os.path.join(config.get_log_directory(), 'deploy-agent.log')
-        logging.basicConfig(filename=log_filename, level=config.get_log_level())
+        logging.basicConfig(filename=log_filename, level=config.get_log_level(),
+                            format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
 
     log.info("Start to run deploy-agent.")
-    client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup, use_facter=args.use_facter)
+    client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup,
+                    use_facter=args.use_facter)
     if is_serverless_mode:
         log.info("Running agent with severless client")
         client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,

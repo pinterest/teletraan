@@ -13,15 +13,12 @@
 # limitations under the License.
 
 import logging
-import os
 import json
-import traceback
 import uuid
 
 from deployd.client.base_client import BaseClient
 from deployd.common import utils
 from deployd.common.types import AgentStatus
-from deployd.types.deploy_goal import DeployGoal
 from deployd.types.deploy_stage import DeployStage
 from deployd.types.opcode import OperationCode
 from deployd.types.ping_response import PingResponse

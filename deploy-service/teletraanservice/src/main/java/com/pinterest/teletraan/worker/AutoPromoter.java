@@ -16,16 +16,9 @@
 package com.pinterest.teletraan.worker;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.AcceptanceStatus;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.DeployBean;
-import com.pinterest.deployservice.bean.DeployState;
-import com.pinterest.deployservice.bean.EnvState;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.EnvironState;
-import com.pinterest.deployservice.bean.PromoteBean;
-import com.pinterest.deployservice.bean.PromoteFailPolicy;
-import com.pinterest.deployservice.bean.PromoteType;
+import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.buildtags.BuildTagsManager;
+import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.BuildDAO;
@@ -46,9 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.text.ParseException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 
 
@@ -65,6 +56,7 @@ public class AutoPromoter implements Runnable {
     private DeployDAO deployDAO;
     private UtilDAO utilDAO;
     private DeployHandler deployHandler;
+    private BuildTagsManager buildTagsManager;
     private final int maxCheckBuildsOrDeploys = 100;
 
 
@@ -74,6 +66,7 @@ public class AutoPromoter implements Runnable {
         utilDAO = serviceContext.getUtilDAO();
         deployDAO = serviceContext.getDeployDAO();
         buildDAO = serviceContext.getBuildDAO();
+        buildTagsManager = new BuildTagsManagerImpl(serviceContext.getTagDAO());
         deployHandler = new DeployHandler(serviceContext);
     }
 
@@ -94,6 +87,7 @@ public class AutoPromoter implements Runnable {
                 LOG.error("AutoPromoter failed to process {}", envId, t);
             }
         }
+      LOG.info("AutoPromoter processBatch finishes");
     }
 
     boolean isDeployFailed(DeployBean currDeployBean) {
@@ -477,20 +471,57 @@ public class AutoPromoter implements Runnable {
         }
     }
 
+    /**
+     * get a list of available builds, and filter out the BAD_BUILD builds
+     * @param envBean
+     * @param interval
+     * @param size
+     * @return
+     * @throws Exception
+     */
     List<BuildBean> getBuildCandidates(EnvironBean envBean, Interval interval, int size) throws Exception {
         // By default, buildName is the same as envName
         String buildName = envBean.getBuild_name();
         String scmBranch = envBean.getBranch();
+        List<BuildBean> taggedGoodBuilds = new ArrayList<BuildBean>();
 
-        return buildDAO.getAcceptedBuilds(buildName, scmBranch, interval, size);
+        List<BuildBean> availableBuilds = buildDAO.getAcceptedBuilds(buildName, scmBranch, interval, size);
+        LOG.info("Env {} stage {} has {} accepted builds with name {} branch {} between {} and {}", envBean.getEnv_name(),
+            envBean.getStage_name(), availableBuilds.size(), buildName, scmBranch, interval.getStart().toString(), interval.getEnd().toString());
+        if(!availableBuilds.isEmpty()) {
+            List<BuildTagBean> buildTagBeanList = buildTagsManager.getEffectiveTagsWithBuilds(availableBuilds);
+            for(BuildTagBean buildTagBean: buildTagBeanList) {
+                if(buildTagBean.getTag() != null && buildTagBean.getTag().getValue() == TagValue.BAD_BUILD) {
+                    // bad build,  do not include
+                    LOG.info("Env {} Build {} is tagged as BAD_BUILD, ignore", envBean.getEnv_id(), buildTagBean.getBuild());
+                } else {
+                    taggedGoodBuilds.add(buildTagBean.getBuild());
+                }
+            }
+        }
+        // should order build bean ORDER BY publish_date DESC
+        if(taggedGoodBuilds.size() > 0) {
+            Collections.sort(taggedGoodBuilds, new Comparator<BuildBean>() {
+                @Override
+                public int compare(final BuildBean d1, final BuildBean d2) {
+                    return Long.compare(d2.getPublish_date(), d1.getPublish_date());
+                }
+            });
+            LOG.info("Env {} the first build candidate is {}", envBean.getEnv_id(), taggedGoodBuilds.get(0).getBuild_id());
+        }
+        return taggedGoodBuilds;
     }
 
+    /**
+     * get a list of available deploys, and filter out the deploys with BAD_BUILD builds
+     * @param envId
+     * @param interval
+     * @param size
+     * @return
+     * @throws Exception
+     */
     List<DeployBean> getDeployCandidates(String envId, Interval interval, int size) throws Exception {
-        LOG.info("Search Deploy candidates between {} and {} for environment {}",
-            interval.getStart().toString(ISODateTimeFormat.dateTime()),
-            interval.getEnd().toString(ISODateTimeFormat.dateTime()),
-            envId);
-        return deployDAO.getAcceptedDeploys(envId, interval, size);
+        return deployHandler.getDeployCandidates(envId, interval, size, true);
     }
 
     // Lock, double check and promote

@@ -5,6 +5,7 @@
     <table id="placementTableId" class="table table-condensed table-striped table-hover">
         <tr>
             <th class="col-lg-1">Basic</th>
+            <th class="col-lg-2">Cell</th>
             <th class="col-lg-2">Abstract Name</th>
             <th class="col-lg-2">Provider Name</th>
             <th class="col-lg-1">Cloud Provider</th>
@@ -14,6 +15,7 @@
         {% for placement in placements %}
         <tr>
             <td><span class="deployToolTip pointer-cursor {{ placement.basic | basicIcon }}"></span></td>
+            <td> {{ placement.cell_name }} </td>
             <td> {{ placement.abstract_name }} </td>
             <td> {{ placement.provider_name }}  </td>
             <td> {{ placement.provider }}  </td>

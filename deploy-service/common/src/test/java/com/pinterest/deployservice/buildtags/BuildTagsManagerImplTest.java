@@ -17,21 +17,27 @@
 package com.pinterest.deployservice.buildtags;
 
 
-import com.pinterest.deployservice.bean.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.BuildTagBean;
+import com.pinterest.deployservice.bean.TagBean;
+import com.pinterest.deployservice.bean.TagTargetType;
+import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.TagDAO;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 public class BuildTagsManagerImplTest {
 
-    @Test public void testgetEffectiveTag() throws Exception {
+    @Test
+    public void testgetEffectiveTag() throws Exception {
         BuildTagsManagerImpl manager =
             new BuildTagsManagerImpl(mock(TagDAO.class));
         List<BuildBean> builds = genCommits(10, "build1", "master", 1000000);
@@ -68,7 +74,8 @@ public class BuildTagsManagerImplTest {
 
     }
 
-    @Test public void testGetEffectiveTagsWithBuilds() throws Exception {
+    @Test
+    public void testGetEffectiveTagsWithBuilds() throws Exception {
         TagDAO tagDAO = mock(TagDAO.class);
         BuildTagsManagerImpl manager = new BuildTagsManagerImpl(tagDAO);
 
@@ -86,8 +93,10 @@ public class BuildTagsManagerImplTest {
         List<TagBean> tagBeanList3 = new ArrayList<>();
         tagBeanList3.add(genTagOnBuild(builds3.get(9), TagValue.BAD_BUILD));
 
-        when(tagDAO.getByTargetIdAndType("service_one", TagTargetType.BUILD)).thenReturn(tagBeanList1);
-        when(tagDAO.getByTargetIdAndType("service_two", TagTargetType.BUILD)).thenReturn(tagBeanList3);
+        when(tagDAO.getLatestByTargetIdAndType("service_one", TagTargetType.BUILD,
+            BuildTagsManagerImpl.MAXCHECKTAGS)).thenReturn(tagBeanList1);
+        when(tagDAO.getLatestByTargetIdAndType("service_two", TagTargetType.BUILD,
+            BuildTagsManagerImpl.MAXCHECKTAGS)).thenReturn(tagBeanList3);
 
         //Labels on service_one/master
         Assert.assertNull(manager.getEffectiveBuildTag(builds1.get(0)));
@@ -114,8 +123,48 @@ public class BuildTagsManagerImplTest {
             manager.getEffectiveBuildTag(builds3.get(9)).getValue());
     }
 
+    @Test
+    public void testsSortAndDedupTags() throws Exception {
+        List<BuildTagBean> tagBeanList = new ArrayList<>();
+        List<BuildBean> builds = genCommits(10, "service_one", "master", 1000000);
+        for (BuildBean build : builds) {
+            tagBeanList.add(genBuildTagBean(build, TagValue.GOOD_BUILD));
+        }
+
+        //All good builds
+        List<BuildTagBean> test = new ArrayList<>(tagBeanList);
+        List<BuildTagBean> result = BuildTagsManagerImpl.sortAndDedupTags(test);
+        Assert.assertEquals(10, result.size());
+        for (int i = 0; i < result.size() - 1; i++) {
+            Assert.assertTrue(
+                result.get(i).getBuild().getCommit_date() < result.get(i + 1).getBuild()
+                    .getCommit_date());
+        }
+
+        //Tag BAD in the middle  build
+        testWithBadbuild(tagBeanList, 0);
+        testWithBadbuild(tagBeanList, 5);
+        testWithBadbuild(tagBeanList, 9);
+    }
+
+    private void testWithBadbuild(List<BuildTagBean> input, int position) throws Exception {
+        List<BuildTagBean> test = new ArrayList<>(input);
+        BuildTagBean t = genBuildTagBean(input.get(position).getBuild(), TagValue.BAD_BUILD);
+        test.add(t);
+
+        List<BuildTagBean> result = BuildTagsManagerImpl.sortAndDedupTags(test);
+        Assert.assertEquals(10, result.size());
+        for (int i = 0; i < result.size() - 1; i++) {
+            Assert.assertTrue(
+                result.get(i).getBuild().getCommit_date() < result.get(i + 1).getBuild()
+                    .getCommit_date());
+        }
+        Assert.assertEquals(result.get(position).getTag().getValue(), TagValue.BAD_BUILD);
+
+    }
+
     private List<BuildBean> genCommits(int count, String build_name, String branch,
-        int baseCommit) {
+                                       int baseCommit) {
         List<BuildBean> ret = new ArrayList<>();
         long now = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
@@ -131,8 +180,10 @@ public class BuildTagsManagerImplTest {
         return ret;
     }
 
-    private BuildTagBean genBuildTagBean(BuildBean build, TagValue value) throws Exception{
-        return new BuildTagBean(build, genTagOnBuild(build, value));
+    private BuildTagBean genBuildTagBean(BuildBean build, TagValue value) throws Exception {
+        BuildTagBean ret = new BuildTagBean(build, genTagOnBuild(build, value));
+        ret.getTag().setCreated_date(build.getCommit_date() + 10000);
+        return ret;
     }
 
     private TagBean genTagOnBuild(BuildBean build, TagValue value) throws Exception {

@@ -1,4 +1,4 @@
-/** 
+/**
  * Cluster Capacity Setting Components
  */
 
@@ -25,10 +25,60 @@ Vue.component('delete-cluster', {
     }
 });
 
+/**
+ * Clone Cluster button on the side panel
+ */
+Vue.component('clone-cluster', {
+    template: '<div v-show="showclone">\
+    <side-button-modal-confirm confirmDiaglog="#cloneClusterDialogId" \
+        text="Clone Cluster" title="Clone Cluster" styleclass="glyphicon glyphicon-file">\
+    </side-button-modal-confirm>\
+    <modal title="Clone Cluster Confirm" id="cloneClusterDialogId" v-on:input="clickDialog">\
+        <div slot="body">\
+           The fleet size (capacity) will not be cloned, initially the capacity is 0, ASG size is 0. \
+           <div class="panel-body">\
+                <div class="form-group">\
+                    <div class="col-xs-10" style="padding: 6px;">\
+                        <div class="input-group" >\
+                            <span class="input-group-addon">Environment Name</span>\
+                            <input class="form-control" v-on:change="updateNewEnvironment($event.target.value)"></input>\
+                        </div>\
+                    </div>\
+                </div>\
+                <div class="form-group">\
+                    <div class="col-xs-10" style="padding: 6px;">\
+                        <div class="input-group" >\
+                            <span class="input-group-addon">Stage Name</span>\
+                            <input class="form-control" v-on:change="updateNewStage($event.target.value)"></input>\
+                        </div>\
+                    </div>\
+                </div>\
+             </div>\
+        </div>\
+    </modal>\
+    </div>',
+    props: ['showclone'],
+    methods: {
+        clickDialog: function (value) {
+            if(value == true) {
+                var new_environment = this.new_environment;
+                var new_stage = this.new_stage;
+                this.$emit('input', new_environment, new_stage);
+            }
+        },
+        updateNewEnvironment: function (value) {
+            this.new_environment = value;
+        },
+        updateNewStage: function (value) {
+            this.new_stage = value;
+        }
+    }
+});
+
 
 /**
  * Cluster Replace buttons. Depending on the cluster state, it can show different buttons:
- *   Cluster State: 
+ *   Cluster State:
  *      Normal: Replace button
  *      Replace: Cancel Button and Pause Button
  *      Pause: Pause Button and Resume Button
@@ -140,7 +190,7 @@ Vue.component('in-rolling-alert', {
 
 
 /**
- * The capacity button. This is shown when autoscaling is disabled or min\max size are the same. 
+ * The capacity button. This is shown when autoscaling is disabled or min\max size are the same.
  * In this case, only one capacity box is shown
  */
 Vue.component("static-capacity-config", {

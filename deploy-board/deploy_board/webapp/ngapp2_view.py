@@ -519,7 +519,7 @@ class NgappView(View):
     def start_pre_deploy(self, request):
         Recorder(settings.NGAPP_PRE_DEPLOY_STATUS_NODE).init_info()
         if is_prod():
-            virtual_env = os.path.join(os.environ.get("VIRTUAL_ENV"), "bin")
+            virtual_env = os.path.join(os.environ.get("VIRTUAL_ENV", "/usr/local"), "bin")
             cmd = [os.path.join(virtual_env, "python"),
                    os.path.join(virtual_env, "ngapp-pre-deploy")]
         else:
@@ -534,7 +534,7 @@ class NgappView(View):
     def start_post_deploy(self, request):
         Recorder(settings.NGAPP_POST_DEPLOY_STATUS_NODE).init_info()
         if is_prod():
-            virtual_env = os.path.join(os.environ.get("VIRTUAL_ENV"), "bin")
+            virtual_env = os.path.join(os.environ.get("VIRTUAL_ENV","/usr/local"), "bin")
             cmd = [os.path.join(virtual_env, "python"),
                    os.path.join(virtual_env, "ngapp-post-deploy")]
         else:
@@ -552,7 +552,7 @@ class NgappView(View):
         operator = request.teletraan_user_id.name
 
         if is_prod():
-            virtual_env = os.path.join(os.environ.get("VIRTUAL_ENV"), "bin")
+            virtual_env = os.path.join(os.environ.get("VIRTUAL_ENV", "/usr/local"), "bin")
             cmd = [os.path.join(virtual_env, "python"), os.path.join(virtual_env, "ngapp-rollback")]
         else:
             cmd = [os.path.join(os.environ.get("BASE_DIR"), "../integ_test/ngapp2/rollback")]

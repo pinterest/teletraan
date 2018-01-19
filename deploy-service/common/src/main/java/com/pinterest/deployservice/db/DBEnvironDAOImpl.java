@@ -92,6 +92,9 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "UPDATE environs SET schedule_id=null where env_name=? AND stage_name=?";
     private static final String DELETE_CLUSTER =
         "UPDATE environs SET cluster_name=null where env_name=? AND stage_name=?";
+    private static final String GET_ENV_BY_CONSTRAINT_ID = "SELECT * FROM environs WHERE deploy_constraint_id = ?";
+    private static final String DELETE_DEPLOY_CONSTRAINT =
+        "UPDATE environs SET deploy_constraint_id=null WHERE env_name=? AND stage_name=?";
 
     private BasicDataSource dataSource;
 
@@ -241,5 +244,16 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     @Override
     public void deleteCluster(String envName, String stageName) throws Exception {
         new QueryRunner(dataSource).update(DELETE_CLUSTER, envName, stageName);
+    }
+
+    @Override
+    public EnvironBean getEnvByDeployConstraintId(String constraintId) throws Exception {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<EnvironBean>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_ENV_BY_CONSTRAINT_ID, h, constraintId);
+    }
+
+    @Override
+    public void deleteConstraint(String envName, String stageName) throws Exception {
+        new QueryRunner(dataSource).update(DELETE_DEPLOY_CONSTRAINT, envName, stageName);
     }
 }

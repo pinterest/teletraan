@@ -68,7 +68,7 @@ def get_launch_config(request, group_name):
 
         if launch_config and launch_config.get("subnets"):
             launch_config["subnetArrays"] = launch_config["subnets"].split(',')
-        appNames = baseimages_helper.get_image_names(request, 'AWS')
+        appNames = baseimages_helper.get_image_names(request, 'AWS', settings.DEFAULT_CELL)
         appNames = sorted(appNames)
         curr_image = baseimages_helper.get_by_provider_name(request, launch_config["imageId"])
         html = render_to_string('groups/launch_config.tmpl', {
@@ -844,7 +844,7 @@ class GenerateDiff(diff_match_patch):
 class GroupConfigView(View):
     def get(self, request, group_name):
         asg_cluster = autoscaling_groups_helper.get_group_info(request, group_name)
-        appNames = baseimages_helper.get_image_names(request, 'AWS')
+        appNames = baseimages_helper.get_image_names(request, 'AWS', settings.DEFAULT_CELL)
         appNames = sorted(appNames)
         is_cmp = False
         if asg_cluster:
@@ -912,7 +912,7 @@ class GroupDetailView(View):
 def get_aws_settings(request):
     params = request.GET
     app_name = params["app_name"]
-    images = baseimages_helper.get_by_name(request, app_name)
+    images = baseimages_helper.get_by_name(request, app_name, settings.DEFAULT_CELL)
     contents = render_to_string("groups/get_ami.tmpl",
                                 {"aws_images": images,
                                  "curr_image_id": params["curr_image_id"]})

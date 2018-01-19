@@ -28,17 +28,26 @@ def get_all(request, index, size):
     return rodimus_client.get("/base_images", request.teletraan_user_id.token, params=params)
 
 
-def get_image_names(request, provider):
-    params = [('provider', provider)]
+def get_image_names(request, provider, cell_name):
+    params = [('provider', provider), ('cellName', cell_name)]
     return rodimus_client.get("/base_images/names", request.teletraan_user_id.token, params=params)
 
 
-def get_by_name(request, name):
-    return rodimus_client.get("/base_images/names/%s" % name, request.teletraan_user_id.token)
+def get_all_by(request, provider, cell_name):
+    if cell_name:
+        return rodimus_client.get("/base_images/cell/%s" % cell_name, request.teletraan_user_id.token)
+    params = [('provider', provider)]
+    return rodimus_client.get("/base_images", request.teletraan_user_id.token, params=params)
 
 
-def get_acceptance_by_name(request, name):
-    return rodimus_client.get("/base_images/acceptances/%s" % name, request.teletraan_user_id.token)
+def get_by_name(request, name, cell_name):
+    params = [('cellName', cell_name)]
+    return rodimus_client.get("/base_images/names/%s" % name, request.teletraan_user_id.token, params=params)
+
+
+def get_acceptance_by_name(request, name, cell_name):
+    params = [('cellName', cell_name)]
+    return rodimus_client.get("/base_images/acceptances/%s" % name, request.teletraan_user_id.token, params=params)
 
 
 def get_by_provider_name(request, name):

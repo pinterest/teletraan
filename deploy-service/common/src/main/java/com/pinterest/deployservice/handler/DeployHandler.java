@@ -15,11 +15,10 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.google.common.base.Joiner;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AcceptanceStatus;
 import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.BuildTagBean;
 import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.DeployFilterBean;
@@ -29,10 +28,14 @@ import com.pinterest.deployservice.bean.DeployType;
 import com.pinterest.deployservice.bean.EnvWebHookBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.PromoteBean;
-import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.PromoteDisablePolicy;
 import com.pinterest.deployservice.bean.PromoteType;
+import com.pinterest.deployservice.bean.ScheduleBean;
+import com.pinterest.deployservice.bean.ScheduleState;
+import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.UpdateStatement;
+import com.pinterest.deployservice.buildtags.BuildTagsManager;
+import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
@@ -48,16 +51,20 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.scm.SourceControlManager;
-import com.pinterest.deployservice.bean.ScheduleState;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.StringUtils;
+import org.joda.time.Interval;
+import org.joda.time.format.ISODateTimeFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -66,7 +73,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 
-public class DeployHandler {
+public class DeployHandler implements DeployHandlerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(DeployHandler.class);
     private static final String FEED_TEMPLATE = "{\"type\":\"Deploy\",\"environment\":\"%s (%s)\",\"description\":\"http://deploy.pinadmin.com/deploy/%s\","
         + "\"author\":\"%s\",\"automation\":\"%s\",\"source\":\"Teletraan\",\"optional-1\":\"%s\",\"optional-2\":\"\"}";
@@ -85,6 +92,7 @@ public class DeployHandler {
     private ExecutorService jobPool;
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
+    private BuildTagsManager buildTagsManager;
 
     private final class NotifyJob implements Callable<Void> {
         private EnvironBean envBean;
@@ -181,6 +189,7 @@ public class DeployHandler {
         jobPool = serviceContext.getJobPool();
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
         changeFeedUrl = serviceContext.getChangeFeedUrl();
+        buildTagsManager = new BuildTagsManagerImpl(serviceContext.getTagDAO());
     }
 
     private String generateMentions(EnvironBean envBean, DeployBean newDeployBean, DeployBean oldDeployBean) {
@@ -380,16 +389,19 @@ public class DeployHandler {
 
     DeployBean getLastSucceededDeploy(EnvironBean envBean) throws Exception {
         int index = 1;
-        int size = 10;
+        int size = 100;
         DeployFilterBean filterBean = new DeployFilterBean();
         filterBean.setEnvIds(Arrays.asList(envBean.getEnv_id()));
         filterBean.setPageIndex(index);
         filterBean.setPageSize(size);
-        while (true) {
+        int maxPages = 50; //This makes us check at most 5000 deploys
+        int tocheckPages = maxPages;
+        while (tocheckPages-- > 0) {
             DeployQueryFilter filter = new DeployQueryFilter(filterBean);
             DeployQueryResultBean resultBean = deployDAO.getAllDeploys(filter);
             if (resultBean.getTotal() < 1) {
-                LOG.warn("Could not find any previous succeeded deploy in env {}", envBean.getEnv_id());
+                LOG.warn("Could not find any previous succeeded deploy in env {}",
+                    envBean.getEnv_id());
                 return null;
             }
             for (DeployBean deploy : resultBean.getDeploys()) {
@@ -398,7 +410,12 @@ public class DeployHandler {
                 }
             }
             index += 1;
+            filterBean.setPageIndex(index);
         }
+        LOG.warn("Latest {} deploys are all failed for {}. Give up", size*maxPages, envBean.getEnv_id());
+
+        return null;
+
     }
 
     public String rollback(EnvironBean envBean, String toDeployId, String description, String operator) throws Exception {
@@ -450,5 +467,52 @@ public class DeployHandler {
             updateScheduleBean.setState_start_time(System.currentTimeMillis());
             scheduleDAO.update(updateScheduleBean, scheduleId);   
         }
-    } 
+    }
+
+    public List<DeployBean> getDeployCandidates(String envId, Interval interval, int size, boolean onlyGoodBuilds) throws Exception {
+        LOG.info("Search Deploy candidates between {} and {} for environment {}",
+            interval.getStart().toString(ISODateTimeFormat.dateTime()),
+            interval.getEnd().toString(ISODateTimeFormat.dateTime()),
+            envId);
+        List<DeployBean> taggedGoodDeploys = new ArrayList<DeployBean>();
+
+        List<DeployBean> availableDeploys = deployDAO.getAcceptedDeploys(envId, interval, size);
+
+        if (!onlyGoodBuilds) {
+            return availableDeploys;
+        }
+
+        if(!availableDeploys.isEmpty()) {
+            Map<String, DeployBean> buildId2DeployBean = new HashMap<String, DeployBean>();
+            for(DeployBean deployBean: availableDeploys) {
+                String buildId = deployBean.getBuild_id();
+                if(StringUtils.isNotEmpty(buildId)) {
+                    buildId2DeployBean.put(buildId, deployBean);
+                }
+            }
+            List<BuildBean> availableBuilds = buildDAO.getBuildsFromIds(buildId2DeployBean.keySet());
+            List<BuildTagBean> buildTagBeanList = buildTagsManager.getEffectiveTagsWithBuilds(availableBuilds);
+            for(BuildTagBean buildTagBean: buildTagBeanList) {
+                if(buildTagBean.getTag() != null && buildTagBean.getTag().getValue() == TagValue.BAD_BUILD) {
+                    // bad build,  do not include
+                    LOG.info("Env {} Build {} is tagged as BAD_BUILD, ignore", envId, buildTagBean.getBuild());
+                } else {
+                    String buildId = buildTagBean.getBuild().getBuild_id();
+                    taggedGoodDeploys.add(buildId2DeployBean.get(buildId));
+                }
+            }
+        }
+        // should order deploy bean by start date desc
+        if(taggedGoodDeploys.size() > 0) {
+            Collections.sort(taggedGoodDeploys, new Comparator<DeployBean>() {
+                @Override
+                public int compare(final DeployBean d1, final DeployBean d2) {
+                    return Long.compare(d2.getStart_date(), d1.getStart_date());
+                }
+            });
+            LOG.info("Env {} the first deploy candidate is {}", envId, taggedGoodDeploys.get(0).getBuild_id());
+        }
+        return taggedGoodDeploys;
+    }
+
 }

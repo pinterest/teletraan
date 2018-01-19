@@ -5,6 +5,7 @@
     <table id="securityZoneTableId" class="table table-condensed table-striped table-hover">
         <tr>
             <th class="col-lg-1">Basic</th>
+            <th class="col-lg-2">Cell</th>
             <th class="col-lg-2">Abstract Name</th>
             <th class="col-lg-2">Provider Name</th>
             <th class="col-lg-1">Cloud Provider</th>
@@ -13,6 +14,7 @@
         {% for security_zone in security_zones %}
         <tr>
             <td><span class="deployToolTip pointer-cursor {{ security_zone.basic | basicIcon }}"></span></td>
+            <td> {{ security_zone.cell_name }} </td>
             <td> {{ security_zone.abstract_name }} </td>
             <td> {{ security_zone.provider_name }}  </td>
             <td> {{ security_zone.provider }}  </td>

@@ -71,17 +71,24 @@
                     <span class="glyphicon glyphicon-check"></span> Deploy It
                 </button>
                 {% if current_build %}
-                <button class="showdiffer deployToolTip btn btn-default"
-                        data-loading-text="Loading..." data-toggle="tooltip"
-                        title="Show all the new commits since last deploy">
-                    <span class="glyphicon glyphicon-zoom-in"></span> Show New Commits
-                </button>
-                {% if current_build.type == "Github" %}
-                <button class="githuber deployToolTip btn btn-default" data-toggle="tooltip"
-                        title="Show all the new commits in Gitbhub">
-                    <i class="fa fa-github"></i> Show New Commits in Github
-                </button>
-                {% endif %}
+                    {% if buildInfo.build.publishDate > current_build.publishDate %}
+                    <button class="showdiffer deployToolTip btn btn-default"
+                            data-loading-text="Loading..." data-toggle="tooltip"
+                            title="Show all the new commits since last deploy">
+                        <span class="glyphicon glyphicon-zoom-in"></span> Show New Commits
+                    </button>
+                    {% endif %}
+                    <button class="showdiffbetween deployToolTip btn btn-default"
+                            data-loading-text="Loading..." data-toggle="tooltip"
+                            title="Show commits between two adjacent builds">
+                        <span class="glyphicon glyphicon-zoom-in"></span> Show Commits Between Builds
+                    </button>
+                    {% if current_build.type == "Github" %}
+                    <button class="githuber deployToolTip btn btn-default" data-toggle="tooltip"
+                            title="Show all the new commits in Gitbhub">
+                        <i class="fa fa-github"></i> Show New Commits in Github
+                    </button>
+                    {% endif %}
                 {% endif %}
             </div>
         </td>
@@ -146,6 +153,12 @@
                 $('#confirmDeplyDescId').prop('placeholder',
                     'Simple description of this deploy (required for hotfix)');
             }
+            if(buildId == null) {
+                var submitBtn = $('#deployConfirmFormlId .modal-footer button[type="submit"]');
+                var warning = $('#deployConfirmFormlId .modal-footer span');
+                warning.removeClass('hidden');
+                submitBtn.addClass('hidden');
+            }
         });
 
         $('#buildPickTableId tr .showdiffer').click(function () {
@@ -157,6 +170,21 @@
             contentId = trid.find('.showContent');
             url = '/commits/compare_commits/?start_sha=' + startSha +
                 '&end_sha={{ current_build.commit }}&repo={{ current_build.repo }}';
+            contentId.load(url, function () {
+                $(btn).button('reset');
+            });
+        });
+
+         $('#buildPickTableId tr .showdiffbetween').click(function () {
+            btn=$(this);
+            $(btn).button('loading');
+            $(btn).tooltip('hide');
+            trid = $(this).closest('tr');
+            prevSha = trid.prev().find(".hiddenCommit").val();
+            currentSha = trid.next().find(".hiddenCommit").val();
+            contentId = trid.find('.showContent');
+            url = '/commits/compare_commits/?start_sha=' + prevSha +
+                '&end_sha=' + currentSha + '&repo={{ current_build.repo }}';
             contentId.load(url, function () {
                 $(btn).button('reset');
             });

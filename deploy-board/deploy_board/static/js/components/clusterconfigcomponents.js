@@ -10,6 +10,23 @@ Vue.component('cloudprovider-select', {
     }
 });
 
+Vue.component('cell-select', {
+    template: '<div>\
+  <label-select label="Cell" title="Cell" \
+  v-bind:value="value" v-bind:selectoptions="cells" v-on:input="updateCellValue" v-on:input="updateValue(value)"></label-select></div>',
+    props: ['cells', 'value'],
+    methods: {
+        updateValue: function (value) {
+            this.$emit('input', value);
+        },
+        updateCellValue: function(value) {
+            this.$emit('cellchange', value);
+            this.$emit('imagenamechange', value)
+        }
+    }
+});
+
+
 
 Vue.component('baseimage-select', {
     template: '<div class="form-group">\

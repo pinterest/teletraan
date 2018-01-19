@@ -151,6 +151,9 @@ system:
   # Display full stack trace or just the error to user.
   #clientError: long|short
 
+#External Alerts
+externalAlerts:
+  factory: com.pinterest.deployservice.alerts.PinterestExternalAlertFactory
 #
 # Worker settings: disable all the workers if you do not want to run
 # workers together with the service. See documentations for more details.
@@ -177,3 +180,7 @@ workers:
       period: 300
       minStaleHostThreshold: 150
       maxStaleHostThreshold: 600
+
+# Ping Requst validators:
+# pingrequestvalidators:
+#  -  com.pinterest.deployservice.pingrequests.Ec2InstanceValidator

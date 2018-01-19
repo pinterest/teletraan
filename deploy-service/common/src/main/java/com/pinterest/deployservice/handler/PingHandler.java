@@ -21,10 +21,12 @@ import com.pinterest.deployservice.bean.AgentErrorBean;
 import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployConstraintBean;
 import com.pinterest.deployservice.bean.DeployGoalBean;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.bean.HostTagBean;
 import com.pinterest.deployservice.bean.OpCode;
 import com.pinterest.deployservice.bean.PingReportBean;
 import com.pinterest.deployservice.bean.PingRequestBean;
@@ -32,17 +34,21 @@ import com.pinterest.deployservice.bean.PingResponseBean;
 import com.pinterest.deployservice.bean.PingResult;
 import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.ScheduleState;
+import com.pinterest.deployservice.bean.TagSyncState;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
 import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.dao.DeployConstraintDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -88,9 +94,12 @@ public class PingHandler {
     private HostDAO hostDAO;
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
+    private HostTagDAO hostTagDAO;
+    private DeployConstraintDAO deployConstraintDAO;
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
     private LoadingCache<String, DeployBean> deployCache;
+    private List<PingRequestValidator> validators;
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -101,7 +110,10 @@ public class PingHandler {
         hostDAO = serviceContext.getHostDAO();
         utilDAO = serviceContext.getUtilDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
+        hostTagDAO = serviceContext.getHostTagDAO();
+        deployConstraintDAO = serviceContext.getDeployConstraintDAO();
         dataHandler = new DataHandler(serviceContext);
+        validators = serviceContext.getPingRequestValidators();
 
         if (serviceContext.isBuildCacheEnabled()) {
             buildCache = CacheBuilder.from(serviceContext.getBuildCacheSpec().replace(";", ","))
@@ -189,7 +201,7 @@ public class PingHandler {
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
      */
-    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean, String scheduleId) throws Exception {
+    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean, String scheduleId, String deployConstraintId) throws Exception {
         // first deploy should always proceed
         if (agentBean.getFirst_deploy()) {
             agentDAO.insertOrUpdate(agentBean);
@@ -223,6 +235,14 @@ public class PingHandler {
             }
         }
 
+        // Make sure we also follow the deploy constraint if specified
+        if(deployConstraintId != null) {
+            if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
+                LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
+                return false;
+            }
+        }
+
         // Looks like we can proceed with deploy, but let us double check with lock, and
         // Update table to occupy one seat if condition still hold
         String deployLockName = String.format("DEPLOY-%s", envId);
@@ -243,6 +263,14 @@ public class PingHandler {
                         return false;
                     }
                 }
+
+                // Make sure we also follow the deploy constraint if specified
+                if(deployConstraintId != null) {
+                    if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
+                        LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
+                        return false;
+                    }
+                }
                 agentDAO.insertOrUpdate(agentBean);
                 LOG.debug("There are currently only {} agent is actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
                 return true;
@@ -255,6 +283,48 @@ public class PingHandler {
             }
         } else {
             LOG.warn("Failed to grab PARALLEL_LOCK for env = {}, host = {}, return false.", envId, host);
+            return false;
+        }
+    }
+
+    boolean canDeployWithConstraint(String hostId, EnvironBean envBean) throws Exception {
+        String envId = envBean.getEnv_id();
+        String constraintId = envBean.getDeploy_constraint_id();
+
+        try {
+            LOG.info("DeployWithConstraint env {}: verify active agents for host {} constraint {}", envId, hostId, constraintId);
+
+            DeployConstraintBean deployConstraintBean = deployConstraintDAO.getById(constraintId);
+            String tagName = deployConstraintBean.getConstraint_key();
+            HostTagBean hostTagBean = hostTagDAO.get(hostId, tagName);
+            if (deployConstraintBean.getState() != TagSyncState.FINISHED) {
+                // tag sync state is NOT FINISHED, means not ready for deploy
+                LOG.info("DeployWithConstraint env {}: tag sync state is {} , waiting for tag sync state to be FINISHED",
+                    envId, deployConstraintBean.getState());
+                return false;
+            } else {
+                // tag sync state is FINISHED
+                if (hostTagBean == null) {
+                    // but host tag is MISSING
+                    LOG.info("DeployWithConstraint env {}: could not find host {} with tagName {}", envId, hostId, tagName);
+                    return false;
+                }
+            }
+            String tagValue = hostTagBean.getTag_value();
+
+            long maxParallelWithHostTag = deployConstraintBean.getMax_parallel();
+            long totalActiveAgentsWithHostTag = agentDAO.countDeployingAgentWithHostTag(envBean.getEnv_id(), tagName, tagValue);
+            LOG.info("DeployWithConstraint env {} with tag {}:{} : host {} waiting for deploy, current {} deploying hosts",
+                envId, tagName, tagValue, hostId, totalActiveAgentsWithHostTag);
+            if (totalActiveAgentsWithHostTag >= maxParallelWithHostTag) {
+                LOG.info("DeployWithConstraint env {} with tag {}:{} : host {} can not deploy, {} already exceed {} for constraint = {}, return false",
+                    envId, tagName, tagValue, hostId, totalActiveAgentsWithHostTag, maxParallelWithHostTag, deployConstraintBean.toString());
+                return false;
+            }
+            LOG.info("DeployWithConstraint env {} with tag {}:{} : host {} can deploy", envId, tagName, tagValue, hostId);
+            return true;
+        } catch (Exception e) {
+            LOG.error(String.format("DeployWithConstraint env %s, failed to check if can deploy or not for host = %s for constraint %s", envId, hostId, constraintId), e);
             return false;
         }
     }
@@ -375,6 +445,13 @@ public class PingHandler {
         // handle empty or unexpected request fields
         pingRequest = normalizePingRequest(pingRequest);
 
+        if (validators != null) {
+            // validate requests
+            for (PingRequestValidator validator : validators) {
+                validator.validate(pingRequest);
+            }
+        }
+
         // always update the host table
         this.updateHosts(pingRequest);
 
@@ -411,10 +488,11 @@ public class PingHandler {
             AgentBean updateBean = installCandidate.updateBean;
             EnvironBean env = installCandidate.env;
             String scheduleId = env.getSchedule_id();
+            String deployConstraintId = env.getDeploy_constraint_id();
 
             if (installCandidate.needWait) {
                 LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
-                if (canDeploy(env, hostName, updateBean, scheduleId)) {
+                if (canDeploy(env, hostName, updateBean, scheduleId, deployConstraintId)) {
                     LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
                     updateBeans.put(updateBean.getEnv_id(), updateBean);
                     response = generateInstallResponse(installCandidate);

@@ -23,6 +23,7 @@ import time
 from math import trunc
 import pytz
 import logging
+from deploy_board.webapp.service_add_ons import ServiceAddOn, LogHealthReport
 from deploy_board.webapp.agent_report import UNKNOWN_HOSTS_CODE, PROVISION_HOST_CODE
 from deploy_board.webapp.common import is_agent_failed, BUILD_STAGE
 from deploy_board.webapp.helpers import environs_helper
@@ -753,6 +754,87 @@ def reportTotal(report):
         return total + len(report.missingHosts) + len(report.provisioningHosts)
     return total
 
+@register.filter("atLeastOneAddOn")
+def atLeastOneAddOn(addOns):
+    if addOns is None:
+        return False
+    for addOn in addOns:
+        if addOn.state != ServiceAddOn.UNKNOWN:
+            return True
+    return False
+
+@register.filter("logHealthMetricTitle")
+def logHealthMetricTitle(logHealthResult):
+    if logHealthResult.state == LogHealthReport.ERROR:
+        return ""
+
+    # Rest of logic assumes valid lognames and topics lists
+
+    title = " received by "
+
+    # NOTE: Only Kafka logging supported so far.
+
+    lognames = logHealthResult.lognames
+    topics = logHealthResult.topics
+
+    if len(lognames) == 1:
+        if lognames[0] == "*":
+            title = "Any logs" + title
+        else:
+            title = ('Log named "%s"' % lognames[0]) + title
+    else:
+        lognames = ['"' + log + '"' for log in lognames]
+        title = "Logs " + ', '.join(lognames) + title
+
+    if len(topics) == 1:
+        if topics[0] == "*":
+            title += "any Kafka topic"
+        else:
+            title += 'Kafka topic: "%s"' % topics[0]
+    else:
+        topics = ['"' + topic + '"' for topic in topics]
+        title += "Kafka topics: " + ', '.join(topics)
+
+    return title
+
+@register.filter("logHealthMessage")
+def logHealthMessage(logHealthResult):
+
+    maxMinsAgoThreshold = logHealthResult.latestLogAgoMinsBeforeWarning
+    if logHealthResult.state == LogHealthReport.STABLE:
+        return " Last log received about: %s minute(s) ago" % (logHealthResult.lastLogMinutesAgo)
+    elif logHealthResult.state == LogHealthReport.WARNING:
+        return " No logs received in the last %s minute(s)" % (maxMinsAgoThreshold)
+    elif logHealthResult.state == LogHealthReport.ERROR:
+        return logHealthResult.errorMsg
+    return ""
+
+@register.filter("logHealthClass")
+def logHealthClass(logHealthResult):
+    if logHealthResult.state == LogHealthReport.STABLE:
+        return "fa fa-circle color-green"
+    elif logHealthResult.state == LogHealthReport.WARNING:
+        return "fa fa-circle color-red"
+    elif logHealthResult.state == LogHealthReport.ERROR:
+        return "fa fa-times color-red"
+    return ""
+
+@register.filter("addOnButton")
+def addOnButton(addOn):
+    if addOn.state == ServiceAddOn.ON:
+        return "btn-success"
+    elif addOn.state == ServiceAddOn.UNKNOWN:
+        return ""
+    elif addOn.state == ServiceAddOn.PARTIAL:
+        return "btn-warning"
+    return "btn-default"
+
+@register.filter("addOnIcon")
+def addOnIcon(addOn):
+    if addOn.state == ServiceAddOn.LOADING:
+        return "fa fa-w fa-spinner fa-spin"
+    else:
+        return ""
 
 @register.filter("stageToString")
 def stageToString(value):

@@ -15,13 +15,33 @@
  */
 package com.pinterest.teletraan;
 
+import com.pinterest.teletraan.config.AnonymousAuthenticationFactory;
+import com.pinterest.teletraan.config.AuthenticationFactory;
+import com.pinterest.teletraan.config.AuthorizationFactory;
+import com.pinterest.teletraan.config.ChatFactory;
+import com.pinterest.teletraan.config.DataSourceFactory;
+import com.pinterest.teletraan.config.DefaultChatFactory;
+import com.pinterest.teletraan.config.DefaultEmailFactory;
+import com.pinterest.teletraan.config.DefaultHostGroupFactory;
+import com.pinterest.teletraan.config.DefaultSourceControlFactory;
+import com.pinterest.teletraan.config.EmailFactory;
+import com.pinterest.teletraan.config.EmbeddedDataSourceFactory;
+import com.pinterest.teletraan.config.EventSenderFactory;
+import com.pinterest.teletraan.config.ExternalAlertsConfigFactory;
+import com.pinterest.teletraan.config.HostGroupFactory;
+import com.pinterest.teletraan.config.JenkinsFactory;
+import com.pinterest.teletraan.config.OpenAuthorizationFactory;
+import com.pinterest.teletraan.config.RodimusFactory;
+import com.pinterest.teletraan.config.SourceControlFactory;
+import com.pinterest.teletraan.config.SystemFactory;
+import com.pinterest.teletraan.config.WorkerConfig;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.pinterest.teletraan.config.*;
 import io.dropwizard.Configuration;
 
-import javax.validation.Valid;
 import java.util.Collections;
 import java.util.List;
+import javax.validation.Valid;
 
 public class TeletraanServiceConfiguration extends Configuration {
     @Valid
@@ -72,6 +92,15 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     @JsonProperty("jenkins")
     private JenkinsFactory jenkinsFactory;
+
+
+    @Valid
+    @JsonProperty("externalAlerts")
+    private ExternalAlertsConfigFactory externalAlertsConfigs;
+
+    @Valid
+    @JsonProperty("pingrequestvalidators")
+    private List<String> pingRequestValidators;
 
     public DataSourceFactory getDataSourceFactory() {
         if (dataSourceFactory == null) {
@@ -195,5 +224,25 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setWorkerConfigs(List<WorkerConfig> workerConfigs) {
         this.workerConfigs = workerConfigs;
+    }
+
+
+    public ExternalAlertsConfigFactory getExternalAlertsConfigs() {
+        return externalAlertsConfigs;
+    }
+
+    public void setExternalAlertsConfigs(
+        ExternalAlertsConfigFactory externalAlertsConfigs) {
+        this.externalAlertsConfigs = externalAlertsConfigs;
+    }
+
+
+    public List<String> getPingRequestValidators() {
+        return pingRequestValidators;
+    }
+
+    public void setPingRequestValidators(
+        List<String> pingRequestValidators) {
+        this.pingRequestValidators = pingRequestValidators;
     }
 }

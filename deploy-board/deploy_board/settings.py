@@ -70,6 +70,18 @@ CMDB_INSTANCE_URL = os.getenv("CMDB_INSTANCE_URL")
 CMDB_UI_HOST = os.getenv("CMDB_UI_HOST")
 PHOBOS_URL = os.getenv("PHOBOS_URL")
 
+# Serviceframework add-on vars
+SERVICE_RATELIMIT_CONFIG_URL = os.getenv("SERVICE_RATELIMIT_CONFIG_URL")
+STATSBOARD_API_FORMAT = os.getenv("STATSBOARD_API_FORMAT")
+RATELIMIT_ENABLED_METRIC_FORMAT = os.getenv("RATELIMIT_ENABLED_METRIC_FORMAT")
+ENABLING_SERVICE_RATELIMIT_URL = os.getenv("ENABLING_SERVICE_RATELIMIT_URL")
+KAFKA_MSGS_DELIVERED_METRIC = os.getenv("KAFKA_MSGS_DELIVERED_METRIC")
+DASHBOARD_URL_ENDPOINT_FORMAT = os.getenv("DASHBOARD_URL_ENDPOINT_FORMAT")
+
+# For rolling out new features
+GUINEA_PIG_ENVS = os.getenv("GUINEA_PIG_ENVS", "").split(",")
+KAFKA_LOGGING_ADD_ON_ENVS = os.getenv("KAFKA_LOGGING_ADD_ON_ENVS", "").split(",")
+
 LOG_DIR = os.getenv("LOG_DIR")
 LOG_LEVEL = os.getenv("LOG_LEVEL")
 
@@ -184,6 +196,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(PROJECT_PATH, "static"),
 )
+#STATIC_ROOT = os.path.join(PROJECT_PATH, 'static')
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
@@ -199,6 +212,9 @@ DISPLAY_STOPPING_HOSTS = os.getenv("DISPLAY_STOPPING_HOSTS", "true")
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = "https://jenkins.pinadmin.com/job/"
+
+IS_DURING_CODE_FREEZE = True if os.getenv("TELETRAAN_CODE_FREEZE", "false") == "true" else False
+TELETRAAN_CODE_FREEZE_URL = os.getenv("TELETRAAN_CODE_FREEZE_URL", None)
 
 # use Rodimus if present
 RODIMUS_SERVICE_URL = os.getenv("RODIMUS_SERVICE_URL", None)
@@ -253,6 +269,8 @@ if IS_PINTEREST:
 
     #Pinterest Default Host Type
     DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
+
+    DEFAULT_CELL = 'aws-us-east-1'
 
     #Pinterest Default Puppet Environment
     DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON',default='prod')

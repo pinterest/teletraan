@@ -10,6 +10,12 @@
     <li class="active">{{ env.envName }} ({{ env.stageName }})</li>
 </ul>
 
+{% if code_freeze %}
+    {% include "deploys/warning_no_deploy.tmpl" %}
+{% else %}
+    {% include "deploys/warning_no_deploy.tmpl" with hidden='display: none;'%}
+{% endif %}
+
 {% if request_feedback %}
     {% include "feedbacks/feedback_banner.tmpl" %}
 {% else %}
@@ -77,6 +83,13 @@
             type="button" class="deployToolTip btn btn-default btn-block"
             data-toggle="tooltip" title="Check current deploy schedule">
             <span class="glyphicon glyphicon-time"></span> Deploy Schedule
+        </a>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env.envName }}/{{ env.stageName }}/constraint"
+            type="button" class="deployToolTip btn btn-default btn-block"
+            data-toggle="tooltip" title="Check current deploy constraint">
+            <span class="glyphicon glyphicon-time"></span> Deploy Constraint
         </a>
     </div>
     <!--div class="row">
@@ -410,19 +423,27 @@ $('#privateBldUploadBtnId button').click(function () {
                 });
             });
         </script>
-        <div id="activeDeployId" class="collapse in panel-body">
-            {% include "deploys/deploy_progress.tmpl" %}
+        <div class="collapse in panel-body">
+            <div id="activeDeployId">
+                {% include "deploys/deploy_progress.tmpl" %}
+            </div>
+            <div class="row" id="serviceAddOnsId">
+                {% include "deploys/deploy_add_ons.tmpl" %}
+            </div>
         </div>
     </div>
+
 
     <script>
     $(function () {
         var startTime = new Date().getTime();
+        $('#serviceAddOnsId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_service_add_ons/');
+
         var interval = setInterval(function() {
             if(new Date().getTime() - startTime > 3600000) {
                 clearInterval(interval);
             }
-            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}');
+            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}&sortByTag={{ report.sortByTag }}');
         }, 30000);
 
         $(".dropdown-menu li").click(function() {
