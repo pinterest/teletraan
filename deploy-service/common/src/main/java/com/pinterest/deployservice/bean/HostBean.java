@@ -56,7 +56,7 @@ public class HostBean implements Updatable {
     private HostState state;
 
     @JsonProperty("canRetire")
-    private Boolean can_retire;
+    private Integer can_retire;
 
     public String getHost_name() {
         return host_name;
@@ -114,11 +114,11 @@ public class HostBean implements Updatable {
         this.state = state;
     }
 
-    public Boolean getCan_retire() {
+    public Integer getCan_retire() {
         return can_retire;
     }
 
-    public void setCan_retire(Boolean can_retire) {
+    public void setCan_retire(Integer can_retire) {
         this.can_retire = can_retire;
     }
 

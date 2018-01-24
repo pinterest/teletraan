@@ -860,10 +860,21 @@ def cluster_replacement_progress(request, name, stage):
                  cluster_name)
         return HttpResponse("There is no on-going replacement.")
 
-    basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
-    capacity = basic_cluster_info.get("capacity")
+    # basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+    # capacity = basic_cluster_info.get("capacity")
+    # should not respect the cluster capacity here, when min != max, the capacity is not a right number
+    asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, cluster_name)
+    desired_capacity = None
+    if asg_summary:
+        desired_capacity = asg_summary.get("desiredCapacity")
+    if not desired_capacity:
+        error_msg = "cluster %s has wrong desired_capacity: %s, asg_summary: %s" % \
+                    (cluster_name, desired_capacity, asg_summary)
+        log.error(error_msg)
+        return HttpResponse(error_msg, status=500, content_type="application/json")
+
     replacement_progress = get_replacement_summary(
-        request, cluster_name, replacement_event, capacity)
+        request, cluster_name, replacement_event, desired_capacity)
 
     html = render_to_string('clusters/replace_progress.tmpl', {
         "env": env,
