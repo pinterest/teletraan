@@ -763,7 +763,7 @@ public class DBDAOTest {
         hostBean6.setCreate_date(currentTime);
         hostBean6.setLast_update(currentTime);
         hostBean6.setState(HostState.ACTIVE);
-        hostBean6.setCan_retire(true);
+        hostBean6.setCan_retire(1);
         hostDAO.insert(hostBean6);
 
         hostBean6.setHost_name("i-12");
@@ -777,7 +777,7 @@ public class DBDAOTest {
         hostBean7.setCreate_date(currentTime);
         hostBean7.setLast_update(currentTime);
         hostBean7.setState(HostState.TERMINATING);
-        hostBean7.setCan_retire(true);
+        hostBean7.setCan_retire(1);
         hostDAO.insert(hostBean7);
 
         Collection<String>
