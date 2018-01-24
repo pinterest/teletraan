@@ -57,6 +57,13 @@ public class HostBean implements Updatable {
 
     @JsonProperty("canRetire")
     private Integer can_retire;
+    // canRetire used to be a Boolean field
+    // canRetire now represent the state `HostCanRetireType'
+    // which can be:
+    // NEW(0) = the default value upon a host is launched, means cannot retire
+    // TO_BE_REPLACED(1) = marked by cluster replace event to be replaced
+    // HEALTH_CHECK(2) = host only launch for health check purpose and not to be replaced/retired
+
 
     public String getHost_name() {
         return host_name;
