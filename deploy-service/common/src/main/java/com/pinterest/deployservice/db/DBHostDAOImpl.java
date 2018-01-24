@@ -65,9 +65,9 @@ public class DBHostDAOImpl implements HostDAO {
             "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.group_name=? AND h.state not in (?,?) and a.status not in (?,?)";
     private static final String GET_NEW_AND_SERVING_BUILD_HOSTIDS_BY_GROUP =
             "SELECT host_id FROM agents x WHERE x.state = ? AND x.deploy_stage = ? " +
-            "AND x.host_id IN (SELECT DISTINCT h.host_id AS host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire!=1 AND h.group_name=? AND h.state not in (?,?)) " +
+            "AND x.host_id IN (SELECT DISTINCT h.host_id AS host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire=0 AND h.group_name=? AND h.state not in (?,?)) " +
             "GROUP BY x.host_id HAVING count(*) = (SELECT count(*) FROM agents y WHERE y.host_id = x.host_id)";
-    private static final String GET_NEW_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE can_retire!=1 AND group_name=? AND state not in (?,?)";
+    private static final String GET_NEW_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE can_retire=0 AND group_name=? AND state not in (?,?)";
 
     private BasicDataSource dataSource;
 
