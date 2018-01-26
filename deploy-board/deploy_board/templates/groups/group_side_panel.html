@@ -10,7 +10,7 @@
 
 
 
-{% if asg_vm_config and asg_vm_config.asgStatus == "DISABLED" %}
+{% if asg_vm_config and asg_vm_config.asgStatus == "DISABLED" and not disallow_autoscaling %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block"
                 data-toggle="modal" data-target="#resumeAutoScalingModalId"

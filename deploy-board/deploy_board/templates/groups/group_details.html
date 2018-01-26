@@ -191,7 +191,7 @@
                 </button>
             </div>
         {% endif %}
-        {% if asg_status == "DISABLED" %}
+        {% if asg_status == "DISABLED" and not disallow_autoscaling %}
             <div class="btn-group pull-right">
                 <button type="button" class="deployToolTip btn btn-default btn-sm"
                         data-toggle="modal" data-target="#resumeAutoScalingModalId"

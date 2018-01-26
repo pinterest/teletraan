@@ -808,6 +808,13 @@ def get_configs(request):
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
 
+def _disallow_autoscaling(curr_image):
+    if IS_PINTEREST:
+        # disallow autoscaling when the ami is using masterful puppet
+        if curr_image and curr_image["abstract_name"] == "golden_12.04":
+            return True
+    return False
+
 class GenerateDiff(diff_match_patch):
     def old_content(self, diffs):
         html = []
@@ -874,7 +881,8 @@ class GroupConfigView(View):
             "group_config": group_info,
             "group_name": group_name,
             "pas_config": pas_config,
-            "is_cmp": is_cmp
+            "is_cmp": is_cmp,
+            "disallow_autoscaling": _disallow_autoscaling(curr_image),
         })
 
 
@@ -894,8 +902,10 @@ class GroupDetailView(View):
         group_info = autoscaling_groups_helper.get_group_info(request, group_name)
         if group_info:
             launch_config = group_info.get('launchInfo')
+            curr_image = baseimages_helper.get_by_provider_name(request, launch_config["imageId"])
         else:
             launch_config = None
+            curr_image = None
         return render(request, 'groups/group_details.html', {
             "asg_status": asg_status,
             "enable_spot": enable_spot,
@@ -905,6 +915,7 @@ class GroupDetailView(View):
             "group_info": group_info,
             "launch_config": launch_config,
             "pas_enabled": pas_config['pas_state'] if pas_config else False,
+            "disallow_autoscaling": _disallow_autoscaling(curr_image),
         })
 
 
