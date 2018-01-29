@@ -20,7 +20,7 @@
                 data-loading-text="Reloading..." v-on:click="reloadCapacity">
             <span class="glyphicon glyphicon-refresh"></span> Reload
         </button>
-        <button v-if="isEnvEnabled" id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#configdialog" data-toggle="modal" 
+        <button v-if="isEnvEnabled" id="saveEnvCapacityBtnId" class="btn btn-primary" data-target="#configdialog" data-toggle="modal"
             data-loading-text="Saving...">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
@@ -60,6 +60,19 @@
                     this.saveCapacity();
                 }
             },
+            "getToBeUpdatedCapacity": function() {
+                // if this env contains a cluster, need to add the cluster's default ASG group into `groups`
+                // hasCMPCluster is the signal, and ASG group name is {{ env.envName }}-{{ env.stageName }}
+                var groups = rootVue.$refs.groupsinput.tags;
+                if(hasCMPCluster) {
+                     var defaultClusterASGGroupName = '{{ env.envName }}-{{ env.stageName }}';
+                     if(groups.indexOf(defaultClusterASGGroupName) < 0) {
+                        groups.push(defaultClusterASGGroupName);
+                     }
+                }
+                var hosts = rootVue.$refs.hostsinput.tags;
+                return {'hosts':hosts, 'groups': groups};
+            },
             "reloadCapacity": function(){
                 $.ajax({
                     type: 'GET',
@@ -68,7 +81,7 @@
                     beforeSend: function(xhr, settings) {
                         var csrftoken = getCookie('csrftoken')
                         xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                    
+
                     },
                     success: function (data) {
                         rootVue.hosts = data.hosts;
@@ -79,18 +92,18 @@
                     error: function (data) {
                         globalNotificationBanner.error= data;
                     }
-            });
+                });
             },
             "saveCapacity": function(){
+                var toBeUpdated = this.getToBeUpdatedCapacity();
                 $.ajax({
                     type: 'POST',
                     url: '/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/',
-                    data: JSON.stringify({'hosts':rootVue.$refs.hostsinput.tags, 'groups':rootVue.$refs.groupsinput.tags}),
+                    data: JSON.stringify(toBeUpdated),
                     dataType: "json",
                     beforeSend: function(xhr, settings) {
                         var csrftoken = getCookie('csrftoken')
                         xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                    
                     },
                     success: function (data) {
                         if(data != null && data.success == false) {
@@ -103,7 +116,7 @@
                     error: function (data) {
                         globalNotificationBanner.error = data;
                     }
-            });
+                });
             },
         }
       }
