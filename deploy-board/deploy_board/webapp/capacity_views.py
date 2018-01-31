@@ -48,6 +48,7 @@ class EnvCapacityConfigView(View):
                 base_image = baseimages_helper.get_by_id(request, base_image_id)
                 asg_cluster = autoscaling_groups_helper.get_group_info(request, cluster_name)
                 basic_cluster_info['asg_info'] = asg_cluster
+                basic_cluster_info['base_image_info'] = base_image
 
             params = request.GET
             if params.get('adv'):
