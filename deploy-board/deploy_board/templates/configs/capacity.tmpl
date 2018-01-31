@@ -64,7 +64,8 @@
                 // if this env contains a cluster, need to add the cluster's default ASG group into `groups`
                 // hasCMPCluster is the signal, and ASG group name is {{ env.envName }}-{{ env.stageName }}
                 var groups = rootVue.$refs.groupsinput.tags;
-                if(hasCMPCluster) {
+                var image = info.basic_cluster_info.base_image_info;
+                if(hasCMPCluster && image && image.abstract_name && image.abstract_name.startsWith('cmp_base')) {
                      var defaultClusterASGGroupName = '{{ env.envName }}-{{ env.stageName }}';
                      if(groups.indexOf(defaultClusterASGGroupName) < 0) {
                         groups.push(defaultClusterASGGroupName);
