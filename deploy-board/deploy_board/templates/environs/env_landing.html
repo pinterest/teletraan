@@ -10,11 +10,14 @@
     <li class="active">{{ env.envName }} ({{ env.stageName }})</li>
 </ul>
 
-{% if code_freeze %}
-    {% include "deploys/warning_no_deploy.tmpl" %}
-{% else %}
-    {% include "deploys/warning_no_deploy.tmpl" with hidden='display: none;'%}
+{% if is_pinterest %}
+    {% if code_freeze %}
+        {% include "deploys/warning_no_deploy.tmpl" %}
+    {% else %}
+        {% include "deploys/warning_no_deploy.tmpl" with hidden='display: none;'%}
+    {% endif %}
 {% endif %}
+
 
 {% if request_feedback %}
     {% include "feedbacks/feedback_banner.tmpl" %}
