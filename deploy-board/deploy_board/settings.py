@@ -215,6 +215,7 @@ BUILD_URL = "https://jenkins.pinadmin.com/job/"
 
 IS_DURING_CODE_FREEZE = True if os.getenv("TELETRAAN_CODE_FREEZE", "false") == "true" else False
 TELETRAAN_CODE_FREEZE_URL = os.getenv("TELETRAAN_CODE_FREEZE_URL", None)
+TELETRAAN_JIRA_SOURCE_URL = os.getenv("TELETRAAN_JIRA_SOURCE_URL", None)
 
 # use Rodimus if present
 RODIMUS_SERVICE_URL = os.getenv("RODIMUS_SERVICE_URL", None)
