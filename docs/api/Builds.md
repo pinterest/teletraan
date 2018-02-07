@@ -1,6 +1,64 @@
 ### Builds
 
-Build information APIs
+BUILD information APIs
+
+#### Get build info
+```
+GET /v1/builds/{id}
+```
+
+##### Description
+
+Returns a build object given a build id
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|id|BUILD id|true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|BuildBean|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Delete a build
+```
+DELETE /v1/builds/{id}
+```
+
+##### Description
+
+Deletes a build given a build id
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|id|BUILD id|true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
 
 #### GET /v1/builds
 ##### Parameters
@@ -41,7 +99,7 @@ Publish a build given a build object
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|BodyParameter|body|Build object|true|BuildBean||
+|BodyParameter|body|BUILD object|true|BuildBean||
 
 
 ##### Responses
@@ -70,7 +128,7 @@ Returns a list of the repository branches associated with a given build name
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|name|Build name|true|string||
+|PathParameter|name|BUILD name|true|string||
 
 
 ##### Responses
@@ -87,9 +145,9 @@ Returns a list of the repository branches associated with a given build name
 
 * application/json
 
-#### Get build info
+#### Get build info with its tags
 ```
-GET /v1/builds/{id}
+GET /v1/builds/{id}/tags
 ```
 
 ##### Description
@@ -99,13 +157,13 @@ Returns a build object given a build id
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|id|Build id|true|string||
+|PathParameter|id|BUILD id|true|string||
 
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|200|successful operation|BuildBean|
+|200|successful operation|BuildTagBean|
 
 
 ##### Consumes
@@ -116,25 +174,31 @@ Returns a build object given a build id
 
 * application/json
 
-#### Delete a build
+#### Get build info along with the build tag info for a given build name
 ```
-DELETE /v1/builds/{id}
+GET /v1/builds/tags
 ```
 
 ##### Description
 
-Deletes a build given a build id
+Return a bean object containing the build and the build tag
 
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|id|Build id|true|string||
+|QueryParameter|commit||false|string||
+|QueryParameter|name||false|string||
+|QueryParameter|branch||false|string||
+|QueryParameter|pageIndex||false|integer (int32)||
+|QueryParameter|pageSize||false|integer (int32)||
+|QueryParameter|before||false|integer (int64)||
+|QueryParameter|after||false|integer (int64)||
 
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|default|successful operation|No Content|
+|200|successful operation|BuildTagBean|
 
 
 ##### Consumes
@@ -158,6 +222,27 @@ Deletes a build given a build id
 |HTTP Code|Description|Schema|
 |----|----|----|
 |200|successful operation|string array|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### GET /v1/builds/current
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|QueryParameter|group||false|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|BuildBean array|
 
 
 ##### Consumes

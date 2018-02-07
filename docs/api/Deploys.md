@@ -2,30 +2,19 @@
 
 Deploy info APIs
 
-#### GET /v1/deploys
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|QueryParameter|envId||false|multi string array||
-|QueryParameter|operator||false|multi string array||
-|QueryParameter|deployType||false|multi enum (REGULAR, HOTFIX, ROLLBACK, RESTART, STOP) array||
-|QueryParameter|deployState||false|multi enum (RUNNING, FAILING, SUCCEEDING, SUCCEEDED, ABORTED) array||
-|QueryParameter|acceptanceStatus||false|multi enum (PENDING_DEPLOY, OUTSTANDING, PENDING_ACCEPT, ACCEPTED, REJECTED, TERMINATED) array||
-|QueryParameter|commit||false|string||
-|QueryParameter|repo||false|string||
-|QueryParameter|branch||false|string||
-|QueryParameter|commitDate||false|integer (int64)||
-|QueryParameter|before||false|integer (int64)||
-|QueryParameter|after||false|integer (int64)||
-|QueryParameter|pageIndex||false|integer (int32)||
-|QueryParameter|pageSize||false|integer (int32)||
-|QueryParameter|oldestFirst||false|boolean||
+#### Get deploys per day
+```
+GET /v1/deploys/dailycount
+```
 
+##### Description
+
+Get total numbers of deploys on the current day
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|200|successful operation|DeployQueryResultBean|
+|200|successful operation|integer (int64)|
 
 
 ##### Consumes
@@ -66,6 +55,40 @@ Returns a deploy info object given an environment name and stage name
 
 * application/json
 
+#### GET /v1/deploys
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|QueryParameter|envId||false|multi string array||
+|QueryParameter|operator||false|multi string array||
+|QueryParameter|deployType||false|multi enum (REGULAR, HOTFIX, ROLLBACK, RESTART, STOP) array||
+|QueryParameter|deployState||false|multi enum (RUNNING, FAILING, SUCCEEDING, SUCCEEDED, ABORTED) array||
+|QueryParameter|acceptanceStatus||false|multi enum (PENDING_DEPLOY, OUTSTANDING, PENDING_ACCEPT, ACCEPTED, REJECTED, TERMINATED) array||
+|QueryParameter|commit||false|string||
+|QueryParameter|repo||false|string||
+|QueryParameter|branch||false|string||
+|QueryParameter|commitDate||false|integer (int64)||
+|QueryParameter|before||false|integer (int64)||
+|QueryParameter|after||false|integer (int64)||
+|QueryParameter|pageIndex||false|integer (int32)||
+|QueryParameter|pageSize||false|integer (int32)||
+|QueryParameter|oldestFirst||false|boolean||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|DeployQueryResultBean|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
 #### Get deploy info
 ```
 GET /v1/deploys/{id}
@@ -85,6 +108,36 @@ Returns a deploy object given a deploy id
 |HTTP Code|Description|Schema|
 |----|----|----|
 |200|successful operation|DeployBean|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Update deploy
+```
+PUT /v1/deploys/{id}
+```
+
+##### Description
+
+Update deploy given a deploy id and a deploy object. Current only acceptanceStatus and description are allowed to change.
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|id|Deploy id|true|string||
+|BodyParameter|body|Partially populated deploy object|true|DeployBean||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
 
 
 ##### Consumes
@@ -124,20 +177,24 @@ Delete deploy info given a deploy id
 
 * application/json
 
-#### Update deploy info
+#### Take deploy action
 ```
-PUT /v1/deploys/{id}
+POST /v1/envs/{envName}/{stageName}/deploys/current/actions
 ```
 
 ##### Description
 
-Update deploy info given a deploy id and AcceptanceStatus
+Take an action on a deploy such as RESTART or PAUSE
 
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|id|Deploy id|true|string||
-|QueryParameter|acceptanceStatus|AcceptanceStatus enum option|true|enum (PENDING_DEPLOY, OUTSTANDING, PENDING_ACCEPT, ACCEPTED, REJECTED, TERMINATED)||
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+|QueryParameter|actionType|ActionType enum selection|true|enum (PROMOTE, RESTART, ROLLBACK, PAUSE, RESUME)||
+|QueryParameter|fromDeployId|Lower bound deploy id|true|string||
+|QueryParameter|toDeployId|Upper bound deploy id|true|string||
+|QueryParameter|description|Description|true|string||
 
 
 ##### Responses
@@ -184,6 +241,36 @@ Updates a deploy's progress given an environment name and stage name and returns
 
 * application/json
 
+#### Get missing hosts for stage
+```
+GET /v1/envs/{envName}/{stageName}/deploys/current/missing-hosts
+```
+
+##### Description
+
+Returns a list of missing hosts given an environment and stage
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|string array|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
 #### Create a deploy
 ```
 POST /v1/envs/{envName}/{stageName}/deploys
@@ -216,24 +303,22 @@ Creates a deploy given an environment name, stage name, build id and description
 
 * application/json
 
-#### Take deploy action
+#### Take a deploy action
 ```
-POST /v1/envs/{envName}/{stageName}/deploys/current/actions
+PUT /v1/envs/{envName}/{stageName}/deploys/hostactions
 ```
 
 ##### Description
 
-Take an action on a deploy such as RESTART or PAUSE
+Take an action on a deploy using host information
 
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
 |PathParameter|envName|Environment name|true|string||
 |PathParameter|stageName|Stage name|true|string||
-|QueryParameter|actionType|ActionType enum selection|true|enum (PROMOTE, RESTART, ROLLBACK, PAUSE, RESUME)||
-|QueryParameter|fromDeployId|Lower bound deploy id|true|string||
-|QueryParameter|toDeployId|Upper bound deploy id|true|string||
-|QueryParameter|description|Description|true|string||
+|QueryParameter|actionType|Agent object to update with|true|enum (PAUSED_BY_USER, RESET, NORMAL)||
+|BodyParameter|body||false|string array||
 
 
 ##### Responses
