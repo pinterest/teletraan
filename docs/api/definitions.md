@@ -46,6 +46,13 @@
 |publishDate||false|integer (int64)||
 
 
+### BuildTagBean
+|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|
+|tag||false|TagBean||
+|build||false|BuildBean||
+
+
 ### ChatMessageBean
 |Name|Description|Required|Schema|Default|
 |----|----|----|----|----|
@@ -63,6 +70,17 @@
 |title||false|string||
 |message||false|string||
 |info||false|string||
+
+
+### ConfigHistoryBean
+|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|
+|id||false|string||
+|changeId||false|string||
+|createTime||false|integer (int64)||
+|operator||false|string||
+|type||false|string||
+|configChange||false|string||
 
 
 ### DeployBean
@@ -86,6 +104,23 @@
 |fromDeployId||false|string||
 
 
+### DeployCandidatesResponse
+|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|
+|candidates||false|PingResponseBean array||
+
+
+### DeployConstraintBean
+|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|
+|id||false|string||
+|constraintKey||false|string||
+|maxParallel||false|integer (int64)||
+|state||false|enum (INIT, PROCESSING, ERROR, FINISHED)||
+|startDate||false|integer (int64)||
+|lastUpdate||false|integer (int64)||
+
+
 ### DeployGoalBean
 |Name|Description|Required|Schema|Default|
 |----|----|----|----|----|
@@ -100,6 +135,7 @@
 |agentConfigs||false|object||
 |scriptVariables||false|object||
 |firstDeploy||false|boolean|false|
+|isDocker||false|boolean|false|
 
 
 ### DeployProgressBean
@@ -107,12 +143,14 @@
 |----|----|----|----|----|
 |agents||false|AgentBean array||
 |missingHosts||false|string array||
+|provisioningHosts||false|HostBean array||
 
 
 ### DeployQueryResultBean
 |Name|Description|Required|Schema|Default|
 |----|----|----|----|----|
 |deploys||false|DeployBean array||
+|deployTags||false|object||
 |total||false|integer (int64)||
 |truncated||false|boolean|false|
 
@@ -139,6 +177,7 @@
 |deployType||false|enum (REGULAR, HOTFIX, ROLLBACK, RESTART, STOP)||
 |maxParallel||false|integer (int32)||
 |priority||false|enum (NORMAL, HIGH, LOW, HIGHER, LOWER)||
+|systemPriority||false|integer (int32)||
 |stuckThreshold||false|integer (int32)||
 |successThreshold||false|integer (int32)||
 |advancedConfigId||false|string||
@@ -154,7 +193,23 @@
 |webhooksConfigId||false|string||
 |maxDeployNum||false|integer (int32)||
 |maxDeployDay||false|integer (int32)||
+|isDocker||false|boolean|false|
+|maxParallelPct||false|integer (int32)||
+|state||false|enum (NORMAL, DISABLED)||
+|clusterName||false|string||
+|maxParallelRp||false|integer (int32)||
 |overridePolicy||false|enum (OVERRIDE, WARN)||
+|scheduleId||false|string||
+|deployConstraintId||false|string||
+
+
+### GroupRolesBean
+|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|
+|name||false|string||
+|resource||false|string||
+|type||false|enum (ENV, GROUP, SYSTEM)||
+|role||true|enum (READER, PINGER, PUBLISHER, OPERATOR, ADMIN)||
 
 
 ### HostBean
@@ -167,6 +222,16 @@
 |createDate||false|integer (int64)||
 |lastUpdateDate||false|integer (int64)||
 |state||false|enum (PROVISIONED, ACTIVE, PENDING_TERMINATE, TERMINATING, TERMINATED)||
+|canRetire||false|integer (int32)||
+
+
+### HostTagInfo
+|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|
+|hostName||false|string||
+|hostId||false|string||
+|tagName||false|string||
+|tagValue||false|string||
 
 
 ### MetricsConfigBean
@@ -231,11 +296,17 @@
 |failPolicy||false|enum (CONTINUE, DISABLE, ROLLBACK)||
 
 
-### SpecBean
+### TagBean
 |Name|Description|Required|Schema|Default|
 |----|----|----|----|----|
 |id||false|string||
-|info||false|object||
+|value||false|enum (BAD_BUILD, GOOD_BUILD, ENABLE_ENV, DISABLE_ENV)||
+|targetType||false|enum (BUILD, ENVIRONMENT, TELETRAAN)||
+|targetId||false|string||
+|operator||false|string||
+|createdDate||false|integer (int64)||
+|comments||false|string||
+|metaInfo||false|string||
 
 
 ### TokenRolesBean
@@ -271,254 +342,642 @@
 
 ## Enums
 
+### HostState
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
 ### AcceptanceStatus
 
-  - PENDING_DEPLOY
-
-     Deploy has not completed yet
-
-  OUSTANDING:
-
-     Deploy has not completed yet
-
-### AcceptanceType
-
-  AUTO:
-
-       Deploy will be automatically accepted once deploy is SUCCEEDING
+  Copyright 2016 Pinterest, Inc.
 
  
 
-   MANUAL:
+  Licensed under the Apache License, Version 2.0 (the "License");
 
-       Deploy will only be accepted by external process explicit action
+  you may not use this file except in compliance with the License.
 
-### AgentState
+  You may obtain a copy of the License at
 
-  NORMAL:
+   
 
-       Normal state
+      http://www.apache.org/licenses/LICENSE-2.0
 
-  PAUSED_BY_SYSTEM:
+     
 
-       Agent being paused by system automatically
+  Unless required by applicable law or agreed to in writing, software
 
-  PAUSED_BY_USER:
+  distributed under the License is distributed on an "AS IS" BASIS,
 
-       Agent being paused by user manually
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
-  RESET:
+  See the License for the specific language governing permissions and
 
-       Agent should retry last failure
+  limitations under the License.
 
-  DELETE:
+### TagTargetType
 
-       Agent should delete its status file
+/
 
-  UNREACHABLE:
-
-       Agent has not reported for certain time
-
-  STOP:
-
-       Agent is shutting down the service
+  Copyright 2016 Pinterest, Inc.
 
  
 
-### AgentStatus
+  Licensed under the Apache License, Version 2.0 (the "License");
 
-### ASGStatus
+  you may not use this file except in compliance with the License.
 
-### DeployPriority
+  You may obtain a copy of the License at
 
-### DeployStage
+ 
 
-  UNKNOWN:
+      http://www.apache.org/licenses/LICENSE-2.0
 
-       Reserved by system when deploy stage is unknown
+ 
 
-  PRE_DOWNLOAD:
+  Unless required by applicable law or agreed to in writing, software
 
-       Before deploy agent download the build
+  distributed under the License is distributed on an "AS IS" BASIS,
 
-  DOWNLOADING:
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
-       Deploy agent is downloading the build
+  See the License for the specific language governing permissions and
 
-  POST_DOWNLOAD:
-
-       After deploy agent download the build
-
-  STAGING:
-
-       Deploy agent is working on prepare the build for service restart
-
-  PRE_RESTART:
-
-       Before deploy agent restart the service
-
-  RESTARTING:
-
-       Deploy agent is restarting the service
-
-  POST_RESTART:
-
-       After deploy agent restart the service
-
-  SERVING_BUILD:
-
-       Service is serving traffic
-
-  STOPPING:
-
-       Deploy Agent is shutting down the service
-
-  STOPPED:
-
-       Complete shutting down the service
+  limitations under the License.
 
 ### DeployState
 
-### DeployType
+  Copyright 2016 Pinterest, Inc.
 
-  REGULAR:
+ 
 
-       Regular deploy
+  Licensed under the Apache License, Version 2.0 (the "License");
 
-  HOTFIX:
+  you may not use this file except in compliance with the License.
 
-       Special deploy which should go fast
+  You may obtain a copy of the License at
 
-  ROLLBACK:
+   
 
-       Special deploy to redeploy certain previous build
+      http://www.apache.org/licenses/LICENSE-2.0
 
-  RESTART:
+     
 
-       Special deploy to redeploy current build
+  Unless required by applicable law or agreed to in writing, software
 
-  STOP:
+  distributed under the License is distributed on an "AS IS" BASIS,
 
-       Special deploy to stop service
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
-### EnvState
+  See the License for the specific language governing permissions and
 
-  NORMAL:
+  limitations under the License.
 
-       Normal environment state
+### AgentStatus
 
-  PAUSED:
+  Copyright 2016 Pinterest, Inc.
 
-       Environment current deploy is on pause
+ 
 
-  DISABLED:
+  Licensed under the Apache License, Version 2.0 (the "License");
 
-       Environment is disabled, current deploy should be on pause
+  you may not use this file except in compliance with the License.
 
-### HostState
+  You may obtain a copy of the License at
 
-  PROVISIONED:
+   
 
-       Host is being provisioned
+      http://www.apache.org/licenses/LICENSE-2.0
 
-  ACTIVE:
+     
 
-       Host is ready to deploy
+  Unless required by applicable law or agreed to in writing, software
 
-  PENDING_TERMINATE:
+  distributed under the License is distributed on an "AS IS" BASIS,
 
-       Host is pending terminate
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
-  TERMINATING:
+  See the License for the specific language governing permissions and
 
-       Host if being terminated
-
-  TERMINATED:
-
-       Host is terminated
+  limitations under the License.
 
 ### HotfixState
 
-### OpCode
+  Copyright 2016 Pinterest, Inc.
 
-  NOOP:
+ 
 
-       No action needed
+  Licensed under the Apache License, Version 2.0 (the "License");
 
-  DEPLOY:
+  you may not use this file except in compliance with the License.
 
-       Agent needs to restart service
+  You may obtain a copy of the License at
 
-  RESTART:
+   
 
-       Agent needs to restart service
+      http://www.apache.org/licenses/LICENSE-2.0
 
-  DELETE:
+     
 
-       Agent needs to delete its own status file for this env
+  Unless required by applicable law or agreed to in writing, software
 
-  WAIT:
+  distributed under the License is distributed on an "AS IS" BASIS,
 
-       Agent needs to sleep for certain time
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
-  ROLLBACK:
+  See the License for the specific language governing permissions and
 
-       Agent needs to rollback
-
-  STOP:
-
-       Agent needs to shutdown service
-
-### PromoteDisablePolicy
-
-  MANUAL:
-
-     Auto promote can only be disabled manually
-
-  AUTO:
-
-       Auto promote will be disabled automatically once there is a manual deploy
-
-### PromoteFailPolicy
-
-### PromoteType
-
-  MANUAL:
-
-      Deploy is promoted from pred stage to next stage manually
-
-  AUTO:
-
-      Deploy is automatically promoted from pred stage to next stage
+  limitations under the License.
 
 ### Resource
 
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### EnvState
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### TagValue
+
+/
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+ 
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ 
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### PromoteType
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### AgentState
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### EnvironState
+
+/
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+ 
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+ 
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### TagSyncState
+
+  INIT:
+
+       the initial state, environment is ready for tag sync workers
+
+  PROCESSING:
+
+       host_tags table is not in-sync with host ec2 tags, and tag sync workers are currently working on it
+
+  ERROR:
+
+       failed to sync host_tags
+
+  FINISHED:
+
+       currently host_tags table is in-sync with host ec2 tags in this environment.
+
+### PromoteDisablePolicy
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### DeployStage
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### ScheduleState
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### OpCode
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### PromoteFailPolicy
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### OverridePolicy
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### AcceptanceType
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
+### DeployType
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
 ### Role
 
-  READER:
+  Copyright 2016 Pinterest, Inc.
 
-       Default role, everyone who is able to use Teletraan has READER access.
+ 
 
-  PINGER:
+  Licensed under the Apache License, Version 2.0 (the "License");
 
-       Role required to ping server.
+  you may not use this file except in compliance with the License.
 
-  PUBLISHER:
+  You may obtain a copy of the License at
 
-       Role required to publish artifacts.
+   
 
-  OPERATOR:
+      http://www.apache.org/licenses/LICENSE-2.0
 
-       Role where user can modify a specific environment's config and
+     
 
-       perform deploy related actions.
+  Unless required by applicable law or agreed to in writing, software
 
-  ADMIN:
+  distributed under the License is distributed on an "AS IS" BASIS,
 
-       Role that has the same environment specific privileges as OPERATOR
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 
-       plus the ability specify new OPERATORS and ADMINs for said environment.
+  See the License for the specific language governing permissions and
 
-       When a new environment is created the creating user is the designated the
+  limitations under the License.
 
-       first ADMIN.
+### DeployPriority
+
+  Copyright 2016 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.

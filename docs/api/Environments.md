@@ -2,268 +2,28 @@
 
 Environment info APIs
 
-#### Get webhooks object
+#### Get the config history for the environment
 ```
-GET /v1/envs/{envName}/{stageName}/web_hooks
+GET /v1/envs/{envName}/{stageName}/history
 ```
 
 ##### Description
 
-Returns a pre/post webhooks object by given environment and stage names
+Get the config history for the environment
 
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|envName|Environment name|true|string||
-|PathParameter|stageName|Stage name|true|string||
+|PathParameter|envName||true|string||
+|PathParameter|stageName||true|string||
+|QueryParameter|pageIndex||false|integer (int32)||
+|QueryParameter|pageSize||false|integer (int32)||
 
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|200|successful operation|EnvWebHookBean|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Update webhooks
-```
-PUT /v1/envs/{envName}/{stageName}/web_hooks
-```
-
-##### Description
-
-Updates pre/deploy webhooks by given environment and stage names with given webhooks object
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName|Environment name|true|string||
-|PathParameter|stageName|Stage name|true|string||
-|BodyParameter|body||false|EnvWebHookBean||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Get all environment objects
-```
-GET /v1/envs
-```
-
-##### Description
-
-Returns a list of environment objects related to the given environment name
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|QueryParameter|envName|Environment name|true|string||
-|QueryParameter|groupName||false|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|EnvironBean array|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Create environment
-```
-POST /v1/envs
-```
-
-##### Description
-
-Creates a new environment given an environment object
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|BodyParameter|body|Environemnt object to create in database|true|EnvironBean||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Get an environment
-```
-GET /v1/envs/{envName}/{stageName}
-```
-
-##### Description
-
-Returns an environment object given environment and stage names
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName|Environment name|true|string||
-|PathParameter|stageName|Stage name|true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|EnvironBean|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Delete an environment
-```
-DELETE /v1/envs/{envName}/{stageName}
-```
-
-##### Description
-
-Deletes an environment given a environment and stage names
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName|Environment name|true|string||
-|PathParameter|stageName|Stage name|true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Update an environment
-```
-PUT /v1/envs/{envName}/{stageName}
-```
-
-##### Description
-
-Update an environment given environment and stage names with a environment object
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName|Environment name|true|string||
-|PathParameter|stageName|Stage name|true|string||
-|BodyParameter|body|Desired Environment object with updates|true|EnvironBean||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Get environment metrics
-```
-GET /v1/envs/{envName}/{stageName}/metrics
-```
-
-##### Description
-
-Returns a list of MetricsConfig object containing details for environment metrics gauges given an environment name and stage name
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName|Environment name|true|string||
-|PathParameter|stageName|Stage name|true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|MetricsConfigBean array|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Update environment metrics
-```
-PUT /v1/envs/{envName}/{stageName}/metrics
-```
-
-##### Description
-
-Updates an environment's metrics configs given an environment name, stage name, and list of MetricsConfig objects to update with
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName|Environment name|true|string||
-|PathParameter|stageName|Stage name|true|string||
-|BodyParameter|body|List of MetricsConfigBean objects|true|MetricsConfigBean array||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
+|200|successful operation|ConfigHistoryBean array|
 
 
 ##### Consumes
@@ -396,6 +156,518 @@ Updates script configs given environment and stage names with given name:value m
 
 * application/json
 
+#### POST /v1/envs/{envName}/{stageName}/actions
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName||true|string||
+|PathParameter|stageName||true|string||
+|QueryParameter|actionType||false|enum (ENABLE, DISABLE)||
+|QueryParameter|description||false|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Get webhooks object
+```
+GET /v1/envs/{envName}/{stageName}/web_hooks
+```
+
+##### Description
+
+Returns a pre/post webhooks object by given environment and stage names
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|EnvWebHookBean|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Update webhooks
+```
+PUT /v1/envs/{envName}/{stageName}/web_hooks
+```
+
+##### Description
+
+Updates pre/deploy webhooks by given environment and stage names with given webhooks object
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+|BodyParameter|body||false|EnvWebHookBean||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Get an environment
+```
+GET /v1/envs/{envName}/{stageName}
+```
+
+##### Description
+
+Returns an environment object given environment and stage names
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|EnvironBean|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Update an environment
+```
+PUT /v1/envs/{envName}/{stageName}
+```
+
+##### Description
+
+Update an environment given environment and stage names with a environment object
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+|BodyParameter|body|Desired Environment object with updates|true|EnvironBean||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Delete an environment
+```
+DELETE /v1/envs/{envName}/{stageName}
+```
+
+##### Description
+
+Deletes an environment given a environment and stage names
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Get environment object
+```
+GET /v1/envs/{id}
+```
+
+##### Description
+
+Returns an environment object given an environment id
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|id|Environment id|true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|EnvironBean|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### POST /v1/envs/actions
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|QueryParameter|actionType||false|enum (ENABLE, DISABLE)||
+|QueryParameter|description||false|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Get the capacities for Group and hosts
+```
+GET /v1/envs/{envName}/{stageName}/capacity
+```
+
+##### Description
+
+Get the capacities for Group and hosts
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName||true|string||
+|PathParameter|stageName||true|string||
+|QueryParameter|capacityType||false|enum (GROUP, HOST)||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|string array|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Update the capacities for Group and hosts
+```
+PUT /v1/envs/{envName}/{stageName}/capacity
+```
+
+##### Description
+
+Update the capacities for Group and hosts
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName||true|string||
+|PathParameter|stageName||true|string||
+|QueryParameter|capacityType||false|enum (GROUP, HOST)||
+|BodyParameter|body||false|string array||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Delete the capacities for Group and hosts
+```
+DELETE /v1/envs/{envName}/{stageName}/capacity
+```
+
+##### Description
+
+Delete the capacities for Group and hosts
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName||true|string||
+|PathParameter|stageName||true|string||
+|QueryParameter|capacityType||false|enum (GROUP, HOST)||
+|BodyParameter|body||false|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Create the capacities for Group and hosts
+```
+POST /v1/envs/{envName}/{stageName}/capacity
+```
+
+##### Description
+
+Create the capacities for Group and hosts
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName||true|string||
+|PathParameter|stageName||true|string||
+|QueryParameter|capacityType||false|enum (GROUP, HOST)||
+|BodyParameter|body||false|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Get environment metrics
+```
+GET /v1/envs/{envName}/{stageName}/metrics
+```
+
+##### Description
+
+Returns a list of MetricsConfig object containing details for environment metrics gauges given an environment name and stage name
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|MetricsConfigBean array|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Update environment metrics
+```
+PUT /v1/envs/{envName}/{stageName}/metrics
+```
+
+##### Description
+
+Updates an environment's metrics configs given an environment name, stage name, and list of MetricsConfig objects to update with
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+|BodyParameter|body|List of MetricsConfigBean objects|true|MetricsConfigBean array||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### GET /v1/envs/names
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|QueryParameter|nameFilter||false|string||
+|QueryParameter|pageIndex||false|integer (int32)||
+|QueryParameter|pageSize||false|integer (int32)||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|string array|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### GET /v1/envs/ids
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|string array|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Get all environment objects
+```
+GET /v1/envs
+```
+
+##### Description
+
+Returns a list of environment objects related to the given environment name
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|QueryParameter|envName|Environment name|true|string||
+|QueryParameter|groupName||false|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|EnvironBean array|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Create environment
+```
+POST /v1/envs
+```
+
+##### Description
+
+Creates a new environment given an environment object
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|BodyParameter|body|Environemnt object to create in database|true|EnvironBean||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
 #### Get promote info
 ```
 GET /v1/envs/{envName}/{stageName}/promotes
@@ -447,58 +719,6 @@ Updates promote info given environment and stage names by given promote info obj
 |HTTP Code|Description|Schema|
 |----|----|----|
 |default|successful operation|No Content|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### GET /v1/envs/names
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|QueryParameter|nameFilter||false|string||
-|QueryParameter|pageIndex||false|integer (int32)||
-|QueryParameter|pageSize||false|integer (int32)||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|string array|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Get environment object
-```
-GET /v1/envs/{id}
-```
-
-##### Description
-
-Returns an environment object given an environment id
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|id|Environment id|true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|EnvironBean|
 
 
 ##### Consumes
