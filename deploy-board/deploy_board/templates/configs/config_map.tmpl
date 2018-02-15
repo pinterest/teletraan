@@ -9,6 +9,7 @@
                     <label for="properties" class="control-label col-xs-3">{{ key }}</label>
                     <div class="col-xs-6">
                         <textarea class="form-control" name="TELETRAAN_{{ key }}"
+                        rows="1" style="resize: none;"
                         >{{ value|default_if_none:'' }} </textarea>
                     </div>
                     <div class="col-xs-3">
@@ -79,7 +80,7 @@
 
                         <div class="col-md-10">
                             <textarea type="text" class="form-control" name="newEntryValue"
-                                   placeholder="value..."></textarea>
+                             rows="1" style="resize: none;" placeholder="value..."></textarea>
                         </div>
                     </div>
 
@@ -120,7 +121,7 @@
                     '<div class="form-group">' +
                     '<label for="properties" class="control-label col-xs-3">' + name + '</label>' +
                     '<div class="col-xs-6"><textarea class="form-control" name="TELETRAAN_' +
-                    name + '" type="text" >' + value + '</textarea></div>' +
+                    name + '" type="text" rows="1" style="resize: none;">' + value + '</textarea></div>' +
                     '<div class="col-xs-3 {{ flavor }}_remover">' +
                     '<button type="button" class="delete_button btn btn-default">Delete</button></div>' +
                     '</div>');
@@ -175,7 +176,15 @@
             $('#resetConfigMapBtnId').removeAttr('disabled');
         });
 
-       $('textarea').attr("style", "resize: vertical")
+        $('textarea').on('change click keyup keydown', function() {
+           this.style.height = "32px";
+           this.style.height = (this.scrollHeight + 2)+"px";
+        });
+
+        $('#mapConfigFieldSetId').on('change click keyup keydown', 'textarea', function () {
+           this.style.height = "32px";
+           this.style.height = (this.scrollHeight + 2)+"px";
+        });
 
     });
 </script>
