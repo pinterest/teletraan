@@ -122,6 +122,9 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         DeployConstraints deployConstraints = new DeployConstraints(context);
         environment.jersey().register(deployConstraints);
 
+        EnvHostAZs envHostAZs = new EnvHostAZs(context);
+        environment.jersey().register(envHostAZs);
+
         Hotfixs hotfixes = new Hotfixs(context);
         environment.jersey().register(hotfixes);
 
