@@ -131,6 +131,7 @@ CREATE TABLE IF NOT EXISTS host_tags (
     env_id         VARCHAR(22)         NOT NULL,
     tag_name       VARCHAR(64)         NOT NULL,
     tag_value      VARCHAR(256),
+    parent_tag_value VARCHAR(256),
     create_date     BIGINT              NOT NULL,
     PRIMARY KEY    (host_id, env_id, tag_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -141,6 +142,7 @@ CREATE TABLE IF NOT EXISTS deploy_constraints (
   constraint_id     VARCHAR(22)         NOT NULL,
   constraint_key    VARCHAR(64)         NOT NULL,
   max_parallel      BIGINT              NOT NULL,
+  inclusive         TINYINT(1)          NOT NULL DEFAULT 0,
   state             VARCHAR(32)         NOT NULL,
   start_date        BIGINT              NOT NULL,
   last_update       BIGINT,

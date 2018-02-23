@@ -52,7 +52,7 @@ public class EnvHostTags {
     @GET
     @ApiOperation(
         value = "List all the hosts tags",
-        notes = "Returns a map group by tagValue and hosts tagged with tagName:tagValue in an environment",
+        notes = "Returns a list the host tags in an environment",
         response = HostTagInfo.class)
     public Collection<HostTagInfo> get(@PathParam("envName") String envName,
                                                     @PathParam("stageName") String stageName,

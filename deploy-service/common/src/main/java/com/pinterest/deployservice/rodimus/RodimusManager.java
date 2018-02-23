@@ -17,6 +17,7 @@ package com.pinterest.deployservice.rodimus;
 
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 public interface RodimusManager {
@@ -27,4 +28,6 @@ public interface RodimusManager {
     Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception;
 
     Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception;
+
+    Map<String, List<String>> getAvailabilityZones(Collection<String> hostIds) throws Exception;
 }

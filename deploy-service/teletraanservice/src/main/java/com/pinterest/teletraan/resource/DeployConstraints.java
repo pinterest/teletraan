@@ -86,6 +86,10 @@ public class DeployConstraints {
         if (tagName != null) {
             updateBean.setConstraint_key(tagName);
         }
+        boolean inclusive = deployConstraintBean.getInclusive();
+        if(inclusive) {
+            updateBean.setInclusive(true);
+        }
 
         List<UpdateStatement> statements = new ArrayList<>();
         if (constraintId == null) {

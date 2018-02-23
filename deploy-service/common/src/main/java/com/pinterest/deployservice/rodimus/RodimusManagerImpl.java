@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
@@ -110,5 +111,12 @@ public class RodimusManagerImpl implements RodimusManager {
         String url = String.format("%s/v1/host_ec2tags", rodimusUrl);
         String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
         return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>(){}.getType());
+    }
+
+    @Override
+    public Map<String, List<String>> getAvailabilityZones(Collection<String> hostIds) throws Exception {
+        String url = String.format("%s/v1/host_availability_zones", rodimusUrl);
+        String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
+        return gson.fromJson(res, new TypeToken<Map<String, List<String>>>(){}.getType());
     }
 }

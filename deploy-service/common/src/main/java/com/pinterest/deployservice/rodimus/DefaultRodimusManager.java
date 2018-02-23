@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 public class DefaultRodimusManager implements RodimusManager {
 
@@ -39,6 +40,11 @@ public class DefaultRodimusManager implements RodimusManager {
 
     @Override
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
-        return new HashMap<String, Map<String, String>>();
+        return new HashMap<>();
+    }
+
+    @Override
+    public Map<String, List<String>> getAvailabilityZones(Collection<String> hostIds) throws Exception {
+        return new HashMap<>();
     }
 }
