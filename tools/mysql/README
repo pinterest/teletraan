@@ -6,7 +6,7 @@ This dir contains scripts to upgrade db schema to the latest version. Simply exe
 ./upgrade.sh [-H|--host HOST] [-P|--port PORT] [-u|--user USERNAME] [-p|--password PASSWORD] [-d|--database DATABASE]
 It will upgrade db schema from the current version to the latest.
 
-In any case if the upgrade failed, you would have to look at all the schema-update-* files and manually apply the changes,
+In any case if the upgrade failes, you will have to look at all the schema-update-* files and manually apply the changes,
 and then update the version in database_schemas table to be the latest.
 
 We do not support rollback yet.
