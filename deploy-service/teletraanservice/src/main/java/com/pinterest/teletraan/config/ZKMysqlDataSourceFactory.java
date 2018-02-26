@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,10 +15,12 @@
  */
 package com.pinterest.teletraan.config;
 
+import com.pinterest.deployservice.common.DBConfigReader;
+import com.pinterest.deployservice.common.KnoxDBKeyReader;
+import com.pinterest.deployservice.db.DatabaseUtil;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.pinterest.deployservice.common.DBConfigReader;
-import com.pinterest.deployservice.db.DatabaseUtil;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -64,8 +66,9 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
         DBConfigReader reader = new DBConfigReader();
         String host = reader.getHost(replicaSet);
         int port = reader.getPort(replicaSet);
-        String userName = reader.getUsername(role);
-        String password = reader.getPassword(role);
+        KnoxDBKeyReader.init((role));
+        String userName = KnoxDBKeyReader.getUserName();
+        String password = KnoxDBKeyReader.getPassword();
         return DatabaseUtil.createMysqlDataSource(host, port, userName, password, pool);
     }
 }
