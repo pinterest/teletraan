@@ -42,9 +42,4 @@ public class DefaultRodimusManager implements RodimusManager {
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
         return new HashMap<>();
     }
-
-    @Override
-    public Map<String, List<String>> getAvailabilityZones(Collection<String> hostIds) throws Exception {
-        return new HashMap<>();
-    }
 }

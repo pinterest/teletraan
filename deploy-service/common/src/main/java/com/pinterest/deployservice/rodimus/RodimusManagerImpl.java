@@ -112,11 +112,4 @@ public class RodimusManagerImpl implements RodimusManager {
         String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
         return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>(){}.getType());
     }
-
-    @Override
-    public Map<String, List<String>> getAvailabilityZones(Collection<String> hostIds) throws Exception {
-        String url = String.format("%s/v1/host_availability_zones", rodimusUrl);
-        String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
-        return gson.fromJson(res, new TypeToken<Map<String, List<String>>>(){}.getType());
-    }
 }
