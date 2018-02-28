@@ -311,6 +311,23 @@ public class PingHandler {
                 }
             }
             String tagValue = hostTagBean.getTag_value();
+            if(deployConstraintBean.getInclusive()) {
+                // if it is inclusive deploy, needs to check parent tag only when parent tag hosts are all done, then it becomes its turn
+                String parentTagValue = hostTagBean.getParent_tag_value();
+                if(parentTagValue != null) {
+                    if(parentTagValue.equals(tagValue)) {
+                        LOG.info("DeployWithConstraint env {} with tag {}:{} : parent tag is itself, {} is the starting point", envId, tagName, tagValue, tagValue);
+                    } else {
+                        long totalExistingHostsWithParentTag = hostTagDAO.countHostsByEnvIdAndTag(envBean.getEnv_id(), tagName, parentTagValue);
+                        long totalFinishedAgentsWithParentTag = agentDAO.countFinishedAgentsByDeployWithHostTag(envBean.getEnv_id(), envBean.getDeploy_id(), tagName, parentTagValue);
+                        if(totalFinishedAgentsWithParentTag < totalExistingHostsWithParentTag) {
+                            LOG.info("DeployWithConstraint env {} with tag {}:{} : parent tag {} has not finish: finished {} < existing {}, host {} can not deploy.",
+                                envId, tagName, tagValue, parentTagValue, totalFinishedAgentsWithParentTag, totalExistingHostsWithParentTag, hostId);
+                            return false;
+                        }
+                    }
+                }
+            }
 
             long maxParallelWithHostTag = deployConstraintBean.getMax_parallel();
             long totalActiveAgentsWithHostTag = agentDAO.countDeployingAgentWithHostTag(envBean.getEnv_id(), tagName, tagValue);

@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.db;
 
+import com.google.common.collect.ImmutableList;
 import com.pinterest.deployservice.bean.HostTagBean;
 import com.pinterest.deployservice.bean.HostTagInfo;
 import com.pinterest.deployservice.bean.SetClause;
@@ -37,12 +38,16 @@ public class DBHostTagDAOImpl implements HostTagDAO {
     private static final String DELETE_HOST_TAG_BY_ENV_ID_AND_TAG_NAME = "DELETE FROM host_tags WHERE env_id = ? AND tag_name = ? ";
     private static final String DELETE_BY_HOST_ID = "DELETE FROM host_tags WHERE host_id = ?";
     private static final String GET_HOST_TAG_BY_HOST_ID_AND_TAG_NAME = "SELECT * FROM host_tags WHERE host_id = ? AND tag_name = ? ";
+    private static final String GET_UNIQUE_TAG_VALUES_BY_HOST_ID_AND_TAG_NAME = "SELECT DISTINCT(tag_value) FROM host_tags WHERE env_id = ? AND tag_name = ? ";
     private static final String GET_HOSTS_BY_ENV_ID_AND_TAG_NAME = "SELECT host_id, tag_value, tag_name, host_name FROM ( SELECT DISTINCT(host_tags.host_id) AS host_id, host_tags.tag_value AS tag_value, host_tags.tag_name AS tag_name, agents.host_name AS host_name, host_tags.env_id AS env_id FROM agents " +
         "INNER JOIN host_tags ON agents.host_id = host_tags.host_id ) AS p1 " +
         "WHERE p1.tag_name = ? AND p1.env_id = ?";
     private static final String GET_HOSTS_BY_ENV_ID = "SELECT DISTINCT(host_tags.host_id) AS host_id, host_tags.tag_value AS tag_value, host_tags.tag_name AS tag_name, hosts.host_name AS host_name FROM hosts " +
         "INNER JOIN host_tags ON hosts.host_id = host_tags.host_id " +
         "WHERE host_tags.env_id = ?";
+    private static final String UPDATE_HOST_PARENT_TAG_TEMPLATE = "UPDATE host_tags SET parent_tag_value = ? WHERE env_id = ? AND tag_name = ? AND tag_value = ? ";
+
+    private static final String COUNT_HOSTS_BY_ENV_ID_AND_TAG = "SELECT count(DISTINCT(host_id)) FROM host_tags WHERE env_id = ? AND tag_name = ? AND tag_value = ? ";
     private static final String GET_ALL_BY_ENV_ID_AND_TAG_NAME = "SELECT * FROM host_tags WHERE env_id = ? AND tag_name = ? ";
     private static final RowProcessor ROW_PROCESSOR = new HostTagBeanRowProcessor();
     private BasicDataSource dataSource;
@@ -66,6 +71,11 @@ public class DBHostTagDAOImpl implements HostTagDAO {
         return new UpdateStatement(clause, setClause.getValueArray());
     }
 
+    @Override
+    public UpdateStatement genUpdateParentTagStatement(String parentTagValue, String envId, String tagName, String tagValue) throws Exception {
+        List<String> values = ImmutableList.of(parentTagValue, envId, tagName, tagValue);
+        return new UpdateStatement(UPDATE_HOST_PARENT_TAG_TEMPLATE, values.toArray());
+    }
 
     @Override
     public HostTagBean get(String hostId, String tagName) throws Exception {
@@ -106,5 +116,18 @@ public class DBHostTagDAOImpl implements HostTagDAO {
     public List<HostTagInfo> getHostsByEnvId(String envId) throws Exception {
         ResultSetHandler<List<HostTagInfo>> h = new BeanListHandler<>(HostTagInfo.class, ROW_PROCESSOR);
         return new QueryRunner(dataSource).query(GET_HOSTS_BY_ENV_ID, h, envId);
+    }
+
+    @Override
+    public long countHostsByEnvIdAndTag(String envId, String tagName, String tagValue) throws Exception {
+        Long n = new QueryRunner(dataSource).query(COUNT_HOSTS_BY_ENV_ID_AND_TAG,
+            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, tagName, tagValue);
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public List<String> getUniqueTagValuesByEnvIdAndTagName(String envId, String tagName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_UNIQUE_TAG_VALUES_BY_HOST_ID_AND_TAG_NAME,
+            SingleResultSetHandlerFactory.<String>newListObjectHandler(), envId, tagName);
     }
 }
