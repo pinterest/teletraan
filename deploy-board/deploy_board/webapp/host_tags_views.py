@@ -47,10 +47,12 @@ def get_host_ec2tags(request, name, stage):
 def add_constraint(request, name, stage):
     max_parallel = request.POST.get('max_parallel')
     tag_name = request.POST.get('tag_name')
+    inclusive = request.POST.get('inclusive', False)
     try:
         environ_hosts_helper.create_deploy_constraint(request, name, stage, {
             'constraintKey': tag_name,
-            'maxParallel': max_parallel
+            'maxParallel': max_parallel,
+            'inclusive': inclusive
         })
         return redirect('/env/{}/{}/constraint'.format(name, stage))
     except Exception as e:
@@ -65,8 +67,10 @@ def edit_constraint(request, name, stage):
             return HttpResponse(json.dumps({'html': 'Failed to find deploy constraint.'}), status=404,
                                 content_type="application/json")
         max_parallel = request.POST.get("max_parallel")
+        inclusive = request.POST.get('inclusive', False)
         environ_hosts_helper.update_deploy_constraint(request, name, stage, {
-            'maxParallel': max_parallel
+            'maxParallel': max_parallel,
+            'inclusive': inclusive
         })
         return redirect('/env/{}/{}/constraint'.format(name, stage))
     except Exception as e:
