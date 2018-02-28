@@ -80,10 +80,10 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String COUNT_SERVING_AND_NORMAL_TOTAL = "SELECT COUNT(*) FROM agents WHERE env_id=? AND deploy_stage=? AND state=?";
     private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=? AND (deploy_stage='SERVING_BUILD' OR state='PAUSED_BY_USER' OR state='PAUSED_BY_SYSTEM')";
-    private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAG =
+    private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS =
         "SELECT COUNT(*) FROM agents INNER JOIN host_tags ON host_tags.host_id = agents.host_id " +
             "WHERE agents.env_id=? AND host_tags.env_id=? AND agents.deploy_id=? AND (agents.deploy_stage='SERVING_BUILD' OR agents.state='PAUSED_BY_USER' OR agents.state='PAUSED_BY_SYSTEM') " +
-        "AND host_tags.tag_name = ? AND host_tags.tag_value = ?";
+        "AND host_tags.tag_name = ? AND host_tags.tag_value IN (%s)";
     private static final String COUNT_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=?";
     private static final String COUNT_ALL_DEPLOYED_HOSTS =
@@ -263,9 +263,10 @@ public class DBAgentDAOImpl implements AgentDAO {
     }
 
     @Override
-    public long countFinishedAgentsByDeployWithHostTag(String envId, String deployId, String tagName, String tagValue) throws Exception {
-        Long n = new QueryRunner(dataSource).query(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAG,
-            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, envId, deployId, tagName, tagValue);
+    public long countFinishedAgentsByDeployWithHostTags(String envId, String deployId, String tagName, List<String> tagValues) throws Exception {
+        String tagValuesStr = QueryUtils.genStringGroupClause(tagValues);
+        Long n = new QueryRunner(dataSource).query(String.format(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS, tagValuesStr),
+            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, envId, deployId, tagName);
         return n == null ? 0 : n;
     }
 

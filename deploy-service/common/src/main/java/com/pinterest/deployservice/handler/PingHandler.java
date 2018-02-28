@@ -312,20 +312,19 @@ public class PingHandler {
             }
             String tagValue = hostTagBean.getTag_value();
             if(deployConstraintBean.getInclusive()) {
-                // if it is inclusive deploy, needs to check parent tag only when parent tag hosts are all done, then it becomes its turn
-                String parentTagValue = hostTagBean.getParent_tag_value();
-                if(parentTagValue != null) {
-                    if(parentTagValue.equals(tagValue)) {
-                        LOG.info("DeployWithConstraint env {} with tag {}:{} : parent tag is itself, {} is the starting point", envId, tagName, tagValue, tagValue);
-                    } else {
-                        long totalExistingHostsWithParentTag = hostTagDAO.countHostsByEnvIdAndTag(envBean.getEnv_id(), tagName, parentTagValue);
-                        long totalFinishedAgentsWithParentTag = agentDAO.countFinishedAgentsByDeployWithHostTag(envBean.getEnv_id(), envBean.getDeploy_id(), tagName, parentTagValue);
-                        if(totalFinishedAgentsWithParentTag < totalExistingHostsWithParentTag) {
-                            LOG.info("DeployWithConstraint env {} with tag {}:{} : parent tag {} has not finish: finished {} < existing {}, host {} can not deploy.",
-                                envId, tagName, tagValue, parentTagValue, totalFinishedAgentsWithParentTag, totalExistingHostsWithParentTag, hostId);
-                            return false;
-                        }
+                // if it is inclusive deploy, needs to check pre-requisite tags when pre-requisite tag hosts are all done, then it becomes its turn
+                List<String> prerequisiteTagValues = hostTagDAO.getAllPrerequisiteTagValuesByEnvIdAndTagName(envBean.getEnv_id(), tagName, tagValue);
+                if(prerequisiteTagValues!= null && prerequisiteTagValues.size() > 0) {
+                    // if there is any pre-requisite tag, the hosts tagged by this pre-requisite tag should deploy first
+                    long totalExistingHostsWithPrerequisiteTags = hostTagDAO.countHostsByEnvIdAndTags(envBean.getEnv_id(), tagName, prerequisiteTagValues);
+                    long totalFinishedAgentsWithPrerequisiteTags = agentDAO.countFinishedAgentsByDeployWithHostTags(envBean.getEnv_id(), envBean.getDeploy_id(), tagName, prerequisiteTagValues);
+                    if(totalFinishedAgentsWithPrerequisiteTags < totalExistingHostsWithPrerequisiteTags) {
+                        LOG.info("DeployWithConstraint env {} with tag {}:{} : prerequisite tags {} has not finish: finished {} < existing {}, host {} can not deploy.",
+                            envId, tagName, tagValue, prerequisiteTagValues, totalFinishedAgentsWithPrerequisiteTags, totalExistingHostsWithPrerequisiteTags, hostId);
+                        return false;
                     }
+                } else {
+                    LOG.info("DeployWithConstraint env {} with tag {}:{} : no prerequisite, {} is the starting point", envId, tagName, tagValue, tagValue);
                 }
             }
 

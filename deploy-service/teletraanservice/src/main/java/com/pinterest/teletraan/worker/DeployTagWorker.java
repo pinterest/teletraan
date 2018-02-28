@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.util.*;
 
-import static com.pinterest.teletraan.resource.EnvHostAZs.AVAILABILITY_ZONE_RESERVED_TAG_NAME;
-
 public class DeployTagWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(DeployTagWorker.class);
     private static final int MAX_QUERY_TAGS_SIZE = 200;
@@ -37,31 +35,6 @@ public class DeployTagWorker implements Runnable {
         dataSource = serviceContext.getDataSource();
         utilDAO = serviceContext.getUtilDAO();
     }
-    
-    private void updateParentTagValue(DeployConstraintBean bean, String envId) throws Exception {
-        String tagName = bean.getConstraint_key();
-        // needs to update parent tag
-        List<UpdateStatement> statements = new ArrayList<>();
-        // 1. get all host tags tagged by tagName
-        List<String> uniqueTagValues = hostTagDAO.getUniqueTagValuesByEnvIdAndTagName(envId, tagName);
-        
-        // 2. the 1st tag's parent tag is itself
-        int totalUniqueTagValues = uniqueTagValues.size();
-        String childTagValue = uniqueTagValues.get(0);
-        String parentTagValue = uniqueTagValues.get(0);
-        
-        // 3. from 2nd tag, tag's parent tag is index-1
-        statements.add(hostTagDAO.genUpdateParentTagStatement(parentTagValue, envId, tagName, childTagValue));
-        if(totalUniqueTagValues > 1) {
-            for(int i = 1; i < totalUniqueTagValues; i++) {
-                childTagValue = uniqueTagValues.get(i);
-                parentTagValue = uniqueTagValues.get(i-1);
-                statements.add(hostTagDAO.genUpdateParentTagStatement(parentTagValue, envId, tagName, childTagValue));
-            }
-        }
-        LOG.info(String.format("Env %s host parent tags have been updated with %s", envId, uniqueTagValues));
-        DatabaseUtil.transactionalUpdate(dataSource, statements);
-    }
 
 
     private void processEachEnvironConstraint(DeployConstraintBean bean) throws Exception {
@@ -79,11 +52,6 @@ public class DeployTagWorker implements Runnable {
         List<String> extras = new ArrayList(CollectionUtils.subtract(envHostIdsWithHostTag, envHostIds));
         if (missings.size() == 0 && extras.size() == 0) {
             LOG.info(String.format("Env %s host tag is in sync", envId));
-            if(bean.getInclusive()) {
-                // inclusive deploy constraint, needs to update parent tag
-                updateParentTagValue(bean, envId);
-            }
-            
             if(bean.getState() != TagSyncState.FINISHED) {
                 bean.setLast_update(System.currentTimeMillis());
                 bean.setState(TagSyncState.FINISHED);
@@ -115,51 +83,28 @@ public class DeployTagWorker implements Runnable {
             for(int i = 0; i < missings.size(); i += MAX_QUERY_TAGS_SIZE) {
                 Collection<String> oneBatch = missings.subList(i, Math.min(i + MAX_QUERY_TAGS_SIZE, missings.size()));
                 LOG.info(String.format("Env %s start get ec2 tags %s for host_ids %s", envId, tagName, oneBatch));
-                if(tagName.equals(AVAILABILITY_ZONE_RESERVED_TAG_NAME)) {
-                    Map<String, List<String>> hostMissingAZTags = rodimusManager.getAvailabilityZones(oneBatch);
-                    LOG.info(String.format("Env %s host availability zones %s results: %s", envId, tagName, hostMissingAZTags));
-                    if(hostMissingAZTags == null) {
+                Map<String, Map<String, String>> hostMissingEc2Tags = rodimusManager.getEc2Tags(oneBatch);
+                LOG.info(String.format("Env %s host ec2 tags %s results: %s", envId, tagName, hostMissingEc2Tags));
+                if (hostMissingEc2Tags == null) {
+                    continue;
+                }
+                for (String hostId : hostMissingEc2Tags.keySet()) {
+                    Map<String, String> ec2Tags = hostMissingEc2Tags.get(hostId);
+                    if (ec2Tags == null) {
                         continue;
                     }
-                    for(String az: hostMissingAZTags.keySet()) {
-                        List<String> sameAZHostIds = hostMissingAZTags.get(az);
-                        if(sameAZHostIds == null) {
+                    if (ec2Tags.containsKey(tagName)) {
+                        String tagValue = ec2Tags.get(tagName);
+                        if (tagValue == null) {
                             continue;
                         }
-                        for(String hostId: sameAZHostIds) {
-                            HostTagBean hostTagBean = new HostTagBean();
-                            hostTagBean.setHost_id(hostId);
-                            hostTagBean.setTag_name(tagName);
-                            hostTagBean.setTag_value(az);
-                            hostTagBean.setEnv_id(envId);
-                            hostTagBean.setCreate_date(System.currentTimeMillis());
-                            statements.add(hostTagDAO.genInsertOrUpdate(hostTagBean));
-                        }
-                    }
-                } else {
-                    Map<String, Map<String, String>> hostMissingEc2Tags = rodimusManager.getEc2Tags(oneBatch);
-                    LOG.info(String.format("Env %s host ec2 tags %s results: %s", envId, tagName, hostMissingEc2Tags));
-                    if (hostMissingEc2Tags == null) {
-                        continue;
-                    }
-                    for (String hostId : hostMissingEc2Tags.keySet()) {
-                        Map<String, String> ec2Tags = hostMissingEc2Tags.get(hostId);
-                        if (ec2Tags == null) {
-                            continue;
-                        }
-                        if (ec2Tags.containsKey(tagName)) {
-                            String tagValue = ec2Tags.get(tagName);
-                            if (tagValue == null) {
-                                continue;
-                            }
-                            HostTagBean hostTagBean = new HostTagBean();
-                            hostTagBean.setHost_id(hostId);
-                            hostTagBean.setTag_name(tagName);
-                            hostTagBean.setTag_value(tagValue);
-                            hostTagBean.setEnv_id(envId);
-                            hostTagBean.setCreate_date(System.currentTimeMillis());
-                            statements.add(hostTagDAO.genInsertOrUpdate(hostTagBean));
-                        }
+                        HostTagBean hostTagBean = new HostTagBean();
+                        hostTagBean.setHost_id(hostId);
+                        hostTagBean.setTag_name(tagName);
+                        hostTagBean.setTag_value(tagValue);
+                        hostTagBean.setEnv_id(envId);
+                        hostTagBean.setCreate_date(System.currentTimeMillis());
+                        statements.add(hostTagDAO.genInsertOrUpdate(hostTagBean));
                     }
                 }
             }

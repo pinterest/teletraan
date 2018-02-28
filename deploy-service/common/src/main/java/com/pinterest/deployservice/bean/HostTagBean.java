@@ -25,7 +25,6 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * env_id           VARCHAR(22)         NOT NULL,
  * tag_name         VARCHAR(64)         NOT NULL,
  * tag_value        VARCHAR(256),
- * parent_tag_value VARCHAR(256),
  * create_date      BIGINT              NOT NULL,
  * PRIMARY KEY    (host_id, tag_name)
  * );
@@ -36,7 +35,6 @@ public class HostTagBean implements Updatable {
             "env_id=VALUES(env_id)," +
             "tag_name=VALUES(tag_name)," +
             "tag_value=VALUES(tag_value)," +
-            "parent_tag_value=VALUES(parent_tag_value)," +
             "create_date=VALUES(create_date)";
     @JsonProperty("hostId")
     private String host_id;
@@ -46,8 +44,6 @@ public class HostTagBean implements Updatable {
     private String tag_name;
     @JsonProperty("tagValue")
     private String tag_value;
-    @JsonProperty("parentTagValue")
-    private String parent_tag_value;
     @JsonProperty("createDate")
     private Long create_date;
 
@@ -75,14 +71,6 @@ public class HostTagBean implements Updatable {
         this.tag_value = tag_value;
     }
 
-    public String getParent_tag_value() {
-        return parent_tag_value;
-    }
-
-    public void setParent_tag_value(String parent_tag_value) {
-        this.parent_tag_value = parent_tag_value;
-    }
-
     public Long getCreate_date() {
         return create_date;
     }
@@ -106,7 +94,6 @@ public class HostTagBean implements Updatable {
         clause.addColumn("env_id", env_id);
         clause.addColumn("tag_name", tag_name);
         clause.addColumn("tag_value", tag_value);
-        clause.addColumn("parent_tag_value", parent_tag_value);
         clause.addColumn("create_date", create_date);
         return clause;
     }

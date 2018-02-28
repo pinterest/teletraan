@@ -86,8 +86,8 @@ public class DeployConstraints {
         if (tagName != null) {
             updateBean.setConstraint_key(tagName);
         }
-        boolean inclusive = deployConstraintBean.getInclusive();
-        if(inclusive) {
+        Boolean inclusive = deployConstraintBean.getInclusive();
+        if(inclusive != null) {
             updateBean.setInclusive(true);
         }
 

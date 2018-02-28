@@ -80,7 +80,7 @@ public interface AgentDAO {
 
     long countDeployingAgentWithHostTag(String envId, String tagName, String tagValue) throws Exception;
 
-    long countFinishedAgentsByDeployWithHostTag(String envId, String deployId, String tagName, String tagValue) throws Exception;
+    long countFinishedAgentsByDeployWithHostTags(String envId, String deployId, String tagName, List<String> tagValues) throws Exception;
 
     // return how many hosts that are deployed
     long countDeployedHosts() throws Exception;

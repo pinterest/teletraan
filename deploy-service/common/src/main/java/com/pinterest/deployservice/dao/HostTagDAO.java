@@ -27,8 +27,6 @@ public interface HostTagDAO {
 
     UpdateStatement genInsertOrUpdate(HostTagBean hostTagBean);
 
-    UpdateStatement genUpdateParentTagStatement(String parentTagValue, String envId, String tagName, String tagValue) throws Exception;
-
     HostTagBean get(String hostId, String key) throws Exception;
 
     void deleteAllByEnvId(String envId, String tagName) throws Exception;
@@ -43,7 +41,7 @@ public interface HostTagDAO {
 
     List<HostTagInfo> getHostsByEnvId(String envId) throws Exception;
 
-    long countHostsByEnvIdAndTag(String envId, String tagName, String tagValue) throws Exception;
+    long countHostsByEnvIdAndTags(String envId, String tagName, List<String> tagValues) throws Exception;
 
-    List<String> getUniqueTagValuesByEnvIdAndTagName(String envId, String tagName) throws Exception;
+    List<String> getAllPrerequisiteTagValuesByEnvIdAndTagName(String envId, String tagName, String tagValue) throws Exception;
 }

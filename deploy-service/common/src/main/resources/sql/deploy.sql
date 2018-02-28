@@ -131,7 +131,6 @@ CREATE TABLE IF NOT EXISTS host_tags (
     env_id         VARCHAR(22)         NOT NULL,
     tag_name       VARCHAR(64)         NOT NULL,
     tag_value      VARCHAR(256),
-    parent_tag_value VARCHAR(256),
     create_date     BIGINT              NOT NULL,
     PRIMARY KEY    (host_id, env_id, tag_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
