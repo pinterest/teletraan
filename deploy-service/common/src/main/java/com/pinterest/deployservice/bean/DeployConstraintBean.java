@@ -9,7 +9,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * constraint_id     VARCHAR(22)         NOT NULL,
  * constraint_key    VARCHAR(64)         NOT NULL
  * max_parallel      BIGINT              NOT NULL,
- * inclusive         TINYINT(1)          NOT NULL DEFAULT 0,
+ * constraint_type   VARCHAR(32)         NOT NULL,
  * state             VARCHAR(32)         NOT NULL,
  * start_date        BIGINT              NOT NULL,
  * last_update       BIGINT,
@@ -26,8 +26,8 @@ public class DeployConstraintBean implements Updatable {
     @JsonProperty("maxParallel")
     private Long max_parallel;
 
-    @JsonProperty("inclusive")
-    private Boolean inclusive;
+    @JsonProperty("constraintType")
+    private DeployConstraintType constraint_type;
 
     @JsonProperty("state")
     private TagSyncState state;
@@ -62,12 +62,12 @@ public class DeployConstraintBean implements Updatable {
         this.max_parallel = max_parallel;
     }
 
-    public Boolean getInclusive() {
-        return inclusive;
+    public DeployConstraintType getConstraint_type() {
+        return constraint_type;
     }
 
-    public void setInclusive(Boolean inclusive) {
-        this.inclusive = inclusive;
+    public void setConstraint_type(DeployConstraintType constraint_type) {
+        this.constraint_type = constraint_type;
     }
 
     public TagSyncState getState() {
@@ -100,7 +100,7 @@ public class DeployConstraintBean implements Updatable {
         clause.addColumn("constraint_id", constraint_id);
         clause.addColumn("constraint_key", constraint_key);
         clause.addColumn("max_parallel", max_parallel);
-        clause.addColumn("inclusive", inclusive);
+        clause.addColumn("constraint_type", constraint_type);
         clause.addColumn("state", state);
         clause.addColumn("start_date", start_date);
         clause.addColumn("last_update", last_update);

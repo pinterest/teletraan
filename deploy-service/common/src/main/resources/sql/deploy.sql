@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS deploy_constraints (
   constraint_id     VARCHAR(22)         NOT NULL,
   constraint_key    VARCHAR(64)         NOT NULL,
   max_parallel      BIGINT              NOT NULL,
-  inclusive         TINYINT(1)          NOT NULL DEFAULT 0,
+  constraint_type   VARCHAR(32)         NOT NULL DEFAULT 'ALL_GROUPS_IN_PARALLEL',
   state             VARCHAR(32)         NOT NULL,
   start_date        BIGINT              NOT NULL,
   last_update       BIGINT,

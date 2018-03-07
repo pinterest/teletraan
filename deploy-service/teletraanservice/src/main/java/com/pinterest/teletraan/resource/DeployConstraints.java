@@ -86,9 +86,12 @@ public class DeployConstraints {
         if (tagName != null) {
             updateBean.setConstraint_key(tagName);
         }
-        Boolean inclusive = deployConstraintBean.getInclusive();
-        if(inclusive != null && inclusive) {
-            updateBean.setInclusive(true);
+        DeployConstraintType type = deployConstraintBean.getConstraint_type();
+        if(type != null) {
+            updateBean.setConstraint_type(type);
+        } else {
+            // defaults to ALL_GROUPS_IN_PARALLEL
+            updateBean.setConstraint_type(DeployConstraintType.ALL_GROUPS_IN_PARALLEL);
         }
 
         List<UpdateStatement> statements = new ArrayList<>();
