@@ -23,6 +23,20 @@
                                    data-trigger="manual"
                                    >
                         </div>
+                        <label for="constraint_type" class="col-md-2 control-label" title="Deploy constraint type ">
+                                Constraint Type
+                        </label>
+                        <div class="col-md-8">
+                            <select class="form-control" name="constraint_type">
+                                {% for type in constraintTypes %}
+                                    {% if type == "GROUP_BY_GROUP" %}
+                                    <option value="{{ type }}" selected="selected">{{ type }}</option>
+                                    {% else %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                    {% endif %}>
+                                {% endfor %}
+                            </select>
+                        </div>
                         <label for="max_parallel" class="col-md-4 control-label">Max Parallel Number of Hosts</label>
                         <div class="col-md-8">
                             <input type="text" class="form-control" name="max_parallel"
@@ -32,25 +46,6 @@
                                    data-placement="right"
                                    data-trigger="manual"
                                    title="numbers only.">
-                        </div>
-                        <div class="col-md-8">
-                            <label for="constraint_type" class="deployToolTip control-label col-xs-2"
-                                data-toggle="tooltip"
-                                title="Deploy constraint type ">
-                                Constraint Type
-                            </label>
-                            <div class ="col-xs-4">
-                                <select class="form-control" name="constraint_type">
-                                    {% get_deploy_constraint_types as types %}
-                                    {% for type in types %}
-                                        {% if type == "GROUP_BY_GROUP" %}
-                                        <option value="{{ type }}" selected="selected">{{ type }}</option>
-                                        {% else %}
-                                        <option value="{{ type }}">{{ type }}</option>
-                                        {% endif %}>
-                                    {% endfor %}
-                                </select>
-                            </div>
                         </div>
                     </div>
                 </div>

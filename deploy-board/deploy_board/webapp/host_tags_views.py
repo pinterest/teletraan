@@ -26,6 +26,7 @@ class HostTagsView(View):
             context["tag_name"] = tag_name
             context["max_parallel"] = max_parallel
             context["state"] = deploy_constraint.get("state", "UNKNOWN")
+            context["constraintTypes"] = environs_helper.DEPLOY_CONSTRAINT_TYPES
             context["show_remove_btn"] = True
         else:
             context["show_remove_btn"] = False
