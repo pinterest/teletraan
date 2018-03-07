@@ -34,7 +34,23 @@
                                    title="numbers only.">
                         </div>
                         <div class="col-md-8">
-                            <input type="checkbox" name="inclusive"> Check to be deployed group by group
+                            <label for="constraint_type" class="deployToolTip control-label col-xs-2"
+                                data-toggle="tooltip"
+                                title="Deploy constraint type ">
+                                Constraint Type
+                            </label>
+                            <div class ="col-xs-4">
+                                <select class="form-control" name="constraint_type">
+                                    {% get_deploy_constraint_types as types %}
+                                    {% for type in types %}
+                                        {% if type == "GROUP_BY_GROUP" %}
+                                        <option value="{{ type }}" selected="selected">{{ type }}</option>
+                                        {% else %}
+                                        <option value="{{ type }}">{{ type }}</option>
+                                        {% endif %}>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
