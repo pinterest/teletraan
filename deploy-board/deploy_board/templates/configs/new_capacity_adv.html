@@ -437,6 +437,17 @@ var capacitySetting = new Vue({
                 globalNotificationBanner.error = "Non cmp_base image cannot have pinfo_role set to cmp_base"
                 return false
             }
+
+            if (clusterInfo.cellName  === "aws-us-east-2" && clusterInfo.hostType.startsWith('Compute')){
+                globalNotificationBanner.error = "compute hosts (c3) are not available. Use EbsCompute instead"
+                return false
+            }
+
+            if (imageNameValue.startsWith('cmp_base') && clusterInfo.hostType.startsWith('EbsCompute')){
+                globalNotificationBanner.error = "EbsCompute host must use ebs AMI. Try cmp_base-ebs"
+                return false
+            }
+
             return true
         },
         sendRequest: function (clusterInfo) {
