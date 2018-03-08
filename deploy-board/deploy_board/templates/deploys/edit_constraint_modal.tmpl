@@ -18,6 +18,20 @@
                         <div class="col-md-10">
                             <input class="form-control" name="tag_name" value="{{ tag_name }}" readonly>
                         </div>
+                        <label for="constraint_type" class="col-md-2 control-label" title="Deploy constraint type ">
+                                Constraint Type
+                        </label>
+                        <div class="col-md-10">
+                            <select class="form-control" name="constraint_type">
+                                {% for type in constraintTypes %}
+                                    {% if type == constraint_type %}
+                                    <option value="{{ type }}" selected="selected">{{ type }}</option>
+                                    {% else %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                    {% endif %}>
+                                {% endfor %}
+                            </select>
+                        </div>
                         <label for="max_parallel" class="col-md-2 control-label">Max Parallel Number of Hosts</label>
                         <div class="col-md-10">
                             <input type="text" class="form-control" name="max_parallel"
