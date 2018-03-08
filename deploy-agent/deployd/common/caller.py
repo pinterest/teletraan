@@ -34,10 +34,10 @@ class Caller(object):
             while process.poll() is None:
                 line = process.stdout.readline()
                 if line:
-                    output = output + "[%s]" % (time.time() - start) + line
+                    output = output + "[%.2f]" % (time.time() - start) + line
                 line = process.stderr.readline()
                 if line:
-                    output = output + "[%s]" % (time.time() - start) + line
+                    output = output + "[%.2f]" % (time.time() - start) + line
             temp, error = process.communicate()
             return output.strip(), error.strip(), process.poll()
         except Exception as e:
