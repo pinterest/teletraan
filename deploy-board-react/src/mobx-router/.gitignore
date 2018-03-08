@@ -1,0 +1,19 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# Compiled output
+/dist
+
+# Dependencies
+/node_modules
+
+# IDEs and editors
+/.idea
+/.vscode
+
+# Misc
+*.log
+*.tgz
+
+# System Files
+.DS_Store
+Thumbs.db
