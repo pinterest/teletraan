@@ -40,4 +40,8 @@ public interface HostTagDAO {
     List<HostTagInfo> getHostsByEnvIdAndTagName(String envId, String tagName) throws Exception;
 
     List<HostTagInfo> getHostsByEnvId(String envId) throws Exception;
+
+    long countHostsByEnvIdAndTags(String envId, String tagName, List<String> tagValues) throws Exception;
+
+    List<String> getAllPrerequisiteTagValuesByEnvIdAndTagName(String envId, String tagName, String tagValue) throws Exception;
 }

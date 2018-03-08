@@ -21,11 +21,11 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 /**
  * Keep the bean and table in sync
  * CREATE TABLE host_tags (
- * host_id         VARCHAR(64)         NOT NULL,
- * env_id          VARCHAR(22)         NOT NULL,
- * tag_name        VARCHAR(64)         NOT NULL,
- * tag_value       VARCHAR(256),
- * create_date     BIGINT              NOT NULL,
+ * host_id          VARCHAR(64)         NOT NULL,
+ * env_id           VARCHAR(22)         NOT NULL,
+ * tag_name         VARCHAR(64)         NOT NULL,
+ * tag_value        VARCHAR(256),
+ * create_date      BIGINT              NOT NULL,
  * PRIMARY KEY    (host_id, tag_name)
  * );
  */

@@ -16,25 +16,7 @@
 package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.AgentBean;
-import com.pinterest.deployservice.bean.AgentErrorBean;
-import com.pinterest.deployservice.bean.AgentState;
-import com.pinterest.deployservice.bean.BuildBean;
-import com.pinterest.deployservice.bean.DeployBean;
-import com.pinterest.deployservice.bean.DeployConstraintBean;
-import com.pinterest.deployservice.bean.DeployGoalBean;
-import com.pinterest.deployservice.bean.DeployStage;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.bean.HostTagBean;
-import com.pinterest.deployservice.bean.OpCode;
-import com.pinterest.deployservice.bean.PingReportBean;
-import com.pinterest.deployservice.bean.PingRequestBean;
-import com.pinterest.deployservice.bean.PingResponseBean;
-import com.pinterest.deployservice.bean.PingResult;
-import com.pinterest.deployservice.bean.ScheduleBean;
-import com.pinterest.deployservice.bean.ScheduleState;
-import com.pinterest.deployservice.bean.TagSyncState;
+import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.StateMachines;
@@ -311,7 +293,6 @@ public class PingHandler {
                 }
             }
             String tagValue = hostTagBean.getTag_value();
-
             long maxParallelWithHostTag = deployConstraintBean.getMax_parallel();
             long totalActiveAgentsWithHostTag = agentDAO.countDeployingAgentWithHostTag(envBean.getEnv_id(), tagName, tagValue);
             LOG.info("DeployWithConstraint env {} with tag {}:{} : host {} waiting for deploy, current {} deploying hosts",
@@ -320,6 +301,22 @@ public class PingHandler {
                 LOG.info("DeployWithConstraint env {} with tag {}:{} : host {} can not deploy, {} already exceed {} for constraint = {}, return false",
                     envId, tagName, tagValue, hostId, totalActiveAgentsWithHostTag, maxParallelWithHostTag, deployConstraintBean.toString());
                 return false;
+            }
+            if(deployConstraintBean.getConstraint_type() == DeployConstraintType.GROUP_BY_GROUP) {
+                // if it is GROUP_BY_GROUP deploy, needs to check pre-requisite tags when pre-requisite tag hosts are all done, then it becomes its turn
+                List<String> prerequisiteTagValues = hostTagDAO.getAllPrerequisiteTagValuesByEnvIdAndTagName(envBean.getEnv_id(), tagName, tagValue);
+                if(prerequisiteTagValues!= null && prerequisiteTagValues.size() > 0) {
+                    // if there is any pre-requisite tag, the hosts tagged by this pre-requisite tag should deploy first
+                    long totalExistingHostsWithPrerequisiteTags = hostTagDAO.countHostsByEnvIdAndTags(envBean.getEnv_id(), tagName, prerequisiteTagValues);
+                    long totalFinishedAgentsWithPrerequisiteTags = agentDAO.countFinishedAgentsByDeployWithHostTags(envBean.getEnv_id(), envBean.getDeploy_id(), tagName, prerequisiteTagValues);
+                    if(totalFinishedAgentsWithPrerequisiteTags < totalExistingHostsWithPrerequisiteTags) {
+                        LOG.info("DeployWithConstraint env {} with tag {}:{} : prerequisite tags {} has not finish: finished {} < existing {}, host {} can not deploy.",
+                            envId, tagName, tagValue, prerequisiteTagValues, totalFinishedAgentsWithPrerequisiteTags, totalExistingHostsWithPrerequisiteTags, hostId);
+                        return false;
+                    }
+                } else {
+                    LOG.info("DeployWithConstraint env {} with tag {}:{} : no prerequisite, {} is the starting point", envId, tagName, tagValue, tagValue);
+                }
             }
             LOG.info("DeployWithConstraint env {} with tag {}:{} : host {} can deploy", envId, tagName, tagValue, hostId);
             return true;
