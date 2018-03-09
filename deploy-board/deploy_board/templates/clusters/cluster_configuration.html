@@ -744,7 +744,7 @@
                          return false
                     }
 
-                    if (imageNameValue.startsWith('cmp_base') && clusterInfo.hostType.startsWith('EbsCompute')){
+                    if (imageNameValue === 'cmp_base' && clusterInfo.hostType.startsWith('EbsCompute')){
                         globalNotificationBanner.error = "EbsCompute  instance must use ebs AMI. Try cmp_base-ebs"
                         return false
                     }
