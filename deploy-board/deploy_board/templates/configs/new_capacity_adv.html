@@ -443,7 +443,7 @@ var capacitySetting = new Vue({
                 return false
             }
 
-            if (imageNameValue ==='cmp_base' && clusterInfo.hostType.startsWith('EbsCompute')){
+            if (this.imageNameValue ==='cmp_base' && clusterInfo.hostType.startsWith('EbsCompute')){
                 globalNotificationBanner.error = "EbsCompute host must use ebs AMI. Try cmp_base-ebs"
                 return false
             }
