@@ -1,0 +1,86 @@
+#components-layout-demo-top-side .logo {
+    width: 120px;
+    height: 31px;
+    background: rgba(255,255,255,.2);
+    margin: 16px 28px 16px 0;
+    float: left;
+}
+
+.card-container > .ant-tabs-card > .ant-tabs-content {
+    margin-top: -16px;
+}
+
+.card-container > .ant-tabs-card > .ant-tabs-content > .ant-tabs-tabpane {
+    padding: 16px;
+}
+
+
+.table-operations {
+    margin-bottom: 16px;
+}
+
+.table-operations > button {
+    margin-right: 8px;
+}
+
+.table-label {
+    vertical-align: top;
+    white-space: nowrap;
+    padding: 8px 10px 6px 0px;
+}
+
+.panel {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.panel-body {
+    padding: 10px;
+}
+
+.panel-body table td {
+    padding: 6px 10px 6px 0px;
+}
+
+.pod {
+    margin: 2px 3px;
+    padding: 1px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.pod.status {
+    color: white;
+}
+
+.pod.danger {
+    background-color: #d9534f;
+    border-color: #d9534f;
+}
+
+.pod.warning {
+    background-color: #f0ad4e;
+    border-color: #eea236;
+}
+
+.pod.primary {
+    background-color: #428bca;
+    border-color: #357ebd;
+}
+
+.row {
+    display: inline-block;
+    margin: 2px 3px;
+    padding: 1px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    cursor: pointer;
+}

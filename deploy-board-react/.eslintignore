@@ -1,0 +1,5 @@
+src/mobx-router/**
+node_modules/
+build/
+dist/
+ignored/

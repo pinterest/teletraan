@@ -1,0 +1,51 @@
+{
+  "name": "deploy-board-react",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test --env=jsdom",
+    "eject": "react-scripts eject",
+    "format": "prettier --write '{src,tests,examples}/**/*.js'",
+    "lint": "DEBUG=eslint:cli-engine eslint '{src,tests,examples}/**/*.js'",
+    "lint:mod": "LIST=`git diff-index --name-only HEAD | grep .js | grep -v .json`; if [ \"$LIST\" ]; then DEBUG=eslint:cli-engine eslint --fix $LIST; fi",
+    "lint:fixall": "DEBUG=eslint:cli-engine eslint . --cache --fix 2>&1 | grep -v Skipping",
+    "lint:findwarn": "eslint . --rule no-unused-vars:warn --cache"
+  },
+  "dependencies": {
+    "antd": "^3.2.0",
+    "dotenv-webpack": "^1.5.5",
+    "lodash": "latest",
+    "mobx": "^3.5.1",
+    "mobx-react": "^4.4.1",
+    "prop-types": "latest",
+    "query-string": "^5.1.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "react-icons": "^2.2.7",
+    "react-timestamp": "^4.3.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "^8.2.2",
+    "babel-plugin-transform-decorators": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
+    "eslint": "^4.18.2",
+    "eslint-config-prettier": "^2.9.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-config-standard-react": "^6.0.0",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-prettier": "^2.6.0",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-react": "^7.7.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "immutable": "^3.8.2",
+    "prettier": "^1.11.1",
+    "react-app-rewire-eslint": "^0.2.3",
+    "react-app-rewire-mobx": "^1.0.7",
+    "react-app-rewired": "^1.4.1",
+    "react-scripts": "^1.1.1"
+  }
+}

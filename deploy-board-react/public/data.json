@@ -1,0 +1,315 @@
+{
+  "builds": [
+    {
+      "tag": {
+        "id": "h7ZHY9M-Tfu1-6wYmik1Og",
+        "value": "GOOD_BUILD",
+        "targetType": "BUILD",
+        "targetId": "deploy-sentinel",
+        "operator": "xyz",
+        "createdDate": 1511916882814,
+        "comments": "good",
+        "metaInfo": "{\"id\":\"WxXKbWnNQ9qnob_9gPXnwA_aff7092\",\"name\":\"deploy-sentinel\",\"artifactUrl\":\"https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-aff7092.tar.gz\",\"type\":\"Phabricator\",\"repo\":\"ITDS\",\"branch\":\"master\",\"commit\":\"aff7092d84332040ac54145c5edce141845277b6\",\"commitShort\":\"aff7092\",\"commitInfo\":\"https://github.com/ITDS/commit/aff7092d84332040ac54145c5edce141845277b6\",\"commitDate\":1508877171000,\"publishInfo\":\"https://jenkinsmaster-vpc-009.ec2.pin220.com/job/deploy-sentinel/606/\",\"publisher\":\"jenkins\",\"publishDate\":1508877429098}"
+      },
+      "build": {
+        "id": "fdNBWYz9R-e4hDlKvSYqiw_8133595",
+        "name": "deploy-sentinel",
+        "telefig": "https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-8133595-serviceset.conf",
+        "artifactUrl": "https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-8133595.tar.gz",
+        "type": "Phabricator",
+        "repo": "ITDS",
+        "branch": "master",
+        "commit": "8133595e0359fb834bcb83ef937d268bf75ef7a7",
+        "commitShort": "8133595",
+        "commitInfo": "https://github.com/ITDS/commit/8133595e0359fb834bcb83ef937d268bf75ef7a7",
+        "commitDate": 1518031339000,
+        "publishInfo": "https://jenkinsmaster-vpc-009.ec2.pin220.com/job/deploy-sentinel/607/",
+        "publisher": "jenkins",
+        "publishDate": 1518031695017
+      }
+    },
+    {
+      "tag": {
+        "id": "h7ZHY9M-Tfu1-6wYmik1Og",
+        "value": "GOOD_BUILD",
+        "targetType": "BUILD",
+        "targetId": "deploy-sentinel",
+        "operator": "xyz",
+        "createdDate": 1511916882814,
+        "comments": "good",
+        "metaInfo": "{\"id\":\"WxXKbWnNQ9qnob_9gPXnwA_aff7092\",\"name\":\"deploy-sentinel\",\"artifactUrl\":\"https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-aff7092.tar.gz\",\"type\":\"Phabricator\",\"repo\":\"ITDS\",\"branch\":\"master\",\"commit\":\"aff7092d84332040ac54145c5edce141845277b6\",\"commitShort\":\"aff7092\",\"commitInfo\":\"https://github.com/ITDS/commit/aff7092d84332040ac54145c5edce141845277b6\",\"commitDate\":1508877171000,\"publishInfo\":\"https://jenkinsmaster-vpc-009.ec2.pin220.com/job/deploy-sentinel/606/\",\"publisher\":\"jenkins\",\"publishDate\":1508877429098}"
+      },
+      "build": {
+        "id": "WxXKbWnNQ9qnob_9gPXnwA_aff7092",
+        "name": "deploy-sentinel",
+        "telefig": "https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-aff7092-serviceset.conf",
+        "artifactUrl": "https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-aff7092.tar.gz",
+        "type": "Phabricator",
+        "repo": "ITDS",
+        "branch": "master",
+        "commit": "aff7092d84332040ac54145c5edce141845277b6",
+        "commitShort": "aff7092",
+        "commitInfo": "https://github.com/ITDS/commit/aff7092d84332040ac54145c5edce141845277b6",
+        "commitDate": 1508877171000,
+        "publishInfo": "https://jenkinsmaster-vpc-009.ec2.pin220.com/job/deploy-sentinel/606/",
+        "publisher": "jenkins",
+        "publishDate": 1508877429098
+      }
+    },
+    {
+      "tag": {
+        "id": "8R0Frzy3Q86vaf51o6l2Og",
+        "value": "BAD_BUILD",
+        "targetType": "BUILD",
+        "targetId": "deploy-sentinel",
+        "operator": "xyz",
+        "createdDate": 1512079534779,
+        "comments": "d",
+        "metaInfo": "{\"id\":\"h8hgGl5cSmawSxhYWU7vpg_b7a9908\",\"name\":\"deploy-sentinel\",\"artifactUrl\":\"https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-b7a9908.tar.gz\",\"type\":\"Phabricator\",\"repo\":\"ITDS\",\"branch\":\"master\",\"commit\":\"b7a990810b98d23463d535efa750248e5c172ace\",\"commitShort\":\"b7a9908\",\"commitInfo\":\"https://github.com/ITDS/commit/b7a990810b98d23463d535efa750248e5c172ace\",\"commitDate\":1507068509000,\"publishInfo\":\"https://jenkinsmaster-vpc-009.ec2.pin220.com/job/deploy-sentinel/594/\",\"publisher\":\"jenkins\",\"publishDate\":1507068796626}"
+      },
+      "build": {
+        "id": "9XjqA2ynTN-TYlg0TuTvKw_b7a9908",
+        "name": "deploy-sentinel",
+        "telefig": "https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-b7a9908-serviceset.conf",
+        "artifactUrl": "https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-b7a9908.tar.gz",
+        "type": "Phabricator",
+        "repo": "ITDS",
+        "branch": "master",
+        "commit": "b7a990810b98d23463d535efa750248e5c172ace",
+        "commitShort": "b7a9908",
+        "commitInfo": "https://github.com/ITDS/commit/b7a990810b98d23463d535efa750248e5c172ace",
+        "commitDate": 1507068509000,
+        "publishInfo": "https://jenkinsmaster-vpc-009.ec2.pin220.com/job/deploy-sentinel/605/",
+        "publisher": "jenkins",
+        "publishDate": 1508869078248
+      }
+    }
+  ],
+  "envs": [
+    {
+      "id": 1,
+      "envName": "env-test",
+      "stageName": "k8s",
+      "buildName": "deploy-sentinel",
+      "clusterName": "env-test-k8s",
+      "lastUpdate": 1518034331623,
+      "maxParallel": 1,
+      "envState": "NORMAL",
+      "lastOperator": "env",
+      "chatroom": "",
+      "description": "",
+      "k8sClusterName": "cmp-test"
+    }
+  ],
+  "deploy": {
+    "buildId": "fdNBWYz9R-e4hDlKvSYqiw_8133595",
+    "conditions": [
+      "DeploymentCondition(lastTransitionTime=Time(time=2018-02-08T02:42:01Z, additionalProperties={}), lastUpdateTime=Time(time=2018-02-08T02:42:01Z, additionalProperties={}), message=Deployment has minimum availability., reason=MinimumReplicasAvailable, status=True, type=Available, additionalProperties={})"
+    ],
+    "envId": "7Q8hMFyUQMOQZgs6q58hXg",
+    "failTotal": 0,
+    "id": "env-test-k8s",
+    "lastUpdate": "1 day",
+    "operator": "env",
+    "startDate": "1 day",
+    "state": "FAILED",
+    "successTotal": 1,
+    "total": 3,
+    "type": "K8S"
+  },
+  "build": {
+    "artifactUrl": "https://deployrepo.pinadmin.com/deploy-sentinel/deploy-sentinel-8133595.tar.gz",
+    "branch": "master",
+    "commit": "8133595e0359fb834bcb83ef937d268bf75ef7a7",
+    "commitDate": 1518031339000,
+    "commitInfo": "https://github.com/ITDS/commit/8133595e0359fb834bcb83ef937d268bf75ef7a7",
+    "commitShort": "8133595",
+    "id": "fdNBWYz9R-e4hDlKvSYqiw_8133595",
+    "name": "deploy-sentinel",
+    "publishDate": 1518031695017,
+    "publishInfo": "https://jenkinsmaster-vpc-009.ec2.pin220.com/job/deploy-sentinel/607/",
+    "publisher": "jenkins",
+    "repo": "ITDS",
+    "type": "Phabricator"
+  },
+  "pod": {
+    "podName": "env-test-k8s-8449bb6cbd-zkxf7",
+    "replicaSetName": "env-test-k8s-8449bb6cbd-",
+    "namespace": "default",
+    "labels": {
+      "pod-template-hash": "4005662768",
+      "service": "env-test-k8s"
+    },
+    "annotations": {
+      "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"env-test-k8s-8449bb6cbd\",\"uid\":\"bbfa1df8-2191-11e8-b7cd-0efb3af0270e\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"9565093\"}}\n",
+      "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu request for container deploy-sentinel; cpu request for container ostrich-fetcher-cron; cpu request for init container init-zum; cpu request for init container init-singer; cpu request for init container init-cron",
+      "pinterest.com/iamrole": "base",
+      "pinterest.com/networkmode": "dedicatedeni"
+    },
+    "createTime": "2018-03-06T22:57:24Z",
+    "node": "ip-10-3-14-44.ec2.internal",
+    "phase": "PENDING",
+    "ip": "10.3.14.44",
+    "conditions": "[{\"lastTransitionTime\":{\"Time\":\"2018-03-06T22:57:24Z\"},\"message\":\"containers with incomplete status: [init-zum init-singer init-cron]\",\"reason\":\"ContainersNotInitialized\",\"status\":\"False\",\"type\":\"Initialized\"},{\"lastTransitionTime\":{\"Time\":\"2018-03-06T22:57:24Z\"},\"message\":\"containers with unready status: [deploy-sentinel ostrich-fetcher-cron]\",\"reason\":\"ContainersNotReady\",\"status\":\"False\",\"type\":\"Ready\"},{\"lastTransitionTime\":{\"Time\":\"2018-03-06T22:57:24Z\"},\"status\":\"True\",\"type\":\"PodScheduled\"}]"
+  },
+  "replicaSets": [
+    {
+      "name": "env-test-k8s-6bdf97f465",
+      "desiredReplicas": 3,
+      "currentReplicas": 2,
+      "conditions": "[]",
+      "createTime": "2018-02-20T19:45:51Z"
+    },
+    {
+      "name": "env-test-k8s-d87f7d668",
+      "desiredReplicas": 3,
+      "currentReplicas": 0,
+      "conditions": "[]",
+      "createTime": "2018-02-20T16:55:51Z"
+    }
+  ],
+  "pods": {
+    "env-test-k8s-d87f7d668": [
+      {
+        "podName": "env-test-k8s-d87f7d668-h22fs",
+        "replicaSetName": "env-test-k8s-d87f7d668-",
+        "namespace": "default",
+        "labels": {
+          "pinterest.com/eni_id": "eni-999c9663",
+          "pinterest.com/eni_ip_address": "10.3.188.136",
+          "pinterest.com/eni_mac_address": "0a-15-2d-c1-a0-96",
+          "pod-template-hash": "843938224",
+          "service": "env-test-k8s"
+        },
+        "annotations": {
+          "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"env-test-k8s-d87f7d668\",\"uid\":\"067ce99d-166c-11e8-b7cd-0efb3af0270e\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"5354906\"}}\n",
+          "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu request for container deploy-sentinel; cpu request for container ostrich-fetcher-cron; cpu request for init container init-zum; cpu request for init container init-singer; cpu request for init container init-cron",
+          "pinterest.com/iamrole": "base",
+          "pinterest.com/networkmode": "dedicatedeni"
+        },
+        "createTime": "2018-02-20T18:29:45Z",
+        "node": "ip-10-3-141-170.ec2.internal",
+        "phase": "RUNNING",
+        "ip": "10.3.141.170",
+        "conditions": "[{\"lastTransitionTime\":{\"Time\":\"2018-02-20T18:29:49Z\"},\"status\":\"True\",\"type\":\"Initialized\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:52Z\"},\"message\":\"containers with unready status: [deploy-sentinel ostrich-fetcher-cron]\",\"reason\":\"ContainersNotReady\",\"status\":\"False\",\"type\":\"Ready\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T18:29:45Z\"},\"status\":\"True\",\"type\":\"PodScheduled\"}]"
+      },
+      {
+        "podName": "env-test-k8s-d87f7d668-qzbjg",
+        "replicaSetName": "env-test-k8s-d87f7d668-",
+        "namespace": "default",
+        "labels": {
+          "pinterest.com/eni_id": "eni-d3996e1e",
+          "pinterest.com/eni_ip_address": "10.3.229.97",
+          "pinterest.com/eni_mac_address": "12-02-ce-9f-a3-fc",
+          "pod-template-hash": "843938224",
+          "service": "env-test-k8s"
+        },
+        "annotations": {
+          "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"env-test-k8s-d87f7d668\",\"uid\":\"067ce99d-166c-11e8-b7cd-0efb3af0270e\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"5354895\"}}\n",
+          "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu request for container deploy-sentinel; cpu request for container ostrich-fetcher-cron; cpu request for init container init-zum; cpu request for init container init-singer; cpu request for init container init-cron",
+          "pinterest.com/iamrole": "base",
+          "pinterest.com/networkmode": "dedicatedeni"
+        },
+        "createTime": "2018-02-20T18:29:45Z",
+        "node": "ip-10-3-195-38.ec2.internal",
+        "phase": "PENDING",
+        "ip": "10.3.195.38",
+        "conditions": "[{\"lastTransitionTime\":{\"Time\":\"2018-02-20T18:29:50Z\"},\"status\":\"True\",\"type\":\"Initialized\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:57Z\"},\"message\":\"containers with unready status: [deploy-sentinel ostrich-fetcher-cron]\",\"reason\":\"ContainersNotReady\",\"status\":\"False\",\"type\":\"Ready\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T18:29:45Z\"},\"status\":\"True\",\"type\":\"PodScheduled\"}]"
+      },
+      {
+        "podName": "env-test-k8s-d87f7d668-qzbjx",
+        "replicaSetName": "env-test-k8s-d87f7d668-",
+        "namespace": "default",
+        "labels": {
+          "pinterest.com/eni_id": "eni-d3996e1e",
+          "pinterest.com/eni_ip_address": "10.3.229.97",
+          "pinterest.com/eni_mac_address": "12-02-ce-9f-a3-fc",
+          "pod-template-hash": "843938224",
+          "service": "env-test-k8s"
+        },
+        "annotations": {
+          "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"env-test-k8s-d87f7d668\",\"uid\":\"067ce99d-166c-11e8-b7cd-0efb3af0270e\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"5354895\"}}\n",
+          "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu request for container deploy-sentinel; cpu request for container ostrich-fetcher-cron; cpu request for init container init-zum; cpu request for init container init-singer; cpu request for init container init-cron",
+          "pinterest.com/iamrole": "base",
+          "pinterest.com/networkmode": "dedicatedeni"
+        },
+        "createTime": "2018-02-20T18:29:45Z",
+        "node": "ip-10-3-195-38.ec2.internal",
+        "phase": "PENDING",
+        "ip": "10.3.195.38",
+        "conditions": "[{\"lastTransitionTime\":{\"Time\":\"2018-02-20T18:29:50Z\"},\"status\":\"True\",\"type\":\"Initialized\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:57Z\"},\"message\":\"containers with unready status: [deploy-sentinel ostrich-fetcher-cron]\",\"reason\":\"ContainersNotReady\",\"status\":\"False\",\"type\":\"Ready\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T18:29:45Z\"},\"status\":\"True\",\"type\":\"PodScheduled\"}]"
+      }
+    ],
+    "env-test-k8s-6bdf97f465": [
+      {
+        "podName": "env-test-k8s-6bdf97f465-2bdtf",
+        "replicaSetName": "env-test-k8s-6bdf97f465-",
+        "namespace": "default",
+        "labels": {
+          "pinterest.com/eni_id": "eni-999c9663",
+          "pinterest.com/eni_ip_address": "10.3.188.136",
+          "pinterest.com/eni_mac_address": "0a-15-2d-c1-a0-96",
+          "pod-template-hash": "2689539021",
+          "service": "env-test-k8s"
+        },
+        "annotations": {
+          "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"env-test-k8s-6bdf97f465\",\"uid\":\"a7e7411f-1676-11e8-b7cd-0efb3af0270e\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"5367963\"}}\n",
+          "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu request for container deploy-sentinel; cpu request for container ostrich-fetcher-cron; cpu request for init container init-zum; cpu request for init container init-singer; cpu request for init container init-cron",
+          "pinterest.com/iamrole": "base",
+          "pinterest.com/networkmode": "dedicatedeni"
+        },
+        "createTime": "2018-02-20T19:45:51Z",
+        "node": "ip-10-3-141-170.ec2.internal",
+        "phase": "RUNNING",
+        "ip": "10.3.141.170",
+        "conditions": "[{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:55Z\"},\"status\":\"True\",\"type\":\"Initialized\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:56Z\"},\"status\":\"True\",\"type\":\"Ready\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:51Z\"},\"status\":\"True\",\"type\":\"PodScheduled\"}]"
+      },
+      {
+        "podName": "env-test-k8s-6bdf97f465-2bdtx",
+        "replicaSetName": "env-test-k8s-6bdf97f465-",
+        "namespace": "default",
+        "labels": {
+          "pinterest.com/eni_id": "eni-999c9663",
+          "pinterest.com/eni_ip_address": "10.3.188.136",
+          "pinterest.com/eni_mac_address": "0a-15-2d-c1-a0-96",
+          "pod-template-hash": "2689539021",
+          "service": "env-test-k8s"
+        },
+        "annotations": {
+          "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"env-test-k8s-6bdf97f465\",\"uid\":\"a7e7411f-1676-11e8-b7cd-0efb3af0270e\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"5367963\"}}\n",
+          "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu request for container deploy-sentinel; cpu request for container ostrich-fetcher-cron; cpu request for init container init-zum; cpu request for init container init-singer; cpu request for init container init-cron",
+          "pinterest.com/iamrole": "base",
+          "pinterest.com/networkmode": "dedicatedeni"
+        },
+        "createTime": "2018-02-20T19:45:51Z",
+        "node": "ip-10-3-141-170.ec2.internal",
+        "phase": "RUNNING",
+        "ip": "10.3.141.170",
+        "conditions": "[{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:55Z\"},\"status\":\"True\",\"type\":\"Initialized\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:56Z\"},\"status\":\"True\",\"type\":\"Ready\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:51Z\"},\"status\":\"True\",\"type\":\"PodScheduled\"}]"
+      },
+      {
+        "podName": "env-test-k8s-6bdf97f465-ftpn9",
+        "replicaSetName": "env-test-k8s-6bdf97f465-",
+        "namespace": "default",
+        "labels": {
+          "pinterest.com/eni_id": "eni-03828ddf",
+          "pinterest.com/eni_ip_address": "10.3.51.149",
+          "pinterest.com/eni_mac_address": "0e-22-1f-7b-d0-94",
+          "pod-template-hash": "2689539021",
+          "service": "env-test-k8s"
+        },
+        "annotations": {
+          "kubernetes.io/created-by": "{\"kind\":\"SerializedReference\",\"apiVersion\":\"v1\",\"reference\":{\"kind\":\"ReplicaSet\",\"namespace\":\"default\",\"name\":\"env-test-k8s-6bdf97f465\",\"uid\":\"a7e7411f-1676-11e8-b7cd-0efb3af0270e\",\"apiVersion\":\"extensions\",\"resourceVersion\":\"5367974\"}}\n",
+          "kubernetes.io/limit-ranger": "LimitRanger plugin set: cpu request for container deploy-sentinel; cpu request for container ostrich-fetcher-cron; cpu request for init container init-zum; cpu request for init container init-singer; cpu request for init container init-cron",
+          "pinterest.com/iamrole": "base",
+          "pinterest.com/networkmode": "dedicatedeni"
+        },
+        "createTime": "2018-02-20T19:45:51Z",
+        "node": "ip-10-3-10-104.ec2.internal",
+        "phase": "FAILED",
+        "ip": "10.3.10.104",
+        "conditions": "[{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:55Z\"},\"status\":\"True\",\"type\":\"Initialized\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:56Z\"},\"status\":\"True\",\"type\":\"Ready\"},{\"lastTransitionTime\":{\"Time\":\"2018-02-20T19:45:51Z\"},\"status\":\"True\",\"type\":\"PodScheduled\"}]"
+      }
+    ]
+  }
+}

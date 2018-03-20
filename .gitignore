@@ -19,6 +19,7 @@ loadtests/local
 target/
 dist/
 docs/_build/
+node_modules/
 
 # Vagrant
 .bundle
@@ -61,3 +62,6 @@ MANIFEST
 
 # Virtual Environments
 .venv
+
+# Environment variable setup (password, etc)
+.env
