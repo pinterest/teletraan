@@ -69,6 +69,9 @@ public class DBHostDAOImpl implements HostDAO {
             "GROUP BY x.host_id HAVING count(*) = (SELECT count(*) FROM agents y WHERE y.host_id = x.host_id)";
     private static final String GET_NEW_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE can_retire=0 AND group_name=? AND state not in (?,?)";
 
+    private static final String GET_HOSTS_EXCLUDED_FROM_ENV_BY_ENVID = "SELECT host_name FROM hosts_and_envs WHERE host_name IN " +
+        "(SELECT host_name FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=?) and env_id != ? ";
+
     private BasicDataSource dataSource;
 
     public DBHostDAOImpl(BasicDataSource dataSource) {
@@ -269,5 +272,11 @@ public class DBHostDAOImpl implements HostDAO {
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
                 AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
+    }
+
+    @Override
+    public Collection<String> getExcludedHostsFromEnvByEnvId(String envId) throws Exception {
+        return new QueryRunner(dataSource).query(GET_HOSTS_EXCLUDED_FROM_ENV_BY_ENVID,
+            SingleResultSetHandlerFactory.<String>newListObjectHandler(), envId, envId);
     }
 }

@@ -42,6 +42,19 @@ public class DeployTagWorker implements Runnable {
         String tagName = bean.getConstraint_key();
         String envId = environBean.getEnv_id();
         Collection<HostBean> hostBeans = hostDAO.getHostsByEnvId(envId);
+        Collection<String> excludedHostNames = hostDAO.getExcludedHostsFromEnvByEnvId(envId);
+        if(excludedHostNames != null && excludedHostNames.size() > 0) {
+            Set<String> excludedHostNameSet = new HashSet<>(excludedHostNames);
+            Collection<HostBean> filteredHostBeans = new ArrayList<>();
+            for(HostBean hostBean: hostBeans) {
+                String hostName = hostBean.getHost_name();
+                if(hostName != null && !excludedHostNameSet.contains(hostName)) {
+                    filteredHostBeans.add(hostBean);
+                }
+            }
+            hostBeans = filteredHostBeans;
+        }
+
         Collection<HostTagBean> hostTagBeans = hostTagDAO.getAllByEnvIdAndTagName(envId, tagName);
 
 

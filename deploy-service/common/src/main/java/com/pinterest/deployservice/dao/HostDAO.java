@@ -72,4 +72,6 @@ public interface HostDAO {
     Collection<String> getNewHostIdsByGroup(String groupName) throws Exception;
 
     Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception;
+
+    Collection<String> getExcludedHostsFromEnvByEnvId(String envId) throws Exception;
 }
