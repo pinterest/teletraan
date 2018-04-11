@@ -1233,17 +1233,19 @@ def get_pred_deploys(request, name, stage):
         show_lock = True
 
     current_startDate = 0
-    if not predStage or predStage == "BUILD":
-        deploys = []
-    else:
+    deploys = []
+    if predStage and predStage != "BUILD":
         pred_env = environs_helper.get_env_by_stage(request, name, predStage)
-        result = deploys_helper.get_all(request, envId=[pred_env['id']], pageIndex=index,
-                                        pageSize=size)
-        deploys = result["deploys"]
-        if env.get('deployId'):
-            deploy = deploys_helper.get(request, env['deployId'])
-            build = builds_helper.get_build(request, deploy['buildId'])
-            current_startDate = build['publishDate']
+        # Pre_env can be gone or we no longer promote from it
+        if pred_env is not None:
+            result = deploys_helper.get_all(request, envId=[pred_env['id']], pageIndex=index,
+                                            pageSize=size)
+            deploys = result["deploys"]
+            if env.get('deployId'):
+                deploy = deploys_helper.get(request, env['deployId'])
+                build = builds_helper.get_build(request, deploy['buildId'])
+                current_startDate = build['publishDate']
+
 
     deploy_wrappers = []
     for deploy in deploys:
