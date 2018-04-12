@@ -128,7 +128,7 @@ class EnvCapacityAdvCreateView(View):
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultCell': DEFAULT_CELL,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
-            'defaultSeurityZone': DEFAULT_SECURITY_ZONE,
+            'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
         }

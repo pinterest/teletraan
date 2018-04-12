@@ -128,7 +128,13 @@ var capacitySetting = new Vue({
                     isSelected: index < 3 //Select Top 3 by default
                 }
             }),
-        securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){return {value:item.abstract_name, text:item.abstract_name+" ("+item.description+")"}}),
+        securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){
+            return {
+                value:item.abstract_name, 
+                text:item.abstract_name+" ("+item.description+")",
+                isSelected: item.abstract_name === capacityCreationInfo.defaultSeurityZone
+            }
+        }),
         selectedHostTypeValue: capacityCreationInfo.defaultHostType,
         selectedSecurityZoneValue: capacityCreationInfo.defaultSeurityZone,
         selectedPlacements: null
