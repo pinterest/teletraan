@@ -272,7 +272,9 @@ if IS_PINTEREST:
     DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
 
     DEFAULT_CELL = 'aws-us-east-1'
+    DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
 
     #Pinterest Default Puppet Environment
-    DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON',default='prod')
-    DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE',default='engineering')
+    DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
+    DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
+

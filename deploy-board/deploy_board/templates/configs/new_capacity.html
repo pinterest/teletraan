@@ -130,7 +130,7 @@ var capacitySetting = new Vue({
             }),
         securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){return {value:item.abstract_name, text:item.abstract_name+" ("+item.description+")"}}),
         selectedHostTypeValue: capacityCreationInfo.defaultHostType,
-        selectedSecurityZoneValue: capacityCreationInfo.securityZones[0].abstract_name,
+        selectedSecurityZoneValue: capacityCreationInfo.defaultSeurityZone,
         selectedPlacements: null
     },
     methods:{
