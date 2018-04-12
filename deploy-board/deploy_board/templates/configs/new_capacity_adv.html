@@ -177,11 +177,11 @@ var capacitySetting = new Vue({
                 return {
                     value: item.abstract_name,
                     text: item.abstract_name,
-                    isSelected: item.id === info.securityZones[0].id
+                    isSelected: item.abstract_name === info.defaultSeurityZone
                 }
             }),
         selectedHostTypeValue: info.defaultHostType,
-        selectedSecurityZoneValue: info.securityZones[0].abstract_name,
+        selectedSecurityZoneValue: info.defaultSeurityZone
         selectedPlacements: [],
         showBaseImageHelp: false,
         showHostTypeHelp: false,
