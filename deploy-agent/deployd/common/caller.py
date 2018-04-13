@@ -15,6 +15,7 @@
 import subprocess
 import traceback
 import logging
+import time
 
 log = logging.getLogger(__name__)
 
@@ -25,10 +26,19 @@ class Caller(object):
 
     @staticmethod
     def call_and_log(cmd, **kwargs):
+        output = ""
+        start = time.time()
         try:
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                        stderr=subprocess.PIPE, **kwargs)
-            output, error = process.communicate()
+            while process.poll() is None:
+                line = process.stdout.readline()
+                if line:
+                    output = output + "[%.2f]" % (time.time() - start) + line
+                line = process.stderr.readline()
+                if line:
+                    output = output + "[%.2f]" % (time.time() - start) + line
+            temp, error = process.communicate()
             return output.strip(), error.strip(), process.poll()
         except Exception as e:
             log.error(traceback.format_exc())
