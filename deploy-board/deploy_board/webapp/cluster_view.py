@@ -700,6 +700,7 @@ def get_aws_config_name_list_by_image(image_name):
         config_map['ebs_size'] = 500
         config_map['ebs_mount'] = '/backup'
         config_map['ebs_volume_type'] = 'gp2'
+        config_map['root_volume_size'] = 100
         if image_name == DEFAULT_CMP_IMAGE:
             config_map['pinfo_role'] = 'cmp_base'
             config_map['pinfo_team'] = 'cloudeng'
