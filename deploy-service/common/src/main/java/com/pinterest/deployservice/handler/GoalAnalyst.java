@@ -89,33 +89,38 @@ public class GoalAnalyst {
             this.report = report;
         }
 
-        int getDeployPriority(EnvironBean env) {
+        int getDeployPriority(EnvironBean env, Boolean firstDeploy) {
             if (env.getDeploy_type() == null) {
               return DeployPriority.NORMAL.getValue();
             } else {
-              // System level deploy, or sidecar service deploy mostly, will use dedicated system
-              // priority. Notice for system level deploy, we disregard the priorities of hotfix
-              // or rollback.
-              Integer systemPriority = env.getSystem_priority();
-              if (systemPriority != null) {
-                return systemPriority;
-              }
+                // System level deploy, or sidecar service deploy mostly, will use dedicated system
+                // priority. Notice for system level deploy, we disregard the priorities of hotfix
+                // or rollback.
+                Integer systemPriority = env.getSystem_priority();
+                if (systemPriority != null) {
+                    return systemPriority;
+                }
 
-              DeployType deployType = env.getDeploy_type();
-                if (deployType == DeployType.HOTFIX) {
-                    return HOT_FIX_PRIORITY;
-                } else if (deployType == DeployType.ROLLBACK) {
-                    return ROLL_BACK_PRIORITY;
-                } else {
+                if (firstDeploy != null && firstDeploy) {
+                    //First deploy should always use the setting priority.
                     return env.getPriority().getValue();
+                } else {
+                    DeployType deployType = env.getDeploy_type();
+                    if (deployType == DeployType.HOTFIX) {
+                        return HOT_FIX_PRIORITY;
+                    } else if (deployType == DeployType.ROLLBACK) {
+                        return ROLL_BACK_PRIORITY;
+                    } else {
+                        return env.getPriority().getValue();
+                    }
                 }
             }
         }
 
         @Override
         public int compareTo(InstallCandidate installCandidate) {
-            int priority1 = getDeployPriority(env);
-            int priority2 = getDeployPriority(installCandidate.env);
+            int priority1 = getDeployPriority(env, updateBean.getFirst_deploy() );
+            int priority2 = getDeployPriority(installCandidate.env, updateBean.getFirst_deploy());
             // STOP has higher priority. If the agent state is STOP, reverse the priority
             if (updateBean.getState() == AgentState.STOP && installCandidate.updateBean.getState() == AgentState.STOP) {
                 return priority2 - priority1;

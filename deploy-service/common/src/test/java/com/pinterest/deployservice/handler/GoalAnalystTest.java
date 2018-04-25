@@ -15,9 +15,25 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.pinterest.deployservice.bean.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.AgentStatus;
+import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployPriority;
+import com.pinterest.deployservice.bean.DeployStage;
+import com.pinterest.deployservice.bean.DeployType;
+import com.pinterest.deployservice.bean.EnvState;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.PingReportBean;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -26,8 +42,6 @@ import org.mockito.Mockito;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.Assert.*;
 
 public class GoalAnalystTest {
 
@@ -803,6 +817,62 @@ public class GoalAnalystTest {
         assertEquals(candidates.get(4).env.getEnv_id(), "e11");
         assertEquals(candidates.get(5).env.getEnv_id(), "e44");
         assertEquals(candidates.get(6).env.getEnv_id(), "e22");
+    }
+
+    @Test
+    public void testDeployPriority() throws Exception {
+
+        EnvironBean envBean1 = genDefaultEnvBean();
+        envBean1.setEnv_id("e1");
+        envBean1.setDeploy_id("DeployA");
+        envBean1.setDeploy_type(DeployType.REGULAR);
+        envBean1.setPriority(DeployPriority.HIGHER);
+        envs.put(envBean1.getEnv_id(), envBean1);
+
+        EnvironBean envBean2 = genDefaultEnvBean();
+        envBean2.setEnv_id("e2");
+        envBean2.setDeploy_id("DeployB");
+        envBean2.setDeploy_type(DeployType.REGULAR);
+        envBean2.setPriority(DeployPriority.NORMAL);
+        envs.put(envBean2.getEnv_id(), envBean2);
+
+        EnvironBean envBean3 = genDefaultEnvBean();
+        envBean3.setEnv_id("e3");
+        envBean3.setDeploy_type(DeployType.REGULAR);
+        envBean3.setPriority(DeployPriority.LOWER);
+        envs.put(envBean3.getEnv_id(), envBean3);
+
+        AgentBean agent1 = genDefaultAgent();
+        agent1.setEnv_id("e3");
+        agents.put(agent1.getEnv_id(), agent1);
+        agent1.setFirst_deploy(true);
+        GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
+        analyst.analysis();
+
+        // Making sure the candidates are sorted as expected
+        List<GoalAnalyst.InstallCandidate> candidates = analyst.getInstallCandidates();
+        assertEquals(candidates.get(0).env.getEnv_id(), "e1");
+        assertEquals(candidates.get(1).env.getEnv_id(), "e2");
+        assertEquals(candidates.get(2).env.getEnv_id(), "e3");
+
+        envBean3.setDeploy_type(DeployType.ROLLBACK);
+        analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
+        analyst.analysis();
+
+        //First deploy
+        candidates = analyst.getInstallCandidates();
+        assertEquals(candidates.get(0).env.getEnv_id(), "e1");
+        assertEquals(candidates.get(1).env.getEnv_id(), "e2");
+        assertEquals(candidates.get(2).env.getEnv_id(), "e3");
+
+        agent1.setFirst_deploy(false);
+
+        analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
+        analyst.analysis();
+        candidates = analyst.getInstallCandidates();
+        assertEquals(candidates.get(0).env.getEnv_id(), "e3");
+        assertEquals(candidates.get(1).env.getEnv_id(), "e1");
+        assertEquals(candidates.get(2).env.getEnv_id(), "e2");
     }
 
     @Test
