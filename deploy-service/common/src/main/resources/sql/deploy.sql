@@ -308,4 +308,4 @@ CREATE TABLE IF NOT EXISTS schema_versions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Make sure to update the version everytime we change the schema
-INSERT INTO schema_versions (version) VALUES (2);
+INSERT INTO schema_versions (version) VALUES (3);
