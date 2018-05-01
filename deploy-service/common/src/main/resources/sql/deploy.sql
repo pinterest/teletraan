@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS environs (
     override_policy     VARCHAR(32)   NOT NULL,
     schedule_id         VARCHAR(22),
     deploy_constraint_id      VARCHAR(22),
+    project_id          INT(11)
     PRIMARY KEY   (env_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX env_name_stage_idx ON environs (env_name, stage_name);
@@ -307,4 +308,4 @@ CREATE TABLE IF NOT EXISTS schema_versions (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Make sure to update the version everytime we change the schema
-INSERT INTO schema_versions (version) VALUES (2);
+INSERT INTO schema_versions (version) VALUES (3);
