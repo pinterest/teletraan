@@ -178,7 +178,7 @@ public class EnvironBean implements Updatable, Serializable {
     private String deploy_constraint_id;
 
     @JsonProperty("projectId")
-    private String project_id;
+    private Integer project_id;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -468,11 +468,11 @@ public class EnvironBean implements Updatable, Serializable {
         this.deploy_constraint_id = deploy_constraint_id;
     }
 
-    public String getProject_id() {
+    public Integer getProject_id() {
         return project_id;
     }
 
-    public void setProject_id(String project_id) {
+    public void setProject_id(Integer project_id) {
         this.project_id = project_id;
     }
 
