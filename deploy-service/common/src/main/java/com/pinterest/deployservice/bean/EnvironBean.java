@@ -60,7 +60,7 @@ import java.io.Serializable;
  * max_parallel_rp     INT           NOT NULL DEFAULT 1,
  * schedule_id         VARCHAR(22)   DEFAULT NULL,
  * deploy_constraint_id VARCHAR(22)   DEFAULT NULL
- * project_id INT(11)
+ * external_id CHAR(36)
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -177,8 +177,8 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("deployConstraintId")
     private String deploy_constraint_id;
 
-    @JsonProperty("projectId")
-    private Integer project_id;
+    @JsonProperty("externalId")
+    private String external_id;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -468,12 +468,12 @@ public class EnvironBean implements Updatable, Serializable {
         this.deploy_constraint_id = deploy_constraint_id;
     }
 
-    public Integer getProject_id() {
-        return project_id;
+    public String getExternal_id() {
+        return external_id;
     }
 
-    public void setProject_id(Integer project_id) {
-        this.project_id = project_id;
+    public void setExternal_id(String external_id) {
+        this.external_id = external_id;
     }
 
     @Override
@@ -515,7 +515,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("override_policy", override_policy);
         clause.addColumn("schedule_id", schedule_id);
         clause.addColumn("deploy_constraint_id", deploy_constraint_id);
-        clause.addColumn("project_id", project_id);
+        clause.addColumn("external_id", external_id);
         return clause;
     }
 
