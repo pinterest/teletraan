@@ -36,3 +36,8 @@ def get_by_provider_and_cell_name(request, provider, cell_name):
 
 def get_by_id(request, placement_id):
     return rodimus_client.get("/placements/%s" % placement_id, request.teletraan_user_id.token)
+
+
+def get_by_cell_name_and_security_group_id(request, cell_name, security_group_id):
+    params = [('cellName', cell_name), ('securityGroupId', security_group_id)]
+    return rodimus_client.get("/placements", request.teletraan_user_id.token, params=params)
