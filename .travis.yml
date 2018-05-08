@@ -1,3 +1,4 @@
+before_install: cd deploy-service
 language: java
 jdk:
   - oraclejdk8
