@@ -32,7 +32,6 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 
 
 public class AutoPromotBuildTest {
@@ -66,14 +65,14 @@ public class AutoPromotBuildTest {
     public void testGetScheduledCheckDueTime() throws Exception {
         DeployBean currentDeploy = new DeployBean();
         AutoPromoter promoter = new AutoPromoter(context);
-        DateTime now = new DateTime(new Date());
+        DateTime now = DateTime.now(DateTimeZone.UTC);
         currentDeploy.setStart_date(now.minusDays(1).getMillis());
         DateTime due =
             new DateTime(
                 promoter.getScheduledCheckDueTime(currentDeploy.getStart_date(), CronTenAMPerDay));
 
         if (now.getHourOfDay() < 10) {
-            DateTime yesterday = now.minusDays(-1);
+            DateTime yesterday = now.minusDays(1);
             DateTime
                 start =
                 new DateTime(yesterday.getYear(), yesterday.getMonthOfYear(),
