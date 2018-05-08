@@ -24,6 +24,7 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -321,7 +322,7 @@ public class AutoPromotBuildTest {
         if (now.getHourOfDay() >= 10) {
             build.setPublish_date(now.minusHours(now.getHourOfDay() - 10 + 1).getMillis());
         } else {
-            build.setPublish_date(DateTime.now().getMillis());
+            build.setPublish_date(DateTime.now().minusDays(1).getMillis());
         }
         when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
             .thenReturn(Arrays.asList(build));
@@ -425,22 +426,22 @@ public class AutoPromotBuildTest {
         AutoPromoter promoter = new AutoPromoter(context);
         //Has builds. No previous deploy
         DeployBean previousDeploy = new DeployBean();
-        previousDeploy.setStart_date(DateTime.now().minusDays(1).getMillis());
+        previousDeploy.setStart_date(DateTime.now(DateTimeZone.UTC).minusDays(1).getMillis());
         previousDeploy.setBuild_id("prev123");
 
         BuildBean preBuild = new BuildBean();
         preBuild.setBuild_name("buildName");
         preBuild.setBuild_id("prev123");
-        preBuild.setPublish_date(DateTime.now().minusHours(25).getMillis());
+        preBuild.setPublish_date(DateTime.now(DateTimeZone.UTC).minusHours(48).getMillis());
 
         BuildBean build = new BuildBean();
         build.setBuild_name("buildName");
         build.setBuild_id("123");
-        DateTime now = DateTime.now();
+        DateTime now = DateTime.now(DateTimeZone.UTC);
         if (now.getHourOfDay() > 10) {
             build.setPublish_date((now.minusHours(now.getHourOfDay() - 10 + 1)).getMillis());
         } else {
-            build.setPublish_date(DateTime.now().minusHours(1).getMillis());
+            build.setPublish_date(DateTime.now(DateTimeZone.UTC).minusDays(1).minusHours(1).getMillis());
         }
         when(buildDAO.getById("prev123")).thenReturn(preBuild);
         when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
