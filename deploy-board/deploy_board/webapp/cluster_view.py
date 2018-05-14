@@ -74,6 +74,8 @@ class EnvCapacityBasicCreateView(View):
         try:
             cluster_name = '{}-{}'.format(name, stage)
             cluster_info = json.loads(request.body)
+            cluster_info['envName'] = name
+            cluster_info['stageName'] = stage
 
             log.info("Create Capacity in the provider")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
@@ -142,6 +144,8 @@ class EnvCapacityAdvCreateView(View):
         try:
             cluster_name = '{}-{}'.format(name, stage)
             cluster_info = json.loads(request.body)
+            cluster_info['envName'] = name
+            cluster_info['stageName'] = stage
 
             log.info("Create Capacity in the provider")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
@@ -628,9 +632,9 @@ def clone_cluster(request, src_name, src_stage):
         log.info('clone_cluster, created a new env %s' % dest_env)
 
         ##2. rodimus service get src_cluster config
-        src_cluster_info = clusters_helper.get_cluster(request, src_cluster_name)
-        log.info('clone_cluster, src cluster info %s' % src_cluster_info)
-        configs = src_cluster_info.get('configs')
+        request_cluster_info = clusters_helper.get_cluster(request, src_cluster_name)
+        log.info('clone_cluster, src cluster info %s' % request_cluster_info)
+        configs = request_cluster_info.get('configs')
         if configs:
             cmp_group = configs.get('cmp_group')
             if cmp_group:
@@ -640,13 +644,16 @@ def clone_cluster(request, src_name, src_stage):
                 cmp_groups_set.add(dest_cluster_name)
                 # CMP needs to be the first in the list
                 configs['cmp_group'] = ','.join(['CMP'] + list(cmp_groups_set))
-                src_cluster_info['configs'] = configs
+                request_cluster_info['configs'] = configs
 
         ##3. rodimus service post create cluster
-        src_cluster_info['clusterName'] = dest_cluster_name
-        src_cluster_info['capacity'] = 0
-        log.info('clone_cluster, request clone cluster info %s' % src_cluster_info)
-        dest_cluster_info = clusters_helper.create_cluster(request, dest_cluster_name, src_cluster_info)
+        request_cluster_info['clusterName'] = dest_cluster_name
+        request_cluster_info['capacity'] = 0
+        request_cluster_info['envName'] = dest_name
+        request_cluster_info['stageName'] = dest_stage
+
+        log.info('clone_cluster, request clone cluster info %s' % request_cluster_info)
+        dest_cluster_info = clusters_helper.create_cluster(request, dest_cluster_name, request_cluster_info)
         log.info('clone_cluster, cloned cluster info %s' % dest_cluster_info)
 
         ##4. teletraan service update_env_basic_config
@@ -676,7 +683,7 @@ def clone_cluster(request, src_name, src_stage):
         if src_webhooks_configs:
             environs_helper.update_env_hooks_config(request, dest_name, dest_stage, src_webhooks_configs)
 
-        return HttpResponse(json.dumps(src_cluster_info), content_type="application/json")
+        return HttpResponse(json.dumps(request_cluster_info), content_type="application/json")
     except NotAuthorizedException as e:
         log.error("Have an NotAuthorizedException error {}".format(e))
         return HttpResponse(e, status=403, content_type="application/json")
