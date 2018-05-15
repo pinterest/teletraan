@@ -64,6 +64,8 @@ public interface EnvironDAO {
     // Return all
     List<String> getAllEnvIds() throws Exception;
 
+    List<EnvironBean> getAllEnvs() throws Exception;
+
     void deleteSchedule(String envName, String stageName) throws Exception;
 
     void deleteCluster(String envName, String stageName) throws Exception;
