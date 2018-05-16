@@ -129,7 +129,6 @@ public class Environs {
             return environDAO.getEnvsByGroups(Arrays.asList(groupName));
         }
         return environDAO.getAllEnvs();
-        //throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Require either environment name or group name in the request.");
     }
 
     @POST
