@@ -213,8 +213,8 @@ DISPLAY_STOPPING_HOSTS = os.getenv("DISPLAY_STOPPING_HOSTS", "true")
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = "https://jenkins.pinadmin.com/job/"
 
-DISABLE_CREATE_ENV_PAGE = True if os.getenv("DISABLE_CREATE_ENV_PAGE", "false") == "true" else False
-REDIRECT_CREATE_ENV_PAGE_URL = os.getenv("REDIRECT_CREATE_ENV_PAGE_URL", None)
+TELETRAAN_DISABLE_CREATE_ENV_PAGE = True if os.getenv("TELETRAAN_DISABLE_CREATE_ENV_PAGE", "false") == "true" else False
+TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL = os.getenv("TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL", None)
 IS_DURING_CODE_FREEZE = True if os.getenv("TELETRAAN_CODE_FREEZE", "false") == "true" else False
 TELETRAAN_CODE_FREEZE_URL = os.getenv("TELETRAAN_CODE_FREEZE_URL", None)
 TELETRAAN_JIRA_SOURCE_URL = os.getenv("TELETRAAN_JIRA_SOURCE_URL", None)

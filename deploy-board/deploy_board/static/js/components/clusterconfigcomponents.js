@@ -82,13 +82,13 @@ Vue.component('data-config-field', {
     template: '<div class="form-group">\
         <label for="properties" class="control-label col-xs-3">{{name}}</label>\
         <div class="col-xs-6">\
-            <input class="form-control" type="text" v-bind:value="value" v-on:input="change(name,$event.target.value)"></input>\
+            <input class="form-control" type="text" v-bind:value="value" v-on:input="change(name,$event.target.value)" v-bind:readonly="readonly ? true : false"></input>\
         </div>\
         <div class="col-xs-3">\
-            <button type="button" class="delete_button btn btn-default" v-on:click="deleteConfig(name)">Delete</button>\
+            <button type="button" class="delete_button btn btn-default" v-on:click="deleteConfig(name)" v-bind:disabled="readonly ? true : false">Delete</button>\
         </div>\
     </div>',
-    props: ['name', 'value'],
+    props: ['name', 'value', 'readonly'],
     methods: {
         change: function (name, value) {
             this.$emit("change", { name: name, value: value })
@@ -102,7 +102,7 @@ Vue.component('data-config-field', {
 
 Vue.component('aws-user-data', {
     template: '<div class="form-group">\
-    <data-config-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:inadvanced="inadvanced"\
+    <data-config-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:readonly="data.readonly" v-bind:inadvanced="inadvanced"\
      v-show="shouldShow(data.name)" v-on:change="change" v-on:deleteConfig="deleteConfig"></data-config-field>\
   </div>',
     props: ['alluserdata', 'inadvanced', 'showcmpgroup'],

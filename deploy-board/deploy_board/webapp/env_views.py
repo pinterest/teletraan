@@ -22,7 +22,7 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
-from deploy_board.settings import DISABLE_CREATE_ENV_PAGE, REDIRECT_CREATE_ENV_PAGE_URL,\
+from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
     IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import GUINEA_PIG_ENVS
@@ -330,8 +330,8 @@ class EnvLandingView(View):
                 "request_feedback": request_feedback,
                 "code_freeze": IS_DURING_CODE_FREEZE,
                 "code_freeze_url": TELETRAAN_CODE_FREEZE_URL,
-                "disable_create_env_page": DISABLE_CREATE_ENV_PAGE,
-                "redirect_create_env_page_url": REDIRECT_CREATE_ENV_PAGE_URL,
+                "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+                "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,
                 "jira_source_url": TELETRAAN_JIRA_SOURCE_URL,
                 "groups": groups,
                 "capacity_hosts": capacity_hosts,
