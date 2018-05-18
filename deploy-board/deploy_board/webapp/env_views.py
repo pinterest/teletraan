@@ -76,6 +76,8 @@ class EnvListView(View):
             "disablePrevious": index <= 1,
             "disableNext": len(names) < DEFAULT_PAGE_SIZE,
             "envs_tag": envs_tag,
+            "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+            "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
         })
 
 
@@ -710,6 +712,8 @@ def search_envs(request, filter):
         "disablePrevious": True,
         "disableNext": True,
         "envs_tag": envs_tag,
+        "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+        "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
     })
 
 
