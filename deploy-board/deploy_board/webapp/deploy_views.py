@@ -15,7 +15,7 @@
 # -*- coding: utf-8 -*-
 """Collection of all deploy related views
 """
-from deploy_board.settings import SITE_METRICS_CONFIGS
+from deploy_board.settings import SITE_METRICS_CONFIGS, TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
 from django.middleware.csrf import get_token
 import json
 from django.shortcuts import render
@@ -53,6 +53,8 @@ def get_landing_page(request):
     return render(request, 'landing.html', {
         "metrics": metrics,
         'envs_tag': envs_tag,
+        "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+        "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
     })
 
 
