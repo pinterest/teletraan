@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -112,6 +112,32 @@ public class EnvStages {
         String operator = sc.getUserPrincipal().getName();
         environHandler.deleteEnvStage(envName, stageName, operator);
         LOG.info("Successfully deleted env {}/{} by {}.", envName, stageName, operator);
+    }
+
+    @POST
+    @ApiOperation(
+          value = "Sets the external_id on a stage",
+          notes = "Sets the external_id column on a stage given the environment and stage names",
+          response = EnvironBean.class
+    )
+    @Path("/external_id")
+    public EnvironBean setExternalId(
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+            @ApiParam(value="External id", required = true) String externalId)
+            throws Exception {
+
+       EnvironBean originalBean = environDAO.getByStage(envName, stageName);
+       if(originalBean == null) {
+         throw new TeletaanInternalException(Response.Status.NOT_FOUND,
+             String.format("Environment %s/%s does not exist.", envName, stageName));
+       }
+       environDAO.setExternalId(originalBean, externalId);
+       EnvironBean updatedBean = environDAO.getByStage(envName, stageName);
+       String newExternalId = updatedBean.getExternal_id();
+
+       LOG.info("Successfully updated Env/stage - {}/{} with externalid = {}", envName, stageName, newExternalId);
+       return updatedBean;
     }
 
     @POST
