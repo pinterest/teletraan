@@ -187,6 +187,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
 
     }
 
+
     public static void main(String[] args) throws Exception {
         new TeletraanService().run(args);
     }

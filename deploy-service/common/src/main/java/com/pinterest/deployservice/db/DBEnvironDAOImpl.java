@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -39,6 +39,8 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "UPDATE environs SET %s WHERE env_name=? AND stage_name=?";
     private static final String UPDATE_ALL =
         "UPDATE environs SET %s";
+    private static final String SET_EXTERNAL_ID =
+        "UPDATE environs SET external_id=? WHERE env_name=? AND stage_name=?";
     private static final String GET_ENV_BY_ID =
         "SELECT * FROM environs WHERE env_id=?";
     private static final String GET_ENV_BY_NAME =
@@ -133,6 +135,16 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(UPDATE_ALL, setClause.getClause());
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+    }
+
+    @Override
+    public void setExternalId(EnvironBean bean, String externalId) throws Exception {
+        ResultSetHandler<EnvironBean> h = new BeanHandler<EnvironBean>(EnvironBean.class);
+        SetClause setClause = bean.genSetClause();
+        String clause = String.format(SET_EXTERNAL_ID, setClause.getClause());
+        String envName = bean.getEnv_name();
+        String stageName = bean.getStage_name();
+        new QueryRunner(dataSource).update(clause, externalId, envName, stageName);
     }
 
     @Override
