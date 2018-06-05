@@ -133,7 +133,7 @@ var capacitySetting = new Vue({
             function (item, idx) {
                 return {
                     value: item.abstract_name,
-                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
+                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ")",
                     isSelected: item.abstract_name === info.defaultHostType
                 }
             }),
