@@ -44,6 +44,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
+import java.util.UUID;
+
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}")
 @Api(tags = "Environments")
 @Produces(MediaType.APPLICATION_JSON)
@@ -126,6 +128,12 @@ public class EnvStages {
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value="External id", required = true) String externalId)
             throws Exception {
+
+       try {
+         UUID uuid = UUID.fromString(externalId);
+       } catch (Exception ex){
+         throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Client supplied an invalid externalId. Please retry with an externalId in the UUID format");
+       }
 
        EnvironBean originalBean = environDAO.getByStage(envName, stageName);
        if(originalBean == null) {
