@@ -45,7 +45,7 @@ public class PhabricatorManager extends BaseManager {
     private static final
     String
         QUERY_COMMITS_HISTORY_PARAMETER =
-        "{\"commit\":\"%s\", \"limit\":%d, \"callsign\":\"%s\", \"path\":\"%s\"}";
+        "{\"commit\":\"%s\", \"limit\":%d, \"repository\":\"%s\", \"path\":\"%s\"}";
     private static final int DEFAULT_SIZE = 30;
     private static final String DEFAULT_PATH = "*";
     private static final String ARC_OUTPUT_NOTICE = "Waiting for JSON parameters on stdin...";
