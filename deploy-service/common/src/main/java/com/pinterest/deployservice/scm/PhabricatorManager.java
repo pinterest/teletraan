@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,8 +45,9 @@ public class PhabricatorManager extends BaseManager {
     private static final
     String
         QUERY_COMMITS_HISTORY_PARAMETER =
-        "{\"commit\":\"%s\", \"limit\":%d, \"callsign\":\"%s\"}";
+        "{\"commit\":\"%s\", \"limit\":%d, \"callsign\":\"%s\", \"path\":\"%s\"}";
     private static final int DEFAULT_SIZE = 30;
+    private static final String DEFAULT_PATH = "*";
     private static final String ARC_OUTPUT_NOTICE = "Waiting for JSON parameters on stdin...";
     private static final int ARC_OUTPUT_NOTICE_LEN = ARC_OUTPUT_NOTICE.length();
     private static final String UNKNOWN = "UNKNOWN";
@@ -201,7 +202,7 @@ public class PhabricatorManager extends BaseManager {
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead)
         throws Exception {
-        String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, startSha, DEFAULT_SIZE, repo);
+        String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, startSha, DEFAULT_SIZE, repo, DEFAULT_PATH);
         Map<String, Object> json = queryCLI(input);
         @SuppressWarnings("unchecked")
         Map<String, Object> commitsJson = (Map<String, Object>) json.get("response");
