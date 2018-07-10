@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ *  
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ *    
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,7 +31,6 @@ import org.hibernate.validator.constraints.NotEmpty;
  * scm_branch       VARCHAR(64)         NOT NULL,
  * scm_commit_7     VARCHAR(7)          NOT NULL,
  * scm_commit       VARCHAR(64)         NOT NULL,
- * scm_path         VARCHAR(64),
  * commit_date      BIGINT              NOT NULL,
  * publish_info     VARCHAR(512)        NOT NULL,
  * publish_date     BIGINT              NOT NULL,
@@ -72,9 +71,6 @@ public class BuildBean implements Updatable {
 
     @JsonProperty("commitInfo")
     private String scm_info;
-
-    @JsonProperty("path")
-    private String scm_path;
 
     @JsonProperty("commitDate")
     private Long commit_date;
@@ -168,14 +164,6 @@ public class BuildBean implements Updatable {
         this.commit_date = commit_date;
     }
 
-    public String getScm_path() {
-        return scm_path;
-    }
-
-    public void setScm_path(String path) {
-      this.scm_path = path;
-    }
-
     public String getPublish_info() {
         return publish_info;
     }
@@ -211,7 +199,6 @@ public class BuildBean implements Updatable {
         clause.addColumn("scm_branch", scm_branch);
         clause.addColumn("scm_commit_7", scm_commit_7);
         clause.addColumn("scm_commit", scm_commit);
-        clause.addColumn("scm_path", scm_path);
         clause.addColumn("commit_date", commit_date);
         clause.addColumn("publish_info", publish_info);
         clause.addColumn("publisher", publisher);
