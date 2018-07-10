@@ -212,7 +212,6 @@ CREATE TABLE IF NOT EXISTS builds (
     scm_branch       VARCHAR(64)         NOT NULL,
     scm_commit_7     VARCHAR(7)          NOT NULL,
     scm_commit       VARCHAR(64)         NOT NULL,
-    scm_path         VARCHAR(64),
     commit_date      BIGINT              NOT NULL,
     publish_info     VARCHAR(512),
     publish_date     BIGINT              NOT NULL,
