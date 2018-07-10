@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,13 +46,14 @@ def create_env(name, stage):
     return env
 
 
-def publish_build(build_name, branch='master', commit=gen_random_num(32)):
+def publish_build(build_name, branch='master', path='', commit=gen_random_num(32)):
     request = {}
     request['name'] = build_name
     request['repo'] = "sample-repo"
     request['branch'] = branch
     request['commit'] = commit
     request['commitDate'] = int(round(time.time() * 1000))
+    request['path'] = path
     request['artifactUrl'] = "https://sample.com"
     request['publishInfo'] = "https://sample.com"
     build = builds_helper.publish_build(REQUEST, request)
