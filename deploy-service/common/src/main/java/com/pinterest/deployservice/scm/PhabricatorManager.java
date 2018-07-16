@@ -45,6 +45,10 @@ public class PhabricatorManager extends BaseManager {
     private static final
     String
         QUERY_COMMITS_HISTORY_PARAMETER =
+        "{\"commit\":\"%s\", \"limit\":%d, \"repository\":\"%s\"}";
+    private static final
+    String
+        QUERY_COMMITS_HISTORY_PARAMETER_WITH_PATH =
         "{\"commit\":\"%s\", \"limit\":%d, \"repository\":\"%s\", \"path\":\"%s\"}";
     private static final int DEFAULT_SIZE = 30;
     private static final String DEFAULT_PATH = "*";
@@ -202,7 +206,7 @@ public class PhabricatorManager extends BaseManager {
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
         throws Exception {
-        String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, startSha, DEFAULT_SIZE, repo, path);
+        String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER_WITH_PATH, startSha, DEFAULT_SIZE, repo, path);
         Map<String, Object> json = queryCLI(input);
         @SuppressWarnings("unchecked")
         Map<String, Object> commitsJson = (Map<String, Object>) json.get("response");
