@@ -200,9 +200,9 @@ public class PhabricatorManager extends BaseManager {
     }
 
     @Override
-    public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead)
+    public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
         throws Exception {
-        String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, startSha, DEFAULT_SIZE, repo, DEFAULT_PATH);
+        String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, startSha, DEFAULT_SIZE, repo, path);
         Map<String, Object> json = queryCLI(input);
         @SuppressWarnings("unchecked")
         Map<String, Object> commitsJson = (Map<String, Object>) json.get("response");

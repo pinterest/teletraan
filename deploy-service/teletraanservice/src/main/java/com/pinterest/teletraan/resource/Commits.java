@@ -36,6 +36,7 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Commits {
+    private final static String DEFAULT_PATH = "";
     private final static int DEFAULT_SIZE = 30;
     private SourceControlManager sourceControlManager;
 
@@ -66,6 +67,6 @@ public class Commits {
     public List<CommitBean> getCommits(@QueryParam("repo") String repo,
         @QueryParam("startSha") String startSha, @QueryParam("endSha") String endSha,
         @QueryParam("path") Optional<String> path, @QueryParam("size") Optional<Integer> size) throws Exception {
-        return sourceControlManager.getCommits(repo, startSha, endSha, path.or(""), size.or(DEFAULT_SIZE));
+        return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
     }
 }
