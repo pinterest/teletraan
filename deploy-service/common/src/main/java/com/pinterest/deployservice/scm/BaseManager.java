@@ -69,7 +69,7 @@ public abstract class BaseManager implements SourceControlManager {
             }
             // Repopulate commits, start from startSha
             if (commits.isEmpty()) {
-                commits = getCommits(repo, startSha, keepHead);
+                commits = getCommits(repo, startSha, keepHead, path);
             }
 
             if (keepHead) {
@@ -108,7 +108,7 @@ public abstract class BaseManager implements SourceControlManager {
         }
 
         if (fullCommits.size() >= MAX_COMMITS) {
-            LOG.warn("Exceeded max commits for repo={}, path={}, startSha={}, endSha={}", repo, path, startSha, endSha);
+            LOG.warn("Exceeded max commits for repo={}, startSha={}, endSha={}, path={}", repo, startSha, endSha, path);
         }
 
         return fullCommits;

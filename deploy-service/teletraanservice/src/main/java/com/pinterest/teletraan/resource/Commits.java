@@ -66,7 +66,7 @@ public class Commits {
     @GET
     public List<CommitBean> getCommits(@QueryParam("repo") String repo,
         @QueryParam("startSha") String startSha, @QueryParam("endSha") String endSha,
-        @QueryParam("path") Optional<String> path, @QueryParam("size") Optional<Integer> size) throws Exception {
+        @QueryParam("size") Optional<Integer> size, @QueryParam("path") Optional<String> path) throws Exception {
         return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
     }
 }
