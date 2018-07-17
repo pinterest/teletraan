@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,6 +34,7 @@ public interface SourceControlManager {
 
     // Start from sha, get default number of commits
     Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception;
+    Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead, String path) throws Exception;
 
     /**
      * Returns a list of CommitInfo from startSha inclusive to endSha exclusive,
@@ -42,4 +43,5 @@ public interface SourceControlManager {
      * if endSha == null, then will return up to size, max_size = 500
      */
     List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Exception;
+    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Exception;
 }
