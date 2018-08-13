@@ -172,7 +172,9 @@ class DashboardAddOn(ServiceAddOn):
         self.dashboardStateReport = dashboardStateReport
         if dashboardStateReport is not None:
             self.state = dashboardStateReport.state
-        if serviceName is not None:
+
+        self.buttonUrl = buttonUrl
+        if self.buttonUrl is None and serviceName is not None:
             self.buttonUrl = DASHBOARD_URL_ENDPOINT_FORMAT.format(serviceName=serviceName)
 
 class LogHealthReport(object):
@@ -466,20 +468,12 @@ def getKafkaLoggingAddOn(serviceName, report, configStr=None):
                              state=ServiceAddOn.DEFAULT,
                              logHealthReport=logHealthReport)
 
-def getDashboardAddOn(serviceName, report):
-
-    # Some special-casing - in the future it should be possible to retrieve a service
-    # name from environment information.
-    if serviceName == "helloworlddummyservice-server":
-        serviceName = "helloworlddummyservice"
-
-    if serviceName == "genesis_services_shared":
-        serviceName = report.stageName
-
+def getDashboardAddOn(serviceName, metrics_dashboard_url, report):
     serviceName = serviceName.lower()
     dashboardStateReport = getDashboardReport(serviceName, report)
 
     return DashboardAddOn(serviceName=serviceName,
+                          buttonUrl = metrics_dashboard_url,
                           dashboardStateReport=dashboardStateReport)
 
 """ --- Utility functions live below here --- """

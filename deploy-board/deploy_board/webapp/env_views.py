@@ -207,13 +207,17 @@ def update_service_add_ons(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     progress = deploys_helper.update_progress(request, name, stage)
     report = agent_report.gen_report(request, env, progress)
-
-
+    metrics = environs_helper.get_env_metrics_config(request, name, stage)
+    metrics_dashboard_url = None
+    for metric in metrics:
+        if metric['title'] == "dashboard":
+            metrics_dashboard_url = metric['url']
     # Currently we assume that the servicename is the same as the environment name.
     serviceName = name
     rateLimitingAddOn = service_add_ons.getRatelimitingAddOn(serviceName=serviceName,
                                                              report=report)
     dashboardAddOn = service_add_ons.getDashboardAddOn(serviceName=serviceName,
+                                                       metrics_dashboard_url=metrics_dashboard_url,
                                                        report=report)
     serviceAddOns.append(rateLimitingAddOn)
 
@@ -310,6 +314,12 @@ class EnvLandingView(View):
         request_feedback = check_feedback_eligible(request, username)
         groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
         metrics = environs_helper.get_env_metrics_config(request, name, stage)
+
+        metrics_dashboard_only = False
+        for metric in metrics:
+            if metric['title'] == "dashboard" and len(metrics) == 1:
+                metrics_dashboard_only = True
+            
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
         env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
@@ -328,6 +338,7 @@ class EnvLandingView(View):
                 "env_promote": env_promote,
                 "stages": stages,
                 "metrics": metrics,
+                "metrics_dashboard_only": metrics_dashboard_only,
                 "alarms": alarms,
                 "request_feedback": request_feedback,
                 "code_freeze": IS_DURING_CODE_FREEZE,
@@ -365,6 +376,7 @@ class EnvLandingView(View):
                 "report": report,
                 "has_deploy": True,
                 "metrics": metrics,
+                "metrics_dashboard_only": metrics_dashboard_only,
                 "alarms": alarms,
                 "request_feedback": request_feedback,
                 "code_freeze": IS_DURING_CODE_FREEZE,
