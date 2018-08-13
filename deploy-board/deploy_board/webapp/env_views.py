@@ -1494,6 +1494,19 @@ def get_new_commits(request, name, stage):
     })
 
 
+def _get_endSha(end_build):
+    endSha = end_build['commit']
+    endShaBranch = end_build['branch']
+    # handle the case for hotfix build, where we should use base_commit of the hotfix.
+    # The base_commit is recorded in the suffix of branch name, in the format of 'hotfix_operator_1234567'
+    if endShaBranch.startswith('hotfix_'):
+        endShaBranchSplits = endShaBranch.split('_')
+        if len(endShaBranchSplits) >= 3:
+            endSha = endShaBranchSplits[len(endShaBranchSplits)-1]  # only get the last split
+
+    return endSha
+
+
 def compare_deploys(request, name, stage):
     start_deploy_id = request.GET.get('start_deploy', None)
     start_deploy = deploys_helper.get(request, start_deploy_id)
@@ -1510,7 +1523,7 @@ def compare_deploys(request, name, stage):
         if not end_deploy:
             end_deploy = start_deploy
     end_build = builds_helper.get_build(request, end_deploy['buildId'])
-    endSha = end_build['commit']
+    endSha = _get_endSha(end_build)
 
     commits, truncated, new_start_sha = common.get_commits_batch(request, repo, startSha,
                                                                  endSha, keep_first=True)
@@ -1545,7 +1558,8 @@ def compare_deploys_2(request, name, stage):
     startSha = start_build['commit']
     repo = start_build['repo']
     end_build = builds_helper.get_build(request, end_build_id)
-    endSha = end_build['commit']
+    endSha = _get_endSha(end_build)
+    
     scm_url = systems_helper.get_scm_url(request)
     diffUrl = "%s/%s/compare/%s...%s" % (scm_url, repo, endSha, startSha)
     return render(request, 'deploys/deploy_commits.html', {
