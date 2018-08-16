@@ -73,7 +73,7 @@ public class HTTPClient {
                 conn = (HttpURLConnection) urlObj.openConnection();
                 conn.setRequestMethod(method);
                 conn.setRequestProperty("Accept-Charset", "UTF-8");
-                conn.setConnectTimeout(15000)
+                conn.setConnectTimeout(15000);
 
                 if (headers != null) {
                     for (Map.Entry<String, String> entry : headers.entrySet()) {
