@@ -27,6 +27,8 @@
         {% csrf_token %}
 
         <div id="newMetricSpot_{{ metric.title|slugify }}" class="panel-default"></div>
+        
+        {% if metric.title != "dashboard" %}
         <div class="col-md-12" style="margin-top:14px">
             <div class="col-md-2" style="margin-top:14px"><b>Gauge Specs:</b></div>
         </div>
@@ -49,6 +51,7 @@
                 </div>
             </div>
         {% endfor %}
+        {% endif %}
     </div>
 </div>
 {% endfor %}
@@ -82,19 +85,22 @@
                     <button type="button" class="close" data-dismiss="modal"><span
                             aria-hidden="true">&times;</span><span class="sr-only">Close</span>
                     </button>
-                    <h4 class="modal-title" id="newEnvModalLabel">Add a new metric gauge</h4>
+                    <h4 class="modal-title" id="newEnvModalLabel">Add a new metric gauge or dashboard</h4>
                 </div>
                 <div class="modal-body" id="newMetricModal">
 
                     <div class="form-group">
-                        <label for="newEntryName" class="deployToolTip control-label col-xs-1">
-                            Label
+                        <label for="metricsType" class="deployToolTip control-label col-xs-1"
+                            data-toggle="tooltip"
+                            title="Select a metrics type">
+                            Type
                         </label>
-                        <div class ="col-md-11">
-                            <div class="input-group col-md-12">
-                                <input class="form-control" name="newEntryName" required="false"
-                                       type="text" placeholder="Pick a label for your metric..." value="">
-                            </div>
+
+                        <div class="col-xs-4">
+                            <select class="form-control" name="metricsType">
+                                <option value="Dashboard" selected="selected">Dashboard</option>
+                                <option value="Gauge">Gauge</option>
+                            </select>
                         </div>
                     </div>
 
@@ -116,16 +122,30 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="form-group collapse" id="newEntryValueCollapseId">
                         <div class="col-xs-1"></div>
                         <p class="col-xs-11"><a href="https://github.com/pinterest/teletraan/wiki/Setting-up-service-metrics">
                             Wiki: Setting up service metrics
                         </a></p>
                     </div>
+
+                    <div id="newMetricLabel" class="form-group" style="visibility: hidden;">
+                        <label for="newEntryName" class="deployToolTip control-label col-xs-1">
+                            Label
+                        </label>
+                        <div class ="col-md-11">
+                            <div class="input-group col-md-12">
+                                <input id="newMetricsLabelValue" class="form-control" name="newEntryName" required="true" value="dashboard"
+                                       type="text" placeholder="Pick a label for your gauge metric...">
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <div style="visibility: hidden;" id="labelMessage">
-                        <center color="red">Label already in use! Please specify a different label.</center>
+                        <center color="red">Label already in use or Dashboard is already defined! Please specify a different label.</center>
                     </div>
                     <div style="visibility: hidden;" id="urlMessage">
                         <center color="red">Unable to get data from specified URL. Please modify and try again.</center>
@@ -143,6 +163,11 @@
     var validUrl = false;
     var newEntry;
     $(function () {
+        $("select[name='metricsType']").change(function () {
+                document.getElementById("newMetricLabel").style.visibility= this.value=='Gauge' ? 'visible' : 'hidden';
+                document.getElementById("newMetricsLabelValue").value = this.value=='Gauge' ? '' : 'dashboard';
+        })
+
         $('#saveConfigMapBtnId').attr('disabled','disabled');
         $('#resetConfigMapBtnId').attr('disabled','disabled');
 
@@ -208,17 +233,19 @@
             }
 
             document.getElementById("labelMessage").style.visibility="hidden";
-            validateUrl(value);
-            if(!validUrl) {
-                document.getElementById("urlMessage").style.visibility="visible";
-                return;
+            if(name != "dashboard") {
+                validateUrl(value);
+                if(!validUrl) {
+                    document.getElementById("urlMessage").style.visibility="visible";
+                    return;
+                }
             }
             validUrl = false;
             document.getElementById("urlMessage").style.visibility="hidden";
 
             var slugifiedName = slugify(name);
-            var template =
-            $('<div><div class="panel-default"><div class="panel-heading clearfix" id="panelBodyId_' + slugify(name) + '" value="' + value + '">' +
+            var template_string =
+            '<div><div class="panel-default"><div class="panel-heading clearfix" id="panelBodyId_' + slugify(name) + '" value="' + value + '">' +
                 '<h4 class="panel-title pull-left pointer-cursor">' +
                     '<a data-toggle="collapse" style="line-height:2.0;" data-target="#metricsConfigBody_' + slugifiedName + '">' +
                         name +
@@ -241,8 +268,9 @@
                             '</fieldset>' +
                         '</form>' +
                     '</div>' +
-                    '<div id="newMetricSpot_' + slugifiedName + '" class="panel-default"></div>' +
-
+                    '<div id="newMetricSpot_' + slugifiedName + '" class="panel-default"></div>';
+            if(name != "dashboard") {
+                template_string = template_string +
                     '<div class="col-md-12" style="margin-top:14px">' +
                         '<div class="col-md-2" style="margin-top:14px"><b>Gauge Specs:</b></div>' +
                     '</div>' +
@@ -278,11 +306,17 @@
                                     '<option value="Green" selected>Green</option>' +
                             '</select>' +
                         '</div>' +
-                    '</div>' +
+                    '</div>'
+            }
+            template_string = template_string +
                 '</div>' +
             '</div>' +
-            '</div></div>').html();
+            '</div></div>';
+            
+            var template = $(template_string).html();
+
             $('#new-entry-id').append(template);
+            
             $('.metricDeleteBtn').click(function () {
                 $(this).parent().parent().parent().remove();
                 $('#saveConfigMapBtnId').removeAttr('disabled');
