@@ -91,8 +91,8 @@ public abstract class BaseManager implements SourceControlManager {
             CommitBean commit = commits.peek();
             CommitBean referenceCommit = referenceCommits.peek();
 
-            // We find the endSha, let us return
-            if (commit.getSha().equals(referenceCommit.getSha())) {
+            // We find the endSha, or reach the endSha Date, let us return
+            if (commit.getSha().equals(referenceCommit.getSha()) || commit.getDate() <= referenceCommit.getDate()) {
                 return fullCommits;
             }
 
