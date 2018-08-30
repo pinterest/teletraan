@@ -319,7 +319,7 @@ class EnvLandingView(View):
         for metric in metrics:
             if metric['title'] == "dashboard" and len(metrics) == 1:
                 metrics_dashboard_only = True
-            
+
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
         env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
@@ -640,6 +640,18 @@ def get_env_deploys(request, name, stage):
     filter, filter_title, query_string = \
         _gen_deploy_query_filter(request, from_date, from_time, to_date, to_time, size,
                                  reverse_date, operator, commit, repo, branch)
+
+
+    result = deploys_helper.get_all(request, envId=[env['id']], pageIndex=1,
+                                    pageSize=DEFAULT_ROLLBACK_DEPLOY_NUM)
+    deploys = result.get("deploys")
+
+    # remove the first deploy if exists
+    current_build_id = None
+    if deploys:
+        current_deploy = deploys.pop(0)
+        current_build_id = current_deploy['buildId']
+
     if filter is None:
         return render(request, 'environs/env_history.html', {
             "envs": envs,
@@ -662,6 +674,7 @@ def get_env_deploys(request, name, stage):
             "prevPageIndex": 0,
             "nextPageIndex": 0,
             "query_string": query_string,
+            "current_build_id": current_build_id,
             "pinterest": IS_PINTEREST
         })
 
@@ -696,6 +709,7 @@ def get_env_deploys(request, name, stage):
         "prevPageIndex": prevPageIndex,
         "nextPageIndex": nextPageIndex,
         "query_string": query_string,
+        "current_build_id": current_build_id,
         "pinterest": IS_PINTEREST
     })
 
