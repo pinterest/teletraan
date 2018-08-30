@@ -641,7 +641,6 @@ def get_env_deploys(request, name, stage):
         _gen_deploy_query_filter(request, from_date, from_time, to_date, to_time, size,
                                  reverse_date, operator, commit, repo, branch)
 
-
     result = deploys_helper.get_all(request, envId=[env['id']], pageIndex=1,
                                     pageSize=DEFAULT_ROLLBACK_DEPLOY_NUM)
     deploys = result.get("deploys")
