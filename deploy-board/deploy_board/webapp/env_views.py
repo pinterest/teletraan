@@ -319,7 +319,7 @@ class EnvLandingView(View):
         for metric in metrics:
             if metric['title'] == "dashboard" and len(metrics) == 1:
                 metrics_dashboard_only = True
-
+            
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
         env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
