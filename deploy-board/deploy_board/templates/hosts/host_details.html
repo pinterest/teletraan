@@ -42,7 +42,7 @@
 
 {% if agent_wrappers %}
     <div class="panel panel-default">
-    {% include "panel_heading.tmpl" with panel_title="Agent Details" panel_body_id="agentDetailsId" direction="down" %}
+    {% include "panel_heading.tmpl" with panel_title='Agent Details</a> <img id="copyHostName" style="max-width:20px; margin-left: 3px; margin-bottom: 3px;" src="/static/img/copy.png" title="Copy host name to clipboard."><a>' panel_body_id="agentDetailsId" direction="down" %}
     <div id="agentDetailsId" class="collapse in panel-body">
 
     {% for agent_wrapper in agent_wrappers %}
@@ -56,7 +56,7 @@
 {% endif %}
 
 <div class="panel panel-default">
-{% include "panel_heading.tmpl" with panel_title="Host Details" panel_body_id="hostDetailId" direction="down" %}
+{% include "panel_heading.tmpl" with panel_title='Host Details</a> <img id="copyHostName" style="max-width:20px; margin-left: 3px; margin-bottom: 3px;" src="/static/img/copy.png" title="Copy host name to clipboard."><a>' panel_body_id="hostDetailId" direction="down" %}
 
 <div id="hostDetailId" class="collapse in panel-body table-responsive">
 <table class="table table-striped table-bordered table-condensed table-hover">
@@ -123,6 +123,14 @@
                 $("#seeMoreLink").text('See more host details');
             }
         });
+    });
+    $("#copyHostName").click(function() {
+        const el = document.createElement('textarea');
+        el.value = '{{ hostname }}';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
     });
 </script>
 
