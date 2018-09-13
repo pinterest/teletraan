@@ -6,6 +6,9 @@
             </span>
             {{ panel_title }}
         </a>
+        {% if copy_host_name_button == True %}
+        <img id="copyHostName" style="max-width:20px; margin-left: 3px; margin-bottom: 3px;" src="/static/img/copy.png" title="Copy host name to clipboard.">
+        {% endif %}
     </h4>
     {% if check_alarm == True %}
     <div id="alarmsId"></div>
