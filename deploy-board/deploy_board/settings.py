@@ -271,7 +271,7 @@ if IS_PINTEREST:
     DEFAULT_CMP_IMAGE = 'cmp_base'
 
     #Pinterest Default Host Type
-    DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
+    DEFAULT_CMP_HOST_TYPE = 'ComputeLo(new Gen)'
 
     DEFAULT_CELL = 'aws-us-east-1'
     DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
