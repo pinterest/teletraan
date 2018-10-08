@@ -16,6 +16,7 @@ import argparse
 from deployd.common.config import Config
 from deployd.common.status_code import Status
 from deployd.download.download_helper_factory import DownloadHelperFactory
+from deployd.download.gpg_helper import gpgHelper
 import os
 import re
 import sys
@@ -36,6 +37,11 @@ class Downloader(object):
         self._build = build
         self._url = url
         self._config = config
+
+    def _get_inner_extension(self, url):
+        outerExtension = self._get_extension(url)
+        inverseExtLen = (len(outerExtension) * -1) - 1
+        return self._get_extension(url[:inverseExtLen])
 
     def _get_extension(self, url):
         return self._matcher.match(url).group('ext')
@@ -62,9 +68,39 @@ class Downloader(object):
         else:
             return Status.FAILED
 
+        if extension == 'gpg':
+            try:
+                log.info("gpg decrypting {}.".format(local_full_fn))
+                
+                # assuming we use the standard GPG toolset, it creates the following format with gpg --encrypt:
+                # input: file.extension
+                # output: file.extension.gpg
+                # we want the "inner" extension to make sure that we name the file correctly
+                innerExtension = self._get_inner_extension(self._url.lower())
+
+                # replace the existing outer extension (gpg) with the inner extension
+                dest_full_fn = local_full_fn[:(len(extension) * -1)] + innerExtension
+
+                # decrypt gpg archive
+                gpgHelper.decryptFile(local_full_fn, dest_full_fn)
+
+                # remove encrypted gpg archive since it is no longer needed
+                os.remove(local_full_fn)
+                
+                # Rebase the extension and file path to the decrypted file
+                local_full_fn = dest_full_fn
+                extension = innerExtension
+
+                # GPG decryption complete, move to normal logic
+            except Exception:
+                status = Status.FAILED
+                log.error(traceback.format_exc())
+                return status
+
         curr_working_dir = os.getcwd()
         os.chdir(working_dir)
         try:
+
             if extension == 'zip':
                 log.info("unzip files to {}".format(working_dir))
                 with zipfile.ZipFile(local_full_fn) as zfile:
