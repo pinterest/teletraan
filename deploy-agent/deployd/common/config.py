@@ -249,5 +249,5 @@ class Config(object):
         return self.get_var('agent_group_key', None)
     
     def get_verify_https_certificate(self):
-        return self.get_var('verify_https_certificate', False)
+        return self.get_var('verify_https_certificate', 'False')
 
