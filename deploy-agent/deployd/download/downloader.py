@@ -83,6 +83,10 @@ class Downloader(object):
 
                 # decrypt gpg archive
                 gpgHelper.decryptFile(local_full_fn, dest_full_fn)
+                
+                if status != Status.SUCCEEDED:
+                    # die if we hit a decryption or signing error
+                    return status
 
                 # remove encrypted gpg archive since it is no longer needed
                 os.remove(local_full_fn)

@@ -32,6 +32,7 @@ class gpgHelper(object):
             log.info(output)
         if error:
             log.error(error)
+            error_code = Status.FAILED
         if status:
             error_code = Status.FAILED
         log.info('Finish decrypting: {} to {}'.format(source, destination))
