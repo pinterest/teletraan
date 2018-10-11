@@ -104,7 +104,6 @@ class Downloader(object):
         curr_working_dir = os.getcwd()
         os.chdir(working_dir)
         try:
-
             if extension == 'zip':
                 log.info("unzip files to {}".format(working_dir))
                 with zipfile.ZipFile(local_full_fn) as zfile:

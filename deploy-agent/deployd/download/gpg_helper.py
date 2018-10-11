@@ -14,7 +14,6 @@
 
 import os
 import logging
-from deployd.common.config import Config
 from deployd.common.status_code import Status
 from deployd.common.caller import Caller
 
