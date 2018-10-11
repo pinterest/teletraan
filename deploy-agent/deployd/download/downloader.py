@@ -82,7 +82,7 @@ class Downloader(object):
                 dest_full_fn = local_full_fn[:(len(extension) * -1)] + innerExtension
 
                 # decrypt gpg archive
-                gpgHelper.decryptFile(local_full_fn, dest_full_fn)
+                status = gpgHelper.decryptFile(local_full_fn, dest_full_fn)
                 
                 if status != Status.SUCCEEDED:
                     # die if we hit a decryption or signing error
