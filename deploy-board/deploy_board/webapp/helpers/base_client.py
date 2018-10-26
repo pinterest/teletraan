@@ -38,6 +38,14 @@ class BaseClient(object):
             response = getattr(requests, method)(url, headers=headers, params=params, json=data,
                                                  timeout=DEFAULT_TIMEOUT, verify=False)
 
+            if response.status_code >= 400 and response.status_code < 600:
+                try:
+                    if "access_token=" in response.content:
+                        bad_text = response.content.split("access_token=")[1].split('"')[0]
+                        response.content = response.content.replace(bad_text, "ACCESS_TOKEN")
+                except:
+                    pass
+
             if response.status_code == 401:
                 raise FailedAuthenticationException(
                     "Oops! Teletraan was unable to authenticate you. Contact an environment ADMIN for "
