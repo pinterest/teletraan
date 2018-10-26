@@ -157,6 +157,7 @@ if TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN:
     oauth_middleware = 'deploy_board.webapp.security.FixedOAuthMiddleware'
 
 MIDDLEWARE_CLASSES = (
+    'csp.middleware.CSPMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -165,6 +166,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'deploy_board.webapp.error_views.ExceptionHandlerMiddleware',
+    'deploy_board.webapp.security.PRRMiddleware'
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -176,6 +178,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
 )
+
+
 
 ROOT_URLCONF = 'deploy_board.urls'
 
@@ -283,3 +287,9 @@ if IS_PINTEREST:
     #Pinterest Default Puppet Environment
     DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
     DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
+
+    #CSP Config
+    CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
+    CSP_DEFAULT_SRC = ("'self'")
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+

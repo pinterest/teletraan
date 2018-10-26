@@ -170,3 +170,19 @@ def logout(request):
         del request.session['teletraan_user']
 
     return HttpResponseRedirect('/loggedout/')
+
+
+class PRRMiddleware:
+    def __init__(self):
+        pass
+
+    def process_response(self, request, response):
+        # Code to be executed for each request before
+        # the view (and later middleware) are called.
+        response['Pragma'] = "no-cache"
+        response['Cache-Control'] = "no-cache, no-store, must-revalidate"
+        response['Expires'] = "Thu, 01 Jan 1970 00:00:00 GMT;"
+        response['X-Content-Type-Options'] = "nosniff"
+        response['Strict-Transport-Security'] = "max-age=631138519"
+
+        return response
