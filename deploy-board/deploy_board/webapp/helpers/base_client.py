@@ -41,7 +41,7 @@ class BaseClient(object):
             if response.status_code >= 400 and response.status_code < 600:
                 try:
                     if "access_token=" in response.content:
-                        bad_text = response.content.split("access_token=")[1].split('"')[0]
+                        bad_text = response.content.split("access_token=")[1].split('"')[0].replace("\\", "")
                         response.content = response.content.replace(bad_text, "ACCESS_TOKEN")
                 except:
                     pass
