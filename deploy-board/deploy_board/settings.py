@@ -291,6 +291,7 @@ if IS_PINTEREST:
     #CSP Config
     CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
     CSP_DEFAULT_SRC = ("'self'")
-    CSP_CONNECT_SRC = ("'self'", "http://localhost:8080/swagger.json", "https://deploy.pinadmin.com/swagger.json")
+    CSP_CONNECT_SRC = ("'self'")
+    CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
     CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
 
