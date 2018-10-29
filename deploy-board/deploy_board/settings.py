@@ -289,8 +289,8 @@ if IS_PINTEREST:
     DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
 
     #CSP Config
-    CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/ 'unsafe-inline' 'unsafe-eval'",
-                      "https://teletraan.pinadmin.com/swagger.json")
+    CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
     CSP_DEFAULT_SRC = ("'self'")
+    CSP_CONNECT_SRC = ("'self'", "http://localhost:8080/swagger.json", "https://deploy.pinadmin.com/swagger.json")
     CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
 
