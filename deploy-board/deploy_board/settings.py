@@ -284,13 +284,9 @@ if IS_PINTEREST:
     DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
     DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
 
-<<<<<<< HEAD
     #CSP Config
     CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
     CSP_DEFAULT_SRC = ("'self'")
     CSP_CONNECT_SRC = ("'self'")
     CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
     CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
-
-=======
->>>>>>> parent of f4f5094... Adding integration with Nimbus (for add new stage workflow) (#614)
