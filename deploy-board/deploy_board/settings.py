@@ -64,10 +64,6 @@ TELETRAAN_SERVICE_VERSION = os.getenv("TELETRAAN_SERVICE_VERSION")
 TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN = os.getenv("TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN", None)
 TELETRAAN_HOST_INFORMATION_URL = os.getenv("HOST_INFORMATION_URL")
 
-# Nimbus service url
-NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL")
-NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION")
-
 # CMDB vars
 CMDB_API_HOST = os.getenv("CMDB_API_HOST", "http://localhost:8080/")
 CMDB_INSTANCE_URL = os.getenv("CMDB_INSTANCE_URL", "api/cmdb/getinstance/")
@@ -294,4 +290,3 @@ if IS_PINTEREST:
     CSP_CONNECT_SRC = ("'self'")
     CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
     CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
-
