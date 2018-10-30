@@ -750,7 +750,6 @@ def post_create_env(request):
     clone_env_name = data.get("clone_env_name")
     clone_stage_name = data.get("clone_stage_name")
     description = data.get('description')
-
     if clone_env_name and clone_stage_name:
         common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
                                      clone_stage_name, description)
@@ -795,55 +794,14 @@ def post_add_stage(request, name):
     stage = data.get("stage")
     from_stage = data.get("from_stage")
     description = data.get("description")
-
-    if IS_PINTEREST:
-
-        all_env_stages = environs_helper.get_all_env_stages(request, name)
-        existing_stage = None
-        external_id = None
-
-        # find a stage that already has externalId set
-        for env_stage in all_env_stages:
-            if env_stage['externalId'] is not None:
-                existing_stage = env_stage
-                break
-
-        if existing_stage is not None:
-            # retrieve Nimbus identifier for existing_stage
-            existing_stage_identifier = environs_helper.get_nimbus_identifier(existing_stage['externalId'])
-
-            #  create Nimbus Identifier for the new stage
-            if existing_stage_identifier is not None:
-                nimbus_request_data = existing_stage_identifier.copy()
-                nimbus_request_data['stage_name'] = stage
-                nimbus_request_data['env_name'] = name
-                new_stage_identifier = environs_helper.create_nimbus_identifier(nimbus_request_data)
-                external_id = new_stage_identifier.get('uuid')
-
-            else:
-                log.info("Could not retrieve Nimbus identifier for existing stage")
-
-        else:
-            log.info("Could not find any stage in this environment with externalId set. Therefore, this new stage will not have externalId set as Nimbus UUID")
-
+    if from_stage:
+        common.clone_from_stage_name(request, name, stage, name, from_stage, description)
+    else:
         data = {}
         data['envName'] = name
         data['stageName'] = stage
         data['description'] = description
-        data['externalId'] = external_id
-        # TODO - add support for setting external_id when user clones a stage
         environs_helper.create_env(request, data)
-
-    else:
-        if from_stage:
-            common.clone_from_stage_name(request, name, stage, name, from_stage, description)
-        else:
-            data = {}
-            data['envName'] = name
-            data['stageName'] = stage
-            data['description'] = description
-            environs_helper.create_env(request, data)
-
     return redirect('/env/' + name + '/' + stage + '/config/')
 
 
@@ -1601,7 +1559,7 @@ def compare_deploys_2(request, name, stage):
     repo = start_build['repo']
     end_build = builds_helper.get_build(request, end_build_id)
     endSha = _get_endSha(end_build)
-
+    
     scm_url = systems_helper.get_scm_url(request)
     diffUrl = "%s/%s/compare/%s...%s" % (scm_url, repo, endSha, startSha)
     return render(request, 'deploys/deploy_commits.html', {
@@ -1680,3 +1638,4 @@ def override_session(request, name, stage):
     session_num = request.GET.get('session_num')
     schedules_helper.override_session(request, name, stage, session_num)
     return HttpResponse(json.dumps(''))
+

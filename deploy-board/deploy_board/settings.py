@@ -64,10 +64,6 @@ TELETRAAN_SERVICE_VERSION = os.getenv("TELETRAAN_SERVICE_VERSION")
 TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN = os.getenv("TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN", None)
 TELETRAAN_HOST_INFORMATION_URL = os.getenv("HOST_INFORMATION_URL")
 
-# Nimbus service url
-NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL")
-NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION")
-
 # CMDB vars
 CMDB_API_HOST = os.getenv("CMDB_API_HOST", "http://localhost:8080/")
 CMDB_INSTANCE_URL = os.getenv("CMDB_INSTANCE_URL", "api/cmdb/getinstance/")
@@ -288,6 +284,7 @@ if IS_PINTEREST:
     DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
     DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
 
+<<<<<<< HEAD
     #CSP Config
     CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
     CSP_DEFAULT_SRC = ("'self'")
@@ -295,3 +292,5 @@ if IS_PINTEREST:
     CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
     CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
 
+=======
+>>>>>>> parent of f4f5094... Adding integration with Nimbus (for add new stage workflow) (#614)
