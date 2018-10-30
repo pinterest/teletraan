@@ -16,6 +16,7 @@
 """Collection of all environs related calls
 """
 from deploy_board.webapp.helpers.deployclient import DeployClient
+from deploy_board.webapp.helpers.nimbusclient import NimbusClient
 
 DEFAULT_ENV_SIZE = 30
 BUILD_STAGE = 'BUILD'
@@ -49,7 +50,16 @@ OVERRIDE_POLICY_VALUES = ['OVERRIDE', 'WARN']
 DEPLOY_CONSTRAINT_TYPES = ['GROUP_BY_GROUP', 'ALL_GROUPS_IN_PARALLEL']
 
 deployclient = DeployClient()
+nimbusclient = NimbusClient()
 
+## Nimbus-related helpers
+def get_nimbus_identifier(name):
+    return nimbusclient.get_one_identifier(name)
+
+def create_nimbus_identifier(data):
+    return nimbusclient.create_one_identifier(data)
+
+## Teletraan Deploy client helpers
 
 def get_all_env_names(request, name_filter=None, name_only=True, index=1, size=DEFAULT_ENV_SIZE):
     params = [('pageIndex', index), ('pageSize', size)]
@@ -107,6 +117,8 @@ def remove_env_capacity(request, env_name, stage_name, capacity_type=None, data=
     return deployclient.delete("/envs/%s/%s/capacity" % (env_name, stage_name),
                                request.teletraan_user_id.token, params=params, data=data)
 
+def set_external_id_on_stage(request, env_name, stage_name, external_id):
+    return deployclient.post("/envs/{}/{}/external_id".format(env_name, stage_name), request.teletraan_user_id.token, data=external_id)
 
 def create_env(request, data):
     return deployclient.post("/envs", request.teletraan_user_id.token, data=data)

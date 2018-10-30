@@ -64,6 +64,10 @@ TELETRAAN_SERVICE_VERSION = os.getenv("TELETRAAN_SERVICE_VERSION")
 TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN = os.getenv("TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN", None)
 TELETRAAN_HOST_INFORMATION_URL = os.getenv("HOST_INFORMATION_URL")
 
+# Nimbus service url
+NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL")
+NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION")
+
 # CMDB vars
 CMDB_API_HOST = os.getenv("CMDB_API_HOST", "http://localhost:8080/")
 CMDB_INSTANCE_URL = os.getenv("CMDB_INSTANCE_URL", "api/cmdb/getinstance/")
@@ -153,6 +157,7 @@ if TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN:
     oauth_middleware = 'deploy_board.webapp.security.FixedOAuthMiddleware'
 
 MIDDLEWARE_CLASSES = (
+    'csp.middleware.CSPMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -161,6 +166,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'deploy_board.webapp.error_views.ExceptionHandlerMiddleware',
+    'deploy_board.webapp.security.PRRMiddleware'
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -172,6 +178,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
 )
+
+
 
 ROOT_URLCONF = 'deploy_board.urls'
 
@@ -271,7 +279,7 @@ if IS_PINTEREST:
     DEFAULT_CMP_IMAGE = 'cmp_base'
 
     #Pinterest Default Host Type
-    DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
+    DEFAULT_CMP_HOST_TYPE = 'ComputeLo(new Gen)'
 
     DEFAULT_CELL = 'aws-us-east-1'
     DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
@@ -279,4 +287,11 @@ if IS_PINTEREST:
     #Pinterest Default Puppet Environment
     DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
     DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
+
+    #CSP Config
+    CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
+    CSP_DEFAULT_SRC = ("'self'")
+    CSP_CONNECT_SRC = ("'self'")
+    CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
 

@@ -75,10 +75,9 @@
         <h4 class="panel-title pull-left">Environments</h4>
     </div>
 	<div class="row">
-        <button id="newEnvBtnId" type="button" class="deployToolTip btn btn-default btn-block"
-            data-toggle="tooltip" title="Create a new deploy environment">
-            <span class="glyphicon glyphicon-file"></span> Create Environment
-        </button>
+    <a href='{{ redirect_create_env_page_url }}' target='_blank' class="deployToolTip btn btn-default btn-block">
+       <span class="glyphicon glyphicon-file"></span>Create Environment
+     </a>
     </div>
 	<div class="row">
         <a href="/envs" type="button" class="deployToolTip btn btn-default btn-block"
@@ -107,10 +106,6 @@
     $(function () {
         $('#recentEnvsId').load('/envs/recent/');
 
-        $('#newEnvBtnId').click(function () {
-            $('#newEnvModalId').modal()
-        });
-
         $('#allEnvBtnId').click(function () {
             window.location = "/envs/";
         });
@@ -118,5 +113,3 @@
 </script>
 
 {% endblock %}
-
-
