@@ -25,7 +25,7 @@ console_scripts = ['deploy-agent = deployd.agent:main',
                    'deploy-stager = deployd.staging.stager:main']
 
 install_requires = [
-    "requests==2.9.1",
+    "requests==2.20.0",
     "gevent==1.0.2",
     "lockfile==0.10.2",
     "boto>=2.39.0",
