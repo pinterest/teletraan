@@ -10,7 +10,7 @@
     <li class="active">{{ env.envName }} ({{ env.stageName }})</li>
 </ul>
 
-{% if is_pinterest %}
+{% if pinterest %}
     {% if code_freeze %}
         {% include "deploys/warning_no_deploy.tmpl" %}
     {% else %}
