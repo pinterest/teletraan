@@ -4,22 +4,10 @@
     <div id="noDeployAlert" class="alert alert-danger" role="alert" align="center" style="{{ hidden }}">
       <a href="#" class="close" data-dismiss="alert">&times;</a>
       <i><b style="font-size:24px;">Change freeze in effect !</b></i>
-      <p>You can create a change ticket <button id="changefreezeRequest" type="button" class="btn btn-default btn-sm" >here</button> to request approval.</p>
+      <p>You can create a change ticket <a href="{{jira_source_url}}">here</a>.</p>
       <p>Visit <a href="{{code_freeze_url}}">pinch/changefreeze</a> for more info</p>
     </div>
 
-<script type="text/javascript" src="{{jira_source_url}}"></script>
-<script type="text/javascript">window.ATL_JQ_PAGE_PROPS = {
-"triggerFunction": function(showCollectorDialog) {
-
-	jQuery("#changefreezeRequest").click(function(e) {
-        e.preventDefault();
-        showCollectorDialog();
-	});
-
-}};
-
-</script>
 <script>
 
     function closeBanner() {
