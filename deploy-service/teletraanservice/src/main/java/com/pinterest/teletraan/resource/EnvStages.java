@@ -130,7 +130,6 @@ public class EnvStages {
             throws Exception {
 
        try {
-         LOG.info("UUID supplied - {}", externalId);
          UUID uuid = UUID.fromString(externalId);
        } catch (Exception ex){
          LOG.info("Invalid UUID supplied - {}.", externalId);
