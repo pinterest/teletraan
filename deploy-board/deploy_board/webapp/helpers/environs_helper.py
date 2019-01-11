@@ -16,6 +16,7 @@
 """Collection of all environs related calls
 """
 from deploy_board.webapp.helpers.deployclient import DeployClient
+from deploy_board.webapp.helpers.nimbusclient import NimbusClient
 
 DEFAULT_ENV_SIZE = 30
 BUILD_STAGE = 'BUILD'
@@ -49,6 +50,7 @@ OVERRIDE_POLICY_VALUES = ['OVERRIDE', 'WARN']
 DEPLOY_CONSTRAINT_TYPES = ['GROUP_BY_GROUP', 'ALL_GROUPS_IN_PARALLEL']
 
 deployclient = DeployClient()
+nimbusclient = NimbusClient()
 
  ## Nimbus-related helpers
 def get_nimbus_identifier(name):

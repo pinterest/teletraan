@@ -788,7 +788,6 @@ class EnvNewDeployView(View):
         return redirect('/env/%s/%s/deploy' % (name, stage))
 
 
-<<<<<<< HEAD
 def create_simple_stage (request, env_name, stage_name, description, external_id):
     """ Create a new stage that does not require cloning an existing stage. Here, "simple" means that it does not require cloning.""" 
     data = {}
@@ -833,15 +832,11 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
 
 def post_add_stage(request, name):
     """handler for creating a new stage depending on configuration (IS_PINTEREST, from_stage i.e. clone stage). """
-=======
-def post_add_stage(request, name):
->>>>>>> 2e7ae9cf2e838a672319eddafc83a0a8d6aa01cf
     # TODO how to validate stage name
     data = request.POST
     stage = data.get("stage")
     from_stage = data.get("from_stage")
     description = data.get("description")
-<<<<<<< HEAD
 
     # non-Pinterest methods
     if not IS_PINTEREST and from_stage:
@@ -860,17 +855,6 @@ def post_add_stage(request, name):
 
         if not from_stage:
            create_simple_stage(request,name, stage, description, external_id)
-=======
-    if from_stage:
-        common.clone_from_stage_name(request, name, stage, name, from_stage, description)
-    else:
-        data = {}
-        data['envName'] = name
-        data['stageName'] = stage
-        data['description'] = description
-        environs_helper.create_env(request, data)
-    return redirect('/env/' + name + '/' + stage + '/config/')
->>>>>>> 2e7ae9cf2e838a672319eddafc83a0a8d6aa01cf
 
     return redirect('/env/' + name + '/' + stage + '/config/')
 
