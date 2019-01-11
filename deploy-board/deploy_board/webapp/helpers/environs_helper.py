@@ -52,7 +52,6 @@ DEPLOY_CONSTRAINT_TYPES = ['GROUP_BY_GROUP', 'ALL_GROUPS_IN_PARALLEL']
 deployclient = DeployClient()
 nimbusclient = NimbusClient()
 
-
  ## Nimbus-related helpers
 def get_nimbus_identifier(name):
     return nimbusclient.get_one_identifier(name)

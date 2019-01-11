@@ -789,7 +789,7 @@ class EnvNewDeployView(View):
 
 
 def create_simple_stage (request, env_name, stage_name, description, external_id):
-    """ Create a new stage that does not require cloning an existing stage """ 
+    """ Create a new stage that does not require cloning an existing stage. Here, "simple" means that it does not require cloning.""" 
     data = {}
     data['envName'] = env_name
     data['stageName'] = stage_name
@@ -831,6 +831,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
     return new_stage_identifier
 
 def post_add_stage(request, name):
+    """handler for creating a new stage depending on configuration (IS_PINTEREST, from_stage i.e. clone stage). """
     # TODO how to validate stage name
     data = request.POST
     stage = data.get("stage")
@@ -847,10 +848,10 @@ def post_add_stage(request, name):
     # Pinterest methods
     if IS_PINTEREST:
         identifier = create_identifier_for_new_stage(request, name, stage)
-        external_id = identifier.get('uuid') if not identifier ==  None else None # if no stage with nimbus data exists, still create the new stage
+        external_id = identifier.get('uuid') if not identifier ==  None else None # if there is no stage in this env with externalId, still create the new stage
 
         if from_stage:
-              common.clone_from_stage_name(request, name, stage, name, from_stage, description)
+            common.clone_from_stage_name(request, name, stage, name, from_stage, description)
 
         if not from_stage:
            create_simple_stage(request,name, stage, description, external_id)

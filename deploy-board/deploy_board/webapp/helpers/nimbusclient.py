@@ -1,18 +1,4 @@
-# Copyright 2016 Pinterest, Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-"""Helper class to connect Nimbus service
-"""
+"""Helper class to connect Nimbus service"""
 import logging
 from decorators import singleton
 from deploy_board.settings import NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION
@@ -31,7 +17,6 @@ class NimbusClient(object):
         if response.status_code == 409:
             log.error("Resource already exists. Nimbus API response - %s" % response.content)
             raise TeletraanException('Resource conflict - Nimbus already has an Identifier for your proposed new stage. ')
-            # return None
 
         if 400 <= response.status_code < 600:
             log.error("Nimbus API Error %s, %s" % (response.content, response.status_code))
@@ -70,34 +55,3 @@ class NimbusClient(object):
         response = requests.post('{}/api/{}/identifiers'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION), json=payload)
 
         return self.handle_response(response)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # former 
-
-# import logging
-# from decorators import singleton
-# from deploy_board.settings import RODIMUS_SERVICE_URL, RODIMUS_SERVICE_VERSION
-# from base_client import BaseClient
-
-
-# log = logging.getLogger(__name__)
-
-
-# @singleton
-# class RodimusClient(BaseClient):
-#     def __init__(self):
-#         BaseClient.__init__(self, url_prefix=RODIMUS_SERVICE_URL, version=RODIMUS_SERVICE_VERSION)
