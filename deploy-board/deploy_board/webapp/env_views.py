@@ -789,7 +789,7 @@ class EnvNewDeployView(View):
 
 
 def create_simple_stage (request, env_name, stage_name, description, external_id):
-    # create a new stage without cloning an existing stage
+    """ Create a new stage that does not require cloning an existing stage """ 
     data = {}
     data['envName'] = env_name
     data['stageName'] = stage_name
@@ -798,8 +798,11 @@ def create_simple_stage (request, env_name, stage_name, description, external_id
     return environs_helper.create_env(request, data)
     
 def create_identifier_for_new_stage(request, env_name, stage_name):
-    # only if isPinterest
-    # needs to support both 1) simple stage 2) clone stage
+    """ Create a Nimbus Identifier for the new stage. Assumes that the environment has at least one stage with externalId set. 
+        This is needed so that the method knows which project to associate the new stage to. 
+        
+        If the environment has no stage with externalId set, this method will not attempt to create an Identifier.
+    """
 
     # get all stages within this environment
     all_env_stages = environs_helper.get_all_env_stages(request, env_name)
@@ -815,10 +818,10 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
         return None
 
     else:
-    #retrieve Nimbus identifier for existing_stage
+    # retrieve Nimbus identifier for existing_stage
         existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
 
-         #  create Nimbus Identifier for the new stage
+         # create Nimbus Identifier for the new stage
         if existing_stage_identifier is not None:   
             nimbus_request_data = existing_stage_identifier.copy()
             nimbus_request_data['stage_name'] = stage_name
@@ -827,8 +830,6 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
 
     return new_stage_identifier
 
-
-
 def post_add_stage(request, name):
     # TODO how to validate stage name
     data = request.POST
@@ -836,69 +837,25 @@ def post_add_stage(request, name):
     from_stage = data.get("from_stage")
     description = data.get("description")
 
-
-    if from_stage:
+    # non-Pinterest methods
+    if not IS_PINTEREST and from_stage:
         common.clone_from_stage_name(request, name, stage, name, from_stage, description)
     
-    if IS_PINTEREST and not from_stage:
-        # create Identifier first
+    if not IS_PINTEREST and not from_stage:
+        create_simple_stage(request, name, stage, description, external_id=None)
+    
+    # Pinterest methods
+    if IS_PINTEREST:
         identifier = create_identifier_for_new_stage(request, name, stage)
-        print("robben", identifier)
-        external_id = identifier.get('uuid') if not identifier ==  None else None # if no stage with nimbus data exists, still create the stage
+        external_id = identifier.get('uuid') if not identifier ==  None else None # if no stage with nimbus data exists, still create the new stage
 
-        create_simple_stage(request,name, stage, description, external_id)
-        
-    # if IS_PINTEREST and 
+        if from_stage:
+              common.clone_from_stage_name(request, name, stage, name, from_stage, description)
+
+        if not from_stage:
+           create_simple_stage(request,name, stage, description, external_id)
 
     return redirect('/env/' + name + '/' + stage + '/config/')
-
-    # if IS_PINTEREST:	
-    #      all_env_stages = environs_helper.get_all_env_stages(request, name)
-    #     existing_stage = None
-    #     external_id = None
-
-    #      # find a stage that already has externalId set
-    #     for env_stage in all_env_stages:
-    #         if env_stage['externalId'] is not None:
-    #             existing_stage = env_stage
-    #             break
-
-    #      if existing_stage is not None:
-    #         # retrieve Nimbus identifier for existing_stage
-    #         existing_stage_identifier = environs_helper.get_nimbus_identifier(existing_stage['externalId'])
-
-    #          #  create Nimbus Identifier for the new stage
-    #         if existing_stage_identifier is not None:
-    #             nimbus_request_data = existing_stage_identifier.copy()
-    #             nimbus_request_data['stage_name'] = stage
-    #             nimbus_request_data['env_name'] = name
-    #             new_stage_identifier = environs_helper.create_nimbus_identifier(nimbus_request_data)
-    #             external_id = new_stage_identifier.get('uuid')
-
-    #          else:
-    #             log.info("Could not retrieve Nimbus identifier for existing stage")
-
-    #      else:
-    #         log.info("Could not find any stage in this environment with externalId set. Therefore, this new stage will not have externalId set as Nimbus UUID")
-
-    #      data = {}	        data = {}
-    #     data['envName'] = name	        data['envName'] = name
-    #     data['stageName'] = stage	        data['stageName'] = stage
-    #     data['description'] = description	        data['description'] = description
-    #     data['externalId'] = external_id
-    #     # TODO - add support for setting external_id when user clones a stage
-    
-
-        # if from_stage:
-        #     common.clone_from_stage_name(request, name, stage, name, from_stage, description)
-        # else:
-        #     data = {}
-        #     data['envName'] = name
-        #     data['stageName'] = stage
-        #     data['description'] = description
-        #     environs_helper.create_env(request, data)
-
-
 
 def remove_stage(request, name, stage):
     # TODO so we need to make sure the capacity is empty???

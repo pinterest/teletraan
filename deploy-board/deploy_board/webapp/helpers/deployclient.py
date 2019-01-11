@@ -20,7 +20,6 @@ from decorators import singleton
 from deploy_board.settings import TELETRAAN_SERVICE_URL, TELETRAAN_SERVICE_VERSION
 from base_client import BaseClient
 
-print("hey")
 log = logging.getLogger(__name__)
 
 

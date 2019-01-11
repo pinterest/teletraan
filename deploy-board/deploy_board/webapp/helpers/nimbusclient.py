@@ -21,8 +21,6 @@ import requests
 
 log = logging.getLogger(__name__)
 
-print("andres")
-
 @singleton
 class NimbusClient(object):
     def handle_response(self, response):
