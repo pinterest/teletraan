@@ -130,9 +130,10 @@ public class EnvStages {
             throws Exception {
 
        try {
+         LOG.info("UUID supplied - {}", externalId);
          UUID uuid = UUID.fromString(externalId);
        } catch (Exception ex){
-         LOG.info("Invalid UUID supplied - ", externalId);
+         LOG.info("Invalid UUID supplied - {}.", externalId);
          throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Client supplied an invalid externalId - %s. Please retry with an externalId in the UUID format", externalId));
        }
 

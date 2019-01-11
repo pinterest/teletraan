@@ -21,7 +21,6 @@ DEFAULT_TIMEOUT = 30
 
 log = logging.getLogger(__name__)
 
-
 class BaseClient(object):
     def __init__(self, url_prefix, version):
         self.url_prefix = url_prefix
