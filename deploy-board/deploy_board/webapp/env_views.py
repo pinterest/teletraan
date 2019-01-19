@@ -786,24 +786,60 @@ class EnvNewDeployView(View):
             return redirect("/env/ngapp2/deploy/?stage=2")
 
         return redirect('/env/%s/%s/deploy' % (name, stage))
+    
+def create_identifier_for_new_stage(request, env_name, stage_name):
+    """ Create a Nimbus Identifier for the new stage. Assumes that the environment has at least one stage with externalId set. 
+        This is needed so that the method knows which project to associate the new stage to. 
+        
+        If the environment has no stage with externalId set, this method will not attempt to create an Identifier.
+    """
 
+    # get all stages within this environment
+    all_env_stages = environs_helper.get_all_env_stages(request, env_name)
+    stage_with_external_id = None
+
+    # find a stage in this environment that has externalId set
+    for env_stage in all_env_stages:
+        if env_stage['externalId'] is not None:
+            stage_with_external_id = env_stage
+            break
+
+    if stage_with_external_id == None: 
+        return None
+
+    else:
+    # retrieve Nimbus identifier for existing_stage
+        existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
+
+         # create Nimbus Identifier for the new stage
+        if existing_stage_identifier is not None:   
+            nimbus_request_data = existing_stage_identifier.copy()
+            nimbus_request_data['stage_name'] = stage_name
+            nimbus_request_data['env_name'] = env_name
+            new_stage_identifier = environs_helper.create_nimbus_identifier(nimbus_request_data)
+
+    return new_stage_identifier
 
 def post_add_stage(request, name):
+    """handler for creating a new stage depending on configuration (IS_PINTEREST, from_stage i.e. clone stage). """
     # TODO how to validate stage name
     data = request.POST
     stage = data.get("stage")
     from_stage = data.get("from_stage")
     description = data.get("description")
-    if from_stage:
-        common.clone_from_stage_name(request, name, stage, name, from_stage, description)
-    else:
-        data = {}
-        data['envName'] = name
-        data['stageName'] = stage
-        data['description'] = description
-        environs_helper.create_env(request, data)
-    return redirect('/env/' + name + '/' + stage + '/config/')
+    
+    external_id = None
 
+    if IS_PINTEREST:
+        identifier = create_identifier_for_new_stage(request, name, stage)
+        external_id = identifier.get('uuid') if not identifier == None else None # if there is no stage in this env with externalId, still create the new stage
+
+    if from_stage:
+        common.clone_from_stage_name(request, name, stage, name, from_stage, description, external_id)
+    else:
+        common.create_simple_stage(request,name, stage, description, external_id)
+
+    return redirect('/env/' + name + '/' + stage + '/config/')
 
 def remove_stage(request, name, stage):
     # TODO so we need to make sure the capacity is empty???
