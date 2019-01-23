@@ -290,3 +290,8 @@ if IS_PINTEREST:
     CSP_CONNECT_SRC = ("'self'")
     CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
     CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+
+    # Nimbus service url
+    NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL", None)
+    NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)    
+

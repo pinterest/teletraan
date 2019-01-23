@@ -16,6 +16,8 @@
 """Collection of all environs related calls
 """
 from deploy_board.webapp.helpers.deployclient import DeployClient
+from deploy_board.settings import IS_PINTEREST
+
 
 DEFAULT_ENV_SIZE = 30
 BUILD_STAGE = 'BUILD'
@@ -49,6 +51,26 @@ OVERRIDE_POLICY_VALUES = ['OVERRIDE', 'WARN']
 DEPLOY_CONSTRAINT_TYPES = ['GROUP_BY_GROUP', 'ALL_GROUPS_IN_PARALLEL']
 
 deployclient = DeployClient()
+
+if IS_PINTEREST:
+    from deploy_board.webapp.helpers.nimbusclient import NimbusClient
+    nimbusclient = NimbusClient()
+
+# Nimbus-related helpers
+
+
+def get_nimbus_identifier(name):
+    return nimbusclient.get_one_identifier(name)
+
+
+def create_nimbus_identifier(data):
+    return nimbusclient.create_one_identifier(data)
+
+# Teletraan Deploy client helpers
+
+
+def set_external_id_on_stage(request, env_name, stage_name, external_id):
+    return deployclient.post("/envs/{}/{}/external_id".format(env_name, stage_name), request.teletraan_user_id.token, data=external_id)
 
 
 def get_all_env_names(request, name_filter=None, name_only=True, index=1, size=DEFAULT_ENV_SIZE):
@@ -216,17 +238,20 @@ def disable_env_changes(request, env_name, stage_name, description):
     return deployclient.post("/envs/%s/%s/actions" % (env_name, stage_name), request.teletraan_user_id.token,
                              params=params)
 
+
 def pause_hosts(request, env_name, stage_name, host_ids):
     params = [("actionType", "PAUSED_BY_USER")]
     return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token,
-        params=params, data=host_ids)
+                            params=params, data=host_ids)
+
 
 def resume_hosts(request, env_name, stage_name, host_ids):
     params = [("actionType", "NORMAL")]
     return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token,
-        params=params, data=host_ids)
+                            params=params, data=host_ids)
+
 
 def reset_hosts(request, env_name, stage_name, host_ids):
     params = [("actionType", "RESET")]
     return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token,
-        params=params, data=host_ids)
+                            params=params, data=host_ids)
