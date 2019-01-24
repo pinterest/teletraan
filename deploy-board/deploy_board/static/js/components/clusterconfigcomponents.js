@@ -64,8 +64,20 @@ Vue.component('base-image-help', {
         }
     },
 }
-)
+);
 
+Vue.component('block-device-mappings-help', {
+        template: '<textarea v-model="jsonstr" rows="8" cols="40"></textarea><pre>{{ jsonstr | pretty }}</pre>',
+        data: {
+            jsonstr: '[{"DeviceName": "/dev/sda1","Ebs":{"DeleteOnTermination": false}}]'
+        },
+        filters: {
+            pretty: function (value) {
+                return JSON.stringify(JSON.parse(value), null, 2);
+            }
+        }
+    }
+);
 
 
 Vue.component('add-config-button', {
