@@ -23,7 +23,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
-    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL
+    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL,TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import GUINEA_PIG_ENVS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
@@ -345,6 +345,8 @@ class EnvLandingView(View):
                 "code_freeze_url": TELETRAAN_CODE_FREEZE_URL,
                 "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
                 "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,
+                "transfer_ownership_url": TELETRAAN_TRANSFER_OWNERSHIP_URL,
+                "resource_ownership_wiki_url": TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL,
                 "jira_source_url": TELETRAAN_JIRA_SOURCE_URL,
                 "groups": groups,
                 "capacity_hosts": capacity_hosts,

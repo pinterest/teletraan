@@ -11,6 +11,7 @@
 </ul>
 
 {% if pinterest %}
+    {% include "deploys/warning_no_nimbus_project_no_deploy.tmpl" %}
     {% if code_freeze %}
         {% include "deploys/warning_no_deploy.tmpl" %}
     {% else %}
