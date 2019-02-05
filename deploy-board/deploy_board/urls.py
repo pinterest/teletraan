@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 
 from django.contrib import admin
 from django.conf.urls.static import static
@@ -23,16 +23,14 @@ admin.autodiscover()
 from settings import IS_PINTEREST
 
 if IS_PINTEREST:
-    urlpatterns = patterns(
-        '',
+    urlpatterns = [
         url(r'^', include('deploy_board.webapp.urls')),
         url(r'^', include('deploy_board.webapp.mix_urls')),
         url(r'^', include('deploy_board.webapp.arcee_urls')),
         url(r'^', include('deploy_board.webapp.ngapp2_urls')),
         url(r'^', include('deploy_board.webapp.cluster_urls')),
-    ) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:
-    urlpatterns = patterns(
-        '',
+    urlpatterns = [
         url(r'^', include('deploy_board.webapp.urls')),
-    )
+    ]
