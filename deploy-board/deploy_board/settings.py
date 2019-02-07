@@ -98,7 +98,7 @@ LOG_LEVEL = os.getenv("LOG_LEVEL")
 if LOG_LEVEL == 'DEBUG':
     DEBUG = True
     TEMPLATE_DEBUG = True
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = ['*']
 
