@@ -18,6 +18,9 @@
     {% endif %}
 {% endif %}
 
+{% if project_name_is_default %}
+    {% include "deploys/warning_no_nimbus_project_no_deploy.tmpl" %}
+{% endif %}
 
 {% if request_feedback %}
     {% include "feedbacks/feedback_banner.tmpl" %}
