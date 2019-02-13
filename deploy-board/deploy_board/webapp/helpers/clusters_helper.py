@@ -23,6 +23,11 @@ def create_cluster(request, cluster_name, cluster_info):
     return rodimus_client.post("/clusters/%s" % cluster_name, request.teletraan_user_id.token, data=cluster_info)
 
 
+def create_cluster_with_env(request, cluster_name, env_name, stage_name, cluster_info):
+    return rodimus_client.post("/clusters/%s/%s/%s" % (cluster_name, env_name, stage_name),
+                               request.teletraan_user_id.token, data=cluster_info)
+
+
 def update_cluster(request, cluster_name, cluster_info):
     return rodimus_client.put("/clusters/%s" % cluster_name, request.teletraan_user_id.token, data=cluster_info)
 
