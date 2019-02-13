@@ -23,7 +23,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
-    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL
+    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL,TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import GUINEA_PIG_ENVS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
@@ -324,6 +324,18 @@ class EnvLandingView(View):
         env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
         capacity_info = {'groups': groups}
+
+        project_name_is_default = False
+        stage_with_external_id = None
+        for env_stage in envs:
+            if env_stage['externalId'] is not None and env_stage['stageName'] == stage:
+                stage_with_external_id = env_stage
+                break
+
+        if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
+            existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
+            project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
+
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             capacity_info['cluster'] = basic_cluster_info
@@ -355,6 +367,7 @@ class EnvLandingView(View):
                 "pinterest": IS_PINTEREST,
                 "csrf_token": get_token(request),
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
+                "project_name_is_default": project_name_is_default,
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -388,6 +401,7 @@ class EnvLandingView(View):
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
+                "project_name_is_default": project_name_is_default,
             }
             sortByTag = request.GET.get('sortByTag', None)
             if sortByTag:
