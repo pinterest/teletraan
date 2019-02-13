@@ -76,7 +76,7 @@ class EnvCapacityBasicCreateView(View):
             cluster_info = json.loads(request.body)
 
             log.info("Create Capacity in the provider")
-            clusters_helper.create_cluster(request, cluster_name, cluster_info)
+            clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
 
             log.info("Associate cluster_name to environment")
             # Update cluster info
