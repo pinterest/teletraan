@@ -16,7 +16,7 @@
 """Collection of all environs related calls
 """
 from deploy_board.webapp.helpers.deployclient import DeployClient
-from deploy_board.settings import IS_PINTEREST, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL
+from deploy_board.settings import IS_PINTEREST
 
 
 DEFAULT_ENV_SIZE = 30
