@@ -832,7 +832,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
     else:
     # retrieve Nimbus identifier for existing_stage
         existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
-
+        new_stage_identifier = None
          # create Nimbus Identifier for the new stage
         if existing_stage_identifier is not None:   
             nimbus_request_data = existing_stage_identifier.copy()
@@ -865,10 +865,18 @@ def post_add_stage(request, name):
 
 def remove_stage(request, name, stage):
     # TODO so we need to make sure the capacity is empty???
-    environs_helper.delete_env(request, name, stage)
-
     envs = environs_helper.get_all_env_stages(request, name)
+    current_env_stage_with_external_id = None
+    for env_stage in envs:
+        if env_stage['externalId'] is not None and env_stage['stageName'] == stage:
+            current_env_stage_with_external_id = env_stage
+            break
 
+    if current_env_stage_with_external_id is not None and current_env_stage_with_external_id['externalId'] is not None:
+        environs_helper.delete_nimbus_identifier(current_env_stage_with_external_id['externalId'])
+    
+    environs_helper.delete_env(request, name, stage)
+    envs = environs_helper.get_all_env_stages(request, name)
     response = redirect('/env/' + name)
 
     if len(envs) == 0:

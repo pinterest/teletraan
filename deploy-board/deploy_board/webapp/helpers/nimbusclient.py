@@ -56,3 +56,7 @@ class NimbusClient(object):
         response = requests.post('{}/api/{}/identifiers'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION), json=payload)
 
         return self.handle_response(response)
+    
+    def delete_one_identifier(self, name):
+        response = requests.delete('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name))
+        return self.handle_response(response)
