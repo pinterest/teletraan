@@ -35,6 +35,7 @@ import random
 import json
 from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
     systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper
+from helpers.exceptions import TeletraanException
 import math
 from dateutil.parser import parse
 import calendar
@@ -333,8 +334,11 @@ class EnvLandingView(View):
                 break
 
         if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
-            existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
-            project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
+            try:
+                existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
+                project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
+            except TeletraanException as detail:
+                log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
 
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
