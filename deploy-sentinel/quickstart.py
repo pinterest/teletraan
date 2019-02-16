@@ -19,6 +19,7 @@ import time
 import string
 import random
 import requests
+requests.packages.urllib3.disable_warnings()
 
 
 def main():

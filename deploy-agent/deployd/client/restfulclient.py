@@ -18,6 +18,7 @@ import logging
 from deployd.types.ping_response import PingResponse
 from deployd.common.decorators import singleton
 from deployd.common.exceptions import AgentException
+requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
 

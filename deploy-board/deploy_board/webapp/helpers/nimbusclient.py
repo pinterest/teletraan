@@ -4,6 +4,7 @@ from decorators import singleton
 from deploy_board.settings import NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION
 from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
 import requests
+requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
 
