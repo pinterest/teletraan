@@ -16,6 +16,7 @@ import requests
 from decorators import retry
 
 from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
+requests.packages.urllib3.disable_warnings()
 
 DEFAULT_TIMEOUT = 30
 
