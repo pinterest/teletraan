@@ -225,6 +225,7 @@ DISPLAY_STOPPING_HOSTS = os.getenv("DISPLAY_STOPPING_HOSTS", "true")
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = os.getenv("BUILD_URL", None)
+USER_DATA_CONFIG_SETTINGS_WIKI = os.getenv("USER_DATA_CONFIG_SETTINGS_WIKI", None)
 
 TELETRAAN_DISABLE_CREATE_ENV_PAGE = True if os.getenv("TELETRAAN_DISABLE_CREATE_ENV_PAGE", "false") == "true" else False
 TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL = os.getenv("TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL", None)
