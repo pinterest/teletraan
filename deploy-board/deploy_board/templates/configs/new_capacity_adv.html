@@ -56,7 +56,10 @@
                         <div class="form-group"></div>
                         <div class="form-group">
                             <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" title="Customize user data">User data configs:</label>
-                            <div class="pull-right">
+                            {% if is_pinterest %}
+                                <a href={{user_data_config_settings_wiki}} target="_blank"><span class="glyphicon glyphicon-question-sign"></span></a>
+                            {% endif %}
+                             <div class="pull-right">
                                 <add-config-button target="#newConfigModalId"></add-config-button>
                                 <aws-config-modal id="newConfigModalId" v-bind:options="configOptions" v-on:click="addConfig"></aws-config-modal>
                             </div>
