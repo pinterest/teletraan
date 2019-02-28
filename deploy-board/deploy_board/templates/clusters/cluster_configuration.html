@@ -58,7 +58,8 @@
                     v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
-                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
+                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"
+                        v-on:input="updateImageNameForEbsHost" showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
@@ -710,6 +711,44 @@
                             globalNotificationBanner.error = data
                         }
                     });
+                },
+                updateImageNameForEbsHost: function () {
+                    var cell = capacitySetting.currentCell;
+                    var scope = this;
+                    var provider = capacitySetting.currentProvider;
+                    value = 'cmp_base-ebs';
+                    if (this.selectedHostTypeValue.startsWith('EbsCompute')) {
+                        capacitySetting.imageNameValue = value;
+                        capacitySetting.imagenames = info.baseImageNames.map(
+                            function (o) {
+                                return {
+                                    value: o,
+                                    text: o,
+                                    isSelected: o === value
+                                }
+                            }),
+                            scope.imageNameChange(value);
+
+                        //Grab all images for this image name
+                        $.ajax({
+                            type: 'GET',
+                            url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?cell=' + cell,
+                            dataType: "json",
+                            beforeSend: function (xhr, settings) {
+                                var csrftoken = getCookie('csrftoken')
+                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                            },
+                            success: function (data) {
+                                sorted = data.sort(function (item1, item2) { return item2.publish_date - item1.publish_date; })
+                                capacitySetting.baseimages = sorted.map(function (o) { return { value: o.id, text: o.provider_name } })
+                                capacitySetting.baseImageValue = sorted[0].id
+                            },
+                            error: function (data) {
+                                globalNotificationBanner.error = data
+                            }
+                        });
+                    }
                 },
                 placementsHelpClick: function(){
                     if (this.showPlacementsHelp){
