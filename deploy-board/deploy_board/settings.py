@@ -284,10 +284,10 @@ if IS_PINTEREST:
     DEFAULT_PROVIDER = 'AWS'
 
     #Pinterest Default AMI image name
-    DEFAULT_CMP_IMAGE = 'cmp_base'
+    DEFAULT_CMP_IMAGE = 'cmp_base-ebs'
 
     #Pinterest Default Host Type
-    DEFAULT_CMP_HOST_TYPE = 'ComputeLo(Recommended)'
+    DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
 
     DEFAULT_CELL = 'aws-us-east-1'
     DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
