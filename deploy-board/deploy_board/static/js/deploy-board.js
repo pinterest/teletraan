@@ -64,7 +64,10 @@ function getDefaultPlacement(capacityCreationInfo) {
     var allPublicIPPlacements = []
 
     //The abstract name of group can be default assigned
-    var defaultAssignedGroup = new Set(['us-east-1a','us-east-1c', 'us-east-1d',
+    var defaultAssignedGroupForNonC5Instance = new Set(['us-east-1a', 'us-east-1c', 'us-east-1d',
+        'us-east-1e', 'us-east-2a', 'us-east-2b', 'us-west-2b', 'us-west-2a']);
+
+    var defaultAssignedGroupForC5Instance = new Set(['us-east-1a', 'us-east-1d',
         'us-east-1e', 'us-east-2a', 'us-east-2b', 'us-west-2b', 'us-west-2a']);
 
     //Save the maximum subnet for each abstract_name
@@ -97,16 +100,25 @@ function getDefaultPlacement(capacityCreationInfo) {
     //   us_east_1e = [{subnet7:120}, {subnet8:30}]
     //   It will pick subnet1, subnet5 and subnet7
     //   Also besides availablity zone, we grouped by public ip or not
+
     $.each(this.capacityCreationInfo.placements, function (index, item) {
         if (item.assign_public_ip) {
             allPublicIPPlacements.push(item)
-            if (defaultAssignedGroup.has(item.abstract_name)){
+            if (capacityCreationInfo.defaultHostType === "EbsComputeLo(Recommended)" ) {
+                if (defaultAssignedGroupForC5Instance.has(item.abstract_name)) {
+                    addToMaxGroup(item, cmpPublicIPPlacements)
+                }
+            }else if (defaultAssignedGroupForNonC5Instance.has(item.abstract_name)) {
                 addToMaxGroup(item, cmpPublicIPPlacements)
             }
         }
         else {
             allPrivateIPPlacements.push(item)
-            if (defaultAssignedGroup.has(item.abstract_name)){
+            if (capacityCreationInfo.defaultHostType === "EbsComputeLo(Recommended)" ) {
+                if (defaultAssignedGroupForC5Instance.has(item.abstract_name)) {
+                    addToMaxGroup(item, cmpPrivateIPPlacements)
+                }
+            }else if (defaultAssignedGroupForNonC5Instance.has(item.abstract_name)) {
                 addToMaxGroup(item, cmpPrivateIPPlacements)
             }
         }
