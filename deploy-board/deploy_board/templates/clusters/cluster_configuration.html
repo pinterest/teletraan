@@ -436,10 +436,10 @@
                             return {
                                 name: key,
                                 value: currentCluster.configs[key],
-                                readonly: key === 'spiffe_id'
+                                readonly: key === 'spiffe_id' || key === 'assign_public_ip'
                             }
                         }),
-                assignPublicIP: currentCluster.configs.assign_public_ip ? true : false,
+                assignPublicIP: currentCluster.configs.assign_public_ip == "true" ? true : false,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
                     var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
