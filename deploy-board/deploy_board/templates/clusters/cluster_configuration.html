@@ -80,6 +80,7 @@
                             </div>
                         </div>
                         <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" v-on:change="configChange" v-bind:inadvanced="inAdvanced" v-bind:showcmpgroup="showCmpGroup"></aws-user-data>
+                        <aws-readonly-user-data v-bind:alluserdata="textUserData" v-bind:inadvanced="inAdvanced" v-bind:showcmpgroup="showCmpGroup"></aws-readonly-user-data>
                     </div>
                 </fieldset>
             </form>
@@ -436,9 +437,16 @@
                             return {
                                 name: key,
                                 value: currentCluster.configs[key],
-                                readonly: key === 'spiffe_id' || key === 'assign_public_ip'
                             }
-                        }),
+                        }).filter(function(item){return item.name!='spiffe_id' && item.name!='assign_public_ip'}),
+                textUserData: Object.keys(currentCluster.configs).map(
+                        function(key) {
+                            return {
+                                name: key,
+                                value: currentCluster.configs[key],
+                                readonly: true
+                            }
+                        }).filter(function(item){return item.name ==='spiffe_id' || item.name ==='assign_public_ip'}),
                 assignPublicIP: currentCluster.configs.assign_public_ip == "true" ? true : false,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
@@ -526,7 +534,7 @@
                             text: key,
                             default: info.configList[key]
                         }
-                    })
+                    }).filter(function(item){return item.name!='assign_public_ip'})
                     if (this.inAdvanced){
                         return options;
                     }

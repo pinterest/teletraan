@@ -99,6 +99,15 @@ Vue.component('data-config-field', {
     }
 });
 
+Vue.component('data-config-readonly-field', {
+    template: '<div class="form-group">\
+        <label for="properties" class="control-label col-xs-3">{{name}}</label>\
+        <div class="col-xs-6">\
+            <input class="form-control" type="text" v-bind:value="value"  v-bind:readonly="readonly ? true : false"></input>\
+        </div>\
+    </div>',
+    props: ['name', 'value', 'readonly']
+});
 
 Vue.component('aws-user-data', {
     template: '<div class="form-group">\
@@ -124,6 +133,23 @@ Vue.component('aws-user-data', {
     }
 });
 
+Vue.component('aws-readonly-user-data', {
+    template: '<div class="form-group">\
+    <data-config-readonly-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:readonly="data.readonly" v-bind:inadvanced="inadvanced"\
+     v-show="shouldShow(data.name)"></data-config-readonly-field>\
+  </div>',
+    props: ['alluserdata', 'inadvanced', 'showcmpgroup'],
+    methods: {
+        shouldShow: function (name) {
+            if (this.inadvanced) {
+                return this.showcmpgroup ? true : name != "cmp_group"
+            }
+            else {
+                return !name.startsWith("pinfo_") && name != "cmp_group"
+            }
+        }
+    }
+});
 
 Vue.component('add-config-button', {
     template: '<button type="button" class="deployToolTip btn btn-default btn-sm" data-toggle="modal" v-bind:data-target="target">\
@@ -198,7 +224,12 @@ Vue.component('aws-config-modal', {
         },
         addConfig: function () {
             if (this.useCustomizedName) {
-                this.$emit('click', { name: this.customizedName, value: this.selectedOptionValue })
+                if (this.customizedName !='spiffe_id' && this.customizedName!='assign_public_ip'){
+                    this.$emit('click', { name: this.customizedName, value: this.selectedOptionValue })
+                }
+                else {
+                    alert("teletraan currently do not allow user to modify spiffeId and assign public ip")
+                }
             }
             else {
                 this.$emit('click', { name: this.selectedOption.name, value: this.selectedOptionValue })

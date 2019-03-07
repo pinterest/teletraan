@@ -65,6 +65,7 @@
                             </div>
                         </div>
                         <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" v-on:change="configChange" inadvanced="inAdvanced"></aws-user-data>
+                        <aws-readonly-user-data v-bind:alluserdata="textUserData" inadvanced="inAdvanced"></aws-readonly-user-data>
                     </div>
                 </fieldset>
             </form>
@@ -107,6 +108,14 @@ var capacitySetting = new Vue({
                     value: info.defaultCMPConfigs[key]
                 }
             }).filter(function(item){return item.name!='cmp_group'}),
+        textUserData: Object.keys(info.configList).map(
+            function(key) {
+                return {
+                    name: key,
+                    value: info.configList[key],
+                    readonly: true
+                }
+            }).filter(function(item){return item.name ==='assign_public_ip'}),
         assignPublicIP: false,
         baseImageHelpData: [],
         baseimages: info.baseImages.map(
@@ -126,7 +135,7 @@ var capacitySetting = new Vue({
                     text: key,
                     default: info.configList[key]
                 }
-            }),
+            }).filter(function(item){return item.name != 'assign_public_ip'}),
         confirmDialogTitle: "Confirm New Capacity Creation",
         confirmDialogId: "createHostGroup",
         currentProvider: info.defaultProvider,
