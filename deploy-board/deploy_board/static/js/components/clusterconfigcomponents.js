@@ -228,7 +228,7 @@ Vue.component('aws-config-modal', {
                     this.$emit('click', { name: this.customizedName, value: this.selectedOptionValue })
                 }
                 else {
-                    alert("teletraan currently do not allow user to modify spiffeId and assign public ip")
+                    alert("teletraan currently do not allow user to modify spiffe_id and assign_public_ip")
                 }
             }
             else {
