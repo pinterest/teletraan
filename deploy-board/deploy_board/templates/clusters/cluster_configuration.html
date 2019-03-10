@@ -446,7 +446,7 @@
                                 value: currentCluster.configs[key],
                                 readonly: true
                             }
-                        }).filter(function(item){return item.name ==='spiffe_id' || item.name ==='assign_public_ip'}),
+                        }).filter(function(item){return item.name ==='spiffe_id'}),
                 assignPublicIP: currentCluster.configs.assign_public_ip == "true" ? true : false,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
@@ -517,8 +517,8 @@
                 showCmpGroup: Boolean(getUrlParameter("showcmpgroup"))
             },
             methods: {
-                addConfig: function(config) {
-                    var filter = this.allUserData.filter(function(data) {
+                addConfig: function (config) {
+                    var filter = this.allUserData.filter(function (data) {
                         return data.name === config.name
                     })
                     if (filter.length == 0) {
@@ -527,18 +527,18 @@
                         filter[0].value = config.value
                     }
                 },
-                availableConfigOptions: function() {
-                    var options = Object.keys(info.configList).map(function(key) {
+                availableConfigOptions: function () {
+                    var options = Object.keys(info.configList).map(function (key) {
                         return {
                             name: key,
                             text: key,
                             default: info.configList[key]
                         }
-                    }).filter(function(item){return item.name!='assign_public_ip'})
-                    if (this.inAdvanced){
+                    })
+                    if (this.inAdvanced) {
                         return options;
                     }
-                    else{
+                    else {
                         return options.filter(function(item){return !item.name.startsWith("pinfo_") && item.name!="cmp_group" });
                     }
                 },

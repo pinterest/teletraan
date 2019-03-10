@@ -107,15 +107,15 @@ var capacitySetting = new Vue({
                     name: key,
                     value: info.defaultCMPConfigs[key]
                 }
-            }).filter(function(item){return item.name!='cmp_group'}),
+            }).filter(function (item) { return item.name != 'cmp_group' && item.name != 'spiffe_id' && item.name != 'assign_public_ip' }),
         textUserData: Object.keys(info.configList).map(
-            function(key) {
+            function (key) {
                 return {
                     name: key,
                     value: info.configList[key],
                     readonly: true
                 }
-            }).filter(function(item){return item.name ==='assign_public_ip'}),
+            }).filter(function (item) { return item.name === 'spiffe_id' }),
         assignPublicIP: false,
         baseImageHelpData: [],
         baseimages: info.baseImages.map(
