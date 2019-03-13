@@ -158,8 +158,9 @@ Vue.component('add-config-button', {
     props: ['target']
 });
 
-Vue.component('aws-config-modal', {
-    template: '<div class="modal fade" v-bind:id="id" tabindex="-1" role="dialog"\
+Vue.component("aws-config-modal", {
+    template:
+        '<div class="modal fade" v-bind:id="id" tabindex="-1" role="dialog"\
      aria-labelledby="newEntryModalLabel" aria-hidden="true">\
     <div class="modal-dialog modal-lg">\
         <div class="modal-content">\
@@ -185,8 +186,10 @@ Vue.component('aws-config-modal', {
                         <div class="checkToCustomizeKey" v-show="useCustomizedName">\
                             <label for="newCustomizedName" class="col-md-2 control-label">Name</label>\
                             <div class="col-md-10">\
-                                <input type="text" class="form-control"placeholder="name..." v-model="customizedName">\
-                            </div>\
+                                <input type="text" class="form-control"placeholder="name..." v-on:keyup="checkReadOnlyValue" v-model="customizedName">\
+                                <div input type="text" for="errorMessage" class="text" style="text-align:left; color:red" id="errorDisplay" v-bind:readonly="false"\
+                                v-model="shouldShowError" v-model="errorMessage" v-show="shouldShowError">{{errorMessage}}</label></div>\
+                                </div>\
                         </div>\
                     </div>\
                     <div class="form-group">\
@@ -197,14 +200,16 @@ Vue.component('aws-config-modal', {
                     </div>\
                 </div>\
                 <div class="modal-footer">\
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="addConfig">Add</button>\
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="addConfig" id="disableConfigButton">Add</button>\
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\
                 </div>\
             </form></div></div>',
-    props: ['options', 'id'],
-    data: function () {
+    props: ["options", "id"],
+    data: function() {
         return {
             useCustomizedName: false,
+            shouldShowError: false,
+            errorMessage: "",
             selectedOption: this.options[0],
             selectedOptionValue: this.options[0].default,
             selectedValue: this.options[0].name,
@@ -212,40 +217,73 @@ Vue.component('aws-config-modal', {
         };
     },
     methods: {
-        updateValue: function (value) {
-            this.selectedValue = value
+        updateValue: function(value) {
+            this.selectedValue = value;
             if (value === "") {
-                this.selectedOptionValue = ""
-            }
-            else {
-                this.selectedOption = this.options.filter(function (item) { return item.name === value })[0];
+                this.selectedOptionValue = "";
+            } else {
+                this.selectedOption = this.options.filter(function(item) {
+                    return item.name === value;
+                })[0];
                 this.selectedOptionValue = this.selectedOption.default;
             }
         },
-        addConfig: function () {
+        addConfig: function() {
             if (this.useCustomizedName) {
-                if (this.customizedName !='spiffe_id' && this.customizedName!='assign_public_ip'){
-                    this.$emit('click', { name: this.customizedName, value: this.selectedOptionValue })
+                if (
+                    this.customizedName != "spiffe_id" &&
+                    this.customizedName != "assign_public_ip"
+                ) {
+                    this.$emit("click", {
+                        name: this.customizedName,
+                        value: this.selectedOptionValue
+                    });
+                } else {
+                    document.getElementById(
+                        "disableConfigButton"
+                    ).disabled = true;
                 }
-                else {
-                    alert("teletraan currently do not allow user to modify spiffe_id and assign_public_ip")
-                }
-            }
-            else {
-                this.$emit('click', { name: this.selectedOption.name, value: this.selectedOptionValue })
+            } else {
+                this.$emit("click", {
+                    name: this.selectedOption.name,
+                    value: this.selectedOptionValue
+                });
             }
         },
-        toggleCustomizedName: function (checked) {
+        checkReadOnlyValue: function () {
+            if (this.useCustomizedName) {
+                if (this.customizedName === "spiffe_id" ||
+                    this.customizedName === "assign_public_ip"
+                ) {
+                    document.getElementById(
+                        "disableConfigButton"
+                    ).disabled = true;
+                    this.shouldShowError = true;
+                    if (this.customizedName === "spiffe_id") {
+                        this.errorMessage =
+                            this.customizedName + " cannot be added. it will be auto generated";
+                    } else {
+                        this.errorMessage =
+                            this.customizedName + " cannot be added. we only allow assign_public_ip checkbox to modify the value";
+                    }
+                } else {
+                    document.getElementById(
+                        "disableConfigButton"
+                    ).disabled = false;
+                    this.shouldShowError = false;
+                }
+            }
+        },
+        toggleCustomizedName: function(checked) {
             if (checked) {
-                this.selectedOption = null
-                this.selectedValue = ""
-                this.useCustomizedName = true
+                this.selectedOption = null;
+                this.selectedValue = "";
+                this.useCustomizedName = true;
+            } else {
+                this.useCustomizedName = true;
+                this.customizedName = "";
             }
-            else {
-                this.useCustomizedName = true
-                this.customizedName = ""
-            }
-            this.selectedOptionValue = null
+            this.selectedOptionValue = null;
         }
     }
 });
