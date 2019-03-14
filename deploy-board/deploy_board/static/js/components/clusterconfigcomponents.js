@@ -99,16 +99,6 @@ Vue.component('data-config-field', {
     }
 });
 
-Vue.component('data-config-readonly-field', {
-    template: '<div class="form-group">\
-        <label for="properties" class="control-label col-xs-3">{{name}}</label>\
-        <div class="col-xs-6">\
-            <input class="form-control" type="text" v-bind:value="value"  v-bind:readonly="readonly ? true : false"></input>\
-        </div>\
-    </div>',
-    props: ['name', 'value', 'readonly']
-});
-
 Vue.component('aws-user-data', {
     template: '<div class="form-group">\
     <data-config-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:readonly="data.readonly" v-bind:inadvanced="inadvanced"\
@@ -122,24 +112,6 @@ Vue.component('aws-user-data', {
         deleteConfig: function (name) {
             this.$emit('deleteconfig', name)
         },
-        shouldShow: function (name) {
-            if (this.inadvanced) {
-                return this.showcmpgroup ? true : name != "cmp_group"
-            }
-            else {
-                return !name.startsWith("pinfo_") && name != "cmp_group"
-            }
-        }
-    }
-});
-
-Vue.component('aws-readonly-user-data', {
-    template: '<div class="form-group">\
-    <data-config-readonly-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:readonly="data.readonly" v-bind:inadvanced="inadvanced"\
-     v-show="shouldShow(data.name)"></data-config-readonly-field>\
-  </div>',
-    props: ['alluserdata', 'inadvanced', 'showcmpgroup'],
-    methods: {
         shouldShow: function (name) {
             if (this.inadvanced) {
                 return this.showcmpgroup ? true : name != "cmp_group"
