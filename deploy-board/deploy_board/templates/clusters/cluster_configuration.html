@@ -436,9 +436,9 @@
                             return {
                                 name: key,
                                 value: currentCluster.configs[key],
-                                readonly: key === 'spiffe_id' || key === 'assign_public_ip'
+                                readonly: key === 'spiffe_id'
                             }
-                        }),
+                        }).filter(function(item){return item.name!='assign_public_ip'}),
                 spiffeId: 'spiffe_id' in currentCluster.configs ? currentCluster.configs['spiffe_id']:null,
                 assignPublicIP: currentCluster.configs.assign_public_ip == "true" ? true : false,
                 awsRole: currentCluster.configs.aws_role,
@@ -864,6 +864,9 @@
                     }
                     if (this.assignPublicIP){
                         clusterInfo.configs['assign_public_ip'] = true
+                    }
+                    else{
+                        clusterInfo.configs['assign_public_ip'] = false
                     }
                     if (!this.inAdvanced){
                         clusterInfo.configs['aws_role'] = this.awsRole

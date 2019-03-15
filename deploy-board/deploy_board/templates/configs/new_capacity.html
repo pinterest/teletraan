@@ -196,7 +196,9 @@ var capacitySetting = new Vue({
             if (this.assignPublicIP){
                 clusterInfo.configs['assign_public_ip'] = true
             }
-
+            else {
+                clusterInfo.configs['assign_public_ip'] = false
+            }
             if (this.validateInput(clusterInfo)){
                 //Send request
                 this.sendRequest(clusterInfo);
