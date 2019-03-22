@@ -39,7 +39,11 @@
                 <td>{{ agent.failCount }}</td>
             </tr>
             <tr>
-                <td>Error Message</td>
+                <td>Error Message
+                    {% if pinterest %}
+                    <a href="{{ hostdetailsvalue }}/log/deploylog?file={{env.envName}}.log">Full deploy log for {{env.envName}}</a>
+                    {% endif %}
+                </td>
                 <td><pre>{{ agent_wrapper.error }}</pre></td>
             </tr>
         </table>

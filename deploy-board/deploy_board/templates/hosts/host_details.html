@@ -41,18 +41,16 @@
 {% endif %}
 
 {% if agent_wrappers %}
-    <div class="panel panel-default">
+<div class="panel panel-default">
     {% include "panel_heading.tmpl" with panel_title="Agent Details" panel_body_id="agentDetailsId" direction="down" copy_host_name_button=True %}
     <div id="agentDetailsId" class="collapse in panel-body">
-
-    {% for agent_wrapper in agent_wrappers %}
-        {% with env=agent_wrapper.env agent=agent_wrapper.agent %}
-        {% include "hosts/host_details.tmpl" with agent=agent env=env%}
+        {% for agent_wrapper in agent_wrappers %}
+        {% with env=agent_wrapper.env agent=agent_wrapper.agent hostdetailsvalue=host_details.items|lookup:"Phobos Link" %}
+        {% include "hosts/host_details.tmpl" with agent=agent env=env hostdetailsvalue=hostdetailsvalue%}
         {% endwith %}
-    {% endfor %}
-
+        {% endfor %}
     </div>
-    </div>
+</div>
 {% endif %}
 
 <div class="panel panel-default">
