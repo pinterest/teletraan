@@ -75,12 +75,14 @@ public class Deploys {
     private DeployDAO deployDAO;
     private DeployHandler deployHandler;
     private final Authorizer authorizer;
+    private TCPClientForMetrics tcpClient;
 
     public Deploys(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         deployDAO = context.getDeployDAO();
         deployHandler = new DeployHandler(context);
         authorizer = context.getAuthorizer();
+        tcpClient = new TCPClientForMetrics();
     }
 
     @GET
@@ -96,6 +98,7 @@ public class Deploys {
             throw new TeletaanInternalException(Response.Status.NOT_FOUND,
                 String.format("Deploy %s does not exist.", id));
         }
+        tcpClient.emitMetrics("Get deploy info");
         return deployBean;
     }
 
@@ -153,6 +156,7 @@ public class Deploys {
         deployHandler.update(id, deployBean, userName);
         LOG.info("{} successfully updated deploy {} with {}",
             userName, id, deployBean);
+        tcpClient.emitMetrics("Update deploy");
     }
 
     @DELETE
@@ -169,6 +173,7 @@ public class Deploys {
         String userName = sc.getUserPrincipal().getName();
         deployDAO.delete(id);
         LOG.info("Successfully deleted deploy {} by {}", id, userName);
+        tcpClient.emitMetrics("Delete deploy info");
     }
 
     @GET

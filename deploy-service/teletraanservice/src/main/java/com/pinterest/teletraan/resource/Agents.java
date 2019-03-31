@@ -45,9 +45,11 @@ import java.util.List;
 public class Agents {
     private static final Logger LOG = LoggerFactory.getLogger(Agents.class);
     private AgentDAO agentDAO;
+    private TCPClientForMetrics tcpClient;
 
     public Agents(TeletraanServiceContext context) {
         agentDAO = context.getAgentDAO();
+        tcpClient = new TCPClientForMetrics();
     }
 
     @GET
@@ -58,6 +60,7 @@ public class Agents {
     @Path("/{hostName : [a-zA-Z0-9\\-_]+}")
     public List<AgentBean> get(
             @ApiParam(value = "Host name", required = true)@PathParam("hostName") String hostName) throws Exception {
+        tcpClient.emitMetrics("Get Deploy Agent Host Info");
         return agentDAO.getByHost(hostName);
     }
 
