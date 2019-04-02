@@ -15,6 +15,9 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.codahale.metrics.annotation.ExceptionMetered;
+import com.codahale.metrics.annotation.Timed;
+
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.DeployDAO;
@@ -78,6 +81,8 @@ public class EnvDeploys {
     }
 
     @GET
+    @Timed
+    @ExceptionMetered
     @Path("/current")
     @ApiOperation(
             value = "Get deploy info by environment",
@@ -91,6 +96,8 @@ public class EnvDeploys {
     }
 
     @POST
+    @Timed
+    @ExceptionMetered
     @Path("/current/actions")
     @ApiOperation(
             value = "Take deploy action",
@@ -138,6 +145,8 @@ public class EnvDeploys {
     }
 
     @PUT
+    @Timed
+    @ExceptionMetered
     @Path("/hostactions")
     @ApiOperation(
         value = "Take a deploy action",
@@ -177,6 +186,8 @@ public class EnvDeploys {
     }
 
     @POST
+    @Timed
+    @ExceptionMetered
     @ApiOperation(
             value = "Create a deploy",
             notes = "Creates a deploy given an environment name, stage name, build id and description",
@@ -204,6 +215,8 @@ public class EnvDeploys {
 
     // Even though this is PUT, but it really just update progress, no check is needed
     @PUT
+    @Timed
+    @ExceptionMetered
     @Path("/current/progress")
     @ApiOperation(
             value = "Update deploy progress",

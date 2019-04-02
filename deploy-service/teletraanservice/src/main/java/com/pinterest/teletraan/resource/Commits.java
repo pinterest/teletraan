@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.codahale.metrics.annotation.ExceptionMetered;
+import com.codahale.metrics.annotation.Timed;
 
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.CommitBean;
@@ -45,6 +47,8 @@ public class Commits {
     }
 
     @GET
+    @Timed
+    @ExceptionMetered
     @Path("{repo : [a-zA-Z0-9\\-_]+}/{sha : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get commit infos",
@@ -64,6 +68,8 @@ public class Commits {
      * It is recommended to call multiple times (pagination) with size < 30 to avoid timeout
      */
     @GET
+    @Timed
+    @ExceptionMetered
     public List<CommitBean> getCommits(@QueryParam("repo") String repo,
         @QueryParam("startSha") String startSha, @QueryParam("endSha") String endSha,
         @QueryParam("size") Optional<Integer> size, @QueryParam("path") Optional<String> path) throws Exception {
