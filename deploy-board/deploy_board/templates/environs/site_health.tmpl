@@ -8,9 +8,23 @@
                 Metrics
             </a>
         </h4>
+
         <div class="btn-group pull-right">
+            {% for config in metrics %}
+            {% if config.title == "dashboard" %}
+            <a id="dashboard" type="button" class="deployToolTip btn btn-default btn-sm" 
+                data-toggle="tooltip" 
+                href="{{ config.url }}" 
+                target="_blank" title="" 
+                data-original-title="Click to see the metrics dashboard for this service.">
+                <large>Dashboard</large>
+            </a>
+            {% endif %}
+            {% endfor %}
+
+            {% if not metrics_dashboard_only %}
             <div class="btn-group" data-toggle="buttons">
-                <label class="btn btn-default btn-sm" id="choose-gauge">
+               <label class="btn btn-default btn-sm" id="choose-gauge">
                     <input type="radio" name="options" autocomplete="off">
                     Gauge
                 </label>
@@ -19,6 +33,7 @@
                     Chart
                 </label>
             </div>
+            {% endif %}
         </div>
     </div>
 
@@ -26,16 +41,20 @@
         <div id="alarmDivId"></div>
         <div class="row" align="center" id="site_health_gauges">
             {% for config in metrics %}
-            <div class="col-md-3 col-centered">
-                <div id="gauge_{{ config.title }}" align="center"></div>
-            </div>
+              {% if config.title  != "dashboard" %}
+                <div class="col-md-3 col-centered">
+                    <div id="gauge_{{ config.title }}" align="center"></div>
+                </div>
+              {% endif %}
             {% endfor %}
         </div>
         <div class="row" align="center" id="site_health_charts">
             {% for config in metrics %}
-            <div class="col-md-3 col-centered">
-                <div id="chart_{{ config.title }}" align="center"></div>
-            </div>
+              {% if config.title  != "dashboard" %}
+                <div class="col-md-3 col-centered">
+                    <div id="chart_{{ config.title }}" align="center"></div>
+                </div>
+              {% endif %}  
             {% endfor %}
         </div>
     </div>
@@ -169,6 +188,7 @@
         var specs = [];
         var spec = {};
         {% for config in metrics %}
+        {% if config.title != "dashboard" %}
         specs = [];
         {% for spec in config.specs %}
         spec = {};
@@ -178,11 +198,14 @@
         specs.push(spec);
         {% endfor %}
         drawGauges(300, 150, "{{ config.title}}", specs, "gauge_{{ config.title }}");
+        {% endif %}
         {% endfor %}
 
         //drawCharts();
         {% for config in metrics %}
+        {% if config.title != "dashboard" %}
         drawCharts(300, 150, "{{ config.title}}", [], "chart_{{ config.title }}");
+        {% endif %}
         {% endfor %}
     }
 

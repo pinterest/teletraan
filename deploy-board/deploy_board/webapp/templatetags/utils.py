@@ -1044,3 +1044,7 @@ def convertConfigHistoryString(change):
         except:
             pass
     return change
+
+@register.filter(name='lookup')
+def getPhoboLink(mapping, key):
+    return dict(mapping)[key]

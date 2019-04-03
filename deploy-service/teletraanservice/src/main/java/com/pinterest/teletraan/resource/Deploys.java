@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.codahale.metrics.annotation.ExceptionMetered;
+import com.codahale.metrics.annotation.Timed;
 
 import com.google.common.base.Optional;
 
@@ -84,6 +86,8 @@ public class Deploys {
     }
 
     @GET
+    @Timed
+    @ExceptionMetered
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get deploy info",
@@ -136,6 +140,8 @@ public class Deploys {
     }
 
     @PUT
+    @Timed
+    @ExceptionMetered
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Update deploy",
@@ -156,6 +162,8 @@ public class Deploys {
     }
 
     @DELETE
+    @Timed
+    @ExceptionMetered
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Delete deploy info",

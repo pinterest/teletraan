@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,10 +28,19 @@ import java.util.Queue;
 public abstract class BaseManager implements SourceControlManager {
     private static final Logger LOG = LoggerFactory.getLogger(BaseManager.class);
     // Max allowed commits to return
+    private final static String DEFAULT_PATH = "";
     private final static int MAX_COMMITS = 500;
 
-    @Override
+    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception {
+      return getCommits(repo, sha, keepHead, DEFAULT_PATH);
+    }
+
     public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Exception {
+      return getCommits(repo, startSha, endSha, size, DEFAULT_PATH);
+    }
+
+    @Override
+    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Exception {
         if (size == 0) {
             size = MAX_COMMITS;
         }
@@ -56,11 +65,11 @@ public abstract class BaseManager implements SourceControlManager {
         while (fullCommits.size() < size) {
             // Repopulate referenceCommits, start from endSha
             if (endSha != null && referenceCommits.isEmpty()) {
-                referenceCommits = getCommits(repo, endSha, keepHead);
+                referenceCommits = getCommits(repo, endSha, keepHead, path);
             }
             // Repopulate commits, start from startSha
             if (commits.isEmpty()) {
-                commits = getCommits(repo, startSha, keepHead);
+                commits = getCommits(repo, startSha, keepHead, path);
             }
 
             if (keepHead) {
@@ -82,8 +91,8 @@ public abstract class BaseManager implements SourceControlManager {
             CommitBean commit = commits.peek();
             CommitBean referenceCommit = referenceCommits.peek();
 
-            // We find the endSha, let us return
-            if (commit.getSha().equals(referenceCommit.getSha())) {
+            // We find the endSha, or reach the endSha Date, let us return
+            if (commit.getSha().equals(referenceCommit.getSha()) || commit.getDate() <= referenceCommit.getDate()) {
                 return fullCommits;
             }
 
@@ -99,7 +108,7 @@ public abstract class BaseManager implements SourceControlManager {
         }
 
         if (fullCommits.size() >= MAX_COMMITS) {
-            LOG.warn("Exceeded max commits for repo={}, startSha={}, endSha={}", repo, startSha, endSha);
+            LOG.warn("Exceeded max commits for repo={}, startSha={}, endSha={}, path={}", repo, startSha, endSha, path);
         }
 
         return fullCommits;

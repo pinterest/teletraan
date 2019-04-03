@@ -18,6 +18,7 @@ import logging
 from deployd.types.ping_response import PingResponse
 from deployd.common.decorators import singleton
 from deployd.common.exceptions import AgentException
+requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class RestfulClient(object):
         self.url_prefix = config.get_restful_service_url()
         self.url_version = config.get_restful_service_version()
         self.token = config.get_restful_service_token()
+        self.verify = (config.get_verify_https_certificate() == 'True')
         self.default_timeout = 30
 
     def __call(self, method):
@@ -39,7 +41,7 @@ class RestfulClient(object):
             else:
                 headers = {'Content-type': 'application/json'}
             response = getattr(requests, method)(url, headers=headers, params=params, json=data,
-                                                 timeout=self.default_timeout, verify=False)
+                                                 timeout=self.default_timeout, verify=self.verify )
 
             if response.status_code > 300:
                 msg = "Teletraan failed to call backend server. Hint: %s, %s" % (response.status_code, response.content)

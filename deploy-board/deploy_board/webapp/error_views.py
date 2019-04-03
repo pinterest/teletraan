@@ -33,7 +33,7 @@ class ExceptionHandlerMiddleware(object):
         # Error is displayed as a fragment over related feature area
         if request.is_ajax():
             ajax_vars = {'success': False, 'error': exception.message}
-            return HttpResponse(json.dumps(ajax_vars), mimetype='application/javascript')
+            return HttpResponse(json.dumps(ajax_vars), content_type='application/javascript')
         else:
             # Not authorized
             if isinstance(exception, NotAuthorizedException):

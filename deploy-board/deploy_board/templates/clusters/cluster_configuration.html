@@ -19,9 +19,9 @@
     }
 </style>
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
-<script type="text/javascript" src="{% static "js/components/sharedcomponents.js?changedate=2016.12.19.150000"%}"></script>
-<script type="text/javascript" src="{% static "js/components/capacitycomponents.js?changedate=2017.07.05.180000"%}"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js?changedate=2017.08.03.153000"%}"></script>
+<script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2016.12.19.150000"></script>
+<script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2017.07.05.180000"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2018.05.17.153000"></script>
 
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
@@ -58,7 +58,8 @@
                     v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
-                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
+                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"
+                        v-on:input="updateImageNameForEbsHost" showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
@@ -70,6 +71,9 @@
                         <div class="form-group"></div>
                         <div class="form-group">
                             <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip"  title="Customize user data">User data configs:</label>
+                            {% if is_pinterest %}
+                                <a href={{user_data_config_settings_wiki}} target="_blank"><span class="glyphicon glyphicon-question-sign"></span></a>
+                            {% endif %}
                             <div class="pull-right">
                                 <add-config-button target="#newConfigModalId"></add-config-button>
                                 <aws-config-modal id="newConfigModalId" v-bind:options="availableConfigOptions()" v-on:click="addConfig"></aws-config-modal>
@@ -432,9 +436,11 @@
                             return {
                                 name: key,
                                 value: currentCluster.configs[key],
+                                readonly: key === 'spiffe_id'
                             }
-                        }),
-                assignPublicIP: currentCluster.configs.assign_public_ip ? true : false,
+                        }).filter(function(item){return item.name!='assign_public_ip'}),
+                spiffeId: 'spiffe_id' in currentCluster.configs ? currentCluster.configs['spiffe_id']:null,
+                assignPublicIP: currentCluster.configs.assign_public_ip == "true" ? true : false,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
                     var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
@@ -452,7 +458,7 @@
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
                         value: item.abstract_name,
-                        text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ")",
+                        text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
                         isSelected: item.abstract_name === currentCluster.hostType
                     }
                 }),
@@ -521,7 +527,7 @@
                             text: key,
                             default: info.configList[key]
                         }
-                    })
+                    }).filter(function(item){return item.name!='assign_public_ip'})
                     if (this.inAdvanced){
                         return options;
                     }
@@ -707,6 +713,44 @@
                         }
                     });
                 },
+                updateImageNameForEbsHost: function () {
+                    var cell = capacitySetting.currentCell;
+                    var scope = this;
+                    var provider = capacitySetting.currentProvider;
+                    value = 'cmp_base-ebs';
+                    if (this.selectedHostTypeValue.startsWith('EbsCompute')) {
+                        capacitySetting.imageNameValue = value;
+                        capacitySetting.imagenames = info.baseImageNames.map(
+                            function (o) {
+                                return {
+                                    value: o,
+                                    text: o,
+                                    isSelected: o === value
+                                }
+                            }),
+                            scope.imageNameChange(value);
+
+                        //Grab all images for this image name
+                        $.ajax({
+                            type: 'GET',
+                            url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?cell=' + cell,
+                            dataType: "json",
+                            beforeSend: function (xhr, settings) {
+                                var csrftoken = getCookie('csrftoken')
+                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                            },
+                            success: function (data) {
+                                sorted = data.sort(function (item1, item2) { return item2.publish_date - item1.publish_date; })
+                                capacitySetting.baseimages = sorted.map(function (o) { return { value: o.id, text: o.provider_name } })
+                                capacitySetting.baseImageValue = sorted[0].id
+                            },
+                            error: function (data) {
+                                globalNotificationBanner.error = data
+                            }
+                        });
+                    }
+                },
                 placementsHelpClick: function(){
                     if (this.showPlacementsHelp){
                         this.showPlacementsHelp = false
@@ -722,6 +766,12 @@
                     //Validate input data.
                     if (clusterInfo.placement == null || clusterInfo.placement.length === 0) {
                         globalNotificationBanner.error = "Placement is not specified"
+                        return false
+                    }
+
+                    //Validate spiffe_id not modified by user
+                    if ('spiffe_id' in clusterInfo.configs && clusterInfo.configs['spiffe_id'] != this.spiffeId){
+                        globalNotificationBanner.error = "spiffe id cannot be modified by user"
                         return false
                     }
 
@@ -814,6 +864,9 @@
                     }
                     if (this.assignPublicIP){
                         clusterInfo.configs['assign_public_ip'] = true
+                    }
+                    else{
+                        clusterInfo.configs['assign_public_ip'] = false
                     }
                     if (!this.inAdvanced){
                         clusterInfo.configs['aws_role'] = this.awsRole

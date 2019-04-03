@@ -28,6 +28,7 @@ import java.util.Map;
 
 // A simple HttpURLConnection wrapper
 public class HTTPClient {
+    private static final int TIMEOUT = 15*1000;  // http timeout in 15 seconds
     private static final Logger LOG = LoggerFactory.getLogger(HTTPClient.class);
 
     private String generateUrlAndQuery(String url, Map<String, String> params) throws Exception {
@@ -73,6 +74,8 @@ public class HTTPClient {
                 conn = (HttpURLConnection) urlObj.openConnection();
                 conn.setRequestMethod(method);
                 conn.setRequestProperty("Accept-Charset", "UTF-8");
+                conn.setConnectTimeout(TIMEOUT);
+                conn.setReadTimeout(TIMEOUT);
 
                 if (headers != null) {
                     for (Map.Entry<String, String> entry : headers.entrySet()) {

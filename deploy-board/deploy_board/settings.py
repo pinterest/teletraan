@@ -16,10 +16,10 @@
 Django settings for deploy_board project.
 
 For more information on this file, see
-https://docs.djangoproject.com/en/1.6/topics/settings/
+https://docs.djangoproject.com/en/1.11/topics/settings/
 
 For the full list of settings and their values, see
-https://docs.djangoproject.com/en/1.6/ref/settings/
+https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -32,9 +32,18 @@ BASE_DIR = os.path.dirname(__file__)
 
 PROJECT_PATH = BASE_DIR
 
-TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'templates'),
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS' : [os.path.join(BASE_DIR, 'templates')],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.contrib.auth.context_processors.auth',
+            ],
+        },
+    },
+]
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY", None)
@@ -89,7 +98,7 @@ LOG_LEVEL = os.getenv("LOG_LEVEL")
 if LOG_LEVEL == 'DEBUG':
     DEBUG = True
     TEMPLATE_DEBUG = True
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = ['*']
 else:
     ALLOWED_HOSTS = ['*']
 
@@ -153,6 +162,7 @@ if TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN:
     oauth_middleware = 'deploy_board.webapp.security.FixedOAuthMiddleware'
 
 MIDDLEWARE_CLASSES = (
+    'csp.middleware.CSPMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -161,6 +171,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'deploy_board.webapp.error_views.ExceptionHandlerMiddleware',
+    'deploy_board.webapp.security.PRRMiddleware'
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -172,6 +183,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.contrib.messages.context_processors.messages",
     "django.core.context_processors.request",
 )
+
+
 
 ROOT_URLCONF = 'deploy_board.urls'
 
@@ -191,7 +204,7 @@ USE_TZ = True
 OLD_BUILD_WARNING_THRESHOLD_DAYS = 10
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.6/howto/static-files/
+# https://docs.djangoproject.com/en/1.11/howto/static-files/
 STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(PROJECT_PATH, "static"),
@@ -211,11 +224,16 @@ DISPLAY_STOPPING_HOSTS = os.getenv("DISPLAY_STOPPING_HOSTS", "true")
 
 # Pinterest specific settings
 IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
-BUILD_URL = "https://jenkins.pinadmin.com/job/"
+BUILD_URL = os.getenv("BUILD_URL", None)
+USER_DATA_CONFIG_SETTINGS_WIKI = os.getenv("USER_DATA_CONFIG_SETTINGS_WIKI", None)
 
+TELETRAAN_DISABLE_CREATE_ENV_PAGE = True if os.getenv("TELETRAAN_DISABLE_CREATE_ENV_PAGE", "false") == "true" else False
+TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL = os.getenv("TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL", None)
 IS_DURING_CODE_FREEZE = True if os.getenv("TELETRAAN_CODE_FREEZE", "false") == "true" else False
 TELETRAAN_CODE_FREEZE_URL = os.getenv("TELETRAAN_CODE_FREEZE_URL", None)
 TELETRAAN_JIRA_SOURCE_URL = os.getenv("TELETRAAN_JIRA_SOURCE_URL", None)
+TELETRAAN_TRANSFER_OWNERSHIP_URL = os.getenv("TELETRAAN_TRANSFER_OWNERSHIP_URL", None)
+TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL = os.getenv("TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL", None)
 
 # use Rodimus if present
 RODIMUS_SERVICE_URL = os.getenv("RODIMUS_SERVICE_URL", None)
@@ -266,10 +284,10 @@ if IS_PINTEREST:
     DEFAULT_PROVIDER = 'AWS'
 
     #Pinterest Default AMI image name
-    DEFAULT_CMP_IMAGE = 'cmp_base'
+    DEFAULT_CMP_IMAGE = 'cmp_base-ebs'
 
     #Pinterest Default Host Type
-    DEFAULT_CMP_HOST_TYPE = 'ComputeLo'
+    DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
 
     DEFAULT_CELL = 'aws-us-east-1'
     DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
@@ -277,4 +295,15 @@ if IS_PINTEREST:
     #Pinterest Default Puppet Environment
     DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
     DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
+
+    #CSP Config
+    CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
+    CSP_DEFAULT_SRC = ("'self'")
+    CSP_CONNECT_SRC = ("'self'")
+    CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+
+    # Nimbus service url
+    NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL", None)
+    NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)    
 

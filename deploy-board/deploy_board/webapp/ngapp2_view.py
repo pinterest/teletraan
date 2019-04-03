@@ -25,6 +25,7 @@ import logging
 import os
 import requests
 import traceback
+requests.packages.urllib3.disable_warnings()
 
 from ngapptools.varnish.varnish_info import Recorder
 from helpers.ngapp2_deploy import Ngapp2DeployUtils, NgappDeployStep

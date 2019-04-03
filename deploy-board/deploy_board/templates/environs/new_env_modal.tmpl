@@ -59,8 +59,19 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Create</button>
+                    {% if disable_create_env_page  %}
+                        <span class="help-block">In order to keep track of all running resources in a single location, please click on
+                        console UI button to create Teletraan Env. You'll be redirected back after.</span>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <a target="_blank" href="{{ redirect_create_env_page_url }}"
+                        class="btn btn-primary active" role="button" aria-pressed="true">
+                            console UI
+                        </a>
+                    {% else %}
+                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+
+                         <button type="submit" class="btn btn-primary">Create</button>
+                    {% endif %}
                 </div>
             </form>
         </div>

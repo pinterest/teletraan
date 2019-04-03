@@ -148,6 +148,7 @@
         });
 
         $('#deployHistoryTableId tr .rollbacker').click(function () {
+            var currentBuildId = '{{ current_build_id }}';
             trid = $(this).closest('tr');
             commit7 = trid.find(".hiddenCommit7").val();
             branch = trid.find(".hiddenBranch").val();
@@ -156,6 +157,7 @@
             buildUrl = "/builds/" + buildId;
             $("#confirmCommitLinkId").attr("href", buildUrl);
             $("#confirmCommitLinkId").text(branch + '/' + commit7);
+            $("#confirmCurrentBuildId").val(currentBuildId);
             url = "/env/{{ env.envName }}/{{ env.stageName }}/rollback_to/" + deployId;
             $('#confirmRollbackFormId').attr("action", url);
             $('#rollbackConfirmId').modal();

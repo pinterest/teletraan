@@ -64,7 +64,10 @@ function getDefaultPlacement(capacityCreationInfo) {
     var allPublicIPPlacements = []
 
     //The abstract name of group can be default assigned
-    var defaultAssignedGroup = new Set(['us-east-1a','us-east-1c', 'us-east-1d',
+    var defaultAssignedGroupForNonC5Instance = new Set(['us-east-1a', 'us-east-1c', 'us-east-1d',
+        'us-east-1e', 'us-east-2a', 'us-east-2b', 'us-west-2b', 'us-west-2a']);
+
+    var defaultAssignedGroupForC5Instance = new Set(['us-east-1a', 'us-east-1d',
         'us-east-1e', 'us-east-2a', 'us-east-2b', 'us-west-2b', 'us-west-2a']);
 
     //Save the maximum subnet for each abstract_name
@@ -97,16 +100,25 @@ function getDefaultPlacement(capacityCreationInfo) {
     //   us_east_1e = [{subnet7:120}, {subnet8:30}]
     //   It will pick subnet1, subnet5 and subnet7
     //   Also besides availablity zone, we grouped by public ip or not
+
     $.each(this.capacityCreationInfo.placements, function (index, item) {
         if (item.assign_public_ip) {
             allPublicIPPlacements.push(item)
-            if (defaultAssignedGroup.has(item.abstract_name)){
+            if (capacityCreationInfo.defaultHostType === "EbsComputeLo(Recommended)" ) {
+                if (defaultAssignedGroupForC5Instance.has(item.abstract_name)) {
+                    addToMaxGroup(item, cmpPublicIPPlacements)
+                }
+            }else if (defaultAssignedGroupForNonC5Instance.has(item.abstract_name)) {
                 addToMaxGroup(item, cmpPublicIPPlacements)
             }
         }
         else {
             allPrivateIPPlacements.push(item)
-            if (defaultAssignedGroup.has(item.abstract_name)){
+            if (capacityCreationInfo.defaultHostType === "EbsComputeLo(Recommended)" ) {
+                if (defaultAssignedGroupForC5Instance.has(item.abstract_name)) {
+                    addToMaxGroup(item, cmpPrivateIPPlacements)
+                }
+            }else if (defaultAssignedGroupForNonC5Instance.has(item.abstract_name)) {
                 addToMaxGroup(item, cmpPrivateIPPlacements)
             }
         }
@@ -144,7 +156,7 @@ function getDefaultPlacement(capacityCreationInfo) {
             //for each abstract_name, we have one candidate.
             //If existingItems is null or empty, the abstract_name
             //will be the existing one
-            var arr = assignPublicIp ? this.cmpPublic : this.cmpPrivate
+            var arr = assignPublicIp == 'true' ? this.cmpPublic : this.cmpPrivate
             var fullArr = assignPublicIp ? this.allPublic : this.allPrivate
             if (existingItems != null && existingItems.length > 0) {
 
@@ -193,7 +205,7 @@ function getDefaultPlacement(capacityCreationInfo) {
 
         },
         getFullList: function (assignPublicIp, existingItems) {
-            var arr = assignPublicIp ? this.allPublic : this.allPrivate
+            var arr = assignPublicIp == 'true' ? this.allPublic : this.allPrivate
             if (existingItems != null && existingItems.length > 0) {
                 existingItems = existingItems.map(function (item) {
                     var fullInfo = arr.find(

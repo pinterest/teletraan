@@ -18,6 +18,7 @@ from deployd.download.download_helper import DownloadHelper
 import os
 import requests
 import logging
+requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
 

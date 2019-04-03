@@ -22,7 +22,8 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
-from deploy_board.settings import IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL
+from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
+    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL,TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import GUINEA_PIG_ENVS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
@@ -34,6 +35,7 @@ import random
 import json
 from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
     systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper
+from helpers.exceptions import TeletraanException
 import math
 from dateutil.parser import parse
 import calendar
@@ -75,6 +77,8 @@ class EnvListView(View):
             "disablePrevious": index <= 1,
             "disableNext": len(names) < DEFAULT_PAGE_SIZE,
             "envs_tag": envs_tag,
+            "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+            "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
         })
 
 
@@ -204,13 +208,17 @@ def update_service_add_ons(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     progress = deploys_helper.update_progress(request, name, stage)
     report = agent_report.gen_report(request, env, progress)
-
-
+    metrics = environs_helper.get_env_metrics_config(request, name, stage)
+    metrics_dashboard_url = None
+    for metric in metrics:
+        if metric['title'] == "dashboard":
+            metrics_dashboard_url = metric['url']
     # Currently we assume that the servicename is the same as the environment name.
     serviceName = name
     rateLimitingAddOn = service_add_ons.getRatelimitingAddOn(serviceName=serviceName,
                                                              report=report)
     dashboardAddOn = service_add_ons.getDashboardAddOn(serviceName=serviceName,
+                                                       metrics_dashboard_url=metrics_dashboard_url,
                                                        report=report)
     serviceAddOns.append(rateLimitingAddOn)
 
@@ -307,10 +315,31 @@ class EnvLandingView(View):
         request_feedback = check_feedback_eligible(request, username)
         groups = environs_helper.get_env_capacity(request, name, stage, capacity_type="GROUP")
         metrics = environs_helper.get_env_metrics_config(request, name, stage)
+
+        metrics_dashboard_only = False
+        for metric in metrics:
+            if metric['title'] == "dashboard" and len(metrics) == 1:
+                metrics_dashboard_only = True
+
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
         env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
         basic_cluster_info = None
         capacity_info = {'groups': groups}
+
+        project_name_is_default = False
+        stage_with_external_id = None
+        for env_stage in envs:
+            if env_stage['externalId'] is not None and env_stage['stageName'] == stage:
+                stage_with_external_id = env_stage
+                break
+
+        if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
+            try:
+                existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
+                project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
+            except TeletraanException as detail:
+                log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
+
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             capacity_info['cluster'] = basic_cluster_info
@@ -325,11 +354,16 @@ class EnvLandingView(View):
                 "env_promote": env_promote,
                 "stages": stages,
                 "metrics": metrics,
+                "metrics_dashboard_only": metrics_dashboard_only,
                 "alarms": alarms,
                 "request_feedback": request_feedback,
                 "code_freeze": IS_DURING_CODE_FREEZE,
                 "code_freeze_url": TELETRAAN_CODE_FREEZE_URL,
+                "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+                "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,
                 "jira_source_url": TELETRAAN_JIRA_SOURCE_URL,
+                "transfer_ownership_url": TELETRAAN_TRANSFER_OWNERSHIP_URL,
+                "resource_ownership_wiki_url": TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL,
                 "groups": groups,
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
@@ -339,6 +373,7 @@ class EnvLandingView(View):
                 "pinterest": IS_PINTEREST,
                 "csrf_token": get_token(request),
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
+                "project_name_is_default": project_name_is_default,
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -360,17 +395,21 @@ class EnvLandingView(View):
                 "report": report,
                 "has_deploy": True,
                 "metrics": metrics,
+                "metrics_dashboard_only": metrics_dashboard_only,
                 "alarms": alarms,
                 "request_feedback": request_feedback,
                 "code_freeze": IS_DURING_CODE_FREEZE,
                 "code_freeze_url": TELETRAAN_CODE_FREEZE_URL,
                 "jira_source_url": TELETRAAN_JIRA_SOURCE_URL,
+                "transfer_ownership_url": TELETRAAN_TRANSFER_OWNERSHIP_URL,
+                "resource_ownership_wiki_url": TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL,
                 "groups": groups,
                 "basic_cluster_info": basic_cluster_info,
                 "capacity_info": json.dumps(capacity_info),
                 "env_tag": env_tag,
                 "pinterest": IS_PINTEREST,
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
+                "project_name_is_default": project_name_is_default,
             }
             sortByTag = request.GET.get('sortByTag', None)
             if sortByTag:
@@ -623,6 +662,17 @@ def get_env_deploys(request, name, stage):
     filter, filter_title, query_string = \
         _gen_deploy_query_filter(request, from_date, from_time, to_date, to_time, size,
                                  reverse_date, operator, commit, repo, branch)
+
+    result = deploys_helper.get_all(request, envId=[env['id']], pageIndex=1,
+                                    pageSize=DEFAULT_ROLLBACK_DEPLOY_NUM)
+    deploys = result.get("deploys")
+
+    # remove the first deploy if exists
+    current_build_id = None
+    if deploys:
+        current_deploy = deploys.pop(0)
+        current_build_id = current_deploy['buildId']
+
     if filter is None:
         return render(request, 'environs/env_history.html', {
             "envs": envs,
@@ -645,6 +695,7 @@ def get_env_deploys(request, name, stage):
             "prevPageIndex": 0,
             "nextPageIndex": 0,
             "query_string": query_string,
+            "current_build_id": current_build_id,
             "pinterest": IS_PINTEREST
         })
 
@@ -679,6 +730,7 @@ def get_env_deploys(request, name, stage):
         "prevPageIndex": prevPageIndex,
         "nextPageIndex": nextPageIndex,
         "query_string": query_string,
+        "current_build_id": current_build_id,
         "pinterest": IS_PINTEREST
     })
 
@@ -707,6 +759,8 @@ def search_envs(request, filter):
         "disablePrevious": True,
         "disableNext": True,
         "envs_tag": envs_tag,
+        "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+        "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
     })
 
 
@@ -754,31 +808,75 @@ class EnvNewDeployView(View):
             return redirect("/env/ngapp2/deploy/?stage=2")
 
         return redirect('/env/%s/%s/deploy' % (name, stage))
+    
+def create_identifier_for_new_stage(request, env_name, stage_name):
+    """ Create a Nimbus Identifier for the new stage. Assumes that the environment has at least one stage with externalId set. 
+        This is needed so that the method knows which project to associate the new stage to. 
+        
+        If the environment has no stage with externalId set, this method will not attempt to create an Identifier.
+    """
 
+    # get all stages within this environment
+    all_env_stages = environs_helper.get_all_env_stages(request, env_name)
+    stage_with_external_id = None
+
+    # find a stage in this environment that has externalId set
+    for env_stage in all_env_stages:
+        if env_stage['externalId'] is not None:
+            stage_with_external_id = env_stage
+            break
+
+    if stage_with_external_id == None: 
+        return None
+
+    else:
+    # retrieve Nimbus identifier for existing_stage
+        existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
+        new_stage_identifier = None
+         # create Nimbus Identifier for the new stage
+        if existing_stage_identifier is not None:   
+            nimbus_request_data = existing_stage_identifier.copy()
+            nimbus_request_data['stage_name'] = stage_name
+            nimbus_request_data['env_name'] = env_name
+            new_stage_identifier = environs_helper.create_nimbus_identifier(nimbus_request_data)
+
+    return new_stage_identifier
 
 def post_add_stage(request, name):
+    """handler for creating a new stage depending on configuration (IS_PINTEREST, from_stage i.e. clone stage). """
     # TODO how to validate stage name
     data = request.POST
     stage = data.get("stage")
     from_stage = data.get("from_stage")
     description = data.get("description")
-    if from_stage:
-        common.clone_from_stage_name(request, name, stage, name, from_stage, description)
-    else:
-        data = {}
-        data['envName'] = name
-        data['stageName'] = stage
-        data['description'] = description
-        environs_helper.create_env(request, data)
-    return redirect('/env/' + name + '/' + stage + '/config/')
+    
+    external_id = None
 
+    if IS_PINTEREST:
+        identifier = create_identifier_for_new_stage(request, name, stage)
+        external_id = identifier.get('uuid') if not identifier == None else None # if there is no stage in this env with externalId, still create the new stage
+
+    if from_stage:
+        common.clone_from_stage_name(request, name, stage, name, from_stage, description, external_id)
+    else:
+        common.create_simple_stage(request,name, stage, description, external_id)
+
+    return redirect('/env/' + name + '/' + stage + '/config/')
 
 def remove_stage(request, name, stage):
     # TODO so we need to make sure the capacity is empty???
-    environs_helper.delete_env(request, name, stage)
-
     envs = environs_helper.get_all_env_stages(request, name)
+    current_env_stage_with_external_id = None
+    for env_stage in envs:
+        if env_stage['externalId'] is not None and env_stage['stageName'] == stage:
+            current_env_stage_with_external_id = env_stage
+            break
 
+    if current_env_stage_with_external_id is not None and current_env_stage_with_external_id['externalId'] is not None:
+        environs_helper.delete_nimbus_identifier(current_env_stage_with_external_id['externalId'])
+    
+    environs_helper.delete_env(request, name, stage)
+    envs = environs_helper.get_all_env_stages(request, name)
     response = redirect('/env/' + name)
 
     if len(envs) == 0:
@@ -1462,6 +1560,19 @@ def get_new_commits(request, name, stage):
     })
 
 
+def _get_endSha(end_build):
+    endSha = end_build['commit']
+    endShaBranch = end_build['branch']
+    # handle the case for hotfix build, where we should use base_commit of the hotfix.
+    # The base_commit is recorded in the suffix of branch name, in the format of 'hotfix_operator_1234567'
+    if endShaBranch.startswith('hotfix_'):
+        endShaBranchSplits = endShaBranch.split('_')
+        if len(endShaBranchSplits) >= 3:
+            endSha = endShaBranchSplits[len(endShaBranchSplits)-1]  # only get the last split
+
+    return endSha
+
+
 def compare_deploys(request, name, stage):
     start_deploy_id = request.GET.get('start_deploy', None)
     start_deploy = deploys_helper.get(request, start_deploy_id)
@@ -1478,7 +1589,7 @@ def compare_deploys(request, name, stage):
         if not end_deploy:
             end_deploy = start_deploy
     end_build = builds_helper.get_build(request, end_deploy['buildId'])
-    endSha = end_build['commit']
+    endSha = _get_endSha(end_build)
 
     commits, truncated, new_start_sha = common.get_commits_batch(request, repo, startSha,
                                                                  endSha, keep_first=True)
@@ -1513,7 +1624,8 @@ def compare_deploys_2(request, name, stage):
     startSha = start_build['commit']
     repo = start_build['repo']
     end_build = builds_helper.get_build(request, end_build_id)
-    endSha = end_build['commit']
+    endSha = _get_endSha(end_build)
+    
     scm_url = systems_helper.get_scm_url(request)
     diffUrl = "%s/%s/compare/%s...%s" % (scm_url, repo, endSha, startSha)
     return render(request, 'deploys/deploy_commits.html', {

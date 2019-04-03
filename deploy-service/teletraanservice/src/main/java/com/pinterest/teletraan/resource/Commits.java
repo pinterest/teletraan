@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.codahale.metrics.annotation.ExceptionMetered;
+import com.codahale.metrics.annotation.Timed;
 
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.CommitBean;
@@ -36,6 +38,7 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Commits {
+    private final static String DEFAULT_PATH = "";
     private final static int DEFAULT_SIZE = 30;
     private SourceControlManager sourceControlManager;
 
@@ -44,6 +47,8 @@ public class Commits {
     }
 
     @GET
+    @Timed
+    @ExceptionMetered
     @Path("{repo : [a-zA-Z0-9\\-_]+}/{sha : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get commit infos",
@@ -63,9 +68,11 @@ public class Commits {
      * It is recommended to call multiple times (pagination) with size < 30 to avoid timeout
      */
     @GET
+    @Timed
+    @ExceptionMetered
     public List<CommitBean> getCommits(@QueryParam("repo") String repo,
         @QueryParam("startSha") String startSha, @QueryParam("endSha") String endSha,
-        @QueryParam("size") Optional<Integer> size) throws Exception {
-        return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE));
+        @QueryParam("size") Optional<Integer> size, @QueryParam("path") Optional<String> path) throws Exception {
+        return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
     }
 }

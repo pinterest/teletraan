@@ -10,7 +10,7 @@
     <li class="active">{{ env.envName }} ({{ env.stageName }})</li>
 </ul>
 
-{% if is_pinterest %}
+{% if pinterest %}
     {% if code_freeze %}
         {% include "deploys/warning_no_deploy.tmpl" %}
     {% else %}
@@ -18,6 +18,9 @@
     {% endif %}
 {% endif %}
 
+{% if project_name_is_default %}
+    {% include "deploys/warning_no_nimbus_project_no_deploy.tmpl" %}
+{% endif %}
 
 {% if request_feedback %}
     {% include "feedbacks/feedback_banner.tmpl" %}
@@ -129,7 +132,7 @@
 </div>
 
 {% if pinterest %}
-<script type="text/javascript" src="{% static "js/components/sharedcomponents.js?changedate=2017.1.4.140000"%}"></script>
+<script type="text/javascript" src='{% static "js/components/sharedcomponents.js"%}?changedate=2017.1.4.140000'></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
         {% verbatim %}

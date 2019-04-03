@@ -111,13 +111,14 @@ public class HotfixStateTransitioner implements Runnable {
                 String hotfixId = hotBean.getId();
                 String jobNum = hotBean.getJob_num();
                 Jenkins jenkins = new Jenkins(jenkinsUrl, jenkinsRemoteToken);
+                DeployBean deployBean = deployDAO.getById(hotBean.getBase_deploy());
+                BuildBean buildBean = buildDAO.getById(deployBean.getBuild_id());
 
                 if (state == HotfixState.INITIAL) {
                     // Initial state, need to start job
-                    DeployBean deployBean = deployDAO.getById(hotBean.getBase_deploy());
-                    BuildBean buildBean = buildDAO.getById(deployBean.getBuild_id());
                     String buildParams = "BASE_COMMIT=" + buildBean.getScm_commit() + "&COMMITS=" + hotBean.getCommits() +
-                        "&SUFFIX=" + hotBean.getOperator() + "&HOTFIX_ID=" + hotBean.getId();
+                        "&SUFFIX=" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
+                        "&HOTFIX_ID=" + hotBean.getId();
                     // Start job and set start time
                     jenkins.startBuild(hotBean.getJob_name(), buildParams);
                     LOG.info("Starting new Jenkins Job for Hotfix ID {}", hotfixId);
@@ -141,7 +142,7 @@ public class HotfixStateTransitioner implements Runnable {
                         // Check if job completed or if job failed
                         if (status.equals("SUCCESS")) {
                             String buildName = getBuildName(hotBean);
-                            String buildParams = "BRANCH=" + "hotfix_" + hotBean.getOperator() +
+                            String buildParams = "BRANCH=" + "hotfix_" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
                                 "&BUILD_NAME=" + buildName + "&HOTFIX_ID=" + hotBean.getId();
                             hotBean.setJob_name(hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
                             jenkins.startBuild(hotBean.getJob_name(), buildParams);
@@ -151,7 +152,7 @@ public class HotfixStateTransitioner implements Runnable {
                         // Jenkins job has returned a failure status
                         if (status.equals("FAILURE")) {
                             hotBean.setState(HotfixState.FAILED);
-                            hotBean.setError_message("Failed to create hotfix, see https://jenkins.pinadmin.com/job/" +
+                            hotBean.setError_message("Failed to create hotfix, see " + jenkinsUrl +
                                 hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state PUSHING for hotfix id " + hotfixId);
@@ -177,7 +178,7 @@ public class HotfixStateTransitioner implements Runnable {
                         // Jenkins job has returned a failure status
                         if (status.equals("FAILURE")) {
                             hotBean.setState(HotfixState.FAILED);
-                            hotBean.setError_message("Failed to build hotfix, see https://jenkins.pinadmin.com/job/" +
+                            hotBean.setError_message("Failed to build hotfix, see " + jenkinsUrl +
                                 hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state BUILDING for hotfix id " + hotfixId);

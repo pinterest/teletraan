@@ -23,7 +23,7 @@ from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, \
-        DEFAULT_PLACEMENT
+        DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI
 import json
 import logging
 
@@ -76,7 +76,7 @@ class EnvCapacityBasicCreateView(View):
             cluster_info = json.loads(request.body)
 
             log.info("Create Capacity in the provider")
-            clusters_helper.create_cluster(request, cluster_name, cluster_info)
+            clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
 
             log.info("Associate cluster_name to environment")
             # Update cluster info
@@ -135,7 +135,9 @@ class EnvCapacityAdvCreateView(View):
         # cluster manager
         return render(request, 'configs/new_capacity_adv.html', {
             'env': env,
-            'capacity_creation_info': json.dumps(capacity_creation_info)})
+            'capacity_creation_info': json.dumps(capacity_creation_info),
+            'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
+            'is_pinterest': IS_PINTEREST})
 
     def post(self, request, name, stage):
         log.info("Post to capacity with data {0}".format(request.body))
@@ -208,7 +210,9 @@ class ClusterConfigurationView(View):
         }
         return render(request, 'clusters/cluster_configuration.html', {
             'env': env,
-            'capacity_creation_info': json.dumps(capacity_creation_info)})
+            'capacity_creation_info': json.dumps(capacity_creation_info),
+            'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
+            'is_pinterest': IS_PINTEREST})
 
     def post(self, request, name, stage):
         try:

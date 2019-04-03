@@ -23,6 +23,7 @@ from datetime import datetime
 import pytz
 import requests
 import common
+requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
 

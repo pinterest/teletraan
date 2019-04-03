@@ -16,6 +16,7 @@ import requests
 from decorators import retry
 
 from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
+requests.packages.urllib3.disable_warnings()
 
 DEFAULT_TIMEOUT = 30
 
@@ -37,6 +38,14 @@ class BaseClient(object):
 
             response = getattr(requests, method)(url, headers=headers, params=params, json=data,
                                                  timeout=DEFAULT_TIMEOUT, verify=False)
+
+            if response.status_code >= 400 and response.status_code < 600:
+                try:
+                    if "access_token=" in response.content:
+                        bad_text = response.content.split("access_token=")[1].split('"')[0].replace("\\", "")
+                        response.content = response.content.replace(bad_text, "ACCESS_TOKEN")
+                except:
+                    pass
 
             if response.status_code == 401:
                 raise FailedAuthenticationException(
