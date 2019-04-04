@@ -112,8 +112,9 @@ def get_host_details(host_id):
     }
     if IS_PINTEREST and PHOBOS_URL:
         host_ip = instance['config']['internal_address']
+        host_name = instance['config']['name']
         if host_ip is not None:
-            phobos_link = PHOBOS_URL + host_ip
+            phobos_link = PHOBOS_URL + host_name
             host_details['Phobos Link'] = phobos_link
     return host_details
 
