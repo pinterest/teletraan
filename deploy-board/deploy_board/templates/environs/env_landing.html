@@ -18,6 +18,12 @@
     {% endif %}
 {% endif %}
 
+{% if pinterest %}
+    {% if warning_message_title %}
+        {% include "deploys/deploy_warning_message.tmpl" %}
+    {% endif %}
+{% endif %}
+
 {% if project_name_is_default %}
     {% include "deploys/warning_no_nimbus_project_no_deploy.tmpl" %}
 {% endif %}
