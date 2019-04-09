@@ -23,7 +23,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
-    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL,TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL
+    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL,TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, TELETRAAN_WARNING_MESSAGE_URL, TELETRAAN_WARNING_MESSAGE_TITLE
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import GUINEA_PIG_ENVS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
@@ -374,6 +374,8 @@ class EnvLandingView(View):
                 "csrf_token": get_token(request),
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
                 "project_name_is_default": project_name_is_default,
+                "warning_message_title": TELETRAAN_WARNING_MESSAGE_TITLE,
+                "warning_message_url": TELETRAAN_WARNING_MESSAGE_URL,
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -410,6 +412,8 @@ class EnvLandingView(View):
                 "pinterest": IS_PINTEREST,
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
                 "project_name_is_default": project_name_is_default,
+                "warning_message_title": TELETRAAN_WARNING_MESSAGE_TITLE,
+                "warning_message_url": TELETRAAN_WARNING_MESSAGE_URL,
             }
             sortByTag = request.GET.get('sortByTag', None)
             if sortByTag:

@@ -1,0 +1,15 @@
+{% load utils %}
+{% load static %}
+
+    <div id="deployWarningAlert" class="alert alert-danger" role="alert" align="center">
+      <a href="#" class="close" data-dismiss="alert">&times;</a>
+      <p>{{warning_message_title}}</p>
+      <p>Visit <a href="{{warning_message_url}}" target="_blank" rel="noopener">here</a> for more info. Thank you!</p>
+    </div>
+
+<script>
+
+    function closeBanner() {
+        document.getElementById("deployWarningAlert").remove();
+    }
+</script>
