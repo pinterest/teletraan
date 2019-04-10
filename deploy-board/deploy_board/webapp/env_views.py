@@ -229,6 +229,11 @@ def update_service_add_ons(request, name, stage):
 
     serviceAddOns.append(dashboardAddOn)
 
+    console_project_url = None
+    consoleProjectAddOn = service_add_ons.getConsoleProjectAddOn(serviceName=serviceName,
+                                                                 console_project_url=console_project_url)
+    serviceAddOns.append(consoleProjectAddOn)
+
     html = render_to_string('deploys/deploy_add_ons.tmpl', {
         "serviceAddOns": serviceAddOns,
         "pinterest": IS_PINTEREST

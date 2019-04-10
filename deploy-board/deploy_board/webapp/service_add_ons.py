@@ -16,7 +16,9 @@
 from deploy_board.settings import IS_PINTEREST, SERVICE_RATELIMIT_CONFIG_URL, \
                                   STATSBOARD_API_FORMAT, RATELIMIT_ENABLED_METRIC_FORMAT, \
                                   ENABLING_SERVICE_RATELIMIT_URL, KAFKA_MSGS_DELIVERED_METRIC, \
-                                  DASHBOARD_URL_ENDPOINT_FORMAT
+                                  DASHBOARD_URL_ENDPOINT_FORMAT, \
+                                  CONSOLE_PROJECT_URL_FORMAT, \
+                                  CONSOLE_PROJECT_DATA_URL_FORMAT
 import urllib2
 import simplejson as json
 import socket
@@ -177,6 +179,33 @@ class DashboardAddOn(ServiceAddOn):
         if self.buttonUrl is None and serviceName is not None:
             self.buttonUrl = DASHBOARD_URL_ENDPOINT_FORMAT.format(serviceName=serviceName)
 
+class ConsoleProjectAddOn(ServiceAddOn):
+    """
+    Encapsulates the information managed by the Console project add-on tag.
+    """
+
+    def __init__(self,
+                 consoleProjectPage=None,
+                 serviceName=None,
+                 buttonUrl=None,
+                 tagHoverInfo="Click to see the Console project for this service.",
+                 tagInfo="Console Project",
+                 state=ServiceAddOn.UNKNOWN):
+        ServiceAddOn.__init__(self,
+                              serviceName=serviceName,
+                              addOnName="console_project",
+                              buttonUrl=buttonUrl,
+                              tagHoverInfo=tagHoverInfo,
+                              tagInfo=tagInfo,
+                              state=state)
+        self.consoleProjectPage = consoleProjectPage
+        if consoleProjectPage is not None:
+            self.state = consoleProjectPage.state
+
+        self.buttonUrl = buttonUrl
+        if self.buttonUrl is None and serviceName is not None:
+            self.buttonUrl = CONSOLE_PROJECT_URL_FORMAT.format(serviceName=serviceName)
+
 class LogHealthReport(object):
     """
     The results of a log health query.  Used by the kafka logging add on.
@@ -228,6 +257,14 @@ class RateLimitingReport(object):
 class DashboardStateReport(object):
     """
     Encapsulates the state of a dashboard tag for a given service.
+    """
+    def __init__(self,
+                 state=ServiceAddOn.UNKNOWN):
+        self.state = state
+
+class ConsoleProjectPage(object):
+    """
+    Encapsulates the state of a console project tag for a given service.
     """
     def __init__(self,
                  state=ServiceAddOn.UNKNOWN):
@@ -443,6 +480,22 @@ def getDashboardReport(serviceName, report):
       state = ServiceAddOn.UNKNOWN
     return DashboardStateReport(state=state)
 
+def getConsoleProjectPage(serviceName):
+    if IS_PINTEREST: 
+        state = ServiceAddOn.DEFAULT
+        try:
+            consolePage = urllib2.urlopen(CONSOLE_PROJECT_DATA_URL_FORMAT.format(serviceName=serviceName),timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
+            consolePageData = consolePage.read()
+            if consolePageData:
+                state = ServiceAddOn.DEFAULT
+            else:
+                state = ServiceAddOn.UNKNOWN
+        except:
+            state = ServiceAddOn.UNKNOWN
+    else:
+        state = ServiceAddOn.UNKNOWN
+    return ConsoleProjectPage(state=state)
+
 def getRatelimitingAddOn(serviceName, report):
 
     # Some special-casing - in the future it should be possible to retrieve a service
@@ -475,6 +528,12 @@ def getDashboardAddOn(serviceName, metrics_dashboard_url, report):
     return DashboardAddOn(serviceName=serviceName,
                           buttonUrl = metrics_dashboard_url,
                           dashboardStateReport=dashboardStateReport)
+
+def getConsoleProjectAddOn(serviceName, console_project_url):
+    consoleProjectPage = getConsoleProjectPage(serviceName.lower())
+    return ConsoleProjectAddOn(serviceName=serviceName,
+                               buttonUrl=console_project_url,
+                               consoleProjectPage=consoleProjectPage)
 
 """ --- Utility functions live below here --- """
 
