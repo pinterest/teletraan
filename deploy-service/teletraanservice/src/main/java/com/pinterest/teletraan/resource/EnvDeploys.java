@@ -22,7 +22,6 @@ import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.DeployHandler;
@@ -61,7 +60,6 @@ public class EnvDeploys {
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvDeploys.class);
     private EnvironDAO environDAO;
-    private BuildDAO buildDAO;
     private DeployDAO deployDAO;
     private Authorizer authorizer;
     private AgentDAO agentDAO;
@@ -74,7 +72,6 @@ public class EnvDeploys {
 
     public EnvDeploys(TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
-        buildDAO = context.getBuildDAO();
         deployDAO = context.getDeployDAO();
         authorizer = context.getAuthorizer();
         agentDAO = context.getAgentDAO();
@@ -206,10 +203,6 @@ public class EnvDeploys {
         String operator = sc.getUserPrincipal().getName();
         if(StringUtils.isEmpty(buildId)) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Build id can not be empty.");
-        }
-        BuildBean buildBean = buildDAO.getById(buildId);
-        if(!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Build name (%s) does not match stage config (%s).", buildBean.getBuild_name(), envBean.getBuild_name()));
         }
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);
         LOG.info("Successfully create deploy {} for env {}/{} by {}.", deployId, envName, stageName, operator);
