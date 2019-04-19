@@ -72,7 +72,9 @@ def delete_nimbus_identifier(name):
 
 
 def get_nimbus_project(name):
-    return nimbusclient.get_one_project(name)
+    if IS_PINTEREST:
+        return nimbusclient.get_one_project(name)
+    return None
 
 
 def get_console_project_env_url(name):
