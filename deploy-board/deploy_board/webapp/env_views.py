@@ -229,11 +229,6 @@ def update_service_add_ons(request, name, stage):
 
     serviceAddOns.append(dashboardAddOn)
 
-    console_project_url = None
-    consoleProjectAddOn = service_add_ons.getConsoleProjectAddOn(serviceName=serviceName,
-                                                                 console_project_url=console_project_url)
-    serviceAddOns.append(consoleProjectAddOn)
-
     html = render_to_string('deploys/deploy_add_ons.tmpl', {
         "serviceAddOns": serviceAddOns,
         "pinterest": IS_PINTEREST
@@ -349,6 +344,9 @@ class EnvLandingView(View):
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             capacity_info['cluster'] = basic_cluster_info
 
+        console_project_exist = environs_helper.get_nimbus_project(name)
+        console_project_env_url = environs_helper.get_console_project_env_url(name)
+
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
@@ -379,6 +377,8 @@ class EnvLandingView(View):
                 "csrf_token": get_token(request),
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
                 "project_name_is_default": project_name_is_default,
+                "console_project_exist": console_project_exist,
+                "console_project_env_url": console_project_env_url,
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -415,6 +415,8 @@ class EnvLandingView(View):
                 "pinterest": IS_PINTEREST,
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
                 "project_name_is_default": project_name_is_default,
+                "console_project_exist": console_project_exist,
+                "console_project_env_url": console_project_env_url,
             }
             sortByTag = request.GET.get('sortByTag', None)
             if sortByTag:

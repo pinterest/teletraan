@@ -56,7 +56,7 @@ if IS_PINTEREST:
     from deploy_board.webapp.helpers.nimbusclient import NimbusClient
     nimbusclient = NimbusClient()
 
-# Nimbus-related helpers
+# Nimbus Console related helpers
 
 
 def get_nimbus_identifier(name):
@@ -66,8 +66,18 @@ def get_nimbus_identifier(name):
 def create_nimbus_identifier(data):
     return nimbusclient.create_one_identifier(data)
 
+
 def delete_nimbus_identifier(name):
     return nimbusclient.delete_one_identifier(name)
+
+
+def get_nimbus_project(name):
+    return nimbusclient.get_one_project(name)
+
+
+def get_console_project_env_url(name):
+    return nimbusclient.get_one_project_console_url(name)
+
 
 # Teletraan Deploy client helpers
 

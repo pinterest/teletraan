@@ -346,6 +346,14 @@ $('#privateBldUploadBtnId button').click(function () {
                 </a>
             </h4>
             <div class="btn-group pull-right">
+                {% if console_project_exist %}
+                <a href="{{ console_project_env_url }}"
+                    target="_blank"
+                    type="button" class="deployToolTip btn btn-link btn-sm"
+                    title="View environment owner information">
+                    Environment Owner
+                </a>
+                {% endif %}
                 {% if has_deploy and env|isEnvEnabled %}
                 <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback"
                     type="button" class="deployToolTip btn btn-primary btn-sm"
