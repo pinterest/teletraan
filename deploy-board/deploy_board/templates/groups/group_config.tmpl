@@ -185,7 +185,7 @@
                     <label for="load_balancers" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Enter the name of load balancers to attach to this autoscaling group">
-                        Load Balancers
+                        Classic Load Balancers
                     </label>
                     <div class="col-xs-4">
                         <div class="input-group">
@@ -201,11 +201,38 @@
                         </div>
                     </div>
                 </div>
-                 <div class="form-group collapse" id="loadbalancersExpressionDetailsId">
+                <div class="form-group collapse" id="loadbalancersExpressionDetailsId">
                         <div class="col-xs-2">
                         </div>
                         <div class="col-xs-10">
                         Please enter the load balancers you would like to attach to this group seperated by commas.
+                        </div>
+                </div>
+                <div class="form-group">
+                    <label for="target_groups" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Enter the name of target group arns to attach to this autoscaling group">
+                        Target Group ARNs
+                    </label>
+                    <div class="col-xs-10">
+                        <div class="input-group">
+                            <input class="form-control" id="target_groups" name="target_groups" required="false"
+                                   type="text" value="{{ config.targetGroups |default_if_none:'' }}"/>
+                            <span class="input-group-btn">
+                                <button id="targetgroupsExpressionId" class="deployToolTip btn btn-default"
+                                        type="button" data-toggle="tooltip"
+                                        title="click for more information on target groups">
+                                    <span class="glyphicon glyphicon-question-sign"></span>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group collapse" id="targetgroupsExpressionDetailsId">
+                        <div class="col-xs-2">
+                        </div>
+                        <div class="col-xs-10">
+                        Please enter the target group ARNs you would like to attach to this autoscaling group seperated by commas.
                         </div>
                 </div>
             </fieldset>
@@ -308,6 +335,9 @@
         });
         $("#loadbalancersExpressionId").click(function() {
             $("#loadbalancersExpressionDetailsId").collapse('toggle');
+        });
+        $("#targetgroupsExpressionId").click(function() {
+            $("#targetgroupsExpressionDetailsId").collapse('toggle');
         });
     });
 </script>
