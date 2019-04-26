@@ -27,7 +27,6 @@ if IS_PINTEREST:
         url(r'^', include('deploy_board.webapp.urls')),
         url(r'^', include('deploy_board.webapp.mix_urls')),
         url(r'^', include('deploy_board.webapp.arcee_urls')),
-        url(r'^', include('deploy_board.webapp.ngapp2_urls')),
         url(r'^', include('deploy_board.webapp.cluster_urls')),
      ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:
