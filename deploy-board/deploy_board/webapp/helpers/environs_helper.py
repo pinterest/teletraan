@@ -66,8 +66,14 @@ def get_nimbus_identifier(name):
 def create_nimbus_identifier(data):
     return nimbusclient.create_one_identifier(data)
 
+
 def delete_nimbus_identifier(name):
     return nimbusclient.delete_one_identifier(name)
+
+
+def get_nimbus_project_console_url(project_name):
+    return nimbusclient.get_one_project_console_url(project_name)
+
 
 # Teletraan Deploy client helpers
 

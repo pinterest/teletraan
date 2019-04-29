@@ -1,7 +1,7 @@
 """Helper class to connect Nimbus service"""
 import logging
 from decorators import singleton
-from deploy_board.settings import NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION
+from deploy_board.settings import NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, TELETRAAN_PROJECT_URL_FORMAT
 from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
 import requests
 requests.packages.urllib3.disable_warnings()
@@ -60,3 +60,8 @@ class NimbusClient(object):
     def delete_one_identifier(self, name):
         response = requests.delete('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name))
         return self.handle_response(response)
+    
+    def get_one_project_console_url(self, project_name):
+        if not TELETRAAN_PROJECT_URL_FORMAT:
+            return ""
+        return TELETRAAN_PROJECT_URL_FORMAT.format(projectName=project_name)

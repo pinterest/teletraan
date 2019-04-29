@@ -296,3 +296,49 @@ body {
     border-radius:3.5px;
     margin-right: 2px;
 }
+
+.btn-project-info {
+  display: inline-block;
+  padding-left: 0px;
+  line-height: 100%;
+}
+
+.btn-project-info span {
+  padding-left: 24px;
+  color: #428bca;
+  vertical-align: middle;
+  margin-top: -4px;
+  margin-right: -1px;
+}
+
+.btn-project-info a {
+  display: inline-block;
+  text-decoration: none;
+  color: #428bca;
+  font-size: 95%;
+  vertical-align: middle;
+  margin-top: -3px;
+}
+
+.btn-project-info-warning {
+  display: inline-block;
+  padding-left: 0px;
+  line-height: 100%;
+}
+
+.btn-project-info-warning span {
+  padding-left: 16px;
+  color: #d44950;
+  font-size: 110%;
+  vertical-align: middle;
+  margin-top: -9px;
+  margin-right: -1px;
+}
+
+.btn-project-info-warning p {
+  display: inline-block;
+  color: #d44950;
+  font-size: 95%;
+  vertical-align: middle;
+  margin-top: 3px;
+}

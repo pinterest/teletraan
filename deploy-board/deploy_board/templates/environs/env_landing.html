@@ -345,6 +345,19 @@ $('#privateBldUploadBtnId button').click(function () {
                 {% endif %}
                 </a>
             </h4>
+            {% if pinterest %}
+                {% if project_info %}
+                <div class="btn-project-info">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                    <a href="{{ project_info.project_url }}" target="_blank">Project: {{ project_info.project_name }}</a>
+                </div>
+                {% else %}
+                <div class="btn-project-info-warning">
+                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                    <p>Missing project ownership information, please contact slack #infra-console to add it.</p>
+                </div>
+                {% endif %}
+            {% endif %}
             <div class="btn-group pull-right">
                 {% if has_deploy and env|isEnvEnabled %}
                 <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback"
