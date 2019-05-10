@@ -622,12 +622,14 @@ def clone_cluster(request, src_name, src_stage):
         ##0. teletraan service get src env buildName
         src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
         build_name = src_env.get('buildName', None)
+        external_id = src_env.get('externalId', None)
 
         ##1. teletraan service create a new env
         dest_env = environs_helper.create_env(request, {
             'envName': dest_name,
             'stageName': dest_stage,
-            'buildName': build_name
+            'buildName': build_name,
+            'externalId': external_id
         })
         log.info('clone_cluster, created a new env %s' % dest_env)
 
@@ -650,7 +652,7 @@ def clone_cluster(request, src_name, src_stage):
         src_cluster_info['clusterName'] = dest_cluster_name
         src_cluster_info['capacity'] = 0
         log.info('clone_cluster, request clone cluster info %s' % src_cluster_info)
-        dest_cluster_info = clusters_helper.create_cluster(request, dest_cluster_name, src_cluster_info)
+        dest_cluster_info = clusters_helper.create_cluster_with_env(request, dest_cluster_name, dest_name, dest_stage, src_cluster_info)
         log.info('clone_cluster, cloned cluster info %s' % dest_cluster_info)
 
         ##4. teletraan service update_env_basic_config
