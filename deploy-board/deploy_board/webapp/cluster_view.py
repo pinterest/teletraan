@@ -650,7 +650,7 @@ def clone_cluster(request, src_name, src_stage):
         src_cluster_info['clusterName'] = dest_cluster_name
         src_cluster_info['capacity'] = 0
         log.info('clone_cluster, request clone cluster info %s' % src_cluster_info)
-        dest_cluster_info = clusters_helper.create_cluster(request, dest_cluster_name, src_cluster_info)
+        dest_cluster_info = clusters_helper.create_cluster_with_env(request, dest_cluster_name, dest_name, dest_stage, src_cluster_info)
         log.info('clone_cluster, cloned cluster info %s' % dest_cluster_info)
 
         ##4. teletraan service update_env_basic_config
