@@ -41,6 +41,8 @@ public class DBBuildDAOImpl implements BuildDAO {
     private static final String GET_BUILD_BY_ID = "SELECT * FROM builds WHERE build_id=?";
     private static final String GET_BUILDS_BY_COMMIT_7 =
         "SELECT * FROM builds WHERE scm_commit_7=? ORDER BY publish_date DESC LIMIT ?,?";
+    private static final String GET_BUILDS_BY_COMMIT_7_AND_NAME =
+        "SELECT * FROM builds WHERE scm_commit_7=? AND build_name=? ORDER BY publish_date DESC LIMIT ?,?";
     private static final String GET_LATEST_BUILD_BY_NAME =
         "SELECT * FROM builds WHERE build_name=? ORDER BY publish_date DESC LIMIT 1";
     private static final String
@@ -126,11 +128,19 @@ public class DBBuildDAOImpl implements BuildDAO {
     }
 
     @Override
-    public List<BuildBean> getByCommit7(String scmCommit7, int pageIndex, int pageSize)
+    public List<BuildBean> getByCommit7(String scmCommit7, String buildName, int pageIndex, int pageSize)
         throws Exception {
+        QueryRunner run = new QueryRunner(this.dataSource);
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
-        return new QueryRunner(dataSource)
-            .query(GET_BUILDS_BY_COMMIT_7, h, scmCommit7, (pageIndex - 1) * pageSize, pageSize);
+        long start = (pageIndex - 1) * pageSize;
+        if (StringUtils.isNotEmpty(buildName)) {
+            return run
+                .query(GET_BUILDS_BY_COMMIT_7_AND_NAME, h, scmCommit7, buildName, start, pageSize);
+        } else {
+            return run
+                .query(GET_BUILDS_BY_COMMIT_7, h, scmCommit7, start, pageSize);
+        }
+
     }
 
     @Override
@@ -256,7 +266,7 @@ public class DBBuildDAOImpl implements BuildDAO {
         throws Exception {
 
         if (!StringUtils.isEmpty(scmCommit)) {
-            return this.getByCommit7(StringUtils.substring(scmCommit, 0, 7), pageIndex.or(1),
+            return this.getByCommit7(StringUtils.substring(scmCommit, 0, 7), buildName, pageIndex.or(1),
                 pageSize.or(DEFAULT_SIZE));
         }
 

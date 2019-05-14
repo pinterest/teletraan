@@ -5,6 +5,7 @@
         <th>Commit</th>
         <th>Branch</th>
         <th>Repo</th>
+        <th>Build Name</th>
         <th>More Info</th>
         <th>Details</th>
         <th>Tag</th>
@@ -19,6 +20,7 @@
         </td>
         <td>{{ buildInfo.build.branch }}</td>
         <td>{{ buildInfo.build.repo }}</td>
+        <td>{{ buildInfo.build.name }}</td>
         <td><a class="deployToolTip" data-toggle="tooltip"
                title="Click to see the details of publish job info"
                href='{{ buildInfo.build.publishInfo }}'><i class="fa fa-wrench"></i></a>

@@ -6,11 +6,14 @@ deploy-service/teletraanservice/teletraan/
 .idea/
 *.iml
 
-# C extensions
-*.so
-
 # vim
 *.swp
+
+# VSCode
+.vscode/
+
+# C extensions
+*.so
 
 # Ignore dirs
 build_id.properties

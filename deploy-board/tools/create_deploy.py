@@ -25,7 +25,8 @@ def pick_build_id(buildName, x):
 
 
 def create(name, stage, x):
-    buildId = pick_build_id("sample-build", x)
+    buildName = "sample-service-{}".format(x)
+    buildId = pick_build_id(buildName, 0)
     id = deploys_helper.deploy(commons.REQUEST, name, stage, buildId)['id']
     print "Successfully created deploy %s" % id
 
