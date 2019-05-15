@@ -32,7 +32,7 @@ public interface BuildDAO {
     BuildBean getById(String buildId) throws Exception;
 
     // commit in short version
-    List<BuildBean> getByCommit7(String scmCommit7, int pageIndex, int pageSize) throws Exception;
+    List<BuildBean> getByCommit7(String scmCommit7, String buildName, int pageIndex, int pageSize) throws Exception;
 
     void delete(String buildId) throws Exception;
 

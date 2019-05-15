@@ -55,7 +55,7 @@ def get_commit(request, repo, sha):
     return deploy_client.get("/commits/%s/%s" % (repo, sha), request.teletraan_user_id.token)
 
 def get_builds_and_tags(request, **kwargs):
-    params = deploy_client.gen_params(kwargs);
+    params = deploy_client.gen_params(kwargs)
     return deploy_client.get("/builds/tags",request.teletraan_user_id.token, params=params)
 
 def get_build_and_tag(request, id):

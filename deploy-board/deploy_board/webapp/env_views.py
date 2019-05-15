@@ -981,7 +981,7 @@ def deploy_build(request, name, stage, build_id):
 
 def deploy_commit(request, name, stage, commit):
     env = environs_helper.get_env_by_stage(request, name, stage)
-    builds = builds_helper.get_builds_and_tags(request, commit=commit)
+    builds = builds_helper.get_builds_and_tags(request, name=env.get('buildName', ''), commit=commit)
     current_build = None
     if env.get('deployId'):
         deploy = deploys_helper.get(request, env['deployId'])

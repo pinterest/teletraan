@@ -339,7 +339,9 @@ public class DBDAOTest {
         buildDAO.insert(buildBean3);
 
         assertTrue(EqualsBuilder.reflectionEquals(buildBean1, buildDAO.getById("b-1")));
-        assertEquals(buildDAO.getByCommit7("c-1", 1, 10).size(), 4);
+        assertEquals(buildDAO.getByCommit7("c-1", "", 1, 10).size(), 4);
+        assertEquals(buildDAO.getByCommit7("c-1", "sss-1", 1, 10).size(), 3);
+        assertEquals(buildDAO.getByCommit7("c-1", "sss-2", 1, 10).size(), 1);
         assertEquals(buildDAO.getBuildNames("sss-", 1, 100).size(), 2);
 
         List<BuildBean>
