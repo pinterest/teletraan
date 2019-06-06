@@ -336,11 +336,11 @@ class EnvLandingView(View):
 
         if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
             try:
-                existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
+                existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
                 project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
             except TeletraanException as detail:
                 log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-        
+
         project_info = None
         if existing_stage_identifier:
             project_name = existing_stage_identifier.get('projectName', None)
@@ -819,11 +819,11 @@ class EnvNewDeployView(View):
             return redirect("/env/ngapp2/deploy/?stage=2")
 
         return redirect('/env/%s/%s/deploy' % (name, stage))
-    
+
 def create_identifier_for_new_stage(request, env_name, stage_name):
-    """ Create a Nimbus Identifier for the new stage. Assumes that the environment has at least one stage with externalId set. 
-        This is needed so that the method knows which project to associate the new stage to. 
-        
+    """ Create a Nimbus Identifier for the new stage. Assumes that the environment has at least one stage with externalId set.
+        This is needed so that the method knows which project to associate the new stage to.
+
         If the environment has no stage with externalId set, this method will not attempt to create an Identifier.
     """
 
@@ -837,19 +837,19 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
             stage_with_external_id = env_stage
             break
 
-    if stage_with_external_id == None: 
+    if stage_with_external_id == None:
         return None
 
     else:
     # retrieve Nimbus identifier for existing_stage
-        existing_stage_identifier = environs_helper.get_nimbus_identifier(stage_with_external_id['externalId'])
+        existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
         new_stage_identifier = None
          # create Nimbus Identifier for the new stage
-        if existing_stage_identifier is not None:   
+        if existing_stage_identifier is not None:
             nimbus_request_data = existing_stage_identifier.copy()
             nimbus_request_data['stage_name'] = stage_name
             nimbus_request_data['env_name'] = env_name
-            new_stage_identifier = environs_helper.create_nimbus_identifier(nimbus_request_data)
+            new_stage_identifier = environs_helper.create_nimbus_identifier(request, nimbus_request_data)
 
     return new_stage_identifier
 
@@ -860,7 +860,7 @@ def post_add_stage(request, name):
     stage = data.get("stage")
     from_stage = data.get("from_stage")
     description = data.get("description")
-    
+
     external_id = None
 
     if IS_PINTEREST:
@@ -884,8 +884,8 @@ def remove_stage(request, name, stage):
             break
 
     if current_env_stage_with_external_id is not None and current_env_stage_with_external_id['externalId'] is not None:
-        environs_helper.delete_nimbus_identifier(current_env_stage_with_external_id['externalId'])
-    
+        environs_helper.delete_nimbus_identifier(request, current_env_stage_with_external_id['externalId'])
+
     environs_helper.delete_env(request, name, stage)
     envs = environs_helper.get_all_env_stages(request, name)
     response = redirect('/env/' + name)
@@ -1636,7 +1636,7 @@ def compare_deploys_2(request, name, stage):
     repo = start_build['repo']
     end_build = builds_helper.get_build(request, end_build_id)
     endSha = _get_endSha(end_build)
-    
+
     scm_url = systems_helper.get_scm_url(request)
     diffUrl = "%s/%s/compare/%s...%s" % (scm_url, repo, endSha, startSha)
     return render(request, 'deploys/deploy_commits.html', {
