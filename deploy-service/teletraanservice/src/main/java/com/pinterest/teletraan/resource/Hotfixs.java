@@ -84,7 +84,7 @@ public class Hotfixs {
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     public void update(@Context SecurityContext sc, @PathParam("id") String id,
         HotfixBean hotfixBean) throws Exception {
-        authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.OPERATOR);
+        authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PUBLISHER);
         hotfixDAO.update(id, hotfixBean);
         LOG.info("Successfully updated hotfix {} with {}.", id, hotfixBean);
     }
