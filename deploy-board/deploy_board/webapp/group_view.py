@@ -285,8 +285,6 @@ def get_asg_config(request, group_name):
     launch_config = group_info.get("launchInfo")
     group_size = len(instances)
     policies = autoscaling_groups_helper.TerminationPolicy
-    if asg_summary.get("spotRatio", None):
-        asg_summary["spotRatio"] *= 100
     if asg_summary.get("sensitivityRatio", None):
         asg_summary["sensitivityRatio"] *= 100
     scheduled_actions = autoscaling_groups_helper.get_scheduled_actions(request, group_name)
@@ -347,7 +345,8 @@ def update_asg_config(request, group_name):
         asg_request["terminationPolicy"] = params["terminationPolicy"]
         if "enableSpot" in params:
             asg_request["enableSpot"] = True
-            asg_request["spotRatio"] = float(params["spotRatio"]) / 100
+            asg_request["spotMinSize"] = int(params["spotMinSize"])
+            asg_request["spotMaxSize"] = int(params["spotMaxSize"])
             asg_request["sensitivityRatio"] = float(params["sensitivityRatio"]) / 100
             asg_request["spotPrice"] = params["bidPrice"]
             if "enableResourceLending" in params:

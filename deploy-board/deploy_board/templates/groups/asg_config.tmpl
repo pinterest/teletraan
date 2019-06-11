@@ -31,7 +31,7 @@
                 <label for="minSize" class="deployToolTip control-label col-xs-2"
                     data-toggle="tooltip"
                     title="minimum number of hosts in one autoscaling group">
-                    Min Size (current group size {{ group_size }})
+                    Min Size (current size {{ group_size }})
                 </label>
                 <div class="col-xs-4">
                     <input class="form-control" name="minSize" required="true" id="minSizeInput"
@@ -113,69 +113,54 @@
 
             <div id="spotInstanceConfigDiv" class="hidden">
                 <div class="form-group">
-                    <label for="spotInstanceRatio" class="deployToolTip control-label col-xs-2"
+                    <label for="spotInstanceMinSize" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
-                        title="percentage of the spot instance in the fleet">
-                            Spot Instances Ratio
+                        title="minimum number of hosts in Spot instance autoscaling group">
+                            Spot Instance Min Size
                     </label>
                     <div class="col-xs-4">
-                        <div class="input-group">
-                            <input class="form-control" name="spotRatio" required="true" id="spotRatio"
-                               type="text" value="{{ asg.spotRatio|default_if_none:'' }}"/>
-                            <span class="input-group-addon">%</span>
-                        </div>
+                        <input class="form-control" name="spotMinSize" required="true" id="spotMinSizeInput"
+                           type="text" value="{{ asg.spotMinSize|default_if_none:'' }}"/>
                     </div>
 
-                    <label for="spotsensitivityRatio" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip" title="">
-                        Sensitivity Ratio
+                    <label for="spotMaxSize" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="maximum number of hosts in Spot instance autoscaling group">
+                            Spot Instance Max Size
                     </label>
                     <div class="col-xs-4">
-                        <div class="input-group">
-                            <input class="form-control" name="sensitivityRatio" required="true"
-                                type="text" value="{{ asg.sensitivityRatio|default_if_none:'' }}"/>
-                        <span class="input-group-addon">%</span>
-                        </div>
-                    </div>
-               </div>
-            </div>
-
-            <div class="form-group">
-                <label for="bidPrice" class="deployToolTip control-label col-xs-2"
-                    data-toggle="tooltip"
-                    title="bidPrice">
-                    Maximum Bid Price
-                </label>
-                <div class="col-xs-4">
-                    <div class="input-group">
-                        <span class="input-group-addon">$</span>
-                        <input class="form-control" name="bidPrice" required="true" type="text" id="bidPrice"
-                            value="{{asg.bidPrice| default_if_none:'' }}" />
+                        <input class="form-control" name="spotMaxSize" required="true" id="spotMaxSizeInput"
+                           type="text" value="{{ asg.spotMaxSize|default_if_none:'' }}"/>
                     </div>
                 </div>
 
-                <label for="bidPrice" class="deployToolTip control-label col-xs-2"
-                    data-toggle="tooltip"
-                    title="bidPrice">
-                    ({{instanceType}} Pricing: $1.68/Hour)
-                </label>
-            </div>
-            <div class="form-group">
-                  <label for="enableResourceLending" class="deployToolTip control-label col-xs-2"
-                     data-toggle="tooltip"
-                     title="Whether we allow free RI lending">
-                     Allow Free Instances Lending
-                  </label>
-                  <div class="col-xs-3">
-                     <div class="input-group">
-                        {% if asg.enableResourceLending %}
-                          <input class="" id="enableResourceLending" name="enableResourceLending" type="checkbox" value="" checked>
-                        {% else %}
-                          <input class="" id="enableResourceLending" name="enableResourceLending" type="checkbox" value="">
-                        {% endif %}
-                     </div>
-                  </div>
-            </div>
+                <div class="form-group">
+                    <label for="bidPrice" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="bidPrice">
+                        Maximum Bid Price ({{instanceType}} Pricing: $1.68/Hour)
+                    </label>
+                    <div class="col-xs-4">
+                        <div class="input-group">
+                            <span class="input-group-addon">$</span>
+                            <input class="form-control" name="bidPrice" required="true" type="text" id="bidPrice"
+                                value="{{asg.bidPrice| default_if_none:'' }}" />
+                        </div>
+                    </div>
+
+                   <label for="spotsensitivityRatio" class="deployToolTip control-label col-xs-2 hidden"
+                        data-toggle="tooltip" title="">
+                        Sensitivity Ratio
+                    </label>
+
+                    <div class="col-xs-4">
+                        <div class="input-group hidden">
+                            <input class="form-control" name="sensitivityRatio" required="true"
+                                type="text" value="{{ asg.sensitivityRatio|default_if_none:'0' }}"/>
+                            <span class="input-group-addon">%</span>
+                        </div>
+                    </div>
+                </div>
         </fieldset>
       {% csrf_token %}
        </form>
@@ -265,13 +250,6 @@ $(function () {
     $('#autoscalingGroupConfigFormId input').keyup(function() {
         $('#saveEnvConfigBtnId').removeAttr('disabled');
         $('#resetEnvConfigBtnId').removeAttr('disabled');
-        val = parseInt($("#minSizeInput").val())
-        group_size = parseInt({{group_size}})
-        if ( val < group_size / 2) {
-            $('#minSizeWarningDivId').removeClass("hidden");
-        } else {
-            $('#minSizeWarningDivId').addClass("hidden");
-        }
     });
 
     $('#autoscalingGroupConfigFormId select').change(function() {
