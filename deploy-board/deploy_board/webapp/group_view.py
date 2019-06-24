@@ -30,6 +30,7 @@ from helpers import specs_helper, autoscaling_groups_helper
 from helpers import autoscaling_metrics_helper
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
+from helpers.exceptions import TeletraanException
 
 log = logging.getLogger(__name__)
 
@@ -179,6 +180,35 @@ def update_launch_config(request, group_name):
             launchRequest["assignPublicIp"] = True
         else:
             launchRequest["assignPublicIp"] = False
+
+        userPassInSpiffeID = None
+        passInUserDataList = params["userData"].splitlines()
+        for item in passInUserDataList:
+                if ":" in item:
+                    pair = item.split(":")
+                    if pair[0] == "spiffe_id":
+                        userPassInSpiffeID = pair[1]
+                        break
+
+        group_info = autoscaling_groups_helper.get_group_info(request, group_name)
+        launch_config = group_info.get("launchInfo")
+        if 'userData' in launch_config:
+            userDataList = launch_config['userData'].splitlines()
+            for item in userDataList:
+                if ":" in item:
+                    pair = item.split(":")
+                    if pair[0] == "spiffe_id" and userPassInSpiffeID is None:
+                        log.error("Teletraan does not support user to remove spiffe_id in userData field")
+                        raise TeletraanException("Teletraan does not support user to remove spiffe_id")
+
+                    if pair[0] == "spiffe_id" and pair[1] != userPassInSpiffeID:
+                        log.error("Teletraan does not support user to update spiffe_id in userData field")
+                        raise TeletraanException("Teletraan does not support user to update spiffe_id")
+
+                    if pair[0] != "spiffe_id" and userPassInSpiffeID is not None:
+                        log.error("Teletraan does not support user to create spiffe_id in userData field")
+                        raise TeletraanException("Teletraan does not support user to create spiffe_id")
+
         autoscaling_groups_helper.update_launch_config(request, group_name, launchRequest)
         return get_launch_config(request, group_name)
     except:
