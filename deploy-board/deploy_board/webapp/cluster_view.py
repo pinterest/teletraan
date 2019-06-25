@@ -76,9 +76,10 @@ class EnvCapacityBasicCreateView(View):
             cluster_info = json.loads(request.body)
 
             log.info("Create Capacity in the provider")
-            if 'spiffe_id' in cluster_info:
-                log.error("Teletraan does not support user to change spiffe_id %s"  % cluster_info['spiffe_id'])
-                raise TeletraanException("Teletraan does not support user to create spiffe_id")
+            if 'configs' in cluster_info:
+                if 'spiffe_id' in cluster_info['configs']:
+                    log.error("Teletraan does not support user to change spiffe_id %s"  % cluster_info['spiffe_id'])
+                    raise TeletraanException("Teletraan does not support user to create spiffe_id")
 
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
 
@@ -212,6 +213,7 @@ class ClusterConfigurationView(View):
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'currentCluster': current_cluster
         }
+
         return render(request, 'clusters/cluster_configuration.html', {
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
@@ -224,17 +226,20 @@ class ClusterConfigurationView(View):
             cluster_name = env.get('clusterName')
             cluster_info = json.loads(request.body)
             log.info("Update Cluster Configuration with {}", cluster_info)
+
             cluster_name = '{}-{}'.format(name, stage)
             current_cluster = clusters_helper.get_cluster(request, cluster_name)
             log.info("getting current Cluster Configuration is {}", current_cluster)
-            if 'spiffe_id' not in current_cluster and 'spiffe_id' in cluster_info:
-                log.error("Teletraan does not support user to pass in customized spiffe_id %s if exising cluster does not have" % cluster_info['spiffe_id'])
-                raise TeletraanException("Teletraan does not support user to pass in customized spiffe_id")
-            if 'spiffe_id' in current_cluster and 'spiffe_id' in cluster_info:
-                if current_cluster['spiffe_id'] != cluster_info['spiffe_id']:
-                    log.error("Teletraan does not support user to change spiffe_id %s , current spiffe_id %s"
-                        % (cluster_info['spiffe_id'], current_cluster['spiffe_id']))
-                    raise TeletraanException("Teletraan does not support user to change spiffe_id")
+            if 'configs' in current_cluster and 'configs' in cluster_info:
+                if 'spiffe_id' in current_cluster['configs'] and 'spiffe_id' in cluster_info['configs']:
+                    if current_cluster['configs']['spiffe_id'] != cluster_info['configs']['spiffe_id']:
+                       log.error("Teletraan does not support user to update spiffe_id %s" % cluster_info['spiffe_id'])
+                       raise TeletraanException("Teletraan does not support user to update spiffe_id")
+
+                if 'spiffe_id' in current_cluster['configs'] and 'spiffe_id' not in cluster_info['configs']:
+                    log.error("Teletraan does not support user to remove spiffe_id %s" % cluster_info['spiffe_id'])
+                    raise TeletraanException("Teletraan does not support user to remove spiffe_id")
+
             image = baseimages_helper.get_by_id(request, cluster_info['baseImageId'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
