@@ -32,16 +32,17 @@ class NimbusClient(object):
 
     def get_one_identifier(self, name, token=None):
         headers = {}
+        headers['Client-Authorization'] = 'client Teletraan'
         if token:
             headers['Authorization'] = 'token %s' % token
 
-        log.error("CALLING %s TO GET IDENTIFIER" % NIMBUS_SERVICE_URL)
         response = requests.get('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name),
                                 headers=headers)
         return self.handle_response(response)
 
     def create_one_identifier(self, data, token=None):
         headers = {}
+        headers['Client-Authorization'] = 'client Teletraan'
         if token:
             headers['Authorization'] = 'token %s' % token
 
@@ -63,7 +64,6 @@ class NimbusClient(object):
             'stageName': data.get('stage_name')
         }
 
-        log.error("CALLING %s TO CREATE IDENTIFIER" % NIMBUS_SERVICE_URL)
         response = requests.post('{}/api/{}/identifiers'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION),
                                  json=payload,
                                  headers=headers)
@@ -72,10 +72,10 @@ class NimbusClient(object):
 
     def delete_one_identifier(self, name, token=None):
         headers = {}
+        headers['Client-Authorization'] = 'client Teletraan'
         if token:
             headers['Authorization'] = 'token %s' % token
 
-        log.error("CALLING %s TO DELETE IDENTIFIER" % NIMBUS_SERVICE_URL)
         response = requests.delete('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name),
                                  headers=headers)
         return self.handle_response(response)

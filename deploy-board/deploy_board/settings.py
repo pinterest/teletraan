@@ -130,6 +130,7 @@ LOGGING = {
         'console': {
             'level': LOG_LEVEL,
             'class': 'logging.StreamHandler',
+            'formatter': 'standard',
         },
     },
     'loggers': {
@@ -306,5 +307,5 @@ if IS_PINTEREST:
 
     # Nimbus service url
     NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL", None)
-    NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)    
+    NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)
 

@@ -63,22 +63,18 @@ if IS_PINTEREST:
 
 
 def get_nimbus_identifier(request, name):
-    log.error("GETTING NIMBUS IDENTIFIER")
     return nimbusclient.get_one_identifier(name, token=request.teletraan_user_id.token)
 
 
 def create_nimbus_identifier(request, data):
-    log.error("CREATING NIMBUS IDENTIFIER")
     return nimbusclient.create_one_identifier(data, token=request.teletraan_user_id.token)
 
 
 def delete_nimbus_identifier(request, name):
-    log.error("DELETEING NIMBUS IDENTIFIER")
     return nimbusclient.delete_one_identifier(name, token=request.teletraan_user_id.token)
 
 
 def get_nimbus_project_console_url(project_name):
-    log.error("GETTING NIMBUS PROJECT URL")
     return nimbusclient.get_one_project_console_url(project_name)
 
 
