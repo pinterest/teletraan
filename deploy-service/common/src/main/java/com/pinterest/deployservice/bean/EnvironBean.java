@@ -59,8 +59,9 @@ import java.io.Serializable;
  * cluster_name        VARCHAR(128)
  * max_parallel_rp     INT           NOT NULL DEFAULT 1,
  * schedule_id         VARCHAR(22)   DEFAULT NULL,
- * deploy_constraint_id VARCHAR(22)   DEFAULT NULL
- * external_id CHAR(36)
+ * deploy_constraint_id VARCHAR(22)   DEFAULT NULL,
+ * external_id CHAR(36),
+ * allow_private_build TINYINT(1)    DEFAULT 0
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -179,6 +180,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("externalId")
     private String external_id;
+
+    @JsonProperty("allowPrivateBuild")
+    private Boolean allow_private_build;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -476,6 +480,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.external_id = external_id;
     }
 
+    public Boolean getAllow_private_build() {
+        return allow_private_build;
+    }
+
+    public void setAllow_private_build(Boolean allow_private_build) {
+        this.allow_private_build = allow_private_build;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -516,6 +528,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("schedule_id", schedule_id);
         clause.addColumn("deploy_constraint_id", deploy_constraint_id);
         clause.addColumn("external_id", external_id);
+        clause.addColumn("allow_private_build", allow_private_build);
         return clause;
     }
 
