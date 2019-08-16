@@ -216,7 +216,7 @@ public class EnvDeploys {
         }
         // check if the stage is whitelisted (allow_private_build) for private build
         if(buildBean.getScm_branch().equals("private") && ! envBean.getAllow_private_build()) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("This stage does not allow deploying a private build. Please Contact #teletraan and #security-related to whitelist your stage for deploying private build"));
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("This stage does not allow deploying a private build. Please visit https://w.pinadmin.com/x/_SKNB to request permission"));
         }
         
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);
