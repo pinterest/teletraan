@@ -55,7 +55,7 @@ class DelegatedOAuthMiddleware(object):
             return None
 
         if not self.is_oauth_enabled:
-            anonymous = UserIdentity(name="anonymous")
+            anonymous = UserIdentity(name="anonymous", token=settings.ANONYMOUS_TOKEN)
             request.teletraan_user_id = anonymous
             return None
 

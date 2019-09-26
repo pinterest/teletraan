@@ -49,6 +49,7 @@ TEMPLATES = [
 SECRET_KEY = os.getenv("SECRET_KEY", None)
 SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 # OAuth
+ANONYMOUS_TOKEN = os.getenv("ANONYMOUS_TOKEN")
 OAUTH_ENABLED_STR = os.getenv("OAUTH_ENABLED", "OFF")
 if OAUTH_ENABLED_STR == "OFF":
     OAUTH_ENABLED = False
