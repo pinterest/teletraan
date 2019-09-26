@@ -75,7 +75,7 @@
         <h4 class="panel-title pull-left">Environments</h4>
     </div>
 	<div class="row">
-      {% if redirect_create_env_page_url %}
+      {% if redirect_create_env_page_url is not none %}
         <a href='{{ redirect_create_env_page_url }}' target='_blank' class="deployToolTip btn btn-default btn-block">
       {% else %}
         <a class="deployToolTip btn btn-default btn-block" data-original-title="" title="" data-toggle="modal" data-target="#newEnvModalId">
