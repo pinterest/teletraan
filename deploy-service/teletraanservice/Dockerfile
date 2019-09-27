@@ -1,6 +1,4 @@
-From java:8
-
-RUN apt-get update && apt-get install -y php5 php5-curl
+FROM openjdk:8
 
 ENV PROJECT_DIR=/opt/deploy-service
 
