@@ -40,6 +40,7 @@ import com.pinterest.deployservice.events.DefaultEventSender;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
+import com.pinterest.teletraan.config.BuildWhitelistFactory;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
@@ -65,6 +66,8 @@ import org.quartz.TriggerBuilder;
 import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javafx.util.BuilderFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -139,6 +142,13 @@ public class ConfigHelper {
             context.setRodimusManager(new RodimusManagerImpl(rodimusFactory.getRodimusUrl(), rodimusFactory.getToken()));
         } else {
             context.setRodimusManager(new DefaultRodimusManager());
+        }
+
+        BuildWhitelistFactory buildWhitelistFactory = configuration.getBuildWhitelistFactory();
+        if (buildWhitelistFactory != null) {
+            context.setBuildWhitelist(new BuildWhitelistImpl(buildWhitelistFactory.getValidBuildURLs()));
+        } else {
+            context.setBuildWhitelist(new BuildWhitelistImpl(new List<String>()));
         }
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
