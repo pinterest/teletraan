@@ -38,7 +38,6 @@ import com.pinterest.teletraan.config.SystemFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.oracle.jrockit.jfr.ValueDefinition;
 
 import io.dropwizard.Configuration;
 
