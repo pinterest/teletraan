@@ -17,9 +17,10 @@ package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
 
 public class BuildWhitelistFactory {
-    @JsonPropery
+    @JsonProperty
     private List<String> validBuildURLs;
 
     public List<String> getValidBuildURLs() {

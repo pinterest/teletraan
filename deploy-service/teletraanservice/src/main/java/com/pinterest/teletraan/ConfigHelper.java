@@ -41,6 +41,7 @@ import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.teletraan.config.BuildWhitelistFactory;
+import com.pinterest.deployservice.whitelists.BuildWhitelistImpl;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
@@ -148,7 +149,7 @@ public class ConfigHelper {
         if (buildWhitelistFactory != null) {
             context.setBuildWhitelist(new BuildWhitelistImpl(buildWhitelistFactory.getValidBuildURLs()));
         } else {
-            context.setBuildWhitelist(new BuildWhitelistImpl(new List<String>()));
+            context.setBuildWhitelist(new BuildWhitelistImpl(new ArrayList<String>()));
         }
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
