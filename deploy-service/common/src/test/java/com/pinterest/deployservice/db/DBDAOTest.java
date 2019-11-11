@@ -1076,6 +1076,7 @@ public class DBDAOTest {
         envBean.setMax_parallel_rp(1);
         envBean.setOverride_policy(OverridePolicy.OVERRIDE);
         envBean.setAllow_private_build(false);
+        envBean.setEnsure_trusted_build(false);
         return envBean;
     }
 

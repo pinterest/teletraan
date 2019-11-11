@@ -61,7 +61,8 @@ import java.io.Serializable;
  * schedule_id         VARCHAR(22)   DEFAULT NULL,
  * deploy_constraint_id VARCHAR(22)   DEFAULT NULL,
  * external_id CHAR(36),
- * allow_private_build TINYINT(1)    DEFAULT 0
+ * allow_private_build TINYINT(1)    DEFAULT 0,
+ * ensure_trusted_build TINYINT(1)    DEFAULT 0,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -183,6 +184,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("allowPrivateBuild")
     private Boolean allow_private_build;
+
+    @JsonProperty("ensureTrustedBuild")
+    private Boolean ensure_trusted_build;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -488,6 +492,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.allow_private_build = allow_private_build;
     }
 
+    public Boolean getEnsure_trusted_build() {
+        return ensure_trusted_build;
+    }
+
+    public void setEnsure_trusted_build(Boolean ensure_trusted_build) {
+        this.ensure_trusted_build = ensure_trusted_build;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -529,6 +541,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("deploy_constraint_id", deploy_constraint_id);
         clause.addColumn("external_id", external_id);
         clause.addColumn("allow_private_build", allow_private_build);
+        clause.addColumn("ensure_trusted_build", ensure_trusted_build);
         return clause;
     }
 
