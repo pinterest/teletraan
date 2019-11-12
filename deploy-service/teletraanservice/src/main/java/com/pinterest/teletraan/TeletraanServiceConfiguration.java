@@ -18,6 +18,7 @@ package com.pinterest.teletraan;
 import com.pinterest.teletraan.config.AnonymousAuthenticationFactory;
 import com.pinterest.teletraan.config.AuthenticationFactory;
 import com.pinterest.teletraan.config.AuthorizationFactory;
+import com.pinterest.teletraan.config.BuildWhitelistFactory;
 import com.pinterest.teletraan.config.ChatFactory;
 import com.pinterest.teletraan.config.DataSourceFactory;
 import com.pinterest.teletraan.config.DefaultChatFactory;
@@ -37,6 +38,7 @@ import com.pinterest.teletraan.config.SystemFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import io.dropwizard.Configuration;
 
 import java.util.Collections;
@@ -93,6 +95,9 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("jenkins")
     private JenkinsFactory jenkinsFactory;
 
+    @Valid
+    @JsonProperty("buildWhitelist")
+    private BuildWhitelistFactory buildWhitelistFactory;
 
     @Valid
     @JsonProperty("externalAlerts")
@@ -140,6 +145,17 @@ public class TeletraanServiceConfiguration extends Configuration {
             return new OpenAuthorizationFactory();
         }
         return authorizationFactory;
+    }
+
+    public BuildWhitelistFactory getBuildWhitelistFactory() {
+        if (buildWhitelistFactory == null) {
+            return new BuildWhitelistFactory();
+        }
+        return buildWhitelistFactory;
+    }
+
+    public void setBuildWhitelistFactory(BuildWhitelistFactory buildWhitelist) {
+        this.buildWhitelistFactory = buildWhitelist;
     }
 
     public ChatFactory getChatFactory() {

@@ -23,6 +23,7 @@ import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.scm.SourceControlManager;
+import com.pinterest.deployservice.whitelists.Whitelist;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
@@ -51,6 +52,7 @@ public class Builds {
     private final static int DEFAULT_SIZE = 100;
     private BuildDAO buildDAO;
     private TagDAO tagDAO;
+    private Whitelist buildWhitelist;
     private SourceControlManager sourceControlManager;
     private final Authorizer authorizer;
 
@@ -62,6 +64,7 @@ public class Builds {
         tagDAO = context.getTagDAO();
         sourceControlManager = context.getSourceControlManager();
         authorizer = context.getAuthorizer();
+        buildWhitelist = context.getBuildWhitelist();
     }
 
     @GET
@@ -180,7 +183,6 @@ public class Builds {
 
         if (StringUtils.isEmpty(buildBean.getScm_commit_7())) {
             buildBean.setScm_commit_7(StringUtils.substring(buildBean.getScm_commit(), 0, 7));
-
         }
 
         if (StringUtils.isEmpty(buildBean.getScm_info())) {
@@ -201,6 +203,12 @@ public class Builds {
 
         // Set who published the build
         buildBean.setPublisher(sc.getUserPrincipal().getName());
+
+        // Check if build is approved via our whitelist of URLs
+        if (!buildWhitelist.approved(buildBean.getArtifact_url())) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                "Artifact URL points to unapproved location.");
+        }
 
         // We append commit SHA after build id to make build directory name human friendly
         String id = CommonUtils.getBase64UUID();
