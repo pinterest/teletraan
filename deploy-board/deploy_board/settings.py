@@ -286,7 +286,7 @@ if IS_PINTEREST:
     DEFAULT_PROVIDER = 'AWS'
 
     #Pinterest Default AMI image name
-    DEFAULT_CMP_IMAGE = 'cmp_base-ebs'
+    DEFAULT_CMP_IMAGE = 'cmp_base-ebs-18.04'
 
     #Pinterest Default Host Type
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
