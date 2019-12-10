@@ -31,7 +31,7 @@ urlpatterns = [
         cluster_view.get_security_zones_by_provider_and_cell),
     url(r'^clouds/get_base_images/$', cluster_view.get_base_images_by_name),
     url(r'^clouds/get_base_images/(?P<name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_images_by_name_json),
-    url(r'^clouds/get_base_image_info/(?P<name>[a-zA-Z0-9\-_]+)/$', cluster_view.get_base_images_by_name_json),
+    url(r'^clouds/get_base_image_info/(?P<name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_images_by_name_json),
 
     url(r'^clouds/create_host_type/$', cluster_view.create_host_type),
     url(r'^clouds/hosttypes/$', cluster_view.get_host_types),
