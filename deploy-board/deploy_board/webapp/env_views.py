@@ -815,9 +815,6 @@ class EnvNewDeployView(View):
 
     def post(self, request, name, stage):
         common.deploy(request, name, stage)
-        if name == 'ngapp2-A' or name == 'ngapp2-B':
-            return redirect("/env/ngapp2/deploy/?stage=2")
-
         return redirect('/env/%s/%s/deploy' % (name, stage))
 
 def create_identifier_for_new_stage(request, env_name, stage_name):

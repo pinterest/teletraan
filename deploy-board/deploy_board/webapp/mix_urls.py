@@ -16,7 +16,6 @@
 from django.conf.urls import url
 import feedback_views
 import hotfix_views
-import ngapp2_view
 import util_views
 
 urlpatterns = [

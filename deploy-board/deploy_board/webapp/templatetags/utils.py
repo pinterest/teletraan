@@ -207,11 +207,6 @@ def hotfixCanDeploy(value):
     return value == "SUCCEEDED"
 
 
-@register.filter("isNgapp2Env")
-def isNgapp2Env(value):
-    return value.startswith("ngapp2-")
-
-
 @register.filter("hotfixCanCancel")
 def hotfixCanCancel(value):
     return value == "INITIAL" or value == "BUILDING" or value == "PUSHING"

@@ -274,12 +274,6 @@ if IS_PINTEREST:
                    {"min": 300, "max": 600, "color": "Green"}]}
     ]
 
-    # Pinterest ngapp2 status file
-    NGAPP_PRE_DEPLOY_STATUS_NODE = "varnish_pre_deploy_status"
-    NGAPP_POST_DEPLOY_STATUS_NODE = "varnish_post_deploy_status"
-    NGAPP_ROLLBACK_STATUS_NODE = "varnish_rollback_status"
-    NGAPP_DEPLOY_CHANNEL = "deploys"
-
     DEFAULT_START_TIME = "-1d"
 
     #Pinterest Default Cloud Provider

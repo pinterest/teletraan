@@ -3,9 +3,7 @@
 <div class="row">
 <ul class="list-group">
     {% for envName in envNames %}
-    {% if envName != "ngapp2-B" and envName != "ngapp2-A" %}
-    <a href="/env/{{ envName }}/" class="list-group-item">{{ envName }}</a>
-    {% endif %}
+        <a href="/env/{{ envName }}/" class="list-group-item">{{ envName }}</a>
     {% endfor%}
 </ul>
 </div>
