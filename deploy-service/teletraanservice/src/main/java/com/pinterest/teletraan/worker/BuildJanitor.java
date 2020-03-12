@@ -37,7 +37,7 @@ import java.util.List;
  * And we need to keep the number of builds is not more than maxToKeep
  */
 public class BuildJanitor implements Job {
-    private static final Logger LOG = LoggerFactory.getLogger(StateTransitioner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BuildJanitor.class);
     private static final long MILLIS_PER_DAY = 86400000;
 
     public BuildJanitor() {
@@ -63,15 +63,15 @@ public class BuildJanitor implements Job {
                     LOG.debug(String.format("Successfully get lock: %s", buildLockName));
                     try {
                         buildDAO.deleteUnusedBuilds(buildName, timeThreshold, numToDelete);
-                        LOG.info("Successfully removed builds: %s before %d milliseconds has %d.",                            buildName, timeThreshold, numToDelete);
+                        LOG.info(String.format("Successfully removed builds: %s before %d milliseconds has %d.",                            buildName, timeThreshold, numToDelete));
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
                     } finally {
                         utilDAO.releaseLock(buildLockName, connection);
-                        LOG.debug("Successfully released log: %s", buildLockName);
+                        LOG.debug(String.format("Successfully released log: %s", buildLockName));
                     }
                 } else {
-                    LOG.warn("Failed to get lock: %s", buildLockName);
+                    LOG.warn(String.format("Failed to get lock: %s", buildLockName));
                 }
             }
         }
