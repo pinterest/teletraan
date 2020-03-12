@@ -122,8 +122,8 @@ public class DeployTagWorker implements Runnable {
             for (DeployConstraintBean job : jobs) {
                 LOG.info("process job: {}", job);
                 String lockName = String.format("DeployTagWorker-%s", job.getConstraint_id());
-                DeployConstraintBean latestJob = deployConstraintDAO.getById(job.getConstraint_id());
                 Connection connection = utilDAO.getLock(lockName);
+                DeployConstraintBean latestJob = deployConstraintDAO.getById(job.getConstraint_id());
                 if (connection != null) {
                     try {
                         processEachEnvironConstraint(latestJob);
@@ -131,11 +131,11 @@ public class DeployTagWorker implements Runnable {
                         LOG.error("failed to process job: {} Error {} stack {}", latestJob.toString(),
                                 ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getFullStackTrace(e));
                         if (e instanceof SQLException) {
+                            // Don't do anything
+                        } else {
                             latestJob.setState(TagSyncState.ERROR);
                             deployConstraintDAO.updateById(job.getConstraint_id(), latestJob);
                             LOG.error("updated job state to {}", TagSyncState.ERROR);
-                        } else {
-                            // SOME other ERROR
                         }
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
