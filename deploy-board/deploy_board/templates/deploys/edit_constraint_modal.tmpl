@@ -41,7 +41,7 @@
                                    data-placement="right"
                                    data-trigger="manual"
                                    title="numbers only." value="{{ max_parallel }}">
-                            <small>Note: This number MUST be smaller the config/max_parallel_hosts</small>
+                            <small>Note: This number MUST be smaller than <a href="/env/{{ envName }}/{{ stageName }}/config" target="_blank">config/max_parallel_hosts</a> otherwise your deployment may not work</small>
                         </div>
                     </div>
                 </div>
