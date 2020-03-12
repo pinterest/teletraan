@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 public class DeployTagWorker implements Runnable {
@@ -121,15 +122,21 @@ public class DeployTagWorker implements Runnable {
             for (DeployConstraintBean job : jobs) {
                 LOG.info("process job: {}", job);
                 String lockName = String.format("DeployTagWorker-%s", job.getConstraint_id());
+                DeployConstraintBean latestJob = deployConstraintDAO.getById(job.getConstraint_id());
                 Connection connection = utilDAO.getLock(lockName);
                 if (connection != null) {
                     try {
-                        processEachEnvironConstraint(job);
+                        processEachEnvironConstraint(latestJob);
                     } catch (Exception e) {
-                        LOG.error("failed to process job: {}", job.toString(), e);
-                        job.setState(TagSyncState.ERROR);
-                        deployConstraintDAO.updateById(job.getConstraint_id(), job);
-                        LOG.error("updated job state to {}", TagSyncState.ERROR);
+                        LOG.error("failed to process job: {} Error {} stack {}", latestJob.toString(),
+                                ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getFullStackTrace(e));
+                        if (e instanceof SQLException) {
+                            latestJob.setState(TagSyncState.ERROR);
+                            deployConstraintDAO.updateById(job.getConstraint_id(), latestJob);
+                            LOG.error("updated job state to {}", TagSyncState.ERROR);
+                        } else {
+                            // SOME other ERROR
+                        }
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
                     }
