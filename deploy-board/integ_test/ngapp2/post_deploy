@@ -1,9 +1,0 @@
-#!/bin/bash
-
-export DEPLOY_ZK_ROOT=/builds2
-PYTHON=${VIRTUAL_ENV}/bin/python
-${PYTHON}  ${VIRTUAL_ENV}/bin/ngapp-post-deploy &
-
-sleep 10
-
-${PYTHON} ${BASE_DIR}/../integ_test/ngapp2/post_count.py &

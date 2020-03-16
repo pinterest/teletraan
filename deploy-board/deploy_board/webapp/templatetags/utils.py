@@ -124,13 +124,6 @@ _JENKINS_TO_ICONS = {
     "SUCCESS": "fa fa-check-circle color-green"
 }
 
-_NGAPPDEPLOY_TO_ICONS = {
-    "RUNNING": "fa fa-spinner fa-spin",
-    "ENABLING": "fa fa-spinner fa-spin",
-    "SETTING_DEFAULT": "fa fa-spinner fa-spin",
-    "DONE": "fa fa-check-circle color-green"
-}
-
 _STAGES_TO_TIPS = {
     "UNKNOWN": "Unexpected Stage",
     "PRE_DOWNLOAD": "Before download deploy payload",
@@ -205,11 +198,6 @@ def deployDurationTip(deploy):
 @register.filter("hotfixCanDeploy")
 def hotfixCanDeploy(value):
     return value == "SUCCEEDED"
-
-
-@register.filter("isNgapp2Env")
-def isNgapp2Env(value):
-    return value.startswith("ngapp2-")
 
 
 @register.filter("hotfixCanCancel")
@@ -328,14 +316,6 @@ def hotfixStateIcon(state):
 @register.filter('jenkinsStateIcon')
 def jenkinsStateIcon(state):
     return _JENKINS_TO_ICONS[state]
-
-
-@register.filter('ngappStateIcon')
-def ngappStateIcon(state):
-    if state == "DONE":
-        return "fa fa-check-circle color-green"
-    else:
-        return "fa fa-spinner fa-spin"
 
 
 @register.filter("deployTypeTip")

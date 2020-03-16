@@ -36,53 +36,49 @@
         <h4 class="panel-title pull-left">Current Deploy</h4>
     </div>
     {% if env|isEnvEnabled %}
-    {% if env.envName != "ngapp2-A" and env.envName != "ngapp2-B" %}
-	<div class="row">
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/"
-            type="button" class="deployToolTip btn btn-default btn-block"
-            data-toggle="tooltip" title="Create a new deploy in current environment">
-            <span class="glyphicon glyphicon-file"></span> Create Deploy
-        </a>
-    </div>
-    {% endif %}
-    {% if has_deploy %}
-    {% if env.envName != "ngapp2-A" and env.envName != "ngapp2-B" %}
-	<div class="row">
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback/"
-            type="button" class="deployToolTip btn btn-default btn-block"
-            title="Rollback to a previous deploys">
-            <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback
-        </a>
-    </div>
-    {% endif %}
-    {% if stages|length > 1 and env.envName != "ngapp2-A" and env.envName != "ngapp2-B" %}
-	<div class="row">
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/promote/{{ env.deployId }}"
-            type="button" class="deployToolTip btn btn-default btn-block"
-            title="Promote current deploy to different stages">
-            <span class="glyphicon glyphicon-transfer"></span> Promote
-        </a>
-    </div>
-    {% endif %}
-    {% if pinterest and env.envName != "ngapp2-A" and env.envName != "ngapp2-B" %}
-    <div class="row">
-        <a href="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes/"
-            type="button" class="deployToolTip btn btn-default btn-block"
-            data-toggle="tooltip" title="Create a hotfix based on current deploy">
-            <span class="glyphicon glyphicon-fire"></span> Hotfix
-        </a>
-    </div>
+        <div class="row">
+            <a href="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/"
+                type="button" class="deployToolTip btn btn-default btn-block"
+                data-toggle="tooltip" title="Create a new deploy in current environment">
+                <span class="glyphicon glyphicon-file"></span> Create Deploy
+            </a>
+        </div>
 
-    <div id="privateBldUploadBtnId" class="row">
-       <button class="deployToolTip btn btn-default btn-block"
-            data-toggle="tooltip"
-           title="Publish a local private build">
-            <span class="glyphicon glyphicon-upload"></span> Publish Private Build
-        </button>
-    </div>
+        {% if has_deploy %}
+            <div class="row">
+                <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback/"
+                    type="button" class="deployToolTip btn btn-default btn-block"
+                    title="Rollback to a previous deploys">
+                    <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback
+                </a>
+            </div>
+            {% if stages|length > 1 %}
+                <div class="row">
+                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/promote/{{ env.deployId }}"
+                        type="button" class="deployToolTip btn btn-default btn-block"
+                        title="Promote current deploy to different stages">
+                        <span class="glyphicon glyphicon-transfer"></span> Promote
+                    </a>
+                </div>
+            {% endif %}
+            {% if pinterest %}
+                <div class="row">
+                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes/"
+                        type="button" class="deployToolTip btn btn-default btn-block"
+                        data-toggle="tooltip" title="Create a hotfix based on current deploy">
+                        <span class="glyphicon glyphicon-fire"></span> Hotfix
+                    </a>
+                </div>
 
-    {% endif %}
-    {% endif %}
+                <div id="privateBldUploadBtnId" class="row">
+                <button class="deployToolTip btn btn-default btn-block"
+                        data-toggle="tooltip"
+                    title="Publish a local private build">
+                        <span class="glyphicon glyphicon-upload"></span> Publish Private Build
+                    </button>
+                </div>
+            {% endif %}
+        {% endif %}
     {% endif %}
     <div class="row">
         <a href="/env/{{ env.envName }}/{{ env.stageName }}/schedule"
