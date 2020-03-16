@@ -404,7 +404,7 @@ public class CommonHandler {
                 utilDAO.releaseLock(lockName, connection);
             }
         } else {
-            LOG.warn("Failed to get lock: %s", lockName);
+            LOG.warn(String.format("Failed to get lock: %s", lockName));
         }
     }
 
