@@ -9,7 +9,7 @@
                     <button type="button" class="close" data-dismiss="modal"><span
                             aria-hidden="true">&times;</span><span class="sr-only">Close</span>
                     </button>
-                    <h4 class="modal-title" id="addDeployConstraintModalLabel">Add a deploy constraint</h4>
+                    <h4 class="modal-title" id="addDeployConstraintModalLabel">Add a Deploy Constraint</h4>
                 </div>
                 <div class="modal-body">
                     <div class="form-group">
@@ -45,7 +45,8 @@
                                    data-toggle="tooltip"
                                    data-placement="right"
                                    data-trigger="manual"
-                                   title="numbers only.">
+                                   title="numbers only." />
+                            <small>Note: This number MUST be smaller than <a href="/env/{{ envName }}/{{ stageName }}/config" target="_blank">config/max_parallel_hosts</a> otherwise your deployment may not work</small>
                         </div>
                     </div>
                 </div>
