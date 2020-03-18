@@ -184,22 +184,6 @@
 
         $(".chosen-select").chosen({"width": "100%"});
         $('#saveGroupConfigBtnId').attr('disabled','disabled');
-
-        $('#launchConfigIdFormId input').keyup(function() {
-            $('#saveGroupConfigBtnId').removeAttr('disabled');
-        });
-
-        $('#launchConfigIdFormId textarea').keyup(function() {
-            $('#saveGroupConfigBtnId').removeAttr('disabled');
-        });
-
-        $('#launchConfigIdFormId select').change(function() {
-            $('#saveGroupConfigBtnId').removeAttr('disabled');
-        });
-
-        $('#launchConfigIdFormId input').change(function() {
-            $('#saveGroupConfigBtnId').removeAttr('disabled');
-        });
     });
 </script>
 

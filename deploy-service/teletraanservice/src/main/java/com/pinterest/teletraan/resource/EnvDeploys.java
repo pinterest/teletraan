@@ -204,13 +204,26 @@ public class EnvDeploys {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
+
         if(StringUtils.isEmpty(buildId)) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Build id can not be empty.");
         }
         BuildBean buildBean = buildDAO.getById(buildId);
+        
+        // check build name must match stage config
         if(!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Build name (%s) does not match stage config (%s).", buildBean.getBuild_name(), envBean.getBuild_name()));
         }
+        // check if the stage is whitelisted (allow_private_build) for private build
+        if(buildBean.getScm_branch().equals("private") && ! envBean.getAllow_private_build()) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("This stage does not allow deploying a private build. Please Contact #teletraan and #security-related to whitelist your stage for deploying private build"));
+        }
+        
+        // check if the build is from a trusted artifact url
+        if(!buildBean.getArtifact_url().startsWith("https://soxrepo.pinadmin.com") && envBean.getEnsure_trusted_build()) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("This build is not allowed to deploy. Please Contact #teletraan and #security-related to ensure the build artifact is published to a trusted url"));
+        }
+
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);
         LOG.info("Successfully create deploy {} for env {}/{} by {}.", deployId, envName, stageName, operator);
 

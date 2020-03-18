@@ -30,7 +30,7 @@ import logging
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
-from helpers.exceptions import NotAuthorizedException
+from helpers.exceptions import NotAuthorizedException, TeletraanException
 import common
 import traceback
 
@@ -76,6 +76,11 @@ class EnvCapacityBasicCreateView(View):
             cluster_info = json.loads(request.body)
 
             log.info("Create Capacity in the provider")
+            if 'configs' in cluster_info:
+                if 'spiffe_id' in cluster_info['configs']:
+                    log.error("Teletraan does not support user to change spiffe_id %s"  % cluster_info['spiffe_id'])
+                    raise TeletraanException("Teletraan does not support user to create spiffe_id")
+
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
 
             log.info("Associate cluster_name to environment")
@@ -208,6 +213,7 @@ class ClusterConfigurationView(View):
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'currentCluster': current_cluster
         }
+
         return render(request, 'clusters/cluster_configuration.html', {
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
@@ -220,8 +226,21 @@ class ClusterConfigurationView(View):
             cluster_name = env.get('clusterName')
             cluster_info = json.loads(request.body)
             log.info("Update Cluster Configuration with {}", cluster_info)
-            image = baseimages_helper.get_by_id(
-                request, cluster_info['baseImageId'])
+
+            cluster_name = '{}-{}'.format(name, stage)
+            current_cluster = clusters_helper.get_cluster(request, cluster_name)
+            log.info("getting current Cluster Configuration is {}", current_cluster)
+            if 'configs' in current_cluster and 'configs' in cluster_info:
+                if 'spiffe_id' in current_cluster['configs'] and 'spiffe_id' in cluster_info['configs']:
+                    if current_cluster['configs']['spiffe_id'] != cluster_info['configs']['spiffe_id']:
+                       log.error("Teletraan does not support user to update spiffe_id %s" % cluster_info['spiffe_id'])
+                       raise TeletraanException("Teletraan does not support user to update spiffe_id")
+
+                if 'spiffe_id' in current_cluster['configs'] and 'spiffe_id' not in cluster_info['configs']:
+                    log.error("Teletraan does not support user to remove spiffe_id %s" % cluster_info['spiffe_id'])
+                    raise TeletraanException("Teletraan does not support user to remove spiffe_id")
+
+            image = baseimages_helper.get_by_id(request, cluster_info['baseImageId'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -622,12 +641,14 @@ def clone_cluster(request, src_name, src_stage):
         ##0. teletraan service get src env buildName
         src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
         build_name = src_env.get('buildName', None)
+        external_id = src_env.get('externalId', None)
 
         ##1. teletraan service create a new env
         dest_env = environs_helper.create_env(request, {
             'envName': dest_name,
             'stageName': dest_stage,
-            'buildName': build_name
+            'buildName': build_name,
+            'externalId': external_id
         })
         log.info('clone_cluster, created a new env %s' % dest_env)
 

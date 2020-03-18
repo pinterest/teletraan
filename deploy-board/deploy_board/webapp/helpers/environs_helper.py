@@ -15,8 +15,11 @@
 # -*- coding: utf-8 -*-
 """Collection of all environs related calls
 """
+import logging
 from deploy_board.webapp.helpers.deployclient import DeployClient
 from deploy_board.settings import IS_PINTEREST
+
+log = logging.getLogger(__name__)
 
 
 DEFAULT_ENV_SIZE = 30
@@ -59,16 +62,16 @@ if IS_PINTEREST:
 # Nimbus-related helpers
 
 
-def get_nimbus_identifier(name):
-    return nimbusclient.get_one_identifier(name)
+def get_nimbus_identifier(request, name):
+    return nimbusclient.get_one_identifier(name, token=request.teletraan_user_id.token)
 
 
-def create_nimbus_identifier(data):
-    return nimbusclient.create_one_identifier(data)
+def create_nimbus_identifier(request, data):
+    return nimbusclient.create_one_identifier(data, token=request.teletraan_user_id.token)
 
 
-def delete_nimbus_identifier(name):
-    return nimbusclient.delete_one_identifier(name)
+def delete_nimbus_identifier(request, name):
+    return nimbusclient.delete_one_identifier(name, token=request.teletraan_user_id.token)
 
 
 def get_nimbus_project_console_url(project_name):

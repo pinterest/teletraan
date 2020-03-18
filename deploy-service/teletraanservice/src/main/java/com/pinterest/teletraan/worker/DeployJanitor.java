@@ -32,7 +32,7 @@ import java.util.List;
  * Removed unused/old deploys.
  */
 public class DeployJanitor implements Job {
-    private static final Logger LOG = LoggerFactory.getLogger(StateTransitioner.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DeployJanitor.class);
     private static final long MILLIS_PER_DAY = 86400000;
 
     private EnvironDAO environDAO;
@@ -60,13 +60,13 @@ public class DeployJanitor implements Job {
                     LOG.debug("Successfully to get the lock: %s", deployLockName);
                     try {
                         deployDAO.deleteUnusedDeploys(envId, timeThreshold, numToDelete);
-                        LOG.info("Successfully removed deploys: %s before %d milliseconds has %d.",
-                            envId, timeThreshold, numToDelete);
+                        LOG.info(String.format("Successfully removed deploys: %s before %d milliseconds has %d.",
+                            envId, timeThreshold, numToDelete));
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
                     } finally {
                         utilDAO.releaseLock(deployLockName, connection);
-                        LOG.debug("Successfully released the lock: %s", deployLockName);
+                        LOG.debug(String.format("Successfully released the lock: %s", deployLockName));
                     }
                 } else {
                     LOG.warn("Failed to get the lock: %s", deployLockName);

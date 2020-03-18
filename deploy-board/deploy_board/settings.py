@@ -104,7 +104,7 @@ else:
 
 LOGGING = {
     'version': 1,
-    'disable_existing_loggers': True,
+    'disable_existing_loggers': False,
     'formatters': {
         'standard': {
             'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
@@ -130,6 +130,7 @@ LOGGING = {
         'console': {
             'level': LOG_LEVEL,
             'class': 'logging.StreamHandler',
+            'formatter': 'standard',
         },
     },
     'loggers': {
@@ -273,19 +274,13 @@ if IS_PINTEREST:
                    {"min": 300, "max": 600, "color": "Green"}]}
     ]
 
-    # Pinterest ngapp2 status file
-    NGAPP_PRE_DEPLOY_STATUS_NODE = "varnish_pre_deploy_status"
-    NGAPP_POST_DEPLOY_STATUS_NODE = "varnish_post_deploy_status"
-    NGAPP_ROLLBACK_STATUS_NODE = "varnish_rollback_status"
-    NGAPP_DEPLOY_CHANNEL = "deploys"
-
     DEFAULT_START_TIME = "-1d"
 
     #Pinterest Default Cloud Provider
     DEFAULT_PROVIDER = 'AWS'
 
     #Pinterest Default AMI image name
-    DEFAULT_CMP_IMAGE = 'cmp_base-ebs'
+    DEFAULT_CMP_IMAGE = 'cmp_base-ebs-18.04'
 
     #Pinterest Default Host Type
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
@@ -306,5 +301,5 @@ if IS_PINTEREST:
 
     # Nimbus service url
     NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL", None)
-    NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)    
+    NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)
 

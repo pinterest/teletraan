@@ -44,6 +44,8 @@ import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManager;
+import com.pinterest.deployservice.whitelists.BuildWhitelistImpl;
+import com.pinterest.deployservice.whitelists.Whitelist;
 
 import org.apache.commons.dbcp.BasicDataSource;
 
@@ -75,6 +77,8 @@ public class ServiceContext {
     private HostTagDAO hostTagDAO;
     private DeployConstraintDAO deployConstraintDAO;
 
+    private Whitelist buildWhitelist;
+
     private String serviceStage;
     private MailManager mailManager;
     private SourceControlManager sourceControlManager;
@@ -92,6 +96,14 @@ public class ServiceContext {
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
     private List<PingRequestValidator> pingRequestValidators;
+
+    public Whitelist getBuildWhitelist() {
+        return buildWhitelist;
+    }
+
+    public void setBuildWhitelist(Whitelist buildWhitelist) {
+        this.buildWhitelist = buildWhitelist;
+    }
 
     public GroupRolesDAO getGroupRolesDAO() {
         return groupRolesDAO;

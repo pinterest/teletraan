@@ -30,8 +30,14 @@ class NimbusClient(object):
 
         return None
 
-    def get_one_identifier(self, name):
-        response = requests.get('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name))
+    def get_one_identifier(self, name, token=None):
+        headers = {}
+        headers['Client-Authorization'] = 'client Teletraan'
+        if token:
+            headers['Authorization'] = 'token %s' % token
+
+        response = requests.get('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name),
+                                headers=headers)
         return self.handle_response(response)
 
     def create_one_identifier(self, data):
@@ -45,6 +51,11 @@ class NimbusClient(object):
             if data.get(param) is None or len(data.get(param)) == 0:
                 log.error("Missing %s in the request data, cannot create a Nimbus identifier" % param)
                 return None
+
+        headers = {}
+        headers['Client-Authorization'] = 'client Teletraan'
+        if token:
+            headers['Authorization'] = 'token %s' % token
 
         payload = {}
         payload['kind'] = 'Identifier'
@@ -68,14 +79,22 @@ class NimbusClient(object):
             'stageName': data.get('stage_name')
         }
 
-        response = requests.post('{}/api/{}/identifiers'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION), json=payload)
+        response = requests.post('{}/api/{}/identifiers'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION),
+                                 json=payload,
+                                 headers=headers)
 
         return self.handle_response(response)
-    
-    def delete_one_identifier(self, name):
-        response = requests.delete('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name))
+
+    def delete_one_identifier(self, name, token=None):
+        headers = {}
+        headers['Client-Authorization'] = 'client Teletraan'
+        if token:
+            headers['Authorization'] = 'token %s' % token
+
+        response = requests.delete('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name),
+                                 headers=headers)
         return self.handle_response(response)
-    
+
     def get_one_project_console_url(self, project_name):
         if not TELETRAAN_PROJECT_URL_FORMAT:
             return ""

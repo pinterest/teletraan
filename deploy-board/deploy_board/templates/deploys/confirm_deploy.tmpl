@@ -3,13 +3,8 @@
      aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            {% if env.envName == "ngapp2-A" or env.envName == "ngapp2-B" %}
-            <form id="deployConfirmFormlId" class="form-horizontal" method="post"
-                  action="/ngapp2/deploy_to/{{ env.envName }}/" role="form">
-                {% else %}
                 <form id="deployConfirmFormlId" class="form-horizontal" method="post"
                       action="/env/{{ env.envName }}/{{ env.stageName }}/new_deploy/" role="form">
-                    {% endif %}
 
                     {% csrf_token %}
                     <div class="modal-header">

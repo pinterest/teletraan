@@ -121,7 +121,7 @@ public class HotfixStateTransitioner implements Runnable {
                         "&HOTFIX_ID=" + hotBean.getId();
                     // Start job and set start time
                     jenkins.startBuild(hotBean.getJob_name(), buildParams);
-                    LOG.info("Starting new Jenkins Job for Hotfix ID {}", hotfixId);
+                    LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
 
                     transition(hotBean);
 
@@ -146,6 +146,7 @@ public class HotfixStateTransitioner implements Runnable {
                                 "&BUILD_NAME=" + buildName + "&HOTFIX_ID=" + hotBean.getId();
                             hotBean.setJob_name(hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
                             jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                            LOG.info("Starting new Jenkins Job (private-build) for hotfix id {}", hotfixId);
 
                             transition(hotBean);
                         }
@@ -157,6 +158,8 @@ public class HotfixStateTransitioner implements Runnable {
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state PUSHING for hotfix id " + hotfixId);
                         }
+                    } else {
+                        LOG.error("Job Num is empty for hotfix id " + hotfixId);
                     }
                 } else if (state == HotfixState.BUILDING) {
                     if (!StringUtils.isEmpty(jobNum)) {
@@ -172,6 +175,7 @@ public class HotfixStateTransitioner implements Runnable {
 
                         // Check if job completed or if job failed
                         if (status.equals("SUCCESS")) {
+                            LOG.info("Jenkins job succeeded in BUILDING for hotfix id " + hotfixId);
                             transition(hotBean);
                         }
 
@@ -183,6 +187,8 @@ public class HotfixStateTransitioner implements Runnable {
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state BUILDING for hotfix id " + hotfixId);
                         }
+                    } else {
+                        LOG.error("Job Num is empty for hotfix id " + hotfixId);
                     }
                 } else {
                     throw new DeployInternalException("Hotfix Id " + hotBean.getId() + " has unknown state " + state);

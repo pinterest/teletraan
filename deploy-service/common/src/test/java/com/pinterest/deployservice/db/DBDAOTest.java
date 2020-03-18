@@ -339,7 +339,9 @@ public class DBDAOTest {
         buildDAO.insert(buildBean3);
 
         assertTrue(EqualsBuilder.reflectionEquals(buildBean1, buildDAO.getById("b-1")));
-        assertEquals(buildDAO.getByCommit7("c-1", 1, 10).size(), 4);
+        assertEquals(buildDAO.getByCommit7("c-1", "", 1, 10).size(), 4);
+        assertEquals(buildDAO.getByCommit7("c-1", "sss-1", 1, 10).size(), 3);
+        assertEquals(buildDAO.getByCommit7("c-1", "sss-2", 1, 10).size(), 1);
         assertEquals(buildDAO.getBuildNames("sss-", 1, 100).size(), 2);
 
         List<BuildBean>
@@ -1073,6 +1075,8 @@ public class DBDAOTest {
         envBean.setState(EnvironState.NORMAL);
         envBean.setMax_parallel_rp(1);
         envBean.setOverride_policy(OverridePolicy.OVERRIDE);
+        envBean.setAllow_private_build(false);
+        envBean.setEnsure_trusted_build(false);
         return envBean;
     }
 
