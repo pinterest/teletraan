@@ -124,21 +124,19 @@ public class DeployTagWorker implements Runnable {
                 LOG.info("process job: {}", job);
                 String lockName = String.format("DeployTagWorker-%s", job.getConstraint_id());
                 Connection connection = utilDAO.getLock(lockName);
-                DeployConstraintBean latestJob = deployConstraintDAO.getById(job.getConstraint_id());
                 if (connection != null) {
                     try {
-                        processEachEnvironConstraint(latestJob);
-                    } catch (Exception e) {
-                        LOG.error("failed to process job: {} Error {} stack {}", latestJob.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
-                        if (!SQLException.class.isInstance(e)) {
-                            latestJob.setState(TagSyncState.ERROR);
-                            deployConstraintDAO.updateById(job.getConstraint_id(), latestJob);
-                            LOG.error("updated job state to {}", TagSyncState.ERROR);
-                        }
+                        processEachEnvironConstraint(job);
+                    } catch (SQLException e) {
+                        LOG.error("failed to process job due to SQLException: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
+                    }  catch (Exception e) {
+                        LOG.error("failed to process job due to all other exceptions: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
+                        job.setState(TagSyncState.ERROR);
+                        LOG.info("updated job state to {}", TagSyncState.ERROR);
+                        deployConstraintDAO.updateById(job.getConstraint_id(), job);
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
                     }
-
                 } else {
                     LOG.warn("failed to get lock {}", lockName);
                 }
