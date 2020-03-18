@@ -43,18 +43,21 @@ class NimbusClient(object):
     def create_one_identifier(self, data, token=None):
         """
         Create a Nimbus Identifier according to the input request data.
-        If the request data does not have all the information needed for creating a Nimbus identifier, this method will return None.
+        If the request data does not have all the information needed for creating a Nimbus identifier, this method will raise a Teletraan Exception.
         """
-        headers = {}
-        headers['Client-Authorization'] = 'client Teletraan'
-        if token:
-            headers['Authorization'] = 'token %s' % token
 
         requiredParams = ['projectName', 'env_name', 'stage_name']
         for param in requiredParams:
             if data.get(param) is None or len(data.get(param)) == 0:
                 log.error("Missing %s in the request data, cannot create a Nimbus identifier" % param)
+                if IS_PINTEREST:
+                    raise TeletraanException("Teletraan cannot create a Nimbus identifier because %s is missing. Contact #teletraan for assistance.") % param
                 return None
+
+        headers = {}
+        headers['Client-Authorization'] = 'client Teletraan'
+        if token:
+            headers['Authorization'] = 'token %s' % token
 
         payload = {}
         payload['kind'] = 'Identifier'
@@ -68,6 +71,8 @@ class NimbusClient(object):
                 cellName = property['propertyValue']
         if cellName is None:
             log.error("Missing cellName in the request data, cannot create a Nimbus identifier")
+            if IS_PINTEREST:
+                raise TeletraanException("Teletraan cannot create a Nimbus identifier because cellName is missing in this env's existing identifier. Contact #teletraan for assistance.") 
             return None
 
         payload['spec'] = {
