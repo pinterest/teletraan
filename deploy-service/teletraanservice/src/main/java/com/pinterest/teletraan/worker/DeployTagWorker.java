@@ -129,8 +129,7 @@ public class DeployTagWorker implements Runnable {
                     try {
                         processEachEnvironConstraint(latestJob);
                     } catch (Exception e) {
-                        LOG.error("failed to process job: {} Error {} stack {}", latestJob.toString(),
-                                ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getFullStackTrace(e));
+                        LOG.error("failed to process job: {} Error {} stack {}", latestJob.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
                         if (e instanceof SQLException) {
                             // Don't do anything
                         } else {
