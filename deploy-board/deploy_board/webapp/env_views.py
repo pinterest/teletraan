@@ -837,16 +837,15 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
     if stage_with_external_id == None:
         return None
 
-    else:
     # retrieve Nimbus identifier for existing_stage
-        existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
-        new_stage_identifier = None
-         # create Nimbus Identifier for the new stage
-        if existing_stage_identifier is not None:
-            nimbus_request_data = existing_stage_identifier.copy()
-            nimbus_request_data['stage_name'] = stage_name
-            nimbus_request_data['env_name'] = env_name
-            new_stage_identifier = environs_helper.create_nimbus_identifier(request, nimbus_request_data)
+    new_stage_identifier = None
+    existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
+    # create Nimbus Identifier for the new stage
+    if existing_stage_identifier is not None:
+        nimbus_request_data = existing_stage_identifier.copy()
+        nimbus_request_data['stage_name'] = stage_name
+        nimbus_request_data['env_name'] = env_name
+        new_stage_identifier = environs_helper.create_nimbus_identifier(request, nimbus_request_data)
 
     return new_stage_identifier
 
