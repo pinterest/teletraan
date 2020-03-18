@@ -8,10 +8,12 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.TransformerUtils;
 import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.*;
 
 public class DeployTagWorker implements Runnable {
@@ -125,15 +127,16 @@ public class DeployTagWorker implements Runnable {
                 if (connection != null) {
                     try {
                         processEachEnvironConstraint(job);
-                    } catch (Exception e) {
-                        LOG.error("failed to process job: {}", job.toString(), e);
+                    } catch (SQLException e) {
+                        LOG.error("failed to process job due to SQLException: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
+                    }  catch (Exception e) {
+                        LOG.error("failed to process job due to all other exceptions: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
                         job.setState(TagSyncState.ERROR);
+                        LOG.info("updated job state to {}", TagSyncState.ERROR);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
-                        LOG.error("updated job state to {}", TagSyncState.ERROR);
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
                     }
-
                 } else {
                     LOG.warn("failed to get lock {}", lockName);
                 }
