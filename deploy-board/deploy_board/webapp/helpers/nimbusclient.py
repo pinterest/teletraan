@@ -45,6 +45,13 @@ class NimbusClient(object):
         Create a Nimbus Identifier according to the input request data.
         If the request data does not have all the information needed for creating a Nimbus identifier, this method will return None.
         """
+
+        requiredParams = ['projectName', 'env_name', 'stage_name']
+        for param in requiredParams:
+            if data.get(param) is None or len(data.get(param)) == 0:
+                log.error("Missing %s in the request data, cannot create a Nimbus identifier" % param)
+                return None
+
         headers = {}
         headers['Client-Authorization'] = 'client Teletraan'
         if token:
