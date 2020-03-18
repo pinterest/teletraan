@@ -35,15 +35,30 @@ class NimbusClient(object):
         return self.handle_response(response)
 
     def create_one_identifier(self, data):
+        """
+        Create a Nimbus Identifier according to the input request data.
+        If the request data does not have all the information needed for creating a Nimbus identifier, this method will return None.
+        """
+
+        requiredParams = ['projectName', 'env_name', 'stage_name']
+        for param in requiredParams:
+            if data.get(param) is None or len(data.get(param)) == 0:
+                log.error("Missing %s in the request data, cannot create a Nimbus identifier" % param)
+                return None
+
         payload = {}
         payload['kind'] = 'Identifier'
         payload['apiVersion'] = 'v1'
         payload['platformName'] = 'teletraan'
         payload['projectName'] = data.get('projectName')
 
+        cellName = None
         for property in data['propertyList']['properties']:
             if property['propertyName'] == 'cellName':
                 cellName = property['propertyValue']
+        if cellName is None:
+            log.error("Missing cellName in the request data, cannot create a Nimbus identifier")
+            return None
 
         payload['spec'] = {
             'kind': 'EnvironmentSpec',
