@@ -59,6 +59,12 @@ class NimbusClient(object):
         if token:
             headers['Authorization'] = 'token %s' % token
 
+        requiredParams = ['projectName', 'env_name', 'stage_name']
+        for param in requiredParams:
+            if data.get(param) is None or len(data.get(param)) == 0:
+                log.error("Missing %s in the request data, cannot create a Nimbus identifier" % param)
+                return None
+
         payload = {}
         payload['kind'] = 'Identifier'
         payload['apiVersion'] = 'v1'
