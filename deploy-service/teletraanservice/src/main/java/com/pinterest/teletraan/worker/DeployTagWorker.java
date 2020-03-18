@@ -130,9 +130,7 @@ public class DeployTagWorker implements Runnable {
                         processEachEnvironConstraint(latestJob);
                     } catch (Exception e) {
                         LOG.error("failed to process job: {} Error {} stack {}", latestJob.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
-                        if (e instanceof SQLException) {
-                            // Don't do anything
-                        } else {
+                        if (!SQLException.class.isInstance(e)) {
                             latestJob.setState(TagSyncState.ERROR);
                             deployConstraintDAO.updateById(job.getConstraint_id(), latestJob);
                             LOG.error("updated job state to {}", TagSyncState.ERROR);
