@@ -1,7 +1,7 @@
 """Helper class to connect Nimbus service"""
 import logging
 from decorators import singleton
-from deploy_board.settings import NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, TELETRAAN_PROJECT_URL_FORMAT
+from deploy_board.settings import IS_PINTEREST, NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, TELETRAAN_PROJECT_URL_FORMAT
 from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
 import requests
 requests.packages.urllib3.disable_warnings()
@@ -41,6 +41,18 @@ class NimbusClient(object):
         return self.handle_response(response)
 
     def create_one_identifier(self, data, token=None):
+        """
+        Create a Nimbus Identifier according to the input request data.
+        If the request data does not have all the information needed for creating a Nimbus identifier, this method will raise a Teletraan Exception.
+        """
+        requiredParams = ['projectName', 'env_name', 'stage_name']
+        for param in requiredParams:
+            if data.get(param) is None or len(data.get(param)) == 0:
+                log.error("Missing %s in the request data, cannot create a Nimbus identifier" % param)
+                if IS_PINTEREST:
+                    raise TeletraanException("Teletraan cannot create a Nimbus identifier because %s is missing. Contact #teletraan for assistance.") % param
+                return None
+        
         headers = {}
         headers['Client-Authorization'] = 'client Teletraan'
         if token:
@@ -52,9 +64,15 @@ class NimbusClient(object):
         payload['platformName'] = 'teletraan'
         payload['projectName'] = data.get('projectName')
 
+        cellName = None
         for property in data['propertyList']['properties']:
             if property['propertyName'] == 'cellName':
                 cellName = property['propertyValue']
+        if cellName is None:
+            log.error("Missing cellName in the request data, cannot create a Nimbus identifier")
+            if IS_PINTEREST:
+                raise TeletraanException("Teletraan cannot create a Nimbus identifier because cellName is missing in this env's existing identifier. Contact #teletraan for assistance.") 
+            return None
 
         payload['spec'] = {
             'kind': 'EnvironmentSpec',
