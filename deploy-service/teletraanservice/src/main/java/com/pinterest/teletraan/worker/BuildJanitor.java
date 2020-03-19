@@ -68,7 +68,7 @@ public class BuildJanitor implements Job {
                         LOG.error("Failed to delete builds from tables.", e);
                     } finally {
                         utilDAO.releaseLock(buildLockName, connection);
-                        LOG.debug(String.format("Successfully released log: %s", buildLockName));
+                        LOG.debug(String.format("Successfully released lock: %s", buildLockName));
                     }
                 } else {
                     LOG.warn(String.format("Failed to get lock: %s", buildLockName));

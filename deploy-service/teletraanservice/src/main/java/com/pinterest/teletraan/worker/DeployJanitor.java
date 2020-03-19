@@ -57,7 +57,7 @@ public class DeployJanitor implements Job {
                 Connection connection = utilDAO.getLock(deployLockName);
 
                 if (connection != null) {
-                    LOG.debug("Successfully to get the lock: %s", deployLockName);
+                    LOG.debug(String.format("Successfully get lock: %s", deployLockName));
                     try {
                         deployDAO.deleteUnusedDeploys(envId, timeThreshold, numToDelete);
                         LOG.info(String.format("Successfully removed deploys: %s before %d milliseconds has %d.",
@@ -66,10 +66,10 @@ public class DeployJanitor implements Job {
                         LOG.error("Failed to delete builds from tables.", e);
                     } finally {
                         utilDAO.releaseLock(deployLockName, connection);
-                        LOG.debug(String.format("Successfully released the lock: %s", deployLockName));
+                        LOG.debug(String.format("Successfully released lock: %s", deployLockName));
                     }
                 } else {
-                    LOG.warn("Failed to get the lock: %s", deployLockName);
+                    LOG.warn(String.format("Failed to get lock: %s", deployLockName));
                 }
             }
         }

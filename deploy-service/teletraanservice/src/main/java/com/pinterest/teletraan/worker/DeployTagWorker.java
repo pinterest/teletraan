@@ -125,6 +125,7 @@ public class DeployTagWorker implements Runnable {
                 String lockName = String.format("DeployTagWorker-%s", job.getConstraint_id());
                 Connection connection = utilDAO.getLock(lockName);
                 if (connection != null) {
+                    LOG.debug("Successfully get lock: {}", lockName);
                     try {
                         processEachEnvironConstraint(job);
                     } catch (SQLException e) {
@@ -136,6 +137,7 @@ public class DeployTagWorker implements Runnable {
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
+                        LOG.debug("Successfully released lock: {}", lockName);
                     }
                 } else {
                     LOG.warn("failed to get lock {}", lockName);

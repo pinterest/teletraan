@@ -197,6 +197,8 @@ public class HotfixStateTransitioner implements Runnable {
                 utilDAO.releaseLock(hotfixLockName, connection);
                 LOG.info("Successfully released lock on {}", hotfixLockName);
             }
+        } else {
+            LOG.warn("Failed to get lock: {}", hotfixLockName);
         }
     }
 

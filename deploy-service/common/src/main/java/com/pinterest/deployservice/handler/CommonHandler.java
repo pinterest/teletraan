@@ -398,10 +398,12 @@ public class CommonHandler {
         String lockName = String.format("STATE_TRANSITION-%s", deployId);
         Connection connection = utilDAO.getLock(lockName);
         if (connection != null) {
+            LOG.debug(String.format("Successfully get lock: %s", lockName));
             try {
                 internalTransition(deployId, envBean);
             } finally {
                 utilDAO.releaseLock(lockName, connection);
+                LOG.debug(String.format("Successfully released lock: %s", lockName));
             }
         } else {
             LOG.warn(String.format("Failed to get lock: %s", lockName));

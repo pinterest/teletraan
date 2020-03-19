@@ -578,7 +578,7 @@ public class AutoPromoter implements Runnable {
                 LOG.info("Successfully released lock on {}", promoteLockName);
             }
         } else {
-            LOG.warn("Failed to grab PROMOTE_LOCK for env = {}.", currEnvBean.getEnv_id());
+            LOG.warn("Failed to get lock {} for env = {}.", promoteLockName, currEnvBean.getEnv_id());
         }
     }
 
