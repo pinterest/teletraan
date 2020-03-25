@@ -95,7 +95,7 @@ public class HotfixStateTransitioner implements Runnable {
         String hotfixLockName = String.format("HOTFIX-%s", hotBean.getId());
         Connection connection = utilDAO.getLock(hotfixLockName);
         if (connection != null) {
-            LOG.info("Successfully get lock on {}", hotfixLockName);
+            LOG.info("DB lock operation is successful: get lock {}", hotfixLockName);
             try {
                 // Check for Hotfix for timeout
                 if ((System.currentTimeMillis() - hotBean.getLast_worked_on()) > (HOTFIX_JOB_DURATION_TIMEOUT * 60000)) {
@@ -195,10 +195,10 @@ public class HotfixStateTransitioner implements Runnable {
                 }
             } finally {
                 utilDAO.releaseLock(hotfixLockName, connection);
-                LOG.info("Successfully released lock on {}", hotfixLockName);
+                LOG.info("DB lock operation is successful: release lock {}", hotfixLockName);
             }
         } else {
-            LOG.warn("Failed to get lock: {}", hotfixLockName);
+            LOG.warn("DB lock operation fails: failed to get lock {}", hotfixLockName);
         }
     }
 
