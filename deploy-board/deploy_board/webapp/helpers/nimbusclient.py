@@ -49,9 +49,10 @@ class NimbusClient(object):
         for param in requiredParams:
             if data.get(param) is None or len(data.get(param)) == 0:
                 log.error("Missing %s in the request data, cannot create a Nimbus identifier" % param)
+                exceptionMessage = "Teletraan cannot create a Nimbus identifier because %s is missing." % param
                 if IS_PINTEREST:
-                    raise TeletraanException("Teletraan cannot create a Nimbus identifier because %s is missing. Contact #teletraan for assistance.") % param
-                return None
+                    exceptionMessage += " Contact #teletraan for assistance."
+                raise TeletraanException(exceptionMessage)
         
         headers = {}
         headers['Client-Authorization'] = 'client Teletraan'
@@ -70,9 +71,10 @@ class NimbusClient(object):
                 cellName = property['propertyValue']
         if cellName is None:
             log.error("Missing cellName in the request data, cannot create a Nimbus identifier")
+            exceptionMessage = "Teletraan cannot create a Nimbus identifier because cellName is missing in this env's existing identifier."
             if IS_PINTEREST:
-                raise TeletraanException("Teletraan cannot create a Nimbus identifier because cellName is missing in this env's existing identifier. Contact #teletraan for assistance.") 
-            return None
+                exceptionMessage += " Contact #teletraan for assistance."
+            raise TeletraanException(exceptionMessage)
 
         payload['spec'] = {
             'kind': 'EnvironmentSpec',
