@@ -530,7 +530,7 @@ public class AutoPromoter implements Runnable {
         String promoteLockName = String.format("PROMOTE-%s", currEnvBean.getEnv_id());
         Connection connection = utilDAO.getLock(promoteLockName);
         if (connection != null) {
-            LOG.info("Successfully get lock on {}", promoteLockName);
+            LOG.info("DB lock operation is successful: get lock {}", promoteLockName);
             try {
                 // Read the env again, make sure the current deploy is still the same deploy we
                 // think it is
@@ -575,10 +575,10 @@ public class AutoPromoter implements Runnable {
                 LOG.warn("Failed to promote for env {}.", currEnvBean.getEnv_id(), e);
             } finally {
                 utilDAO.releaseLock(promoteLockName, connection);
-                LOG.info("Successfully released lock on {}", promoteLockName);
+                LOG.info("DB lock operation is successful: release lock {}", promoteLockName);
             }
         } else {
-            LOG.warn("Failed to grab PROMOTE_LOCK for env = {}.", currEnvBean.getEnv_id());
+            LOG.warn("DB lock operation fails: failed to get lock {} for env = {}.", promoteLockName, currEnvBean.getEnv_id());
         }
     }
 

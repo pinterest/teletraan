@@ -90,6 +90,7 @@ public class HostTerminator implements Runnable {
             String lockName = String.format("HOSTTERMINATOR-%s", host.getHost_id());
             Connection connection = utilDAO.getLock(lockName);
             if (connection != null) {
+                LOG.info(String.format("DB lock operation is successful: get lock %s", lockName));
                 try {
                     if (host.getState() == HostState.PENDING_TERMINATE) {
                         terminateHost(host);
@@ -100,9 +101,10 @@ public class HostTerminator implements Runnable {
                     LOG.error("Failed to process {} host {}", host.getState().toString(), host.getHost_id(), e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
+                    LOG.info(String.format("DB lock operation is successful: release lock %s", lockName));
                 }
             } else {
-                LOG.warn(String.format("Failed to get lock: %s", lockName));
+                LOG.warn(String.format("DB lock operation fails: failed to get lock %s", lockName));
             }
         }
     }

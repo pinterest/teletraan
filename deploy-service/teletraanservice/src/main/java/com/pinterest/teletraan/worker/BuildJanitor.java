@@ -60,7 +60,7 @@ public class BuildJanitor implements Job {
                 String buildLockName = String.format("BUILDJANITOR-%s", buildName);
                 Connection connection = utilDAO.getLock(buildLockName);
                 if (connection != null) {
-                    LOG.debug(String.format("Successfully get lock: %s", buildLockName));
+                    LOG.info(String.format("DB lock operation is successful: get lock %s", buildLockName));
                     try {
                         buildDAO.deleteUnusedBuilds(buildName, timeThreshold, numToDelete);
                         LOG.info(String.format("Successfully removed builds: %s before %d milliseconds has %d.",                            buildName, timeThreshold, numToDelete));
@@ -68,10 +68,10 @@ public class BuildJanitor implements Job {
                         LOG.error("Failed to delete builds from tables.", e);
                     } finally {
                         utilDAO.releaseLock(buildLockName, connection);
-                        LOG.debug(String.format("Successfully released log: %s", buildLockName));
+                        LOG.info(String.format("DB lock operation is successful: release lock %s", buildLockName));
                     }
                 } else {
-                    LOG.warn(String.format("Failed to get lock: %s", buildLockName));
+                    LOG.warn(String.format("DB lock operation fails: failed to get lock %s", buildLockName));
                 }
             }
         }
