@@ -133,6 +133,7 @@ public class DeployTagWorker implements Runnable {
                     }  catch (Exception e) {
                         LOG.error("failed to process job due to all other exceptions: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
                         job.setState(TagSyncState.ERROR);
+                        LOG.error("job {} deploy constraint transitions to error state due to exceptions", job.toString());
                         LOG.info("updated job state to {}", TagSyncState.ERROR);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
                     } finally {
