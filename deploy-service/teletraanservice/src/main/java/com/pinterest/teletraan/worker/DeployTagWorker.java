@@ -125,6 +125,7 @@ public class DeployTagWorker implements Runnable {
                 String lockName = String.format("DeployTagWorker-%s", job.getConstraint_id());
                 Connection connection = utilDAO.getLock(lockName);
                 if (connection != null) {
+                    LOG.info("DB lock operation is successful: get lock {}", lockName);
                     try {
                         processEachEnvironConstraint(job);
                     } catch (SQLException e) {
@@ -132,13 +133,15 @@ public class DeployTagWorker implements Runnable {
                     }  catch (Exception e) {
                         LOG.error("failed to process job due to all other exceptions: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
                         job.setState(TagSyncState.ERROR);
+                        LOG.error("job {} deploy constraint transitions to error state due to exceptions", job.toString());
                         LOG.info("updated job state to {}", TagSyncState.ERROR);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
+                        LOG.info("DB lock operation is successful: release lock {}", lockName);
                     }
                 } else {
-                    LOG.warn("failed to get lock {}", lockName);
+                    LOG.warn("DB lock operation fails: failed to get lock {}", lockName);
                 }
             }
         }
