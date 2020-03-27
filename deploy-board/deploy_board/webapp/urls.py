@@ -205,8 +205,8 @@ urlpatterns = [
     # builds related
     url(r'^builds/get_all_builds/$', build_views.get_all_builds),
     url(r'^builds/search_commit/(?P<commit>[a-zA-Z0-9\-_]+)/$', build_views.search_commit),
-    url(r'^builds/names/(?P<name>[a-zA-Z0-9\-_]+)/builds/$', build_views.list_builds),
-    url(r'^builds/names/(?P<name>[a-zA-Z0-9\-_]+)/branches/$',
+    url(r'^builds/names/(?P<name>[a-zA-Z0-9\-_.]+)/builds/$', build_views.list_builds),
+    url(r'^builds/names/(?P<name>[a-zA-Z0-9\-_.]+)/branches/$',
         build_views.list_build_branches),
     url(r'^builds/names/$', build_views.get_build_names),
     url(r'^builds/(?P<id>[a-zA-Z0-9\-_]+)/$', build_views.get_build),
