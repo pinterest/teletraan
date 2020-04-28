@@ -32,6 +32,7 @@ import com.pinterest.deployservice.bean.PromoteDisablePolicy;
 import com.pinterest.deployservice.bean.PromoteType;
 import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.ScheduleState;
+import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.UpdateStatement;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
@@ -48,6 +49,7 @@ import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
+import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.scm.SourceControlManager;
@@ -85,6 +87,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private PromoteDAO promoteDAO;
     private AgentDAO agentDAO;
     private ScheduleDAO scheduleDAO;
+    private TagDAO tagDAO;
     private BasicDataSource dataSource;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
@@ -182,6 +185,7 @@ public class DeployHandler implements DeployHandlerInterface{
         promoteDAO = serviceContext.getPromoteDAO();
         agentDAO = serviceContext.getAgentDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
+        tagDAO = serviceContext.getTagDAO();
         dataSource = serviceContext.getDataSource();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
@@ -189,7 +193,7 @@ public class DeployHandler implements DeployHandlerInterface{
         jobPool = serviceContext.getJobPool();
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
         changeFeedUrl = serviceContext.getChangeFeedUrl();
-        buildTagsManager = new BuildTagsManagerImpl(serviceContext.getTagDAO());
+        buildTagsManager = new BuildTagsManagerImpl(tagDAO);
     }
 
     private String generateMentions(EnvironBean envBean, DeployBean newDeployBean, DeployBean oldDeployBean) {
@@ -372,6 +376,13 @@ public class DeployHandler implements DeployHandlerInterface{
     }
 
     public String promote(EnvironBean envBean, String fromDeployId, String description, String operator) throws Exception {
+        // TODO: Should get by id and type ?
+        TagBean tagBean = tagDAO.getLatestByTargetId(envBean.getEnv_id());
+        if (tagBean.getValue() == TagValue.DISABLE_ENV) {
+            throw new DeployInternalException(String.format("Can not promote to a disabled env %s/%s",
+                    envBean.getEnv_name(), envBean.getStage_name()));
+        }
+     
         DeployBean fromDeployBean = getDeploySafely(fromDeployId);
 
         DeployBean deployBean = new DeployBean();
