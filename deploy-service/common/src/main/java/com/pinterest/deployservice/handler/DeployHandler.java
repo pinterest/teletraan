@@ -378,7 +378,7 @@ public class DeployHandler implements DeployHandlerInterface{
     public String promote(EnvironBean envBean, String fromDeployId, String description, String operator) throws Exception {
         // TODO: Should get by id and type ?
         TagBean tagBean = tagDAO.getLatestByTargetId(envBean.getEnv_id());
-        if (tagBean.getValue() == TagValue.DISABLE_ENV) {
+        if (tagBean != null && tagBean.getValue() == TagValue.DISABLE_ENV) {
             throw new DeployInternalException(String.format("Can not promote to a disabled env %s/%s",
                     envBean.getEnv_name(), envBean.getStage_name()));
         }
