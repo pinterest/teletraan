@@ -367,11 +367,19 @@ def get_deleted_asg_status(request, group_name):
 
 def update_asg_config(request, group_name):
     params = request.POST
+
+    # validate input params
+    asg_minsize = int(params.get("minSize", -1))
+    asg_maxsize = int(params.get("maxSize", -1))
+    if asg_minsize < 0 or asg_maxsize < 0:
+        # make sure the input values are not empty. the negative value case is already checked by ASG, not an issue.
+        raise TeletraanException("Please put valid values (>=0) in the Min Size and Max Size fields")
+
     try:
         asg_request = {}
         asg_request["groupName"] = group_name
-        asg_request["minSize"] = int(params["minSize"])
-        asg_request["maxSize"] = int(params["maxSize"])
+        asg_request["minSize"] = asg_minsize
+        asg_request["maxSize"] = asg_maxsize
         asg_request["terminationPolicy"] = params["terminationPolicy"]
         if "enableSpot" in params:
             asg_request["enableSpot"] = True
@@ -387,13 +395,20 @@ def update_asg_config(request, group_name):
             asg_request["enableSpot"] = False
             asg_request["enableResourceLending"] = False
 
+        # for time based asg, validate the capacity in scheduled actions against asg's min and max size
+        scheduled_actions = autoscaling_groups_helper.get_scheduled_actions(request, group_name)
+        if len(scheduled_actions) > 0:
+            for action in scheduled_actions:
+                if action.capacity < asg_minsize or action.capacity > asg_maxsize:
+                    raise TeletraanException("Desired capacity in the scheduled scaling actions is invalid. Please update the scheduled actions to make sure all the desired capacities are within the limits of ASG's minimum capacity ({}) and maximum capacity ({})".format(asg_minsize, asg_maxsize))
+
         autoscaling_groups_helper.update_autoscaling(request, group_name, asg_request)
 
         # Save new pas min and max, disable pas
         pas_config = {}
         pas_config['group_name'] = group_name
-        pas_config['defined_min_size'] = int(params["minSize"])
-        pas_config['defined_max_size'] = int(params["maxSize"])
+        pas_config['defined_min_size'] = asg_minsize
+        pas_config['defined_max_size'] = asg_maxsize
         pas_config['pas_state'] = "DISABLED"
         autoscaling_groups_helper.update_pas_config(request, group_name, pas_config)
     except:
@@ -1203,6 +1218,15 @@ def add_scheduled_actions(request, group_name):
         schedule_action['clusterName'] = group_name
         schedule_action['schedule'] = params['schedule']
         schedule_action['capacity'] = params['capacity']
+
+        # validate scheduled capacity against ASG config minimum and maximum size
+        asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
+        asg_minsize = int(asg_summary.get("minSize", -1))
+        asg_maxsize = int(asg_summary.get("maxSize", -1)) # invalid value indicates no need to check
+        if asg_minsize < 0 or asg_maxsize < 0:
+            raise TeletraanException("ASG's Min Size and Max Size have invalid values. Please update the ASG config to make sure Min Size and Max Size >= 0")
+        if schedule_action['capacity'] < asg_minsize or schedule_action['capacity'] > asg_maxsize:
+            raise TeletraanException("Desired capacity must be within the limits of ASG's minimum capacity ({}) and maximum capacity ({}). Please change the value you input for Capacity.".format(asg_minsize, asg_maxsize))
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
     except:
         log.error(traceback.format_exc())
