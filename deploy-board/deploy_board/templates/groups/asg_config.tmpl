@@ -24,7 +24,7 @@
 <div id="autoscalingConfigId" class="collapse in panel-body">
 <div class="container-fluid">
     <form id="autoscalingGroupConfigFormId" class="form-horizontal" role="form">
-        <input type="hidden" name="asgStatus" value="{{asg.status}}" />
+        <input type="hidden" name="asgStatus" value="{{ asg.status }}" />
         <input type="hidden" name="groupName" value="{{ group_name }}" />
         <fieldset id="envConfigFieldSetId">
             <div class="form-group">
@@ -44,7 +44,7 @@
                     Max Size
                 </label>
                 <div class="col-xs-4">
-                    <input class="form-control" name="maxSize" required="true"
+                    <input class="form-control" name="maxSize" required="true" id="maxSizeInput"
                            type="text" value="{{ asg.maxSize }}"/>
                 </div>
             </div>
