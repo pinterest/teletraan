@@ -48,7 +48,7 @@ def _get_ongoing_deploys(request, index, size):
 
 
 def get_landing_page(request):
-    envs_tag = tags_helper.get_latest_by_targe_id(request, 'TELETRAAN')
+    envs_tag = tags_helper.get_latest_by_target_id(request, 'TELETRAAN')
     metrics = SITE_METRICS_CONFIGS
     return render(request, 'landing.html', {
         "metrics": metrics,
