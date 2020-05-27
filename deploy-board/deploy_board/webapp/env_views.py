@@ -863,10 +863,15 @@ def post_add_stage(request, name):
         identifier = create_identifier_for_new_stage(request, name, stage)
         external_id = identifier.get('uuid') if not identifier == None else None # if there is no stage in this env with externalId, still create the new stage
 
-    if from_stage:
-        common.clone_from_stage_name(request, name, stage, name, from_stage, description, external_id)
-    else:
-        common.create_simple_stage(request,name, stage, description, external_id)
+    try:
+        if from_stage:
+            common.clone_from_stage_name(request, name, stage, name, from_stage, description, external_id)
+        else:
+            common.create_simple_stage(request,name, stage, description, external_id)
+    except:
+        if IS_PINTEREST:
+            environs_helper.delete_nimbus_identifier(request, external_id)
+        raise
 
     return redirect('/env/' + name + '/' + stage + '/config/')
 
