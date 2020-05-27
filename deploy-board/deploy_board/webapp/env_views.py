@@ -857,8 +857,11 @@ def post_add_stage(request, name):
     from_stage = data.get("from_stage")
     description = data.get("description")
 
+    all_env_stages = environs_helper.get_all_env_stages(request, name)
+    if from_stage not in all_env_stages:
+        raise Exception("Can not clone from non-existing stage!")
+    
     external_id = None
-
     if IS_PINTEREST:
         identifier = create_identifier_for_new_stage(request, name, stage)
         external_id = identifier.get('uuid') if not identifier == None else None # if there is no stage in this env with externalId, still create the new stage
