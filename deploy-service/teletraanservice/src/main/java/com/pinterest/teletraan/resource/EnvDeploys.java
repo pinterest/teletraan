@@ -115,7 +115,8 @@ public class EnvDeploys {
             @ApiParam(value = "Upper bound deploy id", required = true)@QueryParam("toDeployId") String toDeployId,
             @ApiParam(value = "Description", required = true)@QueryParam("description") String description) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        Role requiredRole = (actionType == ActionType.PAUSE) ? Role.ADMIN : Role.OPERATOR;
+        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), requiredRole);
         String operator = sc.getUserPrincipal().getName();
         String newDeployId;
         switch (actionType) {
