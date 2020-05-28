@@ -69,7 +69,7 @@ class EnvListView(View):
         index = int(request.GET.get('page_index', '1'))
         size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
         names = environs_helper.get_all_env_names(request, index=index, size=size)
-        envs_tag = tags_helper.get_latest_by_targe_id(request, 'TELETRAAN')
+        envs_tag = tags_helper.get_latest_by_target_id(request, 'TELETRAAN')
         return render(request, 'environs/envs_landing.html', {
             "names": names,
             "pageIndex": index,
@@ -322,7 +322,7 @@ class EnvLandingView(View):
                 metrics_dashboard_only = True
 
         alarms = environs_helper.get_env_alarms_config(request, name, stage)
-        env_tag = tags_helper.get_latest_by_targe_id(request, env['id'])
+        env_tag = tags_helper.get_latest_by_target_id(request, env['id'])
         basic_cluster_info = None
         capacity_info = {'groups': groups}
 
@@ -762,7 +762,7 @@ def search_envs(request, filter):
 
     if len(names) == 1:
         return redirect('/env/%s/' % names[0])
-    envs_tag = tags_helper.get_latest_by_targe_id(request, 'TELETRAAN')
+    envs_tag = tags_helper.get_latest_by_target_id(request, 'TELETRAAN')
     return render(request, 'environs/envs_landing.html', {
         "names": names,
         "pageIndex": 1,
@@ -1688,7 +1688,7 @@ def add_instance(request, name, stage):
 
 
 def get_tag_message(request):
-    envs_tag = tags_helper.get_latest_by_targe_id(request, 'TELETRAAN')
+    envs_tag = tags_helper.get_latest_by_target_id(request, 'TELETRAAN')
     html = render_to_string('environs/tag_message.tmpl', {
         'envs_tag': envs_tag,
     })
