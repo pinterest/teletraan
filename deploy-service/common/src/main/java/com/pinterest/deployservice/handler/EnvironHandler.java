@@ -380,17 +380,11 @@ public class EnvironHandler {
         if (groups != null && !groups.isEmpty()) {
             throw new DeployInternalException("Reject the delete of env %s while it still has group capacity", envId);
         }
-        List<String> hosts = groupDAO.getCapacityHosts(envBean.getEnv_id());
-        if (hosts != null && !hosts.isEmpty()) {
-            throw new DeployInternalException("Reject the delete of env %s while it still has host capacity", envId);
-        }
-        /* TODO should we do the following check?
+
         long total = agentDAO.countAgentByEnv(envId);
         if (total > 0) {
             throw new DeployInternalException("Reject the delete of env %s while there are still %d hosts active", envId, total);
         }
-        */
-
         // TODO make the following transcational
         environDAO.delete(envId);
         promoteDAO.delete(envId);
