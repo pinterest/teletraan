@@ -93,6 +93,10 @@ public class EnvironHandler {
             envBean.setMax_parallel(0);
         }
 
+        if (envBean.getStage_type() == null) {
+            envBean.setStage_type(Constants.DEFAULT_STAGE_TYPE);
+        }
+
         envBean.setLast_operator(operator);
         envBean.setLast_update(System.currentTimeMillis());
     }
@@ -150,6 +154,10 @@ public class EnvironHandler {
 
         if (envBean.getOverride_policy() == null) {
             envBean.setOverride_policy(Constants.DEFAULT_OVERRIDE_POLICY);
+        }
+
+        if (envBean.getStage_type() == null) {
+            envBean.setStage_type(Constants.DEFAULT_STAGE_TYPE);
         }
     }
 

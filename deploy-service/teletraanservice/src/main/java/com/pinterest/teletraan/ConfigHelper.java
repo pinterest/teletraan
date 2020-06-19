@@ -27,6 +27,7 @@ import com.pinterest.deployservice.db.DBEnvironDAOImpl;
 import com.pinterest.deployservice.db.DBGroupDAOImpl;
 import com.pinterest.deployservice.db.DBGroupRolesDAOImpl;
 import com.pinterest.deployservice.db.DBHostDAOImpl;
+import com.pinterest.deployservice.db.DBHostAgentDAOImpl;
 import com.pinterest.deployservice.db.DBHostTagDAOImpl;
 import com.pinterest.deployservice.db.DBHotfixDAOImpl;
 import com.pinterest.deployservice.db.DBPromoteDAOImpl;
@@ -113,6 +114,7 @@ public class ConfigHelper {
 
         context.setConfigHistoryDAO(new DBConfigHistoryDAOImpl(dataSource));
         context.setHostDAO(new DBHostDAOImpl(dataSource));
+        context.setHostAgentDAO(new DBHostAgentDAOImpl(dataSource));
         context.setHostTagDAO(new DBHostTagDAOImpl(dataSource));
         context.setDeployConstraintDAO(new DBDeployConstraintDAOImpl(dataSource));
         context.setGroupDAO(new DBGroupDAOImpl(dataSource));
