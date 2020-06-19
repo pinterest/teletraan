@@ -30,6 +30,8 @@ public class PingRequestBean {
 
     private String hostIp;
 
+    private String availabilityZone;
+
     private Set<String> groups;
 
     private List<PingReportBean> reports;
@@ -56,6 +58,22 @@ public class PingRequestBean {
 
     public void setHostIp(String hostIp) {
         this.hostIp = hostIp;
+    }
+
+    public String getStage() {
+        return stage;
+    }
+
+    public void setStage(String stage) {
+        this.stage = stage;
+    }
+
+    public String getAvailabilityZone() {
+        return availabilityZone;
+    }
+
+    public void setAvailabilityZone(String availabilityZone){
+        this.availabilityZone = availabilityZone;
     }
 
     public Set<String> getGroups() {

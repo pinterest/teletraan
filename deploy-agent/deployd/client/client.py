@@ -29,14 +29,16 @@ log = logging.getLogger(__name__)
 
 
 class Client(BaseClient):
-    def __init__(self, config=None, hostname=None,
-                 ip=None, hostgroup=None, host_id=None, use_facter=None):
+    def __init__(self, config=None, hostname=None, ip=None, hostgroup=None, 
+                host_id=None, use_facter=None, stage=None, availability_zone=None):
         self._hostname = hostname
         self._ip = ip
         self._hostgroup = hostgroup
         self._id = host_id
         self._config = config
         self._use_facter = use_facter
+        self._stage = stage
+        self._availability_zone = availability_zone
 
     def _read_host_info(self):
         if self._use_facter:
@@ -54,6 +56,13 @@ class Client(BaseClient):
                 output = utils.get_info_from_facter(self._config.get_facter_group_key())
                 if output:
                     self._hostgroup = output.split(",")
+
+            # Hosts brought up outside of ASG or Teletraan might not have stage 
+            if not self._stage:
+                self._stage = utils.get_info_from_facter("host_type")
+
+            if not self._availability_zone:
+                self._availability_zone = utils.get_info_from_facter("ec2_metadata.placement.availability-zone")
         else:
             # read host_info file
             host_info_fn = self._config.get_host_info_fn()
@@ -76,6 +85,13 @@ class Client(BaseClient):
                     host_group = host_info.get("groups", None)
                     if host_group:
                         self._hostgroup = host_group.split(",")
+
+                # Hosts brought up outside of ASG or Teletraan might not have stage 
+                if not self._stage and "stage" in host_info:
+                    self._stage = host_info.get("host_type")
+
+                if not self._availability_zone and "availability-zone" in host_info:
+                    self._availability_zone = host_info.get("availability-zone")
             else:
                 log.warn("Cannot find host information file {}. See doc for more details".format(host_info_fn))
 
@@ -98,8 +114,9 @@ class Client(BaseClient):
                 pass
 
         log.info("Host information is loaded. "
-                 "Host name: {}, IP: {}, host id: {}, group: {}".format(self._hostname, self._ip,
-                                                                        self._id,  self._hostgroup))
+                 "Host name: {}, IP: {}, host id: {}, stage: {}, availability_zone: {}, "
+                 "group: {}".format(self._hostname, self._ip, self._id, self._stage, 
+                 self._availability_zone, self._hostgroup))
         return True
 
     def send_reports(self, env_reports=None):
@@ -116,7 +133,8 @@ class Client(BaseClient):
                     if report.errorMessage:
                         report.errorMessage = report.errorMessage.encode('ascii', 'ignore')
                 ping_request = PingRequest(hostId=self._id, hostName=self._hostname, hostIp=self._ip,
-                                        groups=self._hostgroup, reports=reports)
+                                        groups=self._hostgroup, reports=reports, stage=self._stage,
+                                        availabilityZone=self._availability_zone)
 
                 with create_stats_timer('deploy.agent.request.latency',
                                         sample_rate=1.0,

@@ -65,6 +65,7 @@ public class Hosts {
         if (hostBean.getState() == null) {
             hostBean.setState(HostState.PROVISIONED);
         }
+        environHandler.notifyForPausedEnv(hostBean.getGroup_name());
         hostDAO.insert(hostBean);
         LOG.info(String.format("Successfully added one host by %s: %s", operator, hostBean.toString()));
     }
