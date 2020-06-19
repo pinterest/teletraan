@@ -26,6 +26,7 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployConstraintDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
@@ -77,6 +78,7 @@ public class PingHandler {
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
     private HostTagDAO hostTagDAO;
+    private GroupDAO groupDAO;
     private DeployConstraintDAO deployConstraintDAO;
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
@@ -89,6 +91,7 @@ public class PingHandler {
         deployDAO = serviceContext.getDeployDAO();
         buildDAO = serviceContext.getBuildDAO();
         environDAO = serviceContext.getEnvironDAO();
+        groupDAO = serviceContext.getGroupDAO();
         hostDAO = serviceContext.getHostDAO();
         utilDAO = serviceContext.getUtilDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
@@ -124,16 +127,14 @@ public class PingHandler {
     }
 
     // Keep host and group membership in sync
-    void updateHosts(PingRequestBean pingRequest) throws Exception {
-        hostDAO.insertOrUpdate(pingRequest.getHostName(), pingRequest.getHostIp(),
-                pingRequest.getHostId(), HostState.ACTIVE.toString(), pingRequest.getGroups());
+    void updateHosts(String hostName, String hostIp, String hostId, Set<String> groups) throws Exception {
+        hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups);
 
-        List<String> recordedGroups = hostDAO.getGroupNamesByHost(pingRequest.getHostName());
-        Set<String> groups = pingRequest.getGroups();
+        List<String> recordedGroups = hostDAO.getGroupNamesByHost(hostName);
         for (String recordedGroup : recordedGroups) {
             if (!groups.contains(recordedGroup)) {
-                LOG.warn("Remove host {} from group {}", pingRequest.getHostName(), recordedGroup);
-                this.hostDAO.removeHostFromGroup(pingRequest.getHostId(), recordedGroup);
+                LOG.warn("Remove host {} from group {}", hostName, recordedGroup);
+                this.hostDAO.removeHostFromGroup(hostId, recordedGroup);
             }
         }
     }
@@ -435,6 +436,22 @@ public class PingHandler {
         return pingRequest;
     }
 
+    Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
+        Set<String> groups = pingRequest.getGroups();
+        String stage = pingRequest.getStage();
+        String availabilityZone = pingRequest.getAvailabilityZone();
+        EnvironBean envBean = environDAO.getByCluster(stage);
+        if (envBean != null) {
+            EnvType stageType = envBean.getStage_type();
+            for (String group: pingRequest.getGroups()) {
+                String shardedGroup = group + "-" + stageType + "-" + availabilityZone;
+                LOG.info("Updating host {} with sharded group {}", pingRequest.getHostName(), shardedGroup);
+                groups.add(shardedGroup);
+            }
+        }
+        return groups;
+    }
+
     /**
      * This is the core function to update agent status and compute deploy goal
      */
@@ -449,17 +466,19 @@ public class PingHandler {
             }
         }
 
+        String hostIp = pingRequest.getHostIp();
+        String hostId = pingRequest.getHostId();
+        String hostName = pingRequest.getHostName();
+        Set<String> groups = this.shardGroups(pingRequest);
+
         // always update the host table
-        this.updateHosts(pingRequest);
+        this.updateHosts(hostName, hostIp, hostId, groups);
 
         // Convert reports to map, keyed by envId
         Map<String, PingReportBean> reports = convertReports(pingRequest);
 
         // Find all the appropriate environments for this host and these groups,
         // The converged env map is keyed by envId
-        String hostId = pingRequest.getHostId();
-        String hostName = pingRequest.getHostName();
-        Set<String> groups = pingRequest.getGroups();
         List<EnvironBean> hostEnvs = environDAO.getEnvsByHost(hostName);
         List<EnvironBean> groupEnvs = environDAO.getEnvsByGroups(groups);
         Map<String, EnvironBean> envs = convergeEnvs(hostName, hostEnvs, groupEnvs);

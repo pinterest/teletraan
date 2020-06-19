@@ -96,6 +96,7 @@ class EnvConfigView(View):
         data["maxDeployDay"] = int(query_dict["maxDeployDay"])
         data["maxParallelRp"] = int(query_dict["maxParallelRp"])
         data["overridePolicy"] = query_dict["overridePolicy"]
+        data["stageType"] = query_dict["stageType"]
 
         environs_helper.update_env_basic_config(request, name, stage, data=data)
         return self.get(request, name, stage)

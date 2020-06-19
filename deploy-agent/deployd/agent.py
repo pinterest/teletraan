@@ -388,6 +388,10 @@ def main():
     parser.add_argument('--script-variables', dest='script_variables', default='{}',
                         help="Optional. In 'serverless' mode,  script_variables is needed in "
                              "json format.")
+    parser.add_argument('--availability-zone', dest="availability_zone", required=False, default=None,
+                        help="Availability zone being used when interact with Teletraan service. "
+                             "This is optional. By default the availability zone defined in host-info "
+                             "file will be used")
 
     args = parser.parse_args()
 
