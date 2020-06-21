@@ -44,7 +44,6 @@ public class EnvironHandler {
     private ScheduleDAO scheduleDAO;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
-    private final ExecutorService jobPool;
 
     public EnvironHandler(ServiceContext serviceContext) {
         environDAO = serviceContext.getEnvironDAO();
@@ -174,10 +173,6 @@ public class EnvironHandler {
         if (promoteBean.getFail_policy() == null) {
             promoteBean.setFail_policy(Constants.DEFAULT_PROMOTE_FAIL_POLICY);
         }
-    }
-
-    void notifyForPausedEnv(String groupName) throws Exception {
-
     }
 
     public String createEnvStage(EnvironBean envBean, String operator) throws Exception {

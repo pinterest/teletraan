@@ -26,6 +26,7 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployConstraintDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
@@ -77,6 +78,7 @@ public class PingHandler {
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
     private HostTagDAO hostTagDAO;
+    private GroupDAO groupDAO;
     private DeployConstraintDAO deployConstraintDAO;
     private DataHandler dataHandler;
     private LoadingCache<String, BuildBean> buildCache;
@@ -439,7 +441,8 @@ public class PingHandler {
         String availabilityZone = pingRequest.getAvailabilityZone();
         List<String> envIds = groupDAO.getEnvsByGroupName(stage);
         // Determine stage type from first one
-        String stageType = environDAO.getById(envId[0]);
+        EnvironBean envBean = environDAO.getById(envIds.get(0));
+        String stageType = envBean.getStage_type();
         Set<String> groups = pingRequest.getGroups();
         for (String group: pingRequest.getGroups()) {
             groups.add(group + "-" + stageType + "-" + availabilityZone);

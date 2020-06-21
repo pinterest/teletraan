@@ -63,6 +63,7 @@ import java.io.Serializable;
  * external_id CHAR(36),
  * allow_private_build TINYINT(1)    DEFAULT 0,
  * ensure_trusted_build TINYINT(1)    DEFAULT 0,
+ * stage_type VARCHAR(32) NOT NULL,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -187,6 +188,10 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("ensureTrustedBuild")
     private Boolean ensure_trusted_build;
+
+    @NotEmpty
+    @JsonProperty("stageType")
+    private String stage_type;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -498,6 +503,14 @@ public class EnvironBean implements Updatable, Serializable {
 
     public void setEnsure_trusted_build(Boolean ensure_trusted_build) {
         this.ensure_trusted_build = ensure_trusted_build;
+    }
+
+    public String getStage_type() {
+        return stage_name;
+    }
+
+    public void setStage_type(String stage_type) {
+        this.stage_type = stage_type;
     }
 
     @Override

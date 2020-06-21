@@ -30,6 +30,8 @@ public class PingRequestBean {
 
     private String hostIp;
 
+    private String stage;
+
     private String availabilityZone;
 
     private Set<String> groups;
@@ -61,7 +63,7 @@ public class PingRequestBean {
     }
 
     public String getStage() {
-        return stage;
+        return this.stage;
     }
 
     public void setStage(String stage) {
