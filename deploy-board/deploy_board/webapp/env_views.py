@@ -859,7 +859,7 @@ def post_add_stage(request, name):
 
     all_envs_stages = environs_helper.get_all_env_stages(request, name)
     stages, _ = common.get_all_stages(all_envs_stages, None)
-    if from_stage not in stages:
+    if from_stage and from_stage not in stages:
         raise Exception("Can not clone from non-existing stage!")
     
     external_id = None
