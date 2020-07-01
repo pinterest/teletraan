@@ -45,7 +45,7 @@
         <dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
-            <version>2.2.1</version>
+            <version>2.3.2</version>
         </dependency>
         <!-- The following two dependencies needed only for embedded mysql, remove them there is standalone mysql -->
         <dependency>
