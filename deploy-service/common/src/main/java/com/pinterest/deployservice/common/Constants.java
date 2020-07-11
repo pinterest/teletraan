@@ -51,6 +51,7 @@ public class Constants {
     public static final String TYPE_ENV_ADVANCED = "Env Advanced Config";
     public static final String TYPE_ENV_HOST_CAPACITY = "Env Host Capacity Config";
     public static final String TYPE_ENV_GROUP_CAPACITY = "Env Group Capacity Config";
+    public static final String TYPE_ENV_SHARD_CAPACITY = "Env Shard Capacity Config";
     public static final String TYPE_ENV_METRIC = "Env Metrics Config";
     public static final String TYPE_ENV_ALARM = "Env Alarm Config";
     public static final String TYPE_ENV_WEBHOOK = "Env Webhook Config";

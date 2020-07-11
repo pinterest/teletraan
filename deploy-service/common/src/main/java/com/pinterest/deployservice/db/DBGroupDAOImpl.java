@@ -40,6 +40,12 @@ public class DBGroupDAOImpl implements GroupDAO {
             "INSERT INTO groups_and_envs SET group_name=?,env_id=?";
     private static final String DELETE_GROUP =
             "DELETE FROM groups_and_envs WHERE group_name=? AND env_id=?";
+    private static final String GET_SHARDS =
+            "SELECT * FROM shards_and_envs WHERE env_id=?";
+    private static final String INSERT_SHARD =
+            "INSERT INTO shards_and_envs SET host_name=?,env_id=?";
+    private static final String DELETE_SHARD =
+            "DELETE FROM shards_and_envs WHERE host_name=? AND env_id=?";
 
     private BasicDataSource dataSource;
 
@@ -88,5 +94,21 @@ public class DBGroupDAOImpl implements GroupDAO {
     @Override
     public void removeGroupCapacity(String envId, String group) throws Exception {
         new QueryRunner(dataSource).update(DELETE_GROUP, group, envId);
+    }
+
+    @Override
+    public List<String> getCapacityShards(String envId) throws Exception {
+        return new QueryRunner(dataSource).query(GET_SHARDS,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), envId);
+    }
+
+    @Override
+    public void addShardCapacity(String envId, String shard) throws Exception {
+        new QueryRunner(dataSource).update(INSERT_SHARD, shard, envId);
+    }
+
+    @Override
+    public void removeShardCapacity(String envId, String shard) throws Exception {
+        new QueryRunner(dataSource).update(DELETE_SHARD, shard, envId);
     }
 }

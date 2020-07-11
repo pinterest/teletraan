@@ -83,6 +83,8 @@ public class EnvCapacities {
     EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
     if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
       return groupDAO.getCapacityGroups(envBean.getEnv_id());
+    } else if (capacityType.or(CapacityType.SHARD) == CapacityType.SHARD) {
+      return groupDAO.getCapacityShards(envBean.getEnv_id());
     } else {
       return groupDAO.getCapacityHosts(envBean.getEnv_id());
     }
@@ -106,6 +108,13 @@ public class EnvCapacities {
               operator);
       configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(),
           Constants.TYPE_ENV_GROUP_CAPACITY, operator);
+    } else if (capacityType.or(CapacityType.SHARD) == CapacityType.SHARD) {
+      environHandler.updateShards(envBean, names, operator);
+      configHistoryHandler
+          .updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_SHARD_CAPACITY, names,
+              operator);
+      configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(),
+          Constants.TYPE_ENV_SHARD_CAPACITY, operator);
     } else {
       environHandler.updateHosts(envBean, names, operator);
       configHistoryHandler
@@ -132,6 +141,8 @@ public class EnvCapacities {
     name = name.replaceAll("\"", "");
     if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
       groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
+    } else if (capacityType.or(CapacityType.SHARD) == CapacityType.SHARD) {
+      groupDAO.addShardCapacity(envBean.getEnv_id(), name);
     } else {
       groupDAO.addHostCapacity(envBean.getEnv_id(), name);
     }
@@ -171,6 +182,7 @@ public class EnvCapacities {
 
   public enum CapacityType {
     GROUP,
-    HOST
+    HOST,
+    SHARD
   }
 }

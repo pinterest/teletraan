@@ -22,6 +22,14 @@
                             placeholder="group1,group2...etc." type="text" value="{{ groups }}"/>
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <label for="shardCapacity" class="control-label col-xs-2">Shards</label>
+                    <div class="col-xs-10">
+                        <input id="shardText" class="form-control" name="shards" required="false"
+                            placeholder="shard1,shard2...etc." type="text" value="{{ shards }}"/>
+                    </div>
+                </div>
             </fieldset>
             {% csrf_token %}
         </form>
