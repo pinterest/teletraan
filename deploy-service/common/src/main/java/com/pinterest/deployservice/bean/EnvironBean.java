@@ -63,7 +63,7 @@ import java.io.Serializable;
  * external_id CHAR(36),
  * allow_private_build TINYINT(1)    DEFAULT 0,
  * ensure_trusted_build TINYINT(1)    DEFAULT 0,
- * stage_type VARCHAR(32) NOT NULL,
+ * stage_type VARCHAR(32) NOT NULL DEFAULT PRODUCTION,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
