@@ -93,6 +93,10 @@ public class EnvironHandler {
             envBean.setMax_parallel(0);
         }
 
+        if (envBean.getStage_type() == null) {
+            envBean.setStage_type(EnvType.PRODUCTION);
+        }
+
         envBean.setLast_operator(operator);
         envBean.setLast_update(System.currentTimeMillis());
     }
