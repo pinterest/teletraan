@@ -69,5 +69,5 @@ class PingRequest(object):
 
     def __str__(self):
         return "PingRequest(hostId={}, hostName={}, hostIp={}, stage={}, availabilityZone={}, " \
-                "groups={}, reports={})".format(self.hostId, self.hostName, self.hostIp,
+                "groups={}, reports={})".format(self.hostId, self.hostName, self.hostIp, self.stage,
                 self.availabilityZone, self.groups, ",".join(str(v) for v in self.reports))

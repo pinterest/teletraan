@@ -437,15 +437,17 @@ public class PingHandler {
     }
 
     Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
+        Set<String> groups = pingRequest.getGroups();
         String stage = pingRequest.getStage();
         String availabilityZone = pingRequest.getAvailabilityZone();
-        List<String> envIds = groupDAO.getEnvsByGroupName(stage);
-        // Determine stage type from first one
-        EnvironBean envBean = environDAO.getById(envIds.get(0));
-        EnvType stageType = envBean.getStage_type();
-        Set<String> groups = pingRequest.getGroups();
-        for (String group: pingRequest.getGroups()) {
-            groups.add(group + "-" + stageType + "-" + availabilityZone);
+        EnvironBean envBean = environDAO.getByCluster(stage);
+        if (envBean != null) {
+            EnvType stageType = envBean.getStage_type();
+            for (String group: pingRequest.getGroups()) {
+                String shardedGroup = group + "-" + stageType + "-" + availabilityZone;
+                LOG.info("Updating host {} with sharded group {}", pingRequest.getHostName(), shardedGroup);
+                groups.add(shardedGroup);
+            }
         }
         return groups;
     }

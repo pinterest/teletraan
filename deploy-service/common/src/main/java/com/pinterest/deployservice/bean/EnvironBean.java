@@ -63,7 +63,7 @@ import java.io.Serializable;
  * external_id CHAR(36),
  * allow_private_build TINYINT(1)    DEFAULT 0,
  * ensure_trusted_build TINYINT(1)    DEFAULT 0,
- * stage_type VARCHAR(32) NOT NULL,
+ * stage_type VARCHAR(32) NOT NULL DEFAULT PRODUCTION,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -555,6 +555,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("external_id", external_id);
         clause.addColumn("allow_private_build", allow_private_build);
         clause.addColumn("ensure_trusted_build", ensure_trusted_build);
+        clause.addColumn("stage_type", stage_type);
         return clause;
     }
 
