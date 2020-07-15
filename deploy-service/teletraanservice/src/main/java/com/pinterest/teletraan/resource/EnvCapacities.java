@@ -83,6 +83,8 @@ public class EnvCapacities {
     EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
     if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
       return groupDAO.getCapacityGroups(envBean.getEnv_id());
+    } else if (capacityType.or(CapacityType.SHARD) == CapacityType.SHARD) {
+      return groupDAO.getCapacityShards(envBean.getEnv_id());
     } else {
       return groupDAO.getCapacityHosts(envBean.getEnv_id());
     }
@@ -139,7 +141,9 @@ public class EnvCapacities {
     name = name.replaceAll("\"", "");
     if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
       groupDAO.addGroupCapacity(envBean.getEnv_id(), name);
-    } else {
+    } else if (capacityType.or(CapacityType.SHARD) == CapacityType.SHARD) {
+      groupDAO.addShardCapacity(envBean.getEnv_id(), name);
+    }else {
       groupDAO.addHostCapacity(envBean.getEnv_id(), name);
     }
     LOG.info("Successfully added {} to env {}/{} capacity config by {}.",

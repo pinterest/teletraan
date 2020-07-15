@@ -60,12 +60,14 @@ class EnvCapacityConfigView(View):
             # return data for ajax calls
             hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
             groups = common.get_env_groups(request, name, stage)
+            shards = environs_helper.get_env_capacity(request, name, stage, capacity_type="SHARD")
             if cluster_name in groups:
                 groups.remove(cluster_name)
             info = {
                 "env": env,
                 "hosts": hosts,
                 "groups": groups,
+                "shards": shards,
                 "csrf_token": get_token(request),
                 'is_pinterest': IS_PINTEREST,
                 'provider_list': provider_list,
@@ -79,6 +81,7 @@ class EnvCapacityConfigView(View):
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
+        shards = environs_helper.get_env_capacity(request, name, stage, capacity_type="SHARD")
         groups = common.get_env_groups(request, name, stage)
         if cluster_name in groups:
             groups.remove(cluster_name)
@@ -88,6 +91,7 @@ class EnvCapacityConfigView(View):
             "stages": stages,
             "hosts": hosts,
             "groups": groups,
+            "shards": shards,
             'is_pinterest': IS_PINTEREST,
             'provider_list': provider_list,
             'basic_cluster_info': basic_cluster_info,
@@ -108,6 +112,11 @@ class EnvCapacityConfigView(View):
         if groups != None:
             environs_helper.update_env_capacity(request, name, stage, capacity_type="GROUP",
                                                 data=groups)
+
+        shards = data.get("shards")
+        if shards != None:
+            environs_helper.update_env_capacity(request, name, stage, capacity_type="SHARD",
+                                                data=shards)
 
         return self.get(request, name, stage)
 
