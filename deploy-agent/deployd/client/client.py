@@ -87,7 +87,7 @@ class Client(BaseClient):
                         self._hostgroup = host_group.split(",")
 
                 # Hosts brought up outside of ASG or Teletraan might not have stage 
-                if not self._stage and "stage" in host_info:
+                if not self._stage and "host_type" in host_info:
                     self._stage = host_info.get("host_type")
 
                 if not self._availability_zone and "availability-zone" in host_info:
