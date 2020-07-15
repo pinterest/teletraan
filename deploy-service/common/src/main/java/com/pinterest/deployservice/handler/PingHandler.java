@@ -442,7 +442,7 @@ public class PingHandler {
         String availabilityZone = pingRequest.getAvailabilityZone();
         List<String> envIds = groupDAO.getEnvsByGroupName(stage);
         // Determine stage type from first one
-        if (envIds != null) {
+        if (envIds != null && envIds.size() > 0) {
             EnvironBean envBean = environDAO.getById(envIds.get(0));
             EnvType stageType = envBean.getStage_type();
             for (String group: pingRequest.getGroups()) {
