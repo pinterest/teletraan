@@ -34,4 +34,10 @@ public interface GroupDAO {
     void addGroupCapacity(String envId, String group) throws Exception;
 
     void removeGroupCapacity(String envId, String group) throws Exception;
+
+    List<String> getCapacityShards(String envId) throws Exception;
+
+    void addShardCapacity(String envId, String shard) throws Exception;
+
+    void removeShardCapacity(String envId, String shard) throws Exception;
 }

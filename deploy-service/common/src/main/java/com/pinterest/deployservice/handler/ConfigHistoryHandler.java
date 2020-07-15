@@ -178,7 +178,7 @@ public class ConfigHistoryHandler {
                     List<String> oriGroups = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {
                                       }.getType());
                     jobPool.submit(new ChangeFeedJob(feedPayload, changeFeedUrl, oriGroups, newGroups));
-                } } else if (type.equals(Constants.TYPE_ENV_SHARD_CAPACITY)) {
+                } else if (type.equals(Constants.TYPE_ENV_SHARD_CAPACITY)) {
                     List<String> newShards = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), new TypeToken<ArrayList<String>>() {
                                       }.getType());
                     List<String> oriShards = gson.fromJson(configHistoryBeans.get(1).getConfig_change(), new TypeToken<ArrayList<String>>() {

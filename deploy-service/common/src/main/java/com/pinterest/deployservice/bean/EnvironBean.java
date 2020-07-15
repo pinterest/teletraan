@@ -191,7 +191,7 @@ public class EnvironBean implements Updatable, Serializable {
 
     @NotEmpty
     @JsonProperty("stageType")
-    private String stage_type;
+    private EnvType stage_type;
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
@@ -505,11 +505,11 @@ public class EnvironBean implements Updatable, Serializable {
         this.ensure_trusted_build = ensure_trusted_build;
     }
 
-    public String getStage_type() {
-        return stage_name;
+    public EnvType getStage_type() {
+        return stage_type;
     }
 
-    public void setStage_type(String stage_type) {
+    public void setStage_type(EnvType stage_type) {
         this.stage_type = stage_type;
     }
 

@@ -93,6 +93,10 @@ public class EnvironHandler {
             envBean.setMax_parallel(0);
         }
 
+        if (envBean.getStage_type() == null) {
+            envBean.setStage_type(EnvType.PRODUCTION);
+        }
+
         envBean.setLast_operator(operator);
         envBean.setLast_update(System.currentTimeMillis());
     }
@@ -436,6 +440,22 @@ public class EnvironHandler {
         }
         for (String group : oldGroups) {
             groupDAO.removeGroupCapacity(envBean.getEnv_id(), group);
+        }
+    }
+
+    public void updateShards(EnvironBean envBean, List<String> shards, String operator) throws Exception {
+        List<String> oldShardList = groupDAO.getCapacityShards(envBean.getEnv_id());
+        Set<String> oldShards = new HashSet<>();
+        oldShards.addAll(oldShardList);
+        for (String shard : shards) {
+            if (!oldShards.contains(shard)) {
+                groupDAO.addShardCapacity(envBean.getEnv_id(), shard);
+            } else {
+                oldShards.remove(shard);
+            }
+        }
+        for (String shard : oldShards) {
+            groupDAO.removeShardCapacity(envBean.getEnv_id(), shard);
         }
     }
 
