@@ -440,13 +440,13 @@ public class PingHandler {
         Set<String> groups = pingRequest.getGroups();
         String stage = pingRequest.getStage();
         String availabilityZone = pingRequest.getAvailabilityZone();
-        List<String> envIds = groupDAO.getEnvsByGroupName(stage);
-        // Determine stage type from first one
-        if (envIds != null && envIds.size() > 0) {
-            EnvironBean envBean = environDAO.getById(envIds.get(0));
+        EnvironBean envBean = environDAO.getByCluster(stage);
+        if (envBean != null) {
             EnvType stageType = envBean.getStage_type();
             for (String group: pingRequest.getGroups()) {
-                groups.add(group + "-" + stageType + "-" + availabilityZone);
+                String shardedGroup = group + "-" + stageType + "-" + availabilityZone;
+                LOG.info("Updating host {} with sharded group {}", pingRequest.getHostName(), shardedGroup);
+                groups.add(shardedGroup);
             }
         }
         return groups;
