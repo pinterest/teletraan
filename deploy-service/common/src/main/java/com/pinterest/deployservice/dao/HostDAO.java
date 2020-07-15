@@ -35,6 +35,8 @@ public interface HostDAO {
 
     void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception;
 
+    void insertOrUpdateHostShards(String hostId, Set<String> shardNames) throws Exception;
+
     void updateHostById(String hostId, HostBean hostBean) throws Exception;
 
     void deleteById(String hostId) throws Exception;
@@ -42,6 +44,8 @@ public interface HostDAO {
     void deleteAllById(String id) throws Exception;
 
     void removeHostFromGroup(String hostId, String groupName) throws Exception;
+
+    void removeHostFromShard(String hostId, String shardName) throws Exception;
 
     List<HostBean> getHostsByGroup(String groupName, long pageIndex, int pageSize) throws Exception;
 

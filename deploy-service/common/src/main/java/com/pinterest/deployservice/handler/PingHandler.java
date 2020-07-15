@@ -436,10 +436,25 @@ public class PingHandler {
         return pingRequest;
     }
 
+    // TODO: revisit naming, signature and cleanup
     Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
-        Set<String> groups = pingRequest.getGroups();
         String stage = pingRequest.getStage();
         String availabilityZone = pingRequest.getAvailabilityZone();
+        Set<String> shards = new HashSet<String>() {{
+            add(stage);
+            add(availabilityZone);
+        }};
+        hostDAO.insertOrUpdateHostShards(pingRequest.getHostId(), shards);
+        List<String> recordedShards = hostDAO.getShardNamesByHost(hostName);
+        for (String recordedShard : recordedShards) {
+            if (!shards.contains(recordedShard)) {
+                LOG.warn("Remove host {} from shard {}", hostName, recordedShard);
+                this.hostDAO.removeHostFromShard(hostId, recordedShard);
+            }
+        }
+
+        // TODO: clean up
+        Set<String> groups = pingRequest.getGroups();
         EnvironBean envBean = environDAO.getByCluster(stage);
         if (envBean != null) {
             EnvType stageType = envBean.getStage_type();
