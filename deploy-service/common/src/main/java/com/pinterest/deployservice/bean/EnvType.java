@@ -24,7 +24,7 @@ package com.pinterest.deployservice.bean;
  *      Development stage type
  */
 public enum EnvType {
-    PRODUCTION,
-    CANARY,
-    DEVELOPMENT
+    production,
+    canary,
+    development
 }

@@ -25,7 +25,7 @@ public class Constants {
     public static final PromoteDisablePolicy DEFAULT_PROMOTE_DISABLE_POLICY = PromoteDisablePolicy.AUTO;
     public static final OverridePolicy DEFAULT_OVERRIDE_POLICY = OverridePolicy.OVERRIDE;
     public static final AcceptanceType DEFAULT_ACCEPTANCE_TYPE = AcceptanceType.AUTO;
-    public static final EnvType DEFAULT_STAGE_TYPE = EnvType.PRODUCTION;
+    public static final EnvType DEFAULT_STAGE_TYPE = EnvType.production;
 
     public static final int DEFAULT_MAX_PARALLEL_HOSTS = 1;
     public static final int DEFAULT_SUCCESS_THRESHOLD = 100;
