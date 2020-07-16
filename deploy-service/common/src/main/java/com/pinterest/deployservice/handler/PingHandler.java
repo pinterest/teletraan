@@ -436,31 +436,30 @@ public class PingHandler {
         return pingRequest;
     }
 
-    // TODO: revisit naming, signature and cleanup
-    Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
-        String stage = pingRequest.getStage();
-        String availabilityZone = pingRequest.getAvailabilityZone();
+    void updateHostShards(PingRequestBean pingRequest) throws Exception {
         Set<String> shards = new HashSet<String>() {{
-            add(stage);
-            add(availabilityZone);
+            add(pingRequest.getStage());
+            add(pingRequest.getAvailabilityZone());
         }};
         hostDAO.insertOrUpdateHostShards(pingRequest.getHostId(), shards);
-        List<String> recordedShards = hostDAO.getShardNamesByHost(hostName);
+        List<String> recordedShards = hostDAO.getShardNamesByHost(pingRequest.getHostName());
         for (String recordedShard : recordedShards) {
             if (!shards.contains(recordedShard)) {
-                LOG.warn("Remove host {} from shard {}", hostName, recordedShard);
+                LOG.warn("Remove host {} from shard {}", pingRequest.getHostName(), recordedShard);
                 this.hostDAO.removeHostFromShard(hostId, recordedShard);
             }
         }
+    }
 
-        // TODO: clean up
+    // TODO: cleanup
+    Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
         Set<String> groups = pingRequest.getGroups();
-        EnvironBean envBean = environDAO.getByCluster(stage);
+        EnvironBean envBean = environDAO.getByCluster(pingRequest.getStage());
         if (envBean != null) {
             EnvType stageType = envBean.getStage_type();
             for (String group: pingRequest.getGroups()) {
-                String shardedGroup = group + "-" + stageType + "-" + availabilityZone;
-                LOG.info("Updating host {} with sharded group {}", pingRequest.getHostName(), shardedGroup);
+                String shardedGroup = group + "-" + stageType + "-" + pingRequest.getAvailabilityZone();
+                LOG.info("Sharded group {} for the host {}", shardedGroup, pingRequest.getHostName());
                 groups.add(shardedGroup);
             }
         }
