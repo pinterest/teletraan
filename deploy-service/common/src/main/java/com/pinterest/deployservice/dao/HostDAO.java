@@ -35,7 +35,9 @@ public interface HostDAO {
 
     void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception;
 
-    void insertOrUpdateHostShards(String hostId, Set<String> shardNames) throws Exception;
+    void insertOrUpdateHostShards(String hostId, String hostName, Set<String> shardNames) throws Exception;
+
+    List<String> getShardNamesByHost(String hostName) throws Exception;
 
     void updateHostById(String hostId, HostBean hostBean) throws Exception;
 

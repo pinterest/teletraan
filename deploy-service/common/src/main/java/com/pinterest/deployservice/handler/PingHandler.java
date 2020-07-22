@@ -441,12 +441,12 @@ public class PingHandler {
             add(pingRequest.getStage());
             add(pingRequest.getAvailabilityZone());
         }};
-        hostDAO.insertOrUpdateHostShards(pingRequest.getHostId(), shards);
+        hostDAO.insertOrUpdateHostShards(pingRequest.getHostId(), pingRequest.getHostName(), shards);
         List<String> recordedShards = hostDAO.getShardNamesByHost(pingRequest.getHostName());
         for (String recordedShard : recordedShards) {
             if (!shards.contains(recordedShard)) {
                 LOG.warn("Remove host {} from shard {}", pingRequest.getHostName(), recordedShard);
-                this.hostDAO.removeHostFromShard(hostId, recordedShard);
+                this.hostDAO.removeHostFromShard(pingRequest.getHostId(), recordedShard);
             }
         }
     }
