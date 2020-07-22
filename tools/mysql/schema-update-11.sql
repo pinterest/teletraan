@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS shards_and_hosts (
     shard_name      VARCHAR(64)         NOT NULL,
     PRIMARY KEY    (host_id, shard_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-CREATE UNIQUE INDEX rev_shard_host_idx ON hosts (shard_name, host_name);
+CREATE UNIQUE INDEX rev_shard_host_idx ON shards_and_hosts (shard_name, host_name);
 
 -- make sure to update the schema version to 11
 UPDATE schema_versions SET version=11;
