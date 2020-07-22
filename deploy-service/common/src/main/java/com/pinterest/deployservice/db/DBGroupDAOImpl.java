@@ -43,9 +43,9 @@ public class DBGroupDAOImpl implements GroupDAO {
     private static final String GET_SHARDS =
             "SELECT * FROM shards_and_envs WHERE env_id=?";
     private static final String INSERT_SHARD =
-            "INSERT INTO shards_and_envs SET host_name=?,env_id=?";
+            "INSERT INTO shards_and_envs SET shard_name=?,env_id=?";
     private static final String DELETE_SHARD =
-            "DELETE FROM shards_and_envs WHERE host_name=? AND env_id=?";
+            "DELETE FROM shards_and_envs WHERE shard_name=? AND env_id=?";
 
     private BasicDataSource dataSource;
 

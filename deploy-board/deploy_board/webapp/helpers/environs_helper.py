@@ -53,7 +53,7 @@ OVERRIDE_POLICY_VALUES = ['OVERRIDE', 'WARN']
 
 DEPLOY_CONSTRAINT_TYPES = ['GROUP_BY_GROUP', 'ALL_GROUPS_IN_PARALLEL']
 
-STAGE_TYPES = ['DEVELOPMENT', 'CANARY', 'PRODUCTION']
+STAGE_TYPES = ['development', 'canary', 'production']
 
 deployclient = DeployClient()
 
