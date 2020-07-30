@@ -447,6 +447,22 @@ public class EnvironHandler {
         }
     }
 
+    public void updateShards(EnvironBean envBean, List<String> shards, String operator) throws Exception {
+        List<String> oldShardList = groupDAO.getCapacityShards(envBean.getEnv_id());
+        Set<String> oldShards = new HashSet<>();
+        oldShards.addAll(oldShardList);
+        for (String shard : shards) {
+            if (!oldShards.contains(shard)) {
+                groupDAO.addShardCapacity(envBean.getEnv_id(), shard);
+            } else {
+                oldShards.remove(shard);
+            }
+        }
+        for (String shard : oldShards) {
+            groupDAO.removeShardCapacity(envBean.getEnv_id(), shard);
+        }
+    }
+
     /**
      * Take this opportunity to update the deploy progress, and return the latest
      * This usually called by UI client to monitor the ongoing deploy.

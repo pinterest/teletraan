@@ -189,7 +189,6 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("ensureTrustedBuild")
     private Boolean ensure_trusted_build;
 
-    @NotEmpty
     @JsonProperty("stageType")
     private EnvType stage_type;
 

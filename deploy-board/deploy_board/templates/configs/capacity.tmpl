@@ -9,6 +9,8 @@
                 </tag-input-box>
                 <tag-input-box label="Groups" ref="groupsinput" v-bind:inittags="groups" v-bind:placeholder="groupsPlaceholder" v-on:inputtagclick="groupTagClick($event)">
                 </tag-input-box>
+                <tag-input-box label="Shards" ref="shardsinput" v-bind:inittags="shards" v-bind:placeholder="shardsPlaceholder" v-on:inputtagclick="shardTagClick($event)">
+                </tag-input-box>
             </fieldset>
         </form>
     </div>
@@ -40,6 +42,8 @@
             hostsPlaceholder:"click here to input",
             groups:groups,
             groupsPlaceholder:"click here to input",
+            shards:shards,
+            shardsPlaceholder:"click here to input",
             confirmDialogTitle:"Confirm Capacity Change",
             confirmDialogId:"configdialog",
             headingtoggleclass: "glyphicon glyphicon-chevron-down",
@@ -54,6 +58,10 @@
             "groupTagClick": function(value){
                 var groupLink = '/groups/'+value;
                 window.location.href = groupLink;
+            },
+            "shardTagClick": function(value){
+                var shardLink = '/shards/'+value;
+                window.location.href = shardLink;
             },
             "clickDialog": function(value){
                 if (value){
@@ -72,7 +80,8 @@
                      }
                 }
                 var hosts = rootVue.$refs.hostsinput.tags;
-                return {'hosts':hosts, 'groups': groups};
+                var shards = rootVue.$refs.shardsinput.tags;
+                return {'hosts':hosts, 'groups': groups, 'shards': shards};
             },
             "reloadCapacity": function(){
                 $.ajax({
@@ -87,8 +96,10 @@
                     success: function (data) {
                         rootVue.hosts = data.hosts;
                         rootVue.groups = data.groups;
+                        rootVue.shards = data.shards;
                         rootVue.$refs.hostsinput.tags = rootVue.hosts;
                         rootVue.$refs.groupsinput.tags = rootVue.groups;
+                        rootVue.$refs.shardsinput.tags = rootVue.shards;
                     },
                     error: function (data) {
                         globalNotificationBanner.error= data;

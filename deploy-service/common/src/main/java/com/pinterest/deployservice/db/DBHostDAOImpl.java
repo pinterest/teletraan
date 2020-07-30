@@ -42,6 +42,10 @@ public class DBHostDAOImpl implements HostDAO {
             "state=IF(state!='%s' AND state!='%s', VALUES(state), state), " +
             "host_name=CASE WHEN host_name IS NULL THEN ? WHEN host_name=host_id THEN ? ELSE host_name END, " +
             "ip=CASE WHEN ip IS NULL THEN ? ELSE ip END";
+    private static final String INSERT_UPDATE_SHARD_TEMPLATE = "INSERT INTO shards_and_hosts %s VALUES %s ON DUPLICATE KEY UPDATE " +
+            "host_name=CASE WHEN host_name IS NULL THEN ? WHEN host_name=host_id THEN ? ELSE host_name END";
+    private static final String GET_SHARD_NAMES_BY_HOST = "SELECT shard_name FROM shard_and_hosts WHERE host_name=?";
+    private static final String REMOVE_HOST_FROM_SHARD = "DELETE FROM shards_and_hosts WHERE host_id=? AND shard_name=?";
     private static final String DELETE_HOST_BY_ID = "DELETE FROM hosts WHERE host_id=?";
     private static final String REMOVE_HOST_FROM_GROUP = "DELETE FROM hosts WHERE host_id=? AND group_name=?";
     private static final String GET_HOSTS_BY_GROUP = "SELECT * FROM hosts WHERE group_name=? ORDER BY host_name LIMIT ?,?";
@@ -269,5 +273,40 @@ public class DBHostDAOImpl implements HostDAO {
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
                 AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
+    }
+
+    @Override
+    public void insertOrUpdateHostShards(String hostId, String hostName, Set<String> shardNames) throws Exception {
+        StringBuilder names = new StringBuilder("(host_id,shard_name");
+        if (hostName != null) {
+            names.append(",host_name");
+        }
+        names.append(")");
+
+        StringBuilder sb = new StringBuilder();
+        for (String shardName : shardNames) {
+            sb.append("('");
+            sb.append(hostId);
+            sb.append("','");
+            sb.append(shardName);
+            if (hostName != null) {
+                sb.append("','");
+                sb.append(hostName);
+            }
+            sb.append("'),");
+        }
+        sb.setLength(sb.length() - 1);
+        new QueryRunner(dataSource).update(String.format(INSERT_UPDATE_SHARD_TEMPLATE, names, sb.toString()), hostName, hostName);
+    }
+
+    @Override
+    public void removeHostFromShard(String hostId, String shardName) throws Exception {
+        new QueryRunner(dataSource).update(REMOVE_HOST_FROM_SHARD, hostId, shardName);
+    }
+
+    @Override
+    public List<String> getShardNamesByHost(String hostName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_SHARD_NAMES_BY_HOST,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), hostName);
     }
 }
