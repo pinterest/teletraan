@@ -437,10 +437,16 @@ public class PingHandler {
     }
 
     void updateHostShards(PingRequestBean pingRequest) throws Exception {
-        Set<String> shards = new HashSet<String>() {{
-            add(pingRequest.getStage());
-            add(pingRequest.getAvailabilityZone());
-        }};
+        Set<String> shards = new HashSet<String>();
+        EnvironBean envBean = environDAO.getByCluster(pingRequest.getStage());
+        if (envBean != null) {
+            EnvType stageType = envBean.getStage_type();
+            shards.add(stageType);
+        }
+        if (pingRequest.getAvailabilityZone() != null) {
+            shards.add(pingRequest.getAvailabilityZone());
+        }
+
         hostDAO.insertOrUpdateHostShards(pingRequest.getHostId(), pingRequest.getHostName(), shards);
         List<String> recordedShards = hostDAO.getShardNamesByHost(pingRequest.getHostName());
         for (String recordedShard : recordedShards) {
@@ -484,6 +490,9 @@ public class PingHandler {
         String hostId = pingRequest.getHostId();
         String hostName = pingRequest.getHostName();
         Set<String> groups = this.shardGroups(pingRequest);
+
+        // always update host shards
+        this.updateHostShards(pingRequest);
 
         // always update the host table
         this.updateHosts(hostName, hostIp, hostId, groups);
