@@ -206,7 +206,7 @@ public class EnvironBean implements Updatable, Serializable {
         if(!this.chatroom.matches("^[A-Za-z0-9_\\-]*$")) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Chatroom contains illegal characters!");
         }
-        if(!this.email_recipients.matches("^[A-Za-z0-9_\\-]*$")) {
+        if(!this.email_recipients.matches("^[A-Za-z0-9\\._%+\\-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Email receipients contains illegal characters!");
         }
         if(!this.watch_recipients.matches("^[A-Za-z0-9_\\-]*$")) {
