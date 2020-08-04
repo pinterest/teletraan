@@ -17,6 +17,7 @@ package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
@@ -211,6 +212,7 @@ public class EnvironBean implements Updatable, Serializable {
         if(!this.watch_recipients.matches("^[A-Za-z0-9_\\-]*$")) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Recipients contains illegal characters!");
         }
+        this.description = StringEscapeUtils.escapeHtml(this.description);
     }
 
     public String getWebhooks_config_id() {
