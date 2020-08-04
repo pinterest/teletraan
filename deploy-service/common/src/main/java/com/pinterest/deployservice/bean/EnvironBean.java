@@ -15,12 +15,16 @@
  */
 package com.pinterest.deployservice.bean;
 
+import com.pinterest.deployservice.common.DeployInternalException;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
+import javax.validation.constraints.Pattern;
 
 /**
  * Keep the bean and table in sync
@@ -68,14 +72,17 @@ import java.io.Serializable;
  * );
  */
 public class EnvironBean implements Updatable, Serializable {
+    
     @JsonProperty("id")
     private String env_id;
 
     @NotEmpty
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     @JsonProperty("envName")
     private String env_name;
 
     @NotEmpty
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     @JsonProperty("stageName")
     private String stage_name;
 
@@ -86,12 +93,15 @@ public class EnvironBean implements Updatable, Serializable {
     private String description;
 
     @JsonProperty("buildName")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     private String build_name;
 
     @JsonProperty("branch")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     private String branch;
 
     @JsonProperty("chatroom")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     private String chatroom;
 
     @JsonProperty("deployId")
@@ -188,31 +198,6 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("ensureTrustedBuild")
     private Boolean ensure_trusted_build;
 
-    public void validate() throws Exception {
-        // A bunch of these fields will always be alphanumeric (with _ and -)
-        if(!this.env_name.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Environment name contains illegal characters!");
-        }
-        if(!this.stage_name.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Stage name contains illegal characters!");
-        }
-        if(!this.build_name.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Build name contains illegal characters!");
-        }
-        if(!this.branch.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Branch name contains illegal characters!");
-        }
-        if(!this.chatroom.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Chatroom contains illegal characters!");
-        }
-        if(!this.email_recipients.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Email receipients contains illegal characters!");
-        }
-        if(!this.watch_recipients.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Recipients contains illegal characters!");
-        }
-    }
-
     public String getWebhooks_config_id() {
         return webhooks_config_id;
     }
@@ -250,7 +235,7 @@ public class EnvironBean implements Updatable, Serializable {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = StringEscapeUtils.escapeHtml(this.description);
     }
 
     public String getBuild_name() {
