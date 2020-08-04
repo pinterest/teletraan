@@ -188,6 +188,31 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("ensureTrustedBuild")
     private Boolean ensure_trusted_build;
 
+    public void validate() throws Exception {
+        // A bunch of these fields will always be alphanumeric (with _ and -)
+        if(!this.env_name.matches("^[A-Za-z0-9_\\-]*$")) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Environment name contains illegal characters!");
+        }
+        if(!this.stage_name.matches("^[A-Za-z0-9_\\-]*$")) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Stage name contains illegal characters!");
+        }
+        if(!this.build_name.matches("^[A-Za-z0-9_\\-]*$")) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Build name contains illegal characters!");
+        }
+        if(!this.branch.matches("^[A-Za-z0-9_\\-]*$")) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Branch name contains illegal characters!");
+        }
+        if(!this.chatroom.matches("^[A-Za-z0-9_\\-]*$")) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Chatroom contains illegal characters!");
+        }
+        if(!this.email_recipients.matches("^[A-Za-z0-9_\\-]*$")) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Email receipients contains illegal characters!");
+        }
+        if(!this.watch_recipients.matches("^[A-Za-z0-9_\\-]*$")) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Recipients contains illegal characters!");
+        }
+    }
+
     public String getWebhooks_config_id() {
         return webhooks_config_id;
     }
