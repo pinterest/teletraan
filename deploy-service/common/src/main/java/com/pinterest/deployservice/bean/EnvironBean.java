@@ -15,12 +15,15 @@
  */
 package com.pinterest.deployservice.bean;
 
+import com.pinterest.teletraan.exception.TeletaanInternalException;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
+import javax.ws.rs.core.Response;
 import java.io.Serializable;
 
 /**
