@@ -26,8 +26,6 @@ Vue.component('cell-select', {
     }
 });
 
-
-
 Vue.component('baseimage-select', {
     template: '<div class="form-group">\
 <label-select small="true" showhelp="true" label="Image Name" title="Image Name" v-bind:value="imagenamevalue" v-bind:selectoptions="imagenames"  \
@@ -345,3 +343,16 @@ Vue.component("placements-select", {
         }
     }
 });
+
+Vue.component('clustertype-select', {
+    template: '<div>\
+  <label-select label="Cluster Type" title="Cluster Type" \
+  v-bind:value="value" v-bind:selectoptions="clustertypes" v-on:input="updateValue(value)"></label-select></div>',
+    props: ['clustertypes', 'value'],
+    methods: {
+        updateValue: function (value) {
+            this.$emit('input', value)
+        }
+    }
+});
+

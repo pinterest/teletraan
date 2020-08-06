@@ -94,7 +94,7 @@ public class EnvironHandler {
         }
 
         if (envBean.getStage_type() == null) {
-            envBean.setStage_type(EnvType.production);
+            envBean.setStage_type(Constants.DEFAULT_STAGE_TYPE);
         }
 
         envBean.setLast_operator(operator);

@@ -201,7 +201,7 @@
 |overridePolicy||false|enum (OVERRIDE, WARN)||
 |scheduleId||false|string||
 |deployConstraintId||false|string||
-|stageType||true|enum (production, canary, development)|production|
+|stageType||true|enum (production, control, canary, latest)|production|
 
 
 ### GroupRolesBean

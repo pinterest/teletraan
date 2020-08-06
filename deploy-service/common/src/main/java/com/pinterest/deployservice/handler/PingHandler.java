@@ -444,7 +444,7 @@ public class PingHandler {
         if (envBean != null) {
             EnvType stageType = envBean.getStage_type();
             for (String group: pingRequest.getGroups()) {
-                String shardedGroup = group + "-" + stageType + "-" + availabilityZone;
+                String shardedGroup = group + "-" + stageType.toString().toLowerCase() + "-" + availabilityZone;
                 LOG.info("Updating host {} with sharded group {}", pingRequest.getHostName(), shardedGroup);
                 groups.add(shardedGroup);
             }

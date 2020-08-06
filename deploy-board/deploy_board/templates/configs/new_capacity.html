@@ -54,6 +54,7 @@
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                 <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"></label-select>
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
+                <label-select label="Cluster Type" title="Cluster Type" v-bind:selectoptions="clusterTypes" v-model="clusterTypeValue"></cell-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
             </form>
@@ -135,6 +136,15 @@ var capacitySetting = new Vue({
                 isSelected: item.abstract_name === capacityCreationInfo.defaultSeurityZone
             }
         }),
+        clusterTypes: capacityCreationInfo.clusterTypes.map(
+            function (item,idx) {
+                return {
+                    value: item,
+                    text: item,
+                    isSelected: item == capacityCreationInfo.defaultClusterType
+                }
+            }),
+        clusterTypeValue: capacityCreationInfo.defaultClusterType,
         selectedHostTypeValue: capacityCreationInfo.defaultHostType,
         selectedSecurityZoneValue: capacityCreationInfo.defaultSeurityZone,
         selectedPlacements: null

@@ -23,7 +23,7 @@ from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, \
-        DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI
+        DEFAULT_PLACEMENT, DEFAULT_CLUSTER_TYPE, USER_DATA_CONFIG_SETTINGS_WIKI
 import json
 import logging
 
@@ -62,6 +62,7 @@ class EnvCapacityBasicCreateView(View):
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultClusterType': DEFAULT_CLUSTER_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT
         }
         # cluster manager
@@ -117,6 +118,7 @@ class EnvCapacityAdvCreateView(View):
         base_images_names = baseimages_helper.get_image_names(
             request, DEFAULT_PROVIDER, DEFAULT_CELL)
 
+        cluster_types = [item for item in clusters_helper.CLUSTER_TYPES]
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
 
@@ -128,11 +130,13 @@ class EnvCapacityAdvCreateView(View):
             'cells': cells,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
+            'clusterTypes': cluster_types,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultCell': DEFAULT_CELL,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultClusterType': DEFAULT_CLUSTER_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
@@ -195,6 +199,7 @@ class ClusterConfigurationView(View):
         base_images_names = baseimages_helper.get_image_names(
             request, current_cluster['provider'], current_cluster['cellName'])
 
+        cluster_types = [item for item in clusters_helper.CLUSTER_TYPES]
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
 
@@ -206,6 +211,7 @@ class ClusterConfigurationView(View):
             'placements': placements,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
+            'clusterTypes': cluster_types,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
