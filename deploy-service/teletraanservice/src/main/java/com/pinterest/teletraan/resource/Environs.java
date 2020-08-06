@@ -146,7 +146,11 @@ public class Environs {
             authorizer.authorize(sc, new Resource(envName, Resource.Type.ENV), Role.OPERATOR);
         }
         // Make sure all attributes of the environment are valid, throws an exception on failure
-        environBean.validate();
+        try {
+            environBean.validate();
+        } catch(Exception e) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, e.toString());
+        }
         String id = environHandler.createEnvStage(environBean, operator);
         if (!(authorizer instanceof OpenAuthorizer) && CollectionUtils.isEmpty(environBeans)) {
             // This is the first stage for this env, let's make operator ADMIN of this env

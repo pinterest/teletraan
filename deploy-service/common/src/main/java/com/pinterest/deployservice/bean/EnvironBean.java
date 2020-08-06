@@ -15,7 +15,7 @@
  */
 package com.pinterest.deployservice.bean;
 
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.common.DeployInternalException;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
@@ -23,7 +23,6 @@ import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
-import javax.ws.rs.core.Response;
 import java.io.Serializable;
 
 /**
@@ -195,25 +194,25 @@ public class EnvironBean implements Updatable, Serializable {
     public void validate() throws Exception {
         // A bunch of these fields will always be alphanumeric (with _ and -)
         if(!this.env_name.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Environment name contains illegal characters!");
+            throw new DeployInternalException("Environment name contains illegal characters!");
         }
         if(!this.stage_name.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Stage name contains illegal characters!");
+            throw new DeployInternalException("Stage name contains illegal characters!");
         }
         if(!this.build_name.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Build name contains illegal characters!");
+            throw new DeployInternalException("Build name contains illegal characters!");
         }
         if(!this.branch.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Branch name contains illegal characters!");
+            throw new DeployInternalException("Branch name contains illegal characters!");
         }
         if(!this.chatroom.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Chatroom contains illegal characters!");
+            throw new DeployInternalException("Chatroom contains illegal characters!");
         }
         if(!this.email_recipients.matches("^[A-Za-z0-9\\._%+\\-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Email receipients contains illegal characters!");
+            throw new DeployInternalException("Email receipients contains illegal characters!");
         }
         if(!this.watch_recipients.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Recipients contains illegal characters!");
+            throw new DeployInternalException("Recipients contains illegal characters!");
         }
         this.description = StringEscapeUtils.escapeHtml(this.description);
     }
