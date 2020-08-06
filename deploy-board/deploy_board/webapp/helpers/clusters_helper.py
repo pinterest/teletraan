@@ -18,6 +18,7 @@ from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
 rodimus_client = RodimusClient()
 
+CLUSTER_TYPES = ['latest', 'canary', 'control', 'production']
 
 def create_cluster(request, cluster_name, cluster_info):
     return rodimus_client.post("/clusters/%s" % cluster_name, request.teletraan_user_id.token, data=cluster_info)

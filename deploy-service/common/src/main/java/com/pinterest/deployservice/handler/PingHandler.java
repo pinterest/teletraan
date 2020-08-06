@@ -441,7 +441,7 @@ public class PingHandler {
         EnvironBean envBean = environDAO.getByCluster(pingRequest.getStage());
         if (envBean != null) {
             EnvType stageType = envBean.getStage_type();
-            shards.add(stageType);
+            shards.add(stageType.toString());
         }
         if (pingRequest.getAvailabilityZone() != null) {
             shards.add(pingRequest.getAvailabilityZone());

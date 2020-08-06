@@ -108,6 +108,7 @@ class EnvCapacityAdvCreateView(View):
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
+        cluster_types = clusters_helper.CLUSTER_TYPES
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
             request, DEFAULT_PROVIDER, DEFAULT_CELL)
         placements = placements_helper.get_by_provider_and_cell_name(
@@ -123,6 +124,7 @@ class EnvCapacityAdvCreateView(View):
         capacity_creation_info = {
             'environment': env,
             'hostTypes': host_types,
+            'clusterTypes': cluster_types,
             'securityZones': security_zones,
             'placements': placements,
             'cells': cells,
@@ -133,6 +135,7 @@ class EnvCapacityAdvCreateView(View):
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultCell': DEFAULT_CELL,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultClusterType': DEFAULT_CLUSTER_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)

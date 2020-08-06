@@ -61,6 +61,7 @@
                     <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"
                         v-on:input="updateImageNameForEbsHost" showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
+                    <clustertype-select v-bind:clustertypes="clustertype" v-bind:value="currentClusterType"></clustertype-select>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
@@ -495,6 +496,15 @@
                         isSelected: item.abstract_name === currentCluster.securityZone
                     }
                 }),
+                currentClusterType: currentCluster.clusterType,
+                clusterTypes: info.clusterTypes.map(
+                    function (item) {
+                        return {
+                            value: item.name,
+                            text: item.name,
+                            isSelected: item.name == currentCluster.clusterType
+                        }
+                    }),
                 selectedHostTypeValue: currentCluster.hostType,
                 selectedSecurityZoneValue: currentCluster.securityZone,
                 selectedPlacements: currentPlacements,
@@ -852,6 +862,7 @@
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['baseImageId'] = this.baseImageValue;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
+                    clusterInfo['clusterType'] = this.currentClusterType;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
                     clusterInfo['configs'] = this.allUserData.reduce(function(map, obj) {

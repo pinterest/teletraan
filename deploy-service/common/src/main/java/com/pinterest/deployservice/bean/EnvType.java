@@ -18,13 +18,26 @@ package com.pinterest.deployservice.bean;
 /**
  * PRODUCTION:
  *      Production stage type
+ * CONTROL:
+ *      Control stage type
  * CANARY:
  *      Canary stage type
- * DEVELOPMENT:
- *      Development stage type
+ * LATEST:
+ *      LATEST stage type
  */
 public enum EnvType {
-    production,
-    canary,
-    development
+    PRODUCTION("production"),
+    CONTROL("control"),
+    CANARY("canary"),
+    LATEST("latest");
+
+    private String stagetype;
+    private EnvType(String stagetype) {
+        this.stagetype = stagetype;
+    }
+
+    @Override
+    public String toString(){
+        return stagetype;
+    }
 }
