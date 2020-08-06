@@ -46,9 +46,9 @@ public class EnvTokenRoles extends TokenRoles {
             value = "Get environment TokenRoles objects",
             notes = "Returns all the TokenRoles objects for a given environment.",
             response = TokenRolesBean.class, responseContainer = "List")
-    public List<TokenRolesBean> getByResource(
+    public List<TokenRolesBean> getByResource(@Context SecurityContext sc,
             @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName) throws Exception {
-        return super.getByResource(envName, RESOURCE_TYPE);
+        return super.getByResource(sc, envName, RESOURCE_TYPE);
     }
 
     @GET
@@ -57,10 +57,10 @@ public class EnvTokenRoles extends TokenRoles {
             value = "Get TokenRoles object by script and environment names",
             notes = "Returns a TokenRoles object given a script and environment name.",
             response = TokenRolesBean.class)
-    public TokenRolesBean getByNameAndResource(
+    public TokenRolesBean getByNameAndResource(@Context SecurityContext sc,
             @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Script name.", required = true)@PathParam("scriptName") String scriptName) throws Exception {
-        return super.getByNameAndResource(scriptName, envName, RESOURCE_TYPE);
+        return super.getByNameAndResource(sc, scriptName, envName, RESOURCE_TYPE);
     }
 
     @PUT
