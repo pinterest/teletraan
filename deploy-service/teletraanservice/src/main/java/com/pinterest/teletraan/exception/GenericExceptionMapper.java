@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -47,6 +48,21 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
                 t.printStackTrace(pw);
                 sb.append("\n").append(sw.toString());
                 return Response.serverError().entity(sb.toString()).build();
+            }
+        }else if (t instanceof ConstraintViolationException) {
+            StringBuilder sb = new StringBuilder();
+            if (t.getMessage() != null) {
+                sb.append("\nMessage: ").append(t.getMessage());
+            }
+
+            if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
+                return Response.serverError().status(Response.Status.BAD_REQUEST).entity(sb.toString()).build();
+            } else {
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                t.printStackTrace(pw);
+                sb.append("\n").append(sw.toString());
+                return Response.serverError().status(Response.Status.BAD_REQUEST).entity(sb.toString()).build();
             }
         } else {
             String errorMessage = buildErrorMessage(request);
