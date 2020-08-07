@@ -77,12 +77,12 @@ public class EnvironBean implements Updatable, Serializable {
     private String env_id;
 
     @NotEmpty
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     @JsonProperty("envName")
     private String env_name;
 
     @NotEmpty
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     @JsonProperty("stageName")
     private String stage_name;
 
@@ -93,15 +93,15 @@ public class EnvironBean implements Updatable, Serializable {
     private String description;
 
     @JsonProperty("buildName")
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     private String build_name;
 
     @JsonProperty("branch")
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     private String branch;
 
     @JsonProperty("chatroom")
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     private String chatroom;
 
     @JsonProperty("deployId")
