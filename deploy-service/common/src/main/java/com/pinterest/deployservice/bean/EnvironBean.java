@@ -24,6 +24,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
+import javax.validation.constraints.Pattern;
 
 /**
  * Keep the bean and table in sync
@@ -71,14 +72,17 @@ import java.io.Serializable;
  * );
  */
 public class EnvironBean implements Updatable, Serializable {
+    
     @JsonProperty("id")
     private String env_id;
 
     @NotEmpty
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     @JsonProperty("envName")
     private String env_name;
 
     @NotEmpty
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     @JsonProperty("stageName")
     private String stage_name;
 
@@ -89,12 +93,15 @@ public class EnvironBean implements Updatable, Serializable {
     private String description;
 
     @JsonProperty("buildName")
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     private String build_name;
 
     @JsonProperty("branch")
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     private String branch;
 
     @JsonProperty("chatroom")
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     private String chatroom;
 
     @JsonProperty("deployId")
@@ -211,7 +218,6 @@ public class EnvironBean implements Updatable, Serializable {
         return env_name;
     }
 
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setEnv_name(String env_name) {
         this.env_name = env_name;
     }
@@ -220,7 +226,6 @@ public class EnvironBean implements Updatable, Serializable {
         return stage_name;
     }
 
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setStage_name(String stage_name) {
         this.stage_name = stage_name;
     }
@@ -237,7 +242,6 @@ public class EnvironBean implements Updatable, Serializable {
         return build_name;
     }
 
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setBuild_name(String build_name) {
         this.build_name = build_name;
     }
@@ -246,7 +250,6 @@ public class EnvironBean implements Updatable, Serializable {
         return branch;
     }
 
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setBranch(String branch) {
         this.branch = branch;
     }
@@ -255,7 +258,6 @@ public class EnvironBean implements Updatable, Serializable {
         return chatroom;
     }
 
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setChatroom(String chatroom) {
         this.chatroom = chatroom;
     }
@@ -368,7 +370,6 @@ public class EnvironBean implements Updatable, Serializable {
         return email_recipients;
     }
 
-    @Pattern(regex="^[A-Za-z0-9\\._%+\\-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
     public void setEmail_recipients(String email_recipients) {
         this.email_recipients = email_recipients;
     }
@@ -385,7 +386,6 @@ public class EnvironBean implements Updatable, Serializable {
         return watch_recipients;
     }
 
-    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setWatch_recipients(String watch_recipients) {
         this.watch_recipients = watch_recipients;
     }
