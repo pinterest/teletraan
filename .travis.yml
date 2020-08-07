@@ -1,4 +1,0 @@
-before_install: cd deploy-service
-language: java
-jdk:
-  - openjdk11
