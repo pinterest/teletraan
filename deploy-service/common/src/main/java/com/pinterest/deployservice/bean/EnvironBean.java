@@ -191,32 +191,6 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("ensureTrustedBuild")
     private Boolean ensure_trusted_build;
 
-    public void validate() throws Exception {
-        // A bunch of these fields will always be alphanumeric (with _ and -)
-        if(!this.env_name.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new DeployInternalException("Environment name contains illegal characters!");
-        }
-        if(!this.stage_name.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new DeployInternalException("Stage name contains illegal characters!");
-        }
-        if(!this.build_name.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new DeployInternalException("Build name contains illegal characters!");
-        }
-        if(!this.branch.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new DeployInternalException("Branch name contains illegal characters!");
-        }
-        if(!this.chatroom.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new DeployInternalException("Chatroom contains illegal characters!");
-        }
-        if(!this.email_recipients.matches("^[A-Za-z0-9\\._%+\\-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            throw new DeployInternalException("Email receipients contains illegal characters!");
-        }
-        if(!this.watch_recipients.matches("^[A-Za-z0-9_\\-]*$")) {
-            throw new DeployInternalException("Recipients contains illegal characters!");
-        }
-        this.description = StringEscapeUtils.escapeHtml(this.description);
-    }
-
     public String getWebhooks_config_id() {
         return webhooks_config_id;
     }
@@ -237,6 +211,7 @@ public class EnvironBean implements Updatable, Serializable {
         return env_name;
     }
 
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setEnv_name(String env_name) {
         this.env_name = env_name;
     }
@@ -245,6 +220,7 @@ public class EnvironBean implements Updatable, Serializable {
         return stage_name;
     }
 
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setStage_name(String stage_name) {
         this.stage_name = stage_name;
     }
@@ -254,13 +230,14 @@ public class EnvironBean implements Updatable, Serializable {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        this.description = StringEscapeUtils.escapeHtml(this.description);
     }
 
     public String getBuild_name() {
         return build_name;
     }
 
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setBuild_name(String build_name) {
         this.build_name = build_name;
     }
@@ -269,6 +246,7 @@ public class EnvironBean implements Updatable, Serializable {
         return branch;
     }
 
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setBranch(String branch) {
         this.branch = branch;
     }
@@ -277,6 +255,7 @@ public class EnvironBean implements Updatable, Serializable {
         return chatroom;
     }
 
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setChatroom(String chatroom) {
         this.chatroom = chatroom;
     }
@@ -389,6 +368,7 @@ public class EnvironBean implements Updatable, Serializable {
         return email_recipients;
     }
 
+    @Pattern(regex="^[A-Za-z0-9\\._%+\\-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
     public void setEmail_recipients(String email_recipients) {
         this.email_recipients = email_recipients;
     }
@@ -405,6 +385,7 @@ public class EnvironBean implements Updatable, Serializable {
         return watch_recipients;
     }
 
+    @Pattern(regex="^[A-Za-z0-9_\\-]*$")
     public void setWatch_recipients(String watch_recipients) {
         this.watch_recipients = watch_recipients;
     }
