@@ -49,7 +49,7 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
                 sb.append("\n").append(sw.toString());
                 return Response.serverError().entity(sb.toString()).build();
             }
-        }else if (t instanceof ConstraintViolationException) {
+        } else if (t instanceof ConstraintViolationException) {
             StringBuilder sb = new StringBuilder();
             if (t.getMessage() != null) {
                 sb.append("\nMessage: ").append(t.getMessage());
