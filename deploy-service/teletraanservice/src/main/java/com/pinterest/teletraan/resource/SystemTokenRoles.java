@@ -50,8 +50,8 @@ public class SystemTokenRoles extends TokenRoles {
             value = "Get system script tokens",
             notes = "Returns all system TokenRoles objects",
             response = TokenRolesBean.class, responseContainer = "List")
-    public List<TokenRolesBean> getByResource() throws Exception {
-        return super.getByResource(RESOURCE_ID, RESOURCE_TYPE);
+    public List<TokenRolesBean> getByResource(@Context SecurityContext sc) throws Exception {
+        return super.getByResource(sc, RESOURCE_ID, RESOURCE_TYPE);
     }
 
     @GET
@@ -60,9 +60,9 @@ public class SystemTokenRoles extends TokenRoles {
             value = "Get system TokenRoles object by script name",
             notes = "Returns a TokenRoles object for given script name",
             response = TokenRolesBean.class)
-    public TokenRolesBean getByNameAndResource(
+    public TokenRolesBean getByNameAndResource(@Context SecurityContext sc,
             @ApiParam(value = "Script name.", required = true)@PathParam("scriptName") String scriptName) throws Exception {
-        return super.getByNameAndResource(scriptName, RESOURCE_ID, RESOURCE_TYPE);
+        return super.getByNameAndResource(sc, scriptName, RESOURCE_ID, RESOURCE_TYPE);
     }
 
     @PUT

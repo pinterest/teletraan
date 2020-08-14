@@ -43,13 +43,15 @@ public abstract class TokenRoles {
         authorizer = context.getAuthorizer();
     }
 
-    public List<TokenRolesBean> getByResource(String resourceId,
+    public List<TokenRolesBean> getByResource(SecurityContext sc, String resourceId,
         Resource.Type resourceType) throws Exception {
+        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
         return tokenRolesDAO.getByResource(resourceId, resourceType);
     }
 
-    public TokenRolesBean getByNameAndResource(String scriptName, String resourceId,
-        Resource.Type resourceType) throws Exception {
+    public TokenRolesBean getByNameAndResource(SecurityContext sc, String scriptName,
+        String resourceId, Resource.Type resourceType) throws Exception {
+        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
         return tokenRolesDAO.getByNameAndResource(scriptName, resourceId, resourceType);
     }
 
