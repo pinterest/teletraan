@@ -16,7 +16,6 @@
 package com.pinterest.deployservice.bean;
 
 import com.pinterest.deployservice.common.DeployInternalException;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -72,7 +71,6 @@ import javax.validation.constraints.Pattern;
  * );
  */
 public class EnvironBean implements Updatable, Serializable {
-    
     @JsonProperty("id")
     private String env_id;
 
