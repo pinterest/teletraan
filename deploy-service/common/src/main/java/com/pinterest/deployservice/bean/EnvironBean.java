@@ -15,12 +15,15 @@
  */
 package com.pinterest.deployservice.bean;
 
+import com.pinterest.deployservice.common.DeployInternalException;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
+import javax.validation.constraints.Pattern;
 
 /**
  * Keep the bean and table in sync
@@ -72,10 +75,12 @@ public class EnvironBean implements Updatable, Serializable {
     private String env_id;
 
     @NotEmpty
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     @JsonProperty("envName")
     private String env_name;
 
     @NotEmpty
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
     @JsonProperty("stageName")
     private String stage_name;
 
@@ -86,12 +91,15 @@ public class EnvironBean implements Updatable, Serializable {
     private String description;
 
     @JsonProperty("buildName")
+    @Pattern(regexp="^[A-Za-z0-9_\\.\\/\\-]*$")
     private String build_name;
 
     @JsonProperty("branch")
+    @Pattern(regexp="^[A-Za-z0-9_\\:\\.\\,\\/\\-]*$")
     private String branch;
 
     @JsonProperty("chatroom")
+    @Pattern(regexp="^[A-Za-z0-9_\\#\\,\\-]*$")
     private String chatroom;
 
     @JsonProperty("deployId")
@@ -225,7 +233,8 @@ public class EnvironBean implements Updatable, Serializable {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        // Escape user input which could contain injected Javascript
+        this.description = StringEscapeUtils.escapeHtml(this.description);
     }
 
     public String getBuild_name() {
