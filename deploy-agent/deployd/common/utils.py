@@ -21,8 +21,6 @@ import signal
 import sys
 import traceback
 import subprocess
-import yaml
-import json
 from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -112,11 +110,11 @@ def run_prereqs(config):
     ensure_dirs(config)
 
 
-def get_info_from_facter(keys):
+def get_info_from_facter(key):
     try:
-        output = subprocess.check_output(['facter', '-p', '-j', keys])
+        output = subprocess.check_output(['facter', '-p', key])
         if output:
-            return json.load(output)
+            return output.strip("\n")
         else:
             return None
     except:
@@ -128,9 +126,3 @@ def check_not_none(arg, msg=None):
         raise ValueError(msg)
     return arg
 
-def get_ec2_tag_from_file(file_name, key):
-    if os.path.exists(file_name):
-        with open(file_name) as f:
-            data = yaml.load(f)
-            return data['ec2_tags'][key]
-    return None
