@@ -29,31 +29,64 @@ log = logging.getLogger(__name__)
 
 
 class Client(BaseClient):
-    def __init__(self, config=None, hostname=None,
-                 ip=None, hostgroup=None, host_id=None, use_facter=None):
+    def __init__(self, config=None, hostname=None, ip=None, hostgroup=None, 
+                host_id=None, use_facter=None, autoscaling_group=None, availability_zone=None):
         self._hostname = hostname
         self._ip = ip
         self._hostgroup = hostgroup
         self._id = host_id
         self._config = config
         self._use_facter = use_facter
+        self._agent_version = self._config.get_deploy_agent_version()
+        self._autoscaling_group = autoscaling_group
+        self._availability_zone = availability_zone
 
     def _read_host_info(self):
         if self._use_facter:
             log.info("Use facter to get host info")
-            if not self._hostname and self._config.get_facter_name_key():
-                self._hostname = utils.get_info_from_facter(self._config.get_facter_name_key())
+            name_key = self._config.get_facter_name_key()
+            ip_key = self._config.get_facter_ip_key()
+            id_key = self._config.get_facter_id_key()
+            group_key = self._config.get_facter_group_key()
+            az_key = self._config.get_facter_az_key()
+            keys_to_fetch = set()
+            # facter call is expensive so collect all keys to fetch first
+            if not self._hostname and name_key:
+                keys_to_fetch.add(name_key)
 
-            if not self._ip and self._config.get_facter_ip_key():
-                self._ip = utils.get_info_from_facter(self._config.get_facter_ip_key())
+            if not self._ip and ip_key:
+                keys_to_fetch.add(ip_key)
 
-            if not self._id and self._config.get_facter_id_key():
-                self._id = utils.get_info_from_facter(self._config.get_facter_id_key())
+            if not self._id and id_key:
+                keys_to_fetch.add(id_key)
 
-            if not self._hostgroup and self._config.get_facter_group_key():
-                output = utils.get_info_from_facter(self._config.get_facter_group_key())
-                if output:
-                    self._hostgroup = output.split(",")
+            if not self._hostgroup and group_key:
+                keys_to_fetch.add(group_key)
+
+            if not self._availability_zone and az_key:
+                keys_to_fetch.add(az_key)
+
+            facter_data = utils.get_info_from_facter(keys_to_fetch)
+
+            if not self._hostname and name_key in facter_data:
+                self._hostname = facter_data[name_key]
+
+            if not self._ip and ip_key in facter_data:
+                self._ip = facter_data[ip_key]
+
+            if not self._id and id_key in facter_data:
+                self._id = facter_data[id_key]
+
+            if not self._hostgroup and group_key in facter_data:
+                hostgroup = facter_data[group_key]
+                self._hostgroup = hostgroup.split(",")
+
+            if not self._availability_zone and az_key in facter_data:
+                self._availability_zone = facter_data[az_key]
+
+            # Hosts brought up outside of ASG or Teletraan might not have ASG
+            if not self._autoscaling_group:
+                self._autoscaling_group = utils.get_ec2_tag_from_file(self._config.get_ec2_tags_cache(), "Autoscaling")
         else:
             # read host_info file
             host_info_fn = self._config.get_host_info_fn()
@@ -76,6 +109,13 @@ class Client(BaseClient):
                     host_group = host_info.get("groups", None)
                     if host_group:
                         self._hostgroup = host_group.split(",")
+
+                # Hosts brought up outside of ASG or Teletraan might not have ASG
+                if not self._autoscaling_group and "autoscaling-group" in host_info:
+                    self._autoscaling_group = host_info.get("autoscaling-group")
+
+                if not self._availability_zone and "availability-zone" in host_info:
+                    self._availability_zone = host_info.get("availability-zone")
             else:
                 log.warn("Cannot find host information file {}. See doc for more details".format(host_info_fn))
 
@@ -98,8 +138,9 @@ class Client(BaseClient):
                 pass
 
         log.info("Host information is loaded. "
-                 "Host name: {}, IP: {}, host id: {}, group: {}".format(self._hostname, self._ip,
-                                                                        self._id,  self._hostgroup))
+                 "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
+                 "availability_zone: {}, group: {}".format(self._hostname, self._ip, self._id, 
+                 self._agent_version, self._autoscaling_group, self._availability_zone, self._hostgroup))
         return True
 
     def send_reports(self, env_reports=None):
@@ -116,7 +157,10 @@ class Client(BaseClient):
                     if report.errorMessage:
                         report.errorMessage = report.errorMessage.encode('ascii', 'ignore')
                 ping_request = PingRequest(hostId=self._id, hostName=self._hostname, hostIp=self._ip,
-                                        groups=self._hostgroup, reports=reports)
+                                        groups=self._hostgroup, reports=reports,
+                                        agentVersion=self._agent_version,
+                                        autoscalingGroup=self._autoscaling_group,
+                                        availabilityZone=self._availability_zone)
 
                 with create_stats_timer('deploy.agent.request.latency',
                                         sample_rate=1.0,
