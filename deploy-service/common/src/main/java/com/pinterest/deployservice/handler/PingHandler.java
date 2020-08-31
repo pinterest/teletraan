@@ -446,9 +446,16 @@ public class PingHandler {
         EnvType stageType = EnvType.PRODUCTION;
         String asg = pingRequest.getAutoscalingGroup();
         if (asg != null) {
+            String spot_postfix = "-spot";
             EnvironBean envBean = environDAO.getByCluster(asg);
             if (envBean != null) {
                 stageType = envBean.getStage_type();
+            } else if (asg.endsWith(spot_postfix)) {
+                StringUtils.removeEnd(asg, spot_postfix);
+                envBean = environDAO.getByCluster(asg);
+                if (envBean != null) {
+                    stageType = envBean.getStage_type();
+                }
             }
         }
         shards.add(stageType.toString().toLowerCase());
