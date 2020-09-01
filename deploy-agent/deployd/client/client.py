@@ -49,6 +49,7 @@ class Client(BaseClient):
             id_key = self._config.get_facter_id_key()
             group_key = self._config.get_facter_group_key()
             az_key = self._config.get_facter_az_key()
+            asg_tag_key = self._config.get_facter_asg_tag_key()
             keys_to_fetch = set()
             # facter call is expensive so collect all keys to fetch first
             if not self._hostname and name_key:
@@ -65,6 +66,9 @@ class Client(BaseClient):
 
             if not self._availability_zone and az_key:
                 keys_to_fetch.add(az_key)
+
+            if not self._autoscaling_group:
+                keys_to_fetch.add(asg_tag_key)
 
             facter_data = utils.get_info_from_facter(keys_to_fetch)
 
@@ -85,8 +89,8 @@ class Client(BaseClient):
                 self._availability_zone = facter_data[az_key]
 
             # Hosts brought up outside of ASG or Teletraan might not have ASG
-            if not self._autoscaling_group:
-                self._autoscaling_group = utils.get_ec2_tag_from_file(self._config.get_ec2_tags_cache(), "Autoscaling")
+            if not self._autoscaling_group and asg_tag_key in facter_data:
+                self._autoscaling_group = facter_data[asg_tag_key]
         else:
             # read host_info file
             host_info_fn = self._config.get_host_info_fn()

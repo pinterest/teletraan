@@ -131,9 +131,3 @@ def check_not_none(arg, msg=None):
         raise ValueError(msg)
     return arg
 
-def get_ec2_tag_from_file(file_name, key):
-    if os.path.exists(file_name):
-        with open(file_name) as f:
-            data = yaml.load(f)
-            return data['ec2_tags'][key]
-    return None
