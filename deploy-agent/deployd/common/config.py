@@ -257,5 +257,8 @@ class Config(object):
     def get_facter_az_key(self):
         return self.get_var('availability_zone_key', None)
 
+    def get_facter_ec2_tags_key(self):
+        return self.get_var('ec2_tags_key', None)
+
     def get_facter_asg_tag_key(self):
         return self.get_var('autoscaling_tag_key', None)
