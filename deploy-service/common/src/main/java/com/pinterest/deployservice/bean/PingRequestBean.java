@@ -30,6 +30,12 @@ public class PingRequestBean {
 
     private String hostIp;
 
+    private String autoscalingGroup;
+
+    private String availabilityZone;
+
+    private String agentVersion;
+
     private Set<String> groups;
 
     private List<PingReportBean> reports;
@@ -56,6 +62,30 @@ public class PingRequestBean {
 
     public void setHostIp(String hostIp) {
         this.hostIp = hostIp;
+    }
+
+    public String getAutoscalingGroup() {
+        return this.autoscalingGroup;
+    }
+
+    public void setAutoscalingGroup(String autoscalingGroup) {
+        this.autoscalingGroup = autoscalingGroup;
+    }
+
+    public String getAvailabilityZone() {
+        return availabilityZone;
+    }
+
+    public void setAvailabilityZone(String availabilityZone){
+        this.availabilityZone = availabilityZone;
+    }
+
+    public String getAgentVersion() {
+        return agentVersion;
+    }
+
+    public void setAgentVersion(String agentVersion){
+        this.agentVersion = agentVersion;
     }
 
     public Set<String> getGroups() {

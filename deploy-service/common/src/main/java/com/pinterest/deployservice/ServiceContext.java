@@ -29,6 +29,7 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
@@ -60,6 +61,7 @@ public class ServiceContext {
     private DeployDAO deployDAO;
     private EnvironDAO environDAO;
     private HostDAO hostDAO;
+    private HostAgentDAO hostAgentDAO;
     private HotfixDAO hotfixDAO;
     private DataDAO dataDAO;
     private UtilDAO utilDAO;
@@ -183,6 +185,14 @@ public class ServiceContext {
 
     public void setHostDAO(HostDAO hostDAO) {
         this.hostDAO = hostDAO;
+    }
+
+    public HostAgentDAO getHostAgentDAO() {
+        return hostAgentDAO;
+    }
+
+    public void setHostAgentDAO(HostAgentDAO hostAgentDAO) {
+        this.hostAgentDAO = hostAgentDAO;
     }
 
     public UtilDAO getUtilDAO() {

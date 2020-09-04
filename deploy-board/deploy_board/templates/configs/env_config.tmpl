@@ -228,6 +228,24 @@
                             {% endfor %}
                         </select>
                     </div>
+
+                    <label for="stageType" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Type of stage">
+                        Stage Type
+                    </label>
+                    <div class ="col-xs-4">
+                        <select class="form-control" name="stageType">
+                            {% get_stage_types as stageTypes %}
+                            {% for stageType in stageTypes %}
+                            {% if env.stageType == stageType %}
+                            <option value="{{ stageType }}" selected="selected">{{ stageType }}</option>
+                            {% else %}
+                            <option value="{{ stageType }}">{{ stageType }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="description" class="deployToolTip control-label col-xs-2"
