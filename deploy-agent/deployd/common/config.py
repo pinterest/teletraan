@@ -251,3 +251,14 @@ class Config(object):
     def get_verify_https_certificate(self):
         return self.get_var('verify_https_certificate', 'False')
 
+    def get_deploy_agent_version(self):
+        return self.get_var('deploy_agent_version', None)
+
+    def get_facter_az_key(self):
+        return self.get_var('availability_zone_key', None)
+
+    def get_facter_ec2_tags_key(self):
+        return self.get_var('ec2_tags_key', None)
+
+    def get_facter_asg_tag_key(self):
+        return self.get_var('autoscaling_tag_key', None)
