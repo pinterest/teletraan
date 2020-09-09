@@ -75,12 +75,12 @@ public class EnvironBean implements Updatable, Serializable {
     private String env_id;
 
     @NotEmpty
-    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$", message="{invalid.envname}. must match {regexp}")
     @JsonProperty("envName")
     private String env_name;
 
     @NotEmpty
-    @Pattern(regexp="^[A-Za-z0-9_\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$", message="{invalid.stagename}. must match {regexp}")
     @JsonProperty("stageName")
     private String stage_name;
 
@@ -91,15 +91,15 @@ public class EnvironBean implements Updatable, Serializable {
     private String description;
 
     @JsonProperty("buildName")
-    @Pattern(regexp="^[A-Za-z0-9_\\.\\/\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\.\\/\\-]*$", message="{invalid.buildname}. must match {regexp}")
     private String build_name;
 
     @JsonProperty("branch")
-    @Pattern(regexp="^[A-Za-z0-9_\\:\\.\\,\\/\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\:\\.\\,\\/\\-]*$", message="{invalid.branch}. must match {regexp}")
     private String branch;
 
     @JsonProperty("chatroom")
-    @Pattern(regexp="^[A-Za-z0-9_\\#\\,\\-]*$")
+    @Pattern(regexp="^[A-Za-z0-9_\\#\\,\\-]*$", message="{invalid.chatroom}. must match {regexp}")
     private String chatroom;
 
     @JsonProperty("deployId")
