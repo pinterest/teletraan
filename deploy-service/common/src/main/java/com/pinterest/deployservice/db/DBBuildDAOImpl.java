@@ -209,14 +209,11 @@ public class DBBuildDAOImpl implements BuildDAO {
                                              int limit) throws Exception {
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         if (StringUtils.isNotEmpty(branch)) {
-            return new QueryRunner(dataSource).query(
-                String.format(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2, buildName, branch,
-                    interval.getStartMillis(), interval.getEndMillis(), limit), h);
+            return new QueryRunner(dataSource).query(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2, h, buildName, branch,
+                    interval.getStartMillis(), interval.getEndMillis(), limit);
         } else {
-            return new QueryRunner(dataSource).query(
-                String.format(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE, buildName,
-                    interval.getStartMillis(),
-                    interval.getEndMillis(), limit), h);
+            return new QueryRunner(dataSource).query(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE, h, buildName,
+                    interval.getStartMillis(), interval.getEndMillis(), limit);
         }
     }
 
