@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -441,23 +442,34 @@ public class PingHandler {
         return pingRequest;
     }
 
-    Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
-        Set<String> shards = new HashSet<>();
+    private EnvType populateStageType(PingRequestBean pingRequest) throws Exception {
         EnvType stageType = EnvType.PRODUCTION;
-        String asg = pingRequest.getAutoscalingGroup();
-        if (asg != null) {
-            String spot_postfix = "-spot";
-            EnvironBean envBean = environDAO.getByCluster(asg);
-            if (envBean != null) {
-                stageType = envBean.getStage_type();
-            } else if (asg.endsWith(spot_postfix)) {
-                StringUtils.removeEnd(asg, spot_postfix);
-                envBean = environDAO.getByCluster(asg);
+        if (pingRequest.getStageType() != null) {
+            stageType = pingRequest.getStageType();
+        } else {
+            String asg = pingRequest.getAutoscalingGroup();
+            if (asg != null) {
+                String spot_postfix = "-spot";
+                EnvironBean envBean = environDAO.getByCluster(asg);
                 if (envBean != null) {
                     stageType = envBean.getStage_type();
+                } else if (asg.endsWith(spot_postfix)) {
+                    StringUtils.removeEnd(asg, spot_postfix);
+                    envBean = environDAO.getByCluster(asg);
+                    if (envBean != null) {
+                        stageType = envBean.getStage_type();
+                    }
                 }
             }
         }
+        return stageType;
+    }
+
+    // Creates composite deploy group. size is limited by group_name size in hosts table.
+    // TODO: Consider storing host <-> shard mapping separately.
+    private Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
+        List<String> shards = new ArrayList<>();
+        EnvType stageType = populateStageType(pingRequest);
         shards.add(stageType.toString().toLowerCase());
 
         String availabilityZone = pingRequest.getAvailabilityZone();
