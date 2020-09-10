@@ -36,6 +36,8 @@ public class PingRequestBean {
 
     private String agentVersion;
 
+    private EnvType stageType;
+
     private Set<String> groups;
 
     private List<PingReportBean> reports;
@@ -86,6 +88,14 @@ public class PingRequestBean {
 
     public void setAgentVersion(String agentVersion){
         this.agentVersion = agentVersion;
+    }
+
+    public EnvType getStageType() {
+        return stageType;
+    }
+
+    public void setStageType(EnvType stageType) {
+        this.stageType = stageType;
     }
 
     public Set<String> getGroups() {
