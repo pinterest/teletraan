@@ -15,6 +15,12 @@ deploy-service/teletraanservice/teletraan/
 # C extensions
 *.so
 
+# tar
+*.tar.gz
+
+# log
+*.log
+
 # Ignore dirs
 build_id.properties
 loadtests/local

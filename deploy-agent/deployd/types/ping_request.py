@@ -19,18 +19,28 @@ from deployd.types.agent_status import AgentStatus
 
 class PingRequest(object):
 
-    def __init__(self, hostId=None, hostName=None, hostIp=None, groups=None, reports=None):
+    def __init__(self, hostId=None, hostName=None, hostIp=None, groups=None, reports=None,
+                agentVersion=None, autoscalingGroup=None, availabilityZone=None):
         self.hostId = hostId
         self.hostName = hostName
         self.hostIp = hostIp
         self.groups = groups
         self.reports = reports
+        self.agentVersion = agentVersion
+        self.autoscalingGroup = autoscalingGroup
+        self.availabilityZone = availabilityZone
 
     def to_json(self):
         ping_requests = {}
         ping_requests["hostId"] = self.hostId
         ping_requests["hostName"] = self.hostName
         ping_requests["hostIp"] = self.hostIp
+        if self.autoscalingGroup:
+            ping_requests["autoscalingGroup"] = self.autoscalingGroup
+        if self.availabilityZone:
+            ping_requests["availabilityZone"] = self.availabilityZone
+        if self.agentVersion:
+            ping_requests["agentVersion"] = self.agentVersion
         if self.groups:
             ping_requests["groups"] = list(self.groups)
         ping_requests["reports"] = []
@@ -61,6 +71,7 @@ class PingRequest(object):
         return ping_requests
 
     def __str__(self):
-        return "PingRequest(hostId={}, hostName={}, hostIp={}, groups={}, " \
-               "reports={})".format(self.hostId, self.hostName, self.hostIp, self.groups,
-                                    ",".join(str(v) for v in self.reports))
+        return "PingRequest(hostId={}, hostName={}, hostIp={}, agentVersion={}, autoscalingGroup={}, " \
+            "availabilityZone={}, groups={}, reports={})".format(self.hostId, self.hostName, self.hostIp, 
+            self.agentVersion, self.autoscalingGroup, self.availabilityZone, self.groups, 
+            ",".join(str(v) for v in self.reports))

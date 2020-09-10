@@ -276,6 +276,9 @@ def get_promote_disable_policies(context):
 def get_override_policies(context):
     return environs_helper.OVERRIDE_POLICY_VALUES
 
+@register.assignment_tag(takes_context=True)
+def get_stage_types(context):
+    return environs_helper.STAGE_TYPES
 
 @register.assignment_tag(takes_context=True)
 def get_deploy_constraint_types(context):

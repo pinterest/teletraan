@@ -24,6 +24,7 @@ import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.HostAgentDAO;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ public class SimpleAgentJanitor implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(SimpleAgentJanitor.class);
     private AgentDAO agentDAO;
     protected HostDAO hostDAO;
+    protected HostAgentDAO hostAgentDAO;
     private GroupDAO groupDAO;
     protected long maxStaleHostThreshold;
     protected long minStaleHostThreshold;
@@ -50,6 +52,7 @@ public class SimpleAgentJanitor implements Runnable {
         int maxStaleHostThreshold) {
         agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
+        hostAgentDAO = serviceContext.getHostAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
         this.maxStaleHostThreshold = maxStaleHostThreshold * 1000;
         this.minStaleHostThreshold = minStaleHostThreshold * 1000;
@@ -59,6 +62,7 @@ public class SimpleAgentJanitor implements Runnable {
     void removeStaleHost(String id) throws Exception {
         try {
             hostDAO.deleteAllById(id);
+            hostAgentDAO.delete(id);
             LOG.info("AgentJanitor delete all records for host {}.", id);
         } catch (Exception e) {
             LOG.error("AgentJanitor Failed to delete all records for host {}", id, e);
