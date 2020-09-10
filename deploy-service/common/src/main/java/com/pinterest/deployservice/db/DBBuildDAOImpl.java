@@ -70,20 +70,20 @@ public class DBBuildDAOImpl implements BuildDAO {
             + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
     private static final String
         GET_ACCEPTED_BUILDS_TEMPLATE =
-        "SELECT * FROM builds WHERE build_name='%s' AND publish_date>%d ORDER BY publish_date DESC "
-            + "LIMIT %d";
+        "SELECT * FROM builds WHERE build_name=? AND publish_date>? ORDER BY publish_date DESC "
+            + "LIMIT ?";
     private static final String
         GET_ACCEPTED_BUILDS_TEMPLATE2 =
-        "SELECT * FROM builds WHERE build_name='%s' AND scm_branch='%s' AND publish_date>%d ORDER "
-            + "BY publish_date DESC LIMIT %d";
+        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? ORDER "
+            + "BY publish_date DESC LIMIT ?";
     private static final String
         GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE =
-        "SELECT * FROM builds WHERE build_name='%s' AND publish_date>%d AND publish_date<%d ORDER "
-            + "BY publish_date DESC LIMIT %d";
+        "SELECT * FROM builds WHERE build_name=? AND publish_date>? AND publish_date<? ORDER "
+            + "BY publish_date DESC LIMIT ?";
     private static final String
         GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2 =
-        "SELECT * FROM builds WHERE build_name='%s' AND scm_branch='%s' AND publish_date>%d AND "
-            + "publish_date<%d  ORDER BY publish_date DESC LIMIT %d";
+        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? AND "
+            + "publish_date<?  ORDER BY publish_date DESC LIMIT ?";
 
     private static final String GET_ALL_BUILD_NAMES = "SELECT DISTINCT build_name FROM builds";
     private static final String GET_TOTAL_BY_NAME =
