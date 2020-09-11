@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 
 class Client(BaseClient):
     def __init__(self, config=None, hostname=None, ip=None, hostgroup=None, 
-                host_id=None, use_facter=None, autoscaling_group=None, availability_zone=None):
+                host_id=None, use_facter=None):
         self._hostname = hostname
         self._ip = ip
         self._hostgroup = hostgroup
@@ -38,8 +38,9 @@ class Client(BaseClient):
         self._config = config
         self._use_facter = use_facter
         self._agent_version = self._config.get_deploy_agent_version()
-        self._autoscaling_group = autoscaling_group
-        self._availability_zone = availability_zone
+        self._autoscaling_group = None
+        self._availability_zone = None
+        self._stage_type = None
 
     def _read_host_info(self):
         if self._use_facter:
@@ -51,6 +52,7 @@ class Client(BaseClient):
             az_key = self._config.get_facter_az_key()
             asg_tag_key = self._config.get_facter_asg_tag_key()
             ec2_tags_key = self._config.get_facter_ec2_tags_key()
+            stage_type_key = self._config.get_stage_type_key()
             keys_to_fetch = set()
             # facter call is expensive so collect all keys to fetch first
             if not self._hostname and name_key:
@@ -70,6 +72,9 @@ class Client(BaseClient):
 
             if not self._autoscaling_group:
                 keys_to_fetch.add(ec2_tags_key)
+            
+            if not self._stage_type:
+                keys_to_fetch.add(stage_type_key)
 
             facter_data = utils.get_info_from_facter(keys_to_fetch)
 
@@ -94,6 +99,9 @@ class Client(BaseClient):
             # so need to read ec2_tags from facter and parse Autoscaling tag to cover this case
             if not self._autoscaling_group and ec2_tags_key in facter_data:
                 self._autoscaling_group = facter_data[ec2_tags_key][asg_tag_key]
+            
+            if not self._stage_type and stage_type_key in facter_data:
+                self._stage_type = facter_data[stage_type_key]
         else:
             # read host_info file
             host_info_fn = self._config.get_host_info_fn()
@@ -123,6 +131,9 @@ class Client(BaseClient):
 
                 if not self._availability_zone and "availability-zone" in host_info:
                     self._availability_zone = host_info.get("availability-zone")
+                
+                if not self._stage_type and "stage-type" in host_info:
+                    self._stage_type = host_info.get("stage-type")
             else:
                 log.warn("Cannot find host information file {}. See doc for more details".format(host_info_fn))
 
@@ -146,8 +157,8 @@ class Client(BaseClient):
 
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
-                 "availability_zone: {}, group: {}".format(self._hostname, self._ip, self._id, 
-                 self._agent_version, self._autoscaling_group, self._availability_zone, self._hostgroup))
+                 "availability_zone: {}, stage_type: {}, group: {}".format(self._hostname, self._ip, self._id, 
+                 self._agent_version, self._autoscaling_group, self._availability_zone, self._stage_type, self._hostgroup))
         return True
 
     def send_reports(self, env_reports=None):
@@ -167,7 +178,8 @@ class Client(BaseClient):
                                         groups=self._hostgroup, reports=reports,
                                         agentVersion=self._agent_version,
                                         autoscalingGroup=self._autoscaling_group,
-                                        availabilityZone=self._availability_zone)
+                                        availabilityZone=self._availability_zone,
+                                        stageType=self._stage_type)
 
                 with create_stats_timer('deploy.agent.request.latency',
                                         sample_rate=1.0,

@@ -10,6 +10,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolationException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -48,6 +49,13 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
                 sb.append("\n").append(sw.toString());
                 return Response.serverError().entity(sb.toString()).build();
             }
+        } else if (t instanceof ConstraintViolationException) {
+            StringBuilder sb = new StringBuilder();
+            if (t.getMessage() != null) {
+                sb.append("\nMessage: ").append(t.getMessage());
+            }
+            sb.append("\nParameters in request violate configured constraints.");
+            return Response.status(Response.Status.BAD_REQUEST).entity(sb.toString()).build();
         } else {
             String errorMessage = buildErrorMessage(request);
             StringBuilder sb = new StringBuilder();

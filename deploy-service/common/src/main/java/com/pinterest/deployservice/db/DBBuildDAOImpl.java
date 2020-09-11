@@ -70,20 +70,20 @@ public class DBBuildDAOImpl implements BuildDAO {
             + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
     private static final String
         GET_ACCEPTED_BUILDS_TEMPLATE =
-        "SELECT * FROM builds WHERE build_name='%s' AND publish_date>%d ORDER BY publish_date DESC "
-            + "LIMIT %d";
+        "SELECT * FROM builds WHERE build_name=? AND publish_date>? ORDER BY publish_date DESC "
+            + "LIMIT ?";
     private static final String
         GET_ACCEPTED_BUILDS_TEMPLATE2 =
-        "SELECT * FROM builds WHERE build_name='%s' AND scm_branch='%s' AND publish_date>%d ORDER "
-            + "BY publish_date DESC LIMIT %d";
+        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? ORDER "
+            + "BY publish_date DESC LIMIT ?";
     private static final String
         GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE =
-        "SELECT * FROM builds WHERE build_name='%s' AND publish_date>%d AND publish_date<%d ORDER "
-            + "BY publish_date DESC LIMIT %d";
+        "SELECT * FROM builds WHERE build_name=? AND publish_date>? AND publish_date<? ORDER "
+            + "BY publish_date DESC LIMIT ?";
     private static final String
         GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2 =
-        "SELECT * FROM builds WHERE build_name='%s' AND scm_branch='%s' AND publish_date>%d AND "
-            + "publish_date<%d  ORDER BY publish_date DESC LIMIT %d";
+        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? AND "
+            + "publish_date<?  ORDER BY publish_date DESC LIMIT ?";
 
     private static final String GET_ALL_BUILD_NAMES = "SELECT DISTINCT build_name FROM builds";
     private static final String GET_TOTAL_BY_NAME =
@@ -99,7 +99,7 @@ public class DBBuildDAOImpl implements BuildDAO {
     private static final String GET_CURRENT_BUILD_BY_GROUP_NAME = "SELECT * FROM builds WHERE build_id IN " +
         "(SELECT build_id FROM deploys WHERE deploy_id IN " +
         "(SELECT deploy_id FROM environs WHERE env_id IN" +
-        " (SELECT env_id FROM groups_and_envs WHERE group_name = '%s')" +
+        " (SELECT env_id FROM groups_and_envs WHERE group_name=?)" +
         "))";
 
 
@@ -209,14 +209,11 @@ public class DBBuildDAOImpl implements BuildDAO {
                                              int limit) throws Exception {
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         if (StringUtils.isNotEmpty(branch)) {
-            return new QueryRunner(dataSource).query(
-                String.format(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2, buildName, branch,
-                    interval.getStartMillis(), interval.getEndMillis(), limit), h);
+            return new QueryRunner(dataSource).query(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2, h, buildName, branch,
+                    interval.getStartMillis(), interval.getEndMillis(), limit);
         } else {
-            return new QueryRunner(dataSource).query(
-                String.format(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE, buildName,
-                    interval.getStartMillis(),
-                    interval.getEndMillis(), limit), h);
+            return new QueryRunner(dataSource).query(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE, h, buildName,
+                    interval.getStartMillis(), interval.getEndMillis(), limit);
         }
     }
 
@@ -285,6 +282,6 @@ public class DBBuildDAOImpl implements BuildDAO {
     @Override
     public List<BuildBean> getCurrentBuildsByGroupName(String groupName) throws Exception {
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
-        return new QueryRunner(dataSource).query(String.format(GET_CURRENT_BUILD_BY_GROUP_NAME, groupName), h);
+        return new QueryRunner(dataSource).query(GET_CURRENT_BUILD_BY_GROUP_NAME, h, groupName);
     }
 }
