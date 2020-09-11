@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -467,7 +468,7 @@ public class PingHandler {
     // Creates composite deploy group. size is limited by group_name size in hosts table.
     // TODO: Consider storing host <-> shard mapping separately.
     private Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
-        Set<String> shards = new HashSet<>();
+        List<String> shards = new ArrayList<>();
         EnvType stageType = populateStageType(pingRequest);
         shards.add(stageType.toString().toLowerCase());
 
