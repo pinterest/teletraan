@@ -457,9 +457,9 @@
                 currentCell: currentCluster.cellName,
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
-                        value: item.abstract_name,
+                        value: item.provider_name,
                         text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
-                        isSelected: item.provider_name === currentCluster.provider
+                        isSelected: item.provider_name === currentCluster.provider_name
                     }
                 }),
                 imageNameValue: currentCluster.baseImageName,
