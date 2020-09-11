@@ -31,9 +31,9 @@ import java.util.Set;
 
 public class DBHostAgentDAOImpl implements HostAgentDAO {
     private static final String INSERT_HOST_AGENT = "INSERT INTO hosts_and_agents SET %s ON DUPLICATE KEY UPDATE %s";
-    private static final String DELETE_HOST_BY_NAME = "DELETE FROM hosts_and_agents WHERE host_name=?";
-    private static final String GET_HOST_BY_NAME = "SELECT * FROM hosts_and_agents WHERE host_name=?";
-    private static final String GET_HOSTS_BY_AGENT = "SELECT * FROM hosts_and_agents WHERE agent_version=? ORDER BY host_name LIMIT ?,?";
+    private static final String DELETE_HOST_BY_NAME = "DELETE FROM hosts_and_agents WHERE host_id=?";
+    private static final String GET_HOST_BY_NAME = "SELECT * FROM hosts_and_agents WHERE host_id=?";
+    private static final String GET_HOSTS_BY_AGENT = "SELECT * FROM hosts_and_agents WHERE agent_version=? ORDER BY host_id LIMIT ?,?";
 
     private BasicDataSource dataSource;
 
