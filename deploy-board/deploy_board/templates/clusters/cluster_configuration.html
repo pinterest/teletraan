@@ -492,7 +492,7 @@
                     return {
                         value: item.abstract_name,
                         text: item.abstract_name,
-                        isSelected: item.abstract_name === currentCluster.securityZone
+                        isSelected: item.id === currentCluster.security_zone_id
                     }
                 }),
                 selectedHostTypeValue: currentCluster.hostType,
