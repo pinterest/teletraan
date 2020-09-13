@@ -459,7 +459,7 @@
                     return {
                         value: item.abstract_name,
                         text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
-                        isSelected: item.provider_name === currentCluster.provider
+                        isSelected: item.abstract_name === currentCluster.hostType
                     }
                 }),
                 imageNameValue: currentCluster.baseImageName,
