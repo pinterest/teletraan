@@ -262,3 +262,6 @@ class Config(object):
 
     def get_facter_asg_tag_key(self):
         return self.get_var('autoscaling_tag_key', None)
+
+    def get_stage_type_key(self):
+        return self.get_var('stage_type_key', None)
