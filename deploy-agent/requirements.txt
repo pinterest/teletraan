@@ -8,3 +8,4 @@ mock==1.0.1
 flake8==2.5.4
 nose-socket-whitelist
 pep8
+PyYAML==5.3.1
