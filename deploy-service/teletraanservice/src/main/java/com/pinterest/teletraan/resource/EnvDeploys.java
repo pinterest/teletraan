@@ -27,6 +27,7 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
+import com.pinterest.deployservice.whitelists.Whitelist;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
@@ -62,6 +63,7 @@ public class EnvDeploys {
     private static final Logger LOG = LoggerFactory.getLogger(EnvDeploys.class);
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
+    private Whitelist buildWhitelist;
     private DeployDAO deployDAO;
     private Authorizer authorizer;
     private AgentDAO agentDAO;
@@ -75,6 +77,7 @@ public class EnvDeploys {
     public EnvDeploys(TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         buildDAO = context.getBuildDAO();
+        buildWhitelist = context.getBuildWhitelist();
         deployDAO = context.getDeployDAO();
         authorizer = context.getAuthorizer();
         agentDAO = context.getAgentDAO();
@@ -212,16 +215,24 @@ public class EnvDeploys {
         
         // check build name must match stage config
         if(!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Build name (%s) does not match stage config (%s).", buildBean.getBuild_name(), envBean.getBuild_name()));
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, 
+                String.format("Build name (%s) does not match stage config (%s).", 
+                    buildBean.getBuild_name(), envBean.getBuild_name()));
         }
-        // check if the stage is whitelisted (allow_private_build) for private build
-        if(buildBean.getScm_branch().equals("private") && ! envBean.getAllow_private_build()) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("This stage does not allow deploying a private build. Please Contact #teletraan and #security-related to whitelist your stage for deploying private build"));
-        }
+        // if the stage is not whitelisted (allow_private_build)
+        if(! envBean.getAllow_private_build()) { 
+            // only allow deploy if it is not private build
+            if (buildBean.getScm_branch().equals("private")) {
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, 
+                    "This stage does not allow deploying a private build. Please Contact #teletraan to whitelist your stage for deploying private build");
+            }
         
-        // check if the build is from a trusted artifact url
-        if(!buildBean.getArtifact_url().startsWith("https://soxrepo.pinadmin.com") && envBean.getEnsure_trusted_build()) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("This build is not allowed to deploy. Please Contact #teletraan and #security-related to ensure the build artifact is published to a trusted url"));
+            // only allow deploy if the build is from a trusted artifact url
+            if(envBean.getEnsure_trusted_build() && buildWhitelist != null && !buildWhitelist.trusted(buildBean.getArtifact_url())) {
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                    String.format("Build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url",
+                        buildBean.getArtifact_url()));
+            }            
         }
 
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);
