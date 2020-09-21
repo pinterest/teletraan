@@ -89,7 +89,8 @@ class Client(BaseClient):
 
             if not self._hostgroup and group_key in facter_data:
                 hostgroup = facter_data[group_key]
-                self._hostgroup = hostgroup.split(",")
+                if hostgroup is not None:
+                    self._hostgroup = hostgroup.split(",")
 
             if not self._availability_zone:
                 self._availability_zone = facter_data.get(az_key, None)
