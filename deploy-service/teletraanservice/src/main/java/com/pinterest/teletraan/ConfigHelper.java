@@ -147,9 +147,9 @@ public class ConfigHelper {
 
         BuildWhitelistFactory buildWhitelistFactory = configuration.getBuildWhitelistFactory();
         if (buildWhitelistFactory != null) {
-            context.setBuildWhitelist(new BuildWhitelistImpl(buildWhitelistFactory.getValidBuildURLs()));
+            context.setBuildWhitelist(new BuildWhitelistImpl(buildWhitelistFactory.getValidBuildURLs(), buildWhitelistFactory.getTrustedBuildURLs()));
         } else {
-            context.setBuildWhitelist(new BuildWhitelistImpl(new ArrayList<String>()));
+            context.setBuildWhitelist(new BuildWhitelistImpl(new ArrayList<String>(), new ArrayList<String>()));
         }
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();

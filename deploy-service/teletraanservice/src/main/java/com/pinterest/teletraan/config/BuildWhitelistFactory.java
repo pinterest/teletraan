@@ -22,6 +22,8 @@ import java.util.List;
 public class BuildWhitelistFactory {
     @JsonProperty
     private List<String> validBuildURLs;
+    @JsonProperty
+    private List<String> trustedBuildURLs;
 
     public List<String> getValidBuildURLs() {
         return this.validBuildURLs;
@@ -29,5 +31,13 @@ public class BuildWhitelistFactory {
 
     public void setValidBuildURLs(List<String> urls) {
         this.validBuildURLs = urls;
+    }
+
+    public List<String> getTrustedBuildURLs() {
+        return this.trustedBuildURLs;
+    }
+
+    public void setTrustedBuildURLs(List<String> urls) {
+        this.trustedBuildURLs = urls;
     }
 }
