@@ -15,12 +15,15 @@
  */
 package com.pinterest.deployservice.bean;
 
+import com.pinterest.deployservice.common.DeployInternalException;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
+import javax.validation.constraints.Pattern;
 
 /**
  * Keep the bean and table in sync
@@ -73,10 +76,12 @@ public class EnvironBean implements Updatable, Serializable {
     private String env_id;
 
     @NotEmpty
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$", message="must match {regexp}")
     @JsonProperty("envName")
     private String env_name;
 
     @NotEmpty
+    @Pattern(regexp="^[A-Za-z0-9_\\-]*$", message="must match {regexp}")
     @JsonProperty("stageName")
     private String stage_name;
 
@@ -86,12 +91,15 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("description")
     private String description;
 
+    @Pattern(regexp="^[A-Za-z0-9_\\.\\/\\-]*$", message="must match {regexp}")
     @JsonProperty("buildName")
     private String build_name;
 
+    @Pattern(regexp="^[A-Za-z0-9_\\:\\.\\,\\/\\-]*$", message="must match {regexp}")
     @JsonProperty("branch")
     private String branch;
 
+    @Pattern(regexp="^[A-Za-z0-9_\\#\\,\\-]*$", message="must match {regexp}")
     @JsonProperty("chatroom")
     private String chatroom;
 
@@ -229,7 +237,8 @@ public class EnvironBean implements Updatable, Serializable {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        // Escape user input which could contain injected Javascript
+        this.description = StringEscapeUtils.escapeHtml(this.description);
     }
 
     public String getBuild_name() {
