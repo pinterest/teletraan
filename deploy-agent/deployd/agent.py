@@ -376,6 +376,7 @@ def main():
                              "This is optional. By default the group name defined in host-info "
                              "file will be used")
     parser.add_argument('--use-facter', dest='use_facter', action='store_true', default=False)
+    parser.add_argument('--use-host-info', dest='use_host_info', action='store_true', default=False)
     parser.add_argument('--mode', dest='mode', default=None,
                         help="Optional. 'serverless' is the only non default mode supported. "
                              "In this mode, agent can be run for one time deployment without "
@@ -409,7 +410,7 @@ def main():
 
     log.info("Start to run deploy-agent.")
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup,
-                    use_facter=args.use_facter)
+                    use_facter=args.use_facter, use_host_info=args.use_host_info)
     if is_serverless_mode:
         log.info("Running agent with severless client")
         client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,
