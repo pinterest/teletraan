@@ -37,7 +37,7 @@ import io.swagger.annotations.ApiParam;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -89,7 +89,7 @@ public class EnvStages {
     public void update(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
-                       @ApiParam(value = "Desired Environment object with updates", required = true)
+                       @ApiParam(value = "Desired Environment object with updates", required = true)@Valid
                            EnvironBean environBean) throws Exception {
         EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(origBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
