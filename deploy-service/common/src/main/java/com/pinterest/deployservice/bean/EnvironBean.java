@@ -100,7 +100,7 @@ public class EnvironBean implements Updatable, Serializable {
     private String branch;
 
     @JsonProperty("chatroom")
-    @Pattern(regexp="^[A-Za-z0-9_\s\\#\\,\\-]*$", message="must match {regexp}")
+    @Pattern(regexp="^[A-Za-z0-9_ \\#\\,\\-]*$", message="must match {regexp}")
     private String chatroom;
 
     @JsonProperty("deployId")
