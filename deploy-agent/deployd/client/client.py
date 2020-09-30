@@ -24,19 +24,22 @@ from deployd.common.decorators import retry
 from deployd.common.stats import create_stats_timer, create_sc_increment
 from deployd.common import utils
 from deployd.types.ping_request import PingRequest
+from deployd import IS_PINTEREST
+
 
 log = logging.getLogger(__name__)
 
 
 class Client(BaseClient):
     def __init__(self, config=None, hostname=None, ip=None, hostgroup=None, 
-                host_id=None, use_facter=None):
+                host_id=None, use_facter=None, use_host_info=False):
         self._hostname = hostname
         self._ip = ip
         self._hostgroup = hostgroup
         self._id = host_id
         self._config = config
         self._use_facter = use_facter
+        self._use_host_info = use_host_info
         self._agent_version = self._config.get_deploy_agent_version()
         self._autoscaling_group = None
         self._availability_zone = None
@@ -49,10 +52,6 @@ class Client(BaseClient):
             ip_key = self._config.get_facter_ip_key()
             id_key = self._config.get_facter_id_key()
             group_key = self._config.get_facter_group_key()
-            az_key = self._config.get_facter_az_key()
-            asg_tag_key = self._config.get_facter_asg_tag_key()
-            ec2_tags_key = self._config.get_facter_ec2_tags_key()
-            stage_type_key = self._config.get_stage_type_key()
             keys_to_fetch = set()
             # facter call is expensive so collect all keys to fetch first
             if not self._hostname and name_key:
@@ -66,15 +65,6 @@ class Client(BaseClient):
 
             if not self._hostgroup and group_key:
                 keys_to_fetch.add(group_key)
-
-            if not self._availability_zone and az_key:
-                keys_to_fetch.add(az_key)
-
-            if not self._autoscaling_group:
-                keys_to_fetch.add(ec2_tags_key)
-            
-            if not self._stage_type:
-                keys_to_fetch.add(stage_type_key)
 
             facter_data = utils.get_info_from_facter(keys_to_fetch)
 
@@ -91,18 +81,6 @@ class Client(BaseClient):
                 hostgroup = facter_data[group_key]
                 if hostgroup is not None:
                     self._hostgroup = hostgroup.split(",")
-
-            if not self._availability_zone:
-                self._availability_zone = facter_data.get(az_key, None)
-
-            # Hosts brought up outside of ASG or Teletraan might not have ASG
-            # Note: on U14, facter -p ec2_tags.Autoscaling does not work.
-            # so need to read ec2_tags from facter and parse Autoscaling tag to cover this case
-            if not self._autoscaling_group:
-                self._autoscaling_group = facter_data.get(ec2_tags_key, {}).get(asg_tag_key, None)
-            
-            if not self._stage_type:
-                self._stage_type = facter_data.get(stage_type_key, None)
         else:
             # read host_info file
             host_info_fn = self._config.get_host_info_fn()
@@ -132,7 +110,7 @@ class Client(BaseClient):
 
                 if not self._availability_zone:
                     self._availability_zone = host_info.get("availability-zone", None)
-                
+
                 if not self._stage_type:
                     self._stage_type = host_info.get("stage-type", None)
             else:
@@ -155,6 +133,36 @@ class Client(BaseClient):
             except Exception:
                 log.warn('Host ip information does not exist.')
                 pass
+        
+        if IS_PINTEREST and self._use_host_info is False:
+            # Read new keys from facter always
+            az_key = self._config.get_facter_az_key()
+            asg_tag_key = self._config.get_facter_asg_tag_key()
+            ec2_tags_key = self._config.get_facter_ec2_tags_key()
+            stage_type_key = self._config.get_stage_type_key()
+            keys_to_fetch = set()
+            if not self._availability_zone and az_key:
+                keys_to_fetch.add(az_key)
+
+            if not self._autoscaling_group:
+                keys_to_fetch.add(ec2_tags_key)
+
+            if not self._stage_type:
+                keys_to_fetch.add(stage_type_key)
+
+            facter_data = utils.get_info_from_facter(keys_to_fetch)
+
+            if not self._availability_zone:
+                self._availability_zone = facter_data.get(az_key, None)
+
+            # Hosts brought up outside of ASG or Teletraan might not have ASG
+            # Note: on U14, facter -p ec2_tags.Autoscaling does not work.
+            # so need to read ec2_tags from facter and parse Autoscaling tag to cover this case
+            if not self._autoscaling_group:
+                self._autoscaling_group = facter_data.get(ec2_tags_key, {}).get(asg_tag_key, None)
+
+            if not self._stage_type:
+                self._stage_type = facter_data.get(stage_type_key, None)
 
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
