@@ -76,12 +76,10 @@ public class EnvironBean implements Updatable, Serializable {
     private String env_id;
 
     @NotEmpty
-    @Pattern(regexp="^[A-Za-z0-9_\\-]*$", message="must match {regexp}")
     @JsonProperty("envName")
     private String env_name;
 
     @NotEmpty
-    @Pattern(regexp="^[A-Za-z0-9_\\-]*$", message="must match {regexp}")
     @JsonProperty("stageName")
     private String stage_name;
 
@@ -92,15 +90,12 @@ public class EnvironBean implements Updatable, Serializable {
     private String description;
 
     @JsonProperty("buildName")
-    @Pattern(regexp="^[A-Za-z0-9_\\.\\/\\-]*$", message="must match {regexp}")
     private String build_name;
 
     @JsonProperty("branch")
-    @Pattern(regexp="^[A-Za-z0-9_\\:\\.\\,\\/\\-]*$", message="must match {regexp}")
     private String branch;
 
     @JsonProperty("chatroom")
-    @Pattern(regexp="^[A-Za-z0-9_\s\\#\\,\\-]*$", message="must match {regexp}")
     private String chatroom;
 
     @JsonProperty("deployId")
@@ -199,6 +194,30 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("stageType")
     private EnvType stage_type;
+
+    public void validate() throws Exception {
+        // A bunch of these fields will always be alphanumeric (with _ and -)
+        String envRegEx = "^[A-Za-z0-9_\\-]*$";
+        if (this.env_name != null && !this.env_name.matches(envRegEx)) {
+            throw new IllegalArgumentException(String.format("Environment name must match regex %s", envRegEx));
+        }
+        String stageRegEx = "^[A-Za-z0-9_\\-]*$";
+        if (this.stage_name != null && !this.stage_name.matches(stageRegEx)) {
+            throw new IllegalArgumentException(String.format("Stage name must match regex %s", stageRegEx));
+        }
+        String buildRegEx = "^[A-Za-z0-9_\\.\\/\\-]*$";
+        if (this.build_name != null && !this.build_name.matches(buildRegEx)) {
+            throw new IllegalArgumentException(String.format("Build name must match regex %s", buildRegEx));
+        }
+        String branchRegEx = "^[A-Za-z0-9_\\:\\.\\,\\/\\-]*$";
+        if (this.branch != null && !this.branch.matches(branchRegEx)) {
+            throw new IllegalArgumentException(String.format("Branch name must match regex %s", branchRegEx));
+        }
+        String chatRegex = "^[A-Za-z0-9_ \\#\\,\\-]*$";
+        if (this.chatroom != null && !this.chatroom.matches(chatRegex)) {
+            throw new IllegalArgumentException(String.format("Chatroom must match regex %s", chatRegex));
+        }
+    }
 
     public String getWebhooks_config_id() {
         return webhooks_config_id;
