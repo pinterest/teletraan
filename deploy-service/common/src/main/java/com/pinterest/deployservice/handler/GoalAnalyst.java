@@ -164,7 +164,10 @@ public class GoalAnalyst {
 
         @Override
         public int compareTo(UninstallCandidate uninstallCandidate) {
-            return 0;
+            int priority1 = environ.getPriority().getValue();
+            int priority2 = uninstallCandidate.environ.getPriority().getValue();
+
+            return priority2 - priority1;
         }
 
         @Override
