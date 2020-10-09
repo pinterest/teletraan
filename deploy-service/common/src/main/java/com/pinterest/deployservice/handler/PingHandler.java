@@ -542,27 +542,33 @@ public class PingHandler {
 
         // The current thinking is to try the first candidate, even it needs to wait
         if (!installCandidates.isEmpty()) {
-            GoalAnalyst.InstallCandidate installCandidate = installCandidates.get(0);
-            AgentBean updateBean = installCandidate.updateBean;
-            EnvironBean env = installCandidate.env;
-            String scheduleId = env.getSchedule_id();
-            String deployConstraintId = env.getDeploy_constraint_id();
-
-            if (installCandidate.needWait) {
-                LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
-                if (canDeploy(env, hostName, updateBean, scheduleId, deployConstraintId)) {
-                    LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
+            for (GoalAnalyst.InstallCandidate installCandidate : installCandidates) {
+                AgentBean updateBean = installCandidate.updateBean;
+                EnvironBean env = installCandidate.env;
+                String scheduleId = env.getSchedule_id();
+                String deployConstraintId = env.getDeploy_constraint_id();
+                if (installCandidate.needWait) {
+                    LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
+                    if (canDeploy(env, hostName, updateBean, scheduleId, deployConstraintId)) {
+                        LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
+                        updateBeans.put(updateBean.getEnv_id(), updateBean);
+                        response = generateInstallResponse(installCandidate);
+                        break;
+                    } else if (updateBean.getFirst_deploy()) {
+                        LOG.debug("Host {} needs to wait for first deploy of env {}",
+                            hostName, updateBean.getEnv_id());
+                            break;
+                    } else {
+                        LOG.debug("Host {} needs to wait for env {}. Try next env",
+                            hostName, updateBean.getEnv_id()); 
+                    }
+                } else {
+                    LOG.debug("Host {} is in the middle of deploy, no need to wait, updateBean = {}",
+                        hostName, updateBean);
                     updateBeans.put(updateBean.getEnv_id(), updateBean);
                     response = generateInstallResponse(installCandidate);
-                } else {
-                    LOG.debug("Host {} for env {} needs to wait for its turn to install.",
-                        hostName, updateBean.getEnv_id());
+                    break;
                 }
-            } else {
-                LOG.debug("Host {} is in the middle of deploy, no need to wait, updateBean = {}",
-                    hostName, updateBean);
-                updateBeans.put(updateBean.getEnv_id(), updateBean);
-                response = generateInstallResponse(installCandidate);
             }
         }
 
