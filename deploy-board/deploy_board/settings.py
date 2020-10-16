@@ -301,6 +301,8 @@ if IS_PINTEREST:
 
     # Nimbus service url
     NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL", None)
+    NIMBUS_EGRESS_URL = os.getenv("NIMBUS_EGRESS_URL", None)
+    NIMBUS_USE_EGRESS = (os.getenv("NIMBUS_USE_EGRESS", 'False').lower() == 'true')
     NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)
 
     DEFAULT_CLUSTER_TYPE = "PRODUCTION"
