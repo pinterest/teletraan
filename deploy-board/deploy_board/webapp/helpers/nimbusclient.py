@@ -1,8 +1,9 @@
 """Helper class to connect Nimbus service"""
 import logging
 from decorators import singleton
-from deploy_board.settings import IS_PINTEREST, NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, TELETRAAN_PROJECT_URL_FORMAT
+from deploy_board.settings import IS_PINTEREST, NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, NIMBUS_USE_EGRESS, NIMBUS_EGRESS_URL, TELETRAAN_PROJECT_URL_FORMAT
 from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
+from urllib.parse import urlparse
 import requests
 requests.packages.urllib3.disable_warnings()
 
@@ -31,12 +32,18 @@ class NimbusClient(object):
         return None
 
     def get_one_identifier(self, name, token=None):
+        service_url = NIMBUS_EGRESS_URL if NIMBUS_USE_EGRESS else NIMBUS_SERVICE_URL
+
         headers = {}
         headers['Client-Authorization'] = 'client Teletraan'
         if token:
             headers['Authorization'] = 'token %s' % token
 
-        response = requests.get('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name),
+        if NIMBUS_USE_EGRESS:
+            parsed_uri = urlparse(NIMBUS_SERVICE_URL)
+            headers['Host'] = parsed_uri.netloc
+
+        response = requests.get('{}/api/{}/identifiers/{}'.format(service_url, NIMBUS_SERVICE_VERSION, name),
                                 headers=headers)
         return self.handle_response(response)
 
@@ -53,7 +60,7 @@ class NimbusClient(object):
                 if IS_PINTEREST:
                     exceptionMessage += " Contact #teletraan for assistance."
                 raise TeletraanException(exceptionMessage)
-        
+
         headers = {}
         headers['Client-Authorization'] = 'client Teletraan'
         if token:
@@ -84,7 +91,12 @@ class NimbusClient(object):
             'stageName': data.get('stage_name')
         }
 
-        response = requests.post('{}/api/{}/identifiers'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION),
+        service_url = NIMBUS_EGRESS_URL if NIMBUS_USE_EGRESS else NIMBUS_SERVICE_URL
+        if NIMBUS_USE_EGRESS:
+            parsed_uri = urlparse(NIMBUS_SERVICE_URL)
+            headers['Host'] = parsed_uri.netloc
+
+        response = requests.post('{}/api/{}/identifiers'.format(service_url, NIMBUS_SERVICE_VERSION),
                                  json=payload,
                                  headers=headers)
 
@@ -96,8 +108,13 @@ class NimbusClient(object):
         if token:
             headers['Authorization'] = 'token %s' % token
 
-        response = requests.delete('{}/api/{}/identifiers/{}'.format(NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, name),
-                                 headers=headers)
+        service_url = NIMBUS_EGRESS_URL if NIMBUS_USE_EGRESS else NIMBUS_SERVICE_URL
+        if NIMBUS_USE_EGRESS:
+            parsed_uri = urlparse(NIMBUS_SERVICE_URL)
+            headers['Host'] = parsed_uri.netloc
+
+        response = requests.delete('{}/api/{}/identifiers/{}'.format(service_url, NIMBUS_SERVICE_VERSION, name),
+                                   headers=headers)
         return self.handle_response(response)
 
     def get_one_project_console_url(self, project_name):
