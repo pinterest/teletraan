@@ -27,7 +27,7 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
-import com.pinterest.deployservice.whitelists.Whitelist;
+import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
@@ -63,7 +63,7 @@ public class EnvDeploys {
     private static final Logger LOG = LoggerFactory.getLogger(EnvDeploys.class);
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
-    private Whitelist buildWhitelist;
+    private Allowlist buildAllowlist;
     private DeployDAO deployDAO;
     private Authorizer authorizer;
     private AgentDAO agentDAO;
@@ -77,7 +77,7 @@ public class EnvDeploys {
     public EnvDeploys(TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         buildDAO = context.getBuildDAO();
-        buildWhitelist = context.getBuildWhitelist();
+        buildAllowlist = context.getBuildAllowlist();
         deployDAO = context.getDeployDAO();
         authorizer = context.getAuthorizer();
         agentDAO = context.getAgentDAO();
@@ -221,17 +221,17 @@ public class EnvDeploys {
         }
         // only allow a non-private deploy if the build is from a trusted artifact url
         if(envBean.getEnsure_trusted_build() && !buildBean.getScm_branch().equals("private") &&
-            buildWhitelist != null && !buildWhitelist.trusted(buildBean.getArtifact_url())) {
+            buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                 String.format("Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url",
                     buildBean.getArtifact_url()));
         }
-        // if the stage is not whitelisted (allow_private_build)
+        // if the stage is not allowed (allow_private_build)
         if(! envBean.getAllow_private_build()) { 
             // only allow deploy if it is not private build
             if (buildBean.getScm_branch().equals("private")) {
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, 
-                    "This stage does not allow deploying a private build. Please Contact #teletraan to whitelist your stage for deploying private build");
+                    "This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build");
             }
         }
 
