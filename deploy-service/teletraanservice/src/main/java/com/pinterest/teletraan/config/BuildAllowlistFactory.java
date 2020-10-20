@@ -19,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public class BuildWhitelistFactory {
+public class BuildAllowlistFactory {
     @JsonProperty
     private List<String> validBuildURLs;
     @JsonProperty

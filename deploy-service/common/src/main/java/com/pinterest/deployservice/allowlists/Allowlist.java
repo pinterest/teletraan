@@ -1,6 +1,6 @@
-package com.pinterest.deployservice.whitelists;
+package com.pinterest.deployservice.allowlists;
 
-public interface Whitelist {
+public interface Allowlist {
     Boolean approved(String attempt);
     Boolean trusted(String attempt);
 }
