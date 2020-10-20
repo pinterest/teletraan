@@ -219,6 +219,13 @@ public class EnvDeploys {
                 String.format("Build name (%s) does not match stage config (%s).", 
                     buildBean.getBuild_name(), envBean.getBuild_name()));
         }
+        // only allow a non-private deploy if the build is from a trusted artifact url
+        if(envBean.getEnsure_trusted_build() && !buildBean.getScm_branch().equals("private") &&
+            buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                String.format("Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url",
+                    buildBean.getArtifact_url()));
+        }
         // if the stage is not allowed (allow_private_build)
         if(! envBean.getAllow_private_build()) { 
             // only allow deploy if it is not private build
@@ -226,13 +233,6 @@ public class EnvDeploys {
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, 
                     "This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build");
             }
-        
-            // only allow deploy if the build is from a trusted artifact url
-            if(envBean.getEnsure_trusted_build() && buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                    String.format("Build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url",
-                        buildBean.getArtifact_url()));
-            }            
         }
 
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);
