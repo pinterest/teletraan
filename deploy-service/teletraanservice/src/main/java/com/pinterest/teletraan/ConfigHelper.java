@@ -41,8 +41,8 @@ import com.pinterest.deployservice.events.DefaultEventSender;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
-import com.pinterest.teletraan.config.BuildWhitelistFactory;
-import com.pinterest.deployservice.whitelists.BuildWhitelistImpl;
+import com.pinterest.teletraan.config.BuildAllowlistFactory;
+import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
@@ -145,11 +145,11 @@ public class ConfigHelper {
             context.setRodimusManager(new DefaultRodimusManager());
         }
 
-        BuildWhitelistFactory buildWhitelistFactory = configuration.getBuildWhitelistFactory();
-        if (buildWhitelistFactory != null) {
-            context.setBuildWhitelist(new BuildWhitelistImpl(buildWhitelistFactory.getValidBuildURLs(), buildWhitelistFactory.getTrustedBuildURLs()));
+        BuildAllowlistFactory buildAllowlistFactory = configuration.getBuildAllowlistFactory();
+        if (buildAllowlistFactory != null) {
+            context.setBuildAllowlist(new BuildAllowlistImpl(buildAllowlistFactory.getValidBuildURLs(), buildAllowlistFactory.getTrustedBuildURLs()));
         } else {
-            context.setBuildWhitelist(new BuildWhitelistImpl(new ArrayList<String>(), new ArrayList<String>()));
+            context.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<String>(), new ArrayList<String>()));
         }
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
