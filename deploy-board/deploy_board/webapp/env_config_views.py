@@ -81,9 +81,10 @@ class EnvConfigView(View):
             data["notifyAuthors"] = True
         else:
             data["notifyAuthors"] = False
+        if "systemPriority" in query_dict:
+            data["systemPriority"] = query_dict["systemPriority"]
         self._set_parallel(data, query_dict)
         data["priority"] = query_dict["priority"]
-        data["systemPriority"] = query_dict["systemPriority"]
         data["stuckThreshold"] = int(query_dict["stuckThreshold"])
         data["successThreshold"] = float(query_dict["successThreshold"]) * 100
         data["description"] = query_dict.get("description")
