@@ -247,6 +247,7 @@
                         </select>
                     </div>
                 </div>
+                {% if env.systemPriority != None %}
                 <div class="form-group">
                     <label for="syspriority" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
@@ -260,6 +261,7 @@
                                maxlength="128"/>
                     </div>
                 </div>
+                {% endif %}
                 <div class="form-group">
                     <label for="description" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
