@@ -247,6 +247,21 @@
                         </select>
                     </div>
                 </div>
+                {% if env.systemPriority != None %}
+                <div class="form-group">
+                    <label for="syspriority" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="System Priority for Sidecars">
+                        Sidecar System Priority
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="syspriority" required="false" readonly="true"
+                               type="text" value="{{ env.systemPriority |default_if_none:'' }}"
+                               maxlength="128"/>
+                    </div>
+                </div>
+                {% endif %}
                 <div class="form-group">
                     <label for="description" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
