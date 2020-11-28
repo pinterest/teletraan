@@ -21,6 +21,7 @@ import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.AgentCountDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployConstraintDAO;
@@ -186,6 +187,14 @@ public class PingHandler {
         }
     }
 
+    private long getActiveAgentCount(String envId) {
+        long totalActiveAgents = agentCountDAO.getActiveCount(envId);
+        if (!totalActiveAgents || totalActiveAgents == 0) {
+            totalActiveAgents = agentDAO.countDeployingAgent(envId);
+        }
+        return totalActiveAgents
+    }
+
     /**
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
@@ -206,7 +215,7 @@ public class PingHandler {
 
         try {
             //Note: This count already excludes first deploy agents, includes agents in STOP state
-            long totalDeployingAgents = agentDAO.countDeployingAgent(envId);
+            long totalDeployingAgents = getActiveAgentCount(envId);
             if (totalDeployingAgents >= parallelThreshold) {
                 LOG.debug("There are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalDeployingAgents, envId, host);
                 return false;
@@ -240,7 +249,7 @@ public class PingHandler {
             LOG.info("Successfully get lock on {}", deployLockName);
             try {
                 LOG.debug("Got lock on behavor of host {}, verify active agents", host);
-                long totalActiveAgents = agentDAO.countDeployingAgent(envId);
+                long totalActiveAgents = getActiveAgentCount(envId);
                 if (totalActiveAgents >= parallelThreshold) {
                     LOG.debug("Got lock, but there are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalActiveAgents, envId, host);
                     return false;
@@ -260,6 +269,12 @@ public class PingHandler {
                         return false;
                     }
                 }
+                if (agent.getDeploy_stage() != DeployStage.SERVING_BUILD) {
+                    agentCountDAO.incrementActiveCountByOne(envId);
+                } else {
+                    agentCountDAO.decrementActiveCountByOne(envId);
+                }
+                //agentCountDAO.insertOrUpdateNonFirstCount(envId, totalNonFirstDeployAgents + 1);
                 agentDAO.insertOrUpdate(agentBean);
                 LOG.debug("There are currently only {} agent is actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
                 return true;
