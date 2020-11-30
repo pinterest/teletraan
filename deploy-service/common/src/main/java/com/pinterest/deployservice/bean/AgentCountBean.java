@@ -26,6 +26,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * deploy_id VARCHAR(22)    NOT NULL,
  * existingCount    INT            NOT NULL DEFAULT 0,
  * activeCount    INT            NOT NULL DEFAULT 0,
+ * last_refresh    BIGINT              NOT NULL,
  * PRIMARY KEY (env_id)
  * );
  */
@@ -34,13 +35,16 @@ public class AgentCountBean implements Updatable {
     private String env_id;
 
     @JsonProperty("deployId")
-    private String deploy_id;
+    private String deploy_id; // TODO: needed?
 
     @JsonProperty("existingCount")
     private Long existing_count;
 
     @JsonProperty("activeCount")
     private Long active_count;
+
+    @JsonProperty("lastRefresh")
+    private Long last_refresh;
 
     public String getEnv_id() {
         return env_id;
@@ -74,6 +78,14 @@ public class AgentCountBean implements Updatable {
         return active_count;
     }
 
+    public Long getLast_refresh() {
+        return last_refresh;
+    }
+
+    public void setLast_refresh(Long last_refresh) {
+        this.last_refresh = last_refresh;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -81,8 +93,16 @@ public class AgentCountBean implements Updatable {
         clause.addColumn("deploy_id", deploy_id);
         clause.addColumn("existing_count", existing_count);
         clause.addColumn("active_count", active_count);
+        clause.addColumn("last_refresh", last_refresh);
         return clause;
     }
+
+    public final static String UPDATE_CLAUSE =
+        "env_id=VALUES(env_id)," +
+        "deploy_id=VALUES(deploy_id)," +
+        "existing_count=VALUES(existing_count)," +
+        "active_count=VALUES(active_count)," +
+        "last_refresh=CASE WHEN last_refresh IS NOT NULL THEN VALUES(last_refresh) ELSE last_refresh END";
 
     @Override
     public String toString() {

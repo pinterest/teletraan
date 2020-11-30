@@ -19,10 +19,10 @@ import com.pinterest.deployservice.bean.AgentCountBean;
 
 public interface AgentCountDAO {
     AgentCountBean get(String envId) throws Exception;
-    void insert(AgentCountBean agentCountBean) throws Exception;
+    void insertOrUpdate(AgentCountBean agentCountBean) throws Exception;
     void delete(String envId) throws Exception;
-    void incrementExistingCountByOne(String envId) throws Exception;
-    void decrementExistingCountByOne(String envId) throws Exception;
-    void incrementActiveCountByOne(String envId) throws Exception;
-    void decrementActiveCountByOne(String envId) throws Exception;
+    // void incrementExistingCountByOne(String envId) throws Exception;
+    // void decrementExistingCountByOne(String envId) throws Exception;
+    // void incrementActiveCountByOne(String envId) throws Exception;
+    // void decrementActiveCountByOne(String envId) throws Exception;
 }

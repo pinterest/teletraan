@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS agent_counts (
     deploy_id         VARCHAR(22)         NOT NULL,
     existing_count   int(11) NOT NULL DEFAULT '0',
     active_count   int(11) NOT NULL DEFAULT '0',
+    last_refresh    bigint(20) NOT NULL,
     PRIMARY KEY    (env_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

@@ -38,6 +38,7 @@ import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -55,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.*;
 
 /**
  * This is where we handle agent ping and return deploy goal!
@@ -63,6 +65,7 @@ public class PingHandler {
     private static final Logger LOG = LoggerFactory.getLogger(PingHandler.class);
     private static final PingResponseBean NOOP;
     private static final Set<String> EMPTY_GROUPS;
+    private static final long AGENT_COUNT_CACHE_TTL = 10 * 1000;
 
     static {
         NOOP = new PingResponseBean();
@@ -73,7 +76,9 @@ public class PingHandler {
     }
 
     private AgentDAO agentDAO;
+    private AgentCountDAO agentCountDAO;
     private AgentErrorDAO agentErrorDAO;
+    private BasicDataSource dataSource;
     private DeployDAO deployDAO;
     private BuildDAO buildDAO;
     private EnvironDAO environDAO;
@@ -91,7 +96,9 @@ public class PingHandler {
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
+        agentCountDAO = serviceContext.getAgentCountDAO();
         agentErrorDAO = serviceContext.getAgentErrorDAO();
+        dataSource = serviceContext.getDataSource();
         deployDAO = serviceContext.getDeployDAO();
         buildDAO = serviceContext.getBuildDAO();
         environDAO = serviceContext.getEnvironDAO();
@@ -187,19 +194,22 @@ public class PingHandler {
         }
     }
 
-    private long getActiveAgentCount(String envId) {
-        long totalActiveAgents = agentCountDAO.getActiveCount(envId);
-        if (!totalActiveAgents || totalActiveAgents == 0) {
-            totalActiveAgents = agentDAO.countDeployingAgent(envId);
+    boolean isAgentCountValid(AgentCountBean agentCountBean) {
+        if (agentCountBean == null || agentCountBean.getLast_refresh() == null) {
+            return false;
         }
-        return totalActiveAgents
+        long now = System.currentTimeMillis();
+        if (now - agentCountBean.getLast_refresh() > AGENT_COUNT_CACHE_TTL) {
+            return false;
+        }
+        return true;
     }
 
     /**
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
      */
-    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean, String scheduleId, String deployConstraintId) throws Exception {
+    boolean canDeploy(EnvironBean envBean, String host, AgentBean agentBean) throws Exception {
         // first deploy should always proceed
         if (agentBean.getFirst_deploy()) {
             agentDAO.insertOrUpdate(agentBean);
@@ -210,12 +220,13 @@ public class PingHandler {
         // TODO use ecache to optimize
         // Make sure we do not exceed allowed number of concurrent active deploying agent
         String envId = envBean.getEnv_id();
-        long totalNonFirstDeployAgents = agentDAO.countNonFirstDeployingAgent(envId);
+        AgentCountBean agentCountBean = agentCountDAO.get(envId);
+        long totalNonFirstDeployAgents = isAgentCountValid(agentCountBean) ? agentCountBean.getExisting_count() : agentDAO.countNonFirstDeployingAgent(envId);
         long parallelThreshold = getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents);
 
         try {
             //Note: This count already excludes first deploy agents, includes agents in STOP state
-            long totalDeployingAgents = getActiveAgentCount(envId);
+            long totalDeployingAgents = isAgentCountValid(agentCountBean) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
             if (totalDeployingAgents >= parallelThreshold) {
                 LOG.debug("There are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalDeployingAgents, envId, host);
                 return false;
@@ -226,19 +237,15 @@ public class PingHandler {
         }
 
         // Make sure we also follow the schedule if specified
-        if (scheduleId != null) {
-            if (!canDeploywithSchedule(scheduleId, envBean)) {
-                LOG.debug("Env {} schedule does not allow host {} to proceed.", envId, host);
-                return false;
-            }
+        if (!canDeploywithSchedule(envBean)) {
+            LOG.debug("Env {} schedule does not allow host {} to proceed.", envId, host);
+            return false;
         }
 
         // Make sure we also follow the deploy constraint if specified
-        if(deployConstraintId != null) {
-            if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
-                LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
-                return false;
-            }
+        if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
+            LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
+            return false;
         }
 
         // Looks like we can proceed with deploy, but let us double check with lock, and
@@ -249,32 +256,37 @@ public class PingHandler {
             LOG.info("Successfully get lock on {}", deployLockName);
             try {
                 LOG.debug("Got lock on behavor of host {}, verify active agents", host);
-                long totalActiveAgents = getActiveAgentCount(envId);
+                long totalActiveAgents = isAgentCountValid(agentCountBean) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
                 if (totalActiveAgents >= parallelThreshold) {
                     LOG.debug("Got lock, but there are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalActiveAgents, envId, host);
                     return false;
                 }
                 // Make sure again we also follow the schedule if specified
-                if (scheduleId != null) {
-                    if (!canDeploywithSchedule(scheduleId, envBean)) {
-                        LOG.debug("Env {} schedule does not allow host {} to proceed.", envId, host);
-                        return false;
-                    }
+                if (!canDeploywithSchedule(envBean)) {
+                    LOG.debug("Env {} schedule does not allow host {} to proceed.", envId, host);
+                    return false;
                 }
 
+
                 // Make sure we also follow the deploy constraint if specified
-                if(deployConstraintId != null) {
-                    if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
-                        LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
-                        return false;
-                    }
+                if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
+                    LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
+                    return false;
                 }
-                if (agent.getDeploy_stage() != DeployStage.SERVING_BUILD) {
-                    agentCountDAO.incrementActiveCountByOne(envId);
-                } else {
-                    agentCountDAO.decrementActiveCountByOne(envId);
+
+                if (agentCountBean == null) {
+                    agentCountBean = new AgentCountBean(){};
                 }
-                //agentCountDAO.insertOrUpdateNonFirstCount(envId, totalNonFirstDeployAgents + 1);
+                agentCountBean.setExisting_count(totalNonFirstDeployAgents);
+                agentCountBean.setActive_count(totalActiveAgents + 1);
+                agentCountBean.setDeploy_id(agentBean.getDeploy_id());
+                // we invalidate cache after ttl.
+                if (!isAgentCountValid(agentCountBean)) {
+                    long now = System.currentTimeMillis();
+                    agentCountBean.setLast_refresh(now);
+                }
+                // TODO: transactional update
+                agentCountDAO.insertOrUpdate(agentCountBean);
                 agentDAO.insertOrUpdate(agentBean);
                 LOG.debug("There are currently only {} agent is actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
                 return true;
@@ -295,6 +307,9 @@ public class PingHandler {
         String envId = envBean.getEnv_id();
         String constraintId = envBean.getDeploy_constraint_id();
 
+        if (constraintId == null) {
+            return true;
+        }
         try {
             LOG.info("DeployWithConstraint env {}: verify active agents for host {} constraint {}", envId, hostId, constraintId);
 
@@ -348,7 +363,12 @@ public class PingHandler {
         }
     }
 
-    boolean canDeploywithSchedule(String scheduleId, EnvironBean env) throws Exception {
+    boolean canDeploywithSchedule(EnvironBean env) throws Exception {
+        String scheduleId = env.getSchedule_id();
+        if (scheduleId == null) {
+            return true;
+        }
+
         ScheduleBean schedule = scheduleDAO.getById(scheduleId);
         String hostNumbers = schedule.getHost_numbers();
         Integer currentSession = schedule.getCurrent_session();
@@ -560,11 +580,9 @@ public class PingHandler {
             for (GoalAnalyst.InstallCandidate installCandidate : installCandidates) {
                 AgentBean updateBean = installCandidate.updateBean;
                 EnvironBean env = installCandidate.env;
-                String scheduleId = env.getSchedule_id();
-                String deployConstraintId = env.getDeploy_constraint_id();
                 if (installCandidate.needWait) {
                     LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
-                    if (canDeploy(env, hostName, updateBean, scheduleId, deployConstraintId)) {
+                    if (canDeploy(env, hostName, updateBean)) {
                         LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
                         updateBeans.put(updateBean.getEnv_id(), updateBean);
                         response = generateInstallResponse(installCandidate);
