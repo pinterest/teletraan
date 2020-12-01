@@ -448,7 +448,7 @@ public class PingHandler {
         }
         EnvironBean envBean = environDAO.getByCluster(asgName);
         String spot_postfix = "-spot";
-        if (envBean == null && asg.endsWith(spot_postfix)) {
+        if (envBean == null && asgName.endsWith(spot_postfix)) {
             // spot asg case
             StringUtils.removeEnd(asgName, spot_postfix);
             envBean = environDAO.getByCluster(asgName);
