@@ -16,6 +16,8 @@
 package com.pinterest.deployservice.bean;
 
 /**
+ * DEFAULT:
+ *      Default stage type (Production)
  * PRODUCTION:
  *      Production stage type
  * CONTROL:
