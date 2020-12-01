@@ -37,12 +37,6 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
     @JsonProperty
     private String pool;
 
-    @JsonProperty
-    private String proxyHost;
-
-    @JsonProperty
-    private String proxyPort;
-
     public String getReplicaSet() {
         return replicaSet;
     }
