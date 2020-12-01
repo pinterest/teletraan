@@ -442,24 +442,28 @@ public class PingHandler {
         return pingRequest;
     }
 
+    private EnvironBean populateEnviron(String asgName){
+        if (asgName == null) {
+            return null;
+        }
+        EnvironBean envBean = environDAO.getByCluster(asg);
+        String spot_postfix = "-spot";
+        if (envBean == null && asg.endsWith(spot_postfix)) {
+            // spot asg case
+            StringUtils.removeEnd(asg, spot_postfix);
+            envBean = environDAO.getByCluster(asg);
+        }
+        return envBean;
+    }
+
     private EnvType populateStageType(PingRequestBean pingRequest) throws Exception {
         EnvType stageType = EnvType.PRODUCTION;
         if (pingRequest.getStageType() != null) {
             stageType = pingRequest.getStageType();
         } else {
-            String asg = pingRequest.getAutoscalingGroup();
-            if (asg != null) {
-                String spot_postfix = "-spot";
-                EnvironBean envBean = environDAO.getByCluster(asg);
-                if (envBean != null) {
-                    stageType = envBean.getStage_type();
-                } else if (asg.endsWith(spot_postfix)) {
-                    StringUtils.removeEnd(asg, spot_postfix);
-                    envBean = environDAO.getByCluster(asg);
-                    if (envBean != null) {
-                        stageType = envBean.getStage_type();
-                    }
-                }
+            EnvironBean envBean = populateEnviron(pingRequest.getAutoscalingGroup());
+            if (envBean != null && envBean.getStage_type() != EnvType.DEFAULT) {
+                stageType = envBean.getStage_type();
             }
         }
         return stageType;
