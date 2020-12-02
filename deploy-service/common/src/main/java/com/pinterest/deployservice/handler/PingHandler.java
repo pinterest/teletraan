@@ -285,7 +285,10 @@ public class PingHandler {
                     long now = System.currentTimeMillis();
                     agentCountBean.setLast_refresh(now);
                 }
-                // TODO: transactional update
+                /* Typically, should update agentCount and agent in transaction, 
+                 * however, treating agentCount as cache w/ ttl and 
+                 * make sure we update count first and then agent state.
+                 */
                 agentCountDAO.insertOrUpdate(agentCountBean);
                 agentDAO.insertOrUpdate(agentBean);
                 LOG.debug("There are currently only {} agent is actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);

@@ -23,6 +23,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 
+/* count table cache to store # of actively deploying agents and # of existing agents */
 public class DBAgentCountDAOImpl implements AgentCountDAO {
     private static final String GET_COUNT =
         "SELECT * FROM agent_counts WHERE env_id=?";
@@ -30,14 +31,6 @@ public class DBAgentCountDAOImpl implements AgentCountDAO {
         "DELETE * FROM agent_counts WHERE env_id=?";
     private static final String INSERT_OR_UPDATE_COUNT =
         "INSERT INTO agent_counts SET %s ON DUPLICATE KEY UPDATE %s";
-    // private static final String INCREMENT_EXISTING_COUNT =
-    //     "UPDATE agent_counts SET existing_count = existing_count + 1 WHERE env_id=?";
-    // private static final String INCREMENT_ACTIVE_COUNT =
-    //     "UPDATE agent_counts SET active_count = active_count + 1 WHERE env_id=?";
-    // private static final String DECREMENT_EXISTING_COUNT =
-    //     "UPDATE agent_counts SET existing_count = existing_count - 1 WHERE env_id=? and existing_count > 0";
-    // private static final String DECREMENT_ACTIVE_COUNT =
-    //     "UPDATE agent_counts SET active_count = active_count - 1 WHERE env_id=? and active_count > 0";
 
     private BasicDataSource dataSource;
 
@@ -63,24 +56,4 @@ public class DBAgentCountDAOImpl implements AgentCountDAO {
         String clause = String.format(INSERT_OR_UPDATE_COUNT, setClause.getClause(), AgentCountBean.UPDATE_CLAUSE);
         new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
-
-    // @Override
-    // public void incrementExistingCountByOne(String envId) throws Exception {
-    //     new QueryRunner(dataSource).update(INCR_EXISTING_COUNT, envId);
-    // }
-
-    // @Override
-    // public void decrementExistingCountByOne(String envId) throws Exception {
-    //     new QueryRunner(dataSource).update(DECR_EXISTING_COUNT, envId);
-    // }
-
-    // @Override
-    // public void incrementActiveCountByOne(String envId) throws Exception {
-    //     new QueryRunner(dataSource).update(INCR_ACTIVE_COUNT, envId);
-    // }
-
-    // @Override
-    // public void decrementActiveCountByOne(String envId) throws Exception {
-    //     new QueryRunner(dataSource).update(DECR_ACTIVE_COUNT, envId);
-    // }
 }

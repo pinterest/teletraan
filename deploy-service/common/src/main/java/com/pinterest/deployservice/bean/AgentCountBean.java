@@ -35,7 +35,7 @@ public class AgentCountBean implements Updatable {
     private String env_id;
 
     @JsonProperty("deployId")
-    private String deploy_id; // TODO: needed?
+    private String deploy_id;
 
     @JsonProperty("existingCount")
     private Long existing_count;
