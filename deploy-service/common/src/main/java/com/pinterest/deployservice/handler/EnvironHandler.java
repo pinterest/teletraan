@@ -296,6 +296,9 @@ public class EnvironHandler {
 
     public void updateStage(EnvironBean origBean, EnvironBean updateBean, String operator) throws Exception {
         normalizeEnvRequest(updateBean, operator);
+        if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != updateBean.getStage_type()) {
+            throw new DeployInternalException("Modification of stage type is not allowed!");
+        }
         environDAO.update(origBean.getEnv_name(), origBean.getStage_name(), updateBean);
     }
 
