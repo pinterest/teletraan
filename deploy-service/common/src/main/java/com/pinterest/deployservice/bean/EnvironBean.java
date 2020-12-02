@@ -257,7 +257,7 @@ public class EnvironBean implements Updatable, Serializable {
 
     public void setDescription(String description) {
         // Escape user input which could contain injected Javascript
-        this.description = StringEscapeUtils.escapeHtml(this.description);
+        this.description = StringEscapeUtils.escapeHtml(description);
     }
 
     public String getBuild_name() {
