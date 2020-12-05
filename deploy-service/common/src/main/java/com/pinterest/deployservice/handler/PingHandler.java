@@ -257,8 +257,7 @@ public class PingHandler {
             LOG.info("Successfully get lock on {}", deployLockName);
             try {
                 LOG.debug("Got lock on behavor of host {}, verify active agents", host);
-                boolean isCountCacheValid = isAgentCountValid(envId, agentCountBean);
-                long totalActiveAgents = (isCountCacheValid == true) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
+                long totalActiveAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
                 if (totalActiveAgents >= parallelThreshold) {
                     LOG.debug("Got lock, but there are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalActiveAgents, envId, host);
                     return false;
@@ -277,13 +276,13 @@ public class PingHandler {
                 }
 
                 if (agentCountBean == null) {
-                    agentCountBean = new AgentCountBean(){};
+                    agentCountBean = new AgentCountBean();
                 }
                 agentCountBean.setExisting_count(totalNonFirstDeployAgents);
                 agentCountBean.setActive_count(totalActiveAgents + 1);
                 agentCountBean.setDeploy_id(agentBean.getDeploy_id());
                 // we invalidate cache after ttl.
-                if (!isCountCacheValid) {
+                if (!isAgentCountValid(envId, agentCountBean)) {
                     long now = System.currentTimeMillis();
                     agentCountBean.setLast_refresh(now);
                 }
@@ -296,7 +295,7 @@ public class PingHandler {
                 LOG.debug("There are currently only {} agent is actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
                 return true;
             } catch (Exception e) {
-                LOG.warn("Failed to check if can deploy or not for env = {}, host = {}, return false.", envId, host);
+                LOG.warn("Failed to check if can deploy or not for env = {}, host = {}, return false.", envId, host, e.toString());
                 return false;
             } finally {
                 utilDAO.releaseLock(deployLockName, connection);
