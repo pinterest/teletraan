@@ -195,15 +195,13 @@ public class PingHandler {
     }
 
     boolean isAgentCountValid(String envId, AgentCountBean agentCountBean) {
-        LOG.debug("TODO remove {}", envId);
         if (agentCountBean == null || agentCountBean.getLast_refresh() == null) {
             LOG.debug("Invalid agent count for env {}", envId);
             return false;
         }
-        LOG.debug("TODO remove {}", envId);
         long now = System.currentTimeMillis();
         if (now - agentCountBean.getLast_refresh() > AGENT_COUNT_CACHE_TTL) {
-            LOG.debug("Expired agent count for env {}", envId);
+            LOG.debug("Expired agent count for env {}, last refresh {}", envId, agentCountBean.getLast_refresh());
             return false;
         }
         LOG.debug("Valid agent count for env {}", envId);
@@ -281,6 +279,7 @@ public class PingHandler {
 
                 if (agentCountBean == null) {
                     agentCountBean = new AgentCountBean();
+                    agentCountBean.setEnv_id(envId);
                 }
                 agentCountBean.setExisting_count(totalNonFirstDeployAgents);
                 agentCountBean.setActive_count(totalActiveAgents + 1);
