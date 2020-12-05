@@ -290,6 +290,8 @@ public class PingHandler {
                  * however, treating agentCount as cache w/ ttl and 
                  * make sure we update count first and then agent state.
                  */
+                LOG.debug("updating count for envId {}, existing_count {}, active_count {}, last_refresh {}, ttl {} seconds", 
+                        envId, agentCountBean.getExisting_count(), agentCountBean.getActive_count(), agentCountBean.getLast_refresh(), AGENT_COUNT_CACHE_TTL);
                 agentCountDAO.insertOrUpdate(agentCountBean);
                 agentDAO.insertOrUpdate(agentBean);
                 LOG.debug("There are currently only {} agent is actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
