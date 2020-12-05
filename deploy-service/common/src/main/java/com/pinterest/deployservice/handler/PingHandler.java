@@ -199,10 +199,13 @@ public class PingHandler {
             LOG.debug("Invalid agent count for env {}", envId);
             return false;
         }
+        LOG.debug("TODO remove {}", envId);
         long now = System.currentTimeMillis();
         if (now - agentCountBean.getLast_refresh() > AGENT_COUNT_CACHE_TTL) {
+            LOG.debug("Expired agent count for env {}", envId);
             return false;
         }
+        LOG.debug("Valid agent count for env {}", envId);
         return true;
     }
 
