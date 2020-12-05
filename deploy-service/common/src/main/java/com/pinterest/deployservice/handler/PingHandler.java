@@ -260,10 +260,10 @@ public class PingHandler {
         if (connection != null) {
             LOG.info("Successfully get lock on {}", deployLockName);
             try {
-                LOG.debug("Got lock on behavor of host {}, verify active agents", host);
+                LOG.debug("Got lock on behavor of host {} for env {}, verify active agents", host, envId);
                 long totalActiveAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
                 if (totalActiveAgents >= parallelThreshold) {
-                    LOG.debug("Got lock, but there are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalActiveAgents, envId, host);
+                    LOG.debug("There are currently {} agents actively deploying for env {}, host {} will have to wait for its turn.", totalActiveAgents, envId, host);
                     return false;
                 }
                 // Make sure again we also follow the schedule if specified
@@ -298,7 +298,7 @@ public class PingHandler {
                         envId, agentCountBean.getExisting_count(), agentCountBean.getActive_count(), agentCountBean.getLast_refresh(), AGENT_COUNT_CACHE_TTL);
                 agentCountDAO.insertOrUpdate(agentCountBean);
                 agentDAO.insertOrUpdate(agentBean);
-                LOG.debug("There are currently only {} agent is actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
+                LOG.debug("There are currently only {} agent actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
                 return true;
             } catch (Exception e) {
                 LOG.warn("Failed to check if can deploy or not for env = {}, host = {}, return false.", envId, host, e.toString());
