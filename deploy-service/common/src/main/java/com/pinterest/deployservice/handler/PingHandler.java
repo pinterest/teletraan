@@ -195,6 +195,7 @@ public class PingHandler {
     }
 
     boolean isAgentCountValid(String envId, AgentCountBean agentCountBean) {
+        LOG.debug("TODO remove {}", envId);
         if (agentCountBean == null || agentCountBean.getLast_refresh() == null) {
             LOG.debug("Invalid agent count for env {}", envId);
             return false;
