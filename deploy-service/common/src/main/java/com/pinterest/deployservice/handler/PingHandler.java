@@ -194,7 +194,7 @@ public class PingHandler {
         }
     }
 
-    boolean isAgentCountValid(AgentCountBean agentCountBean) {
+    boolean isAgentCountValid(String envId, AgentCountBean agentCountBean) {
         if (agentCountBean == null || agentCountBean.getLast_refresh() == null) {
             LOG.debug("Invalid agent count for env {}", envId);
             return false;
@@ -224,12 +224,12 @@ public class PingHandler {
         // Make sure we do not exceed allowed number of concurrent active deploying agent
         String envId = envBean.getEnv_id();
         AgentCountBean agentCountBean = agentCountDAO.get(envId);
-        long totalNonFirstDeployAgents = (isAgentCountValid(agentCountBean) == true) ? agentCountBean.getExisting_count() : agentDAO.countNonFirstDeployingAgent(envId);
+        long totalNonFirstDeployAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getExisting_count() : agentDAO.countNonFirstDeployingAgent(envId);
         long parallelThreshold = getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents);
 
         try {
             //Note: This count already excludes first deploy agents, includes agents in STOP state
-            long totalDeployingAgents = (isAgentCountValid(agentCountBean) == true) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
+            long totalDeployingAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
             if (totalDeployingAgents >= parallelThreshold) {
                 LOG.debug("There are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalDeployingAgents, envId, host);
                 return false;
@@ -259,7 +259,7 @@ public class PingHandler {
             LOG.info("Successfully get lock on {}", deployLockName);
             try {
                 LOG.debug("Got lock on behavor of host {}, verify active agents", host);
-                long totalActiveAgents = (isAgentCountValid(agentCountBean) == true) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
+                long totalActiveAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
                 if (totalActiveAgents >= parallelThreshold) {
                     LOG.debug("There are currently {} agents actively deploying for env {}, host {} will have to wait for its turn.", totalActiveAgents, envId, host);
                     return false;
@@ -284,7 +284,7 @@ public class PingHandler {
                 agentCountBean.setActive_count(totalActiveAgents + 1);
                 agentCountBean.setDeploy_id(agentBean.getDeploy_id());
                 // we invalidate cache after ttl.
-                if (!isAgentCountValid(agentCountBean)) {
+                if (isAgentCountValid(envId, agentCountBean) == false) {
                     long now = System.currentTimeMillis();
                     agentCountBean.setLast_refresh(now);
                 }
