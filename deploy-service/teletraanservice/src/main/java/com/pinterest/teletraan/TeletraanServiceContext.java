@@ -25,6 +25,7 @@ public class TeletraanServiceContext extends ServiceContext {
   private int maxDaysToKeep;
   private int maxBuildsToKeep;
   private ExternalAlertFactory externalAlertsFactory;
+  private Long agentCountCacheTtl;
 
 
   public ExternalAlertFactory getExternalAlertsFactory() {
@@ -59,5 +60,14 @@ public class TeletraanServiceContext extends ServiceContext {
   public void setMaxBuildsToKeep(int maxBuildsToKeep) {
     this.maxBuildsToKeep = maxBuildsToKeep;
   }
+
+  public Long getAgentCountCacheTtl() {
+    return agentCountCacheTtl;
+  }
+
+  public void setAgentCountCacheTtl(Long agentCountCacheTttl) {
+    this.agentCountCacheTtl = agentCountCacheTttl;
+  }
+
 
 }
