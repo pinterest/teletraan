@@ -287,7 +287,7 @@ public class PingHandler {
                 agentCountBean.setActive_count(totalActiveAgents + 1);
                 agentCountBean.setDeploy_id(agentBean.getDeploy_id());
                 // we invalidate cache after ttl.
-                if (!isAgentCountValid(envId, agentCountBean)) {
+                if (isAgentCountValid(envId, agentCountBean) == false) {
                     long now = System.currentTimeMillis();
                     agentCountBean.setLast_refresh(now);
                 }
