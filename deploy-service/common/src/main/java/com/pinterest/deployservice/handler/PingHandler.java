@@ -279,6 +279,7 @@ public class PingHandler {
 
                 if (agentCountBean == null) {
                     agentCountBean = new AgentCountBean();
+                    agentCountBean.setEnv_id(envId);
                 }
                 agentCountBean.setExisting_count(totalNonFirstDeployAgents);
                 agentCountBean.setActive_count(totalActiveAgents + 1);
