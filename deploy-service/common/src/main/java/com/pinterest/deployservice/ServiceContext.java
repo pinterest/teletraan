@@ -100,7 +100,7 @@ public class ServiceContext {
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
     private List<PingRequestValidator> pingRequestValidators;
-
+    private Long agentCountCacheTtl;
     public Allowlist getBuildAllowlist() {
         return buildAllowlist;
     }
@@ -439,4 +439,13 @@ public class ServiceContext {
         List<PingRequestValidator> pingRequestValidators) {
         this.pingRequestValidators = pingRequestValidators;
     }
+
+    public Long getAgentCountCacheTtl() {
+        return agentCountCacheTtl;
+    }
+
+    public void setAgentCountCacheTtl(Long agentCountCacheTttl) {
+        this.agentCountCacheTtl = agentCountCacheTttl;
+    }
+
 }

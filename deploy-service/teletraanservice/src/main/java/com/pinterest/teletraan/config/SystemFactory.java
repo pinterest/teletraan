@@ -31,7 +31,7 @@ public class SystemFactory {
     private String clientError = Constants.CLIENT_ERROR_SHORT;
 
     @JsonProperty
-    private Long agentCountCacheTtl = 10 * 1000;
+    private long agentCountCacheTtl = 10 * 1000;
 
     public String getDashboardUrl() {
         return dashboardUrl;
