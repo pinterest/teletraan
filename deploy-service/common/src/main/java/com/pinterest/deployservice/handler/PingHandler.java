@@ -65,7 +65,7 @@ public class PingHandler {
     private static final Logger LOG = LoggerFactory.getLogger(PingHandler.class);
     private static final PingResponseBean NOOP;
     private static final Set<String> EMPTY_GROUPS;
-    private static final long AGENT_COUNT_CACHE_TTL = 5 * 1000;
+    //private static final long AGENT_COUNT_CACHE_TTL = 5 * 1000;
 
     static {
         NOOP = new PingResponseBean();
@@ -93,6 +93,7 @@ public class PingHandler {
     private LoadingCache<String, BuildBean> buildCache;
     private LoadingCache<String, DeployBean> deployCache;
     private List<PingRequestValidator> validators;
+    private Long agentCountCacheTtl;
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -111,6 +112,7 @@ public class PingHandler {
         deployConstraintDAO = serviceContext.getDeployConstraintDAO();
         dataHandler = new DataHandler(serviceContext);
         validators = serviceContext.getPingRequestValidators();
+        agentCountCacheTtl = serviceContext.getAgentCountCacheTtl();
 
         if (serviceContext.isBuildCacheEnabled()) {
             buildCache = CacheBuilder.from(serviceContext.getBuildCacheSpec().replace(";", ","))
@@ -200,7 +202,7 @@ public class PingHandler {
             return false;
         }
         long now = System.currentTimeMillis();
-        if (now - agentCountBean.getLast_refresh() > AGENT_COUNT_CACHE_TTL) {
+        if (now - agentCountBean.getLast_refresh() > agentCountCacheTtl) {
             LOG.debug("Expired agent count for env {}, last refresh {}", envId, agentCountBean.getLast_refresh());
             return false;
         }
@@ -294,7 +296,7 @@ public class PingHandler {
                  * make sure we update count first and then agent state.
                  */
                 LOG.debug("updating count for envId {}, existing_count {}, active_count {}, last_refresh {}, ttl {} seconds", 
-                        envId, agentCountBean.getExisting_count(), agentCountBean.getActive_count(), agentCountBean.getLast_refresh(), AGENT_COUNT_CACHE_TTL);
+                        envId, agentCountBean.getExisting_count(), agentCountBean.getActive_count(), agentCountBean.getLast_refresh(), agentCountCacheTtl);
                 agentCountDAO.insertOrUpdate(agentCountBean);
                 agentDAO.insertOrUpdate(agentBean);
                 LOG.debug("There are currently only {} agent actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
