@@ -26,7 +26,6 @@ public class TeletraanServiceContext extends ServiceContext {
   private int maxBuildsToKeep;
   private ExternalAlertFactory externalAlertsFactory;
 
-
   public ExternalAlertFactory getExternalAlertsFactory() {
     return externalAlertsFactory;
   }
