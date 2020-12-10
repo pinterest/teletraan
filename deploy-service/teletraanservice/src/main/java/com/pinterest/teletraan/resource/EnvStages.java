@@ -18,6 +18,7 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
@@ -99,9 +100,11 @@ public class EnvStages {
         } catch (Exception e) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, e.toString());
         }
-        if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != updateBean.getStage_type()) {
+        if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != environBean.getStage_type()) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Modification of stage type is not allowed!");
         }
+        environBean.setEnv_name(origBean.getEnv_name());
+        environBean.setStage_name(origBean.getStage_name());
         environHandler.updateStage(environBean, operator);
         configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, environBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator);

@@ -56,7 +56,7 @@ public class EnvironHandler {
         dataHandler = new DataHandler(serviceContext);
     }
 
-    void normalizeEnvRequest(EnvironBean origBean, EnvironBean envBean, String operator) throws Exception {
+    void normalizeEnvRequest(EnvironBean envBean, String operator) throws Exception {
         if (envBean.getSuccess_th() != null) {
             Integer successTh = envBean.getSuccess_th();
             if (successTh > 10000 || successTh < 0) {
@@ -184,7 +184,7 @@ public class EnvironHandler {
     }
 
     public String createEnvStage(EnvironBean envBean, String operator) throws Exception {
-        normalizeEnvRequest(envBean, envBean, operator);
+        normalizeEnvRequest(envBean, operator);
         updateEnvBeanDefault(envBean);
         String envId = CommonUtils.getBase64UUID();
         envBean.setEnv_id(envId);
@@ -224,7 +224,7 @@ public class EnvironHandler {
         if (StringUtils.isEmpty(id)) {
             id = dataHandler.insertData(metricsBeans, MetricsDataFactory.class, operator);
             environBean.setMetrics_config_id(id);
-            updateStage(environBean, updateBean, operator);
+            updateStage(environBean, operator);
         } else {
             dataHandler.updateData(id, metricsBeans, MetricsDataFactory.class, operator);
         }
@@ -291,7 +291,7 @@ public class EnvironHandler {
 
     public void updateStage(EnvironBean updateBean, String operator) throws Exception {
         normalizeEnvRequest(updateBean, operator);
-        environDAO.update(origBean.getEnv_name(), origBean.getStage_name(), updateBean);
+        environDAO.update(updateBean.getEnv_name(), updateBean.getStage_name(), updateBean);
     }
 
     PromoteBean genDefaultEnvPromote(String envId) {
