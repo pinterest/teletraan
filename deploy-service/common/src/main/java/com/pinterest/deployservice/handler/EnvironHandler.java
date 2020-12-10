@@ -331,24 +331,24 @@ public class EnvironHandler {
     }
 
     public String resume(EnvironBean envBean, String operator) throws Exception {
-        environBean.setEnv_state(EnvState.NORMAL);
+        envBean.setEnv_state(EnvState.NORMAL);
         updateStage(envBean, operator);
         return envBean.getEnv_id();
     }
 
     public String pause(EnvironBean envBean, String operator) throws Exception {
-        environBean.setEnv_state(EnvState.PAUSED);
+        envBean.setEnv_state(EnvState.PAUSED);
         updateStage(envBean, operator);
         return envBean.getEnv_id();
     }
 
     public void enable(EnvironBean envBean, String operator) throws Exception {
-        environBean.setState(EnvironState.NORMAL);
+        envBean.setState(EnvironState.NORMAL);
         updateStage(envBean, operator);
     }
 
     public void disable(EnvironBean envBean, String operator) throws Exception {
-        environBean.setState(EnvironState.DISABLED);
+        envBean.setState(EnvironState.DISABLED);
         updateStage(envBean, operator);
     }
 
