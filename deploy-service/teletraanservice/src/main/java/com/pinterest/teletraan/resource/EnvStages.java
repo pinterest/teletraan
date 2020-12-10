@@ -99,8 +99,10 @@ public class EnvStages {
         } catch (Exception e) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, e.toString());
         }
-        
-        environHandler.updateStage(origBean, environBean, operator);
+        if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != updateBean.getStage_type()) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Modification of stage type is not allowed!");
+        }
+        environHandler.updateStage(environBean, operator);
         configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, environBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator);
         LOG.info("Successfully updated env {}/{} with {} by {}.",

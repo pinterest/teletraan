@@ -204,9 +204,8 @@ public class EnvironHandler {
         String id = environBean.getAlarm_config_id();
         if (StringUtils.isEmpty(id)) {
             id = dataHandler.insertData(alarmBeans, AlarmDataFactory.class, operator);
-            EnvironBean updateBean = new EnvironBean();
-            updateBean.setAlarm_config_id(id);
-            updateStage(environBean, updateBean, operator);
+            environBean.setAlarm_config_id(id);
+            updateStage(environBean, operator);
         } else {
             dataHandler.updateData(id, alarmBeans, AlarmDataFactory.class, operator);
         }
@@ -224,8 +223,7 @@ public class EnvironHandler {
         String id = environBean.getMetrics_config_id();
         if (StringUtils.isEmpty(id)) {
             id = dataHandler.insertData(metricsBeans, MetricsDataFactory.class, operator);
-            EnvironBean updateBean = new EnvironBean();
-            updateBean.setMetrics_config_id(id);
+            environBean.setMetrics_config_id(id);
             updateStage(environBean, updateBean, operator);
         } else {
             dataHandler.updateData(id, metricsBeans, MetricsDataFactory.class, operator);
@@ -244,9 +242,8 @@ public class EnvironHandler {
         String id = environBean.getWebhooks_config_id();
         if (StringUtils.isEmpty(id)) {
             id = dataHandler.insertData(hookBean, WebhookDataFactory.class, operator);
-            EnvironBean updateBean = new EnvironBean();
-            updateBean.setWebhooks_config_id(id);
-            updateStage(environBean, updateBean, operator);
+            environBean.setWebhooks_config_id(id);
+            updateStage(environBean, operator);
         } else {
             dataHandler.updateData(id, hookBean, WebhookDataFactory.class, operator);
         }
@@ -265,9 +262,8 @@ public class EnvironHandler {
         if (dataId == null) {
             // Create data the first time
             dataId = dataHandler.insertMap(configs, operator);
-            EnvironBean updateBean = new EnvironBean();
-            updateBean.setAdv_config_id(dataId);
-            updateStage(environBean, updateBean, operator);
+            environBean.setAdv_config_id(dataId);
+            updateStage(environBean, operator);
         } else {
             dataHandler.updateMap(dataId, configs, operator);
         }
@@ -286,16 +282,15 @@ public class EnvironHandler {
         if (dataId == null) {
             // Create data the first time
             dataId = dataHandler.insertMap(configs, operator);
-            EnvironBean updateBean = new EnvironBean();
-            updateBean.setSc_config_id(dataId);
-            updateStage(environBean, updateBean, operator);
+            environBean.setSc_config_id(dataId);
+            updateStage(environBean, operator);
         } else {
             dataHandler.updateMap(dataId, configs, operator);
         }
     }
 
-    public void updateStage(EnvironBean origBean, EnvironBean updateBean, String operator) throws Exception {
-        normalizeEnvRequest(origBean, updateBean, operator);
+    public void updateStage(EnvironBean updateBean, String operator) throws Exception {
+        normalizeEnvRequest(updateBean, operator);
         environDAO.update(origBean.getEnv_name(), origBean.getStage_name(), updateBean);
     }
 
@@ -336,29 +331,25 @@ public class EnvironHandler {
     }
 
     public String resume(EnvironBean envBean, String operator) throws Exception {
-        EnvironBean updateBean = new EnvironBean();
-        updateBean.setEnv_state(EnvState.NORMAL);
-        updateStage(envBean, updateBean, operator);
+        environBean.setEnv_state(EnvState.NORMAL);
+        updateStage(envBean, operator);
         return envBean.getEnv_id();
     }
 
     public String pause(EnvironBean envBean, String operator) throws Exception {
-        EnvironBean updateBean = new EnvironBean();
-        updateBean.setEnv_state(EnvState.PAUSED);
-        updateStage(envBean, updateBean, operator);
+        environBean.setEnv_state(EnvState.PAUSED);
+        updateStage(envBean, operator);
         return envBean.getEnv_id();
     }
 
     public void enable(EnvironBean envBean, String operator) throws Exception {
-        EnvironBean updateBean = new EnvironBean();
-        updateBean.setState(EnvironState.NORMAL);
-        updateStage(envBean, updateBean, operator);
+        environBean.setState(EnvironState.NORMAL);
+        updateStage(envBean, operator);
     }
 
     public void disable(EnvironBean envBean, String operator) throws Exception {
-        EnvironBean updateBean = new EnvironBean();
-        updateBean.setState(EnvironState.DISABLED);
-        updateStage(envBean, updateBean, operator);
+        environBean.setState(EnvironState.DISABLED);
+        updateStage(envBean, operator);
     }
 
     public void enableAll(String operator) throws Exception {
