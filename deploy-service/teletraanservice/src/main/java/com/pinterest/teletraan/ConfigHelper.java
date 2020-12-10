@@ -194,6 +194,8 @@ public class ConfigHelper {
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
+        // Only applies to Teletraan agent service 
+        context.setAgentCountCacheTtl(configuration.getSystemFactory().getAgentCountCacheTtl());
         return context;
     }
 

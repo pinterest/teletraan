@@ -30,6 +30,9 @@ public class SystemFactory {
     @JsonProperty
     private String clientError = Constants.CLIENT_ERROR_SHORT;
 
+    @JsonProperty
+    private long agentCountCacheTtl = 10 * 1000;
+
     public String getDashboardUrl() {
         return dashboardUrl;
     }
@@ -52,5 +55,13 @@ public class SystemFactory {
 
     public void setClientError(String clientError) {
         this.clientError = clientError;
+    }
+
+    public Long getAgentCountCacheTtl() {
+        return agentCountCacheTtl;
+    }
+
+    public void setAgentCountCacheTtl(Long agentCountCacheTtl) {
+        this.agentCountCacheTtl = agentCountCacheTtl;
     }
 }
