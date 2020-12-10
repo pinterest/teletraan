@@ -56,7 +56,7 @@ public class EnvironHandler {
         dataHandler = new DataHandler(serviceContext);
     }
 
-    void normalizeEnvRequest(EnvironBean envBean, String operator) throws Exception {
+    void normalizeEnvRequest(EnvironBean origBean, EnvironBean envBean, String operator) throws Exception {
         if (envBean.getSuccess_th() != null) {
             Integer successTh = envBean.getSuccess_th();
             if (successTh > 10000 || successTh < 0) {
@@ -184,7 +184,7 @@ public class EnvironHandler {
     }
 
     public String createEnvStage(EnvironBean envBean, String operator) throws Exception {
-        normalizeEnvRequest(envBean, operator);
+        normalizeEnvRequest(envBean, envBean, operator);
         updateEnvBeanDefault(envBean);
         String envId = CommonUtils.getBase64UUID();
         envBean.setEnv_id(envId);
@@ -295,10 +295,7 @@ public class EnvironHandler {
     }
 
     public void updateStage(EnvironBean origBean, EnvironBean updateBean, String operator) throws Exception {
-        normalizeEnvRequest(updateBean, operator);
-        if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != updateBean.getStage_type()) {
-            throw new DeployInternalException("Modification of stage type is not allowed!");
-        }
+        normalizeEnvRequest(origBean, updateBean, operator);
         environDAO.update(origBean.getEnv_name(), origBean.getStage_name(), updateBean);
     }
 
