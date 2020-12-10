@@ -225,7 +225,7 @@ public class PingHandler {
         // TODO use ecache to optimize
         // Make sure we do not exceed allowed number of concurrent active deploying agent
         String envId = envBean.getEnv_id();
-        AgentCountBean agentCountBean = agentCountDAO.get(envId);
+        AgentCountBean agentCountBean = (agentCountCacheTtl != 0) ? agentCountDAO.get(envId) : null;
         long totalNonFirstDeployAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getExisting_count() : agentDAO.countNonFirstDeployingAgent(envId);
         long parallelThreshold = getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents);
 
@@ -279,25 +279,28 @@ public class PingHandler {
                     return false;
                 }
 
-                if (agentCountBean == null) {
-                    agentCountBean = new AgentCountBean();
-                    agentCountBean.setEnv_id(envId);
+                // bypass cache if ttl is 0
+                if (agentCountCacheTtl != 0) {
+                    if (agentCountBean == null) {
+                        agentCountBean = new AgentCountBean();
+                        agentCountBean.setEnv_id(envId);
+                    }
+                    agentCountBean.setExisting_count(totalNonFirstDeployAgents);
+                    agentCountBean.setActive_count(totalActiveAgents + 1);
+                    agentCountBean.setDeploy_id(agentBean.getDeploy_id());
+                    // we invalidate cache after ttl.
+                    if (isAgentCountValid(envId, agentCountBean) == false) {
+                        long now = System.currentTimeMillis();
+                        agentCountBean.setLast_refresh(now);
+                    }
+                    /* Typically, should update agentCount and agent in transaction, 
+                     * however, treating agentCount as cache w/ ttl and 
+                     * make sure we update count first and then agent state.
+                     */
+                    LOG.debug("updating count for envId {}, existing_count {}, active_count {}, last_refresh {}, ttl {} seconds", 
+                            envId, agentCountBean.getExisting_count(), agentCountBean.getActive_count(), agentCountBean.getLast_refresh(), agentCountCacheTtl);
+                    agentCountDAO.insertOrUpdate(agentCountBean);
                 }
-                agentCountBean.setExisting_count(totalNonFirstDeployAgents);
-                agentCountBean.setActive_count(totalActiveAgents + 1);
-                agentCountBean.setDeploy_id(agentBean.getDeploy_id());
-                // we invalidate cache after ttl.
-                if (isAgentCountValid(envId, agentCountBean) == false) {
-                    long now = System.currentTimeMillis();
-                    agentCountBean.setLast_refresh(now);
-                }
-                /* Typically, should update agentCount and agent in transaction, 
-                 * however, treating agentCount as cache w/ ttl and 
-                 * make sure we update count first and then agent state.
-                 */
-                LOG.debug("updating count for envId {}, existing_count {}, active_count {}, last_refresh {}, ttl {} seconds", 
-                        envId, agentCountBean.getExisting_count(), agentCountBean.getActive_count(), agentCountBean.getLast_refresh(), agentCountCacheTtl);
-                agentCountDAO.insertOrUpdate(agentCountBean);
                 agentDAO.insertOrUpdate(agentBean);
                 LOG.debug("There are currently only {} agent actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
                 return true;
