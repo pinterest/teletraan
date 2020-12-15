@@ -295,7 +295,7 @@ public class PingHandler {
                  * however, treating agentCount as cache w/ ttl and 
                  * make sure we update count first and then agent state.
                  */
-                LOG.debug("updating count for envId {}, existing_count {}, active_count {}, last_refresh {}, ttl {} seconds", 
+                LOG.debug("updating count for envId {}, existing_count {}, active_count {}, last_refresh {}, ttl {} ms",
                         envId, agentCountBean.getExisting_count(), agentCountBean.getActive_count(), agentCountBean.getLast_refresh(), agentCountCacheTtl);
                 agentCountDAO.insertOrUpdate(agentCountBean);
                 agentDAO.insertOrUpdate(agentBean);
