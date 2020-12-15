@@ -101,7 +101,9 @@ public class EnvStages {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, e.toString());
         }
         if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != environBean.getStage_type()) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Modification of stage type is not allowed!");
+            environBean.setStage_type(origBean.getStage_type()); // silently ignore change in stage type.
+            // TODO: reject modification in stage type once, client calls are fixed. Currently, PUT api being used as PATCH
+            //throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Modification of stage type is not allowed!");
         }
         environBean.setEnv_name(origBean.getEnv_name());
         environBean.setStage_name(origBean.getStage_name());
