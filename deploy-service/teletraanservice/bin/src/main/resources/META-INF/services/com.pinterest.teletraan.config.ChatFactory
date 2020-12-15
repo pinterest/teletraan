@@ -1,3 +1,0 @@
-com.pinterest.teletraan.config.HipchatFactory
-com.pinterest.teletraan.config.SlackFactory
-com.pinterest.teletraan.config.DefaultChatFactory
