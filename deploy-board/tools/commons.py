@@ -41,6 +41,7 @@ def create_env(name, stage):
     request = {}
     request["envName"] = name
     request["stageName"] = stage
+    request["stageType"]= "DEFAULT"
     env = environs_helper.create_env(REQUEST, request)
     print "Successfully created env %s." % env['id']
     return env
