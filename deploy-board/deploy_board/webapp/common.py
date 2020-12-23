@@ -214,7 +214,7 @@ def create_simple_stage(request, env_name, stage_name, description, external_id)
     data['stageName'] = stage_name
     data['description'] = description
     data['externalId'] = external_id
-
+    data["stageType"] = "DEFAULT"
     return environs_helper.create_env(request, data)
 
 
