@@ -22,6 +22,7 @@ from deploy_board.settings import IS_PINTEREST
 DEFAULT_BUILD_SIZE = 30
 DEFAULT_COMMITS_SIZE = 30
 BUILD_STAGE = "BUILD"
+DEFAULT_STAGE_TYPE = "DEFAULT"
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +186,7 @@ def clone_from_stage_name(request, env_name, stage_name, from_env_name, from_sta
     new_data['maxDeployNum'] = from_stage['maxDeployNum']
     new_data['maxDeployDay'] = from_stage['maxDeployDay']
     new_data['overridePolicy'] = from_stage['overridePolicy']
-    new_data['stageType'] = from_stage['stageType']
+    new_data['stageType'] = DEFAULT_STAGE_TYPE
     new_data['externalId'] = external_id
 
     new_stage = environs_helper.create_env(request, new_data)
@@ -214,7 +215,7 @@ def create_simple_stage(request, env_name, stage_name, description, external_id)
     data['stageName'] = stage_name
     data['description'] = description
     data['externalId'] = external_id
-    data["stageType"] = "DEFAULT"
+    data["stageType"] = DEFAULT_STAGE_TYPE
     return environs_helper.create_env(request, data)
 
 
