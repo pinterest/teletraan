@@ -100,7 +100,7 @@ public class EnvStages {
         } catch (Exception e) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, e.toString());
         }
-        if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != environBean.getStage_type()) {
+        if (origBean.getStage_type() != EnvType.DEFAULT && environBean.getStage_type() != null && origBean.getStage_type() != environBean.getStage_type()) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Modification of stage type is not allowed!");
         }
         environBean.setEnv_name(origBean.getEnv_name());
