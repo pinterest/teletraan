@@ -55,9 +55,9 @@
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">
             {% if not scaling_down_event_enabled and asg_status == "ENABLED" %}
-                Health Check Activities  (Scaling Down Stopped)
+                Health Check Activities  (Scaling down is disabled. Scale up can still happen)
             {% elif asg_status == "DISABLED" %}
-                Health Check Activities (Auto Scaling Disabled)
+                Health Check Activities (Auto Scaling is disabled)
             {% else %}
                 Health Check Activities
             {% endif %}

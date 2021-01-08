@@ -164,9 +164,9 @@
                     class="glyphicon glyphicon-chevron-down">
                 </span>
                 {% if not scaling_down_event_enabled and asg_status == "ENABLED" %}
-                    Group Information (Scaling Down Stopped)
+                    Group Information (Scaling down is disabled. Scale up can still happen)
                 {% elif asg_status == "DISABLED" %}
-                    Group Information (Auto Scaling Disabled)
+                    Group Information (Auto Scaling is disabled)
                 {% else %}
                     Group Information
                 {% endif %}
