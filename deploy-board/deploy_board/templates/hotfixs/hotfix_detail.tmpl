@@ -82,14 +82,6 @@
 </table>
 </div>
 
-<div class="panel-footer clearfix">
-    <div class="pull-left">
-        {% if hotfix.state|hotfixCanDeploy %}
-        <a href="/env/{{ hotfix.envName }}/">Deploy It!</a>
-        {% endif %}
-    </div>
-</div>
-
 <script>
     $(function () {
         $('.deployToolTip').tooltip();
