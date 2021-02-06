@@ -162,20 +162,9 @@ public class GoalAnalyst {
             environ = existingAgentEnv.getOrDefault(report.getEnvId(), new EnvironBean());
         }
 
-        int getUninstallPriority(EnvironBean environ) {
-            Integer systemPriority = environ.getSystem_priority();
-            if (systemPriority != null) {
-                return systemPriority;
-            }
-            return environ.getPriority().getValue();
-        }
-
         @Override
         public int compareTo(UninstallCandidate uninstallCandidate) {
-            int priority1 = getUninstallPriority(environ);
-            int priority2 = getUninstallPriority(uninstallCandidate.environ);
-
-            return priority2 - priority1;
+            return 0;
         }
 
         @Override
@@ -448,6 +437,17 @@ public class GoalAnalyst {
         return;
     }
 
+    boolean isFirstDeploy(AgentBean agent, EnvironBean env) {
+        // agent does not exist, and the existing agent does not have the same env name as current environment
+        if (agent == null && (!existingAgentEnvNames.contains(env.getEnv_name()))) {
+            // both agent and report are null, this should be the first deploy
+            return true;
+        } else {
+            // agent is not null. the first_deploy flag should be same as the record in the database
+            return (agent == null ? false : agent.getFirst_deploy());
+        }
+    }
+
     /**
      * Compute suggested next step based on current env deploy, report deploy and agent status
      */
@@ -486,7 +486,8 @@ public class GoalAnalyst {
         /**
          * Case 0.2: Env is onhold, update agent record and return immediately
          */
-        if (env != null && !StateMachines.ENV_DEPLOY_STATES.contains(env.getEnv_state())) {
+        if (env != null && !StateMachines.ENV_DEPLOY_STATES.contains(env.getEnv_state()) &&
+            (isFirstDeploy(agent, env) == false)) {
             LOG.debug("GoalAnalyst case 0.2 - env {} is onhold, not a goal candidate.", envId);
             return;
         }
