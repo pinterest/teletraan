@@ -426,8 +426,16 @@ public class PingHandler {
         return envs;
     }
 
+    EnvironBean getNewerEnvironByDeploy(EnvironBean env1, EnvironBean env2) throws Exception {
+        DeployBean deployBean1 = deployCache == null ? deployDAO.getById(env1.getDeploy_id())
+                        : getFromCache(deployCache, env1.getDeploy_id());
+        DeployBean deployBean2 = deployCache == null ? deployDAO.getById(env2.getDeploy_id())
+                        : getFromCache(deployCache, env1.getDeploy_id());
+        return (deployBean2.getStart_date() > deployBean1.getStart_date()) ? env2 : env1;
+    }
+
     // Host env will override group env, if there is conflicts, and convert to Map
-    Map<String, EnvironBean> mergeEnvs(String host, List<EnvironBean> envList) {
+    Map<String, EnvironBean> mergeEnvs(String host, List<EnvironBean> envList) throws Exception {
         if (envList == null || envList.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -435,9 +443,11 @@ public class PingHandler {
         for (EnvironBean envBean : envList) {
             String envName = envBean.getEnv_name();
             if (envs.containsKey(envName)) {
+                EnvironBean pickedEnvBean = getNewerEnvironByDeploy(envs.get(envName), envBean);
                 // In theory, such conflict should've already been avoid by frontend/UI etc.
-                LOG.error("Found conflict env for host {}: {}/{} and {}/{}, will ignore {}/{} for now. Please correct the wrong deploy configure.",
-                        host, envName, envBean.getStage_name(), envName, envs.get(envName).getStage_name(), envName, envs.get(envName).getStage_name());
+                LOG.warn("Found conflict env for host {}: {}/{} and {}/{}, Picking {}/{}. Please correct the wrong deploy configure.",
+                        host, envName, envBean.getStage_name(), envName, envs.get(envName).getStage_name(), envName, pickedEnvBean.getStage_name());
+                envs.put(envName, pickedEnvBean);
             } else {
                 envs.put(envName, envBean);
             }
@@ -445,7 +455,7 @@ public class PingHandler {
         return envs;
     }
 
-    Map<String, AgentBean> convertAgentBeans(List<AgentBean> agentBeans) {
+    Map<String, AgentBean> convertAgentBeans(List<AgentBean> agentBeans) throws Exception {
         if (agentBeans == null || agentBeans.isEmpty()) {
             return Collections.emptyMap();
         }
