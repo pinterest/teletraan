@@ -25,7 +25,7 @@ from deployd.types.ping_response import PingResponse
 
 log = logging.getLogger(__name__)
 
-_DEPLOY_STAGE_TRANSITIONS = dict(map(lambda i: (i, i+1), range(DeployStage.PRE_DOWNLOAD, DeployStage.SERVING_BUILD)))
+_DEPLOY_STAGE_TRANSITIONS = dict([(i, i+1) for i in range(DeployStage.PRE_DOWNLOAD, DeployStage.SERVING_BUILD)])
 
 
 class ServerlessClient(BaseClient):
@@ -47,7 +47,7 @@ class ServerlessClient(BaseClient):
         self._deploy_id = uuid.uuid4().hex
               
     def send_reports(self, env_reports=None):
-        reports = [status.report for status in env_reports.values()]
+        reports = [status.report for status in list(env_reports.values())]
         for report in reports:
             if report.envName != self._env_name:
                 continue

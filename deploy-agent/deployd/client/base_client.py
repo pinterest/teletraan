@@ -15,12 +15,10 @@
 from abc import ABCMeta, abstractmethod
 
 
-class BaseClient:
+class BaseClient(metaclass=ABCMeta):
     """This class plays a role as an interface defining methods for agent to
     communicate with teletraan service.
     """
-
-    __metaclass__ = ABCMeta
     
     @abstractmethod
     def send_reports(self, env_reports=None):

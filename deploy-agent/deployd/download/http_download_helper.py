@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from deployd.common.caller import Caller
-from downloader import Status
+from .downloader import Status
 from deployd.download.download_helper import DownloadHelper
 import os
 import requests
