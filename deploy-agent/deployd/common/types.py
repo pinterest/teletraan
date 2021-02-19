@@ -188,9 +188,9 @@ class DeployStatus(object):
 
     def to_json(self):
         json = {}
-        for key, value in self.__dict__.iteritems():
+        for key, value in self.__dict__.items():
             if type(value) is dict:
-                json[key] = {k: v for k, v in value.iteritems()}
+                json[key] = {k: v for k, v in value.items()}
             elif value:
                 if hasattr(value, "__dict__"):
                     json[key] = value.__dict__

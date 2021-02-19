@@ -14,7 +14,7 @@
 
 import logging
 import os
-from ConfigParser import SafeConfigParser
+from configparser import SafeConfigParser
 
 from deployd.common.exceptions import DeployConfigException
 from deployd.common.types import DeployType
@@ -41,13 +41,13 @@ class Config(object):
             return
 
         if not os.path.exists(filenames):
-            print('Cannot find config files: {}'.format(filenames))
+            print(('Cannot find config files: {}'.format(filenames)))
             exit_abruptly(1)
 
         self._filenames = filenames
         loaded_filenames = self._config_reader.read(self._filenames)
         if len(loaded_filenames) == 0:
-            print('Cannot read config files: {}'.format(self._filenames))
+            print(('Cannot read config files: {}'.format(self._filenames)))
             exit_abruptly(1)
 
     def get_config_filename(self):
@@ -102,7 +102,7 @@ class Config(object):
 
         # export script var to environment
         if deploy_status.script_variables:
-            for key, value in deploy_status.script_variables.items():
+            for key, value in list(deploy_status.script_variables.items()):
                 os.environ[key] = value
 
         if deploy_status.build_info:

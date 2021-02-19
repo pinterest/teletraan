@@ -48,7 +48,7 @@ class Downloader(object):
 
     def download(self):
         extension = self._get_extension(self._url.lower())
-        local_fn = u'{}-{}.{}'.format(self._build_name, self._build, extension)
+        local_fn = '{}-{}.{}'.format(self._build_name, self._build, extension)
         local_full_fn = os.path.join(self._base_dir, local_fn)
         extracted_file = os.path.join(self._base_dir, '{}.extracted'.format(self._build))
         if os.path.exists(extracted_file):

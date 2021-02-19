@@ -16,7 +16,7 @@ from boto.s3.connection import S3Connection
 from deployd.download.s3_download_helper import S3DownloadHelper
 from deployd.download.http_download_helper import HTTPDownloadHelper
 from deployd.download.local_download_helper import LocalDownloadHelper
-from urlparse import urlparse
+from urllib.parse import urlparse
 import logging
 
 log = logging.getLogger(__name__)

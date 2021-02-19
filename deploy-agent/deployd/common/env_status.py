@@ -42,7 +42,7 @@ class EnvStatus(object):
             with self._lock, open(self._status_fn, 'r+') as config_fn:
                 data = json.load(config_fn)
                 log.debug('load status file: {}'.format(data))
-                envs = {key: DeployStatus(json_value=d) for key, d in data.iteritems()}
+                envs = {key: DeployStatus(json_value=d) for key, d in data.items()}
         except IOError:
             log.info("Could not find file {}. It happens when run deploy-agent the "
                      "first time, or there is no deploy yet.".format(self._status_fn))
@@ -58,7 +58,7 @@ class EnvStatus(object):
         """
         host_type_match = False
         file_path = os.path.join(directory, host_type)
-        for key, value in envs.iteritems():
+        for key, value in envs.items():
             if value.report.stageName == host_type:
                 host_type_match = True
                 break
@@ -78,7 +78,7 @@ class EnvStatus(object):
         try:
             json_data = {}
             if envs:
-                json_data = {key: value.to_json() for key, value in envs.iteritems()}
+                json_data = {key: value.to_json() for key, value in envs.items()}
             with self._lock, open(self._status_fn, 'w') as config_output:
                 json.dump(json_data, config_output, sort_keys=True,
                           indent=2, separators=(',', ': '))

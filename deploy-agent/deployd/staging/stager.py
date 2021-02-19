@@ -23,7 +23,7 @@ import logging
 from deployd.common.caller import Caller
 from deployd.common.config import Config
 from deployd.common.status_code import Status
-from transformer import Transformer
+from .transformer import Transformer
 
 log = logging.getLogger(__name__)
 

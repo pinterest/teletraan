@@ -17,7 +17,7 @@ import os
 import stat
 import tempfile
 import fcntl
-import utils
+from . import utils
 
 log = logging.getLogger(__name__)
 
@@ -43,8 +43,8 @@ class SingleInstance(object):
         try:
             fcntl.lockf(lockfile_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
-            print ('Error: {0} may already be running. Only one instance of it '
-                   'can run at a time.').format(appname)
+            print(('Error: {0} may already be running. Only one instance of it '
+                   'can run at a time.').format(appname))
             # noinspection PyTypeChecker
             os.close(lockfile_fd)
             utils.exit_abruptly(1)

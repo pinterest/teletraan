@@ -78,7 +78,7 @@ class DeployAgent(object):
             self._curr_report = None
             return
 
-        self._curr_report = self._envs.values()[0]
+        self._curr_report = list(self._envs.values())[0]
         self._config.update_variables(self._curr_report)
 
     def serve_build(self):
@@ -168,7 +168,7 @@ class DeployAgent(object):
         # DELETE goal.
         if envName:
             return envName
-        for name, value in self._envs.iteritems():
+        for name, value in self._envs.items():
             if envId == value.report.envId:
                 return name
         return None
@@ -271,7 +271,7 @@ class DeployAgent(object):
         if not (self._curr_report and self._curr_report.report):
             return
 
-        builds_to_keep = [status.build_info.build_id for status in self._envs.values()
+        builds_to_keep = [status.build_info.build_id for status in list(self._envs.values())
                           if status.build_info]
         builds_dir = self._config.get_builds_directory()
         num_retain_builds = self._config.get_num_builds_retain()
@@ -311,7 +311,7 @@ class DeployAgent(object):
             env_dir = self._config.get_agent_directory()
             working_dir = os.path.join(env_dir, "{}_SCRIPT_CONFIG".format(env_name))
             with open(working_dir, "w+") as f:
-                for key, value in deploy_goal.scriptVariables.items():
+                for key, value in list(deploy_goal.scriptVariables.items()):
                     f.write("{}={}\n".format(key, value))
 
         # load deploy goal to the config
