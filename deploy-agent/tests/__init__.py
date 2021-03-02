@@ -19,7 +19,6 @@ import shutil
 import tempfile
 import unittest
 
-from socketwhitelist.plugins import ErroringSocketWhitelistPlugin
 from deployd.common.types import OpCode
 
 
@@ -31,8 +30,6 @@ class TestCase(unittest.TestCase):
         logger = logging.getLogger('deployd.messaging')
         logger.handlers = []
 
-        plugin = ErroringSocketWhitelistPlugin()
-        plugin.begin()
         os.environ['DEPLOY_TESTING'] = '1'
         self.client = mock.Mock()
         self.client.sendRequest = mock.Mock(return_value=(OpCode.NOOP, None))
