@@ -30,7 +30,8 @@ install_requires = [
     "gevent>=1.0.2,<=1.5.0; python_version >= '3'",
     "lockfile==0.10.2",
     "boto>=2.39.0",
-    "python-daemon==2.0.6"
+    "python-daemon==2.0.6",
+    "future==0.18.2"
 ]
 
 # Pinterest specific settings
