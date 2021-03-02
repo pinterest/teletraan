@@ -115,7 +115,7 @@ class Downloader(object):
 
             # change the working directory back
             os.chdir(curr_working_dir)
-            with file(extracted_file, 'w'):
+            with open(extracted_file, 'w'):
                 pass
             log.info("Successfully extracted {} to {}".format(local_full_fn, working_dir))
         except tarfile.TarError as e:
