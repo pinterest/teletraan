@@ -40,7 +40,7 @@ class TestUtilsFunctions(tests.TestCase):
         fdout_fn = tempfile.mkstemp()[1]
         with open(fdout_fn, 'w') as f:
             f.write('echo hello')
-        os.chmod(fdout_fn, 0755)
+        os.chmod(fdout_fn, 0o755)
 
         ping_server = mock.Mock(return_value=True)
         executor = Executor(callback=ping_server)
