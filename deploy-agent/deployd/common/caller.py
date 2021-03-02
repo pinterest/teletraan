@@ -42,4 +42,4 @@ class Caller(object):
             return output.strip(), error.strip(), process.poll()
         except Exception as e:
             log.error(traceback.format_exc())
-            return None, e.message, 1
+            return None, str(e), 1

@@ -47,8 +47,8 @@ class EnvStatus(object):
             log.info("Could not find file {}. It happens when run deploy-agent the "
                      "first time, or there is no deploy yet.".format(self._status_fn))
             return {}
-        except Exception as e:
-            log.error(e.message)
+        except Exception:
+            log.exception("Something went wrong in load_envs")
         finally:
             return envs
 
@@ -87,7 +87,7 @@ class EnvStatus(object):
                 self._touch_or_rm_host_type_file(envs, "canary")
             return True
         except IOError as e:
-            log.warning("Could not write to {}. Reason: {}".format(self._status_fn, e.message))
+            log.warning("Could not write to {}. Reason: {}".format(self._status_fn, e))
             return False
         except Exception:
             log.error(traceback.format_exc())

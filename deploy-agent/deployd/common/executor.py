@@ -184,7 +184,7 @@ class Executor(object):
         try:
             os.killpg(process.pid, signal.SIGKILL)
         except Exception as e:
-            log.debug('Failed to kill process: {}'.format(e.message))
+            log.debug('Failed to kill process: {}'.format(e))
 
     def execute_command(self, script):
         try:
@@ -222,9 +222,9 @@ class Executor(object):
             os.chmod(script, st.st_mode | stat.S_IXUSR)
             return self.run_cmd(script)
         except Exception as e:
-            error_msg = e.message
+            error_msg = str(e)
             log.error('Failed to execute command: {}. Reason: {}'.format(script, error_msg))
             log.error(traceback.format_exc())
             return DeployReport(status_code=AgentStatus.AGENT_FAILED,
                                 error_code=1,
-                                output_msg=e.message)
+                                output_msg=str(e))
