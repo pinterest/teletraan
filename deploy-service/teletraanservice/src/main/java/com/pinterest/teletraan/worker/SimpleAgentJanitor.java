@@ -24,8 +24,7 @@ import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.dao.HostAgentDAO;
-
+import com.pinterest.deployservice.handler.HostHandler;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +42,8 @@ public class SimpleAgentJanitor implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(SimpleAgentJanitor.class);
     private AgentDAO agentDAO;
     protected HostDAO hostDAO;
-    protected HostAgentDAO hostAgentDAO;
     private GroupDAO groupDAO;
+    private HostHandler hostHandler;
     protected long maxStaleHostThreshold;
     protected long minStaleHostThreshold;
 
@@ -52,21 +51,16 @@ public class SimpleAgentJanitor implements Runnable {
         int maxStaleHostThreshold) {
         agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
-        hostAgentDAO = serviceContext.getHostAgentDAO();
         groupDAO = serviceContext.getGroupDAO();
+        hostHandler = new HostHandler(serviceContext);
         this.maxStaleHostThreshold = maxStaleHostThreshold * 1000;
         this.minStaleHostThreshold = minStaleHostThreshold * 1000;
     }
 
     // remove the stale host from db
     void removeStaleHost(String id) throws Exception {
-        try {
-            hostDAO.deleteAllById(id);
-            hostAgentDAO.delete(id);
-            LOG.info("AgentJanitor delete all records for host {}.", id);
-        } catch (Exception e) {
-            LOG.error("AgentJanitor Failed to delete all records for host {}", id, e);
-        }
+        LOG.info(String.format("Delete records of stale host {}", id));
+        hostHandler.removeHost(id);
     }
 
     void markUnreachableHost(String id) throws Exception {

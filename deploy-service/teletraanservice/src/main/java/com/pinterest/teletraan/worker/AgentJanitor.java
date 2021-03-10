@@ -21,6 +21,7 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.rodimus.RodimusManager;
+import com.pinterest.deployservice.handler.HostHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +98,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         // If host fails to ping for longer than min stale threshold,
         // either mark them as UNREACHABLE, or remove if confirmed with source of truth
         long minThreshold = current_time - minStaleHostThreshold;
-        List<HostBean> minStaleHosts = hostDAO.getStaleEnvHosts(minThreshold);
+        List<HostBean> minStaleHosts = hostDAO.getStaleHosts(minThreshold);
         Set<String> minStaleHostIds = new HashSet<>();
         for (HostBean host : minStaleHosts) {
             minStaleHostIds.add(host.getHost_id());
@@ -106,7 +107,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
         current_time = System.currentTimeMillis();
         long maxThreshold = current_time - Math.min(maxStaleHostThreshold, maxLaunchLatencyThreshold);
-        List<HostBean> maxStaleHosts = hostDAO.getStaleEnvHosts(maxThreshold);
+        List<HostBean> maxStaleHosts = hostDAO.getStaleHosts(maxThreshold);
         Set<String> staleHostIds = new HashSet<>();
         for (HostBean host : maxStaleHosts) {
             if (host.getState() == HostState.PROVISIONED) {
