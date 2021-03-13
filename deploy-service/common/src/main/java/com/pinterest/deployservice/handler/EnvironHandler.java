@@ -450,37 +450,38 @@ public class EnvironHandler {
     public DeployProgressBean updateDeployProgress(EnvironBean envBean) throws Exception {
         // TODO consider to transition and get agent status in one transaction for consistency
         commonHandler.transitionDeployState(envBean.getDeploy_id(), envBean);
-        List<AgentBean> agentBeans = agentDAO.getAllByEnv(envBean.getEnv_id());
 
-        long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
-        Set<String> capacityHosts = new HashSet<>();
-        if (capacityTotal > agentBeans.size()) {
-            // Capacity hosts = newly provisioned host + agents
-            List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
-            capacityHosts.addAll(capacityHostList);
-        }
+        // List<AgentBean> agentBeans = agentDAO.getAllByEnv(envBean.getEnv_id());
+
+        // long capacityTotal = environDAO.countTotalCapacity(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
+        // Set<String> capacityHosts = new HashSet<>();
+        // if (capacityTotal > agentBeans.size()) {
+        //     // Capacity hosts = newly provisioned host + agents
+        //     List<String> capacityHostList = environDAO.getTotalCapacityHosts(envBean.getEnv_id(), envBean.getEnv_name(), envBean.getStage_name());
+        //     capacityHosts.addAll(capacityHostList);
+        // }
 
         DeployProgressBean progress = new DeployProgressBean();
-        List<AgentBean> agents = new ArrayList<>(agentBeans.size());
-        for (AgentBean agentBean : agentBeans) {
-            agents.add(agentBean);
-            // yep, we've seen it
-            if (!capacityHosts.isEmpty()) {
-                capacityHosts.remove(agentBean.getHost_name());
-            }
-        }
+        // List<AgentBean> agents = new ArrayList<>(agentBeans.size());
+        // for (AgentBean agentBean : agentBeans) {
+        //     agents.add(agentBean);
+        //     // yep, we've seen it
+        //     if (!capacityHosts.isEmpty()) {
+        //         capacityHosts.remove(agentBean.getHost_name());
+        //     }
+        // }
 
-        List<HostBean> newHosts = new ArrayList<>();
-        for (String hostName : capacityHosts) {
-            Collection<HostBean> hostBeans = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), hostName);
-            if (!hostBeans.isEmpty()) {
-                newHosts.add(hostBeans.iterator().next());
-            }
-        }
+        // List<HostBean> newHosts = new ArrayList<>();
+        // for (String hostName : capacityHosts) {
+        //     Collection<HostBean> hostBeans = hostDAO.getByEnvIdAndHostName(envBean.getEnv_id(), hostName);
+        //     if (!hostBeans.isEmpty()) {
+        //         newHosts.add(hostBeans.iterator().next());
+        //     }
+        // }
 
-        progress.setMissingHosts(new ArrayList<>(environDAO.getMissingHosts(envBean.getEnv_id())));
-        progress.setAgents(agents);
-        progress.setProvisioningHosts(newHosts);
+        // progress.setMissingHosts(new ArrayList<>(environDAO.getMissingHosts(envBean.getEnv_id())));
+        // progress.setAgents(agents);
+        // progress.setProvisioningHosts(newHosts);
         return progress;
     }
 

@@ -162,20 +162,9 @@ public class GoalAnalyst {
             environ = existingAgentEnv.getOrDefault(report.getEnvId(), new EnvironBean());
         }
 
-        int getUninstallPriority(EnvironBean environ) {
-            Integer systemPriority = environ.getSystem_priority();
-            if (systemPriority != null) {
-                return systemPriority;
-            }
-            return environ.getPriority().getValue();
-        }
-
         @Override
         public int compareTo(UninstallCandidate uninstallCandidate) {
-            int priority1 = getUninstallPriority(environ);
-            int priority2 = getUninstallPriority(uninstallCandidate.environ);
-
-            return priority2 - priority1;
+            return 0;
         }
 
         @Override

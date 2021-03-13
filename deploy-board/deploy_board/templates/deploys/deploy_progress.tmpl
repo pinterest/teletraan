@@ -7,6 +7,17 @@
 <div class="panel panel-default">
   <div class="panel-body">
 <div class="row">
+    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/failed/"
+       title="Click to see the details of all failed hosts">
+       <strong>Failed Hosts</strong>
+    </a>
+    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/"
+       title="Click to see the details of all the hosts">
+       <strong>All Hosts</strong>
+    </a>
+    <br><br>
     {% if report.sortByTag %}
         {% for tagValue, hostTags in host_tag_infos.items %}
         <div class="panel panel-default table-responsive">
@@ -38,18 +49,6 @@
             </a>
         {% endfor %}
     {% endif %}
-
-    <br><br>
-    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/failed/"
-       title="Click to see the details of all failed hosts">
-       <strong>Failed Hosts</strong>
-    </a>
-    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/"
-       title="Click to see the details of all the hosts">
-       <strong>All Details</strong>
-    </a>
 </div>
   </div>
 </div>
