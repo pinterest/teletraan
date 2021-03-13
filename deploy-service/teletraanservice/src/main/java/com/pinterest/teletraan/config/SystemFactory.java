@@ -33,6 +33,9 @@ public class SystemFactory {
     @JsonProperty
     private long agentCountCacheTtl = 10 * 1000;
 
+    @JsonProperty
+    private long maxParallelThreshold = 10000;
+
     public String getDashboardUrl() {
         return dashboardUrl;
     }
@@ -63,5 +66,13 @@ public class SystemFactory {
 
     public void setAgentCountCacheTtl(Long agentCountCacheTtl) {
         this.agentCountCacheTtl = agentCountCacheTtl;
+    }
+
+    public Long getMaxParallelThreshold() {
+        return maxParallelThreshold;
+    }
+
+    public void setMaxParallelThreshold(Long maxParallelThreshold) {
+        this.maxParallelThreshold = maxParallelThreshold;
     }
 }

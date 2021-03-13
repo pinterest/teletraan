@@ -113,6 +113,7 @@ public class PingHandler {
         dataHandler = new DataHandler(serviceContext);
         validators = serviceContext.getPingRequestValidators();
         agentCountCacheTtl = serviceContext.getAgentCountCacheTtl();
+        maxParallelThreshold = serviceContext.getMaxParallelThreshold();
 
         if (serviceContext.isBuildCacheEnabled()) {
             buildCache = CacheBuilder.from(serviceContext.getBuildCacheSpec().replace(";", ","))
@@ -227,7 +228,7 @@ public class PingHandler {
         String envId = envBean.getEnv_id();
         AgentCountBean agentCountBean = agentCountDAO.get(envId);
         long totalNonFirstDeployAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getExisting_count() : agentDAO.countNonFirstDeployingAgent(envId);
-        long parallelThreshold = getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents);
+        long parallelThreshold = Math.min(this.maxParallelThreshold, getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents));
 
         try {
             //Note: This count already excludes first deploy agents, includes agents in STOP state

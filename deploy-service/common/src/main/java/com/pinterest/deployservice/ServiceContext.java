@@ -101,6 +101,8 @@ public class ServiceContext {
     private String jenkinsRemoteToken;
     private List<PingRequestValidator> pingRequestValidators;
     private Long agentCountCacheTtl;
+    private Long maxParallelThreshold;
+
     public Allowlist getBuildAllowlist() {
         return buildAllowlist;
     }
@@ -448,4 +450,11 @@ public class ServiceContext {
         this.agentCountCacheTtl = agentCountCacheTttl;
     }
 
+    public Long getMaxParallelThreshold() {
+        return maxParallelThreshold;
+    }
+
+    public void setMaxParallelThreshold(Long maxParallelThreshold) {
+        this.maxParallelThreshold = maxParallelThreshold;
+    }
 }
