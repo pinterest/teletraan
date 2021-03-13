@@ -94,6 +94,7 @@ public class PingHandler {
     private LoadingCache<String, DeployBean> deployCache;
     private List<PingRequestValidator> validators;
     private Long agentCountCacheTtl;
+    private Long maxParallelThreshold;
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
