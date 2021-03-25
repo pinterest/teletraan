@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright 2016 Pinterest, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +15,15 @@
 
 import logging
 import os
-from ConfigParser import SafeConfigParser
 
 from deployd.common.exceptions import DeployConfigException
 from deployd.common.types import DeployType
 from deployd.common.utils import exit_abruptly
 from deployd.types.deploy_stage import DeployStage
 from deployd.types.opcode import OperationCode
+
+from configparser import ConfigParser
+
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +39,7 @@ class Config(object):
             self._config_reader = config_reader
             return
 
-        self._config_reader = SafeConfigParser()
+        self._config_reader = ConfigParser()
         if not filenames:
             return
 

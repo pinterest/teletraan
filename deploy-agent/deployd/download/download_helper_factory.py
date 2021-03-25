@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
+
+from future.moves.urllib.parse import urlparse
 from boto.s3.connection import S3Connection
+
 from deployd.download.s3_download_helper import S3DownloadHelper
 from deployd.download.http_download_helper import HTTPDownloadHelper
 from deployd.download.local_download_helper import LocalDownloadHelper
-from urlparse import urlparse
-import logging
+
 
 log = logging.getLogger(__name__)
 

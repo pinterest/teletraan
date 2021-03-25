@@ -78,7 +78,7 @@ class DeployAgent(object):
             self._curr_report = None
             return
 
-        self._curr_report = self._envs.values()[0]
+        self._curr_report = list(self._envs.values())[0]
         self._config.update_variables(self._curr_report)
 
     def serve_build(self):
@@ -168,7 +168,7 @@ class DeployAgent(object):
         # DELETE goal.
         if envName:
             return envName
-        for name, value in self._envs.iteritems():
+        for name, value in self._envs.items():
             if envId == value.report.envId:
                 return name
         return None

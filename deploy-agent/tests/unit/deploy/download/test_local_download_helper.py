@@ -38,7 +38,7 @@ class LocalDownloadFunctionsTest(unittest.TestCase):
         cls.target = target
 
     def test_download_local(self):
-        log_capture_string = io.BytesIO()
+        log_capture_string = io.StringIO()
         stream_handler = logging.StreamHandler(log_capture_string)
         logger.addHandler(stream_handler)
         try:
