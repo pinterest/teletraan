@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from deployd import __version__
 from setuptools import setup
 import os
-
-__version__ = '1.2.24'
 
 markdown_contents = open(os.path.join(os.path.dirname(__file__),
                                       'README.md')).read()

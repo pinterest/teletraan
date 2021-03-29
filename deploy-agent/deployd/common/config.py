@@ -16,6 +16,8 @@ import logging
 import os
 from ConfigParser import SafeConfigParser
 
+from deployd import __version__
+
 from deployd.common.exceptions import DeployConfigException
 from deployd.common.types import DeployType
 from deployd.common.utils import exit_abruptly
@@ -252,7 +254,7 @@ class Config(object):
         return self.get_var('verify_https_certificate', 'False')
 
     def get_deploy_agent_version(self):
-        return self.get_var('deploy_agent_version', None)
+        return self.get_var('deploy_agent_version', __version__)
 
     def get_facter_az_key(self):
         return self.get_var('availability_zone_key', None)
