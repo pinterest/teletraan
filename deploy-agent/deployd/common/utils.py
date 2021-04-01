@@ -1,3 +1,4 @@
+from __future__ import print_function
 # Copyright 2016 Pinterest, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +46,7 @@ def exit_abruptly(status=0):
 
 def touch(fname, times=None):
     try:
-        with file(fname, 'a'):
+        with open(fname, 'a'):
             os.utime(fname, times)
     except IOError:
         log.error('Failed touching host type file {}'.format(fname))

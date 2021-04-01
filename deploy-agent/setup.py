@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from deployd import __version__
 from setuptools import setup
 import os
-
-__version__ = '1.2.24'
 
 markdown_contents = open(os.path.join(os.path.dirname(__file__),
                                       'README.md')).read()
@@ -26,10 +25,12 @@ console_scripts = ['deploy-agent = deployd.agent:main',
 
 install_requires = [
     "requests==2.20.0",
-    "gevent>=1.0.2,<=1.2.2",
+    "gevent>=1.0.2,<=1.2.2; python_version < '3'",
+    "gevent>=1.0.2,<=1.5.0; python_version >= '3'",
     "lockfile==0.10.2",
     "boto>=2.39.0",
-    "python-daemon==2.0.6"
+    "python-daemon==2.0.6",
+    "future==0.18.2"
 ]
 
 # Pinterest specific settings

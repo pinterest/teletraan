@@ -175,8 +175,8 @@ class Client(BaseClient):
             if self._read_host_info():
                 reports = [status.report for status in env_reports.values()]
                 for report in reports:
-                    if isinstance(report.errorMessage, str):
-                        report.errorMessage = unicode(report.errorMessage, "utf-8")
+                    if isinstance(report.errorMessage, bytes):
+                        report.errorMessage = report.errorMessage.decode('utf-8')
 
                     # We ignore non-ascii charater for now, we should further solve this problem on
                     # the server side:

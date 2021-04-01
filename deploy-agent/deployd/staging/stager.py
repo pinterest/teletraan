@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # Copyright 2016 Pinterest, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +24,7 @@ import logging
 from deployd.common.caller import Caller
 from deployd.common.config import Config
 from deployd.common.status_code import Status
-from transformer import Transformer
+from .transformer import Transformer
 
 log = logging.getLogger(__name__)
 

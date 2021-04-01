@@ -13,14 +13,13 @@
 # limitations under the License.
 
 from abc import ABCMeta, abstractmethod
+from future.utils import with_metaclass
 
 
-class BaseClient:
+class BaseClient(with_metaclass(ABCMeta, object)):
     """This class plays a role as an interface defining methods for agent to
     communicate with teletraan service.
     """
-
-    __metaclass__ = ABCMeta
     
     @abstractmethod
     def send_reports(self, env_reports=None):
