@@ -229,7 +229,7 @@ public class PingHandler {
         String envId = envBean.getEnv_id();
         AgentCountBean agentCountBean = agentCountDAO.get(envId);
         long totalNonFirstDeployAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getExisting_count() : agentDAO.countNonFirstDeployingAgent(envId);
-        long parallelThreshold = Math.min(this.maxParallelThreshold, getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents));
+        long parallelThreshold = extracted(envBean, totalNonFirstDeployAgents);
 
         try {
             //Note: This count already excludes first deploy agents, includes agents in STOP state
@@ -316,6 +316,7 @@ public class PingHandler {
         }
     }
 
+  
     boolean canDeployWithConstraint(String hostId, EnvironBean envBean) throws Exception {
         String envId = envBean.getEnv_id();
         String constraintId = envBean.getDeploy_constraint_id();
@@ -823,5 +824,21 @@ public class PingHandler {
             ret = (int) totalHosts;
         }
         return ret;
+    }
+
+    public final static int getFinalMaxParallelCount(EnvironBean envBean, long totalNonFirstDeployAgents, int maxParallelThreshold) throws Exception{
+        return Math.min(maxParallelThreshold, getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents));
+    }
+
+    public final static int getFinalMaxParallelCount(DeployConstraintBean deployConstraintBean, EnvironBean envBean, int totalHosts) throws Exception{
+        
+        String constraintId = envBean.getDeploy_constraint_id();
+        int maxParallel = getFinalMaxParallelCount(envBean, totalHosts);
+        if(constraintId == null){
+            return maxParallel;
+        }
+
+        return (int) Math.min(maxParallel, deployConstraintBean.getMax_parallel());
+
     }
 }
