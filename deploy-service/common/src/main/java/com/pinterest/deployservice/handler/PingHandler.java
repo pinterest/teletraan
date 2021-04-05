@@ -229,7 +229,7 @@ public class PingHandler {
         String envId = envBean.getEnv_id();
         AgentCountBean agentCountBean = agentCountDAO.get(envId);
         long totalNonFirstDeployAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getExisting_count() : agentDAO.countNonFirstDeployingAgent(envId);
-        long parallelThreshold = Math.min(this.maxParallelThreshold, getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents));
+        long parallelThreshold = PingHandler.calculateParallelThreshold(envBean, totalNonFirstDeployAgents, this.maxParallelThreshold);
 
         try {
             //Note: This count already excludes first deploy agents, includes agents in STOP state
@@ -314,6 +314,10 @@ public class PingHandler {
             LOG.warn("Failed to grab PARALLEL_LOCK for env = {}, host = {}, return false.", envId, host);
             return false;
         }
+    }
+
+    public static long calculateParallelThreshold(EnvironBean envBean, long totalNonFirstDeployAgents, long maxParallelThreshold) throws Exception {
+        return Math.min(maxParallelThreshold, getFinalMaxParallelCount(envBean, totalNonFirstDeployAgents));
     }
 
     boolean canDeployWithConstraint(String hostId, EnvironBean envBean) throws Exception {
