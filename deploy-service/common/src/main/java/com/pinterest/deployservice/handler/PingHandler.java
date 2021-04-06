@@ -235,23 +235,23 @@ public class PingHandler {
             //Note: This count already excludes first deploy agents, includes agents in STOP state
             long totalDeployingAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
             if (totalDeployingAgents >= parallelThreshold) {
-                LOG.debug("There are currently {} agent is actively deploying for env {}, host {} will have to wait for its turn.", totalDeployingAgents, envId, host);
+                LOG.debug("Env {}: active agents {}, parallel threshold {}. host {} will wait for deploy", envId, totalDeployingAgents, parallelThreshold, host);
                 return false;
             }
         } catch (Exception e) {
-            LOG.warn("Failed to check if can deploy or not for env = {}, host = {}, exception = {}, return false.", envId, host, e.toString());
+            LOG.warn("Env {}, host {}: Failed to check if can deploy or not, exception = {}", envId, host, e.toString());
             return false;
         }
 
         // Make sure we also follow the schedule if specified
         if (!canDeploywithSchedule(envBean)) {
-            LOG.debug("Env {} schedule does not allow host {} to proceed.", envId, host);
+            LOG.debug("Env {}: schedule does not allow host {} to proceed.", envId, host);
             return false;
         }
 
         // Make sure we also follow the deploy constraint if specified
         if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
-            LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
+            LOG.debug("Env {}: deploy constraint does not allow host {} to proceed.", envId, host);
             return false;
         }
 
@@ -265,19 +265,19 @@ public class PingHandler {
                 LOG.debug("Got lock on behavor of host {} for env {}, verify active agents", host, envId);
                 long totalActiveAgents = (isAgentCountValid(envId, agentCountBean) == true) ? agentCountBean.getActive_count() : agentDAO.countDeployingAgent(envId);
                 if (totalActiveAgents >= parallelThreshold) {
-                    LOG.debug("There are currently {} agents actively deploying for env {}, host {} will have to wait for its turn.", totalActiveAgents, envId, host);
+                    LOG.debug("Env {}: active agents {}, parallel threshold {}. host {} will wait for deploy", envId, totalDeployingAgents, parallelThreshold, host);
                     return false;
                 }
                 // Make sure again we also follow the schedule if specified
                 if (!canDeploywithSchedule(envBean)) {
-                    LOG.debug("Env {} schedule does not allow host {} to proceed.", envId, host);
+                    LOG.debug("Env {}: schedule does not allow host {} to proceed.", envId, host);
                     return false;
                 }
 
 
                 // Make sure we also follow the deploy constraint if specified
                 if (!canDeployWithConstraint(agentBean.getHost_id(), envBean)) {
-                    LOG.debug("Env {} deploy constraint does not allow host {} to proceed.", envId, host);
+                    LOG.debug("Env {}: deploy constraint does not allow host {} to proceed.", envId, host);
                     return false;
                 }
 
@@ -304,7 +304,7 @@ public class PingHandler {
                 LOG.debug("There are currently only {} agent actively deploying for env {}, update and proceed on host {}.", totalActiveAgents, envId, host);
                 return true;
             } catch (Exception e) {
-                LOG.warn("Failed to check if can deploy or not for env = {}, host = {}, exception = {}, return false.", envId, host, e.toString());
+                LOG.warn("Env {} host {}: Failed to check if can deploy or not, exception = {}", envId, host, e.toString());
                 return false;
             } finally {
                 utilDAO.releaseLock(deployLockName, connection);
