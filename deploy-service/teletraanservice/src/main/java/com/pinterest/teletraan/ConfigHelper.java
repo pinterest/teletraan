@@ -196,6 +196,7 @@ public class ConfigHelper {
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
         // Only applies to Teletraan agent service 
         context.setAgentCountCacheTtl(configuration.getSystemFactory().getAgentCountCacheTtl());
+        context.setMaxParallelThreshold(configuration.getSystemFactory().getMaxParallelThreshold());
         return context;
     }
 
