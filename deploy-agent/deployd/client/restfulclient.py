@@ -41,14 +41,14 @@ class RestfulClient(object):
             else:
                 headers = {'Content-type': 'application/json'}
             response = getattr(requests, method)(url, headers=headers, params=params, json=data,
-                                                 timeout=self.default_timeout, verify=self.verify )
+                                                 timeout=self.default_timeout, verify=self.verify)
 
             if response.status_code > 300:
                 msg = "Teletraan failed to call backend server. Hint: %s, %s" % (response.status_code, response.content)
                 log.error(msg)
                 raise AgentException(msg)
 
-            if (response.content):
+            if response.content:
                 return response.json()
 
         return api
