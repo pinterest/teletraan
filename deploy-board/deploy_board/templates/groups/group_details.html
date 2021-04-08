@@ -107,23 +107,23 @@
         </div>
         <div align="left" id="tsdLinksId">
             <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                href="https://tsd.pinadmin.com/#start=1w-ago&m=avg:autoscaling.{{ group_name }}.size"
-                title="" data-original-title="Click to see more group size information in TSDB">
+                href="https://statsboard.pinadmin.com/stats/avg:autoscaling.{{ group_name }}.size"
+                title="" data-original-title="Click to see more group size information in StatsBoard">
                 <strong>Group Size</strong>
             </a>
             {% for env in envs %}
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="https://tsd.pinadmin.com/#start=1w-ago&m=avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.launchlatency"
-                    title="" data-original-title="Click to see more launch latency information in TSDB">
+                    href="https://statsboard.pqinadmin.com/stats/avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.launchlatency"
+                    title="" data-original-title="Click to see more launch latency information in StatsBoard">
                     <strong>Launch Latency for {{ env.envName }}</strong>
                 </a>
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="https://tsd.pinadmin.com/#start=1w-ago&m=avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.deploylatency"
-                    title="" data-original-title="Click to see more deploy latency information in TSDB">
+                    href="https://statsboard.pinadmin.com/stats/avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.deploylatency"
+                    title="" data-original-title="Click to see more deploy latency information in StatsBoard">
                 <strong>Deploy Latency for {{ env.envName }}</strong>
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                   href="https://tsd.pinadmin.com/#start=1w-ago&m=mimmax:autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed"
-                    title="" data-original-title="Click to see more launch failed count information in TSDB">
+                   href="https://statsboard.pinadmin.com/stats/mimmax:autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed"
+                    title="" data-original-title="Click to see more launch failed count information in StatsBoard">
                 <strong>Launch failed count for {{ env.envName }}</strong>
             </a>
             {% endfor %}
