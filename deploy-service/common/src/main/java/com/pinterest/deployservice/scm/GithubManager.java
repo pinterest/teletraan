@@ -124,7 +124,7 @@ public class GithubManager extends BaseManager {
         }
         catch (Exception e)
         {
-            throw new Exception("The startsha or endsha is not a correct public commit")
+            throw new Exception("The startsha or endsha is not a correct public commit");
         }
     }
 
