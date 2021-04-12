@@ -121,7 +121,7 @@ public class GithubManager extends BaseManager {
                 }.getType());
             return toCommitBean(jsonMap, repo);
         } catch (Exception e) {
-            throw new Exception("The startsha or endsha is not a correct public commit");
+            throw new Exception("Invalid SHA(Maybe Private Commit) or branch name passed to Github getCommitBean!");
         }
     }
 
