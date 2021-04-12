@@ -198,6 +198,8 @@ public class PhabricatorManager extends BaseManager {
                 (ArrayList<Map<String, Object>>) response.get("pathChanges");
             if (!commitsArray.isEmpty()) {
                 return toCommitBean(commitsArray.get(0), repo);
+            } else {
+                throw new Exception("Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!");
             }
         } catch (Exception e) {
             throw new Exception("Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!");
