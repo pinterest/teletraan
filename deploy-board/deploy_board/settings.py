@@ -292,13 +292,6 @@ if IS_PINTEREST:
     DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
     DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
 
-    #CSP Config
-    CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
-    CSP_DEFAULT_SRC = ("'self'")
-    CSP_CONNECT_SRC = ("'self'")
-    CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
-    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
-
     # Nimbus service url
     NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL", None)
     NIMBUS_EGRESS_URL = os.getenv("NIMBUS_EGRESS_URL", None)
@@ -306,3 +299,12 @@ if IS_PINTEREST:
     NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)
 
     DEFAULT_CLUSTER_TYPE = "PRODUCTION"
+
+# CSP Config
+CSP_DEFAULT_SRC = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
+CSP_CONNECT_SRC = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
+CSP_SCRIPT_SRC = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
+CSP_STYLE_SRC = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
+CSP_IMG_SRC = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
+
+CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
