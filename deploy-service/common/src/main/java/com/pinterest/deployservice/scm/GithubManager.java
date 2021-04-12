@@ -17,7 +17,6 @@ package com.pinterest.deployservice.scm;
 
 import com.pinterest.deployservice.bean.CommitBean;
 import com.pinterest.deployservice.common.HTTPClient;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -26,7 +25,6 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -123,8 +121,7 @@ public class GithubManager extends BaseManager {
                 }.getType());
             return toCommitBean(jsonMap, repo);
         } catch (Exception e) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                "The startsha or endsha is not a correct public commit");
+            throw new Exception("The startsha or endsha is not a correct public commit");
         }
     }
 
