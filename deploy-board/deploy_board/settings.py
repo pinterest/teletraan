@@ -306,5 +306,6 @@ CSP_CONNECT_SRC = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
 CSP_SCRIPT_SRC = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
 CSP_STYLE_SRC = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
 CSP_IMG_SRC = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
+CSP_REPORT_URI = ("'self'", "*.google.com", "'unsafe-inline'", "'unsafe-eval'")
 
 CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
