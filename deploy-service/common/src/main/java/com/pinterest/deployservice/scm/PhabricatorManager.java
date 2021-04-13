@@ -200,11 +200,11 @@ public class PhabricatorManager extends BaseManager {
                 return toCommitBean(commitsArray.get(0), repo);
             } else {
                 LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
-                return null
+                return null;
             }
         } catch (Exception e) {
             LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
-            return null
+            return null;
         }
     }
 
