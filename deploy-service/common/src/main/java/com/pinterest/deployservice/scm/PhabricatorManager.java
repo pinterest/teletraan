@@ -186,7 +186,7 @@ public class PhabricatorManager extends BaseManager {
     }
 
     @Override
-    public CommitBean getCommit(String repo, String sha) throws Exception {
+    public CommitBean getCommit(String repo, String sha) {
         try {
             String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
             Map<String, Object> json = queryCLI(input);
@@ -199,10 +199,12 @@ public class PhabricatorManager extends BaseManager {
             if (!commitsArray.isEmpty()) {
                 return toCommitBean(commitsArray.get(0), repo);
             } else {
-                throw new Exception("Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!");
+                LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
+                return null
             }
         } catch (Exception e) {
-            throw new Exception("Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!");
+            LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
+            return null
         }
     }
 
