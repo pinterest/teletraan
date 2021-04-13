@@ -109,23 +109,27 @@
             <div id="loadGroupInfo"></div>
         </div>
         <div align="left" id="tsdLinksId">
+            <!-- https://statsboard.pinadmin.com/build?{"from":"1w","metrics":[{"metric":"avg:autoscaling.{{ group_name }}.size"}]} -->
             <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                href="https://statsboard.pinadmin.com/build?{'from':'1w','metrics':[{'metric':'avg:autoscaling.{{ group_name }}.size'}]}"
+                href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22until%22%3A%22%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22avg%3Aautoscaling.{{ group_name }}.size%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
                 title="" data-original-title="Click to see more group size information in StatsBoard">
                 <strong>Group Size</strong>
             </a>
             {% for env in envs %}
+                <!-- https://statsboard.pinadmin.com/build?{"from":"1w","metrics":[{"metric":"avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.launchlatency"}]} -->
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="https://statsboard.pinadmin.com/build?{'from':'1w','metrics':[{'metric':'avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.launchlatency'}]}"
+                    href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22until%22%3A%22%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22avg%3Aautoscaling.{{ env.envName }}.{{ env.stageName }}.launchlatency%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
                     title="" data-original-title="Click to see more launch latency information in StatsBoard">
                     <strong>Launch Latency for {{ env.envName }}</strong>
                 </a>
+                <!-- https://statsboard.pinadmin.com/build?{"from":"1w","metrics":[{"metric":"avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.deploylatency"}]} -->
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="https://statsboard.pinadmin.com/build?{'from':'1w','metrics':[{'metric':'avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.deploylatency'}]}"
+                    href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22until%22%3A%22%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22avg%3autoscaling.{{ env.envName }}.{{ env.stageName }}.deploylatency%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
                     title="" data-original-title="Click to see more deploy latency information in StatsBoard">
                 <strong>Deploy Latency for {{ env.envName }}</strong>
+                <!-- https://statsboard.pinadmin.com/build?{"from":"1w","metrics":[{"metric":"minmax:autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed"}]} -->
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                   href="https://statsboard.pinadmin.com/build?{'from':'1w','metrics':[{'metric':'minmax:autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed'}]}"
+                   href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22until%22%3A%22%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22minmax%3autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
                     title="" data-original-title="Click to see more launch failed count information in StatsBoard">
                 <strong>Launch failed count for {{ env.envName }}</strong>
             </a>
