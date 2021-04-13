@@ -12,10 +12,10 @@
         <div class="btn-group pull-right">
             {% for config in metrics %}
             {% if config.title == "dashboard" %}
-            <a id="dashboard" type="button" class="deployToolTip btn btn-default btn-sm" 
-                data-toggle="tooltip" 
-                href="{{ config.url }}" 
-                target="_blank" title="" 
+            <a id="dashboard" type="button" class="deployToolTip btn btn-default btn-sm"
+                data-toggle="tooltip"
+                href="{{ config.url }}"
+                target="_blank" title=""
                 data-original-title="Click to see the metrics dashboard for this service.">
                 <large>Dashboard</large>
             </a>
@@ -54,7 +54,7 @@
                 <div class="col-md-3 col-centered">
                     <div id="chart_{{ config.title }}" align="center"></div>
                 </div>
-              {% endif %}  
+              {% endif %}
             {% endfor %}
         </div>
     </div>
@@ -62,8 +62,7 @@
 
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
 <script>
-    google.load("visualization", "1", {packages: ["corechart", "gauge", "line"]});
-    google.setOnLoadCallback(initialize);
+    google.load("visualization", "1", {packages: ["corechart", "gauge", "line"], "callback": initialize});
 
     var select_cookie_name = 'site-health-graph-selection';
     var toggle_cookie_name = 'site-health-panel-toggle';

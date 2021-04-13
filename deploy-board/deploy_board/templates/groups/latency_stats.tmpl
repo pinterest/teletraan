@@ -5,8 +5,7 @@
     </script>
 
     <script type="text/javascript">
-        google.load("visualization", "1", {packages:["corechart"]});
-        google.setOnLoadCallback(drawChart2);
+        google.load("visualization", "1.1", {packages:["corechart"], "callback":drawChart2});
 
         function drawChart2() {
             var data = new google.visualization.DataTable();
@@ -58,32 +57,34 @@
 
     <script>
         function updateCharts2(response) {
-            var data = data_options2['Requests'][0];
-            var options = data_options2['Requests'][1];
-            var stage_names = response['stage_names'];
-            var launch_latency_th = response['launch_latency_th'];
-            var launch_tmp = "launch_latency.";
-            var deploy_tmp = "deploy_latency.";
+            if(data_options2['Requests'] && data_options2['Requests'].length > 1){
+                var data = data_options2['Requests'][0];
+                var options = data_options2['Requests'][1];
+                var stage_names = response['stage_names'];
+                var launch_latency_th = response['launch_latency_th'];
+                var launch_tmp = "launch_latency.";
+                var deploy_tmp = "deploy_latency.";
 
-            if (stage_names != null) {
-                for (var i = 0; i < 1; ++i) {
-                    var metric_name1 = launch_tmp + stage_names[i];
-                    var metric_name2 = deploy_tmp + stage_names[i];
+                if (stage_names != null) {
+                    for (var i = 0; i < 1; ++i) {
+                        var metric_name1 = launch_tmp + stage_names[i];
+                        var metric_name2 = deploy_tmp + stage_names[i];
 
-                    data.addColumn("number", metric_name1);
-                    data.addColumn("number", metric_name2);
+                        data.addColumn("number", metric_name1);
+                        data.addColumn("number", metric_name2);
 
-                    var data_list1 = response[metric_name1];
-                    var data_list2 = response[metric_name2];
-                    var data_len = Math.min(data_list1.length,  data_list2.length);
-                    for (var j = 0; j < data_len; ++j) {
-                        var d = new Date(data_list1[j][0]);
-                        data.addRow([d, launch_latency_th, data_list1[j][1], data_list2[j][1]]);
+                        var data_list1 = response[metric_name1];
+                        var data_list2 = response[metric_name2];
+                        var data_len = Math.min(data_list1.length,  data_list2.length);
+                        for (var j = 0; j < data_len; ++j) {
+                            var d = new Date(data_list1[j][0]);
+                            data.addRow([d, launch_latency_th, data_list1[j][1], data_list2[j][1]]);
+                        }
                     }
                 }
+                var metric_chart = charts2["Requests"];
+                metric_chart.draw(data, options);
             }
-            var metric_chart = charts2["Requests"];
-            metric_chart.draw(data, options);
         }
 
         function poll_metrics2() {

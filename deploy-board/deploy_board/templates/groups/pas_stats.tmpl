@@ -5,8 +5,7 @@
     </script>
 
     <script type="text/javascript">
-        google.load("visualization", "1", {packages:["corechart"]});
-        google.setOnLoadCallback(drawChart4);
+        google.load("visualization", "1.1", {packages:["corechart"]}, "callback": drawChart4);
 
         function drawChart4() {
             var data = new google.visualization.DataTable();
@@ -56,21 +55,23 @@
 
     <script>
         function updateCharts4(response) {
-            var data = data_options4['Requests'][0];
-            var options = data_options4['Requests'][1];
+            if(data_options4['Requests'] && data_options4['Requests'].length > 1){
+                var data = data_options4['Requests'][0];
+                var options = data_options4['Requests'][1];
 
-            var arcee_data = response['arcee'];
-            var data_len = arcee_data.length;
+                var arcee_data = response['arcee'];
+                var data_len = arcee_data.length;
 
-            data.addColumn("number", "Min Size Changes");
+                data.addColumn("number", "Min Size Changes");
 
-            for (var j = 0; j < data_len; ++j) {
-                var d = new Date(arcee_data[data_len - j - 1][0]);
-                data.addRow([d, arcee_data[data_len - j - 1][1]]);
+                for (var j = 0; j < data_len; ++j) {
+                    var d = new Date(arcee_data[data_len - j - 1][0]);
+                    data.addRow([d, arcee_data[data_len - j - 1][1]]);
+                }
+
+                var metric_chart = charts4["Requests"];
+                metric_chart.draw(data, options);
             }
-
-            var metric_chart = charts4["Requests"];
-            metric_chart.draw(data, options);
         }
 
         function poll_metrics4() {
