@@ -119,7 +119,7 @@ public class PhabricatorManager extends BaseManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Map<String, Integer> exceptionReturn = new HashMap<>();
+        Map<String, Object> exceptionReturn = new HashMap<>();
         exceptionReturn.put("exception", output);
         return exceptionReturn;
     }
