@@ -108,21 +108,17 @@ public class GithubManager extends BaseManager {
 
     @Override
     public CommitBean getCommit(String repo, String sha) throws Exception {
-        try {
-            HTTPClient httpClient = new HTTPClient();
-            String url = String.format("%s/repos/%s/commits/%s", apiPrefix, repo, sha);
+        HTTPClient httpClient = new HTTPClient();
+        String url = String.format("%s/repos/%s/commits/%s", apiPrefix, repo, sha);
 
-            // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
-            String jsonPayload = httpClient.get(url, null, null, headers, 1);
-            GsonBuilder builder = new GsonBuilder();
-            Map<String, Object>
-                jsonMap =
-                builder.create().fromJson(jsonPayload, new TypeToken<HashMap<String, Object>>() {
-                }.getType());
-            return toCommitBean(jsonMap, repo);
-        } catch (Exception e) {
-            throw new Exception("Invalid SHA(Maybe Private Commit) or branch name passed to Github getCommitBean!");
-        }
+        // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
+        String jsonPayload = httpClient.get(url, null, null, headers, 1);
+        GsonBuilder builder = new GsonBuilder();
+        Map<String, Object>
+            jsonMap =
+            builder.create().fromJson(jsonPayload, new TypeToken<HashMap<String, Object>>() {
+            }.getType());
+        return toCommitBean(jsonMap, repo);
     }
 
     @Override
