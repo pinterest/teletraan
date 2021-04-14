@@ -186,7 +186,7 @@ public class PhabricatorManager extends BaseManager {
     }
 
     @Override
-    public CommitBean getCommit(String repo, String sha) {
+    public CommitBean getCommit(String repo, String sha) throws Exception {
         String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
         Map<String, Object> json = queryCLI(input);
         try {
@@ -197,11 +197,7 @@ public class PhabricatorManager extends BaseManager {
                 commitsArray =
                 (ArrayList<Map<String, Object>>) response.get("pathChanges");
 
-            if (!commitsArray.isEmpty()) {
-                return toCommitBean(commitsArray.get(0), repo);
-            } else {
-                return null;
-            }
+            return toCommitBean(commitsArray.get(0), repo);
         } catch (Exception e) {
             if (json.get("response") == null) {
                 throw new Exception(json.get("errorMessage").toString());
@@ -209,7 +205,6 @@ public class PhabricatorManager extends BaseManager {
                 throw new Exception(e.getMessage());
             }
         }
-        return null;
     }
 
     @Override

@@ -58,10 +58,6 @@ public abstract class BaseManager implements SourceControlManager {
         // startSha and endSha are on the same branch
         if (endSha != null) {
             CommitBean endCommit = getCommit(repo, endSha);
-            if (endCommit == null) {
-                List<CommitBean> returnCommits = new ArrayList<>();
-                return returnCommits;
-            }
             referenceCommits.offer(endCommit);
         }
 
