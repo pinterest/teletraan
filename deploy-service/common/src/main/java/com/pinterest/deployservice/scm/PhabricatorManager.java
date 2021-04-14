@@ -68,7 +68,7 @@ public class PhabricatorManager extends BaseManager {
     }
 
     private Map<String, Object> queryCLI(String input) {
-        String output;
+        String output = "";
         try {
             ProcessBuilder builder;
             if (StringUtils.isEmpty(arcrcLocation)) {
