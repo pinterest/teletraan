@@ -209,16 +209,16 @@ public class PhabricatorManager extends BaseManager {
                 return CommitBean;
             }
             @SuppressWarnings("unchecked")
-            Map<String, Object> response = (Map<String, Object>) json.get("response");
             CommitBean CommitBean = new CommitBean();
             CommitBean.setSha(sha);
-            CommitBean.setMessage("test: " + response.toString());
+            CommitBean.setMessage("test: " + json.toString());
             CommitBean.setAuthor("");
             CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
             CommitBean.setDate(0L);
             CommitBean.setInfo("");
             return CommitBean;
             /*
+            Map<String, Object> response = (Map<String, Object>) json.get("response");
             if (response.containsKey("pathChanges") == false) {
                 CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha(sha);
