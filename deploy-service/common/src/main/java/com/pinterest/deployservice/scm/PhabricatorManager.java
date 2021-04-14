@@ -113,8 +113,11 @@ public class PhabricatorManager extends BaseManager {
         LOG.debug("arc command output is: \n{}", output);
 
         GsonBuilder gson = new GsonBuilder();
-        return gson.create().fromJson(output, new TypeToken<HashMap<String, Object>>() {
-        }.getType());
+        try {
+            return gson.create().fromJson(output, new TypeToken<HashMap<String, Object>>() {}.getType());
+        } catch (Exception e) {
+            throw new Exception(output);
+        }
     }
 
     private String getAuthorHandle(String authorName) {
