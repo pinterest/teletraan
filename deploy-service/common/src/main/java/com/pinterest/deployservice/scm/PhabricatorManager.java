@@ -68,6 +68,7 @@ public class PhabricatorManager extends BaseManager {
     }
 
     private Map<String, Object> queryCLI(String input) {
+        String output;
         try {
             ProcessBuilder builder;
             if (StringUtils.isEmpty(arcrcLocation)) {
@@ -107,7 +108,7 @@ public class PhabricatorManager extends BaseManager {
             reader.close();
 
             // We will remove "Waiting for JSON parameters on stdin..." from the output if exists
-            String output = sb.toString();
+            output = sb.toString();
             if (output.startsWith(ARC_OUTPUT_NOTICE)) {
                 output = output.substring(ARC_OUTPUT_NOTICE_LEN);
             }
@@ -118,6 +119,9 @@ public class PhabricatorManager extends BaseManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        Map<String, Integer> exceptionReturn = new HashMap<>();
+        exceptionReturn.put("exception", output)
+        return exceptionReturn;
     }
 
     private String getAuthorHandle(String authorName) {
