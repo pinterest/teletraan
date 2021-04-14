@@ -190,8 +190,20 @@ public class PhabricatorManager extends BaseManager {
         try {
             String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
             Map<String, Object> json = queryCLI(input);
+            if json.containsKey("response") == false {
+                CommitBean CommitBean = new CommitBean();
+                CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
+                CommitBean.setMessage("the json response from phabricator doesn't have response field");
+                return CommitBean;
+            }
             @SuppressWarnings("unchecked")
             Map<String, Object> response = (Map<String, Object>) json.get("response");
+            if response.containsKey("pathChanges") == false {
+                CommitBean CommitBean = new CommitBean();
+                CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
+                CommitBean.setMessage("the json response from phabricator doesn't have pathChanges field");
+                return CommitBean;
+            }
             @SuppressWarnings("unchecked")
             ArrayList<Map<String, Object>>
                 commitsArray =
@@ -199,12 +211,18 @@ public class PhabricatorManager extends BaseManager {
             if (!commitsArray.isEmpty()) {
                 return toCommitBean(commitsArray.get(0), repo);
             } else {
-                LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
-                return null;
+                //LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
+                CommitBean CommitBean = new CommitBean();
+                CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
+                CommitBean.setMessage("cannot get commit info from phabricator");
+                return CommitBean;
             }
         } catch (Exception e) {
-            LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
-            return null;
+            //LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
+            CommitBean CommitBean = new CommitBean();
+            CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
+            CommitBean.setMessage(String.format("exception happened: %s", e.getMessage()));
+            return CommitBean;
         }
     }
 
