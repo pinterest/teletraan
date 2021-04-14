@@ -58,7 +58,7 @@ public abstract class BaseManager implements SourceControlManager {
         // startSha and endSha are on the same branch
         if (endSha != null) {
             CommitBean endCommit = getCommit(repo, endSha);
-            if (endCommit.getSha().equals("Invalid SHA(Maybe Private Commit) or branch name")) {
+            if (endCommit.getTitle().equals("Invalid SHA(Maybe Private Commit) or branch name")) {
                 List<CommitBean> returnCommits = new ArrayList<>();
                 returnCommits.add(endCommit);
                 return returnCommits;
