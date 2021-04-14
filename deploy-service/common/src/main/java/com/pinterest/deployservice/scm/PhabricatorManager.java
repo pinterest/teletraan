@@ -207,7 +207,7 @@ public class PhabricatorManager extends BaseManager {
             CommitBean.setInfo("");
             return CommitBean;
             if (json.containsKey("response") == false) {
-                CommitBean CommitBean = new CommitBean();
+                //CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha(sha);
                 CommitBean.setMessage("the json response from phabricator doesn't have response field");
                 CommitBean.setAuthor("");
@@ -220,7 +220,7 @@ public class PhabricatorManager extends BaseManager {
             @SuppressWarnings("unchecked")
             Map<String, Object> response = (Map<String, Object>) json.get("response");
             if (response.containsKey("pathChanges") == false) {
-                CommitBean CommitBean = new CommitBean();
+                //CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha(sha);
                 CommitBean.setMessage("the json response from phabricator doesn't have pathChanges field");
                 CommitBean.setAuthor("");
@@ -237,7 +237,7 @@ public class PhabricatorManager extends BaseManager {
                 return toCommitBean(commitsArray.get(0), repo);
             } else {
                 //LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
-                CommitBean CommitBean = new CommitBean();
+                //CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha(sha);
                 CommitBean.setMessage("cannot get commit info from phabricator");
                 CommitBean.setAuthor("");
