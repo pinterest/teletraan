@@ -210,6 +210,15 @@ public class PhabricatorManager extends BaseManager {
             }
             @SuppressWarnings("unchecked")
             Map<String, Object> response = (Map<String, Object>) json.get("response");
+            CommitBean CommitBean = new CommitBean();
+            CommitBean.setSha(sha);
+            CommitBean.setMessage("test: " + response.toString());
+            CommitBean.setAuthor("");
+            CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
+            CommitBean.setDate(0L);
+            CommitBean.setInfo("");
+            return CommitBean;
+            /*
             if (response.containsKey("pathChanges") == false) {
                 CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha(sha);
@@ -220,15 +229,6 @@ public class PhabricatorManager extends BaseManager {
                 CommitBean.setInfo("");
                 return CommitBean;
             }
-            CommitBean CommitBean = new CommitBean();
-            CommitBean.setSha(sha);
-            CommitBean.setMessage("just before response get pathChanges");
-            CommitBean.setAuthor("");
-            CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
-            CommitBean.setDate(0L);
-            CommitBean.setInfo("");
-            return CommitBean;
-            /*
             @SuppressWarnings("unchecked")
             ArrayList<Map<String, Object>>
                 commitsArray =
