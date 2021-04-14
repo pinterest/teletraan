@@ -67,56 +67,56 @@ public class PhabricatorManager extends BaseManager {
         this.arcrcLocation = arcrcLocation;
     }
 
-    private Map<String, Object> queryCLI(String input) throws Exception {
-        ProcessBuilder builder;
-        if (StringUtils.isEmpty(arcrcLocation)) {
-            builder = new ProcessBuilder(arcLocation, "call-conduit",
-                String.format("--conduit-uri=%s", urlPrefix), "diffusion.historyquery");
-        } else {
-            builder = new ProcessBuilder(arcLocation, "call-conduit",
-                String.format("--conduit-uri=%s", urlPrefix), "diffusion.historyquery",
-                "--arcrc-file", arcrcLocation);
-        }
-        LOG.debug("Execute arc command: \n{}", builder.command());
-
-        // Redirects error stream to output stream, so have only one input stream to read from
-        builder.redirectErrorStream(true);
-
-        // Run command
-        Process process = builder.start();
-
-        // Feed the input parameters
-        BufferedWriter
-            writer =
-            new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
-        writer.write(input);
-        writer.flush();
-        writer.close();
-
-        InputStream stdout = process.getInputStream();
-        String line;
-        StringBuilder sb = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(stdout));
-
-        // Read response
-        while ((line = reader.readLine()) != null) {
-            sb.append(line);
-        }
-
-        reader.close();
-
-        // We will remove "Waiting for JSON parameters on stdin..." from the output if exists
-        String output = sb.toString();
-        if (output.startsWith(ARC_OUTPUT_NOTICE)) {
-            output = output.substring(ARC_OUTPUT_NOTICE_LEN);
-        }
-        LOG.debug("arc command output is: \n{}", output);
-
-        GsonBuilder gson = new GsonBuilder();
+    private Map<String, Object> queryCLI(String input) {
         try {
+            ProcessBuilder builder;
+            if (StringUtils.isEmpty(arcrcLocation)) {
+                builder = new ProcessBuilder(arcLocation, "call-conduit",
+                    String.format("--conduit-uri=%s", urlPrefix), "diffusion.historyquery");
+            } else {
+                builder = new ProcessBuilder(arcLocation, "call-conduit",
+                    String.format("--conduit-uri=%s", urlPrefix), "diffusion.historyquery",
+                    "--arcrc-file", arcrcLocation);
+            }
+            LOG.debug("Execute arc command: \n{}", builder.command());
+
+            // Redirects error stream to output stream, so have only one input stream to read from
+            builder.redirectErrorStream(true);
+
+            // Run command
+            Process process = builder.start();
+
+            // Feed the input parameters
+            BufferedWriter
+                writer =
+                new BufferedWriter(new OutputStreamWriter(process.getOutputStream()));
+            writer.write(input);
+            writer.flush();
+            writer.close();
+
+            InputStream stdout = process.getInputStream();
+            String line;
+            StringBuilder sb = new StringBuilder();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(stdout));
+
+            // Read response
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+
+            reader.close();
+
+            // We will remove "Waiting for JSON parameters on stdin..." from the output if exists
+            String output = sb.toString();
+            if (output.startsWith(ARC_OUTPUT_NOTICE)) {
+                output = output.substring(ARC_OUTPUT_NOTICE_LEN);
+            }
+            LOG.debug("arc command output is: \n{}", output);
+
+            GsonBuilder gson = new GsonBuilder();
             return gson.create().fromJson(output, new TypeToken<HashMap<String, Object>>() {}.getType());
         } catch (Exception e) {
-            throw new Exception(output);
+            e.printStackTrace();
         }
     }
 
@@ -195,10 +195,10 @@ public class PhabricatorManager extends BaseManager {
             Map<String, Object> json = queryCLI(input);
             if (json.containsKey("response") == false) {
                 CommitBean CommitBean = new CommitBean();
-                CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
+                CommitBean.setSha(sha);
                 CommitBean.setMessage("the json response from phabricator doesn't have response field");
                 CommitBean.setAuthor("");
-                CommitBean.setTitle("");
+                CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
                 CommitBean.setDate(0L);
                 CommitBean.setInfo("");
                 return CommitBean;
@@ -207,10 +207,10 @@ public class PhabricatorManager extends BaseManager {
             Map<String, Object> response = (Map<String, Object>) json.get("response");
             if (response.containsKey("pathChanges") == false) {
                 CommitBean CommitBean = new CommitBean();
-                CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
+                CommitBean.setSha(sha);
                 CommitBean.setMessage("the json response from phabricator doesn't have pathChanges field");
                 CommitBean.setAuthor("");
-                CommitBean.setTitle("");
+                CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
                 CommitBean.setDate(0L);
                 CommitBean.setInfo("");
                 return CommitBean;
@@ -224,10 +224,10 @@ public class PhabricatorManager extends BaseManager {
             } else {
                 //LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
                 CommitBean CommitBean = new CommitBean();
-                CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
+                CommitBean.setSha(sha);
                 CommitBean.setMessage("cannot get commit info from phabricator");
                 CommitBean.setAuthor("");
-                CommitBean.setTitle("");
+                CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
                 CommitBean.setDate(0L);
                 CommitBean.setInfo("");
                 return CommitBean;
@@ -236,10 +236,10 @@ public class PhabricatorManager extends BaseManager {
             //LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
             CommitBean CommitBean = new CommitBean();
             CommitBean.setSha(sha);
-            CommitBean.setMessage(String.format("exception happened: %s", e.printStackTrace()));
+            CommitBean.setMessage("exception happened in queryCLI");
             CommitBean.setAuthor("");
             CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
-            CommitBean.setDate("");
+            CommitBean.setDate(0L);
             CommitBean.setInfo("");
             return CommitBean;
         }
