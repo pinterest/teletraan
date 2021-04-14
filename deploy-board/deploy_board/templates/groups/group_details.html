@@ -109,16 +109,16 @@
             <div id="loadGroupInfo"></div>
         </div>
         <div align="left" id="tsdLinksId">
-            <!-- https://statsboard.pinadmin.com/build?{"from":"1w","metrics":[{"metric":"avg:autoscaling.{{ group_name }}.size"}]} -->
+            <!-- https://statsboard.pinadmin.com/build?{"renderer":"line","title":"Fleet Size", "yAxisLabel":"Group Size","ymax":"15","ymin":"0","from":"1w","metrics":[{"agg":"avg","cell":"aws-us-east-1","color":"dodgerblue","db":"tsdb","dsAgg":"avg","dsValue":"10m", "metric":"autoscaling.{{group_name}}.size","renderer":"line"}]} -->
             <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22avg%3Aautoscaling.{{ group_name }}.size%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
+                href="https://statsboard.pinadmin.com/build?%7B%22renderer%22%3A%22line%22%2C%22title%22%3A%22Fleet%20Size%22%2C%22yAxisLabel%22%3A%22Group%20Size%22%2C%22ymax%22%3A%2215%22%2C%22ymin%22%3A%220%22%2C%22from%22%3A%221w%22%2C%22metrics%22%3A%5B%7B%22agg%22%3A%22avg%22%2C%22cell%22%3A%22aws-us-east-1%22%2C%22color%22%3A%22dodgerblue%22%2C%22db%22%3A%22tsdb%22%2C%22dsAgg%22%3A%22avg%22%2C%22dsValue%22%3A%2210m%22%2C%22metric%22%3A%22autoscaling.{{ group_name }}.size%22%2C%22renderer%22%3A%22line%22%7D%5D%7D"
                 title="" data-original-title="Click to see more group size information in StatsBoard">
                 <strong>Group Size</strong>
             </a>
             {% for env in envs %}
                 <!-- https://statsboard.pinadmin.com/build?{"from":"1w","metrics":[{"metric":"avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.launchlatency"}]} -->
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22avg%3Aautoscaling.srebot.prod.launchlatency%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
+                    href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22avg%3Aautoscaling.{{ env.envName }}.{{ env.stageName }}.launchlatency%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
                     title="" data-original-title="Click to see more launch latency information in StatsBoard">
                     <strong>Launch Latency for {{ env.envName }}</strong>
                 </a>
@@ -127,9 +127,9 @@
                     href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22avg%3autoscaling.{{ env.envName }}.{{ env.stageName }}.deploylatency%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
                     title="" data-original-title="Click to see more deploy latency information in StatsBoard">
                 <strong>Deploy Latency for {{ env.envName }}</strong>
-                <!-- https://statsboard.pinadmin.com/build?{"from":"1w","metrics":[{"metric":"minmax:autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed"}]} -->
+                <!-- https://statsboard.pinadmin.com/build?{"from":"1w","metrics":[{"metric":"mimmax:autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed"}]} -->
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                   href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22minmax%3autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
+                   href="https://statsboard.pinadmin.com/build?%7B%22from%22%3A%221w%22%2C%22metrics%22%3A%5B%7B%22metric%22%3A%22mimmax%3autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed%22%7D%5D%2C%22renderer%22%3A%22line%22%7D"
                     title="" data-original-title="Click to see more launch failed count information in StatsBoard">
                 <strong>Launch failed count for {{ env.envName }}</strong>
             </a>
