@@ -198,17 +198,8 @@ public class PhabricatorManager extends BaseManager {
         try {
             String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
             Map<String, Object> json = queryCLI(input);
-            CommitBean CommitBean = new CommitBean();
-            CommitBean.setSha(sha);
-            CommitBean.setMessage("just after queryCLI");
-            CommitBean.setAuthor("");
-            CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
-            CommitBean.setDate(0L);
-            CommitBean.setInfo("");
-            return CommitBean;
-            /*
             if (json.containsKey("response") == false) {
-                //CommitBean CommitBean = new CommitBean();
+                CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha(sha);
                 CommitBean.setMessage("the json response from phabricator doesn't have response field");
                 CommitBean.setAuthor("");
@@ -217,7 +208,15 @@ public class PhabricatorManager extends BaseManager {
                 CommitBean.setInfo("");
                 return CommitBean;
             }
-
+            CommitBean CommitBean = new CommitBean();
+            CommitBean.setSha(sha);
+            CommitBean.setMessage("just after response check");
+            CommitBean.setAuthor("");
+            CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
+            CommitBean.setDate(0L);
+            CommitBean.setInfo("");
+            return CommitBean;
+/*
             @SuppressWarnings("unchecked")
             Map<String, Object> response = (Map<String, Object>) json.get("response");
             if (response.containsKey("pathChanges") == false) {
