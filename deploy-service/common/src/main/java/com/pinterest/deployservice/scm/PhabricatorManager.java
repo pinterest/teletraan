@@ -198,6 +198,15 @@ public class PhabricatorManager extends BaseManager {
         try {
             String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
             Map<String, Object> json = queryCLI(input);
+            CommitBean CommitBean = new CommitBean();
+            CommitBean.setSha(sha);
+            CommitBean.setMessage("test1: " + json.toString());
+            CommitBean.setAuthor("");
+            CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
+            CommitBean.setDate(0L);
+            CommitBean.setInfo("");
+            return CommitBean;
+            /*
             if (json.containsKey("response") == false) {
                 CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha(sha);
@@ -209,15 +218,6 @@ public class PhabricatorManager extends BaseManager {
                 return CommitBean;
             }
             @SuppressWarnings("unchecked")
-            CommitBean CommitBean = new CommitBean();
-            CommitBean.setSha(sha);
-            CommitBean.setMessage("test: " + json.toString());
-            CommitBean.setAuthor("");
-            CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
-            CommitBean.setDate(0L);
-            CommitBean.setInfo("");
-            return CommitBean;
-            /*
             Map<String, Object> response = (Map<String, Object>) json.get("response");
             if (response.containsKey("pathChanges") == false) {
                 CommitBean CommitBean = new CommitBean();
@@ -251,7 +251,7 @@ public class PhabricatorManager extends BaseManager {
             //LOG.error(String.format("Failed to get commit %s info. Reason: %s", sha, "Invalid SHA(Maybe Private Commit) or branch name passed to Phabricator getCommitBean!"));
             CommitBean CommitBean = new CommitBean();
             CommitBean.setSha(sha);
-            CommitBean.setMessage("exception happened in queryCLI");
+            CommitBean.setMessage("exception happened");
             CommitBean.setAuthor("");
             CommitBean.setTitle("Invalid SHA(Maybe Private Commit) or branch name");
             CommitBean.setDate(0L);
