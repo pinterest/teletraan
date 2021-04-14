@@ -194,6 +194,10 @@ public class PhabricatorManager extends BaseManager {
                 CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
                 CommitBean.setMessage("the json response from phabricator doesn't have response field");
+                CommitBean.setAuthor("");
+                CommitBean.setTitle("");
+                CommitBean.setDate(0L);
+                CommitBean.setInfo("");
                 return CommitBean;
             }
             @SuppressWarnings("unchecked")
@@ -202,6 +206,10 @@ public class PhabricatorManager extends BaseManager {
                 CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
                 CommitBean.setMessage("the json response from phabricator doesn't have pathChanges field");
+                CommitBean.setAuthor("");
+                CommitBean.setTitle("");
+                CommitBean.setDate(0L);
+                CommitBean.setInfo("");
                 return CommitBean;
             }
             @SuppressWarnings("unchecked")
@@ -215,6 +223,10 @@ public class PhabricatorManager extends BaseManager {
                 CommitBean CommitBean = new CommitBean();
                 CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
                 CommitBean.setMessage("cannot get commit info from phabricator");
+                CommitBean.setAuthor("");
+                CommitBean.setTitle("");
+                CommitBean.setDate(0L);
+                CommitBean.setInfo("");
                 return CommitBean;
             }
         } catch (Exception e) {
@@ -222,6 +234,10 @@ public class PhabricatorManager extends BaseManager {
             CommitBean CommitBean = new CommitBean();
             CommitBean.setSha("Invalid SHA(Maybe Private Commit) or branch name");
             CommitBean.setMessage(String.format("exception happened: %s", e.getMessage()));
+            CommitBean.setAuthor("");
+            CommitBean.setTitle("");
+            CommitBean.setDate(0L);
+            CommitBean.setInfo("");
             return CommitBean;
         }
     }
