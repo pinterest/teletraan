@@ -639,13 +639,18 @@ def get_group_info(request, group_name):
 
 def get_group_size(request, group_name):
     try:
+
+        metric_name = "max:autoscaling.{}.first_deploy.failed".format(group_name)
+
         group_size_datum = \
-            autoscaling_metrics_helper.get_asg_size_metric(request, group_name,
+            autoscaling_metrics_helper.get_raw_metrics(request, metric_name,
                                                            settings.DEFAULT_START_TIME)
 
+        spot_metric_name = "max:autoscaling.{}-spot.first_deploy.failed".format(group_name)
+
         spot_group_size_datum = \
-            autoscaling_metrics_helper.get_asg_size_metric(request, "{}-spot".format(group_name),
-                                                           settings.DEFAULT_START_TIME)
+            autoscaling_metrics_helper.get_raw_metrics(request, spot_metric_name,
+                                                       settings.DEFAULT_START_TIME)
 
         alarm_infos = autoscaling_groups_helper.get_alarms(request, group_name)
         spot_group_name = "{}-spot".format(group_name)
@@ -1229,7 +1234,7 @@ def add_scheduled_actions(request, group_name):
         scheduled_action_capacity = int(params['capacity'])
         if scheduled_action_capacity < asg_minsize or scheduled_action_capacity > asg_maxsize:
             raise TeletraanException("Invalid capacity: {}. Desired capacity must be within the limits of ASG's minimum capacity ({}) and maximum capacity ({}). Please change the value you input for Capacity.".format(params['capacity'], asg_minsize, asg_maxsize))
- 
+
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
     except:
         log.error(traceback.format_exc())
