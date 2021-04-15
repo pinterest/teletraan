@@ -274,7 +274,7 @@ if IS_PINTEREST:
                    {"min": 300, "max": 600, "color": "Green"}]}
     ]
 
-    DEFAULT_START_TIME = "-1d"
+    DEFAULT_START_TIME = "-1w"
 
     #Pinterest Default Cloud Provider
     DEFAULT_PROVIDER = 'AWS'
