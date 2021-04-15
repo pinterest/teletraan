@@ -640,13 +640,13 @@ def get_group_info(request, group_name):
 def get_group_size(request, group_name):
     try:
 
-        metric_name = "max:autoscaling.{}.first_deploy.failed".format(group_name)
+        metric_name = "max:autoscaling.{}.size".format(group_name)
 
         group_size_datum = \
             autoscaling_metrics_helper.get_raw_metrics(request, metric_name,
                                                            settings.DEFAULT_START_TIME)
 
-        spot_metric_name = "max:autoscaling.{}-spot.first_deploy.failed".format(group_name)
+        spot_metric_name = "max:autoscaling.{}-spot.size".format(group_name)
 
         spot_group_size_datum = \
             autoscaling_metrics_helper.get_raw_metrics(request, spot_metric_name,
