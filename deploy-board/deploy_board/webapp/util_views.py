@@ -61,7 +61,11 @@ def get_service_metrics(request, name, stage):
 def get_site_health_metrics(request):
     data = {}
     for metric in SITE_METRICS_CONFIGS:
-        data[metric['title']] = _get_latest_metrics(metric['url'])
+        try:
+            data[metric['title']] = _get_latest_metrics(metric['url'])
+        except Exception as e:
+            log.error('Failed to get latest metric {} Error {}', metric['title'], e)
+            continue
     return HttpResponse(json.dumps({'html': data}), content_type="application/json")
 
 
@@ -163,7 +167,7 @@ def get_launch_rate(request, group_name):
     try:
         util_data["metric_names"] = []
         for env in envs:
-            metric_name = "mimmax:5m-mimmax:autoscaling.{}.{}.first_deploy.failed".format(
+            metric_name = "mimmax:autoscaling.{}.{}.first_deploy.failed".format(
                 env["envName"], env["stageName"])
             rate_data_points = autoscaling_metrics_helper.get_raw_metrics(request, metric_name,
                                                                           settings.DEFAULT_START_TIME)
