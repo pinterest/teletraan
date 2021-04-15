@@ -198,11 +198,11 @@ public class PhabricatorManager extends BaseManager {
                 (ArrayList<Map<String, Object>>) response.get("pathChanges");
 
             return toCommitBean(commitsArray.get(0), repo);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             if (json.get("response") == null) {
-                throw new Exception(json.get("errorMessage").toString());
+                throw new Throwable(json.get("errorMessage").toString(), e, true, true);
             } else {
-                throw new Exception(e.getMessage());
+                throw new Throwable("unknown", e, true, true);
             }
         }
     }
