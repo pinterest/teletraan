@@ -127,9 +127,9 @@ def get_latency_metrics(request, group_name):
 
     try:
         for env in envs:
-            name = "{}.{}".format(env["envName"], env["stageName"])
+            name = "autoscaling.{}.{}".format(env["envName"], env["stageName"])
             stage_names.append(name)
-            metric_name1 = "launch_latency.{}".format(name)
+            metric_name1 = "{}.launchlatency".format(name)
             launch_data_points = autoscaling_metrics_helper.get_latency_data(request, env["id"],
                                                                              "LAUNCH", settings.DEFAULT_START_TIME)
             json_data = []
@@ -138,7 +138,7 @@ def get_latency_metrics(request, group_name):
                 json_data.append([timestamp, value])
             util_data[metric_name1] = json_data
 
-            metric_name2 = "deploy_latency.{}".format(name)
+            metric_name2 = "{}.deploylatency".format(name)
             deploy_data_points = autoscaling_metrics_helper.get_latency_data(request, env["id"],
                                                                              "DEPLOY", settings.DEFAULT_START_TIME)
             json_data2 = []
