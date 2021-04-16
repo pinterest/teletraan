@@ -67,7 +67,7 @@ public class PhabricatorManager extends BaseManager {
         this.arcrcLocation = arcrcLocation;
     }
 
-    private Map<String, Object> queryCLI(String input) throws Exception {
+    private Map<String, Object> queryCLI(String input) throws Throwable {
         ProcessBuilder builder;
         if (StringUtils.isEmpty(arcrcLocation)) {
             builder = new ProcessBuilder(arcLocation, "call-conduit",
@@ -129,7 +129,7 @@ public class PhabricatorManager extends BaseManager {
     }
 
     private CommitBean toCommitBean(Map<String, Object> commitMap, String callsign)
-        throws Exception {
+        throws Throwable {
         CommitBean CommitBean = new CommitBean();
 
         @SuppressWarnings("unchecked")
@@ -210,7 +210,7 @@ public class PhabricatorManager extends BaseManager {
 
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
-        throws Exception {
+        throws Throwable {
         String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER_WITH_PATH, startSha, DEFAULT_SIZE, repo, path);
         Map<String, Object> json = queryCLI(input);
         @SuppressWarnings("unchecked")

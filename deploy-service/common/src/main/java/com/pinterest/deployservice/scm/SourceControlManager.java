@@ -33,8 +33,8 @@ public interface SourceControlManager {
     CommitBean getCommit(String repo, String sha) throws Throwable;
 
     // Start from sha, get default number of commits
-    Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception;
-    Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead, String path) throws Exception;
+    Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Throwable;
+    Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead, String path) throws Throwable;
 
     /**
      * Returns a list of CommitInfo from startSha inclusive to endSha exclusive,
@@ -42,6 +42,6 @@ public interface SourceControlManager {
      * if size == 0, then will return the full list until endSha
      * if endSha == null, then will return up to size, max_size = 500
      */
-    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Exception;
-    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Exception;
+    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Throwable;
+    List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Throwable;
 }

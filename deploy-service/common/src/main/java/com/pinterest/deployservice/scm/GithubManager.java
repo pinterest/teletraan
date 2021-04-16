@@ -123,7 +123,7 @@ public class GithubManager extends BaseManager {
 
     @Override
     public Queue<CommitBean> getCommits(String repo, String startSha, boolean keepHead, String path)
-        throws Exception {
+        throws Throwable {
         HTTPClient httpClient = new HTTPClient();
         String url = String.format("%s/repos/%s/commits", apiPrefix, repo);
 

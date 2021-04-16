@@ -50,21 +50,21 @@ public class DefaultSourceControlManager implements SourceControlManager {
         return null;
     }
 
-    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception {
+    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Throwable {
       return getCommits(repo, sha, keepHead, DEFAULT_PATH);
     }
 
     @Override
-    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead, String path) throws Exception {
+    public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead, String path) throws Throwable {
         return new LinkedList<>();
     }
 
-    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Exception {
+    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size) throws Throwable {
       return getCommits(repo, startSha, endSha, size, DEFAULT_PATH);
     }
 
     @Override
-    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Exception {
+    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Throwable {
         return Collections.emptyList();
     }
 }
