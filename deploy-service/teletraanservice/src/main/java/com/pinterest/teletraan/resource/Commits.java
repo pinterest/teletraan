@@ -46,12 +46,6 @@ public class Commits {
         sourceControlManager = context.getSourceControlManager();
     }
 
-    public class CustomThrowable extends Throwable {
-        public CustomThrowable(String message, Throwable cause) {
-            super(message, cause, true, true);
-        }
-    }
-
     @GET
     @Timed
     @ExceptionMetered
@@ -62,13 +56,8 @@ public class Commits {
             response = CommitBean.class)
     public CommitBean getCommit(
             @ApiParam(value = "Commit's repo", required = true)@PathParam("repo") String repo,
-            @ApiParam(value = "Commit SHA", required = true)@PathParam("sha") String sha) throws Throwable {
-            try {
-                return sourceControlManager.getCommit(repo, sha);
-            } catch(Exception e) {
-                CustomThrowable customThrowable = new CustomThrowable(e.getMessage(), e);
-                throw customThrowable.fillInStackTrace();
-            }
+            @ApiParam(value = "Commit SHA", required = true)@PathParam("sha") String sha) throws Exception {
+        return sourceControlManager.getCommit(repo, sha);
     }
 
     /**
@@ -83,12 +72,7 @@ public class Commits {
     @ExceptionMetered
     public List<CommitBean> getCommits(@QueryParam("repo") String repo,
         @QueryParam("startSha") String startSha, @QueryParam("endSha") String endSha,
-        @QueryParam("size") Optional<Integer> size, @QueryParam("path") Optional<String> path) throws Throwable {
-        try {
-            return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
-        } catch(Exception e) {
-            CustomThrowable customThrowable = new CustomThrowable(e.getMessage(), e);
-            throw customThrowable.fillInStackTrace();
-        }
+        @QueryParam("size") Optional<Integer> size, @QueryParam("path") Optional<String> path) throws Exception {
+        return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
     }
 }
