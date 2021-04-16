@@ -244,7 +244,7 @@ public class DeployHandler implements DeployHandlerInterface{
                 return String.format("This deploy features %d commits from the following pingineers: %s. See changes <%s|here>",
                     commits.size(), mentions, compareUrl);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOG.error("Failed to generate author notification message", e);
             return null;
         }
