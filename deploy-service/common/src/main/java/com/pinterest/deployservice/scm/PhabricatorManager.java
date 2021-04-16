@@ -186,7 +186,7 @@ public class PhabricatorManager extends BaseManager {
     }
 
     @Override
-    public CommitBean getCommit(String repo, String sha) throws Exception {
+    public CommitBean getCommit(String repo, String sha) throws Throwable {
         String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
         Map<String, Object> json = queryCLI(input);
         try {

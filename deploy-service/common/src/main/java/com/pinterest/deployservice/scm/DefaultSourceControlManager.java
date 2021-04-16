@@ -46,7 +46,7 @@ public class DefaultSourceControlManager implements SourceControlManager {
     }
 
     @Override
-    public CommitBean getCommit(String repo, String sha) throws Exception {
+    public CommitBean getCommit(String repo, String sha) throws Throwable {
         return null;
     }
 

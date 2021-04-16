@@ -30,7 +30,7 @@ public interface SourceControlManager {
 
     String getType();
 
-    CommitBean getCommit(String repo, String sha) throws Exception;
+    CommitBean getCommit(String repo, String sha) throws Throwable;
 
     // Start from sha, get default number of commits
     Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception;

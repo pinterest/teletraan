@@ -107,7 +107,7 @@ public class GithubManager extends BaseManager {
     }
 
     @Override
-    public CommitBean getCommit(String repo, String sha) throws Exception {
+    public CommitBean getCommit(String repo, String sha) throws Throwable {
         HTTPClient httpClient = new HTTPClient();
         String url = String.format("%s/repos/%s/commits/%s", apiPrefix, repo, sha);
 
