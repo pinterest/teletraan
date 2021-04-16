@@ -185,6 +185,12 @@ public class PhabricatorManager extends BaseManager {
         return TYPE;
     }
 
+    public class MyThrowable extends Throwable {
+        public MyThrowable(String message, Throwable cause) {
+            super(message, cause, true, true);
+        }
+    }
+
     @Override
     public CommitBean getCommit(String repo, String sha) throws Throwable {
         String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
@@ -198,12 +204,11 @@ public class PhabricatorManager extends BaseManager {
                 (ArrayList<Map<String, Object>>) response.get("pathChanges");
 
             return toCommitBean(commitsArray.get(0), repo);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             if (json.get("response") == null) {
-                Exception exception = new Exception(json.get("errorMessage").toString());
-                throw exception.fillInStackTrace();
+                throw new MyThrowable(json.get("errorMessage").toString(), e);
             } else {
-                throw e.fillInStackTrace();
+                throw new MyThrowable("unknown", e);
             }
         }
     }
