@@ -60,7 +60,7 @@ public class Commits {
             try {
                 return sourceControlManager.getCommit(repo, sha);
             } catch (Exception e) {
-                e.fillInStackTrace();
+                throw e.fillInStackTrace();
             }
     }
 
@@ -80,7 +80,7 @@ public class Commits {
         try {
             return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
         } catch (Exception e) {
-            e.fillInStackTrace();
+            throw e.fillInStackTrace();
         }
     }
 }
