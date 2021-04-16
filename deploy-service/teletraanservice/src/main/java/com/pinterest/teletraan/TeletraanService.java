@@ -188,12 +188,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
     }
 
 
-    public static void main(String[] args) throws Throwable {
-        try {
-            new TeletraanService().run(args);
-        } catch(Exception e) {
-            throw e.fillInStackTrace();
-        }
-
+    public static void main(String[] args) throws Exception {
+        new TeletraanService().run(args);
     }
 }

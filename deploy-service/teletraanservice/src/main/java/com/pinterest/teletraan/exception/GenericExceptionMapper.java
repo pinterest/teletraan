@@ -38,7 +38,7 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
         if (t instanceof WebApplicationException) {
             StringBuilder sb = new StringBuilder();
             if (t.getMessage() != null) {
-                sb.append("\nMessage: ").append(t.getMessage());
+                sb.append("\nMessage: ").append(t.fillInStackTrace());
             }
 
             if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
