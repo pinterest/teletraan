@@ -40,7 +40,7 @@ public abstract class BaseManager implements SourceControlManager {
     }
 
     @Override
-    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) {
+    public List<CommitBean> getCommits(String repo, String startSha, String endSha, int size, String path) throws Throwable {
         if (size == 0) {
             size = MAX_COMMITS;
         }
