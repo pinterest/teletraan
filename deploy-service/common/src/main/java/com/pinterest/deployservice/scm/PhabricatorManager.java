@@ -189,17 +189,21 @@ public class PhabricatorManager extends BaseManager {
     public CommitBean getCommit(String repo, String sha) throws Exception {
         String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
         Map<String, Object> json = queryCLI(input);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> response = (Map<String, Object>) json.get("response");
-        @SuppressWarnings("unchecked")
-        ArrayList<Map<String, Object>>
-            commitsArray =
-            (ArrayList<Map<String, Object>>) response.get("pathChanges");
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = (Map<String, Object>) json.get("response");
+            @SuppressWarnings("unchecked")
+            ArrayList<Map<String, Object>>
+                commitsArray =
+                (ArrayList<Map<String, Object>>) response.get("pathChanges");
 
-        if (!commitsArray.isEmpty()) {
             return toCommitBean(commitsArray.get(0), repo);
-        } else {
-            throw new Exception("Invalid SHA or branch name passed to Phabricator getCommitBean!");
+        } catch (Exception e) {
+            if (json.get("response") == null) {
+                throw new Exception(json.get("errorMessage").toString());
+            } else {
+                throw new Exception(e.getMessage());
+            }
         }
     }
 
