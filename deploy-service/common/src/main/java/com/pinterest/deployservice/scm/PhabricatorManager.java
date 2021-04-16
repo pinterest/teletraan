@@ -200,7 +200,7 @@ public class PhabricatorManager extends BaseManager {
             return toCommitBean(commitsArray.get(0), repo);
         } catch (Exception e) {
             if (json.get("response") == null) {
-                exception = new Exception(json.get("errorMessage").toString());
+                Exception exception = new Exception(json.get("errorMessage").toString());
                 throw exception.fillInStackTrace();
             } else {
                 throw e.fillInStackTrace();
