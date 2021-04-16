@@ -23,7 +23,6 @@ from django.contrib import messages
 import json
 import logging
 import traceback
-import urllib
 
 from helpers import environs_helper, clusters_helper
 from helpers import groups_helper, baseimages_helper
@@ -949,27 +948,24 @@ class GroupDetailView(View):
                          "metric":"autoscaling.%s.size"}]}
         ''' % group_name
 
-        env_links = []
-        links = dict(group_size_url=group_size_url, envs=env_links)
-
         for env in envs:
-            env.launchlatencylink = urllib.quote(base_metric_url + '''
-                {"renderer":"line","title":"Fleet Size", "yAxisLabel":"Launch Latency","ymax":"15","ymin":"0","from":"1w",
+            env['launchlatencylink'] = base_metric_url + '''
+                {"renderer":"line", "yAxisLabel":"Launch Latency","ymax":"15","ymin":"0","from":"1w",
                  "metrics":[{"agg":"avg", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
                              "metric":"autoscaling.%s.%s.launchlatency"}]}
-            ''' % (env.envName, env.stageName))
+            ''' % (env.get('envName'), env.get('stageName'))
 
-            env.deploylatencylink = urllib.quote(base_metric_url + '''
-                {"renderer":"line","title":"Fleet Size", "yAxisLabel":"Deploy Latency","ymax":"50","ymin":"0","from":"1w",
+            env['deploylatencylink'] = base_metric_url + '''
+                {"renderer":"line", "yAxisLabel":"Deploy Latency","ymax":"50","ymin":"0","from":"1w",
                  "metrics":[{"agg":"avg", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
                              "metric":"autoscaling.%s.%s.deploylatency"}]}
-            ''' % (env.envName, env.stageName))
+            ''' % (env.get('envName'), env.get('stageName'))
 
-            env.deployfailedlink = urllib.quote(base_metric_url + '''
-                {"renderer":"line","title":"Fleet Size", "yAxisLabel":"Launch Failed","ymax":"50","ymin":"0","from":"1w",
+            env['deployfailedlink'] = base_metric_url + '''
+                {"renderer":"line", "yAxisLabel":"Launch Failed","ymax":"50","ymin":"0","from":"1w",
                  "metrics":[{"agg":"mimmax", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
                              "metric":"autoscaling.%s.%s.first_deploy.failed"}]}
-            ''' % (env.envName, env.stageName))
+            ''' % (env.get('envName'), env.get('stageName'))
 
         if "Terminate" in disabled_actions:
             scaling_down_event_enabled = False
@@ -992,7 +988,7 @@ class GroupDetailView(View):
             "launch_config": launch_config,
             "pas_enabled": pas_config['pas_state'] if pas_config else False,
             "disallow_autoscaling": _disallow_autoscaling(curr_image),
-            "links": links,
+            "group_size_url": group_size_url,
         })
 
 
