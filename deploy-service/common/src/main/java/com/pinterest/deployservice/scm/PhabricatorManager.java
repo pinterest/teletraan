@@ -67,13 +67,6 @@ public class PhabricatorManager extends BaseManager {
         this.arcrcLocation = arcrcLocation;
     }
 
-    class NoStackTraceThrowable extends Throwable {
-        @Override
-        public synchronized Throwable fillInStackTrace() {
-            return this;
-        }
-    }
-
     private Map<String, Object> queryCLI(String input) throws Exception {
         ProcessBuilder builder;
         if (StringUtils.isEmpty(arcrcLocation)) {
@@ -193,7 +186,7 @@ public class PhabricatorManager extends BaseManager {
     }
 
     @Override
-    public CommitBean getCommit(String repo, String sha) throws Exception {
+    public CommitBean getCommit(String repo, String sha) throws Throwable {
         String input = String.format(QUERY_COMMITS_HISTORY_PARAMETER, sha, 1, repo);
         Map<String, Object> json = queryCLI(input);
         try {
@@ -205,11 +198,12 @@ public class PhabricatorManager extends BaseManager {
                 (ArrayList<Map<String, Object>>) response.get("pathChanges");
 
             return toCommitBean(commitsArray.get(0), repo);
-        } catch (NoStackTraceThrowable e) {
+        } catch (Exception e) {
             if (json.get("response") == null) {
-                throw new NoStackTraceThrowable(json.get("errorMessage").toString(), e, true, true);
+                exception = new Exception(json.get("errorMessage").toString());
+                throw exception.fillInStackTrace();
             } else {
-                throw new NoStackTraceThrowable("unknown", e, true, true);
+                throw e.fillInStackTrace();
             }
         }
     }
