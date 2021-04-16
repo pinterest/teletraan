@@ -38,20 +38,17 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
         if (t instanceof WebApplicationException) {
             StringBuilder sb = new StringBuilder();
             if (t.getMessage() != null) {
-                //sb.append("\nMessage: ").append(t.getMessage());
-                sb.append("\nMessage: ").append("yaqin-test1");
+                sb.append("\nMessage: ").append(t.getMessage());
             }
 
             if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
                 return Response.serverError().entity(sb.toString()).build();
             } else {
-                /*
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
                 t.printStackTrace(pw);
                 t.getMessage(pw);
                 sb.append("\n").append(sw.toString());
-                */
                 return Response.serverError().entity(sb.toString()).build();
             }
         } else if (t instanceof ConstraintViolationException) {
@@ -69,8 +66,7 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
             String errorMessage = buildErrorMessage(request);
             StringBuilder sb = new StringBuilder();
             if (t.getMessage() != null) {
-                //sb.append("\nMessage: ").append(t.getMessage());
-                sb.append("\nMessage: ").append("yaqin-test2");
+                sb.append("\nMessage: ").append(t.getMessage());
             }
 
             if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
