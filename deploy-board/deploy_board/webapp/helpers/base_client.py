@@ -64,7 +64,7 @@ class BaseClient(object):
             if 400 <= response.status_code < 600:
                 log.error("Backend return error %s" % response.content)
                 raise TeletraanException(
-                    "Teletraan failed to call backend server. Contact your friendly Teletraan owners for assistance. "
+                    "Teletraan failed to call backend server."
                     "Hint: %s, %s" % (response.status_code, response.content))
 
             if response.content:
