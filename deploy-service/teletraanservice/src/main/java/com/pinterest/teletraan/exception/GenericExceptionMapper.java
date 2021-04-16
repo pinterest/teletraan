@@ -38,7 +38,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
         if (t instanceof WebApplicationException) {
             StringBuilder sb = new StringBuilder();
             if (t.getMessage() != null) {
-                sb.append("\nMessage: ").append(t.fillInStackTrace());
+                //sb.append("\nMessage: ").append(t.getMessage());
+                sb.append("\nMessage: ").append("yaqin-test1");
             }
 
             if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
@@ -46,7 +47,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
             } else {
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
-                t.printStackTrace(pw);
+                //t.printStackTrace(pw);
+                t.fillInStackTrace(pw);
                 sb.append("\n").append(sw.toString());
                 return Response.serverError().entity(sb.toString()).build();
             }
@@ -65,7 +67,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
             String errorMessage = buildErrorMessage(request);
             StringBuilder sb = new StringBuilder();
             if (t.getMessage() != null) {
-                sb.append("\nMessage: ").append(t.getMessage());
+                //sb.append("\nMessage: ").append(t.getMessage());
+                sb.append("\nMessage: ").append("yaqin-test2");
             }
 
             if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
@@ -74,7 +77,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
                 sb.append(errorMessage);
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
-                t.printStackTrace(pw);
+                //t.printStackTrace(pw);
+                t.fillInStackTrace(pw);
                 sb.append("\n").append(sw.toString());
                 return Response.serverError().entity(sb.toString()).build();
             }
