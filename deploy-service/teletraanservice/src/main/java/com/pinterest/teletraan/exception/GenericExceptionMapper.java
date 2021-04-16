@@ -45,11 +45,13 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
             if (clientError.equals(Constants.CLIENT_ERROR_SHORT)) {
                 return Response.serverError().entity(sb.toString()).build();
             } else {
+                /*
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
-                //t.printStackTrace(pw);
+                t.printStackTrace(pw);
                 t.getMessage(pw);
                 sb.append("\n").append(sw.toString());
+                */
                 return Response.serverError().entity(sb.toString()).build();
             }
         } else if (t instanceof ConstraintViolationException) {
@@ -75,11 +77,12 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
                 return Response.serverError().entity(sb.toString()).build();
             } else {
                 sb.append(errorMessage);
+                /*
                 StringWriter sw = new StringWriter();
                 PrintWriter pw = new PrintWriter(sw);
-                //t.printStackTrace(pw);
-                t.getMessage(pw);
+                t.printStackTrace(pw);
                 sb.append("\n").append(sw.toString());
+                */
                 return Response.serverError().entity(sb.toString()).build();
             }
         }
