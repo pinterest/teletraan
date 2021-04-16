@@ -46,6 +46,12 @@ public class Commits {
         sourceControlManager = context.getSourceControlManager();
     }
 
+    public class CustomThrowable extends Throwable {
+        public CustomThrowable(String message, Throwable cause) {
+            super(message, cause, true, true);
+        }
+    }
+
     @GET
     @Timed
     @ExceptionMetered
@@ -60,7 +66,8 @@ public class Commits {
             try {
                 return sourceControlManager.getCommit(repo, sha);
             } catch(Exception e) {
-                throw e.fillInStackTrace();
+                CustomThrowable customThrowable = new CustomThrowable(e.getMessage(), e);
+                throw customThrowable.fillInStackTrace();
             }
     }
 
@@ -80,7 +87,8 @@ public class Commits {
         try {
             return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
         } catch(Exception e) {
-            throw e.fillInStackTrace();
+            CustomThrowable customThrowable = new CustomThrowable(e.getMessage(), e);
+            throw customThrowable.fillInStackTrace();
         }
     }
 }
