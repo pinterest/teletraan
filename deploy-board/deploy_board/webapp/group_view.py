@@ -23,6 +23,7 @@ from django.contrib import messages
 import json
 import logging
 import traceback
+import urllib
 
 from helpers import environs_helper, clusters_helper
 from helpers import groups_helper, baseimages_helper
@@ -940,6 +941,35 @@ class GroupDetailView(View):
         envs = environs_helper.get_all_envs_by_group(request, group_name)
         disabled_actions = autoscaling_groups_helper.get_disabled_asg_actions(request, group_name)
         pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
+        base_metric_url = "https://statsboard.pinadmin.com/build?"
+
+        group_size_url = base_metric_url+'''
+            {"renderer":"line","title":"Fleet Size", "yAxisLabel":"Group Size","ymax":"15","ymin":"0","from":"1w",
+             "metrics":[{"agg":"avg", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
+                         "metric":"autoscaling.%s.size"}]}
+        ''' % group_name
+
+        env_links = []
+        links = dict(group_size_url=group_size_url, envs=env_links)
+
+        for env in envs:
+            env.launchlatencylink = urllib.quote(base_metric_url + '''
+                {"renderer":"line","title":"Fleet Size", "yAxisLabel":"Launch Latency","ymax":"15","ymin":"0","from":"1w",
+                 "metrics":[{"agg":"avg", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
+                             "metric":"autoscaling.%s.%s.launchlatency"}]}
+            ''' % (env.envName, env.stageName))
+
+            env.deploylatencylink = urllib.quote(base_metric_url + '''
+                {"renderer":"line","title":"Fleet Size", "yAxisLabel":"Deploy Latency","ymax":"50","ymin":"0","from":"1w",
+                 "metrics":[{"agg":"avg", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
+                             "metric":"autoscaling.%s.%s.deploylatency"}]}
+            ''' % (env.envName, env.stageName))
+
+            env.deployfailedlink = urllib.quote(base_metric_url + '''
+                {"renderer":"line","title":"Fleet Size", "yAxisLabel":"Launch Failed","ymax":"50","ymin":"0","from":"1w",
+                 "metrics":[{"agg":"mimmax", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
+                             "metric":"autoscaling.%s.%s.first_deploy.failed"}]}
+            ''' % (env.envName, env.stageName))
 
         if "Terminate" in disabled_actions:
             scaling_down_event_enabled = False
@@ -962,6 +992,7 @@ class GroupDetailView(View):
             "launch_config": launch_config,
             "pas_enabled": pas_config['pas_state'] if pas_config else False,
             "disallow_autoscaling": _disallow_autoscaling(curr_image),
+            "links": links,
         })
 
 
@@ -1229,7 +1260,7 @@ def add_scheduled_actions(request, group_name):
         scheduled_action_capacity = int(params['capacity'])
         if scheduled_action_capacity < asg_minsize or scheduled_action_capacity > asg_maxsize:
             raise TeletraanException("Invalid capacity: {}. Desired capacity must be within the limits of ASG's minimum capacity ({}) and maximum capacity ({}). Please change the value you input for Capacity.".format(params['capacity'], asg_minsize, asg_maxsize))
- 
+
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
     except:
         log.error(traceback.format_exc())
