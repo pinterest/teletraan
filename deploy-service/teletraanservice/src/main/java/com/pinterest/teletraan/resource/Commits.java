@@ -57,7 +57,11 @@ public class Commits {
     public CommitBean getCommit(
             @ApiParam(value = "Commit's repo", required = true)@PathParam("repo") String repo,
             @ApiParam(value = "Commit SHA", required = true)@PathParam("sha") String sha) throws Throwable {
-        return sourceControlManager.getCommit(repo, sha);
+            try {
+                return sourceControlManager.getCommit(repo, sha);
+            } catch (Exception e) {
+                e.fillInStackTrace();
+            }
     }
 
     /**
@@ -73,6 +77,10 @@ public class Commits {
     public List<CommitBean> getCommits(@QueryParam("repo") String repo,
         @QueryParam("startSha") String startSha, @QueryParam("endSha") String endSha,
         @QueryParam("size") Optional<Integer> size, @QueryParam("path") Optional<String> path) throws Throwable {
-        return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
+        try {
+            return sourceControlManager.getCommits(repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
+        } catch (Exception e) {
+            e.fillInStackTrace();
+        }
     }
 }

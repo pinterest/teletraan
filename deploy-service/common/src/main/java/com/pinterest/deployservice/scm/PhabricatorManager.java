@@ -206,11 +206,9 @@ public class PhabricatorManager extends BaseManager {
             return toCommitBean(commitsArray.get(0), repo);
         } catch (Throwable e) {
             if (json.get("response") == null) {
-                MyThrowable myThrowable = new MyThrowable(json.get("errorMessage").toString(), e);
-                throw myThrowable.fillInStackTrace();
+                throw new MyThrowable(json.get("errorMessage").toString(), e);
             } else {
-                MyThrowable myThrowable = new MyThrowable("unknown", e);
-                throw myThrowable.fillInStackTrace();
+                throw new MyThrowable("unknown", e);
             }
         }
     }
