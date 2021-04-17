@@ -1,4 +1,6 @@
 <script type="text/javascript">
+google.load("visualization", "1.1", {packages:["corechart"], "callback" : drawChart0});
+function drawChart0(){
 {% if enable_policy  %}
 
     {% for alarm_info in alarm_infos %}
@@ -228,4 +230,5 @@
             chart.draw(data, options);
 
 {% endif %}
+}
 </script>
