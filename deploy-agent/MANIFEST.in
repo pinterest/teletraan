@@ -1,2 +1,2 @@
-include README.md setup.py requirements.txt requirements_core.txt
+include README.md setup.py requirements.txt requirements_test.txt
 include deployd/conf/*

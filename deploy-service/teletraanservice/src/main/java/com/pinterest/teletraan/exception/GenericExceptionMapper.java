@@ -72,10 +72,6 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
                 return Response.serverError().entity(sb.toString()).build();
             } else {
                 sb.append(errorMessage);
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                t.printStackTrace(pw);
-                sb.append("\n").append(sw.toString());
                 return Response.serverError().entity(sb.toString()).build();
             }
         }
