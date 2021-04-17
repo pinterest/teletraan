@@ -107,22 +107,23 @@
         </div>
         <div align="left" id="tsdLinksId">
             <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                href="https://tsd.pinadmin.com/#start=1w-ago&m=avg:autoscaling.{{ group_name }}.size"
+                href="{{group_size_url}}"
                 title="" data-original-title="Click to see more group size information in TSDB">
                 <strong>Group Size</strong>
             </a>
             {% for env in envs %}
+
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="https://tsd.pinadmin.com/#start=1w-ago&m=avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.launchlatency"
+                    href="{{env.launchlatencylink}}"
                     title="" data-original-title="Click to see more launch latency information in TSDB">
                     <strong>Launch Latency for {{ env.envName }}</strong>
                 </a>
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="https://tsd.pinadmin.com/#start=1w-ago&m=avg:autoscaling.{{ env.envName }}.{{ env.stageName }}.deploylatency"
+                    href="{{env.deploylatencylink}}"
                     title="" data-original-title="Click to see more deploy latency information in TSDB">
                 <strong>Deploy Latency for {{ env.envName }}</strong>
                 <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                   href="https://tsd.pinadmin.com/#start=1w-ago&m=mimmax:autoscaling.{{ env.envName }}.{{ env.stageName }}.first_deploy.failed"
+                    href="{{env.deployfailedlink}}"
                     title="" data-original-title="Click to see more launch failed count information in TSDB">
                 <strong>Launch failed count for {{ env.envName }}</strong>
             </a>
