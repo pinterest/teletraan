@@ -943,26 +943,26 @@ class GroupDetailView(View):
         base_metric_url = "https://statsboard.pinadmin.com/build?"
 
         group_size_url = base_metric_url+'''
-            {"renderer":"line","title":"Fleet Size", "yAxisLabel":"Group Size","ymax":"15","ymin":"0","from":"1w",
+            {"renderer":"line","title":"Fleet Size", "yAxisLabel":"Group Size", "ymin":"0","from":"1w",
              "metrics":[{"agg":"avg", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
                          "metric":"autoscaling.%s.size"}]}
         ''' % group_name
 
         for env in envs:
             env['launchlatencylink'] = base_metric_url + '''
-                {"renderer":"line", "yAxisLabel":"Launch Latency","ymax":"15","ymin":"0","from":"1w",
+                {"renderer":"line", "yAxisLabel":"Launch Latency","ymin":"0","from":"1w",
                  "metrics":[{"agg":"avg", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
                              "metric":"autoscaling.%s.%s.launchlatency"}]}
             ''' % (env.get('envName'), env.get('stageName'))
 
             env['deploylatencylink'] = base_metric_url + '''
-                {"renderer":"line", "yAxisLabel":"Deploy Latency","ymax":"50","ymin":"0","from":"1w",
+                {"renderer":"line", "yAxisLabel":"Deploy Latency", "ymin":"0","from":"1w",
                  "metrics":[{"agg":"avg", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
                              "metric":"autoscaling.%s.%s.deploylatency"}]}
             ''' % (env.get('envName'), env.get('stageName'))
 
             env['deployfailedlink'] = base_metric_url + '''
-                {"renderer":"line", "yAxisLabel":"Launch Failed","ymax":"50","ymin":"0","from":"1w",
+                {"renderer":"line", "yAxisLabel":"Launch Failed", "ymin":"0","from":"1w",
                  "metrics":[{"agg":"mimmax", "color":"dodgerblue","db":"tsdb", "dsValue":"10m", "renderer":"line",
                              "metric":"autoscaling.%s.%s.first_deploy.failed"}]}
             ''' % (env.get('envName'), env.get('stageName'))
