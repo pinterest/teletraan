@@ -5,8 +5,7 @@
     </script>
 
     <script type="text/javascript">
-        google.load("visualization", "1", {packages:["corechart"]});
-        google.setOnLoadCallback(drawChart2);
+        google.load("visualization", "1.1", {packages:["corechart"], "callback":drawChart2});
 
         function drawChart2() {
             var data = new google.visualization.DataTable();
@@ -53,6 +52,7 @@
             charts2['Requests'] = chart2;
             chart2.draw(data, options);
             data_options2['Requests'] = [data, options];
+            poll_metrics2();
         }
     </script>
 
@@ -93,8 +93,5 @@
             });
         }
 
-        $(document).ready(function() {
-            poll_metrics2();
-        });
     </script>
 </html>

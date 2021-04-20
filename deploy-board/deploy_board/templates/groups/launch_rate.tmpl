@@ -4,12 +4,14 @@
         var charts3 = {};
     </script>
     <script "text/javascript">
-        google.load("visualization", "1", {packages:["corechart"]});
-        google.setOnLoadCallback(drawChart3);
+        google.load("visualization", "1.1", {packages:["corechart"], 'callback': drawChart3});
 
         function drawChart3() {
             var data = new google.visualization.DataTable();
             data.addColumn("datetime", "Date");
+
+            var failure_count_name = "Launch Failure Count";
+            data.addColumn("number", failure_count_name);
 
             var options = {
                 title: 'Launch Failure Count',
@@ -50,6 +52,7 @@
             charts3['Requests'] = chart3;
             chart3.draw(data, options);
             launch_rate_data_options['Requests'] = [data, options];
+            pollLaunchRateMetrics();
         }
 
     </script>
@@ -80,9 +83,5 @@
             }).fail(function() {
             });
         }
-
-        $(document).ready(function() {
-            pollLaunchRateMetrics();
-        });
 </script>
 </html>
