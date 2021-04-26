@@ -52,6 +52,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_HOSTS_BY_STATES = "SELECT * FROM hosts WHERE state in (?, ?) GROUP BY host_id";
     private static final String GET_GROUP_NAMES_BY_HOST = "SELECT group_name FROM hosts WHERE host_name=?";
     private static final String GET_STALE_ENV_HOST = "SELECT DISTINCT hosts.* FROM hosts INNER JOIN hosts_and_envs ON hosts.host_name=hosts_and_envs.host_name WHERE hosts.last_update<?";
+    private static final String GET_STALE_HOST = "SELECT DISTINCT hosts.* FROM hosts WHERE hosts.last_update<?";
     private static final String GET_HOST_NAMES_BY_GROUP = "SELECT host_name FROM hosts WHERE group_name=?";
     private static final String GET_HOST_IDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE group_name=?";
     private static final String GET_HOSTS_BY_ENVID = "SELECT h.* FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=? UNION DISTINCT SELECT hs.* FROM hosts hs INNER JOIN hosts_and_envs he ON he.host_name = hs.host_name WHERE he.env_id=?";
@@ -170,6 +171,12 @@ public class DBHostDAOImpl implements HostDAO {
     public List<HostBean> getStaleEnvHosts(long after) throws Exception {
         ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
         return new QueryRunner(dataSource).query(GET_STALE_ENV_HOST, h, after);
+    }
+
+    @Override
+    public List<HostBean> getStaleHosts(long after) throws Exception {
+        ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
+        return new QueryRunner(dataSource).query(GET_STALE_HOST, h, after);
     }
 
     @Override
