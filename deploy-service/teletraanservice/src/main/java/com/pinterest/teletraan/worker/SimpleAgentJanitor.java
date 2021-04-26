@@ -60,7 +60,11 @@ public class SimpleAgentJanitor implements Runnable {
     // remove the stale host from db
     void removeStaleHost(String id) throws Exception {
         LOG.info(String.format("Delete records of stale host {}", id));
-        hostHandler.removeHost(id);
+        try {
+            hostHandler.removeHost(id);
+        } catch (Exception e) {
+            LOG.error("Failed to delete all records for host {}. exception {}", id, e);
+        }
     }
 
     void markUnreachableHost(String id) throws Exception {
@@ -69,9 +73,9 @@ public class SimpleAgentJanitor implements Runnable {
             AgentBean updateBean = new AgentBean();
             updateBean.setState(AgentState.UNREACHABLE);
             agentDAO.updateAgentById(id, updateBean);
-            LOG.info("AgentJanitor marked agent {} as UNREACHABLE.", id);
+            LOG.info("Marked agent {} as UNREACHABLE.", id);
         } catch (Exception e) {
-            LOG.error("SimpleAgentJanitor Failed to mark host {} as UNREACHABLE", id, e);
+            LOG.error("Failed to mark host {} as UNREACHABLE. exception {}", id, e);
         }
     }
 
@@ -96,7 +100,7 @@ public class SimpleAgentJanitor implements Runnable {
             maxStaleHostIds.add(host.getHost_id());
         }
         if (!maxStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found the following hosts (Explicite capacity) exceeded maxStaleThreshold: ",
+            LOG.info("Found the following hosts (Explicite capacity) exceeded maxStaleThreshold: ",
                 maxStaleHostIds);
             processStaleHosts(maxStaleHostIds, true);
         }
@@ -111,7 +115,7 @@ public class SimpleAgentJanitor implements Runnable {
             minStaleHostIds.add(host.getHost_id());
         }
         if (!minStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found following hosts (Explicite capacity) excceeded minStaleThreshold: ",
+            LOG.info("Found following hosts (Explicite capacity) excceeded minStaleThreshold: ",
                 minStaleHostIds);
             processStaleHosts(minStaleHostIds, false);
         }
@@ -142,12 +146,12 @@ public class SimpleAgentJanitor implements Runnable {
         }
 
         if (!maxStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found the following hosts excceeded maxStaleThreshold: ",
+            LOG.info("Found the following hosts excceeded maxStaleThreshold: ",
                 maxStaleHostIds);
             processStaleHosts(maxStaleHostIds, true);
         }
         if (!minStaleHostIds.isEmpty()) {
-            LOG.info("AgentJanitor found the following hosts excceeded minStaleThreshold: ",
+            LOG.info("Found the following hosts excceeded minStaleThreshold: ",
                 minStaleHostIds);
             processStaleHosts(minStaleHostIds, false);
         }
@@ -161,22 +165,22 @@ public class SimpleAgentJanitor implements Runnable {
         Collections.shuffle(groups);
         for (String group : groups) {
             try {
-                LOG.info("AgentJanitor process group: {}", group);
+                LOG.info("Process group: {}", group);
                 processEachGroup(group);
             } catch (Exception e) {
-                LOG.error("SimpleAgentJanitor failed to process group: {}", group, e);
+                LOG.error("Failed to process group: {}. exception {}", group, e);
             }
         }
 
         // For those hosts do not belong to any host, but still associate with certain envs
-        LOG.info("AgentJanitor process explicite capacity hosts");
+        LOG.info("Process explicite capacity hosts");
         processIndividualHosts();
     }
 
     @Override
     public void run() {
         try {
-            LOG.info("AgentJanitor Start simple agent janitor process...");
+            LOG.info("Start simple agent janitor process...");
             processBatch();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
