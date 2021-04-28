@@ -3,7 +3,6 @@
     <h4 class="panel-title pull-left">Hosts</h4>
 </div>
 
-{% if pinterest %}
 {% if show_terminate %}
 <div class="row">
     <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
@@ -80,10 +79,9 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 {% endif %}
-{% endif %}
 
 
-{% if asg_group and pinterest %}
+{% if asg_group %}
 {% if not instance_protected %}
 <!--- protect instances -->
 <div class="row">

@@ -19,11 +19,9 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.views.generic import View
 
-from deploy_board.settings import IS_PINTEREST
-if IS_PINTEREST:
-    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
-        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, \
-        DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI
+from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
+    DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, \
+    DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI
 import json
 import logging
 
@@ -141,8 +139,7 @@ class EnvCapacityAdvCreateView(View):
         return render(request, 'configs/new_capacity_adv.html', {
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
-            'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
-            'is_pinterest': IS_PINTEREST})
+            'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI})
 
     def post(self, request, name, stage):
         log.info("Post to capacity with data {0}".format(request.body))
@@ -218,7 +215,7 @@ class ClusterConfigurationView(View):
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
-            'is_pinterest': IS_PINTEREST})
+        })
 
     def post(self, request, name, stage):
         try:
@@ -715,23 +712,22 @@ def get_aws_config_name_list_by_image(image_name):
     config_map = {}
     config_map['iam_role'] = 'base'
     config_map['assign_public_ip'] = 'true'
-    if IS_PINTEREST:
-        config_map['pinfo_environment'] = 'prod'
-        config_map['raid'] = 'true'
-        config_map['raid_mount'] = '/mnt'
-        config_map['raid_device'] = '/dev/md0'
-        config_map['raid_fs'] = 'xfs'
-        config_map['ebs'] = 'true'
-        config_map['ebs_size'] = 500
-        config_map['ebs_mount'] = '/backup'
-        config_map['ebs_volume_type'] = 'gp2'
-        config_map['root_volume_size'] = 100
-        if image_name == DEFAULT_CMP_IMAGE:
-            config_map['pinfo_role'] = 'cmp_base'
-            config_map['pinfo_team'] = 'cloudeng'
-        else:
-            config_map['pinfo_role'] = ''
-            config_map['pinfo_team'] = ''
+    config_map['pinfo_environment'] = 'prod'
+    config_map['raid'] = 'true'
+    config_map['raid_mount'] = '/mnt'
+    config_map['raid_device'] = '/dev/md0'
+    config_map['raid_fs'] = 'xfs'
+    config_map['ebs'] = 'true'
+    config_map['ebs_size'] = 500
+    config_map['ebs_mount'] = '/backup'
+    config_map['ebs_volume_type'] = 'gp2'
+    config_map['root_volume_size'] = 100
+    if image_name == DEFAULT_CMP_IMAGE:
+        config_map['pinfo_role'] = 'cmp_base'
+        config_map['pinfo_team'] = 'cloudeng'
+    else:
+        config_map['pinfo_role'] = ''
+        config_map['pinfo_team'] = ''
     return config_map
 
 

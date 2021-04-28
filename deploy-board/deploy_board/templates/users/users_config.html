@@ -22,7 +22,6 @@
            <i class="glyphicon glyphicon-user"></i> Users
         </a>
     </div>
-    {% if pinterest %}
 	<div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env_name }}/get_users_config/?user_types=group_roles"
@@ -30,7 +29,6 @@
            <i class="glyphicon glyphicon-tag"></i> LDAP Groups
         </a>
     </div>
-    {% endif %}
 	<div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env_name }}/get_users_config/?user_types=token_roles"

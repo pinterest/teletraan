@@ -40,7 +40,7 @@
             </tr>
             <tr>
                 <td>Error Message
-                    {% if pinterest %}
+                    {% if hostdetailsvalue %}
                     <a href="{{ hostdetailsvalue }}/log/deploylog?file={{env.envName}}.log">Full deploy log for {{env.envName}}</a>
                     {% endif %}
                 </td>

@@ -17,7 +17,6 @@
 """
 import logging
 from deploy_board.webapp.helpers.deployclient import DeployClient
-from deploy_board.settings import IS_PINTEREST
 
 log = logging.getLogger(__name__)
 
@@ -58,9 +57,8 @@ STAGE_TYPES = ['DEFAULT', 'LATEST', 'CANARY', 'CONTROL', 'PRODUCTION']
 
 deployclient = DeployClient()
 
-if IS_PINTEREST:
-    from deploy_board.webapp.helpers.nimbusclient import NimbusClient
-    nimbusclient = NimbusClient()
+from deploy_board.webapp.helpers.nimbusclient import NimbusClient
+nimbusclient = NimbusClient()
 
 # Nimbus-related helpers
 

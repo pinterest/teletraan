@@ -223,8 +223,6 @@ TELETRAAN_SERVICE_HEALTHCHECK_URL = os.getenv("TELETRAAN_SERVICE_HEALTHCHECK_URL
 # Show hosts that are STOPPING or STOPPED in the environments page
 DISPLAY_STOPPING_HOSTS = os.getenv("DISPLAY_STOPPING_HOSTS", "true")
 
-# Pinterest specific settings
-IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
 BUILD_URL = os.getenv("BUILD_URL", None)
 USER_DATA_CONFIG_SETTINGS_WIKI = os.getenv("USER_DATA_CONFIG_SETTINGS_WIKI", None)
 
@@ -241,68 +239,67 @@ TELETRAAN_PROJECT_URL_FORMAT = os.getenv("TELETRAAN_PROJECT_URL_FORMAT", None)
 RODIMUS_SERVICE_URL = os.getenv("RODIMUS_SERVICE_URL", None)
 RODIMUS_SERVICE_VERSION = os.getenv("RODIMUS_SERVICE_VERSION", None)
 
-if IS_PINTEREST:
-    # use knox if present
-    KNOX_SESSION_ID = os.getenv("KNOX_SESSION_ID")
-    if KNOX_SESSION_ID:
-        from knox import Knox
+# use knox if present
+KNOX_SESSION_ID = os.getenv("KNOX_SESSION_ID")
+if KNOX_SESSION_ID:
+    from knox import Knox
 
-        SECRET_KEY = Knox().get_primary(KNOX_SESSION_ID)
+    SECRET_KEY = Knox().get_primary(KNOX_SESSION_ID)
 
-    ADMIN_OAUTH_SECRET_KNOX_ID = os.getenv("ADMIN_OAUTH_SECRET_KNOX_ID")
-    if ADMIN_OAUTH_SECRET_KNOX_ID:
-        from knox import Knox
+ADMIN_OAUTH_SECRET_KNOX_ID = os.getenv("ADMIN_OAUTH_SECRET_KNOX_ID")
+if ADMIN_OAUTH_SECRET_KNOX_ID:
+    from knox import Knox
 
-        OAUTH_CLIENT_SECRET = Knox().get_primary(ADMIN_OAUTH_SECRET_KNOX_ID)
+    OAUTH_CLIENT_SECRET = Knox().get_primary(ADMIN_OAUTH_SECRET_KNOX_ID)
 
-    # Site health metrics
-    REQUESTS_URL = os.getenv("REQUESTS_URL")
-    SUCCESS_RATE_URL = os.getenv("SUCCESS_RATE_URL")
-    LATENCY_URL = os.getenv("LATENCY_URL")
-    SITE_METRICS_CONFIGS = [
-        {"title": "Requests", "url": REQUESTS_URL,
-         "specs": [{"min": 0, "max": 50000, "color": "Red"},
-                   {"min": 50000, "max": 80000, "color": "Yellow"},
-                   {"min": 80000, "max": 200000, "color": "Green"}]},
-        {"title": "Success", "url": SUCCESS_RATE_URL,
-         "specs": [{"min": 90, "max": 98, "color": "Red"},
-                   {"min": 98, "max": 99, "color": "Yellow"},
-                   {"min": 99, "max": 100, "color": "Green"}]},
-        {"title": "Latency", "url": LATENCY_URL,
-         "specs": [{"min": 800, "max": 1000, "color": "Red"},
-                   {"min": 600, "max": 800, "color": "Yellow"},
-                   {"min": 300, "max": 600, "color": "Green"}]}
-    ]
+# Site health metrics
+REQUESTS_URL = os.getenv("REQUESTS_URL")
+SUCCESS_RATE_URL = os.getenv("SUCCESS_RATE_URL")
+LATENCY_URL = os.getenv("LATENCY_URL")
+SITE_METRICS_CONFIGS = [
+    {"title": "Requests", "url": REQUESTS_URL,
+     "specs": [{"min": 0, "max": 50000, "color": "Red"},
+               {"min": 50000, "max": 80000, "color": "Yellow"},
+               {"min": 80000, "max": 200000, "color": "Green"}]},
+    {"title": "Success", "url": SUCCESS_RATE_URL,
+     "specs": [{"min": 90, "max": 98, "color": "Red"},
+               {"min": 98, "max": 99, "color": "Yellow"},
+               {"min": 99, "max": 100, "color": "Green"}]},
+    {"title": "Latency", "url": LATENCY_URL,
+     "specs": [{"min": 800, "max": 1000, "color": "Red"},
+               {"min": 600, "max": 800, "color": "Yellow"},
+               {"min": 300, "max": 600, "color": "Green"}]}
+]
 
-    DEFAULT_START_TIME = "-1d"
+DEFAULT_START_TIME = "-1d"
 
-    #Pinterest Default Cloud Provider
-    DEFAULT_PROVIDER = 'AWS'
+#Default Cloud Provider
+DEFAULT_PROVIDER = 'AWS'
 
-    #Pinterest Default AMI image name
-    DEFAULT_CMP_IMAGE = 'cmp_base-ebs-18.04'
+#Default AMI image name
+DEFAULT_CMP_IMAGE = 'cmp_base-ebs-18.04'
 
-    #Pinterest Default Host Type
-    DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
+#Default Host Type
+DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
 
-    DEFAULT_CELL = 'aws-us-east-1'
-    DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
+DEFAULT_CELL = 'aws-us-east-1'
+DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
 
-    #Pinterest Default Puppet Environment
-    DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
-    DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
+#Default Puppet Environment
+DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
+DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
 
-    #CSP Config
-    CSP_SCRIPT_SRC = ("'self'", "https://*.gstatic.com/ https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
-    CSP_DEFAULT_SRC = ("'self'")
-    CSP_CONNECT_SRC = ("'self'")
-    CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
-    CSP_STYLE_SRC = ("'self'", "https://*.gstatic.com/ 'unsafe-inline'")
+#CSP Config
+CSP_SCRIPT_SRC = ("'self'", "https://*.gstatic.com/ https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
+CSP_DEFAULT_SRC = ("'self'")
+CSP_CONNECT_SRC = ("'self'")
+CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
+CSP_STYLE_SRC = ("'self'", "https://*.gstatic.com/ 'unsafe-inline'")
 
-    # Nimbus service url
-    NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL", None)
-    NIMBUS_EGRESS_URL = os.getenv("NIMBUS_EGRESS_URL", None)
-    NIMBUS_USE_EGRESS = (os.getenv("NIMBUS_USE_EGRESS", 'False').lower() == 'true')
-    NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)
+# Nimbus service url
+NIMBUS_SERVICE_URL = os.getenv("NIMBUS_SERVICE_URL", None)
+NIMBUS_EGRESS_URL = os.getenv("NIMBUS_EGRESS_URL", None)
+NIMBUS_USE_EGRESS = (os.getenv("NIMBUS_USE_EGRESS", 'False').lower() == 'true')
+NIMBUS_SERVICE_VERSION = os.getenv("NIMBUS_SERVICE_VERSION", None)
 
-    DEFAULT_CLUSTER_TYPE = "PRODUCTION"
+DEFAULT_CLUSTER_TYPE = "PRODUCTION"

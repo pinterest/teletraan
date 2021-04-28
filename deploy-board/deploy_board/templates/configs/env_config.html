@@ -84,7 +84,6 @@
            <span class="glyphicon glyphicon-stats"></span> Metrics
         </a>
     </div>
-    {% if pinterest %}
   <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/alarm"
@@ -92,7 +91,6 @@
            <i class="fa fa-bell"></i> Alarms
         </a>
     </div>
-    {% endif %}
   <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/config/webhooks"

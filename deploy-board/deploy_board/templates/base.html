@@ -83,9 +83,7 @@
         {% endblock %}
         <ul class="nav navbar-nav">
             <li><a href="https://github.com/pinterest/teletraan/wiki">Help</a></li>
-            {% if isPinterest %}
-                <li><a href="#" data-toggle="modal" data-target="#feedbackModal">Feedback</a></li>
-            {% endif %}
+            <li><a href="#" data-toggle="modal" data-target="#feedbackModal">Feedback</a></li>
             <li class="dropdown">
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">{{request.teletraan_user_id.name }}
                     <span class="caret"></span></a>

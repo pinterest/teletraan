@@ -1,7 +1,7 @@
 """Helper class to connect Nimbus service"""
 import logging
 from decorators import singleton
-from deploy_board.settings import IS_PINTEREST, NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, NIMBUS_USE_EGRESS, NIMBUS_EGRESS_URL, TELETRAAN_PROJECT_URL_FORMAT
+from deploy_board.settings import NIMBUS_SERVICE_URL, NIMBUS_SERVICE_VERSION, NIMBUS_USE_EGRESS, NIMBUS_EGRESS_URL, TELETRAAN_PROJECT_URL_FORMAT
 from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
 from urlparse import urlparse
 import requests
@@ -57,8 +57,6 @@ class NimbusClient(object):
             if data.get(param) is None or len(data.get(param)) == 0:
                 log.error("Missing %s in the request data, cannot create a Nimbus identifier" % param)
                 exceptionMessage = "Teletraan cannot create a Nimbus identifier because %s is missing." % param
-                if IS_PINTEREST:
-                    exceptionMessage += " Contact #teletraan for assistance."
                 raise TeletraanException(exceptionMessage)
 
         headers = {}
@@ -79,8 +77,6 @@ class NimbusClient(object):
         if cellName is None:
             log.error("Missing cellName in the request data, cannot create a Nimbus identifier")
             exceptionMessage = "Teletraan cannot create a Nimbus identifier because cellName is missing in this env's existing identifier."
-            if IS_PINTEREST:
-                exceptionMessage += " Contact #teletraan for assistance."
             raise TeletraanException(exceptionMessage)
 
         payload['spec'] = {

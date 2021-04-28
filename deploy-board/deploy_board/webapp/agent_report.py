@@ -17,7 +17,6 @@
 """
 from common import is_agent_failed
 from helpers import builds_helper, deploys_helper, environs_helper, clusters_helper, groups_helper
-from deploy_board.settings import IS_PINTEREST
 import time
 import service_add_ons
 from collections import OrderedDict

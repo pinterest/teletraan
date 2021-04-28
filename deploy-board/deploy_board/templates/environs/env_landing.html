@@ -10,12 +10,10 @@
     <li class="active">{{ env.envName }} ({{ env.stageName }})</li>
 </ul>
 
-{% if pinterest %}
-    {% if code_freeze %}
-        {% include "deploys/warning_no_deploy.tmpl" %}
-    {% else %}
-        {% include "deploys/warning_no_deploy.tmpl" with hidden='display: none;'%}
-    {% endif %}
+{% if code_freeze %}
+    {% include "deploys/warning_no_deploy.tmpl" %}
+{% else %}
+    {% include "deploys/warning_no_deploy.tmpl" with hidden='display: none;'%}
 {% endif %}
 
 {% if project_name_is_default %}
@@ -61,23 +59,21 @@
                     </a>
                 </div>
             {% endif %}
-            {% if pinterest %}
-                <div class="row">
-                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes/"
-                        type="button" class="deployToolTip btn btn-default btn-block"
-                        data-toggle="tooltip" title="Create a hotfix based on current deploy">
-                        <span class="glyphicon glyphicon-fire"></span> Hotfix
-                    </a>
-                </div>
+            <div class="row">
+                <a href="/env/{{ env.envName }}/{{ env.stageName }}/hotfixes/"
+                    type="button" class="deployToolTip btn btn-default btn-block"
+                    data-toggle="tooltip" title="Create a hotfix based on current deploy">
+                    <span class="glyphicon glyphicon-fire"></span> Hotfix
+                </a>
+            </div>
 
-                <div id="privateBldUploadBtnId" class="row">
-                <button class="deployToolTip btn btn-default btn-block"
-                        data-toggle="tooltip"
-                    title="Publish a local private build">
-                        <span class="glyphicon glyphicon-upload"></span> Publish Private Build
-                    </button>
-                </div>
-            {% endif %}
+            <div id="privateBldUploadBtnId" class="row">
+            <button class="deployToolTip btn btn-default btn-block"
+                    data-toggle="tooltip"
+                title="Publish a local private build">
+                    <span class="glyphicon glyphicon-upload"></span> Publish Private Build
+                </button>
+            </div>
         {% endif %}
     {% endif %}
     <div class="row">
@@ -127,7 +123,6 @@
     </div>
 </div>
 
-{% if pinterest %}
 <script type="text/javascript" src='{% static "js/components/sharedcomponents.js"%}?changedate=2017.1.4.140000'></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
@@ -141,8 +136,6 @@
     <div v-if="!showCluster" id="groupsDiv">
     </div>
 </div>
-
-{% endif %}
 
 <div class="modal fade" id="restartConfirmModelId" tabindex="-1" role="dialog"
      aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
@@ -212,7 +205,6 @@
 
 <!-- Removed launch Host modals -->
 
-{% if pinterest %}
 <script>
 
 var capacityInfo = {{capacity_info | safe}}
@@ -251,7 +243,6 @@ $('#privateBldUploadBtnId button').click(function () {
 
 
 </script>
-{% endif %}
 
 {% endblock %}
 
@@ -345,8 +336,7 @@ $('#privateBldUploadBtnId button').click(function () {
                 {% endif %}
                 </a>
             </h4>
-            {% if pinterest %}
-                {% if project_info %}
+            {% if project_info %}
                 <div class="btn-project-info">
                     <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
                     <a href="{{ project_info.project_url }}" target="_blank">Project: {{ project_info.project_name }}</a>
@@ -356,7 +346,6 @@ $('#privateBldUploadBtnId button').click(function () {
                     <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
                     <p>Missing project ownership information, please contact slack #infra-console to add it.</p>
                 </div>
-                {% endif %}
             {% endif %}
             <div class="btn-group pull-right">
                 {% if has_deploy and env|isEnvEnabled %}

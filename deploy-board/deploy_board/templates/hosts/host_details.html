@@ -79,7 +79,6 @@
     </tr>
     {% endfor %}
 </table>
-    {% if pinterest %}
     <a href="javascript:void(0)" id="seeMoreLink">See more host details</a>
     <div id="moreHostDetails" hidden="true">
     {% for key, value in host_details.items %}
@@ -107,7 +106,6 @@
     <span>For complete host details, </span>
     <a href="{{ host_information_url }}/instance/{{ host_id }}">click here</a>
     </div>
-    {% endif %}
 </div>
 
 </div>

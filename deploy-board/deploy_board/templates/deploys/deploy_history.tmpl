@@ -103,13 +103,11 @@
                        <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback to It
                     </a>
                     {% endif %}
-                    {% if pinterest %}
                     <a href="/env/{{ env.envName }}/{{ env.stageName }}/patch/?base_deploy={{ deploy_summary.deploy.id }}"
                        class="deployToolTip btn btn-default btn-sm" data-toggle="tooltip"
                        title="Create a hotfix based on this deployment">
                        <span class="glyphicon glyphicon-fire"></span> Patch It
                     </a>
-                    {% endif %}
                     {% endif %}
                 </div>
             </td>

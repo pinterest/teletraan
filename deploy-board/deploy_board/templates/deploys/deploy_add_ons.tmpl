@@ -1,34 +1,32 @@
 {% load utils %}
 {% load static %}
 
-<!-- Service add-ons: Pinterest specific -->
+<!-- Service add-ons -->
 
-{% if pinterest %}
-    {% if serviceAddOns != None %}
-        {% if serviceAddOns|atLeastOneAddOn %}
-            <small class="deployToolTip" title="Your service's add-ons">Service add-ons: </small>
-        {% endif %}
-        {% for addOn in serviceAddOns %}
-            {% if addOn.state != "UNKNOWN" %}
-               <a id="{{addOn.addOnName}}"
-                  type="button"
-                  data-placement="bottom"
-                  class="deployToolTip btn btn-xs {{addOn | addOnButton}}"
-                  data-toggle="tooltip"
-                  href="{{addOn.buttonUrl}}"
-                  target="_blank"
-                  title="{{ addOn.tagHoverInfo }}">
-                  <small>{{ addOn.tagInfo }}</small>
-                  <i class="{{ addOn | addOnIcon}}"></i>
-               </a>
-            {% endif %}
-            <script>
-                $(function () {
-                    $('.deployToolTip').tooltip({html: true, container: "#toolTipContent", delay: { show: 400, hide: 10 }});
-                });
-            </script>
-        {% endfor %}
-    {% else %}
-      <i class="fa fa-w fa-spinner fa-spin"></i>
+{% if serviceAddOns != None %}
+    {% if serviceAddOns|atLeastOneAddOn %}
+        <small class="deployToolTip" title="Your service's add-ons">Service add-ons: </small>
     {% endif %}
+    {% for addOn in serviceAddOns %}
+        {% if addOn.state != "UNKNOWN" %}
+           <a id="{{addOn.addOnName}}"
+              type="button"
+              data-placement="bottom"
+              class="deployToolTip btn btn-xs {{addOn | addOnButton}}"
+              data-toggle="tooltip"
+              href="{{addOn.buttonUrl}}"
+              target="_blank"
+              title="{{ addOn.tagHoverInfo }}">
+              <small>{{ addOn.tagInfo }}</small>
+              <i class="{{ addOn | addOnIcon}}"></i>
+           </a>
+        {% endif %}
+        <script>
+            $(function () {
+                $('.deployToolTip').tooltip({html: true, container: "#toolTipContent", delay: { show: 400, hide: 10 }});
+            });
+        </script>
+    {% endfor %}
+{% else %}
+  <i class="fa fa-w fa-spinner fa-spin"></i>
 {% endif %}

@@ -21,7 +21,6 @@ from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
-from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
     IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
@@ -48,8 +47,7 @@ import os
 import datetime
 import time
 
-if IS_PINTEREST:
-    from helpers import s3_helper, autoscaling_groups_helper, private_builds_helper
+from helpers import autoscaling_groups_helper, private_builds_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
@@ -126,8 +124,7 @@ def logging_status(request, name, stage):
         "csrf_token": get_token(request),
         "panel_title": "Kafka logging for %s (%s)" % (name, stage),
         "env": env,
-        "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
-        "pinterest": IS_PINTEREST
+        "display_stopping_hosts": DISPLAY_STOPPING_HOSTS
     })
 
     response = HttpResponse(html)
@@ -184,8 +181,7 @@ def update_deploy_progress(request, name, stage):
     context = {
         "report": report,
         "env": env,
-        "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
-        "pinterest": IS_PINTEREST
+        "display_stopping_hosts": DISPLAY_STOPPING_HOSTS
     }
     sortByTag = _fetch_param_with_cookie(
         request, 'sortByTag', MODE_COOKIE_NAME, None)
@@ -230,8 +226,7 @@ def update_service_add_ons(request, name, stage):
     serviceAddOns.append(dashboardAddOn)
 
     html = render_to_string('deploys/deploy_add_ons.tmpl', {
-        "serviceAddOns": serviceAddOns,
-        "pinterest": IS_PINTEREST
+        "serviceAddOns": serviceAddOns
     })
 
     response = HttpResponse(html)
@@ -283,7 +278,6 @@ def get_recent_envs(request):
     names = getRecentEnvNames(request)
     html = render_to_string('environs/simple_envs.tmpl', {
         "envNames": names,
-        "isPinterest": IS_PINTEREST,
     })
     return HttpResponse(html)
 
@@ -291,7 +285,7 @@ def get_recent_envs(request):
 def check_feedback_eligible(request, username):
     # Checks to see if a user should be asked for feedback or not.
     try:
-        if username and ratings_helper.is_user_eligible(request, username) and IS_PINTEREST:
+        if username and ratings_helper.is_user_eligible(request, username):
             num = random.randrange(0, 100)
             if num <= 10:
                 return True
@@ -349,9 +343,8 @@ class EnvLandingView(View):
                 project_info['project_name'] = project_name
                 project_info['project_url'] = environs_helper.get_nimbus_project_console_url(project_name)
 
-        if IS_PINTEREST:
-            basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
-            capacity_info['cluster'] = basic_cluster_info
+        basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
+        capacity_info['cluster'] = basic_cluster_info
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -379,7 +372,6 @@ class EnvLandingView(View):
                 "basic_cluster_info": basic_cluster_info,
                 "capacity_info": json.dumps(capacity_info),
                 "env_tag": env_tag,
-                "pinterest": IS_PINTEREST,
                 "csrf_token": get_token(request),
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
                 "project_name_is_default": project_name_is_default,
@@ -417,7 +409,6 @@ class EnvLandingView(View):
                 "basic_cluster_info": basic_cluster_info,
                 "capacity_info": json.dumps(capacity_info),
                 "env_tag": env_tag,
-                "pinterest": IS_PINTEREST,
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
                 "project_name_is_default": project_name_is_default,
                 "project_info": project_info,
@@ -707,7 +698,6 @@ def get_env_deploys(request, name, stage):
             "nextPageIndex": 0,
             "query_string": query_string,
             "current_build_id": current_build_id,
-            "pinterest": IS_PINTEREST
         })
 
     filter['envId'] = [env['id']]
@@ -742,7 +732,6 @@ def get_env_deploys(request, name, stage):
         "nextPageIndex": nextPageIndex,
         "query_string": query_string,
         "current_build_id": current_build_id,
-        "pinterest": IS_PINTEREST
     })
 
 
@@ -850,7 +839,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
     return new_stage_identifier
 
 def post_add_stage(request, name):
-    """handler for creating a new stage depending on configuration (IS_PINTEREST, from_stage i.e. clone stage). """
+    """handler for creating a new stage depending on configuration (from_stage i.e. clone stage). """
     # TODO how to validate stage name
     data = request.POST
     stage = data.get("stage")
@@ -861,11 +850,10 @@ def post_add_stage(request, name):
     stages, _ = common.get_all_stages(all_envs_stages, None)
     if from_stage and from_stage not in stages:
         raise Exception("Can not clone from non-existing stage!")
-    
+
     external_id = None
-    if IS_PINTEREST:
-        identifier = create_identifier_for_new_stage(request, name, stage)
-        external_id = identifier.get('uuid') if not identifier == None else None # if there is no stage in this env with externalId, still create the new stage
+    identifier = create_identifier_for_new_stage(request, name, stage)
+    external_id = identifier.get('uuid') if not identifier == None else None # if there is no stage in this env with externalId, still create the new stage
 
     try:
         if from_stage:
@@ -873,8 +861,7 @@ def post_add_stage(request, name):
         else:
             common.create_simple_stage(request,name, stage, description, external_id)
     except:
-        if IS_PINTEREST:
-            environs_helper.delete_nimbus_identifier(request, external_id)
+        environs_helper.delete_nimbus_identifier(request, external_id)
         raise
 
     return redirect('/env/' + name + '/' + stage + '/config/')
@@ -1331,7 +1318,6 @@ def get_failed_hosts(request, name, stage):
         "title": title,
         "is_retryable": True,
         "host_ids": host_ids,
-        "pinterest": IS_PINTEREST,
     })
 
 

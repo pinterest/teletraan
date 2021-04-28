@@ -18,7 +18,7 @@ from django.views.generic import View
 import logging
 from helpers import environs_helper, agents_helper, autoscaling_groups_helper
 from helpers import environ_hosts_helper, hosts_helper
-from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
+from deploy_board.settings import CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
 from datetime import datetime
 import pytz
 import requests
@@ -52,12 +52,11 @@ def get_agent_wrapper(request, hostname):
 
 # TODO deprecated it
 def get_asg_name(request, hosts):
-    if IS_PINTEREST:
-        for host in hosts:
-            if host and host.get('groupName'):
-                group_info = autoscaling_groups_helper.get_group_info(request, host.get('groupName'))
-                if group_info and group_info.get("launchInfo") and group_info.get("launchInfo")["asgStatus"] == "ENABLED":
-                    return host.get('groupName')
+    for host in hosts:
+        if host and host.get('groupName'):
+            group_info = autoscaling_groups_helper.get_group_info(request, host.get('groupName'))
+            if group_info and group_info.get("launchInfo") and group_info.get("launchInfo")["asgStatus"] == "ENABLED":
+                return host.get('groupName')
     return None
 
 
@@ -110,7 +109,7 @@ def get_host_details(host_id):
      'Launch Time': launch_time,
      'AMI Id': ami_id,
     }
-    if IS_PINTEREST and PHOBOS_URL:
+    if PHOBOS_URL:
         host_ip = instance['config']['internal_address']
         host_name = instance['config']['name']
         if host_ip is not None:
@@ -139,7 +138,6 @@ class GroupHostDetailView(View):
             'show_warning_message': show_warning_message,
             'asg_group': asg,
             'is_unreachable': is_unreachable,
-            'pinterest': IS_PINTEREST,
             'host_information_url': CMDB_UI_HOST,
             'host_details': host_details,
         })
@@ -177,10 +175,9 @@ class HostDetailView(View):
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
             'show_warning_message': show_warning_message,
-            'show_force_terminate': IS_PINTEREST,
+            'show_force_terminate': False,
             'asg_group': asg,
             'is_unreachable': is_unreachable,
-            'pinterest': IS_PINTEREST,
             'host_information_url': CMDB_UI_HOST,
             'instance_protected': is_protected,
             'host_details': host_details,

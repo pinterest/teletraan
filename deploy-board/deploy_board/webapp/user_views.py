@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,7 +22,6 @@ from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from helpers import users_helper
-from deploy_board.settings import IS_PINTEREST
 import logging
 
 # TODO call backend instead of hardcode
@@ -39,7 +38,6 @@ def get_users_config(request, name):
         "users": users,
         "user_types": user_types,
         "roles": ALL_ROLES,
-        "pinterest": IS_PINTEREST
     })
 
 
@@ -52,7 +50,6 @@ def get_users(request, name):
         "user_types": user_types,
         "roles": ALL_ROLES,
         "csrf_token": get_token(request),
-        "pinterest": IS_PINTEREST
     })
     return HttpResponse(json.dumps({'html': html}), content_type="application/json")
 

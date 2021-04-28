@@ -14,95 +14,91 @@
 
 {% block main %}
 
-<!-- Pinterest specific -->
-{% if pinterest %}
-    {% include "environs/env_tabs.tmpl" with envTabKind="check_log_status" %}
-     <div class="panel panel-default">
-         {% include "panel_heading.tmpl" with panel_title=panel_title panel_body_id="kafkaLoggingId" direction="down" %}
-         <div id="kafkaLoggingId" class="collapse in panel-body">
+{% include "environs/env_tabs.tmpl" with envTabKind="check_log_status" %}
+ <div class="panel panel-default">
+     {% include "panel_heading.tmpl" with panel_title=panel_title panel_body_id="kafkaLoggingId" direction="down" %}
+     <div id="kafkaLoggingId" class="collapse in panel-body">
 
-             <p>You can use this page to check the last time (up to two hours ago)
-             any of a certain set of logs have reached any of a certain set
-             of Kafka topics from any host <u><strong>on the current stage</strong></u>. </p>
+         <p>You can use this page to check the last time (up to two hours ago)
+         any of a certain set of logs have reached any of a certain set
+         of Kafka topics from any host <u><strong>on the current stage</strong></u>. </p>
 
-             <div class="container-fluid">
-                 <form id="envPromoteConfigFormId" class="form-horizontal" role="form">
-                     <fieldset>
-                         <div class="form-group">
-                             <label for="promoteType" class="deployToolTip control-label col-xs-1"
-                                 data-toggle="tooltip"
-                                 title="Log names to check for">
-                                 Log Names
-                             </label>
+         <div class="container-fluid">
+             <form id="envPromoteConfigFormId" class="form-horizontal" role="form">
+                 <fieldset>
+                     <div class="form-group">
+                         <label for="promoteType" class="deployToolTip control-label col-xs-1"
+                             data-toggle="tooltip"
+                             title="Log names to check for">
+                             Log Names
+                         </label>
 
-                             <div class="col-xs-3">
-                                 <input class="form-control"
-                                         name="logNames"
-                                         id="logNames"
-                                         placeholder="log1, log2, log3, ... "
-                                         value="*">
+                         <div class="col-xs-3">
+                             <input class="form-control"
+                                     name="logNames"
+                                     id="logNames"
+                                     placeholder="log1, log2, log3, ... "
+                                     value="*">
 
-                                 </input>
-                             </div>
+                             </input>
+                         </div>
 
-                             <label for="predStageName" class="deployToolTip control-label col-xs-1"
-                                 data-toggle="tooltip"
-                                 title="Kafka topics to inspect">
-                                 Topic Names
-                             </label>
+                         <label for="predStageName" class="deployToolTip control-label col-xs-1"
+                             data-toggle="tooltip"
+                             title="Kafka topics to inspect">
+                             Topic Names
+                         </label>
 
-                             <div class="col-xs-3">
-                                <input class="form-control"
-                                       name="topics"
-                                       id="topics"
-                                       placeholder="topic1, topic2, topic3, ... "
-                                       value="*">
-                                </input>
-                            </div>
+                         <div class="col-xs-3">
+                            <input class="form-control"
+                                   name="topics"
+                                   id="topics"
+                                   placeholder="topic1, topic2, topic3, ... "
+                                   value="*">
+                            </input>
                         </div>
-                    </fieldset>
-                    {% csrf_token %}
-                 </form>
-                 <p class="text-left">
-                     <em>
-                         <small>Note: You can use wildcards (*) -- the "log name" is the name of the
-                         log's Singer config file without the trailing ".properties"</small>
-                     </em>
-                 </p>
-                 <div class="row" id="logCheckResultHome">
-                 </div>
-
+                    </div>
+                </fieldset>
+                {% csrf_token %}
+             </form>
+             <p class="text-left">
+                 <em>
+                     <small>Note: You can use wildcards (*) -- the "log name" is the name of the
+                     log's Singer config file without the trailing ".properties"</small>
+                 </em>
+             </p>
+             <div class="row" id="logCheckResultHome">
              </div>
 
-             <div class="panel-footer clearfix">
-                 <div class="pull-right">
-                     <button id="checkLogStatusBtnId" class="btn btn-primary"
-                             data-loading-text="Checking log status...">
-                         Check Log Status
-                     </button>
-                 </div>
-             </div>
-
-             <script>
-             $(function () {
-                 $('#checkLogStatusBtnId').click(function () {
-                     var resultHome = $('#logCheckResultHome');
-                     resultHome.html('<i class="fa fa-spinner fa-spin"></i>');
-
-                     // Remove all whitespace from topics and logs
-                     var logNames = $('#logNames').val().replace(/\s+/g, '');
-                     var topics = $('#topics').val().replace(/\s+/g, '');
-
-                     var url = '/env/{{ env.envName }}/{{ env.stageName }}/check_log_status_action/?lognames='
-                               + logNames + "&topics=" + topics;
-
-                     resultHome.load(url);
-                 });
-             });
-             </script>
          </div>
-     </div>
 
-{% endif %}
+         <div class="panel-footer clearfix">
+             <div class="pull-right">
+                 <button id="checkLogStatusBtnId" class="btn btn-primary"
+                         data-loading-text="Checking log status...">
+                     Check Log Status
+                 </button>
+             </div>
+         </div>
+
+         <script>
+         $(function () {
+             $('#checkLogStatusBtnId').click(function () {
+                 var resultHome = $('#logCheckResultHome');
+                 resultHome.html('<i class="fa fa-spinner fa-spin"></i>');
+
+                 // Remove all whitespace from topics and logs
+                 var logNames = $('#logNames').val().replace(/\s+/g, '');
+                 var topics = $('#topics').val().replace(/\s+/g, '');
+
+                 var url = '/env/{{ env.envName }}/{{ env.stageName }}/check_log_status_action/?lognames='
+                           + logNames + "&topics=" + topics;
+
+                 resultHome.load(url);
+             });
+         });
+         </script>
+     </div>
+ </div>
 {% endblock %}
 

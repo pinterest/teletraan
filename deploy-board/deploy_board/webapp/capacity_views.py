@@ -25,7 +25,6 @@ from django.views.generic import View
 import common
 from helpers import environs_helper, clusters_helper, autoscaling_groups_helper
 from helpers import baseimages_helper
-from deploy_board.settings import IS_PINTEREST
 
 
 
@@ -40,21 +39,21 @@ class EnvCapacityConfigView(View):
         adv = False
         env = environs_helper.get_env_by_stage(request, name, stage)
         cluster_name = env.get('clusterName')
-        if IS_PINTEREST:
-            provider_list = baseimages_helper.get_all_providers(request)
-            basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
-            if basic_cluster_info:
-                base_image_id = basic_cluster_info.get('baseImageId')
-                base_image = baseimages_helper.get_by_id(request, base_image_id)
-                asg_cluster = autoscaling_groups_helper.get_group_info(request, cluster_name)
-                basic_cluster_info['asg_info'] = asg_cluster
-                basic_cluster_info['base_image_info'] = base_image
 
-            params = request.GET
-            if params.get('adv'):
-                adv = params.get('adv')
-            if params.get('create_new'):
-                create_new = params.get('create_new')
+        provider_list = baseimages_helper.get_all_providers(request)
+        basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
+        if basic_cluster_info:
+            base_image_id = basic_cluster_info.get('baseImageId')
+            base_image = baseimages_helper.get_by_id(request, base_image_id)
+            asg_cluster = autoscaling_groups_helper.get_group_info(request, cluster_name)
+            basic_cluster_info['asg_info'] = asg_cluster
+            basic_cluster_info['base_image_info'] = base_image
+
+        params = request.GET
+        if params.get('adv'):
+            adv = params.get('adv')
+        if params.get('create_new'):
+            create_new = params.get('create_new')
 
         if request.is_ajax():
             # return data for ajax calls
@@ -67,7 +66,6 @@ class EnvCapacityConfigView(View):
                 "hosts": hosts,
                 "groups": groups,
                 "csrf_token": get_token(request),
-                'is_pinterest': IS_PINTEREST,
                 'provider_list': provider_list,
                 'basic_cluster_info': basic_cluster_info,
                 'adv': adv,
@@ -88,7 +86,6 @@ class EnvCapacityConfigView(View):
             "stages": stages,
             "hosts": hosts,
             "groups": groups,
-            'is_pinterest': IS_PINTEREST,
             'provider_list': provider_list,
             'basic_cluster_info': basic_cluster_info,
             'adv': adv,

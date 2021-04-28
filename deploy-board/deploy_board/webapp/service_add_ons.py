@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from deploy_board.settings import IS_PINTEREST, SERVICE_RATELIMIT_CONFIG_URL, \
+from deploy_board.settings import SERVICE_RATELIMIT_CONFIG_URL, \
                                   STATSBOARD_API_FORMAT, RATELIMIT_ENABLED_METRIC_FORMAT, \
                                   ENABLING_SERVICE_RATELIMIT_URL, KAFKA_MSGS_DELIVERED_METRIC, \
                                   DASHBOARD_URL_ENDPOINT_FORMAT

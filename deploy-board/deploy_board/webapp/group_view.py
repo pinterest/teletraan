@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from deploy_board.settings import IS_PINTEREST, PHOBOS_URL
+from deploy_board.settings import PHOBOS_URL
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -855,10 +855,9 @@ def get_configs(request):
 
 
 def _disallow_autoscaling(curr_image):
-    if IS_PINTEREST:
-        # disallow autoscaling when the ami is using masterful puppet
-        if curr_image and curr_image["abstract_name"] == "golden_12.04":
-            return True
+    # disallow autoscaling when the ami is using masterful puppet
+    if curr_image and curr_image["abstract_name"] == "golden_12.04":
+        return True
     return False
 
 class GenerateDiff(diff_match_patch):
@@ -1207,7 +1206,7 @@ def get_health_check_details(request, id):
         env = environs_helper.get(request, health_check.get('env_id'))
         health_check_error['env_name'] = env.get('envName')
         health_check_error['stage_name'] = env.get('stageName')
-        if IS_PINTEREST and PHOBOS_URL:
+        if PHOBOS_URL:
             from brood.client import Brood
             cmdb = Brood()
             host_ip = cmdb.get_query(query="id:" + health_check['host_id'],
