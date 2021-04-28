@@ -31,7 +31,6 @@ from deployd.common import utils
 from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
     DeployStage, AgentStatus
-from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
 
@@ -398,15 +397,9 @@ def main():
     config = Config(args.config_file)
     utils.run_prereqs(config)
 
-    if IS_PINTEREST:
-        import pinlogger
-
-        pinlogger.initialize_logger(logger_filename='deploy-agent.log')
-        pinlogger.LOG_TO_STDERR = True
-    else:
-        log_filename = os.path.join(config.get_log_directory(), 'deploy-agent.log')
-        logging.basicConfig(filename=log_filename, level=config.get_log_level(),
-                            format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
+    log_filename = os.path.join(config.get_log_directory(), 'deploy-agent.log')
+    logging.basicConfig(filename=log_filename, level=config.get_log_level(),
+                        format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
 
     log.info("Start to run deploy-agent.")
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup,

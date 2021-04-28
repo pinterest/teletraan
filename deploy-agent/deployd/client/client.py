@@ -21,11 +21,9 @@ import traceback
 from deployd.client.base_client import BaseClient
 from deployd.client.restfulclient import RestfulClient
 from deployd.common.decorators import retry
-from deployd.common.stats import create_stats_timer, create_sc_increment
+from deployd.common.stats import create_stats_timer
 from deployd.common import utils
 from deployd.types.ping_request import PingRequest
-from deployd import IS_PINTEREST
-
 
 log = logging.getLogger(__name__)
 
@@ -134,7 +132,7 @@ class Client(BaseClient):
                 log.warn('Host ip information does not exist.')
                 pass
         
-        if IS_PINTEREST and self._use_host_info is False:
+        if self._use_host_info is False:
             # Read new keys from facter always
             az_key = self._config.get_facter_az_key()
             asg_tag_key = self._config.get_facter_asg_tag_key()
@@ -199,14 +197,9 @@ class Client(BaseClient):
                 return ping_response
             else:
                 log.error("Fail to read host info")
-                create_sc_increment(stats='deploy.failed.agent.hostinfocollection',
-                                sample_rate=1.0,
-                                tags={'host': self._hostname})
+
         except Exception:
             log.error(traceback.format_exc())
-            create_sc_increment(stats='deploy.failed.agent.requests',
-                                sample_rate=1.0,
-                                tags={'host': self._hostname})
             return None
 
     @retry(ExceptionToCheck=Exception, delay=1, tries=3)

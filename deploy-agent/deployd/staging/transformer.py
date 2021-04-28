@@ -17,7 +17,6 @@ import traceback
 from string import Template
 import re
 import logging
-from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
 
@@ -79,7 +78,7 @@ class Transformer(object):
         try:
             for root, dirs, files in os.walk(script_dir):
                 for filename in files:
-                    if IS_PINTEREST or filename.endswith(suffix):
+                    if filename.endswith(suffix):
                         from_path = os.path.join(root, filename)
                         to_path = from_path.replace(template_dirname, script_dirname)
                         to_path = to_path.replace(suffix, "")

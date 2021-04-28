@@ -12,9 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import os
-
-# Pinterest specific settings
-IS_PINTEREST = True if os.getenv("IS_PINTEREST", "false") == "true" else False
-
 __version__ = '1.2.25'

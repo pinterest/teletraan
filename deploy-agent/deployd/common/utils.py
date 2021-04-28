@@ -24,7 +24,6 @@ import traceback
 import subprocess
 import yaml
 import json
-from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
 
@@ -101,14 +100,13 @@ def ensure_dirs(config):
 
 def run_prereqs(config):
     # check if the puppet has finished or not
-    if IS_PINTEREST:
-        respect_puppet = config.respect_puppet()
-        puppet_file_path = config.get_puppet_file_path()
-        if respect_puppet and \
-           puppet_file_path is not None and \
-           not os.path.exists(puppet_file_path):
-            print("Waiting for first puppet run.")
-            sys.exit(0)
+    respect_puppet = config.respect_puppet()
+    puppet_file_path = config.get_puppet_file_path()
+    if respect_puppet and \
+       puppet_file_path is not None and \
+       not os.path.exists(puppet_file_path):
+        print("Waiting for first puppet run.")
+        sys.exit(0)
 
     ensure_dirs(config)
 
