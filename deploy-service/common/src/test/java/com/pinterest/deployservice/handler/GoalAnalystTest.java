@@ -126,7 +126,7 @@ public class GoalAnalystTest {
 
         assertEquals(analyst.getNeedUpdateAgents().size(), 1);
         assertEquals(analyst.getNeedDeleteAgentEnvIds().size(), 0);
-        assertEquals(analyst.getInstallCandidates().size(), 0);
+        assertEquals(analyst.getInstallCandidates().size(), 1);
     }
 
     // Case 0.3: agent is onhold by user

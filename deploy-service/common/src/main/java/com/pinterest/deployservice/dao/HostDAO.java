@@ -55,10 +55,6 @@ public interface HostDAO {
 
     List<HostBean> getTerminatingHosts() throws Exception;
 
-    List<HostBean> getStaleHosts(long after) throws Exception;
-
-    List<HostBean> getStaleEnvHosts(long after) throws Exception;
-
     Collection<HostBean> getHostsByEnvId(String envId) throws Exception;
 
     HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception;

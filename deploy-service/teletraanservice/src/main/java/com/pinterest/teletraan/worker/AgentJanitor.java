@@ -18,6 +18,7 @@ package com.pinterest.teletraan.worker;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.rodimus.RodimusManager;
@@ -49,11 +50,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
 
-    private void processStaleHosts(Collection<String> staleHostIds, boolean isMarkedUnreachable) throws Exception {
-        if (staleHostIds.isEmpty()) {
-            return;
-        }
-
+    private Collection<String> getTerminatedHostsFromSource(Collection<String> staleHostIds) throws Exception {
         Collection<String> terminatedHosts = new ArrayList<>(staleHostIds);
         for (String hostId : staleHostIds) {
             Collection<String> resultIds = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
@@ -61,139 +58,76 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 terminatedHosts.remove(hostId);
             }
         }
-
-        if (isMarkedUnreachable) {
-            for (String staleId : staleHostIds) {
-                if (terminatedHosts.contains(staleId)) {
-                    removeStaleHost(staleId);
-                } else {
-                    // TODO this lock can be removed, once we move the terminating logic from state to status
-                    HostBean host = hostDAO.getHostsByHostId(staleId).get(0);
-                    if (host.getState() != HostState.TERMINATING && host.getState() != HostState.PENDING_TERMINATE) {
-                        try {
-                            markUnreachableHost(staleId);
-                        } catch (Exception e) {
-                            LOG.error("AgentJanitor Failed to mark host {} as UNREACHABLE", staleId,
-                                      e);
-                        }
-                    }
-                }
-            }
-        } else {
-            for (String removedId : terminatedHosts) {
-                removeStaleHost(removedId);
-            }
-        }
+        return terminatedHosts;
     }
 
     private Long getInstanceLaunchGracePeriod(String clusterName) throws Exception {
-        Long launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
+        Long launchGracePeriod = (clusterName != null) ? rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName) : null;
         return launchGracePeriod == null ? maxLaunchLatencyThreshold : launchGracePeriod * 1000;
     }
 
-    @Override
-    void processIndividualHosts() throws Exception {
+    // Process stale hosts (hosts which have not pinged for more than min threshold period)
+    // Removes hosts once confirmed with source
+    private void processLowWatermarkHosts() throws Exception {
         long current_time = System.currentTimeMillis();
-
         // If host fails to ping for longer than min stale threshold,
         // either mark them as UNREACHABLE, or remove if confirmed with source of truth
         long minThreshold = current_time - minStaleHostThreshold;
-        List<HostBean> minStaleHosts = hostDAO.getStaleHosts(minThreshold);
+        List<HostAgentBean> minStaleHosts = hostAgentDAO.getStaleHosts(minThreshold);
         Set<String> minStaleHostIds = new HashSet<>();
-        for (HostBean host : minStaleHosts) {
-            minStaleHostIds.add(host.getHost_id());
+        for (HostAgentBean hostAgentBean: minStaleHosts) {
+            minStaleHostIds.add(hostAgentBean.getHost_id());
         }
-        processStaleHosts(minStaleHostIds, false);
+        Collection<String> terminatedHosts = getTerminatedHostsFromSource(minStaleHostIds);
+        for (String removedId: terminatedHosts) {
+            removeStaleHost(removedId);
+        }
+    }
 
-        current_time = System.currentTimeMillis();
+    private boolean isHostStale(HostAgentBean hostAgentBean) throws Exception {
+        if (hostAgentBean == null || hostAgentBean.getLast_update() == null) {
+            return false;
+        }
+        HostBean hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
+        long current_time = System.currentTimeMillis();
+        Long launchGracePeriod = getInstanceLaunchGracePeriod(hostAgentBean.getAuto_scaling_group());
+        if ((hostBean.getState() == HostState.PROVISIONED) && (current_time - hostAgentBean.getLast_update() >= launchGracePeriod)) {
+            return true;
+        }
+        if (hostBean.getState() != HostState.TERMINATING && hostBean.getState() != HostState.PENDING_TERMINATE && 
+            (current_time - hostAgentBean.getLast_update() >= maxStaleHostThreshold)) {
+                return true;
+        }
+        return false;
+    }
+
+    // Process stale hosts (hosts which have not pinged for more than max threshold period)
+    // Marks hosts unreachable if it's stale for max threshold 
+    // Removes hosts once confirmed with source
+    private void processHighWatermarkHosts() throws Exception {
+        long current_time = System.currentTimeMillis();
         long maxThreshold = current_time - Math.min(maxStaleHostThreshold, maxLaunchLatencyThreshold);
-        List<HostBean> maxStaleHosts = hostDAO.getStaleHosts(maxThreshold);
+        List<HostAgentBean> maxStaleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
         Set<String> staleHostIds = new HashSet<>();
-        for (HostBean host : maxStaleHosts) {
-            if (host.getState() == HostState.PROVISIONED) {
-                if (current_time - host.getLast_update() >= maxLaunchLatencyThreshold) {
-                    staleHostIds.add(host.getHost_id());
-                }
-            } else if (host.getState() != HostState.TERMINATING && host.getState() != HostState.PENDING_TERMINATE) {
-                if (current_time - host.getLast_update() >= maxStaleHostThreshold) {
-                    staleHostIds.add(host.getHost_id());
-                }
+        
+        for (HostAgentBean hostAgentBean : maxStaleHosts) {
+            if (isHostStale(hostAgentBean)) {
+                staleHostIds.add(hostAgentBean.getHost_id());
             }
         }
-        processStaleHosts(staleHostIds, true);
+        Collection<String> terminatedHosts = getTerminatedHostsFromSource(staleHostIds);
+        for (String staleId : staleHostIds) {
+            if (terminatedHosts.contains(staleId)) {
+                removeStaleHost(staleId);
+            } else {
+                markUnreachableHost(staleId);
+            }
+        }
     }
 
     @Override
-    void processEachGroup(String groupName) throws Exception {
-        // TODO the following call could be slow or fail if there are lots of host in one group
-        Map<String, HostBean> cmdbReportedHosts = hostGroupDAO.getHostIdsByGroup(groupName);
-        long page_index = 1;
-        int page_size = 1000;
-        Set<String> groups = new HashSet<>();
-        groups.add(groupName);
-
-        Set<String> maxStaleHostIds = new HashSet<>();
-        Set<String> minStaleHostIds = new HashSet<>();
-        Long launchGracePeriod = getInstanceLaunchGracePeriod(groupName);
-        long current_time = System.currentTimeMillis();
-        while (true) {
-            List<HostBean> hostBeans = hostDAO.getHostsByGroup(groupName, page_index, page_size);
-            if (hostBeans.isEmpty()) {
-                break;
-            }
-
-            for (HostBean host : hostBeans) {
-                long last_update = host.getLast_update();
-                long launchLatency = current_time - last_update;
-                String id = host.getHost_id();
-                if (host.getState() == HostState.PROVISIONED) {
-                    if (launchLatency >= launchGracePeriod) {
-                        maxStaleHostIds.add(id);
-                    }
-                } else if (host.getState() != HostState.TERMINATING && host.getState() != HostState.PENDING_TERMINATE) {
-                    if (launchLatency >= maxStaleHostThreshold) {
-                        maxStaleHostIds.add(id);
-                    } else if (launchLatency >= minStaleHostThreshold) {
-                        minStaleHostIds.add(id);
-                    }
-                }
-
-                // remove the existing host from hostSet got from group
-                cmdbReportedHosts.remove(id);
-            }
-            page_index++;
-        }
-
-        // step 2: check ec2 if stale hosts ips are terminated
-        LOG.info("Process max stale hosts: {}, and min stale hosts: {}",
-            maxStaleHostIds.toString(), minStaleHostIds.toString());
-        processStaleHosts(minStaleHostIds, false);
-        processStaleHosts(maxStaleHostIds, true);
-
-        // Check the instance is not launched from Teletraan/Autoscaling
-        Set<String> ids = cmdbReportedHosts.keySet();
-        Collection<String> terminatedIds = new ArrayList<>(ids);
-        for (String hostId : ids) {
-            Collection<String> resultIds = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
-            if (resultIds.isEmpty()) {
-                terminatedIds.remove(hostId);
-            }
-        }
-
-        for (Map.Entry<String, HostBean> host : cmdbReportedHosts.entrySet()) {
-            try {
-                String id = host.getKey();
-                if (terminatedIds.contains(id)) {
-                    continue;
-                }
-                
-                String hostName = host.getValue().getHost_name();
-                String ip = host.getValue().getIp();
-                hostDAO.insertOrUpdate(hostName, ip, id, HostState.PROVISIONED.toString(), groups);
-            } catch (Exception ex) {
-                // TODO we should find a better way to handle this.
-                LOG.error("Failed to get information for {}", host, ex);
-            }
-        }
+    void processAllHosts() throws Exception {
+        processLowWatermarkHosts();
+        processHighWatermarkHosts();
     }
 }

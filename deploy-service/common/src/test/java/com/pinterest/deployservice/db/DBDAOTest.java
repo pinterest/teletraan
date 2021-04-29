@@ -715,12 +715,6 @@ public class DBDAOTest {
         hostDAO
             .insertOrUpdate("host-3", "3.3.3.3", "id-3", HostState.TERMINATING.toString(), groups2);
         assertEquals(environDAO.getMissingHosts("e-3").size(), 0);
-        List<HostBean> hostBeans2 = hostDAO.getStaleEnvHosts(System.currentTimeMillis() + 100);
-        assertEquals(hostBeans2.size(), 1);
-        HostBean hostBean2 = hostBeans2.get(0);
-        assertEquals(hostBean2.getGroup_name(), "new_group");
-        assertEquals(hostBean2.getHost_name(), "host-3");
-        assertEquals(hostBean2.getIp(), "3.3.3.3");
 
         Collection<HostBean> hostBean3 = hostDAO.getByEnvIdAndHostName("e-3", "host-3");
         assertEquals(hostBean3.iterator().next().getHost_name(), "host-3");
