@@ -457,7 +457,7 @@
                 currentCell: currentCluster.cellName,
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
-                        value: item.abstract_name,
+                        value: item.id,
                         text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
                         isSelected: item.abstract_name === currentCluster.hostType
                     }
