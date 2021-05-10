@@ -33,14 +33,6 @@ install_requires = [
     "future==0.18.2"
 ]
 
-# Pinterest specific settings
-if os.getenv("IS_PINTEREST", "false") == "true":
-    extra_requires = [
-        "pinlogger>=0.11.0",
-        "pinstatsd==1.0.55",
-    ]
-    install_requires += extra_requires
-
 setup(
     name='deploy-agent',
     version=__version__,
