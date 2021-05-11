@@ -25,12 +25,19 @@ import java.util.Set;
  * A collection of methods to help hosts and groups mapping
  */
 public interface HostAgentDAO {
-
     void insert(HostAgentBean hostAgentBean) throws Exception;
+
+    void update(String hostId, HostAgentBean hostAgentBean) throws Exception;
 
     void delete(String hostId) throws Exception;
 
-    HostAgentBean get(String hostId) throws Exception;
+    HostAgentBean getHostByName(String hostName) throws Exception;
+
+    HostAgentBean getHostById(String hostId) throws Exception;
+
+    List<HostAgentBean> getStaleHosts(long after) throws Exception;
+
+    List<HostAgentBean> getStaleEnvHosts(long after) throws Exception;
 
     List<HostAgentBean> getHostsByAgent(String agentVersion, long pageIndex, int pageSize) throws Exception;
 }

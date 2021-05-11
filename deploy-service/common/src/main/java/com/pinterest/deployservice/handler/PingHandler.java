@@ -144,17 +144,52 @@ public class PingHandler {
 
     // Keep host and group membership in sync
     void updateHosts(String hostName, String hostIp, String hostId, Set<String> groups) throws Exception {
-        hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups);
+        Set<String> recordedGroups = new HashSet<String>(hostDAO.getGroupNamesByHost(hostName));
 
-        List<String> recordedGroups = hostDAO.getGroupNamesByHost(hostName);
+        Set<String> groupsToAdd = new HashSet<String>();
+        // Insert if not recorded
+        for (String group : groups) {
+            if (!recordedGroups.contains(group)) {
+                LOG.info("Insert host {} to group {} mapping", hostName, group);
+                groupsToAdd.add(group);
+            }
+        }
+        if (groupsToAdd.size() > 0) {
+            hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups);
+        }
+        
+        // Remove if not reported
         for (String recordedGroup : recordedGroups) {
             if (!groups.contains(recordedGroup)) {
-                LOG.warn("Remove host {} from group {}", hostName, recordedGroup);
+                LOG.warn("Remove host {} to group {} mapping", hostName, recordedGroup);
                 this.hostDAO.removeHostFromGroup(hostId, recordedGroup);
             }
         }
+    }
 
-
+    void updateHostStatus(String hostId, String hostName, String hostIp, String agentVersion, String asg, Set<String> groups) throws Exception {
+        HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
+        long current_time = System.currentTimeMillis();
+        boolean isExisting = true;
+        if (hostAgentBean == null) {
+            hostAgentBean = new HostAgentBean();
+            hostAgentBean.setHost_id(hostId);
+            hostAgentBean.setCreate_date(current_time);
+            isExisting = false;
+        }
+        hostAgentBean.setHost_name(hostName);
+        hostAgentBean.setIp(hostIp);
+        hostAgentBean.setLast_update(current_time);
+        hostAgentBean.setAgent_Version(agentVersion);
+        hostAgentBean.setAuto_scaling_group(asg);            
+ 
+        if (!isExisting) {
+            hostAgentDAO.insert(hostAgentBean); 
+        } else {
+            hostAgentDAO.update(hostId, hostAgentBean);
+        }
+        // update the host <-> groups mapping
+        this.updateHosts(hostName, hostIp, hostId, groups);
     }
 
     void deleteAgentSafely(String hostId, String envId) {
@@ -560,17 +595,12 @@ public class PingHandler {
         String hostIp = pingRequest.getHostIp();
         String hostId = pingRequest.getHostId();
         String hostName = pingRequest.getHostName();
+        String asg = pingRequest.getAutoscalingGroup();
         Set<String> groups = this.shardGroups(pingRequest);
-
-        // always update the host table
-        this.updateHosts(hostName, hostIp, hostId, groups);
-
         //update agent version for host
-        String agent_version = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
-        HostAgentBean hostAgentBean = new HostAgentBean();
-        hostAgentBean.setHost_Id(hostId);
-        hostAgentBean.setAgent_Version(agent_version);
-        hostAgentDAO.insert(hostAgentBean);
+        String agentVersion = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
+
+        this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg, groups);
 
         // Convert reports to map, keyed by envId
         Map<String, PingReportBean> reports = convertReports(pingRequest);

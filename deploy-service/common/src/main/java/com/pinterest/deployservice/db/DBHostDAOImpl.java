@@ -168,18 +168,6 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public List<HostBean> getStaleEnvHosts(long after) throws Exception {
-        ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
-        return new QueryRunner(dataSource).query(GET_STALE_ENV_HOST, h, after);
-    }
-
-    @Override
-    public List<HostBean> getStaleHosts(long after) throws Exception {
-        ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
-        return new QueryRunner(dataSource).query(GET_STALE_HOST, h, after);
-    }
-
-    @Override
     public List<HostBean> getHostsByGroup(String groupName, long pageIndex, int pageSize) throws Exception {
         ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
         return new QueryRunner(dataSource).query(GET_HOSTS_BY_GROUP, h, groupName, (pageIndex - 1) * pageSize, pageSize);
