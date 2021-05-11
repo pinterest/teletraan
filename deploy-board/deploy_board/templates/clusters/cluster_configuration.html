@@ -495,7 +495,7 @@
                         isSelected: item.abstract_name === currentCluster.securityZone
                     }
                 }),
-                selectedHostTypeValue: currentCluster.hostType,
+                selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === currentCluster.hostType).id,
                 selectedSecurityZoneValue: currentCluster.securityZone,
                 selectedPlacements: currentPlacements,
                 showBaseImageHelp: false,
@@ -718,7 +718,8 @@
                     var scope = this;
                     var provider = capacitySetting.currentProvider;
                     value = 'cmp_base-ebs';
-                    if (this.selectedHostTypeValue.startsWith('EbsCompute')) {
+                    const selectedHostTypeObject = capacityCreationInfo.hostTypes.find(hostType => hostType.id === this.selectedHostTypeValue);
+                    if (selectedHostTypeObject.abstract_name.startsWith('EbsCompute')) {
                         capacitySetting.imageNameValue = value;
                         capacitySetting.imagenames = info.baseImageNames.map(
                             function (o) {
