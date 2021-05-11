@@ -437,7 +437,6 @@ public class GoalAnalyst {
         return;
     }
 
-
     boolean isFirstDeploy(AgentBean agent, EnvironBean env) {
         // agent does not exist, and the existing agent does not have the same env name as current environment
         if (agent == null && (!existingAgentEnvNames.contains(env.getEnv_name()))) {
