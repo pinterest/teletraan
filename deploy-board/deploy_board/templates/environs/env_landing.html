@@ -168,6 +168,11 @@
         <p>Are you sure to pause the current deploy?
            Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster. 
         </p>
+        <div class="alert alert-danger" role="alert">
+            <strong>WARNING</strong>:
+            Please don't leave deployment in the PAUSED state permanently. 
+            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.  
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
