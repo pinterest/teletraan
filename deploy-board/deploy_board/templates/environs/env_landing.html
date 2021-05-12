@@ -165,10 +165,13 @@
         <h4 class="modal-title">Pause Confirm</h4>
       </div>
       <div class="modal-body">
-        <p>Are you sure to pause the current deploy?</p>
+        <p>Are you sure to pause the current deploy?
+           Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster. 
+        </p>
         <div class="alert alert-danger" role="alert">
             <strong>WARNING</strong>:
-            Pausing a deploy is not recommended and should be used with extreme caution. Please note that environment will not be deployed properly on a new host(s) added manually or through ASG autoscaling, while deployment is in PAUSED state.
+            Please don't leave deployment in the PAUSED state permanently. 
+            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.  
         </div>
       </div>
       <div class="modal-footer">
