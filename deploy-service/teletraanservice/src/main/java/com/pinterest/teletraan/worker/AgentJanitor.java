@@ -70,17 +70,25 @@ public class AgentJanitor extends SimpleAgentJanitor {
     // Removes hosts once confirmed with source
     private void processLowWatermarkHosts() throws Exception {
         long current_time = System.currentTimeMillis();
-        // If host fails to ping for longer than min stale threshold,
-        // either mark them as UNREACHABLE, or remove if confirmed with source of truth
-        long minThreshold = current_time - minStaleHostThreshold;
-        List<HostAgentBean> minStaleHosts = hostAgentDAO.getStaleHosts(minThreshold);
-        Set<String> minStaleHostIds = new HashSet<>();
-        for (HostAgentBean hostAgentBean: minStaleHosts) {
-            minStaleHostIds.add(hostAgentBean.getHost_id());
-        }
-        Collection<String> terminatedHosts = getTerminatedHostsFromSource(minStaleHostIds);
-        for (String removedId: terminatedHosts) {
-            removeStaleHost(removedId);
+        long page_index = 1;
+        int page_size = 1000;
+        while(true) {
+            // If host fails to ping for longer than min stale threshold,
+            // either mark them as UNREACHABLE, or remove if confirmed with source of truth
+            long minThreshold = current_time - minStaleHostThreshold;
+            List<HostAgentBean> minStaleHosts = hostAgentDAO.getStaleHosts(minThreshold, page_index, page_size);
+            if (minStaleHosts.isEmpty()) {
+                break;
+            }
+            Set<String> minStaleHostIds = new HashSet<>();
+            for (HostAgentBean hostAgentBean: minStaleHosts) {
+                minStaleHostIds.add(hostAgentBean.getHost_id());
+            }
+            Collection<String> terminatedHosts = getTerminatedHostsFromSource(minStaleHostIds);
+            for (String removedId: terminatedHosts) {
+                removeStaleHost(removedId);
+            }
+            page_index++;
         }
     }
 
@@ -106,22 +114,30 @@ public class AgentJanitor extends SimpleAgentJanitor {
     // Removes hosts once confirmed with source
     private void processHighWatermarkHosts() throws Exception {
         long current_time = System.currentTimeMillis();
+        long page_index = 1;
+        int page_size = 1000;
         long maxThreshold = current_time - Math.min(maxStaleHostThreshold, maxLaunchLatencyThreshold);
-        List<HostAgentBean> maxStaleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
-        Set<String> staleHostIds = new HashSet<>();
-        
-        for (HostAgentBean hostAgentBean : maxStaleHosts) {
-            if (isHostStale(hostAgentBean)) {
-                staleHostIds.add(hostAgentBean.getHost_id());
+        while(true) {
+            List<HostAgentBean> maxStaleHosts = hostAgentDAO.getStaleHosts(maxThreshold, page_index, page_size);
+            if (maxStaleHosts.isEmpty()) {
+                break;
             }
-        }
-        Collection<String> terminatedHosts = getTerminatedHostsFromSource(staleHostIds);
-        for (String staleId : staleHostIds) {
-            if (terminatedHosts.contains(staleId)) {
-                removeStaleHost(staleId);
-            } else {
-                markUnreachableHost(staleId);
+            Set<String> staleHostIds = new HashSet<>();
+            
+            for (HostAgentBean hostAgentBean : maxStaleHosts) {
+                if (isHostStale(hostAgentBean)) {
+                    staleHostIds.add(hostAgentBean.getHost_id());
+                }
             }
+            Collection<String> terminatedHosts = getTerminatedHostsFromSource(staleHostIds);
+            for (String staleId : staleHostIds) {
+                if (terminatedHosts.contains(staleId)) {
+                    removeStaleHost(staleId);
+                } else {
+                    markUnreachableHost(staleId);
+                }
+            }
+            page_index++;
         }
     }
 

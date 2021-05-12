@@ -1,0 +1,7 @@
+com.pinterest.teletraan.config.AuthenticationFactory
+com.pinterest.teletraan.config.AuthorizationFactory
+com.pinterest.teletraan.config.SourceControlFactory
+com.pinterest.teletraan.config.DataSourceFactory
+com.pinterest.teletraan.config.ChatFactory
+com.pinterest.teletraan.config.HostGroupFactory
+com.pinterest.teletraan.config.EmailFactory

@@ -227,7 +227,7 @@ public class EnvDeploys {
                     buildBean.getArtifact_url()));
         }
         // if the stage is not allowed (allow_private_build)
-        if(! envBean.getAllow_private_build()) { 
+        if(! envBean.getSOX()) { 
             // only allow deploy if it is not private build
             if (buildBean.getScm_branch().equals("private")) {
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, 
@@ -235,6 +235,9 @@ public class EnvDeploys {
             }
         }
 
+        if env.is_sox() & build.is_private() {
+            //reject
+        }
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);
         LOG.info("Successfully create deploy {} for env {}/{} by {}.", deployId, envName, stageName, operator);
 

@@ -36,7 +36,7 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
     private static final String DELETE_HOST_BY_ID = "DELETE FROM hosts_and_agents WHERE host_id=?";
     private static final String GET_HOST_BY_NAME = "SELECT * FROM hosts_and_agents WHERE host_name=?";
     private static final String GET_HOST_BY_HOSTID = "SELECT * FROM hosts_and_agents WHERE host_id=?";
-    private static final String GET_STALE_HOST = "SELECT DISTINCT hosts_and_agents.* FROM hosts_and_agents WHERE hosts_and_agents.last_update<?";
+    private static final String GET_STALE_HOST = "SELECT DISTINCT hosts_and_agents.* FROM hosts_and_agents WHERE hosts_and_agents.last_update<? ORDER BY host_name LIMIT ?,?";
     private static final String GET_STALE_ENV_HOST = "SELECT DISTINCT hosts_and_agents.* FROM hosts_and_agents INNER JOIN hosts_and_envs ON hosts_and_agents.host_name=hosts_and_envs.host_name WHERE hosts_and_agents.last_update<?";
     private static final String GET_HOSTS_BY_AGENT = "SELECT * FROM hosts_statuses WHERE agent_version=? ORDER BY host_id LIMIT ?,?";
 
@@ -78,9 +78,9 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
     }
 
     @Override
-    public List<HostAgentBean> getStaleHosts(long after) throws Exception {
+    public List<HostAgentBean> getStaleHosts(long after, long pageIndex, int pageSize) throws Exception {
         ResultSetHandler<List<HostAgentBean>> h = new BeanListHandler<>(HostAgentBean.class);
-        return new QueryRunner(dataSource).query(GET_STALE_HOST, h, after);
+        return new QueryRunner(dataSource).query(GET_STALE_HOST, h, after, (pageIndex - 1) * pageSize, pageSize);
     }
 
     @Override
