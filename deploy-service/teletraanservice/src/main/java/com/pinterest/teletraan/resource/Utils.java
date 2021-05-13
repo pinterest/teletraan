@@ -31,6 +31,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Utils {
     private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
@@ -101,5 +102,12 @@ public class Utils {
                 String.format("Deploy %s does not exist.", deployId));
         }
         return deployBean;
+    }
+
+    public static void trimMapValues(Map<String, String> configs) throws Exception {
+
+        for (Map.Entry<String, String> entry : configs.entrySet()) {
+            entry.setValue(entry.getValue().trim());
+        }
     }
 }
