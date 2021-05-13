@@ -84,6 +84,7 @@ public class EnvAgentConfigs {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
+        Utils.trimMapValues(configs);
         environHandler.updateAdvancedConfigs(envBean, configs, userName);
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, configs, userName);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, userName);
