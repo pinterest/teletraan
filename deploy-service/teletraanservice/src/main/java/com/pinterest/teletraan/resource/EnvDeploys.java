@@ -235,6 +235,12 @@ public class EnvDeploys {
             }
         }
 
+        // only allow deploy of sox if not private and from sox_compliant source
+        if(envBean.getIs_SOX() && (buildBean.getScm_branch().equals("private") || buildAllowlist = null || buildAllowlist.sox_compliant(buildBean.getArtifact_url()))) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                "This stage requires SOX builds. The build must not be a private build and must be from a SOX location.");
+        }
+
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);
         LOG.info("Successfully create deploy {} for env {}/{} by {}.", deployId, envName, stageName, operator);
 
