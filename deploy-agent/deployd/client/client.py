@@ -182,7 +182,7 @@ class Client(BaseClient):
                     # the server side:
                     # https://app.asana.com/0/11815463290546/40714916594784
                     if report.errorMessage:
-                        report.errorMessage = report.errorMessage.encode('ascii', 'ignore')
+                        report.errorMessage = report.errorMessage.encode('ascii', 'ignore').decode()
                 ping_request = PingRequest(hostId=self._id, hostName=self._hostname, hostIp=self._ip,
                                         groups=self._hostgroup, reports=reports,
                                         agentVersion=self._agent_version,

@@ -104,9 +104,9 @@ public class Utils {
         return deployBean;
     }
 
-    public static Map<String, String> trimMapValues(Map<String, String> configs) throws Exception {
+    public static void trimMapValues(Map<String, String> configs) throws Exception {
 
-        for (Map<String, String> entry : configs) {
+        for (Map.Entry<String, String> entry : configs.entrySet()) {
             entry.setValue(entry.getValue().trim());
         }
     }
