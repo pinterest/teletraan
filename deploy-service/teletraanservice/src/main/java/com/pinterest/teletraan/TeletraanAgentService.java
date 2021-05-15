@@ -16,6 +16,7 @@
 package com.pinterest.teletraan;
 
 import com.pinterest.teletraan.health.GenericHealthCheck;
+import com.pinterest.teletraan.health.HealthCheckController;
 import com.pinterest.teletraan.resource.Pings;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
@@ -48,6 +49,8 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
         environment.jersey().register(pings);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
+
+        environment.jersey().register(new HealthCheckController(environment.healthChecks()));
     }
 
     public static void main(String[] args) throws Exception {

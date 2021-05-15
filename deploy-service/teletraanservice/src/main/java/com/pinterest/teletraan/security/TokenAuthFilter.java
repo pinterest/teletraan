@@ -32,6 +32,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
+import javax.ws.rs.core.UriInfo;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)
@@ -65,8 +66,15 @@ public class TokenAuthFilter implements ContainerRequestFilter {
 
     private SecurityContext authenticate(ContainerRequestContext context) throws Exception {
         String authCredentials = context.getHeaderString(AUTHENTICATION_HEADER);
+        UriInfo uriInfo = context.getUriInfo();
         if (StringUtils.isEmpty(authCredentials)) {
-            throw new DeployInternalException("Can not find HTTP header: Authorization!");
+            if (!uriInfo.getAbsolutePath().equals("healthcheck") &&
+                !uriInfo.getAbsolutePath().equals("/healthcheck") &&
+                !uriInfo.getPath().equals("healthcheck") &&
+                !uriInfo.getPath().equals("/healthcheck")) {
+                    throw new DeployInternalException("Can not find HTTP header: Authorization!");
+            }
+            return null;
         }
 
         String[] schemeAndToken = authCredentials.trim().split(" ");
