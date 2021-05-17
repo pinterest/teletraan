@@ -227,6 +227,7 @@ public class EnvDeploys {
                     buildBean.getArtifact_url()));
         }
         // if the stage is not allowed (allow_private_build)
+        // TODO: remove this code once is_sox db column fully populated (before merging this)
         if(! envBean.getAllow_private_build()) { 
             // only allow deploy if it is not private build
             if (buildBean.getScm_branch().equals("private")) {
@@ -236,7 +237,8 @@ public class EnvDeploys {
         }
 
         // only allow deploy of sox if not private and from sox_compliant source
-        if(envBean.getIs_SOX() && (buildBean.getScm_branch().equals("private") || buildAllowlist = null || buildAllowlist.sox_compliant(buildBean.getArtifact_url()))) {
+        // TODO: fix not not control flow (unravel conditions given !)
+        if(envBean.getIs_SOX() && (buildBean.getScm_branch().equals("private") || buildAllowlist == null || !buildAllowlist.sox_compliant(buildBean.getArtifact_url()))) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                 "This stage requires SOX builds. The build must not be a private build and must be from a SOX location.");
         }
