@@ -103,6 +103,17 @@ public class EnvStages {
         if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != environBean.getStage_type()) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Modification of stage type is not allowed!");
         }
+        // TODO: isUserInRole takes a string and does not seem implemented... it should take the value from Role enum
+        if(environBean.getSOX() && !sc.isUserInRole("SYSTEMADMIN")) {  // TODO: see note above
+        //if(environBean.getSOX() && !sc.isUserInRole(Role.SYSTEMADMIN)) {
+            // raise 403
+
+            // we really just want to check the user's role against SYSTEMADMIN, we already identified our "resource"... how?
+            // can we get user role, and can we just use a comparer isAuthorized in Role.java
+            // but we also want to throw just like authorizer.authorize, would rather not reimplement it
+            // we can work with more granular permissions at the DAO level or something in the future.
+            //authorizer.authorize(sc, new Resource(origBean.getEnv_name(), Resource.Type.ENV), Role.SYSTEMADMIN);
+        }
         environBean.setEnv_name(origBean.getEnv_name());
         environBean.setStage_name(origBean.getStage_name());
         environHandler.updateStage(environBean, operator);
