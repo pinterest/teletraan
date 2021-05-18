@@ -17,6 +17,7 @@ package com.pinterest.teletraan;
 
 import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
+import com.pinterest.teletraan.health.HealthCheckController;
 import com.pinterest.teletraan.resource.*;
 
 import io.dropwizard.Application;
@@ -162,6 +163,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         ConfigHelper.scheduleWorkers(configuration, context);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
+        environment.jersey().register(new HealthCheckController(environment.healthChecks()));
 
         // Exception handler
         environment.jersey().register(new GenericExceptionMapper(configuration.getSystemFactory().getClientError()));
