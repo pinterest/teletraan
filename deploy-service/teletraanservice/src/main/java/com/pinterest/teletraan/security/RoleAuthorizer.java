@@ -41,7 +41,7 @@ public class RoleAuthorizer implements Authorizer {
         // Consider group role(s)
         Set<String> groupsSet = new HashSet<>();
         if(groups != null && !groups.isEmpty()) {
-            // Convert to Set for lookup convienience
+            // Convert to Set for lookup convenience
             groupsSet.addAll(groups);
 
             List<GroupRolesBean> resourceGroupBeans = groupRolesDAO.getByResource(resource.getId(), resource.getType());

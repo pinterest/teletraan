@@ -126,7 +126,7 @@ public class ConfigHelper {
         context.setTagDAO(new DBTagDAOImpl(dataSource));
         context.setScheduleDAO(new DBScheduleDAOImpl(dataSource));
 
-        // Inject proper implemetation based on config
+        // Inject proper implementation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
         context.setSourceControlManager(configuration.getSourceControlFactory().create());
         context.setChatManager(configuration.getChatFactory().create());
