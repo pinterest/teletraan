@@ -22,5 +22,5 @@ import com.pinterest.deployservice.bean.Role;
 import javax.ws.rs.core.SecurityContext;
 
 public interface Authorizer {
-    void authorize(SecurityContext securityContext, Resource resoure, Role requiredRole) throws Exception;
+    void authorize(SecurityContext securityContext, Resource resource, Role requiredRole) throws Exception;
 }

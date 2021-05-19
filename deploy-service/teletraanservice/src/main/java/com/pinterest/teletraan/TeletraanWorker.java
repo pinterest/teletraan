@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan;
 
+import com.pinterest.teletraan.health.HealthCheckController;
 import com.pinterest.teletraan.health.WorkerHealthCheck;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
@@ -43,6 +44,8 @@ public class TeletraanWorker extends Application<TeletraanServiceConfiguration> 
         TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
         ConfigHelper.scheduleWorkers(configuration, context);
         environment.healthChecks().register("generic", new WorkerHealthCheck(context));
+
+        environment.jersey().register(new HealthCheckController(environment.healthChecks()));
     }
 
     public static void main(String[] args) throws Exception {
