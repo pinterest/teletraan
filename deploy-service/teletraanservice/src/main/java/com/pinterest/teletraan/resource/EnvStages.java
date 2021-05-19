@@ -104,8 +104,8 @@ public class EnvStages {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Modification of stage type is not allowed!");
         }
         if(environBean.getSOX()) {
-            // TODO: future - should a more granular resource be authorized on than the environBean?
-            authorizer.authorize(sc, environBean, Role.SYSTEMADMIN);
+            // TODO: future - should a more granular resource be authorized on?
+            authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.SYSTEMADMIN);
         }
         environBean.setEnv_name(origBean.getEnv_name());
         environBean.setStage_name(origBean.getStage_name());
