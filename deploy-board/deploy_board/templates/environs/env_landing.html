@@ -166,12 +166,12 @@
       </div>
       <div class="modal-body">
         <p>Are you sure to pause the current deploy? <br>
-           Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster. 
+           Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster.
         </p>
         <div class="alert alert-danger" role="alert">
             <strong>WARNING</strong>:
             Please don't leave deployment in the PAUSED state permanently. <br>
-            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.  
+            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.
         </div>
       </div>
       <div class="modal-footer">
@@ -439,7 +439,20 @@ $('#privateBldUploadBtnId button').click(function () {
         </script>
         <div class="collapse in panel-body">
             <div id="activeDeployId">
-                {% include "deploys/deploy_progress.tmpl" %}
+                {% with deploy=report.currentDeployStat.deploy build=report.currentDeployStat.build tag=report.currentDeployStat.buildTag %}
+                {% include "deploys/deploy_progress_summary.tmpl" %}
+                {% endwith %}
+
+                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+                   href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/failed/"
+                   title="Click to see the details of all failed hosts">
+                   <strong>Failed Hosts</strong>
+                </a>
+                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+                   href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/"
+                   title="Click to see the details of all the hosts">
+                   <strong>All Details</strong>
+                </a>
             </div>
             <div class="row" id="serviceAddOnsId">
                 {% include "deploys/deploy_add_ons.tmpl" %}
@@ -452,13 +465,6 @@ $('#privateBldUploadBtnId button').click(function () {
     $(function () {
         var startTime = new Date().getTime();
         $('#serviceAddOnsId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_service_add_ons/');
-
-        var interval = setInterval(function() {
-            if(new Date().getTime() - startTime > 3600000) {
-                clearInterval(interval);
-            }
-            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}&sortByTag={{ report.sortByTag }}');
-        }, 30000);
 
         $(".dropdown-menu li").click(function() {
             query_string = $("#updateModeFormId").serialize();
