@@ -169,7 +169,7 @@ public class DBAgentDAOImpl implements AgentDAO {
     @Override
     public List<AgentBean> getAllByEnvPaginated(String envId, Integer page, Integer size) throws Exception {
         ResultSetHandler<List<AgentBean>> h = new BeanListHandler<>(AgentBean.class);
-        return new QueryRunner(dataSource).query(GET_ALL_AGENT_BY_ENV_PAGINATED, h, envId,page*size, (page+1)*size);
+        return new QueryRunner(dataSource).query(GET_ALL_AGENT_BY_ENV_PAGINATED, h, envId,(page-1)*size, page*size);
     }
 
     @Override
