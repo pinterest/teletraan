@@ -51,6 +51,8 @@ public class DBAgentDAOImpl implements AgentDAO {
         "SELECT * FROM agents WHERE host_id=?";
     private static final String GET_ALL_AGENT_BY_ENV =
         "SELECT * FROM agents WHERE env_id=?";
+    private static final String GET_ALL_AGENT_BY_ENV_PAGINATED =
+            "SELECT * FROM agents WHERE env_id=? LIMIT ?,?";
     private static final String GET_AGENT_BY_ENV_AND_FIRST_DEPLOY_TIME =
         "SELECT * FROM agents WHERE env_id=? AND first_deploy_time>?";
     private static final String GET_BY_IDS =
@@ -162,6 +164,12 @@ public class DBAgentDAOImpl implements AgentDAO {
     public List<AgentBean> getAllByEnv(String envId) throws Exception {
         ResultSetHandler<List<AgentBean>> h = new BeanListHandler<>(AgentBean.class);
         return new QueryRunner(dataSource).query(GET_ALL_AGENT_BY_ENV, h, envId);
+    }
+
+    @Override
+    public List<AgentBean> getAllByEnvPaginated(String envId, Integer page, Integer size) throws Exception {
+        ResultSetHandler<List<AgentBean>> h = new BeanListHandler<>(AgentBean.class);
+        return new QueryRunner(dataSource).query(GET_ALL_AGENT_BY_ENV_PAGINATED, h, envId,page*size, (page+1)*size);
     }
 
     @Override

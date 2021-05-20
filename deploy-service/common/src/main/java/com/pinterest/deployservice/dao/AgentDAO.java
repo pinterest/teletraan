@@ -43,6 +43,8 @@ public interface AgentDAO {
 
     List<AgentBean> getAllByEnv(String envId) throws Exception;
 
+    List<AgentBean> getAllByEnvPaginated(String envId, Integer page, Integer size) throws Exception;
+
     List<AgentBean> getByEnvAndFirstDeployTime(String envId, long time) throws Exception;
 
     AgentBean getByHostEnvIds(String hostId, String envId) throws Exception;
