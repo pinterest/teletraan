@@ -73,6 +73,7 @@ public class EnvAgents {
     }
 
     @GET
+    @Path("/paginated")
     @ApiOperation(
             value = "Get deploy agents paginated",
             notes = "Returns a list of all the deploy agent objects for a given environment name and stage by page",
@@ -80,7 +81,7 @@ public class EnvAgents {
     public List<AgentBean> getAllAgentsPaginated(
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
-            @ApiParam(value = "Page") Integer page, @ApiParam(value = "Size") Integer size) throws Exception {
+            @QueryParam(value = "Page") Integer page, @QueryParam(value = "Size") Integer size) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         return agentDAO.getAllByEnvPaginated(envBean.getEnv_id(), page, size);
     }

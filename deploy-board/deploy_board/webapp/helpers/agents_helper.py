@@ -27,7 +27,7 @@ def get_agents(request, env_name, stage_name):
 
 def get_agents_paginated(request, env_name, stage_name, index, size):
     params = [('page', index), ('size', size)]
-    return deployclient.get("/envs/%s/%s/agents" % (env_name, stage_name),
+    return deployclient.get("/envs/%s/%s/agents/paginated" % (env_name, stage_name),
                             request.teletraan_user_id.token, params)
 
 
