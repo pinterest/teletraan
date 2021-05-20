@@ -38,17 +38,6 @@ public class GenericHealthCheck extends HealthCheck {
 
     @Override
     protected Result check() throws Exception {
-        DeployFilterBean filter = new DeployFilterBean();
-        filter.setPageIndex(1);
-        filter.setPageSize(DEFAULT_SIZE);
-        DeployQueryFilter filterBean = new DeployQueryFilter(filter);
-        DeployQueryResultBean resultBean = deployDAO.getAllDeploys(filterBean);
-        List<DeployBean> deploys = resultBean.getDeploys();
-        if (deploys.size() == DEFAULT_SIZE) {
-            return Result.healthy("Teletraan looks healthy!");
-        } else {
-            return Result.unhealthy("Teletraan failed on Healthcheck, " +
-                "incorrect ammount of deploys returned: " + deploys.size());
-        }
+        return Result.healthy("Teletraan looks healthy!");
     }
 }
