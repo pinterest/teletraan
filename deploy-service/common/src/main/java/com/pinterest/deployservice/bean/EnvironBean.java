@@ -544,11 +544,11 @@ public class EnvironBean implements Updatable, Serializable {
         this.stage_type = stage_type;
     }
 
-    public Boolean getSOX() {
+    public Boolean getIs_sox() {
         return is_sox;
     }
 
-    public void setSOX(Boolean is_sox) {
+    public void setIs_sox(Boolean is_sox) {
         this.is_sox = is_sox;
     }
 
