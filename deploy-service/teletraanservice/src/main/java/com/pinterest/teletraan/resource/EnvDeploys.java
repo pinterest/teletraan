@@ -227,20 +227,23 @@ public class EnvDeploys {
                     buildBean.getArtifact_url()));
         }
         // if the stage is not allowed (allow_private_build)
-        // TODO: remove this code once is_sox db column fully populated (before merging this)
-        if(! envBean.getAllow_private_build()) { 
+        if(! envBean.getAllow_private_build()) {
             // only allow deploy if it is not private build
             if (buildBean.getScm_branch().equals("private")) {
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, 
                     "This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build");
             }
         }
-
-        // only allow deploy of sox if not private and from sox_compliant source
-        // TODO: fix not not control flow (unravel conditions given !)
-        if(envBean.getIs_SOX() && (buildBean.getScm_branch().equals("private") || buildAllowlist == null || !buildAllowlist.sox_compliant(buildBean.getArtifact_url()))) {
+        // disallow sox deploy if the build artifact is private
+        if(envBean.getIs_sox() && buildBean.getScm_branch().equals("private")) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                "This stage requires SOX builds. The build must not be a private build and must be from a SOX location.");
+                "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.");
+        }
+        // disallow sox deploy if the build artifact is not from a sox source url
+        if(envBean.getIs_sox() && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                "This stage requires SOX builds. The build must must be from a sox-compliant location (%s). Please Contact #teletraan to ensure the build artifact is published to a sox-compliant url",
+                buildBean.getArtifact_url());
         }
 
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);
