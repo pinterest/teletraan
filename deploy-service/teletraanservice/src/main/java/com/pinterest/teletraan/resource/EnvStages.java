@@ -103,7 +103,7 @@ public class EnvStages {
         if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != environBean.getStage_type()) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Modification of stage type is not allowed!");
         }
-        if(environBean.getIS_sox() && origBean.getIs_sox() != environBean.getIs_sox()) {
+        if(environBean.getIs_sox() && origBean.getIs_sox() != environBean.getIs_sox()) {
             authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.SYSTEMADMIN);
         }
         environBean.setEnv_name(origBean.getEnv_name());
