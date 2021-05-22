@@ -235,12 +235,12 @@ public class EnvDeploys {
             }
         }
         // disallow sox deploy if the build artifact is private
-        if(envBean.getIs_SOX() && buildBean.getScm_branch().equals("private")) {
+        if(envBean.getIs_sox() && buildBean.getScm_branch().equals("private")) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                 "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.");
         }
         // disallow sox deploy if the build artifact is not from a sox source url
-        if(envBean.getIs_SOX() && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
+        if(envBean.getIs_sox() && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                 "This stage requires SOX builds. The build must must be from a sox-compliant location (%s). Please Contact #teletraan to ensure the build artifact is published to a sox-compliant url",
                 buildBean.getArtifact_url());
