@@ -149,9 +149,9 @@ public class ConfigHelper {
 
         BuildAllowlistFactory buildAllowlistFactory = configuration.getBuildAllowlistFactory();
         if (buildAllowlistFactory != null) {
-            context.setBuildAllowlist(new BuildAllowlistImpl(buildAllowlistFactory.getValidBuildURLs(), buildAllowlistFactory.getTrustedBuildURLs()));
+            context.setBuildAllowlist(new BuildAllowlistImpl(buildAllowlistFactory.getValidBuildURLs(), buildAllowlistFactory.getTrustedBuildURLs(), buildAllowlistFactory.getsoxBuildURLs()));
         } else {
-            context.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<String>(), new ArrayList<String>()));
+            context.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>()));
         }
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();

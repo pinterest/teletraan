@@ -24,6 +24,8 @@ public class BuildAllowlistFactory {
     private List<String> validBuildURLs;
     @JsonProperty
     private List<String> trustedBuildURLs;
+    @JsonProperty
+    private List<String> soxBuildURLs;
 
     public List<String> getValidBuildURLs() {
         return this.validBuildURLs;
@@ -40,4 +42,8 @@ public class BuildAllowlistFactory {
     public void setTrustedBuildURLs(List<String> urls) {
         this.trustedBuildURLs = urls;
     }
+
+    public List<String> getsoxBuildURLs() { return this.soxBuildURLs; }
+
+    public void setsoxBuildURLs(List<String> urls) { this.soxBuildURLs = urls; }
 }
