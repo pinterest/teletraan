@@ -94,6 +94,9 @@ public class EnvStages {
                            EnvironBean environBean) throws Exception {
         EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(origBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        if (environBean.getIs_sox() && origBean.getIs_sox() != environBean.getIs_sox()) {
+            //authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.ADMIN);
+        }
         String operator = sc.getUserPrincipal().getName();
         try {
             environBean.validate();
@@ -102,9 +105,6 @@ public class EnvStages {
         }
         if (origBean.getStage_type() != EnvType.DEFAULT && origBean.getStage_type() != environBean.getStage_type()) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Modification of stage type is not allowed!");
-        }
-        if(environBean.getIs_sox() && origBean.getIs_sox() != environBean.getIs_sox()) {
-            authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.SYSTEMADMIN);
         }
         environBean.setEnv_name(origBean.getEnv_name());
         environBean.setStage_name(origBean.getStage_name());

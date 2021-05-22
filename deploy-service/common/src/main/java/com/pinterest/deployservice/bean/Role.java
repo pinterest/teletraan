@@ -30,16 +30,13 @@ package com.pinterest.deployservice.bean;
  *      plus the ability specify new OPERATORS and ADMINs for said environment.
  *      When a new environment is created the creating user is the designated the
  *      first ADMIN.
- * SYSTEMADMIN:
- *      System level administrator. This role is for system-wide use.
  */
 public enum Role {
     READER(0),
     PINGER(1),
     PUBLISHER(1),
     OPERATOR(10),
-    ADMIN(20),
-    SYSTEMADMIN(100);
+    ADMIN(20);
 
     private int value;
 
