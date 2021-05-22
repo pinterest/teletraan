@@ -243,6 +243,7 @@ public class EnvDeploys {
         if(envBean.getIs_SOX() && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                 "This stage requires SOX builds. The build must must be from a sox-compliant location (%s). Please Contact #teletraan to ensure the build artifact is published to a sox-compliant url",
+                buildBean.getArtifact_url());
         }
 
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);
