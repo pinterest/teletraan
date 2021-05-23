@@ -34,6 +34,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import java.util.List;
+import java.util.Optional;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/agents")
 @Api(tags = "Agents")
@@ -45,6 +46,7 @@ public class EnvAgents {
     private AgentDAO agentDAO;
     private AgentErrorDAO agentErrorDAO;
     private Authorizer authorizer;
+    private final static int DEFAULT_SIZE = 30;
 
     public enum CountActionType {
         SERVING,
@@ -81,9 +83,9 @@ public class EnvAgents {
     public List<AgentBean> getAllAgentsPaginated(
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
-            @QueryParam(value = "Page") Integer page, @QueryParam(value = "Size") Integer size) throws Exception {
+            @QueryParam(value = "Page") Optional<Integer> page, @QueryParam(value = "Size") Optional<Integer> size) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        return agentDAO.getAllByEnvPaginated(envBean.getEnv_id(), page, size);
+        return agentDAO.getAllByEnvPaginated(envBean.getEnv_id(), page.orElse(1), size.orElse(DEFAULT_SIZE));
     }
 
     @GET
