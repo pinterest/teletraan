@@ -167,7 +167,7 @@ public class PingHandler {
         }
     }
 
-    void updateHostStatus(String hostId, String hostName, String hostIp, String agentVersion, String asg, Set<String> groups) throws Exception {
+    void updateHostStatus(String hostId, String hostName, String hostIp, String agentVersion, String asg) throws Exception {
         HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
         long current_time = System.currentTimeMillis();
         boolean isExisting = true;
@@ -188,8 +188,6 @@ public class PingHandler {
         } else {
             hostAgentDAO.update(hostId, hostAgentBean);
         }
-        // update the host <-> groups mapping
-        this.updateHosts(hostName, hostIp, hostId, groups);
     }
 
     void deleteAgentSafely(String hostId, String envId) {
@@ -581,7 +579,7 @@ public class PingHandler {
     /**
      * This is the core function to update agent status and compute deploy goal
      */
-    public PingResult ping(PingRequestBean pingRequest) throws Exception {
+    public PingResult ping(PingRequestBean pingRequest, boolean rate_limited) throws Exception {
         // handle empty or unexpected request fields
         pingRequest = normalizePingRequest(pingRequest);
 
@@ -601,6 +599,15 @@ public class PingHandler {
         String agentVersion = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
         this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg, groups);
+
+        // Request is rate limited. Just update host heartbeat and return.
+        if (rate_limited) {
+            LOG.info("Return NOOP for host {} ping", hostName);
+            return new PingResult().withResponseBean(NOOP);
+        }
+
+        // update the host <-> groups mapping
+        this.updateHosts(hostName, hostIp, hostId, groups);
 
         // Convert reports to map, keyed by envId
         Map<String, PingReportBean> reports = convertReports(pingRequest);
