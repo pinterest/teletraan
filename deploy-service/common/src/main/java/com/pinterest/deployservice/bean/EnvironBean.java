@@ -197,7 +197,7 @@ public class EnvironBean implements Updatable, Serializable {
     private EnvType stage_type;
 
     @JsonProperty("isSOX")
-    private Boolean is_sox;
+    private boolean is_sox;
 
     public void validate() throws Exception {
         // A bunch of these fields will always be alphanumeric (with _ and -)

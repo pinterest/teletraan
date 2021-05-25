@@ -242,8 +242,7 @@ public class EnvDeploys {
         // disallow sox deploy if the build artifact is not from a sox source url
         if(envBean.getIs_sox() && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
-                String.format("This stage requires SOX builds. The build must must be from a sox-compliant location (%s). Please Contact #teletraan to ensure the build artifact is published to a sox-compliant url",
-                buildBean.getArtifact_url()));
+                String.format("This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators."));
         }
 
         String deployId = deployHandler.deploy(envBean, buildId, description, operator);

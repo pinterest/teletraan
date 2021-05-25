@@ -94,8 +94,8 @@ public class EnvStages {
                            EnvironBean environBean) throws Exception {
         EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(origBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
-        if (environBean.getIs_sox() && origBean.getIs_sox() != environBean.getIs_sox()) {
-            //authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.ADMIN);
+        if (origBean.getIs_sox() != environBean.getIs_sox()) {
+            authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.ADMIN);
         }
         String operator = sc.getUserPrincipal().getName();
         try {
