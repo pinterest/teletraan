@@ -67,7 +67,7 @@ import javax.validation.constraints.Pattern;
  * allow_private_build TINYINT(1)    DEFAULT 0,
  * ensure_trusted_build TINYINT(1)    DEFAULT 0,
  * stage_type VARCHAR(32) NOT NULL DEFAULT PRODUCTION,
- * is_sox TINYINT(1)    DEFAULT 0,
+ * is_sox TINYINT(1) NOT NULL DEFAULT 0,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -197,7 +197,7 @@ public class EnvironBean implements Updatable, Serializable {
     private EnvType stage_type;
 
     @JsonProperty("isSOX")
-    private boolean is_sox;
+    private Boolean is_sox;
 
     public void validate() throws Exception {
         // A bunch of these fields will always be alphanumeric (with _ and -)
