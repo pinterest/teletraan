@@ -598,7 +598,7 @@ public class PingHandler {
         //update agent version for host
         String agentVersion = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
-        this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg, groups);
+        this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg);
 
         // Request is rate limited. Just update host heartbeat and return.
         if (rate_limited) {

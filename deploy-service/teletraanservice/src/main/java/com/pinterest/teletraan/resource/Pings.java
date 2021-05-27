@@ -69,11 +69,7 @@ public class Pings {
         for (String header_key : headers.getRequestHeaders().keySet()) {
             header_dump = header_dump + "key: " + header_key + ",val: " + headers.getRequestHeaders().getFirst(header_key) + ",";
         }
-        boolean rate_limited = false;
-        if (headers.getRequestHeaders().getFirst("x-envoy-low-watermark") != null) {
-            LOG.info("AKS-ping-header: " + headers.getRequestHeaders().getFirst("x-envoy-low-watermark").getClass().getSimpleName()); // TODO: remove
-            rate_limited = Boolean.parseBoolean(headers.getRequestHeaders().getFirst("x-envoy-low-watermark"));
-        }
+        boolean rate_limited = Boolean.parseBoolean(headers.getRequestHeaders().getFirst("x-envoy-low-watermark"));
         LOG.info("AKS-ping-header-rate: " + rate_limited);
         PingResult result= pingHandler.ping(requestBean, rate_limited);
         LOG.info("Send ping response " + result.getResponseBean());
