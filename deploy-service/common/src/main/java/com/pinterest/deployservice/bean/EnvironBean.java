@@ -67,6 +67,7 @@ import javax.validation.constraints.Pattern;
  * allow_private_build TINYINT(1)    DEFAULT 0,
  * ensure_trusted_build TINYINT(1)    DEFAULT 0,
  * stage_type VARCHAR(32) NOT NULL DEFAULT PRODUCTION,
+ * is_sox TINYINT(1) NOT NULL DEFAULT 0,
  * <p>
  * PRIMARY KEY   (env_id)
  * );
@@ -194,6 +195,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     @JsonProperty("stageType")
     private EnvType stage_type;
+
+    @JsonProperty("isSOX")
+    private Boolean is_sox;
 
     public void validate() throws Exception {
         // A bunch of these fields will always be alphanumeric (with _ and -)
@@ -540,6 +544,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.stage_type = stage_type;
     }
 
+    public Boolean getIs_sox() {
+        return is_sox;
+    }
+
+    public void setIs_sox(Boolean is_sox) {
+        this.is_sox = is_sox;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -583,6 +595,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("allow_private_build", allow_private_build);
         clause.addColumn("ensure_trusted_build", ensure_trusted_build);
         clause.addColumn("stage_type", stage_type);
+        clause.addColumn("is_sox", is_sox);
         return clause;
     }
 
