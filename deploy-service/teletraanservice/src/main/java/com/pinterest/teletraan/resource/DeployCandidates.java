@@ -50,7 +50,8 @@ public class DeployCandidates {
                                          @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
         LOG.info("Receive ping request " + requestBean);
         authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PINGER);
-        PingResult result = pingHandler.ping(requestBean);
+        LOG.info("DeployCandidatesResponse handling ping!"); //TODO: remove
+        PingResult result = pingHandler.ping(requestBean, false);
         DeployCandidatesResponse resp = new DeployCandidatesResponse();
         if (result.getInstallCandidates() != null) {
             for (GoalAnalyst.InstallCandidate candidate : result.getInstallCandidates()) {
