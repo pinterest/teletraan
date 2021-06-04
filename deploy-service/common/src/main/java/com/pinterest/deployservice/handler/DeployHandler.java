@@ -53,6 +53,7 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.scm.SourceControlManager;
+import com.pinterest.deployservice.allowlists.Allowlist;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
@@ -96,6 +97,8 @@ public class DeployHandler implements DeployHandlerInterface{
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
     private BuildTagsManager buildTagsManager;
+    private Allowlist buildAllowlist;
+
 
     private final class NotifyJob implements Callable<Void> {
         private EnvironBean envBean;
@@ -194,6 +197,7 @@ public class DeployHandler implements DeployHandlerInterface{
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
         changeFeedUrl = serviceContext.getChangeFeedUrl();
         buildTagsManager = new BuildTagsManagerImpl(tagDAO);
+        buildAllowlist = serviceContext.getBuildAllowlist();
     }
 
     private String generateMentions(EnvironBean envBean, DeployBean newDeployBean, DeployBean oldDeployBean) {
@@ -355,7 +359,50 @@ public class DeployHandler implements DeployHandlerInterface{
         }
     }
 
+    /** Validate the env and build id requirements:
+        1. the build_id is not null
+        2. build name must match the build name configured in env
+        3. non-private deploy from a trusted url
+        4. private build deploy from allow_private_build env
+        5. no private build for sox env
+        6. only sox build can be deployed for sox env
+    */
+    private void validateBuild(EnvironBean envBean, String buildId) throws Exception {
+        if(StringUtils.isEmpty(buildId)) {
+            throw new DeployInternalException("Build id can not be empty.");
+        }
+        BuildBean buildBean = buildDAO.getById(buildId);
+        
+        // check build name must match stage config
+        if(!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
+            throw new DeployInternalException("Build name (%s) does not match stage config (%s).", 
+                    buildBean.getBuild_name(), envBean.getBuild_name());
+        }
+        // only allow a non-private deploy if the build is from a trusted artifact url
+        if(envBean.getEnsure_trusted_build() && !buildBean.getScm_branch().equals("private") &&
+            buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
+            throw new DeployInternalException("Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
+                    buildBean.getArtifact_url());
+        }
+        // if the stage is not allowed (allow_private_build)
+        if(! envBean.getAllow_private_build()) {
+            // only allow deploy if it is not private build
+            if (buildBean.getScm_branch().equals("private")) {
+                throw new DeployInternalException("This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.");
+            }
+        }
+        // disallow sox deploy if the build artifact is private
+        if(envBean.getIs_sox() && buildBean.getScm_branch().equals("private")) {
+            throw new DeployInternalException("This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.");
+        }
+        // disallow sox deploy if the build artifact is not from a sox source url
+        if(envBean.getIs_sox() && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
+            throw new DeployInternalException("This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.");
+        }
+    }
     public String deploy(EnvironBean envBean, String buildId, String desc, String operator) throws Exception {
+        validateBuild(envBean, buildId);
+
         DeployBean deployBean = new DeployBean();
         deployBean.setEnv_id(envBean.getEnv_id());
         deployBean.setBuild_id(buildId);
@@ -384,6 +431,8 @@ public class DeployHandler implements DeployHandlerInterface{
         }
      
         DeployBean fromDeployBean = getDeploySafely(fromDeployId);
+
+        validateBuild(envBean, fromDeployBean.getBuild_id());
 
         DeployBean deployBean = new DeployBean();
         deployBean.setEnv_id(envBean.getEnv_id());
