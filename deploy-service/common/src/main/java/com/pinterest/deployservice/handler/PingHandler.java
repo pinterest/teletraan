@@ -600,12 +600,6 @@ public class PingHandler {
 
         this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg);
 
-        // Request is rate limited. Just update host heartbeat and return.
-        if (rate_limited) {
-            LOG.info("Return NOOP for host {} ping", hostName);
-            return new PingResult().withResponseBean(NOOP);
-        }
-
         // update the host <-> groups mapping
         this.updateHosts(hostName, hostIp, hostId, groups);
 
@@ -640,6 +634,17 @@ public class PingHandler {
                 EnvironBean env = installCandidate.env;
                 if (installCandidate.needWait) {
                     LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
+                    // Request has hit LWM rate-limit. we already updated heartbeat. 
+                    // Next, see if we can handle light-weight deploys, instead of completly discarding request.
+                    // Idea is, 
+                    // 1. we want to continue in-progress deploy.
+                    // 2. delay starting new deploy on the host(canDeploy call below is expensive for services with system priority).
+                    // 3. allow any light weight deploys.
+                    // This can be removed once canDeploy is more scalable for large stages
+                    if (rate_limited && env.getSystem_priority() != null) {
+                        LOG.debug("Host {} ping rate limited, delay deploying env {}/{}", hostName, env.getEnv_name(), env.getStage_name());
+                        continue;
+                    }
                     if (canDeploy(env, hostName, updateBean)) {
                         LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
                         updateBeans.put(updateBean.getEnv_id(), updateBean);
