@@ -23,6 +23,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
@@ -47,11 +48,12 @@ public class DeployCandidates {
         notes = "Returns a list of build bean",
         response = DeployCandidatesResponse.class)
     public DeployCandidatesResponse getDeployCandidates(@Context SecurityContext sc,
-                                         @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
+                @Context HttpHeaders headers,
+                @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
         LOG.info("Receive ping request " + requestBean);
         authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PINGER);
-        LOG.info("DeployCandidatesResponse handling ping!"); //TODO: remove
-        PingResult result = pingHandler.ping(requestBean, false);
+        boolean rate_limited = Boolean.parseBoolean(headers.getRequestHeaders().getFirst("x-envoy-low-watermark"));
+        PingResult result = pingHandler.ping(requestBean, rate_limited);
         DeployCandidatesResponse resp = new DeployCandidatesResponse();
         if (result.getInstallCandidates() != null) {
             for (GoalAnalyst.InstallCandidate candidate : result.getInstallCandidates()) {
