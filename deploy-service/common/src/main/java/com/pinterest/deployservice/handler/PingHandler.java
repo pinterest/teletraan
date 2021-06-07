@@ -641,7 +641,7 @@ public class PingHandler {
                     // 2. delay starting new deploy on the host(canDeploy call below is expensive for services with system priority).
                     // 3. allow any light weight deploys.
                     // This can be removed once canDeploy is more scalable for large stages
-                    if (rate_limited && env.getSystem_priority() != null) {
+                    if (rate_limited == true && env.getSystem_priority() != null) {
                         LOG.debug("Host {} ping rate limited, delay deploying env {}/{}", hostName, env.getEnv_name(), env.getStage_name());
                         continue;
                     }

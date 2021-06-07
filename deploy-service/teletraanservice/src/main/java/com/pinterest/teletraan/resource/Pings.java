@@ -65,12 +65,8 @@ public class Pings {
                                  @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
         LOG.info("Receive ping request " + requestBean);
         authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PINGER);
-        String header_dump = ""; 
-        for (String header_key : headers.getRequestHeaders().keySet()) {
-            header_dump = header_dump + "key: " + header_key + ",val: " + headers.getRequestHeaders().getFirst(header_key) + ",";
-        }
+
         boolean rate_limited = Boolean.parseBoolean(headers.getRequestHeaders().getFirst("x-envoy-low-watermark"));
-        LOG.info("AKS-ping-header-rate: " + rate_limited);
         PingResult result= pingHandler.ping(requestBean, rate_limited);
         LOG.info("Send ping response " + result.getResponseBean());
         return result.getResponseBean();
