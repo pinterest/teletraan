@@ -28,7 +28,11 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.Comparator;
 
 public class DBEnvironDAOImpl implements EnvironDAO {
     private static final String INSERT_ENV_TEMPLATE =
@@ -56,11 +60,11 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     private static final String DELETE_ENV =
         "DELETE FROM environs WHERE env_id=?";
     private static final String GET_ENVS_BY_HOST_TMPL =
-        "SELECT DISTINCT e.* FROM environs e " +
+        "SELECT e.* FROM environs e " +
             "INNER JOIN hosts_and_envs he ON he.env_id = e.env_id " +
             "WHERE he.host_name = '%s'";
     private static final String GET_ENVS_BY_GROUPS_TMPL =
-            "SELECT DISTINCT e.* FROM environs e " +
+            "SELECT e.* FROM environs e " +
             "INNER JOIN groups_and_envs ge ON ge.env_id = e.env_id " +
             "WHERE ge.group_name IN (%s)";
     private static final String COUNT_HOSTS_BY_CAPACITY =
@@ -229,14 +233,20 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     @Override
     public List<EnvironBean> getEnvsByHost(String host) throws Exception {
         ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<EnvironBean>(EnvironBean.class);
-        return new QueryRunner(dataSource).query(String.format(GET_ENVS_BY_HOST_TMPL, host), h);
+        List<EnvironBean> hostEnvs = new QueryRunner(dataSource).query(String.format(GET_ENVS_BY_HOST_TMPL, host), h);
+        Set<EnvironBean> envSet = new TreeSet<EnvironBean>((EnvironBean e1, EnvironBean e2) ->e1.getEnv_id().compareTo(e2.getEnv_id()));
+        envSet.addAll(hostEnvs);
+        return new ArrayList<EnvironBean>(envSet);
     }
 
     @Override
     public List<EnvironBean> getEnvsByGroups(Collection<String> groups) throws Exception {
         ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<>(EnvironBean.class);
         String groupStr = QueryUtils.genStringGroupClause(groups);
-        return new QueryRunner(dataSource).query(String.format(GET_ENVS_BY_GROUPS_TMPL, groupStr), h);
+        List<EnvironBean> groupEnvs = new QueryRunner(dataSource).query(String.format(GET_ENVS_BY_GROUPS_TMPL, groupStr), h);
+        Set<EnvironBean> envSet = new TreeSet<EnvironBean>((EnvironBean e1, EnvironBean e2) ->e1.getEnv_id().compareTo(e2.getEnv_id()));
+        envSet.addAll(groupEnvs);
+        return new ArrayList<EnvironBean>(envSet);
     }
 
     @Override
