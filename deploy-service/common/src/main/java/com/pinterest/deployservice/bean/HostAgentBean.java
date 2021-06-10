@@ -21,15 +21,15 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 /**
  * Keep the bean and table in sync
  * <p>
- * CREATE TABLE host_and_agents (
- * host_id         VARCHAR(64)         NOT NULL,
+ * CREATE TABLE services (
+ * svc_name        VARCHAR(64)         NOT NULL,
  * host_name       VARCHAR(64),
  * ip              VARCHAR(64),
  * create_date     BIGINT              NOT NULL,
  * last_update     BIGINT              NOT NULL,
  * agent_version   VARCHAR(64),
  * auto_scaling_group VARCHAR(128)     DEFAULT NULL,
- * PRIMARY KEY    host_id
+ * PRIMARY KEY    svc_name
  * );
  */
 public class HostAgentBean implements Updatable {
