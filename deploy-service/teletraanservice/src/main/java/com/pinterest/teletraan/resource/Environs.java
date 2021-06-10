@@ -114,6 +114,16 @@ public class Environs {
     }
 
     @GET
+    @Path("/sidecars")
+    @ApiOperation(
+            value = "Get all sidecar environment objects",
+            notes = "Returns a list of sidecar environment objects",
+            response = EnvironBean.class, responseContainer = "List")
+    public List<EnvironBean> getAllSidecars() throws Exception {
+        return environDAO.getAllSidecarEnvs();
+    }
+
+    @GET
     @ApiOperation(
             value = "Get all environment objects",
             notes = "Returns a list of environment objects related to the given environment name",

@@ -105,6 +105,10 @@ def get_all_envs_by_group(request, group_name):
     return deployclient.get("/envs/", request.teletraan_user_id.token, params=params)
 
 
+def get_all_sidecar_envs(request):
+    return deployclient.get("/envs/sidecars", request.teletraan_user_id.token)
+
+
 def get(request, id):
     return deployclient.get("/envs/%s" % id, request.teletraan_user_id.token)
 

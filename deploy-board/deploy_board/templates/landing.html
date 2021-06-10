@@ -18,19 +18,29 @@
     </div>
 </div>
 
-    <div class="panel panel-default">
-    {% include "panel_heading.tmpl" with panel_title="Deployment Statistics" panel_body_id="deployStatsId" direction="down" %}
-        <div id="deployStatsId" class="collapse in panel-body">
-            <div id="dailyDeployCountId"></div>
-        </div>
+<div class="panel panel-default">
+    {% include "panel_heading.tmpl" with panel_title="Ongoing Sidecar Deployments" panel_body_id="onGoingSidecarDeployId" direction="down" %}
+    <div id="onGoingSidecarDeployId" class="collapse in panel-body table-responsive">
     </div>
+</div>
+
+<div class="panel panel-default">
+{% include "panel_heading.tmpl" with panel_title="Deployment Statistics" panel_body_id="deployStatsId" direction="down" %}
+    <div id="deployStatsId" class="collapse in panel-body">
+        <div id="dailyDeployCountId"></div>
+    </div>
+</div>
 <script>
     $(function () {
         $('#onGoingDeployId').load('/deploys/ongoing/');
-
         setInterval(function() {
             $('#onGoingDeployId').load('/deploys/ongoing/');
-        }, 30000);
+        }, 60000);
+
+        $('#onGoingSidecarDeployId').load('/deploys/ongoing_sidecar/');
+        setInterval(function() {
+            $('#onGoingSidecarDeployId').load('/deploys/ongoing_sidecar/');
+        }, 60000);
 
         $('#dailyDeployCountId').load('/deploys/dailycount');
     });
