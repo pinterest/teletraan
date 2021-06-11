@@ -154,11 +154,13 @@ public class GoalAnalyst {
     }
 
     public class UninstallCandidate implements Comparable<UninstallCandidate> {
+        AgentBean updateBean;
         PingReportBean report;
         EnvironBean environ;
 
-        UninstallCandidate(PingReportBean report) {
+        UninstallCandidate(AgentBean updateBean, PingReportBean report) {
             this.report = report;
+            this.updateBean = updateBean;
             environ = existingAgentEnv.getOrDefault(report.getEnvId(), new EnvironBean());
         }
 
@@ -273,8 +275,29 @@ public class GoalAnalyst {
         }
     }
 
+    boolean shouldUpdateAgentRecord(AgentBean origBean, AgentBean updateBean) {
+        
+        if (origBean == null || updateBean == null) {
+            return true;
+        }
+        if (origBean.getHost_id() != null && origBean.getHost_id().equals(host_id) && 
+            origBean.getDeploy_id() != null && origBean.getDeploy_id().equals(updateBean.getDeploy_id()) &&
+            origBean.getEnv_id() != null && origBean.getEnv_id().equals(updateBean.getEnv_id()) && 
+            origBean.getFail_count() != null && origBean.getFail_count().equals(updateBean.getFail_count()) &&
+            origBean.getStatus() != null && origBean.getStatus().equals(updateBean.getStatus()) && 
+            origBean.getLast_err_no() != null && origBean.getLast_err_no().equals(updateBean.getLast_err_no()) &&
+            origBean.getState() != null && origBean.getState().equals(updateBean.getState()) && 
+            origBean.getDeploy_stage() != null && origBean.getDeploy_stage().equals(updateBean.getDeploy_stage())) {
+            LOG.debug("Skip updating agent record for env_id {}, deploy_id {} on host {}",
+                    origBean.getEnv_id(), origBean.getDeploy_id(), origBean.getHost_id());
+            return false;
+        }
+        LOG.info("Agent record for env_id {}, deploy_id {} on host {} needs update",
+                origBean.getEnv_id(), origBean.getDeploy_id(), origBean.getHost_id());
+        return true;
+    }
+
     // Generate new agent bean based on the report & current agent record,
-    // This is intended to be used for update agent record, not for goal,
     // We populate all the fields, since this could be used for insertOrUpdate as well
     AgentBean genUpdateBeanByReport(PingReportBean report, AgentBean agent) {
         // We generate complete bean in case we need to insertOrUpdate it into agents table
@@ -461,7 +484,8 @@ public class GoalAnalyst {
         AgentBean updateBean = null;
         if (report != null) {
             updateBean = genUpdateBeanByReport(report, agent);
-            if (!StringUtils.isEmpty(report.getEnvId())) {
+            if (!StringUtils.isEmpty(report.getEnvId()) && updateBean != null &&
+                shouldUpdateAgentRecord(agent, updateBean) == true) {
                 // Only record this in agent table when there is env, otherwise,
                 // we do not know which env it belongs to
                 needUpdateAgents.put(envId, updateBean);
@@ -585,6 +609,8 @@ public class GoalAnalyst {
                     newUpdateBean = genNextStageUpdateBean(env, report, agent);
                     LOG.debug("GoalAnalyst case 1.2 - host {} successfully finished stage {} for same deploy {}, set env {} as a goal candidate for next stage {}.",
                         host, report.getDeployStage(), env.getDeploy_id(), env.getEnv_id(), newUpdateBean.getDeploy_stage());
+                    // Since the report already claim agent is restarting, no need to wait
+                    installCandidates.add(new InstallCandidate(env, false, newUpdateBean, report));
                 } else {
                     if (updateBean.getState() == AgentState.PAUSED_BY_SYSTEM) {
                         /**
@@ -603,13 +629,13 @@ public class GoalAnalyst {
                          * We allow agent to retry either because user explicitly set AgentState to RESET, or the
                          * reported error is not fail.
                          */
-                        newUpdateBean = genUpdateBeanByReport(report, agent);
                         LOG.debug("GoalAnalyst case 1.4 - host {} failed stage {} for same deploy {}, set env {} as a goal candidate and repeat the same stage {}.",
-                            host, report.getDeployStage(), env.getDeploy_id(), env.getEnv_id(), newUpdateBean.getDeploy_stage());
+                            host, report.getDeployStage(), env.getDeploy_id(), env.getEnv_id(), updateBean.getDeploy_stage());
+                        // Since the report already claim agent is restarting, no need to wait
+                        installCandidates.add(new InstallCandidate(env, false, updateBean, report));
                     }
                 }
-                // Since the report already claim agent is restarting, no need to wait
-                installCandidates.add(new InstallCandidate(env, false, newUpdateBean, report));
+
             } else {
                 /**
                  * Case 1.5: Env has a different deploy than report, this is typically the start of a new deploy.
@@ -644,7 +670,7 @@ public class GoalAnalyst {
          */
         if (report != null && !StringUtils.isEmpty(report.getEnvId())) {
             LOG.debug("GoalAnalyst case 3.1 - add an uninstall candidate to instruct host {} to remove the retired env {}", host, report.getEnvId());
-            uninstallCandidates.add(new UninstallCandidate(report));
+            uninstallCandidates.add(new UninstallCandidate(updateBean, report));
             updateBean.setState(AgentState.DELETE);
             return;
         }

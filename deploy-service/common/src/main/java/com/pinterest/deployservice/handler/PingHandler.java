@@ -655,7 +655,13 @@ public class PingHandler {
                 }
             }
         }
-
+        List<GoalAnalyst.UninstallCandidate> uninstallCandidates = analyst.getUninstallCandidates();
+        if (!uninstallCandidates.isEmpty()) {
+            for (GoalAnalyst.UninstallCandidate uninstallCandidate : uninstallCandidates) {
+                AgentBean updateBean = uninstallCandidate.updateBean;
+                updateBeans.put(updateBean.getEnv_id(), updateBean);
+            }
+        }
         // Delete deprecated agents if necessary
         List<String> needDeleteAgentIds = analyst.getNeedDeleteAgentEnvIds();
         for (String envId : needDeleteAgentIds) {
@@ -675,7 +681,6 @@ public class PingHandler {
                 .withInstallCandidates(installCandidates);
         }
 
-        List<GoalAnalyst.UninstallCandidate> uninstallCandidates = analyst.getUninstallCandidates();
         if (uninstallCandidates.isEmpty()) {
             LOG.info("Return NOOP for host {} ping, no install or uninstall candidates.", hostName);
             return new PingResult().withResponseBean(NOOP)
