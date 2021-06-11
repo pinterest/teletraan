@@ -96,6 +96,8 @@ public class DBEnvironDAOImpl implements EnvironDAO {
         "SELECT env_id FROM environs";
     private static final String GET_ALL_ENVS =
         "SELECT * FROM environs";
+    private static final String GET_ALL_SIDECAR_ENVS =
+        "SELECT * FROM environs where system_priority > 0";
     private static final String DELETE_SCHEDULE =
         "UPDATE environs SET schedule_id=null where env_name=? AND stage_name=?";
     private static final String DELETE_CLUSTER =
@@ -264,6 +266,12 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     public List<EnvironBean> getAllEnvs() throws Exception {
         ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<>(EnvironBean.class);
         return new QueryRunner(dataSource).query(GET_ALL_ENVS, h);
+    }
+
+    @Override
+    public List<EnvironBean> getAllSidecarEnvs() throws Exception {
+        ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<>(EnvironBean.class);
+        return new QueryRunner(dataSource).query(GET_ALL_SIDECAR_ENVS, h);
     }
 
     @Override

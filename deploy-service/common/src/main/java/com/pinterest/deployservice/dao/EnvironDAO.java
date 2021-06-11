@@ -65,8 +65,9 @@ public interface EnvironDAO {
 
     // Return all
     List<String> getAllEnvIds() throws Exception;
-
+    
     List<EnvironBean> getAllEnvs() throws Exception;
+    List<EnvironBean> getAllSidecarEnvs() throws Exception;
 
     void deleteSchedule(String envName, String stageName) throws Exception;
 
