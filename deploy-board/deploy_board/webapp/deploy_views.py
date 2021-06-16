@@ -28,6 +28,36 @@ from helpers import builds_helper, deploys_helper, environs_helper, tags_helper
 DEFAULT_PAGE_SIZE = 30
 DEFAULT_ONGOING_DEPLOY_SIZE = 10
 
+def _get_running_deploys_count(request):
+    deploy_states = ["RUNNING"]  # current running deploys
+    page_size = 1                # only need to return 1 detail, the return structure has the "total" value
+    deployResult = deploys_helper.get_all(request, deployState=deploy_states, pageSize=page_size)
+    return deployResult['total']
+
+def _get_sidecars(request):
+    # returns a list of env id for sidecars which are identified by having a system priority
+    envs = environs_helper.get_all_sidecar_envs(request)
+    env_ids = []
+    for env in envs:
+        env_ids.append(env['id'])
+    return env_ids
+
+def _get_ongoing_sidecar_deploys(request):
+    deploy_summaries = []
+    env_ids = _get_sidecars(request)
+    if env_ids:
+        deploy_states = ["RUNNING", "FAILING"]
+        deployResult = deploys_helper.get_all(request, envId=env_ids, deployState=deploy_states)
+        for deploy in deployResult['deploys']:
+            env = environs_helper.get(request, deploy['envId'])
+            build = builds_helper.get_build(request, deploy['buildId'])
+            summary = {}
+            summary['deploy'] = deploy
+            summary['env'] = env
+            summary['build'] = build
+            deploy_summaries.append(summary)
+
+    return deploy_summaries
 
 def _get_ongoing_deploys(request, index, size):
     # ongoing deploys are defined as deploys with states as:
@@ -57,6 +87,16 @@ def get_landing_page(request):
         "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
     })
 
+def get_ongoing_sidecar_deploys(request):
+    deploy_summeries = _get_ongoing_sidecar_deploys(request)
+    html = render_to_string('deploys/ongoing_deploys.tmpl', {
+        "deploy_summaries": deploy_summeries,
+        "pageIndex": 1,
+        "pageSize": 100,
+        "disablePrevious": True,
+        "disableNext": True,
+    })
+    return HttpResponse(html)
 
 def get_ongoing_deploys(request):
     index = int(request.GET.get('page_index', '1'))
@@ -72,9 +112,11 @@ def get_ongoing_deploys(request):
     return HttpResponse(html)
 
 def get_daily_deploy_count(request):
-    daily_deploy_count = deploys_helper.get_daily_deploy_count(request);
+    daily_deploy_count = deploys_helper.get_daily_deploy_count(request)
+    running_deploy_count = _get_running_deploys_count(request)
     html = render_to_string('deploys/daily_deploy_count.tmpl', {
         "daily_deploy_count": daily_deploy_count,
+        "running_deploy_count": running_deploy_count
     })
     return HttpResponse(html)
 
