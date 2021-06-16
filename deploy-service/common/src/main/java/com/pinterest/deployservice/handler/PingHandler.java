@@ -628,11 +628,19 @@ public class PingHandler {
 
         // The current thinking is to try the first candidate, even it needs to wait
         if (!installCandidates.isEmpty()) {
+            boolean found_sidecar = false;
             for (GoalAnalyst.InstallCandidate installCandidate : installCandidates) {
                 AgentBean updateBean = installCandidate.updateBean;
                 EnvironBean env = installCandidate.env;
                 if (installCandidate.needWait) {
                     LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
+                    if (found_sidecar == true) {
+                        // rate limit sidecar deploy one at a time
+                        continue;
+                    }
+                    if (env.getSystem_priority() != null) {
+                        found_sidecar = true;
+                    }
                     if (canDeploy(env, hostName, updateBean)) {
                         LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
                         updateBeans.put(updateBean.getEnv_id(), updateBean);
