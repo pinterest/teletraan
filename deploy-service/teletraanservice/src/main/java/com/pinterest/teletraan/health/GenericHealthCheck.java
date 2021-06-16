@@ -30,10 +30,8 @@ import java.util.List;
 public class GenericHealthCheck extends HealthCheck {
     private static final Logger LOG = LoggerFactory.getLogger(GenericHealthCheck.class);
     private final static int DEFAULT_SIZE = 2;
-    private DeployDAO deployDAO;
 
     public GenericHealthCheck(TeletraanServiceContext context) {
-        deployDAO = context.getDeployDAO();
     }
 
     @Override
