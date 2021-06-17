@@ -135,8 +135,9 @@ var capacitySetting = new Vue({
         hostTypeOptions: info.hostTypes.map(
             function (item, idx) {
                 return {
-                    value: item.id, text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
-                    isSelected: item.abstract_name === capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType).id
+                    value: item.id,
+                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
+                    isSelected: item.abstract_name === info.defaultHostType
                 }
             }),
         cellValue: info.defaultCell,
