@@ -8,7 +8,7 @@ public class RodimusFactory {
     private String rodimusUrl;
 
     @JsonProperty
-    private String token;
+    private String role;
 
     public String getRodimusUrl() {
         return rodimusUrl;
@@ -18,11 +18,11 @@ public class RodimusFactory {
         this.rodimusUrl = rodimusUrl;
     }
 
-    public String getToken() {
-        return token;
+    public String getRole() {
+        return role;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setRole(String role) {
+        this.role = role;
     }
 }

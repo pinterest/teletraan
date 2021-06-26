@@ -25,10 +25,14 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
 import com.pinterest.deployservice.common.HTTPClient;
+import com.pinterest.deployservice.knox.CommandLineKnox;
+import com.pinterest.deployservice.knox.FileSystemKnox;
+import com.pinterest.deployservice.knox.Knox;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,16 +48,46 @@ public class RodimusManagerImpl implements RodimusManager {
     private Map<String, String> headers;
     private Gson gson;
 
-    public RodimusManagerImpl(String rodimusUrl, String token) {
+    public RodimusManagerImpl(String rodimusUrl, String role) {
         this.rodimusUrl = rodimusUrl;
         this.httpClient = new HTTPClient();
         this.headers = new HashMap<>();
         this.headers.put("Content-Type", "application/json");
+        String token = this.getRodimusToken(role);
         if (token != null) {
             this.headers.put("Accept", "*/*");
             this.headers.put("Authorization", String.format("token %s", token));
         }
         this.gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
+    }
+
+    private static String getRodimusToken(String role) {
+        try {
+           LOG.info("Get rodimus token with role {}", role);
+            String fileName = String.format("rodimus:%s:token", role);
+            // Register key
+            File file = new File("/var/lib/knox/v0/keys/" + fileName);
+            if (!file.exists()) {
+                CommandLineKnox cmdKnox = new CommandLineKnox(fileName, Runtime.getRuntime());
+
+                    if (cmdKnox.register() != 0) {
+                        throw new RuntimeException("Error registering keys: " + fileName);
+                    }
+
+                long startTime = System.currentTimeMillis();
+                while (!file.exists() && System.currentTimeMillis() - startTime < 5000) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException ignore) {
+                    }
+                }
+            }
+            Knox mKnox = new FileSystemKnox(fileName);
+            return new String(mKnox.getPrimaryKey(), "UTF-8");
+        } catch (Exception e) {
+            LOG.error("Exception while getting rodimus token from knox :" + e.getMessage());
+        }
+        return null;
     }
 
     private class CustomExclusionStrategy implements ExclusionStrategy {
