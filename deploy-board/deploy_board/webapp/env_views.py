@@ -861,7 +861,7 @@ def post_add_stage(request, name):
     stages, _ = common.get_all_stages(all_envs_stages, None)
     if from_stage and from_stage not in stages:
         raise Exception("Can not clone from non-existing stage!")
-    
+
     external_id = None
     if IS_PINTEREST:
         identifier = create_identifier_for_new_stage(request, name, stage)
@@ -1161,7 +1161,11 @@ def disable_all_env_change(request):
 def get_hosts(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
-    agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
+
+    index = int(request.GET.get('page', '1'))
+    size = int(request.GET.get('size', DEFAULT_PAGE_SIZE))
+
+    agents = agents_helper.get_agents_paginated(request, env['envName'], env['stageName'], index, size)
     if agents:
         sorted(agents, key=lambda x:x['hostName'])
     title = "All hosts"
@@ -1178,6 +1182,10 @@ def get_hosts(request, name, stage):
         "stages": stages,
         "agents_wrapper": agents_wrapper,
         "title": title,
+        "pageIndex": index,
+        "pageSize": DEFAULT_PAGE_SIZE,
+        "disablePrevious": index <= 1,
+        "disableNext": len(agents) < DEFAULT_PAGE_SIZE,
     })
 
 
