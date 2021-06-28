@@ -633,7 +633,7 @@ public class PingHandler {
                 AgentBean updateBean = installCandidate.updateBean;
                 EnvironBean env = installCandidate.env;
                 if (installCandidate.needWait) {
-                    LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
+                    LOG.debug("Checking if host {}, updateBean = {}, rate_limited = {}, system_priority = {} can deploy", hostName, updateBean, rate_limited, env.);
                     // Request has hit LWM rate-limit. we already updated heartbeat. 
                     // Next, see if we can handle light-weight deploys, instead of completly discarding request.
                     // Idea is, 
