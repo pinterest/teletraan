@@ -643,7 +643,7 @@ public class PingHandler {
                     // 3. allow any light weight deploys.
                     // This can be removed once canDeploy is more scalable for large stages
                     if (rate_limited == true && env.getSystem_priority() != null) {
-                        LOG.debug("Host {} ping rate limited, delay deploying env {}/{}", hostName, env.getEnv_name(), env.getStage_name());
+                        LOG.info("Host {} ping rate limited, delay deploying env {}/{}", hostName, env.getEnv_name(), env.getStage_name());
                         continue;
                     }
                     if (canDeploy(env, hostName, updateBean)) {
