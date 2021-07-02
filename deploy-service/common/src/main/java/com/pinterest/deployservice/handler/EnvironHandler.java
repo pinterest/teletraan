@@ -439,6 +439,11 @@ public class EnvironHandler {
             }
         }
         for (String group : oldGroups) {
+            if (group == envBean.getCluster_name()) {
+                LOG.info("Skipping implicit group %s", group);
+                continue;
+
+            }
             groupDAO.removeGroupCapacity(envBean.getEnv_id(), group);
         }
     }
