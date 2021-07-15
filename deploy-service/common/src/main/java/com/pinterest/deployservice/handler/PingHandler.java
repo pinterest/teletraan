@@ -167,7 +167,7 @@ public class PingHandler {
         }
     }
 
-    void updateHostStatus(String hostId, String hostName, String hostIp, String agentVersion, String asg, Set<String> groups) throws Exception {
+    void updateHostStatus(String hostId, String hostName, String hostIp, String agentVersion, String asg) throws Exception {
         HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
         long current_time = System.currentTimeMillis();
         boolean isExisting = true;
@@ -188,8 +188,6 @@ public class PingHandler {
         } else {
             hostAgentDAO.update(hostId, hostAgentBean);
         }
-        // update the host <-> groups mapping
-        this.updateHosts(hostName, hostIp, hostId, groups);
     }
 
     void deleteAgentSafely(String hostId, String envId) {
@@ -581,7 +579,7 @@ public class PingHandler {
     /**
      * This is the core function to update agent status and compute deploy goal
      */
-    public PingResult ping(PingRequestBean pingRequest) throws Exception {
+    public PingResult ping(PingRequestBean pingRequest, boolean rate_limited) throws Exception {
         // handle empty or unexpected request fields
         pingRequest = normalizePingRequest(pingRequest);
 
@@ -600,7 +598,10 @@ public class PingHandler {
         //update agent version for host
         String agentVersion = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
-        this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg, groups);
+        this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg);
+
+        // update the host <-> groups mapping
+        this.updateHosts(hostName, hostIp, hostId, groups);
 
         // Convert reports to map, keyed by envId
         Map<String, PingReportBean> reports = convertReports(pingRequest);
@@ -632,7 +633,19 @@ public class PingHandler {
                 AgentBean updateBean = installCandidate.updateBean;
                 EnvironBean env = installCandidate.env;
                 if (installCandidate.needWait) {
-                    LOG.debug("Checking if host {}, updateBean = {} can deploy", hostName, updateBean);
+                    LOG.debug("Checking if host {}, updateBean = {}, rate_limited = {}, system_priority = {} can deploy",
+                                hostName, updateBean, rate_limited, env.getSystem_priority());
+                    // Request has hit LWM rate-limit. we already updated heartbeat. 
+                    // Next, see if we can handle light-weight deploys, instead of completly discarding request.
+                    // Idea is, 
+                    // 1. we want to continue in-progress deploy.
+                    // 2. delay starting new deploy on the host(canDeploy call below is expensive for services with system priority).
+                    // 3. allow any light weight deploys.
+                    // This can be removed once canDeploy is more scalable for large stages
+                    if (rate_limited == true && env.getSystem_priority() != null) {
+                        LOG.info("Host {} ping rate limited, delay deploying env {}/{}", hostName, env.getEnv_name(), env.getStage_name());
+                        continue;
+                    }
                     if (canDeploy(env, hostName, updateBean)) {
                         LOG.debug("Host {} can proceed to deploy, updateBean = {}", hostName, updateBean);
                         updateBeans.put(updateBean.getEnv_id(), updateBean);

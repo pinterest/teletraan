@@ -36,6 +36,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
@@ -60,10 +61,12 @@ public class Pings {
             notes = "Returns a deploy goal object given a ping request object",
             response = PingResponseBean.class)
     public PingResponseBean ping(@Context SecurityContext sc,
+                                 @Context HttpHeaders headers,
                                  @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
         LOG.info("Receive ping request " + requestBean);
         authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PINGER);
-        PingResult result= pingHandler.ping(requestBean);
+        boolean rate_limited = Boolean.parseBoolean(headers.getRequestHeaders().getFirst("x-envoy-low-watermark"));
+        PingResult result= pingHandler.ping(requestBean, rate_limited);
         LOG.info("Send ping response " + result.getResponseBean());
         return result.getResponseBean();
     }
