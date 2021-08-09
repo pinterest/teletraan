@@ -424,7 +424,7 @@ class ScalingPolicy(object):
             self.scaleUpCoolDownTime = policies.get("scaleupPolicies")[0].get("coolDown")
             self.scaleDownCoolDownTime = policies.get("scaledownPolicies")[0].get("coolDown")
             self.scaleUpType = policies.get("scaleupPolicies")[0].get("scalingType")
-            self.scaleDownType = policies.get("scaleupPolicies")[0].get("scalingType")
+            self.scaleDownType = policies.get("scaledownPolicies")[0].get("scalingType")
 
 
 def get_policy(request, group_name):
