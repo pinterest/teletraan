@@ -19,10 +19,15 @@ package com.pinterest.teletraan.worker;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostAgentBean;
+import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.handler.HostHandler;
+import com.pinterest.deployservice.handler.CommonHandler;
+import com.pinterest.deployservice.common.NotificationJob;
+import java.util.concurrent.ExecutorService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,14 +44,22 @@ import java.util.*;
 public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
     private HostGroupManager hostGroupDAO;
+    private EnvironDAO environDAO;
     private final RodimusManager rodimusManager;
     private long maxLaunchLatencyThreshold;
+    private final CommonHandler commonHandler;
+    private final ExecutorService jobPool;
+    private String deployBoardUrlPrefix;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
         int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
         super(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
         hostGroupDAO = serviceContext.getHostGroupDAO();
+        environDAO = serviceContext.getEnvironDAO();
         rodimusManager = serviceContext.getRodimusManager();
+        commonHandler = new CommonHandler(serviceContext);
+        jobPool = serviceContext.getJobPool();
+        deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
 
@@ -108,21 +121,40 @@ public class AgentJanitor extends SimpleAgentJanitor {
         long current_time = System.currentTimeMillis();
         long maxThreshold = current_time - Math.min(maxStaleHostThreshold, maxLaunchLatencyThreshold);
         List<HostAgentBean> maxStaleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
-        Set<String> staleHostIds = new HashSet<>();
+        //Set<String> staleHostIds = new HashSet<>();
+        Map<String, String> staleHostIds = new HashMap<>();
         
         for (HostAgentBean hostAgentBean : maxStaleHosts) {
             if (isHostStale(hostAgentBean)) {
-                staleHostIds.add(hostAgentBean.getHost_id());
+                staleHostIds.put(hostAgentBean.getHost_id(), hostAgentBean.getAuto_scaling_group());
             }
         }
-        Collection<String> terminatedHosts = getTerminatedHostsFromSource(staleHostIds);
-        for (String staleId : staleHostIds) {
+        Collection<String> terminatedHosts = getTerminatedHostsFromSource(staleHostIds.keySet());
+        Map<String, Integer> unreachableCountPerASG = new HashMap<>();
+        for (Map.Entry<String, String> entry : staleHostIds.entrySet()) {
+            String staleId = entry.getKey();
             if (terminatedHosts.contains(staleId)) {
                 removeStaleHost(staleId);
             } else {
                 markUnreachableHost(staleId);
+                unreachableCountPerASG.put(entry.getValue(), unreachableCountPerASG.getOrDefault(entry.getValue(), 0) + 1);
             }
         }
+        notifyOnUnreachableHosts(unreachableCountPerASG);
+    }
+
+    private void notifyOnUnreachableHosts(Map<String, Integer> unreachableCountPerASG) throws Exception {
+        for (Map.Entry<String, Integer> entry : unreachableCountPerASG.entrySet()) {
+            EnvironBean environBean = entry.getValue() != null ? environDAO.getByCluster(entry.getKey()) : null;
+            if (environBean != null) {
+                String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s", environBean.getEnv_name(), environBean.getStage_name());
+                String message = String.format("Instances not reporting (unreachable) to Teletraan.");
+                String subject = String.format("Cluster %s has %d unreachable instances.", webLink, entry.getValue());
+                LOG.debug("Cluster %s has %d unreachable instances.", webLink, entry.getValue());
+                jobPool.submit(new NotificationJob(message, subject, environBean.getEmail_recipients(), environBean.getChatroom(), commonHandler));
+            } 
+        }
+
     }
 
     @Override
