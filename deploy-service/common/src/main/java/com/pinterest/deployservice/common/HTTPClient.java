@@ -97,7 +97,8 @@ public class HTTPClient {
                     throw new DeployInternalException("HTTP request failed, status = {}, content = {}",
                         responseCode, ret);
                 }
-                LOG.info("HTTP Request returned with response code {} for URL {}", responseCode, url);
+                String urlNoQueryString = url.substring(0, url.lastIndexOf("?"));
+                LOG.info("HTTP Request returned with response code {} for URL {}", responseCode, urlNoQueryString);
                 return ret;
             } catch (Exception e) {
                 lastException = e;
