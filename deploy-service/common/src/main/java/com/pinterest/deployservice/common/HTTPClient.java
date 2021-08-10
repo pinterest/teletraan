@@ -30,6 +30,7 @@ import java.util.Map;
 public class HTTPClient {
     private static final int TIMEOUT = 15*1000;  // http timeout in 15 seconds
     private static final Logger LOG = LoggerFactory.getLogger(HTTPClient.class);
+    private String[] filteredQueryKeySubstrings = {"token"};
 
     private String generateUrlAndQuery(String url, Map<String, String> params) throws Exception {
         if (params == null || params.isEmpty()) {
@@ -47,26 +48,64 @@ public class HTTPClient {
         return sb.toString();
     }
 
+    // keep scrubbed/logged url generation separate for safety and easier extension
+    private String generateUrlAndScrubbedQuery(String url, Map<String, String> params) throws Exception {
+        if (params == null || params.isEmpty()) {
+            return url;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(url);
+        String prefix = "?";
+        String paramValue = "";
+        boolean isSensitiveValue = false;
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            isSensitiveValue = false;
+            paramValue = "";
+            sb.append(prefix);
+            prefix = "&";
+            for (String filteredQueryKeySubstring : filteredQueryKeySubstrings) {
+                if (StringUtils.containsIgnoreCase(entry.getKey(), filteredQueryKeySubstring)) {
+                  isSensitiveValue = true;
+                  break;
+                }
+            }
+            paramValue = isSensitiveValue ? "xxxxxxxxx" : entry.getValue();
+            sb.append(String.format("%s=%s", entry.getKey(),
+                    URLEncoder.encode(paramValue, "UTF-8")));
+        }
+        return sb.toString();
+    }
+
     public String get(String url, String payload, Map<String, String> params, Map<String, String> headers, int retries) throws Exception {
-        String urlAndQuery = generateUrlAndQuery(url, params);
-        return internalCall(urlAndQuery, "GET", payload, headers, retries);
+        return internalCall(url, params, "GET", payload, headers, retries);
     }
 
     public String post(String url, String payload, Map<String, String> headers, int retries) throws Exception {
-        return internalCall(url, "POST", payload, headers, retries);
+        return internalCall(url, null, "POST", payload, headers, retries);
     }
 
     public String put(String url, String payload, Map<String, String> headers, int retries) throws Exception {
-        return internalCall(url, "PUT", payload, headers, retries);
+        return internalCall(url, null, "PUT", payload, headers, retries);
     }
 
     public String delete(String url, String payload, Map<String, String> headers, int retries) throws Exception {
-        return internalCall(url, "DELETE", payload, headers, retries);
+        return internalCall(url, null, "DELETE", payload, headers, retries);
     }
 
-    private String internalCall(String url, String method, String payload, Map<String, String> headers, int retries) throws Exception {
+    private String internalCall(String url, Map<String, String> params, String method, String payload, Map<String, String> headers, int retries) throws Exception {
         HttpURLConnection conn = null;
         Exception lastException = null;
+
+        // Scrub query params for logging
+        String scrubbedUrl;
+        if (params != null) {
+          scrubbedUrl = generateUrlAndScrubbedQuery(url, params);
+          url = generateUrlAndQuery(url, params);
+        }
+        else {
+          scrubbedUrl = url;
+        }
+
 
         for (int i = 0; i < retries; i++) {
             try {
@@ -97,13 +136,12 @@ public class HTTPClient {
                     throw new DeployInternalException("HTTP request failed, status = {}, content = {}",
                         responseCode, ret);
                 }
-                String urlNoQueryString = url.substring(0, url.lastIndexOf("?"));
-                LOG.info("HTTP Request returned with response code {} for URL {}", responseCode, urlNoQueryString);
+                LOG.info("HTTP Request returned with response code {} for URL {}", responseCode, scrubbedUrl);
                 return ret;
             } catch (Exception e) {
                 lastException = e;
                 LOG.error("Failed to send HTTP Request to {}, with payload {}, with headers {}",
-                    url, payload, headers, e);
+                    scrubbedUrl, payload, headers, e);
             } finally {
                 if (conn != null) {
                     conn.disconnect();
