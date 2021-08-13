@@ -44,7 +44,7 @@
                     <a href="{{ hostdetailsvalue }}/log/deploylog?file={{env.envName}}.log">Full deploy log for {{env.envName}}</a>
                     {% endif %}
                 </td>
-                <td><pre>{{ agent_wrapper.error }}</pre></td>
+                <td><pre style="white-space: pre-wrap;">{{ agent_wrapper.error }}</pre></td>
             </tr>
         </table>
     </div>
