@@ -31,7 +31,7 @@ public class HTTPClient {
     private static final int TIMEOUT = 15*1000;  // http timeout in 15 seconds
     private static final Logger LOG = LoggerFactory.getLogger(HTTPClient.class);
 
-    public String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl) throws Exception {
+    private String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl) throws Exception {
         if (params == null || params.isEmpty()) {
             return url;
         }
@@ -50,7 +50,7 @@ public class HTTPClient {
         return sb.toString();
     }
 
-    public String scrubUrlQueryValue(String queryParamKey, String queryParamValue) {
+    private String scrubUrlQueryValue(String queryParamKey, String queryParamValue) {
         String[] filteredQueryKeySubstrings = {"token"};
 
         for (String filteredQueryKeySubstring : filteredQueryKeySubstrings) {

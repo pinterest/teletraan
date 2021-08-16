@@ -17,39 +17,49 @@ package com.pinterest.deployservice.common;
 
 import org.junit.Test;
 
+import java.lang.reflect.Method;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-public class HTTPClientTest {
+public class HTTPClientTest {;
     @Test
     public void testScrubUrlQueryValue() throws Exception {
         HTTPClient httpClient = new HTTPClient();
+        // Future: there should be some better way to test HTTPClient private methods rather than use reflection on private methods
+        Method scrubUrlQueryValue = HTTPClient.class.getDeclaredMethod("scrubUrlQueryValue", String.class, String.class);
+        scrubUrlQueryValue.setAccessible(true);
 
-        assertEquals("xxxxxxxxx", httpClient.scrubUrlQueryValue("access_token", "dangerous_stuff"));
-        assertEquals("xxxxxxxxx", httpClient.scrubUrlQueryValue("token", "dangerous_stuff"));
-        assertEquals("some_stuff", httpClient.scrubUrlQueryValue("s", "some_stuff"));
+        assertEquals("xxxxxxxxx", scrubUrlQueryValue.invoke(httpClient, "access_token", "dangerous_stuff"));
+        assertEquals("xxxxxxxxx", scrubUrlQueryValue.invoke(httpClient, "token", "dangerous_stuff"));
+        assertEquals("some_stuff", scrubUrlQueryValue.invoke(httpClient, "s", "some_stuff"));
     }
 
     @Test
     public void testGenerateUrlAndQuery() throws Exception {
         HTTPClient httpClient = new HTTPClient();
+        // Future: there should be some better way to test HTTPClient private methods rather than use reflection on private methods
+        Method generateUrlAndQuery = HTTPClient.class.getDeclaredMethod("generateUrlAndQuery", String.class, Map.class, boolean.class);
+        generateUrlAndQuery.setAccessible(true);
+
         String baseUrl = "example.com/example/tests/";
 
         Map<String, String> filteredParams1 = new HashMap<>();
-        Map<String, String> filteredParams2 = new HashMap<>();
         filteredParams1.put("access_token", "dangerous_stuff");
+
+        Map<String, String> filteredParams2 = new HashMap<>();
         filteredParams2.put("token", "dangerous_stuff");
 
         Map<String, String> unfilteredParams1 = new HashMap<>();
         unfilteredParams1.put("s", "some_stuff");
 
         // only pass 1 param to avoid flaky tests due to unordered Map
-        // Future: Add some other tests to handle multiple query parameter cases
-        assertEquals("example.com/example/tests/?access_token=xxxxxxxxx", httpClient.generateUrlAndQuery(baseUrl, filteredParams1, true));
-        assertEquals("example.com/example/tests/?token=xxxxxxxxx", httpClient.generateUrlAndQuery(baseUrl, filteredParams2, true));
-        assertEquals("example.com/example/tests/?access_token=dangerous_stuff", httpClient.generateUrlAndQuery(baseUrl, filteredParams1, false));
-        assertEquals("example.com/example/tests/?s=some_stuff", httpClient.generateUrlAndQuery(baseUrl, unfilteredParams1, true));
+        // Future: Consider how handle multiple query parameter cases when testing HTTPClient
+        assertEquals("example.com/example/tests/?access_token=xxxxxxxxx", generateUrlAndQuery.invoke(httpClient, baseUrl, filteredParams1, true));
+        assertEquals("example.com/example/tests/?token=xxxxxxxxx", generateUrlAndQuery.invoke(httpClient, baseUrl, filteredParams2, true));
+        assertEquals("example.com/example/tests/?access_token=dangerous_stuff", generateUrlAndQuery.invoke(httpClient, baseUrl, filteredParams1, false));
+        assertEquals("example.com/example/tests/?s=some_stuff", generateUrlAndQuery.invoke(httpClient, baseUrl, unfilteredParams1, true));
     }
 }
