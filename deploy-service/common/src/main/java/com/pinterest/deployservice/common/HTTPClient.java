@@ -30,9 +30,8 @@ import java.util.Map;
 public class HTTPClient {
     private static final int TIMEOUT = 15*1000;  // http timeout in 15 seconds
     private static final Logger LOG = LoggerFactory.getLogger(HTTPClient.class);
-    private String[] filteredQueryKeySubstrings = {"token"};
 
-    private String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl) throws Exception {
+    public String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl) throws Exception {
         if (params == null || params.isEmpty()) {
             return url;
         }
@@ -44,16 +43,18 @@ public class HTTPClient {
             prefix = "&";
             // note:  scrubUrlQueryValue could be expensive with many filtered values
             //        consider using it only in only a DEBUG logging context in the future
-            String reportedValue = scrubUrl ? scrubUrlQueryValue(entry.getValue()) : entry.getValue();
+            String reportedValue = scrubUrl ? scrubUrlQueryValue(entry.getKey(), entry.getValue()) : entry.getValue();
             sb.append(String.format("%s=%s", entry.getKey(),
                 URLEncoder.encode(reportedValue, "UTF-8")));
         }
         return sb.toString();
     }
 
-    private String scrubUrlQueryValue(String queryParamValue) {
+    public String scrubUrlQueryValue(String queryParamKey, String queryParamValue) {
+        String[] filteredQueryKeySubstrings = {"token"};
+
         for (String filteredQueryKeySubstring : filteredQueryKeySubstrings) {
-            if (StringUtils.containsIgnoreCase(queryParamValue, filteredQueryKeySubstring)) {
+            if (StringUtils.containsIgnoreCase(queryParamKey, filteredQueryKeySubstring)) {
                 return "xxxxxxxxx";
             }
         }
