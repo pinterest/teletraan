@@ -32,7 +32,7 @@ public class HTTPClient {
     private static final Logger LOG = LoggerFactory.getLogger(HTTPClient.class);
     private String[] filteredQueryKeySubstrings = {"token"};
 
-    private String generateUrlAndQuery(String url, Map<String, String> params) throws Exception {
+    private String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl) throws Exception {
         if (params == null || params.isEmpty()) {
             return url;
         }
@@ -42,38 +42,22 @@ public class HTTPClient {
         for (Map.Entry<String, String> entry : params.entrySet()) {
             sb.append(prefix);
             prefix = "&";
+            // note:  scrubUrlQueryValue could be expensive with many filtered values
+            //        consider using it only in only a DEBUG logging context in the future
+            String reportedValue = scrubUrl ? scrubUrlQueryValue(entry.getValue()) : entry.getValue();
             sb.append(String.format("%s=%s", entry.getKey(),
-                URLEncoder.encode(entry.getValue(), "UTF-8")));
+                URLEncoder.encode(reportedValue, "UTF-8")));
         }
         return sb.toString();
     }
 
-    // keep scrubbed/logged url generation separate for safety and easier extension
-    private String generateUrlAndScrubbedQuery(String url, Map<String, String> params) throws Exception {
-        if (params == null || params.isEmpty()) {
-            return url;
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(url);
-        String prefix = "?";
-        String paramValue = "";
-        boolean isSensitiveValue = false;
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            isSensitiveValue = false;
-            paramValue = "";
-            sb.append(prefix);
-            prefix = "&";
-            for (String filteredQueryKeySubstring : filteredQueryKeySubstrings) {
-                if (StringUtils.containsIgnoreCase(entry.getKey(), filteredQueryKeySubstring)) {
-                  isSensitiveValue = true;
-                  break;
-                }
+    private String scrubUrlQueryValue(String queryParamValue) {
+        for (String filteredQueryKeySubstring : filteredQueryKeySubstrings) {
+            if (StringUtils.containsIgnoreCase(queryParamValue, filteredQueryKeySubstring)) {
+                return "xxxxxxxxx";
             }
-            paramValue = isSensitiveValue ? "xxxxxxxxx" : entry.getValue();
-            sb.append(String.format("%s=%s", entry.getKey(),
-                    URLEncoder.encode(paramValue, "UTF-8")));
         }
-        return sb.toString();
+        return queryParamValue;
     }
 
     public String get(String url, String payload, Map<String, String> params, Map<String, String> headers, int retries) throws Exception {
@@ -92,20 +76,12 @@ public class HTTPClient {
         return internalCall(url, null, "DELETE", payload, headers, retries);
     }
 
-    private String internalCall(String url, Map<String, String> params, String method, String payload, Map<String, String> headers, int retries) throws Exception {
+    private String internalCall(String base_url, Map<String, String> params, String method, String payload, Map<String, String> headers, int retries) throws Exception {
         HttpURLConnection conn = null;
         Exception lastException = null;
 
-        // Scrub query params for logging
-        String scrubbedUrl;
-        if (params != null) {
-          scrubbedUrl = generateUrlAndScrubbedQuery(url, params);
-          url = generateUrlAndQuery(url, params);
-        }
-        else {
-          scrubbedUrl = url;
-        }
-
+        String scrubbedUrl = generateUrlAndQuery(base_url, params, true);
+        String url = generateUrlAndQuery(base_url, params, false);
 
         for (int i = 0; i < retries; i++) {
             try {
