@@ -32,8 +32,8 @@ public class HTTPClientTest {;
         Method scrubUrlQueryValue = HTTPClient.class.getDeclaredMethod("scrubUrlQueryValue", String.class, String.class);
         scrubUrlQueryValue.setAccessible(true);
 
-        assertEquals("xxxxxxxxx", scrubUrlQueryValue.invoke(httpClient, "access_token", "dangerous_stuff"));
-        assertEquals("xxxxxxxxx", scrubUrlQueryValue.invoke(httpClient, "token", "dangerous_stuff"));
+        assertEquals(HTTPClient.secretMask, scrubUrlQueryValue.invoke(httpClient, "access_token", "dangerous_stuff"));
+        assertEquals(HTTPClient.secretMask, scrubUrlQueryValue.invoke(httpClient, "token", "dangerous_stuff"));
         assertEquals("some_stuff", scrubUrlQueryValue.invoke(httpClient, "s", "some_stuff"));
     }
 
@@ -57,8 +57,8 @@ public class HTTPClientTest {;
 
         // only pass 1 param to avoid flaky tests due to unordered Map
         // Future: Consider how handle multiple query parameter cases when testing HTTPClient
-        assertEquals("example.com/example/tests/?access_token=xxxxxxxxx", generateUrlAndQuery.invoke(httpClient, baseUrl, filteredParams1, true));
-        assertEquals("example.com/example/tests/?token=xxxxxxxxx", generateUrlAndQuery.invoke(httpClient, baseUrl, filteredParams2, true));
+        assertEquals("example.com/example/tests/?access_token="+HTTPClient.secretMask, generateUrlAndQuery.invoke(httpClient, baseUrl, filteredParams1, true));
+        assertEquals("example.com/example/tests/?token="+HTTPClient.secretMask, generateUrlAndQuery.invoke(httpClient, baseUrl, filteredParams2, true));
         assertEquals("example.com/example/tests/?access_token=dangerous_stuff", generateUrlAndQuery.invoke(httpClient, baseUrl, filteredParams1, false));
         assertEquals("example.com/example/tests/?s=some_stuff", generateUrlAndQuery.invoke(httpClient, baseUrl, unfilteredParams1, true));
     }

@@ -30,6 +30,7 @@ import java.util.Map;
 public class HTTPClient {
     private static final int TIMEOUT = 15*1000;  // http timeout in 15 seconds
     private static final Logger LOG = LoggerFactory.getLogger(HTTPClient.class);
+    public static String secretMask = "xxxxxxxxx";
 
     private String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl) throws Exception {
         if (params == null || params.isEmpty()) {
@@ -55,7 +56,7 @@ public class HTTPClient {
 
         for (String filteredQueryKeySubstring : filteredQueryKeySubstrings) {
             if (StringUtils.containsIgnoreCase(queryParamKey, filteredQueryKeySubstring)) {
-                return "xxxxxxxxx";
+                return secretMask;
             }
         }
         return queryParamValue;
