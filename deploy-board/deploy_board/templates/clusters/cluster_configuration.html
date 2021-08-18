@@ -564,6 +564,9 @@
                     }
                 },
                 baseImageChange: function(value) {
+                    if (value != capacitySetting.baseimages[0].value) {
+                        alert('AMI selected is not most recent and might miss important updates!');
+                    }
                     this.baseImageValue = value
                 },
                 deleteConfig: function(name) {
@@ -703,7 +706,7 @@
                                 var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
                                 return {
                                     value: o.id,
-                                    text: o.provider_name + acceptance
+                                    text: o.provider_name + acceptance + new Date(o.publish_date)
                                 }
                             })
                             capacitySetting.baseImageValue = sorted[0].id
