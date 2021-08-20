@@ -90,30 +90,24 @@ public class GoalAnalyst {
         }
 
         int getDeployPriority(EnvironBean env, Boolean firstDeploy) {
-            if (env.getDeploy_type() == null) {
-              return DeployPriority.NORMAL.getValue();
+            // System level deploy, or sidecar service deploy mostly, will use dedicated system
+            // priority. Notice for system level deploy, we disregard the priorities of hotfix
+            // or rollback.
+            Integer systemPriority = env.getSystem_priority();
+            if (systemPriority != null) {
+                return systemPriority;
+            }
+            if (firstDeploy != null && firstDeploy) {
+                //First deploy should always use the setting priority.
+                return env.getPriority().getValue();
+            }
+            DeployType deployType = env.getDeploy_type();
+            if (deployType == DeployType.HOTFIX) {
+                return HOT_FIX_PRIORITY;
+            } else if (deployType == DeployType.ROLLBACK) {
+                return ROLL_BACK_PRIORITY;
             } else {
-                // System level deploy, or sidecar service deploy mostly, will use dedicated system
-                // priority. Notice for system level deploy, we disregard the priorities of hotfix
-                // or rollback.
-                Integer systemPriority = env.getSystem_priority();
-                if (systemPriority != null) {
-                    return systemPriority;
-                }
-
-                if (firstDeploy != null && firstDeploy) {
-                    //First deploy should always use the setting priority.
-                    return env.getPriority().getValue();
-                } else {
-                    DeployType deployType = env.getDeploy_type();
-                    if (deployType == DeployType.HOTFIX) {
-                        return HOT_FIX_PRIORITY;
-                    } else if (deployType == DeployType.ROLLBACK) {
-                        return ROLL_BACK_PRIORITY;
-                    } else {
-                        return env.getPriority().getValue();
-                    }
-                }
+                return (env.getPriority() != null) ? env.getPriority().getValue() : DeployPriority.NORMAL.getValue();
             }
         }
 
