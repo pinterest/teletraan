@@ -102,7 +102,9 @@ public class GoalAnalyst {
                 return env.getPriority().getValue();
             }
             DeployType deployType = env.getDeploy_type();
-            if (deployType == DeployType.HOTFIX) {
+            if (deployType == null) {
+                DeployPriority.NORMAL.getValue();
+            } else if (deployType == DeployType.HOTFIX) {
                 return HOT_FIX_PRIORITY;
             } else if (deployType == DeployType.ROLLBACK) {
                 return ROLL_BACK_PRIORITY;
