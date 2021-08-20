@@ -166,7 +166,7 @@ public class GoalAnalyst {
 
         @Override
         public int compareTo(UninstallCandidate uninstallCandidate) {
-            return 0;
+            return 0; 
         }
 
         @Override
