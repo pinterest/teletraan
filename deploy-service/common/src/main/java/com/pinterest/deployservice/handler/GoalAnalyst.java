@@ -164,7 +164,7 @@ public class GoalAnalyst {
             if (systemPriority != null) {
                 return systemPriority;
             }
-            return environ.getPriority().getValue();
+            return (environ.getPriority() != null) ? environ.getPriority().getValue() : DeployPriority.NORMAL.getValue();
         }
 
         @Override
