@@ -30,8 +30,9 @@ import java.util.Map;
 public class HTTPClient {
     private static final int TIMEOUT = 15*1000;  // http timeout in 15 seconds
     private static final Logger LOG = LoggerFactory.getLogger(HTTPClient.class);
+    public static String secretMask = "xxxxxxxxx";
 
-    private String generateUrlAndQuery(String url, Map<String, String> params) throws Exception {
+    private String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl) throws Exception {
         if (params == null || params.isEmpty()) {
             return url;
         }
@@ -41,32 +42,48 @@ public class HTTPClient {
         for (Map.Entry<String, String> entry : params.entrySet()) {
             sb.append(prefix);
             prefix = "&";
+            // note:  scrubUrlQueryValue could be expensive with many filtered values
+            //        consider using it only in only a DEBUG logging context in the future
+            String reportedValue = scrubUrl ? scrubUrlQueryValue(entry.getKey(), entry.getValue()) : entry.getValue();
             sb.append(String.format("%s=%s", entry.getKey(),
-                URLEncoder.encode(entry.getValue(), "UTF-8")));
+                URLEncoder.encode(reportedValue, "UTF-8")));
         }
         return sb.toString();
     }
 
+    private String scrubUrlQueryValue(String queryParamKey, String queryParamValue) {
+        String[] filteredQueryKeySubstrings = {"token"};
+
+        for (String filteredQueryKeySubstring : filteredQueryKeySubstrings) {
+            if (StringUtils.containsIgnoreCase(queryParamKey, filteredQueryKeySubstring)) {
+                return secretMask;
+            }
+        }
+        return queryParamValue;
+    }
+
     public String get(String url, String payload, Map<String, String> params, Map<String, String> headers, int retries) throws Exception {
-        String urlAndQuery = generateUrlAndQuery(url, params);
-        return internalCall(urlAndQuery, "GET", payload, headers, retries);
+        return internalCall(url, params, "GET", payload, headers, retries);
     }
 
     public String post(String url, String payload, Map<String, String> headers, int retries) throws Exception {
-        return internalCall(url, "POST", payload, headers, retries);
+        return internalCall(url, null, "POST", payload, headers, retries);
     }
 
     public String put(String url, String payload, Map<String, String> headers, int retries) throws Exception {
-        return internalCall(url, "PUT", payload, headers, retries);
+        return internalCall(url, null, "PUT", payload, headers, retries);
     }
 
     public String delete(String url, String payload, Map<String, String> headers, int retries) throws Exception {
-        return internalCall(url, "DELETE", payload, headers, retries);
+        return internalCall(url, null, "DELETE", payload, headers, retries);
     }
 
-    private String internalCall(String url, String method, String payload, Map<String, String> headers, int retries) throws Exception {
+    private String internalCall(String base_url, Map<String, String> params, String method, String payload, Map<String, String> headers, int retries) throws Exception {
         HttpURLConnection conn = null;
         Exception lastException = null;
+
+        String scrubbedUrl = generateUrlAndQuery(base_url, params, true);
+        String url = generateUrlAndQuery(base_url, params, false);
 
         for (int i = 0; i < retries; i++) {
             try {
@@ -97,12 +114,12 @@ public class HTTPClient {
                     throw new DeployInternalException("HTTP request failed, status = {}, content = {}",
                         responseCode, ret);
                 }
-                LOG.info("HTTP Request returned with response code {} for URL {}", responseCode, url);
+                LOG.info("HTTP Request returned with response code {} for URL {}", responseCode, scrubbedUrl);
                 return ret;
             } catch (Exception e) {
                 lastException = e;
                 LOG.error("Failed to send HTTP Request to {}, with payload {}, with headers {}",
-                    url, payload, headers, e);
+                    scrubbedUrl, payload, headers, e);
             } finally {
                 if (conn != null) {
                     conn.disconnect();
