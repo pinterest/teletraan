@@ -372,7 +372,7 @@ var capacitySetting = new Vue({
             var cell = capacitySetting.currentCell;
             var scope = this;
             var provider = capacitySetting.currentProvider;
-            value = 'cmp_base-ebs-18.04';
+            value = {{ default_cmp_image }};
             const selectedHostTypeObject = capacityCreationInfo.hostTypes.find(hostType => hostType.id === this.selectedHostTypeValue);
             if (selectedHostTypeObject.abstract_name.startsWith('EbsCompute')) {
                 capacitySetting.imageNameValue = value;
