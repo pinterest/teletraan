@@ -141,6 +141,7 @@ class EnvCapacityAdvCreateView(View):
         return render(request, 'configs/new_capacity_adv.html', {
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
+            'default_cmp_image': DEFAULT_CMP_IMAGE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'is_pinterest': IS_PINTEREST})
 
@@ -217,6 +218,7 @@ class ClusterConfigurationView(View):
         return render(request, 'clusters/cluster_configuration.html', {
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
+            'default_cmp_image': DEFAULT_CMP_IMAGE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'is_pinterest': IS_PINTEREST})
 
