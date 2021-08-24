@@ -59,7 +59,7 @@
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
                     <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"
-                        v-on:input="updateImageNameForEbsHost" showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
+                        showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
