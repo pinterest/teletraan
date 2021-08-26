@@ -221,6 +221,9 @@ public class EnvironBean implements Updatable, Serializable {
         if (this.chatroom != null && !this.chatroom.matches(chatRegex)) {
             throw new IllegalArgumentException(String.format("Chatroom must match regex %s", chatRegex));
         }
+        if (this.sc_config_id != null) {
+            throw new IllegalArgumentException(String.format("Script config id may not be set, use the script config API."));
+        }
     }
 
     public String getWebhooks_config_id() {
