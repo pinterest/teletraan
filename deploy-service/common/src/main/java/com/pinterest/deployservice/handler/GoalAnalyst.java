@@ -449,6 +449,7 @@ public class GoalAnalyst {
             report.setDeployId(env.getDeploy_id());
             report.setDeployAlias(alias);
             updateBean.setDeploy_id(env.getDeploy_id());
+            needUpdateAgents.put(env.getEnv_id(), updateBean);
         }
     }
 
