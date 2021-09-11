@@ -37,16 +37,29 @@ class SingleInstance(object):
         # Create lock file
         umask_original = os.umask(0)
         try:
-            lockfile_fd = os.open(lockfile_path, lockfile_flags, lockfile_mode)
+            self.lockfile_fd = os.open(lockfile_path, lockfile_flags, lockfile_mode)
+            log.info("Open file {} with flags {} and mode {}".format(lockfile_path, lockfile_flags, lockfile_mode))
+        except Exception as e:
+            log.error("Unexpected exception: {}".format(e))
         finally:
             os.umask(umask_original)
 
         # Try locking the file
         try:
-            fcntl.lockf(lockfile_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        except IOError:
-            print(('Error: {0} may already be running. Only one instance of it '
+            fcntl.lockf(self.lockfile_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            log.info("Acquired lock on file {}".format(lockfile_path))
+        except IOError as e:
+            log.error("IO Exception: errno {}, errmsg {}".format(e.errno, e.strerror))
+            log.error(('Error: {0} may already be running. Only one instance of it '
                    'can run at a time.').format(appname))
             # noinspection PyTypeChecker
-            os.close(lockfile_fd)
+            os.close(self.lockfile_fd)
             utils.exit_abruptly(1)
+        except Exception as e:
+            log.error("Unexpected exception: {}".format(e))
+            os.close(self.lockfile_fd)
+            utils.exit_abruptly(1)
+        
+    def __del__(self):
+        os.close(self.lockfile_fd)
+
