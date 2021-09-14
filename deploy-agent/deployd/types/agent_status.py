@@ -35,6 +35,8 @@ class AgentStatus(object):
     RUNTIME_MISMATCH = 8
     # Use for deploy-agent internally
     ABORTED_BY_SERVER = 9
+    # Too many retries executing service script, server continue anyways
+    TOO_MANY_RETRY_CONTINUE = 10
 
     _VALUES_TO_NAMES = {
         0: "SUCCEEDED",
@@ -47,6 +49,7 @@ class AgentStatus(object):
         7: "TOO_MANY_RETRY",
         8: "RUNTIME_MISMATCH",
         9: "ABORTED_BY_SERVER",
+        10: "TOO_MANY_RETRY_CONTINUE",
     }
 
     _NAMES_TO_VALUES = {
@@ -60,4 +63,5 @@ class AgentStatus(object):
         "TOO_MANY_RETRY": 7,
         "RUNTIME_MISMATCH": 8,
         "ABORTED_BY_SERVER": 9,
+        "TOO_MANY_RETRY_CONTINUE": 10,
     }

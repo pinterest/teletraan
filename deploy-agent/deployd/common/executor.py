@@ -135,7 +135,11 @@ class Executor(object):
                 Too many failed retries, return to the agent and report to the server.
                 """
                 if total_retry >= self.MAX_RETRY:
-                    deploy_report.status_code = AgentStatus.TOO_MANY_RETRY
+                    deploy_step = os.getenv('DEPLOY_STEP')
+                    if deploy_step == 'STOPPING':
+                        deploy_report.status_code = AgentStatus.TOO_MANY_RETRY_CONTINUE
+                    else:
+                        deploy_report.status_code = AgentStatus.TOO_MANY_RETRY
                     return deploy_report
 
                 init_start = datetime.datetime.now()  # reset the initial start time
