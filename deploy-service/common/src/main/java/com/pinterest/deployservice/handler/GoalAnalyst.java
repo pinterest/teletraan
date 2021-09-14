@@ -240,8 +240,9 @@ public class GoalAnalyst {
         if (agent != null && agent.getState() == AgentState.STOP) {
             // agent has been explicitly STOP, do not override
             if (agent.getDeploy_stage() == DeployStage.STOPPING && FATAL_AGENT_STATUSES.contains(status)) {
-                LOG.debug("Agent DeployStage is STOPPING, but report status is {}, propose new agent state as {} ", status, AgentState.PAUSED_BY_SYSTEM);
-                return AgentState.PAUSED_BY_SYSTEM;
+                // Note: Retain this logging to determine if commit a2dba4515a71aa7b862afb5ba4bdcfae2b7d3e2b is solving an important bug.
+                // TODO: Determine if this is now being logged and if there is a better way to handle any subsequent issue.
+                LOG.debug("Agent DeployStage is STOPPING, but report status is {}.", status);
             }
             return AgentState.STOP;
         }
