@@ -159,7 +159,11 @@ class Executor(object):
                 # exponential backoff
                 process_interval = min(process_interval * self.BACK_OFF, self.MAX_SLEEP_INTERVAL)
 
-        deploy_report.status_code = AgentStatus.TOO_MANY_RETRY
+        deploy_step = os.getenv('DEPLOY_STEP')
+        if deploy_step == 'STOPPING':
+            deploy_report.status_code = AgentStatus.TOO_MANY_RETRY_CONTINUE
+        else:
+            deploy_report.status_code = AgentStatus.TOO_MANY_RETRY
         return deploy_report
 
     def ping_server_if_possible(self, start, cmd_str, deploy_report):
