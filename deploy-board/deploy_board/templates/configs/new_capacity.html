@@ -119,7 +119,7 @@ var capacitySetting = new Vue({
             return {
                 value: item.id,
                 text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.storage+")",
-                isSelected: item.abstract_name === capacityCreationInfo.defaultHostType
+                isSelected: item.id === capacityCreationInfo.defaultHostType
             }}),
         placements: placements.cmpPrivate.map(function(item, index) {
                 return {
