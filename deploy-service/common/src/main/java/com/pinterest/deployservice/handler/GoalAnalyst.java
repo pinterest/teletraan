@@ -240,6 +240,7 @@ public class GoalAnalyst {
         if (agent != null && agent.getState() == AgentState.STOP) {
             // agent has been explicitly STOP, do not override
             if (agent.getDeploy_stage() == DeployStage.STOPPING && FATAL_AGENT_STATUSES.contains(status)) {
+                AgentBean updateBean = null;
                 updateBean = genUpdateBeanByReport(report, agent);
                 updateBean.setDeploy_stage(DeployStage.STOPPED);
                 LOG.debug("Agent DeployStage is STOPPING, but report status is {}. Change DeployStage to STOPPED so host can gracefully terminate.", status);
