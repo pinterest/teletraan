@@ -84,7 +84,7 @@ public class AutoPromoter implements Runnable {
                 processOnce(envId);
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
-                LOG.error("AutoPromoter failed to process {}", envId, t);
+                LOG.error("AutoPromoter failed to process {}, Exception: {}", envId, t);
             }
         }
       LOG.info("AutoPromoter processBatch finishes");
