@@ -20,23 +20,50 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.chat.SlackChatManager;
 import org.hibernate.validator.constraints.NotEmpty;
+import com.pinterest.deployservice.common.KeyReaderFactory;
+import com.pinterest.deployservice.common.KeyReader;
 
 @JsonTypeName("slack")
 public class SlackFactory implements ChatFactory {
     @NotEmpty
     @JsonProperty
-    private String url;
+    private String key;
 
-    public String getUrl() {
-        return url;
+    @NotEmpty
+    @JsonProperty
+    private String reader; // specific to slack token reading
+
+    @JsonProperty
+    private String domain; // email domain
+
+    public String getKey() {
+        return key;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
+    public void setReader(String reader) {
+        this.reader = reader;
+    }
+
+    public String getReader() {
+        return reader;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getDomain() {
+        return domain;
+    }
+
+    public void setDomain(String domain) {
+        this.domain = domain;
     }
 
     @Override
     public ChatManager create() throws Exception {
-        return new SlackChatManager(url);
+        KeyReader keyReader = new KeyReaderFactory().create(this.reader);
+        keyReader.init(key);
+        return new SlackChatManager(keyReader.getKey(), domain);
     }
 }

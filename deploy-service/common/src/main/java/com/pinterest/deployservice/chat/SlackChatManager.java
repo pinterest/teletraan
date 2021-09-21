@@ -18,50 +18,95 @@ package com.pinterest.deployservice.chat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import in.ashwanthkumar.slack.webhook.SlackMessage;
+import com.slack.api.Slack;
+import com.slack.api.methods.response.chat.ChatPostMessageResponse;
+import com.slack.api.methods.response.users.UsersLookupByEmailResponse;
+import com.slack.api.methods.SlackApiException;
+
+import java.io.IOException;
 
 public class SlackChatManager implements ChatManager {
     private static final Logger LOG = LoggerFactory.getLogger(SlackChatManager.class);
     private static final int TOTAL_RETRY = 3;
     private String url;
+    private String token;
+    private String domain;
+    private Slack slack;
 
-    public SlackChatManager(String url) {
-        this.url = url;
+    public SlackChatManager(String token, String domain) {
+        this.token = token;
+        this.domain = domain;
+        slack = Slack.getInstance();
+    }
+
+    private void postMessage(String from, String channel, String message) throws Exception {
+
+        for (int i = 0; i < TOTAL_RETRY; i++) {
+            try {
+                ChatPostMessageResponse
+                    response = slack.methods(this.token).chatPostMessage(req -> req
+                    .channel(channel)
+                    .text(message)
+                );
+                if (response.isOk()) {
+                    return;
+                } else {
+                    LOG.warn("Failed to send Slack message to " + channel + " (" + response.getError() + ")");
+                }
+            } catch (Exception e) {
+                LOG.warn("Received exception from slack: " + e.getMessage());
+            }
+            Thread.sleep(1000);
+        }
+        LOG.error("Failed to send Slack message to " + channel + " (Retries limit reached)");
+    }
+
+    private String getUserIdFromEmail(String userHandle) {
+        try {
+            String email = userHandle.trim() + "@" + this.domain;
+            UsersLookupByEmailResponse
+                response = slack.methods(this.token).usersLookupByEmail(req ->
+                req.email(email)
+            );
+            if (response.isOk()) {
+                return response.getUser().getId();
+            } else {
+                String errorCode = response.getError();
+                LOG.warn("Failed retrieving userId for email " + email + " (" + errorCode + ")");
+            }
+        } catch (SlackApiException requestFailure) {
+            // Slack API responded with unsuccessful status code (= not 20x)
+            LOG.warn("Slack API request returned error: " + requestFailure.getMessage());
+        } catch (IOException connectivityIssue) {
+            // Throwing this exception indicates your app or Slack servers had a connectivity issue.
+            LOG.warn("Slack API connectivity issue: " + connectivityIssue.getMessage());
+        } catch (Exception e) {
+            LOG.warn("Received exception from slack API: " + e.getMessage());
+        }
+        return null;
     }
 
     @Override
     public void send(String from, String room, String message, String color) throws Exception {
-        for (int i = 0; i < TOTAL_RETRY; i++) {
-            try {
-                in.ashwanthkumar.slack.webhook.Slack slack = new in.ashwanthkumar.slack.webhook.Slack(url);
-                String convertedRoom = room.replaceAll(" ", "-").toLowerCase();
-                slack.sendToChannel(convertedRoom)
-                    .displayName(from)
-                    .push(new SlackMessage(message));
-                return;
-            } catch (Exception e) {
-                LOG.warn("Failed to send Slack message to " + room, e);
-            }
-            Thread.sleep(1000);
-        }
-        LOG.error("Failed to send Slack message to " + room);
+        String convertedRoom = room.replaceAll(" ", "-").toLowerCase();
+        this.postMessage(from, convertedRoom, message);
     }
 
+    // need to retrieve the user's id to send it as the channel parameter
     @Override
-    public void sendToUser(String from, String user, String message, String color)
-        throws Exception {
-        for (int i = 0; i < TOTAL_RETRY; i++) {
-            try {
-                in.ashwanthkumar.slack.webhook.Slack slack = new in.ashwanthkumar.slack.webhook.Slack(url);
-                slack.sendToUser(user)
-                    .displayName(from)
-                    .push(new SlackMessage(message));
-                return;
-            } catch (Exception e) {
-                LOG.warn("Failed to send Slack message to " + user, e);
-            }
-            Thread.sleep(1000);
+    public void sendToUser(String from, String user, String message, String color) throws Exception {
+        if (user == null) {
+            LOG.warn(String.format("Unable to send message %s: User information was not provided", message));
+            return;
         }
-        LOG.error("Failed to send Slack message to " + user);
+        try {
+            String userId = this.getUserIdFromEmail(user);
+            if (userId != null) {
+                this.postMessage(from, userId, message);
+            }
+        } catch (Exception e) {
+            LOG.warn("Received exception while notifying slack user: " + e.getMessage());
+        }
+
     }
 }
