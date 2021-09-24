@@ -66,6 +66,14 @@ public class AgentJanitor extends SimpleAgentJanitor {
         commonHandler = new CommonHandler(serviceContext);
         jobPool = serviceContext.getJobPool();
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
+<<<<<<< HEAD
+=======
+        unreachableHosts = Gauge.build()
+                .name("unreachable_hosts")
+                .help("Unreachable hosts in Teletraan")
+                .labelNames("cluster")
+                .register();
+>>>>>>> 7b5e02f (f)
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
 
