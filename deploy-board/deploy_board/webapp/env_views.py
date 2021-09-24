@@ -1235,7 +1235,7 @@ def get_hosts_by_deploy(request, name, stage, deploy_id):
         "agents_wrapper": agents_wrapper,
         "builds_wrapper": builds_wrapper,
         "title": title,
-        "deploy_stages": deploy_stages,
+        "deploy_stages": deploy_stage_values,
         "host_stage": host_stage,
     })
 
