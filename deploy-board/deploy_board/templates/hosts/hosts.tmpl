@@ -1,185 +1,199 @@
 {% load utils %}
 {% load static %}
 {% for deployId, agents in agents_wrapper.items %}
-<div class="panel panel-default">
-  <div class="panel-heading clearfix">
-      <strong>Deploy:</strong><a href="/deploy/{{ deployId }}"> {{ deployId }}</a>
-       <div class="btn-toolbar pull-right">
-          <button id="pauseButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
-          title="Pause selected hosts">
-          <span class="glyphicon glyphicon-pause"></span> Pause 
-          </button>
-          <button id="resumeButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
-          title="Resume selected hosts">
-          <span class="glyphicon glyphicon-play"></span> Resume 
-          </button>
-          <button id="resetButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
-          title="reset selected hosts">
-          <span class="glyphicon glyphicon-repeat"></span> Reset 
-          </button>
-          <button id="terminateButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
-          title="Soft terminate selected hosts">
-          <span class="glyphicon glyphicon-off"></span> Terminate 
-          </button>
-          <button id="forceTerminateButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
-          title="Soft terminate selected hosts">
-          <span class="glyphicon glyphicon-remove"></span> Force Terminate 
-          </button>
+    <div class="panel panel-default">
+        <div class="panel-heading clearfix">
+            <strong>Deploy:</strong>
+            <a href="/deploy/{{ deployId }}"> {{ deployId }}</a>
+            {% if builds_wrapper|getValue:deployId %}
+                {% with build=builds_wrapper|getValue:deployId %}
+                    ({{ build.commitShort }})
+                {% endwith %}
+            {% endif %}
+            <div class="btn-toolbar pull-right">
+                <button id="pauseButton"
+                        class="btn btn-default btn-sm" data-toggle="tooltip"
+                        title="Pause selected hosts">
+                        <span class="glyphicon glyphicon-pause"></span> Pause
+                </button>
+                <button id="resumeButton"
+                        class="btn btn-default btn-sm" data-toggle="tooltip"
+                        title="Resume selected hosts">
+                        <span class="glyphicon glyphicon-play"></span> Resume
+                </button>
+                <button id="resetButton"
+                        class="btn btn-default btn-sm" data-toggle="tooltip"
+                        title="reset selected hosts">
+                        <span class="glyphicon glyphicon-repeat"></span> Reset
+                </button>
+                <button id="terminateButton"
+                        class="btn btn-default btn-sm" data-toggle="tooltip"
+                        title="Soft terminate selected hosts">
+                        <span class="glyphicon glyphicon-off"></span> Terminate
+                </button>
+                <button id="forceTerminateButton"
+                        class="btn btn-default btn-sm" data-toggle="tooltip"
+                        title="Soft terminate selected hosts">
+                        <span class="glyphicon glyphicon-remove"></span> Force Terminate
+                </button>
+              </div>
         </div>
-  </div>
-  <div class="panel-body table-responsive">
-      <table id="hostTable" class="table table-striped table-bordered table-condensed table-hover">
-          <tr>
-              <th></th>
-              <th>Host</th>
-              <th>Host Id</th>
-              <th>Stage</th>
-              <th>State</th>
-              <th>Status</th>
-              <th>StartDate(-08:00)</th>
-              <th>LastUpdate</th>
-              <th>ErrorCode</th>
-          </tr>
-          {% for agent in agents %}
-          <tr>
-              {% if agent.lastErrorCode|isUnknownHost %}
-                  <td><input type="checkbox" value="N/A"></td>
-                  <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-              {% elif agent.lastErrorCode|isProvisioningHost %}
-                  <td><input type="checkbox" value="{{ agent.hostId | default_if_none:'' }}"></td>
-                  <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
-                  <td>{{ agent.hostId | default_if_none:'' }}</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-                  <td>N/A</td>
-              {% else %}
-                  <td><input type="checkbox" value="{{ agent.hostId }}"></td>
-                  <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
-                  <td>{{ agent.hostId }}</td>
-                  <td>{{ agent.deployStage }}</td>
-                  <td>{{ agent.state }}</td>
-                  <td>{{ agent.status }}</td>
-                  <td>{{ agent.startDate|convertTimestamp }}</td>
-                  <td>{{ agent.lastUpdateDate|convertTimestamp }}</td>
-                  <td>{{ agent.lastErrorCode }}</td>
-              {% endif %}
-          </tr>
-          {% endfor %}
-      </table>
-  </div>
+        <ul class="nav nav-tabs">
+            {% for deploy_stage in deploy_stages %}
+                <li {% if host_stage == deploy_stage %}class="active"{% endif %}>
+                <a class="deployToolTip" data-container="body" data-toggle="tooltip" title="{{deploy_stage}}" data-placement="bottom"
+                   href="/env/{{ env.envName }}/{{ env.stageName }}/{{ deployId }}/hosts/?hostStage={{ deploy_stage }}">{{ deploy_stage }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="panel-body table-responsive" style="overflow-x: auto">
+            <table id="hostTable" class="table table-striped table-bordered table-condensed table-hover">
+                <tr>
+                    <th></th>
+                    <th>Host</th>
+                    <th>Host Id</th>
+                    <th>Stage</th>
+                    <th>State</th>
+                    <th>Status</th>
+                    <th>StartDate(-08:00)</th>
+                    <th>LastUpdate</th>
+                    <th>ErrorCode</th>
+                </tr>
+                {% for agent in agents %}
+                <tr>
+                    {% if agent.lastErrorCode|isUnknownHost %}
+                        <td><input type="checkbox" value="N/A"></td>
+                        <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                    {% elif agent.lastErrorCode|isProvisioningHost %}
+                        <td><input type="checkbox" value="{{ agent.hostId | default_if_none:'' }}"></td>
+                        <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
+                        <td>{{ agent.hostId | default_if_none:'' }}</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                    {% else %}
+                        <td><input type="checkbox" value="{{ agent.hostId }}"></td>
+                        <td><a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agent.hostName }}">{{ agent.hostName }}</a></td>
+                        <td>{{ agent.hostId }}</td>
+                        <td>{{ agent.deployStage }}</td>
+                        <td>{{ agent.state }}</td>
+                        <td>{{ agent.status }}</td>
+                        <td>{{ agent.startDate|convertTimestamp }}</td>
+                        <td>{{ agent.lastUpdateDate|convertTimestamp }}</td>
+                        <td>{{ agent.lastErrorCode }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
 
-<div class="panel-footer clearfix">
-    {% if is_retryable and host_ids %}
-    <div class="pull-left">
-        <button id="reset_{{ deployId }}"
-                class="deployToolTip btn btn-primary" data-toggle="tooltip"
-                title="Retry the current deploy step on this host.">
-            Retry deploy on all hosts
-        </button>
-    </div>
-    {% endif %}
+        <div class="panel-footer clearfix">
+            {% if is_retryable and host_ids %}
+            <div class="pull-left">
+                <button id="reset_{{ deployId }}"
+                        class="deployToolTip btn btn-primary" data-toggle="tooltip"
+                        title="Retry the current deploy step on this host.">
+                    Retry deploy on all hosts
+                </button>
+            </div>
+            {% endif %}
 
-    {% if pinterest and host_ids %}
-    <div class="pull-left">
-        <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
-            data-toggle="modal" title="Terminate all failed hosts">
-        <span class="glyphicon glyphicon-remove"></span> Terminate failed hosts
-        </button>
-    </div>
-    {% endif %}
-</div>
-<script>
-    var checkedHosts = [];
+            {% if pinterest and host_ids %}
+            <div class="pull-left">
+                <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
+                    data-toggle="modal" title="Terminate all failed hosts">
+                <span class="glyphicon glyphicon-remove"></span> Terminate failed hosts
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        <script>
+            var checkedHosts = [];
 
-    $(function () {
-        $('.deployToolTip').tooltip();
-        $('#reset_{{ deployId }}').click(function () {
-            $.ajax({
-                type: 'POST',
-                url: '/env/{{ env.envName }}/{{ env.stageName }}/reset_failed_hosts/{{ deployId }}/',
-                data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
-                datatype: 'json',
-                success: function (data) {
-                    window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+            $(function () {
+                $('.deployToolTip').tooltip();
+                $('#reset_{{ deployId }}').click(function () {
+                    $.ajax({
+                        type: 'POST',
+                        url: '/env/{{ env.envName }}/{{ env.stageName }}/reset_failed_hosts/{{ deployId }}/',
+                        data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+                        datatype: 'json',
+                        success: function (data) {
+                            window.location = '/env/{{env.envName }}/{{env.stageName}}/';
+                        }
+                    });
+
+                });
+            });
+
+            $('input[type="checkbox"]').click(function(){
+                if ($("#hostTable input:checkbox:checked").length <= 0) {
+                  $(".btn").prop("disabled", true);
+                } else {
+                  $(".btn").prop("disabled", false);
+                }
+
+                if ($(this).is(":checked")) {
+                  checkedHosts.push($(this).val());
+                } else {
+                  var index = checkedHosts.indexOf($(this).val());
+                  if (index > -1) {
+                    checkedHosts.splice(index, 1);
+                  }
                 }
             });
 
-        });
-    });
+            $(document).ready(function() {
+                $('input[type=checkbox]').each(function () {
+                    if (this.checked) {
+                        checkedHosts.push($(this).val());
+                    }
+                });
 
-    $('input[type="checkbox"]').click(function(){
-        if ($("#hostTable input:checkbox:checked").length <= 0) {
-          $(".btn").prop("disabled", true);
-        } else {
-          $(".btn").prop("disabled", false);
-        }
+                if ($("#hostTable input:checkbox:checked").length <= 0) {
+                    $(".btn").prop("disabled", true);
+                } else {
+                    $(".btn").prop("disabled", false);
+                }
+            });
 
-        if ($(this).is(":checked")) {
-          checkedHosts.push($(this).val());
-        } else {
-          var index = checkedHosts.indexOf($(this).val());
-          if (index > -1) {
-            checkedHosts.splice(index, 1);
-          }
-        }
-    });
+            $("#pauseButton").on("click", function() {
+                $('#pauseSelectedHosts').modal();
+                $('#pauseSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            });
 
-    $(document).ready(function() {
-        $('input[type=checkbox]').each(function () {
-            if (this.checked) {
-                checkedHosts.push($(this).val());
-            }
-        });
-      
-        if ($("#hostTable input:checkbox:checked").length <= 0) {
-            $(".btn").prop("disabled", true);
-        } else {
-            $(".btn").prop("disabled", false);
-        }
-    });
+            $("#resumeButton").on("click", function() {
+                $('#resumeSelectedHosts').modal();
+                $('#resumeSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            });
 
-    $("#pauseButton").on("click", function() {
-        $('#pauseSelectedHosts').modal();
-        $('#pauseSelectedHosts .modal-body #hostsList').val(checkedHosts);  
-    });
+            $("#resetButton").on("click", function() {
+                $('#resetSelectedHosts').modal();
+                $('#resetSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            });
 
-    $("#resumeButton").on("click", function() {
-        $('#resumeSelectedHosts').modal();
-        $('#resumeSelectedHosts .modal-body #hostsList').val(checkedHosts);  
-    });
+            $("#terminateButton").on("click", function() {
+                $('#terminateSelectedHosts').modal();
+                $('#terminateSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            });
 
-    $("#resetButton").on("click", function() {
-        $('#resetSelectedHosts').modal();
-        $('#resetSelectedHosts .modal-body #hostsList').val(checkedHosts);
-    });
+            $("#forceTerminateButton").on("click", function() {
+                $('#forceTerminateSelectedHosts').modal();
+                $('#forceTerminateSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            });
 
-    $("#terminateButton").on("click", function() {
-        $('#terminateSelectedHosts').modal();
-        $('#terminateSelectedHosts .modal-body #hostsList').val(checkedHosts);
-    });
-
-    $("#forceTerminateButton").on("click", function() {
-        $('#forceTerminateSelectedHosts').modal();
-        $('#forceTerminateSelectedHosts .modal-body #hostsList').val(checkedHosts);
-    });
-
-</script>
-</div>
+        </script>
+    </div>
 {% endfor %}
 
 <div class="modal fade" id="pauseSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">

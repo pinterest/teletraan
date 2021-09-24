@@ -19,6 +19,7 @@ import json
 from django.conf import settings
 from django import template
 from datetime import datetime, timedelta
+from collections import Mapping
 import time
 from math import trunc
 import pytz
@@ -508,7 +509,7 @@ def agentTip(agentStats):
     agent = agentStats.agent
     hostname = agent['hostName']
     if agentStats.isStale:
-        return '{}: Agent information is staled, click for more information'.format(hostname)
+        return '{}: Agent information is stale, click for more information'.format(hostname)
 
     if agent['state'] == "PAUSED_BY_USER":
         return '{}: Agent is paused explicitly for any deploy'.format(hostname)
@@ -1014,6 +1015,12 @@ def canReplaceCluster(cluster):
 def get_type(object):
     return type(object).__name__
 
+@register.filter("getValue")
+def get_value(dictionary, key):
+    ''' return value from dict, OrderedDict, UserDict '''
+    if not isinstance(dictionary, Mapping):
+        return None
+    return dictionary.get(key, None)
 
 @register.filter("convertConfigHistoryString")
 def convertConfigHistoryString(change):

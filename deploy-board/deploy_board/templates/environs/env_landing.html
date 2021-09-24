@@ -2,7 +2,6 @@
 
 {% load utils %}
 {% load static %}
-
 {% block breadcrumb-items %}
 <ul class="breadcrumb">
     <li><a href="/">Home</a></li>
@@ -166,12 +165,12 @@
       </div>
       <div class="modal-body">
         <p>Are you sure to pause the current deploy? <br>
-           Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster. 
+           Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster.
         </p>
         <div class="alert alert-danger" role="alert">
             <strong>WARNING</strong>:
             Please don't leave deployment in the PAUSED state permanently. <br>
-            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.  
+            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.
         </div>
       </div>
       <div class="modal-footer">
@@ -341,15 +340,20 @@ $('#privateBldUploadBtnId button').click(function () {
                 </a>
             </h4>
             {% if pinterest %}
-                {% if project_info %}
+                {% if project_info.project_name %}
                 <div class="btn-project-info">
                     <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
                     <a href="{{ project_info.project_url }}" target="_blank">Project: {{ project_info.project_name }}</a>
                 </div>
+                {% elif not project_info.project_valid %}
+                <div class="btn-project-info-warning">
+                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                    <p>Warning: Unable to contact Nimbus backend for project ownership.</p>
+                </div>
                 {% else %}
                 <div class="btn-project-info-warning">
                     <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
-                    <p>Missing project ownership information, please contact slack #infra-console to add it.</p>
+                    <p>Warning: Missing project ownership information, please contact slack {{resource_ownership_slack}} to add it.</p>
                 </div>
                 {% endif %}
             {% endif %}
@@ -381,38 +385,100 @@ $('#privateBldUploadBtnId button').click(function () {
                 </button>
                 <div class="btn-group">
                 <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
+                        {% if report.showModeOverride %}
+                        title="Display Mode is disabled since environment is a sidecar"
+                        {% else %}
                         title="Change how the hosts are displayed"
+                        {% endif %}
                         data-toggle="dropdown" type="button">
                     Display Mode <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
                     <form id="updateModeFormId">
-                    <li>
-                        <div class="radio"><label>&nbsp;
-                        <input type="radio" name="showMode" value="simple"
+                    <li
+                    {% if report.showModeOverride %}
+                    class="disabled"
+                    {% endif %}
+                    >
+                        <div
+                        {% if not report.showModeOverride %}
+                        class="radio"
+                        {% else %}
+                        class="radio disabled"
+                        disabled
+                        {% endif %}
+                        >
+                        <label
+                        {% if report.showModeOverride %}
+                        class="text-muted"
+                        {% endif %}
+                        >&nbsp;
+                        <input type="radio" name="showMode" value="simple" readonly="readonly"
+                        {% if report.showModeOverride %}
+                        disabled
+                        {% endif %}
                         {% if report.showMode == "simple" %}
                         checked
                         {% endif %}
                         > Simple
-                        </label></div>
+                        </label>
+                        </div>
                     </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
+                    <li
+                    {% if report.showModeOverride %}
+                    class="disabled"
+                    {% endif %}
+                    >
+                        <div
+                        {% if not report.showModeOverride %}
+                        class="radio"
+                        {% else %}
+                        class="radio disabled"
+                        {% endif %}
+                        >
+                        <label
+                        {% if report.showModeOverride %}
+                        class="text-muted"
+                        {% endif %}
+                        >&nbsp;
                         <input type="radio" name="showMode" value="compact"
+                        {% if report.showModeOverride %}
+                        disabled
+                        {% endif %}
                         {% if report.showMode == "compact" %}
                         checked
                         {% endif %}
                         > Compact
-                        </label></div>
+                        </label>
+                        </div>
                     </li>
-                    <li>
-                        <div class="radio"><label>&nbsp;
+                    <li
+                        {% if report.showModeOverride %}
+                        class="disabled"
+                        {% endif %}
+                    >
+                        <div
+                        {% if not report.showModeOverride %}
+                        class="radio"
+                        {% else %}
+                        class="radio disabled"
+                        {% endif %}
+                        >
+                        <label
+                        {% if report.showModeOverride %}
+                        class="text-muted"
+                        {% endif %}
+                        >&nbsp;
                         <input type="radio" name="showMode" value="complete"
+                        {% if report.showModeOverride %}
+                        disabled
+                        {% endif %}
                         {% if report.showMode == "complete" %}
                         checked
                         {% endif %}
                         > Complete
-                        </label></div>
+                        </label>
+                        </div>
                     </li>
                     <li role="presentation" class="divider"></li>
                     <li>
@@ -422,7 +488,8 @@ $('#privateBldUploadBtnId button').click(function () {
                         checked
                         {% endif %}
                         > Sort by status
-                        </label></div>
+                        </label>
+                        </div>
                     </li>
                     </form>
                 </ul>
