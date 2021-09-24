@@ -248,4 +248,24 @@ public class AgentBean implements Updatable {
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
     }
+
+    // TODO: add missing fields.
+    @Override
+    public boolean equals(AgentBean otherAgentBean) {
+        if (otherAgentBean == null) {
+            return true;
+        }
+        if (this.getHost_id() != null && this.getHost_id().equals(host_id) && 
+            this.getDeploy_id() != null && this.getDeploy_id().equals(otherAgentBean.getDeploy_id()) &&
+            this.getEnv_id() != null && this.getEnv_id().equals(otherAgentBean.getEnv_id()) && 
+            this.getFail_count() != null && this.getFail_count().equals(otherAgentBean.getFail_count()) &&
+            this.getStatus() != null && this.getStatus().equals(otherAgentBean.getStatus()) && 
+            this.getLast_err_no() != null && this.getLast_err_no().equals(otherAgentBean.getLast_err_no()) &&
+            this.getState() != null && this.getState().equals(otherAgentBean.getState()) && 
+            this.getDeploy_stage() != null && this.getDeploy_stage().equals(otherAgentBean.getDeploy_stage())) {
+
+            return false;
+        }
+        return true;
+    }
 }

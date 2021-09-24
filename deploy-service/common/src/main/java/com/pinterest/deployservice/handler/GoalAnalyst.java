@@ -280,28 +280,6 @@ public class GoalAnalyst {
         }
     }
 
-    boolean shouldUpdateAgentRecord(AgentBean origBean, AgentBean updateBean) {
-        
-        if (origBean == null || updateBean == null) {
-            return true;
-        }
-        if (origBean.getHost_id() != null && origBean.getHost_id().equals(host_id) && 
-            origBean.getDeploy_id() != null && origBean.getDeploy_id().equals(updateBean.getDeploy_id()) &&
-            origBean.getEnv_id() != null && origBean.getEnv_id().equals(updateBean.getEnv_id()) && 
-            origBean.getFail_count() != null && origBean.getFail_count().equals(updateBean.getFail_count()) &&
-            origBean.getStatus() != null && origBean.getStatus().equals(updateBean.getStatus()) && 
-            origBean.getLast_err_no() != null && origBean.getLast_err_no().equals(updateBean.getLast_err_no()) &&
-            origBean.getState() != null && origBean.getState().equals(updateBean.getState()) && 
-            origBean.getDeploy_stage() != null && origBean.getDeploy_stage().equals(updateBean.getDeploy_stage())) {
-            LOG.debug("Skip updating agent record for env_id {}, deploy_id {} on host {}",
-                    origBean.getEnv_id(), origBean.getDeploy_id(), origBean.getHost_id());
-            return false;
-        }
-        LOG.info("Agent record for env_id {}, deploy_id {} on host {} needs update",
-                origBean.getEnv_id(), origBean.getDeploy_id(), origBean.getHost_id());
-        return true;
-    }
-
     // Generate new agent bean based on the report & current agent record,
     // We populate all the fields, since this could be used for insertOrUpdate as well
     AgentBean genUpdateBeanByReport(PingReportBean report, AgentBean agent) {
@@ -490,13 +468,19 @@ public class GoalAnalyst {
         AgentBean updateBean = null;
         if (report != null) {
             updateBean = genUpdateBeanByReport(report, agent);
-            if (!StringUtils.isEmpty(report.getEnvId()) && updateBean != null &&
-                shouldUpdateAgentRecord(agent, updateBean) == true) {
-                // Only record this in agent table when there is env, otherwise,
-                // we do not know which env it belongs to
-                needUpdateAgents.put(envId, updateBean);
-                if (report.getErrorMessage() != null) {
-                    errorMessages.put(envId, report.getErrorMessage());
+            if (!StringUtils.isEmpty(report.getEnvId())) { 
+                if (updateBean != null && agent.equals(updateBean) == true) {
+                    LOG.debug("Skip updating agent record for env_id {}, deploy_id {} on host {}",
+                        agent.getEnv_id(), agent.getDeploy_id(), agent.getHost_id());
+                } else {
+                    LOG.info("Agent record for env_id {}, deploy_id {} on host {} needs update",
+                        agent.getEnv_id(), agent.getDeploy_id(), agent.getHost_id());
+                    // Only record this in agent table when there is env, otherwise,
+                    // we do not know which env it belongs to
+                    needUpdateAgents.put(envId, updateBean);
+                    if (report.getErrorMessage() != null) {
+                        errorMessages.put(envId, report.getErrorMessage());
+                    }
                 }
             }
         }
