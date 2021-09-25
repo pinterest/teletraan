@@ -57,7 +57,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
             .labelNames("cluster")
             .register();
 
-
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
         int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
         super(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
