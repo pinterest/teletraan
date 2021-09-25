@@ -57,6 +57,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             .labelNames("cluster")
             .register();
 
+
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
         int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
         super(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
@@ -152,7 +153,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private void notifyOnUnreachableHosts(Map<String, Integer> unreachableCountPerASG) throws Exception {
         for (Map.Entry<String, Integer> entry : unreachableCountPerASG.entrySet()) {
             unreachableHosts.labels(entry.getKey()).set(entry.getValue());
-
             EnvironBean environBean = entry.getValue() != null ? environDAO.getByCluster(entry.getKey()) : null;
             if (environBean != null) {
                 String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s", environBean.getEnv_name(), environBean.getStage_name());
