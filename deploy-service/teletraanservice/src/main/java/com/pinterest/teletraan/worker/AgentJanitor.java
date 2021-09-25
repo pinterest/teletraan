@@ -51,7 +51,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private final CommonHandler commonHandler;
     private final ExecutorService jobPool;
     private String deployBoardUrlPrefix;
-    private static final Gauge unreachableHosts;
+    private static final Gauge unreachableHosts = Gauge.build()
+            .name("unreachable_hosts")
+            .help("Unreachable hosts in Teletraan")
+            .labelNames("cluster")
+            .register();
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
         int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
@@ -62,11 +66,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
         commonHandler = new CommonHandler(serviceContext);
         jobPool = serviceContext.getJobPool();
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
-        unreachableHosts = Gauge.build()
-                .name("unreachable_hosts")
-                .help("Unreachable hosts in Teletraan")
-                .labelNames("cluster")
-                .register();
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
 
@@ -153,7 +152,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private void notifyOnUnreachableHosts(Map<String, Integer> unreachableCountPerASG) throws Exception {
         for (Map.Entry<String, Integer> entry : unreachableCountPerASG.entrySet()) {
             unreachableHosts.labels(entry.getKey()).set(entry.getValue());
-            
+
             EnvironBean environBean = entry.getValue() != null ? environDAO.getByCluster(entry.getKey()) : null;
             if (environBean != null) {
                 String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s", environBean.getEnv_name(), environBean.getStage_name());
