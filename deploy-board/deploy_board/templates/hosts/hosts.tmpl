@@ -11,29 +11,29 @@
                 {% endwith %}
             {% endif %}
             <div class="btn-toolbar pull-right">
-                <button id="pauseButton"
-                        class="btn btn-default btn-sm" data-toggle="tooltip"
+                <button id="pauseButton_{{ deployId }}"
+                        class="btn btn-default btn-sm btn-action-hosts" data-toggle="tooltip"
                         title="Pause selected hosts">
                         <span class="glyphicon glyphicon-pause"></span> Pause
                 </button>
-                <button id="resumeButton"
-                        class="btn btn-default btn-sm" data-toggle="tooltip"
+                <button id="resumeButton_{{ deployId }}"
+                        class="btn btn-default btn-sm btn-action-hosts" data-toggle="tooltip"
                         title="Resume selected hosts">
                         <span class="glyphicon glyphicon-play"></span> Resume
                 </button>
-                <button id="resetButton"
-                        class="btn btn-default btn-sm" data-toggle="tooltip"
+                <button id="resetButton_{{ deployId }}"
+                        class="btn btn-default btn-sm btn-action-hosts" data-toggle="tooltip"
                         title="reset selected hosts">
                         <span class="glyphicon glyphicon-repeat"></span> Reset
                 </button>
-                <button id="terminateButton"
-                        class="btn btn-default btn-sm" data-toggle="tooltip"
+                <button id="terminateButton_{{ deployId }}"
+                        class="btn btn-default btn-sm btn-action-hosts" data-toggle="tooltip"
                         title="Soft terminate selected hosts">
                         <span class="glyphicon glyphicon-off"></span> Terminate
                 </button>
-                <button id="forceTerminateButton"
-                        class="btn btn-default btn-sm" data-toggle="tooltip"
-                        title="Soft terminate selected hosts">
+                <button id="forceTerminateButton_{{ deployId }}"
+                        class="btn btn-default btn-sm btn-action-hosts" data-toggle="tooltip"
+                        title="Force terminate selected hosts">
                         <span class="glyphicon glyphicon-remove"></span> Force Terminate
                 </button>
               </div>
@@ -47,7 +47,7 @@
             {% endfor %}
         </ul>
         <div class="panel-body table-responsive" style="overflow-x: auto">
-            <table id="hostTable" class="table table-striped table-bordered table-condensed table-hover">
+            <table id="hostTable_{{ deployId }}" class="table table-striped table-bordered table-condensed table-hover">
                 <tr>
                     <th></th>
                     <th>Host</th>
@@ -101,18 +101,20 @@
             {% if is_retryable and host_ids %}
             <div class="pull-left">
                 <button id="reset_{{ deployId }}"
-                        class="deployToolTip btn btn-primary" data-toggle="tooltip"
-                        title="Retry the current deploy step on this host.">
-                    Retry deploy on all hosts
+                        class="deployToolTip btn btn-primary"
+                        data-target="#resetHosts_{{ deployId }}"
+                        data-toggle="modal"
+                        title="Retry the current deploy on all hosts.">
+                    Retry deploy on all failed hosts
                 </button>
             </div>
             {% endif %}
 
             {% if pinterest and host_ids %}
             <div class="pull-left">
-                <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
+                <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost_{{ deployId }}"
                     data-toggle="modal" title="Terminate all failed hosts">
-                <span class="glyphicon glyphicon-remove"></span> Terminate failed hosts
+                <span class="glyphicon glyphicon-remove"></span> Terminate all failed hosts
                 </button>
             </div>
             {% endif %}
@@ -120,27 +122,11 @@
         <script>
             var checkedHosts = [];
 
-            $(function () {
-                $('.deployToolTip').tooltip();
-                $('#reset_{{ deployId }}').click(function () {
-                    $.ajax({
-                        type: 'POST',
-                        url: '/env/{{ env.envName }}/{{ env.stageName }}/reset_failed_hosts/{{ deployId }}/',
-                        data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
-                        datatype: 'json',
-                        success: function (data) {
-                            window.location = '/env/{{env.envName }}/{{env.stageName}}/';
-                        }
-                    });
-
-                });
-            });
-
             $('input[type="checkbox"]').click(function(){
-                if ($("#hostTable input:checkbox:checked").length <= 0) {
-                  $(".btn").prop("disabled", true);
+                if ($("#hostTable_{{ deployId }} input:checkbox:checked").length <= 0) {
+                  $(".btn-action-hosts").prop("disabled", true);
                 } else {
-                  $(".btn").prop("disabled", false);
+                  $(".btn-action-hosts").prop("disabled", false);
                 }
 
                 if ($(this).is(":checked")) {
@@ -160,171 +146,192 @@
                     }
                 });
 
-                if ($("#hostTable input:checkbox:checked").length <= 0) {
-                    $(".btn").prop("disabled", true);
+                if ($("#hostTable_{{ deployId }} input:checkbox:checked").length <= 0) {
+                    $(".btn-action-hosts").prop("disabled", true);
                 } else {
-                    $(".btn").prop("disabled", false);
+                    $(".btn-action-hosts").prop("disabled", false);
                 }
             });
 
-            $("#pauseButton").on("click", function() {
-                $('#pauseSelectedHosts').modal();
-                $('#pauseSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            $("#pauseButton_{{ deployId }}").on("click", function() {
+                $('#pauseSelectedHosts_{{ deployId }}').modal();
+                $('#pauseSelectedHosts_{{ deployId }} .modal-body #hostsList_{{ deployId }}').val(checkedHosts);
             });
 
-            $("#resumeButton").on("click", function() {
-                $('#resumeSelectedHosts').modal();
-                $('#resumeSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            $("#resumeButton_{{ deployId }}").on("click", function() {
+                $('#resumeSelectedHosts_{{ deployId }}').modal();
+                $('#resumeSelectedHosts_{{ deployId }} .modal-body #hostsList_{{ deployId }}').val(checkedHosts);
             });
 
-            $("#resetButton").on("click", function() {
-                $('#resetSelectedHosts').modal();
-                $('#resetSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            $("#resetButton_{{ deployId }}").on("click", function() {
+                $('#resetSelectedHosts_{{ deployId }}').modal();
+                $('#resetSelectedHosts_{{ deployId }} .modal-body #hostsList_{{ deployId }}').val(checkedHosts);
             });
 
-            $("#terminateButton").on("click", function() {
-                $('#terminateSelectedHosts').modal();
-                $('#terminateSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            $("#terminateButton_{{ deployId }}").on("click", function() {
+                $('#terminateSelectedHosts_{{ deployId }}').modal();
+                $('#terminateSelectedHosts_{{ deployId }} .modal-body #hostsList_{{ deployId }}').val(checkedHosts);
             });
 
-            $("#forceTerminateButton").on("click", function() {
-                $('#forceTerminateSelectedHosts').modal();
-                $('#forceTerminateSelectedHosts .modal-body #hostsList').val(checkedHosts);
+            $("#forceTerminateButton_{{ deployId }}").on("click", function() {
+                $('#forceTerminateSelectedHosts_{{ deployId }}').modal();
+                $('#forceTerminateSelectedHosts_{{ deployId }} .modal-body #hostsList_{{ deployId }}').val(checkedHosts);
             });
 
         </script>
     </div>
+
+    <div class="modal fade" id="pauseSelectedHosts_{{ deployId }}" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="pauseSelectedHostForm_{{ deployId }}" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/pause_hosts/">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Host(s) Pause Confirmation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p> Are you sure you would like to pause the following hosts?</p>
+                        <input id="hostsList_{{ deployId }}" class="form-control" name="hostIds" type="text" value=""/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Pause</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                    {% csrf_token %}
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="resumeSelectedHosts_{{ deployId }}" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="resumeSelectedHostForm_{{ deployId }}" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/resume_hosts/">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Host(s) Resume Confirmation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p> Are you sure you would like to resume the following hosts?</p>
+                        <input id="hostsList_{{ deployId }}" class="form-control" name="hostIds" type="text" value=""/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Resume</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                    {% csrf_token %}
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="resetSelectedHosts_{{ deployId }}" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="resetSelectedHostForm_{{ deployId }}" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/reset_hosts/">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Host(s) Reset Confirmation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p> Are you sure you would like to reset the following hosts?</p>
+                        <input id="hostsList_{{ deployId }}" class="form-control" name="hostIds" type="text" value=""/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Reset</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                    {% csrf_token %}
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="terminateSelectedHosts_{{ deployId }}" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="terminateSelectedHostForm_{{ deployId }}" class="form-horizontal"  method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Host(s) Termination Confirmation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p> Are you sure you would like to terminate the following hosts?</p>
+                        <input id="hostsList_{{ deployId }}" class="form-control" name="hostIds" type="text" value=""/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Terminate</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                    {% csrf_token %}
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="forceTerminateSelectedHosts_{{ deployId }}" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="forceTerminateSelectedHostForm_{{ deployId }}" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">Host(s) Force Termination Confirmation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p> Are you sure you would like to force terminate the following hosts?</p>
+                        <input id="hostsList_{{ deployId }}" class="form-control" name="hostIds" type="text" value=""/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId_{{ deployId }}">Force Terminate</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                    {% csrf_token %}
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="resetHosts_{{ deployId }}" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="resetHostForm_{{ deployId }}" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/reset_failed_hosts/{{ deployId }}/">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">All Failed Host(s) Retry Confirmation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p> Are you sure you would like to reset the deploy (retry) on all of the failed hosts?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Retry</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                    {% csrf_token %}
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <div class="modal fade" id="terminateHost_{{ deployId }}" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="terminateHostForm_{{ deployId }}" class="form-horizontal"  method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                        <h4 class="modal-title">All Host(s) Termination Confirmation</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p> Are you sure you would like to terminate all of the following hosts?</p>
+                        <input class="form-control" name="hostIds" type="text" value="{{ host_ids }}"/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId_{{ deployId }}">Terminate all hosts</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                    {% csrf_token %}
+                </form>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
 {% endfor %}
 
-<div class="modal fade" id="pauseSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="pauseSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/pause_hosts/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Host(s) Pause Confirmation</h4>
-                </div>
-                <div class="modal-body">
-                    <p> Are you sure you would like to pause the following hosts?</p>
-                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Pause</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-<div class="modal fade" id="resumeSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="resumeSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/resume_hosts/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Host(s) Resume Confirmation</h4>
-                </div>
-                <div class="modal-body">
-                    <p> Are you sure you would like to resume the following hosts?</p>
-                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Resume</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-<div class="modal fade" id="resetSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="resetSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/reset_hosts/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Host(s) Reset Confirmation</h4>
-                </div>
-                <div class="modal-body">
-                    <p> Are you sure you would like to reset the following hosts?</p>
-                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Reset</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-<div class="modal fade" id="terminateSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="terminateSelectedHostForm" class="form-horizontal"  method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Host(s) Termination Confirmation</h4>
-                </div>
-                <div class="modal-body">
-                    <p> Are you sure you would like to terminate the following hosts?</p>
-                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Terminate</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-<div class="modal fade" id="forceTerminateSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="forceTerminateSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Host(s) Force Termination Confirmation</h4>
-                </div>
-                <div class="modal-body">
-                    <p> Are you sure you would like to force terminate the following hosts?</p>
-                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Force Terminate</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
-
-<div class="modal fade" id="terminateHost" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="terminateHostForm" class="form-horizontal"  method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/terminate_hosts/">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Host Termination Confirm</h4>
-                </div>
-                <div class="modal-body">
-                    <p> Are you sure to terminate the following hosts?</p>
-                    <input class="form-control" name="hostIds" type="text" value="{{ host_ids }}"/>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
