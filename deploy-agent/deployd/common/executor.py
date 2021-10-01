@@ -83,11 +83,11 @@ class Executor(object):
                             self.ping_server_if_possible(start, cmd, deploy_report)
                         """
                         terminate case 1:
-                        the server changed the deploy goal, return to the agent to handle next
-                        deploy step
+                        the server changed the deploy goal, notify process and wait for it to shut down
+                        If service script does not handle SIGTERM, terminate case 2 below should kill
                         """
                         if deploy_report.status_code == AgentStatus.ABORTED_BY_SERVER:
-                            Executor._kill_process(process)
+                            Executor._graceful_shutdown(process)
                             return deploy_report
 
                         """
@@ -182,9 +182,20 @@ class Executor(object):
     @staticmethod
     def _kill_process(process):
         try:
+            log.info("Kill currently running process")
             os.killpg(process.pid, signal.SIGKILL)
         except Exception as e:
             log.debug('Failed to kill process: {}'.format(e))
+
+    @staticmethod
+    def _graceful_shutdown(process):
+        try:
+            log.info("Gracefully shutdown currently running process")
+            os.killpg(process.pid, signal.SIGTERM)
+            process.wait(timeout=30)
+        except Exception as e:
+            log.debug('Failed to terminate process: {}'.format(e))
+            self._kill_process(process)
 
     def execute_command(self, script):
         try:
