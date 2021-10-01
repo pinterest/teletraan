@@ -49,7 +49,7 @@
                 <td class="text-right">
                     <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
                         href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts/"
-                        title="Click to see more details">
+                        title="Total hosts in the current deploy">
                         <small>{{ report.currentDeployStat.total }}</small>
                     </a>
                 </td>
@@ -79,7 +79,7 @@
                 <td class="text-right">
                     <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
                     href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts/"
-                    title="Click to see more details">
+                    title="Total hosts in a previous deploy">
                     <small>{{ deployStat.total }}</small>
                     </a>
                 </td>
@@ -94,19 +94,19 @@
                     <tr>
                         <td class="col-lg-2">
                             <span class="deployToolTip" data-toggle="tooltip"
-                                  title="New hosts which are being deployed to for the first time">
-                                <small>Deploying</small>
+                                  title="Hosts in the current deploy">
+                                <small>Deploying Hosts</small>
                             </span>
                         </td>
                         <td class="col-lg-10">
                             <div>
                                <table class="table table-striped table-condensed table-hover">
                                    <tr>
-                                       {% for key, value in report.currentDeployStat.stateDistMap.items %}
+                                       {% for agentState, value in report.currentDeployStat.stateDistMap.items %}
                                            <th class="col-lg-1 text-right">
-                                               <span class="pointer-cursor deployToolTip" data-toggle="tooltip" title="{{ key }}">
+                                               <span class="pointer-cursor deployToolTip" data-toggle="tooltip" title="{{ agentState|agentStateTip }}">
                                                    <small>
-                                                       {{ key }}
+                                                       {{ agentState }}
                                                    </small>
                                                </span>
                                            </th>
@@ -118,10 +118,10 @@
                                        </th>
                                    </tr>
                                    <tr>
-                                       {% for key, value in report.currentDeployStat.stateDistMap.items %}
+                                       {% for agentState, value in report.currentDeployStat.stateDistMap.items %}
                                            <td class="col-lg-1 text-right">
                                                <small>
-                                                    {% if key == "NORMAL"%}
+                                                    {% if agentState == "NORMAL"%}
                                                        <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/all"
                                                           class="deployToolTip" data-toggle="tooltip"
                                                           title="Normal host details">
@@ -140,7 +140,7 @@
                                        <td class="col-lg-1 text-right">
                                            <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
                                                href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts/"
-                                               title="Click to see more details">
+                                               title="Total hosts currently deploying">
                                                <small>{{ report.currentDeployStat.total }}</small>
                                            </a>
                                        </td>
@@ -245,7 +245,7 @@
                         <td class="col-lg-1 text-right">
                             <small>
                             <a href="hosts/show?stage=TODO" class="deployToolTip" data-toggle="tooltip"
-                               title="Click to see more details">
+                               title="Total new hosts which are being deployed to for the first time">
                                 {{ report.firstTimeAgentStats|length }}
                             </a>
                             </small>

@@ -1240,10 +1240,10 @@ def get_hosts_by_deploy(request, name, stage, deploy_id):
     })
 
 
-# reset all failed hosts for this env, this deploy
+# reset all failed hosts for this env name, stage, deploy
 def reset_failed_hosts(request, name, stage, deploy_id):
     agents_helper.reset_failed_agents(request, name, stage, deploy_id)
-    return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
+    return redirect('/env/{}/{}/'.format(name, stage))
 
 
 # retry failed deploy stage for this env, this host
