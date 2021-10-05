@@ -37,6 +37,7 @@ class Config(object):
     def __init__(self, filenames=None, config_reader=None):
         self._configs = {}
         self._filenames = None
+        self._environ = {}
         if config_reader:
             self._config_reader = config_reader
             return
@@ -73,58 +74,63 @@ class Config(object):
         if not deploy_status:
             return
 
+        self._environ.clear()
+
         self._configs = {}
         if deploy_status.runtime_config:
             self._configs.update(deploy_status.runtime_config)
 
         # update environment variables
-        os.environ['DEPLOY_ID'] = deploy_status.report.deployId
+        self._environ['DEPLOY_ID'] = deploy_status.report.deployId
 
         # TODO: This is only used for migration, should clean them up
         if isinstance(deploy_status.report.deployStage, int):
-            os.environ['DEPLOY_STEP'] = \
+            self._environ['DEPLOY_STEP'] = \
                 DeployStage._VALUES_TO_NAMES[deploy_status.report.deployStage]
         else:
-            os.environ['DEPLOY_STEP'] = deploy_status.report.deployStage
+            self._environ['DEPLOY_STEP'] = deploy_status.report.deployStage
 
         if isinstance(deploy_status.op_code, int):
             op_code = OperationCode._VALUES_TO_NAMES[deploy_status.op_code]
         else:
             op_code = deploy_status.op_code
-        os.environ['OPCODE'] = op_code
+        self._environ['OPCODE'] = op_code
 
-        os.environ['DEPLOY_TYPE'] = self._get_deploy_type_from_opcode(op_code)
+        self._environ['DEPLOY_TYPE'] = self._get_deploy_type_from_opcode(op_code)
 
         if deploy_status.report.envName:
-            os.environ['ENV_NAME'] = deploy_status.report.envName
+            self._environ['ENV_NAME'] = deploy_status.report.envName
         if deploy_status.report.stageName:
-            os.environ['STAGE_NAME'] = deploy_status.report.stageName
+            self._environ['STAGE_NAME'] = deploy_status.report.stageName
         if deploy_status.first_deploy:
-            os.environ['FIRST_DEPLOY'] = str(deploy_status.first_deploy)
+            self._environ['FIRST_DEPLOY'] = str(deploy_status.first_deploy)
         if deploy_status.is_docker:
-            os.environ['IS_DOCKER'] = str(deploy_status.is_docker)
-        os.environ['TARGET'] = self.get_target()
+            self._environ['IS_DOCKER'] = str(deploy_status.is_docker)
+        self._environ['TARGET'] = self.get_target()
 
         # export script var to environment
         if deploy_status.script_variables:
             for key, value in deploy_status.script_variables.items():
-                os.environ[key] = value
+                self._environ[key] = value
 
         if deploy_status.build_info:
             if deploy_status.build_info.build_commit:
-                os.environ['BUILD_COMMIT'] = deploy_status.build_info.build_commit
+                self._environ['BUILD_COMMIT'] = deploy_status.build_info.build_commit
             if deploy_status.build_info.build_name:
-                os.environ['BUILD_NAME'] = deploy_status.build_info.build_name
+                self._environ['BUILD_NAME'] = deploy_status.build_info.build_name
             if deploy_status.build_info.build_repo:
-                os.environ['BUILD_REPO'] = deploy_status.build_info.build_repo
+                self._environ['BUILD_REPO'] = deploy_status.build_info.build_repo
             if deploy_status.build_info.build_branch:
-                os.environ['BUILD_BRANCH'] = deploy_status.build_info.build_branch
+                self._environ['BUILD_BRANCH'] = deploy_status.build_info.build_branch
             if deploy_status.build_info.build_id:
-                os.environ['BUILD_ID'] = deploy_status.build_info.build_id
+                self._environ['BUILD_ID'] = deploy_status.build_info.build_id
             if deploy_status.build_info.build_url:
-                os.environ['BUILD_URL'] = deploy_status.build_info.build_url
+                self._environ['BUILD_URL'] = deploy_status.build_info.build_url
 
-        os.environ['BUILDS_DIR'] = self.get_builds_directory()
+        self._environ['BUILDS_DIR'] = self.get_builds_directory()
+
+    def get_all_environ_vars(self):
+        return self._environ.copy()
 
     def get_var(self, var_name, default_value=None):
         try:
@@ -143,19 +149,19 @@ class Config(object):
     def get_target(self):
         target_default_dir = self.get_var("target_default_dir", "/tmp")
         if not (self._configs and self._configs.get('target')):
-            return os.path.join(target_default_dir, os.environ['ENV_NAME'])
+            return os.path.join(target_default_dir, self._environ['ENV_NAME'])
 
         return self._configs.get('target')
 
     def get_subprocess_log_name(self):
-        if 'ENV_NAME' in os.environ:
-            return '{}/{}.log'.format(self.get_log_directory(), os.environ['ENV_NAME'])
+        if 'ENV_NAME' in self._environ:
+            return '{}/{}.log'.format(self.get_log_directory(), self._environ['ENV_NAME'])
         else:
             return os.path.join(self.get_log_directory(), "deploy_subprocess.log")
 
     def get_script_directory(self):
         script_dir = '{}/teletraan/'.format(self.get_target())
-        subscript_dir = os.path.join(script_dir, os.environ['ENV_NAME'])
+        subscript_dir = os.path.join(script_dir, self._environ['ENV_NAME'])
         if os.path.exists(subscript_dir):
             return subscript_dir
         else:

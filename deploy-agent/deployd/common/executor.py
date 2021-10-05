@@ -77,7 +77,7 @@ class Executor(object):
                     fdout.seek(0, 2)
                     file_pos = fdout.tell()
                     process = subprocess.Popen(cmd, stdout=fdout, stderr=fdout,
-                                               preexec_fn=os.setsid, **kw)
+                                               preexec_fn=os.setsid, env=self._config.get_all_environ_vars(), **kw)
                     while process.poll() is None:
                         start, deploy_report = \
                             self.ping_server_if_possible(start, cmd, deploy_report)
