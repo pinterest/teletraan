@@ -54,11 +54,11 @@ public class GoalAnalystTest {
 
     }
 
-    AgentBean genDefaultAgent() {
+    AgentBean genDefaultAgent(String name) {
         AgentBean agentBean = new AgentBean();
-        agentBean.setEnv_id("foo");
-        agentBean.setDeploy_id("foo");
-        agentBean.setHost_name("foo");
+        agentBean.setEnv_id(name);
+        agentBean.setDeploy_id(name);
+        agentBean.setHost_name(name);
         agentBean.setDeploy_stage(DeployStage.SERVING_BUILD);
         agentBean.setState(AgentState.NORMAL);
         agentBean.setFail_count(0);
@@ -66,24 +66,24 @@ public class GoalAnalystTest {
         return agentBean;
     }
 
-    PingReportBean genDefaultReport() {
+    PingReportBean genDefaultReport(String name) {
         PingReportBean report = new PingReportBean();
-        report.setDeployId("foo");
-        report.setEnvId("foo");
+        report.setDeployId(name);
+        report.setEnvId(name);
         report.setDeployStage(DeployStage.SERVING_BUILD);
         report.setAgentStatus(AgentStatus.SUCCEEDED);
 
         return report;
     }
 
-    EnvironBean genDefaultEnvBean() {
+    EnvironBean genDefaultEnvBean(String name) {
         EnvironBean envBean = new EnvironBean();
-        envBean.setEnv_id("foo");
-        envBean.setEnv_name("foo");
-        envBean.setStage_name("foo");
+        envBean.setEnv_id(name);
+        envBean.setEnv_name(name);
+        envBean.setStage_name(name);
         envBean.setEnv_state(EnvState.NORMAL);
         envBean.setPriority(DeployPriority.NORMAL);
-        envBean.setDeploy_id("foo");
+        envBean.setDeploy_id(name);
         envBean.setDeploy_type(DeployType.REGULAR);
         return envBean;
     }
@@ -98,7 +98,7 @@ public class GoalAnalystTest {
     // Case 0.1: env has no deploy yet
     @Test
     public void testNoDeployYet() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envBean.setDeploy_id(null);
         envs.put(envBean.getEnv_id(), envBean);
 
@@ -113,11 +113,11 @@ public class GoalAnalystTest {
     // Case 0.2: env is onhold
     @Test
     public void test1Env1ReportEnvOnhold() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envBean.setEnv_state(EnvState.PAUSED);
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report.getEnvId(), report);
 
@@ -132,14 +132,14 @@ public class GoalAnalystTest {
     // Case 0.3: agent is onhold by user
     @Test
     public void test1Env1ReportAgentOnhold() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report.getEnvId(), report);
 
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agent.setState(AgentState.PAUSED_BY_USER);
         agents.put(envBean.getEnv_id(), agent);
 
@@ -154,10 +154,10 @@ public class GoalAnalystTest {
     // Case 1.1: serving the right deploy
     @Test
     public void test1Env1ReportServing() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         reports.put(report.getEnvId(), report);
 
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -171,10 +171,10 @@ public class GoalAnalystTest {
     // Case 1.2: succeeded on current step, proceed on next step
     @Test
     public void test1Env1ReportStageSuc() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report.getEnvId(), report);
 
@@ -194,14 +194,14 @@ public class GoalAnalystTest {
     // Case 1.3: succeeded on current step, proceed on next step, though agent is currently PAUSED
     @Test
     public void test1Env1ReportStageSucThoughAgentPaused() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report.getEnvId(), report);
 
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agent.setState(AgentState.PAUSED_BY_SYSTEM);
         agents.put(agent.getEnv_id(), agent);
 
@@ -220,7 +220,7 @@ public class GoalAnalystTest {
 
     @Test
     public void testFirstTimeDeploy() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
         // no report, no agents
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -237,9 +237,9 @@ public class GoalAnalystTest {
 
     @Test
     public void testFirstTimeDeploy2() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
-        AgentBean agentBean = genDefaultAgent();
+        AgentBean agentBean = genDefaultAgent("foo");
 
         agentBean.setEnv_id("foo2");
         agents.put("foo2", agentBean);
@@ -259,12 +259,12 @@ public class GoalAnalystTest {
 
     @Test
     public void testFirstTimeDeploy3() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
-        AgentBean agentBean = genDefaultAgent();
+        AgentBean agentBean = genDefaultAgent("foo");
         agentBean.setEnv_id("foo2");
         agents.put("foo2", agentBean);
-        EnvironBean envBean2 = genDefaultEnvBean();
+        EnvironBean envBean2 = genDefaultEnvBean("foo");
         envBean2.setEnv_name("foo2");
         EnvironDAO environDAO = Mockito.mock(EnvironDAO.class);
         Mockito.when(environDAO.getById("foo2")).thenReturn(envBean2);
@@ -282,14 +282,14 @@ public class GoalAnalystTest {
 
     @Test
     public void testFirstTimeDeployMiddle() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report.getEnvId(), report);
 
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agent.setFirst_deploy(true);
         agents.put(agent.getEnv_id(), agent);
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -306,14 +306,14 @@ public class GoalAnalystTest {
 
     @Test
     public void testFirstTimeDeployPostRestart() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.POST_RESTART);
         reports.put(report.getEnvId(), report);
 
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agent.setFirst_deploy(true);
         agents.put(agent.getEnv_id(), agent);
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -339,14 +339,14 @@ public class GoalAnalystTest {
 
     @Test
     public void testFirstTimeDeployEnd() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.SERVING_BUILD);
         reports.put(report.getEnvId(), report);
 
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agent.setFirst_deploy(true);
         agents.put(agent.getEnv_id(), agent);
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -362,16 +362,16 @@ public class GoalAnalystTest {
     // Case 1.3: failed on current step, agent paused, expecting none
     @Test
     public void test1Env1ReportAgentPaused() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         report.setAgentStatus(AgentStatus.SCRIPT_FAILED);
         report.setErrorCode(100);
         reports.put(report.getEnvId(), report);
 
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agent.setState(AgentState.PAUSED_BY_SYSTEM);
         agents.put(agent.getEnv_id(), agent);
 
@@ -390,10 +390,10 @@ public class GoalAnalystTest {
     // Case 1.3: agent failed with nonretryable error, expecting none
     @Test
     public void test1Env1ReportPauseAgentOnNoneRetryableError() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         report.setAgentStatus(AgentStatus.SCRIPT_TIMEOUT);
         report.setErrorCode(100);
@@ -414,10 +414,10 @@ public class GoalAnalystTest {
     // Case 1.4: agent failed with retryable error, repeat!
     @Test
     public void test1Env1ReportRepeatOnRetryableError() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         report.setAgentStatus(AgentStatus.SCRIPT_FAILED);
         report.setErrorCode(100);
@@ -439,16 +439,16 @@ public class GoalAnalystTest {
     // give it one more chance, start from beginning
     @Test
     public void test1Env1ReportStageFailButReset() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         report.setAgentStatus(AgentStatus.SCRIPT_TIMEOUT);
         report.setErrorCode(100);
         reports.put(report.getEnvId(), report);
 
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agent.setState(AgentState.RESET);
         agents.put(agent.getEnv_id(), agent);
 
@@ -469,11 +469,11 @@ public class GoalAnalystTest {
     // Case 1.5: Different deploy, install the first step
     @Test
     public void test1Env1ReportNewDeploy() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envBean.setDeploy_id("bar");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.SERVING_BUILD);
         reports.put(report.getEnvId(), report);
 
@@ -493,17 +493,17 @@ public class GoalAnalystTest {
     // Case 1.5: Different deploy, install the first step, though currently failing or PAUSED
     @Test
     public void test1Env1ReportNewDeployThoughAgentPaused() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envBean.setDeploy_id("bar");
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.PRE_RESTART);
         report.setAgentStatus(AgentStatus.TOO_MANY_RETRY);
         report.setErrorCode(100);
         reports.put(report.getEnvId(), report);
 
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agent.setState(AgentState.PAUSED_BY_SYSTEM);
         agents.put(agent.getEnv_id(), agent);
 
@@ -523,7 +523,7 @@ public class GoalAnalystTest {
     // Case 2.1: no report, install the first step
     @Test
     public void test1Env0Report() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envs.put(envBean.getEnv_id(), envBean);
 
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -540,11 +540,11 @@ public class GoalAnalystTest {
     // Case 3.1: no env but has report, and agent need to delete
     @Test
     public void test1Report0EnvDelete() throws Exception {
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployStage(DeployStage.SERVING_BUILD);
         reports.put(report.getEnvId(), report);
 
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agents.put(report.getEnvId(), agent);
 
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -559,7 +559,7 @@ public class GoalAnalystTest {
     // Case 4.1: no report, no env but has agent, delete it
     @Test
     public void test0Report0Env() throws Exception {
-        AgentBean agent = genDefaultAgent();
+        AgentBean agent = genDefaultAgent("foo");
         agents.put(agent.getEnv_id(), agent);
 
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -573,12 +573,12 @@ public class GoalAnalystTest {
     // Rollback but report indicate not necessary since it is running on the rollback version
     @Test
     public void test1Report1EnvRollBack() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envBean.setDeploy_id("bar");
         envBean.setDeploy_type(DeployType.ROLLBACK);
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         reports.put(report.getEnvId(), report);
 
         DeployBean deployBean = new DeployBean();
@@ -600,12 +600,12 @@ public class GoalAnalystTest {
     // Rollback, report indicate need new install
     @Test
     public void test1Report1EnvRollBack2() throws Exception {
-        EnvironBean envBean = genDefaultEnvBean();
+        EnvironBean envBean = genDefaultEnvBean("foo");
         envBean.setDeploy_id("bar");
         envBean.setDeploy_type(DeployType.ROLLBACK);
         envs.put(envBean.getEnv_id(), envBean);
 
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         report.setDeployId("whatever");
         reports.put(report.getEnvId(), report);
 
@@ -633,90 +633,90 @@ public class GoalAnalystTest {
     public void testNEnvsNReportsNAgents() throws Exception {
 
         // Case 0.1: e1 has no deploy yet
-        EnvironBean envBean1 = genDefaultEnvBean();
+        EnvironBean envBean1 = genDefaultEnvBean("foo");
         envBean1.setEnv_id("e1");
         envBean1.setDeploy_id(null);
         envs.put(envBean1.getEnv_id(), envBean1);
-        PingReportBean report1 = genDefaultReport();
+        PingReportBean report1 = genDefaultReport("foo");
         report1.setEnvId("e1");
         report1.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report1.getEnvId(), report1);
 
         // Case 0.2: e2 is onhold
-        EnvironBean envBean2 = genDefaultEnvBean();
+        EnvironBean envBean2 = genDefaultEnvBean("foo");
         envBean2.setEnv_id("e2");
         envBean2.setEnv_state(EnvState.PAUSED);
         envs.put(envBean2.getEnv_id(), envBean2);
-        PingReportBean report2 = genDefaultReport();
+        PingReportBean report2 = genDefaultReport("foo");
         report2.setEnvId("e2");
         report2.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report2.getEnvId(), report2);
 
         // Case 0.3: Agent is onhold (e3)
-        EnvironBean envBean3 = genDefaultEnvBean();
+        EnvironBean envBean3 = genDefaultEnvBean("foo");
         envBean3.setEnv_id("e3");
         envs.put(envBean3.getEnv_id(), envBean3);
-        PingReportBean report3 = genDefaultReport();
+        PingReportBean report3 = genDefaultReport("foo");
         report3.setEnvId("e3");
         report3.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report3.getEnvId(), report3);
-        AgentBean agent3 = genDefaultAgent();
+        AgentBean agent3 = genDefaultAgent("foo");
         agent3.setEnv_id("e3");
         agent3.setState(AgentState.PAUSED_BY_USER);
         agents.put(envBean3.getEnv_id(), agent3);
 
         // Case 1.1: report4 is serving the build (e4)
-        EnvironBean envBean4 = genDefaultEnvBean();
+        EnvironBean envBean4 = genDefaultEnvBean("foo");
         envBean4.setEnv_id("e4");
         envs.put(envBean4.getEnv_id(), envBean4);
-        PingReportBean report4 = genDefaultReport();
+        PingReportBean report4 = genDefaultReport("foo");
         report4.setEnvId("e4");
         reports.put(report4.getEnvId(), report4);
 
         // Case 1.2: agent5 proceed on next stage, candidate, hotfix
-        EnvironBean envBean5 = genDefaultEnvBean();
+        EnvironBean envBean5 = genDefaultEnvBean("foo");
         envBean5.setEnv_id("e5");
         envBean5.setDeploy_type(DeployType.HOTFIX);
         envs.put(envBean5.getEnv_id(), envBean5);
-        PingReportBean report5 = genDefaultReport();
+        PingReportBean report5 = genDefaultReport("foo");
         report5.setEnvId("e5");
         report5.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report5.getEnvId(), report5);
 
         // Case 1.2: agent6 expects next stage, though agent is PAUSED, candidate
-        EnvironBean envBean6 = genDefaultEnvBean();
+        EnvironBean envBean6 = genDefaultEnvBean("foo");
         envBean6.setEnv_id("e6");
         envBean6.setDeploy_type(DeployType.ROLLBACK);
         envs.put(envBean6.getEnv_id(), envBean6);
-        PingReportBean report6 = genDefaultReport();
+        PingReportBean report6 = genDefaultReport("foo");
         report6.setEnvId("e6");
         report6.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report6.getEnvId(), report6);
-        AgentBean agent6 = genDefaultAgent();
+        AgentBean agent6 = genDefaultAgent("foo");
         agent6.setEnv_id("e6");
         agent6.setState(AgentState.PAUSED_BY_SYSTEM);
         agents.put(agent6.getEnv_id(), agent6);
 
         // Case 1.3: failed on current step, agent paused, expecting none
-        EnvironBean envBean7 = genDefaultEnvBean();
+        EnvironBean envBean7 = genDefaultEnvBean("foo");
         envBean7.setEnv_id("e7");
         envs.put(envBean7.getEnv_id(), envBean7);
-        PingReportBean report7 = genDefaultReport();
+        PingReportBean report7 = genDefaultReport("foo");
         report7.setEnvId("e7");
         report7.setDeployStage(DeployStage.PRE_RESTART);
         report7.setAgentStatus(AgentStatus.SCRIPT_FAILED);
         report7.setErrorCode(100);
         reports.put(report7.getEnvId(), report7);
-        AgentBean agent7 = genDefaultAgent();
+        AgentBean agent7 = genDefaultAgent("foo");
         agent7.setEnv_id("e7");
         agent7.setState(AgentState.PAUSED_BY_SYSTEM);
         agents.put(agent7.getEnv_id(), agent7);
 
         // Case 1.3: agent failed with nonretryable error, expecting none
-        EnvironBean envBean8 = genDefaultEnvBean();
+        EnvironBean envBean8 = genDefaultEnvBean("foo");
         envBean8.setEnv_id("e8");
         envs.put(envBean8.getEnv_id(), envBean8);
-        PingReportBean report8 = genDefaultReport();
+        PingReportBean report8 = genDefaultReport("foo");
         report8.setEnvId("e8");
         report8.setDeployStage(DeployStage.PRE_RESTART);
         report8.setAgentStatus(AgentStatus.SCRIPT_TIMEOUT);
@@ -724,11 +724,11 @@ public class GoalAnalystTest {
         reports.put(report8.getEnvId(), report8);
 
         // Case 1.4: agent failed with retryable error, repeat!, candidate
-        EnvironBean envBean9 = genDefaultEnvBean();
+        EnvironBean envBean9 = genDefaultEnvBean("foo");
         envBean9.setEnv_id("e9");
         envBean9.setPriority(DeployPriority.HIGHER);
         envs.put(envBean9.getEnv_id(), envBean9);
-        PingReportBean report9 = genDefaultReport();
+        PingReportBean report9 = genDefaultReport("foo");
         report9.setEnvId("e9");
         report9.setDeployStage(DeployStage.PRE_RESTART);
         report9.setAgentStatus(AgentStatus.SCRIPT_FAILED);
@@ -737,67 +737,67 @@ public class GoalAnalystTest {
 
         // Case 1.4: failed on current step, noneretryable, but agent RESET,
         // give it one more chance, candidate
-        EnvironBean envBean11 = genDefaultEnvBean();
+        EnvironBean envBean11 = genDefaultEnvBean("foo");
         envBean11.setEnv_id("e11");
         envBean11.setPriority(DeployPriority.NORMAL);
         envs.put(envBean11.getEnv_id(), envBean11);
-        PingReportBean report11 = genDefaultReport();
+        PingReportBean report11 = genDefaultReport("foo");
         report11.setEnvId("e11");
         report11.setDeployStage(DeployStage.PRE_RESTART);
         report11.setAgentStatus(AgentStatus.SCRIPT_TIMEOUT);
         report11.setErrorCode(100);
         reports.put(report11.getEnvId(), report11);
-        AgentBean agent11 = genDefaultAgent();
+        AgentBean agent11 = genDefaultAgent("foo");
         agent11.setEnv_id("e11");
         agent11.setState(AgentState.RESET);
         agents.put(agent11.getEnv_id(), agent11);
 
         // Case 1.5: Different deploy, install the first step, candidate
-        EnvironBean envBean22 = genDefaultEnvBean();
+        EnvironBean envBean22 = genDefaultEnvBean("foo");
         envBean22.setEnv_id("e22");
         envBean22.setDeploy_id("bar");
         envBean22.setPriority(DeployPriority.LOWER);
         envs.put(envBean22.getEnv_id(), envBean22);
-        PingReportBean report22 = genDefaultReport();
+        PingReportBean report22 = genDefaultReport("foo");
         report22.setEnvId("e22");
         report22.setDeployStage(DeployStage.SERVING_BUILD);
         reports.put(report22.getEnvId(), report22);
 
         // Case 1.5: Different deploy, install the first step, though currently
         // failing or PAUSED, candidate
-        EnvironBean envBean33 = genDefaultEnvBean();
+        EnvironBean envBean33 = genDefaultEnvBean("foo");
         envBean33.setEnv_id("e33");
         envBean33.setDeploy_id("bar");
         envBean33.setPriority(DeployPriority.HIGH);
         envs.put(envBean33.getEnv_id(), envBean33);
-        PingReportBean report33 = genDefaultReport();
+        PingReportBean report33 = genDefaultReport("foo");
         report33.setEnvId("e33");
         report33.setDeployStage(DeployStage.PRE_RESTART);
         report33.setAgentStatus(AgentStatus.TOO_MANY_RETRY);
         report33.setErrorCode(100);
         reports.put(report33.getEnvId(), report33);
-        AgentBean agent33 = genDefaultAgent();
+        AgentBean agent33 = genDefaultAgent("foo");
         agent33.setEnv_id("e33");
         agent33.setState(AgentState.PAUSED_BY_SYSTEM);
         agents.put(agent33.getEnv_id(), agent33);
 
         // Case 2.1: no report, install the first step, candidate
-        EnvironBean envBean44 = genDefaultEnvBean();
+        EnvironBean envBean44 = genDefaultEnvBean("foo");
         envBean44.setEnv_id("e44");
         envBean44.setPriority(DeployPriority.LOW);
         envs.put(envBean44.getEnv_id(), envBean44);
 
         // Case 3.1: no env but has report, and agent is confirmed on uninstall, expect uninstall
-        PingReportBean report55 = genDefaultReport();
+        PingReportBean report55 = genDefaultReport("foo");
         report55.setEnvId("e55");
         report55.setDeployStage(DeployStage.SERVING_BUILD);
         reports.put(report55.getEnvId(), report55);
-        AgentBean agent55 = genDefaultAgent();
+        AgentBean agent55 = genDefaultAgent("foo");
         agent55.setEnv_id("e55");
         agents.put(agent55.getEnv_id(), agent55);
 
         // Case 4.1: no report, no env but has agent, delete it
-        AgentBean agent66 = genDefaultAgent();
+        AgentBean agent66 = genDefaultAgent("foo");
         agent66.setEnv_id("e66");
         agents.put(agent66.getEnv_id(), agent66);
 
@@ -822,27 +822,27 @@ public class GoalAnalystTest {
     @Test
     public void testDeployPriority() throws Exception {
 
-        EnvironBean envBean1 = genDefaultEnvBean();
+        EnvironBean envBean1 = genDefaultEnvBean("foo");
         envBean1.setEnv_id("e1");
         envBean1.setDeploy_id("DeployA");
         envBean1.setDeploy_type(DeployType.REGULAR);
         envBean1.setPriority(DeployPriority.HIGHER);
         envs.put(envBean1.getEnv_id(), envBean1);
 
-        EnvironBean envBean2 = genDefaultEnvBean();
+        EnvironBean envBean2 = genDefaultEnvBean("foo");
         envBean2.setEnv_id("e2");
         envBean2.setDeploy_id("DeployB");
         envBean2.setDeploy_type(DeployType.REGULAR);
         envBean2.setPriority(DeployPriority.NORMAL);
         envs.put(envBean2.getEnv_id(), envBean2);
 
-        EnvironBean envBean3 = genDefaultEnvBean();
+        EnvironBean envBean3 = genDefaultEnvBean("foo");
         envBean3.setEnv_id("e3");
         envBean3.setDeploy_type(DeployType.REGULAR);
         envBean3.setPriority(DeployPriority.LOWER);
         envs.put(envBean3.getEnv_id(), envBean3);
 
-        AgentBean agent1 = genDefaultAgent();
+        AgentBean agent1 = genDefaultAgent("foo");
         agent1.setEnv_id("e3");
         agents.put(agent1.getEnv_id(), agent1);
         agent1.setFirst_deploy(true);
@@ -876,91 +876,174 @@ public class GoalAnalystTest {
     }
 
     @Test
-    public void testNEnvsNReportsNStoppingAgents() throws Exception {
-        EnvironBean envBean1 = genDefaultEnvBean();
+    public void testPriorityOrderWithNeedsWait() throws Exception {
+        EnvironBean envBean1 = genDefaultEnvBean("foo");
         envBean1.setEnv_id("e1");
         envBean1.setPriority(DeployPriority.HIGH);
         envs.put(envBean1.getEnv_id(), envBean1);
 
-        PingReportBean report1 = genDefaultReport();
+        PingReportBean report1 = genDefaultReport("foo");
+        report1.setEnvId("e1");
+        report1.setDeployStage(DeployStage.SERVING_BUILD);
+        reports.put(report1.getEnvId(), report1);
+
+        AgentBean agent1 = genDefaultAgent("foo");
+        agent1.setEnv_id("e1");
+        agent1.setState(AgentState.RESET);
+        agents.put(envBean1.getEnv_id(), agent1);
+
+        EnvironBean envBean2 = genDefaultEnvBean("bar");
+        envBean2.setEnv_id("e2");
+        envBean2.setPriority(DeployPriority.NORMAL);
+        envs.put(envBean2.getEnv_id(), envBean2);
+
+        PingReportBean report2 = genDefaultReport("bar");
+        report2.setEnvId("e2");
+        report2.setDeployStage(DeployStage.PRE_RESTART);
+        reports.put(report2.getEnvId(), report2);
+
+        AgentBean agent2 = genDefaultAgent("bar");
+        agent2.setEnv_id("e2");
+        agent2.setState(AgentState.RESET);
+        agents.put(envBean2.getEnv_id(), agent2);
+
+        GoalAnalyst analyst = new GoalAnalyst(null, null, "host1", "id-1", envs, reports, agents);
+        analyst.analysis();
+        assertEquals(analyst.getInstallCandidates().size(), 2);
+
+        List<GoalAnalyst.InstallCandidate> candidates = analyst.getInstallCandidates();
+        assertEquals(candidates.get(0).env.getEnv_id(), "e2");
+        assertEquals(candidates.get(1).env.getEnv_id(), "e1");
+    }
+
+    @Test
+    public void testPriorityOrderWithNeedsWaitAndRetries() throws Exception {
+        EnvironBean envBean1 = genDefaultEnvBean("foo");
+        envBean1.setEnv_id("e1");
+        envBean1.setPriority(DeployPriority.HIGH);
+        envs.put(envBean1.getEnv_id(), envBean1);
+
+        PingReportBean report1 = genDefaultReport("foo");
+        report1.setEnvId("e1");
+        report1.setDeployStage(DeployStage.SERVING_BUILD);
+        reports.put(report1.getEnvId(), report1);
+
+        AgentBean agent1 = genDefaultAgent("foo");
+        agent1.setEnv_id("e1");
+        agent1.setState(AgentState.RESET);
+        agents.put(envBean1.getEnv_id(), agent1);
+
+        EnvironBean envBean2 = genDefaultEnvBean("bar");
+        envBean2.setEnv_id("e2");
+        envBean2.setPriority(DeployPriority.NORMAL);
+        envs.put(envBean2.getEnv_id(), envBean2);
+
+        PingReportBean report2 = genDefaultReport("bar");
+        report2.setEnvId("e2");
+        report2.setDeployStage(DeployStage.PRE_RESTART);
+        report2.setAgentStatus(AgentStatus.TOO_MANY_RETRY);
+        report2.setErrorCode(100);
+        reports.put(report2.getEnvId(), report2);
+
+        AgentBean agent2 = genDefaultAgent("bar");
+        agent2.setEnv_id("e2");
+        agent2.setState(AgentState.PAUSED_BY_SYSTEM);
+        agents.put(envBean2.getEnv_id(), agent2);
+
+        GoalAnalyst analyst = new GoalAnalyst(null, null, "host1", "id-1", envs, reports, agents);
+        analyst.analysis();
+        assertEquals(analyst.getInstallCandidates().size(), 1);
+
+        List<GoalAnalyst.InstallCandidate> candidates = analyst.getInstallCandidates();
+        assertEquals(candidates.get(0).env.getEnv_id(), "e1");
+    }
+
+    @Test
+    public void testNEnvsNReportsNStoppingAgents() throws Exception {
+        EnvironBean envBean1 = genDefaultEnvBean("foo");
+        envBean1.setEnv_id("e1");
+        envBean1.setPriority(DeployPriority.HIGH);
+        envs.put(envBean1.getEnv_id(), envBean1);
+
+        PingReportBean report1 = genDefaultReport("foo");
         report1.setEnvId("e1");
         report1.setDeployStage(DeployStage.PRE_RESTART);
         reports.put(report1.getEnvId(), report1);
 
-        AgentBean agent1 = genDefaultAgent();
+        AgentBean agent1 = genDefaultAgent("foo");
         agent1.setEnv_id("e1");
         agent1.setState(AgentState.STOP);
         agents.put(envBean1.getEnv_id(), agent1);
 
-        EnvironBean envBean2 = genDefaultEnvBean();
+        EnvironBean envBean2 = genDefaultEnvBean("foo");
         envBean2.setEnv_id("e2");
         envBean2.setPriority(DeployPriority.LOW);
         envs.put(envBean2.getEnv_id(), envBean2);
 
-        PingReportBean report2 = genDefaultReport();
+        PingReportBean report2 = genDefaultReport("foo");
         report2.setEnvId("e2");
         report2.setDeployStage(DeployStage.SERVING_BUILD);
         reports.put(report2.getEnvId(), report2);
 
-        AgentBean agent2 = genDefaultAgent();
+        AgentBean agent2 = genDefaultAgent("foo");
         agent2.setEnv_id("e2");
         agent2.setState(AgentState.STOP);
         agents.put(envBean2.getEnv_id(), agent2);
 
-        EnvironBean envBean3 = genDefaultEnvBean();
+        EnvironBean envBean3 = genDefaultEnvBean("foo");
         envBean3.setEnv_id("e3");
         envBean3.setPriority(DeployPriority.HIGHER);
         envs.put(envBean3.getEnv_id(), envBean3);
 
-        PingReportBean report3 = genDefaultReport();
+        PingReportBean report3 = genDefaultReport("foo");
         report3.setEnvId("e3");
         report3.setDeployStage(DeployStage.STOPPING);
         reports.put(report3.getEnvId(), report3);
 
-        AgentBean agent3 = genDefaultAgent();
+        AgentBean agent3 = genDefaultAgent("foo");
         agent3.setEnv_id("e3");
         agent3.setState(AgentState.STOP);
         agents.put(agent3.getEnv_id(), agent3);
 
-        EnvironBean envBean22 = genDefaultEnvBean();
+        EnvironBean envBean22 = genDefaultEnvBean("foo");
         envBean22.setEnv_id("e22");
         envBean22.setPriority(DeployPriority.NORMAL);
         envs.put(envBean22.getEnv_id(), envBean22);
 
-        PingReportBean report22 = genDefaultReport();
+        PingReportBean report22 = genDefaultReport("foo");
         report22.setEnvId("e22");
         report22.setDeployStage(DeployStage.POST_RESTART);
         reports.put(report22.getEnvId(), report22);
 
-        AgentBean agent22 = genDefaultAgent();
+        AgentBean agent22 = genDefaultAgent("foo");
         agent22.setEnv_id("e22");
         agents.put(agent22.getEnv_id(), agent22);
 
-        EnvironBean envBean23 = genDefaultEnvBean();
+        EnvironBean envBean23 = genDefaultEnvBean("foo");
         envBean23.setEnv_id("e23");
         envBean23.setPriority(DeployPriority.LOWER);
         envs.put(envBean23.getEnv_id(), envBean23);
 
-        PingReportBean report23 = genDefaultReport();
+        PingReportBean report23 = genDefaultReport("foo");
         report23.setEnvId("e23");
         report23.setDeployStage(DeployStage.RESTARTING);
         reports.put(report23.getEnvId(), report23);
 
-        AgentBean agent23 = genDefaultAgent();
+        AgentBean agent23 = genDefaultAgent("foo");
         agent23.setEnv_id("e23");
         agents.put(agent23.getEnv_id(), agent23);
 
-        EnvironBean envBean24 = genDefaultEnvBean();
+        EnvironBean envBean24 = genDefaultEnvBean("foo");
         envBean24.setEnv_id("e24");
         envBean24.setPriority(DeployPriority.HIGHER);
         envs.put(envBean24.getEnv_id(), envBean24);
 
-        PingReportBean report24 = genDefaultReport();
+        PingReportBean report24 = genDefaultReport("foo");
         report24.setEnvId("e24");
         report24.setDeployStage(DeployStage.POST_DOWNLOAD);
         reports.put(report24.getEnvId(), report24);
 
-        AgentBean agent24 = genDefaultAgent();
+        AgentBean agent24 = genDefaultAgent("foo");
         agent24.setEnv_id("e24");
         agents.put(agent24.getEnv_id(), agent24);
 
@@ -979,12 +1062,12 @@ public class GoalAnalystTest {
 
     @Test
     public void testStoppingStage() throws Exception {
-        EnvironBean environBean = genDefaultEnvBean();
+        EnvironBean environBean = genDefaultEnvBean("foo");
         envs.put(environBean.getEnv_id(), environBean);
-        AgentBean agentBean = genDefaultAgent();
+        AgentBean agentBean = genDefaultAgent("foo");
         agentBean.setState(AgentState.STOP);
         agents.put(environBean.getEnv_id(), agentBean);
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         reports.put(report.getEnvId(), report);
 
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -1003,13 +1086,13 @@ public class GoalAnalystTest {
 
     @Test
     public void testStoppedStage() throws Exception {
-        EnvironBean environBean = genDefaultEnvBean();
+        EnvironBean environBean = genDefaultEnvBean("foo");
         envs.put(environBean.getEnv_id(), environBean);
-        AgentBean agentBean = genDefaultAgent();
+        AgentBean agentBean = genDefaultAgent("foo");
         agentBean.setState(AgentState.STOP);
         agentBean.setDeploy_stage(DeployStage.STOPPING);
         agents.put(environBean.getEnv_id(), agentBean);
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         reports.put(report.getEnvId(), report);
 
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
@@ -1028,13 +1111,13 @@ public class GoalAnalystTest {
 
     @Test
     public void testFianlStopStage() throws Exception {
-        EnvironBean environBean = genDefaultEnvBean();
+        EnvironBean environBean = genDefaultEnvBean("foo");
         envs.put(environBean.getEnv_id(), environBean);
-        AgentBean agentBean = genDefaultAgent();
+        AgentBean agentBean = genDefaultAgent("foo");
         agentBean.setState(AgentState.STOP);
         agentBean.setDeploy_stage(DeployStage.STOPPED);
         agents.put(environBean.getEnv_id(), agentBean);
-        PingReportBean report = genDefaultReport();
+        PingReportBean report = genDefaultReport("foo");
         reports.put(report.getEnvId(), report);
 
         GoalAnalyst analyst = new GoalAnalyst(null, null, "foo", "id-1", envs, reports, agents);
