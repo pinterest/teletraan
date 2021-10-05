@@ -917,6 +917,49 @@ public class GoalAnalystTest {
     }
 
     @Test
+    public void testPriorityOrderWithNeedsWaitAndRetries() throws Exception {
+        EnvironBean envBean1 = genDefaultEnvBean("foo");
+        envBean1.setEnv_id("e1");
+        envBean1.setPriority(DeployPriority.HIGH);
+        envs.put(envBean1.getEnv_id(), envBean1);
+
+        PingReportBean report1 = genDefaultReport("foo");
+        report1.setEnvId("e1");
+        report1.setDeployStage(DeployStage.SERVING_BUILD);
+        reports.put(report1.getEnvId(), report1);
+
+        AgentBean agent1 = genDefaultAgent("foo");
+        agent1.setEnv_id("e1");
+        agent1.setState(AgentState.RESET);
+        agents.put(envBean1.getEnv_id(), agent1);
+
+        EnvironBean envBean2 = genDefaultEnvBean("bar");
+        envBean2.setEnv_id("e2");
+        envBean2.setPriority(DeployPriority.NORMAL);
+        envs.put(envBean2.getEnv_id(), envBean2);
+
+        PingReportBean report2 = genDefaultReport("bar");
+        report2.setEnvId("e2");
+        report2.setDeployStage(DeployStage.PRE_RESTART);
+        report2.setAgentStatus(AgentStatus.TOO_MANY_RETRY);
+        report2.setErrorCode(100);
+        reports.put(report2.getEnvId(), report2);
+
+        AgentBean agent2 = genDefaultAgent("bar");
+        agent2.setEnv_id("e2");
+        agent2.setState(AgentState.RESET);
+        agents.put(envBean2.getEnv_id(), agent2);
+
+        GoalAnalyst analyst = new GoalAnalyst(null, null, "host1", "id-1", envs, reports, agents);
+        analyst.analysis();
+        assertEquals(analyst.getInstallCandidates().size(), 2);
+
+        List<GoalAnalyst.InstallCandidate> candidates = analyst.getInstallCandidates();
+        assertEquals(candidates.get(0).env.getEnv_id(), "e1");
+        assertEquals(candidates.get(0).env.getEnv_id(), "e2");
+    }
+
+    @Test
     public void testNEnvsNReportsNStoppingAgents() throws Exception {
         EnvironBean envBean1 = genDefaultEnvBean("foo");
         envBean1.setEnv_id("e1");
