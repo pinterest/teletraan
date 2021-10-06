@@ -316,12 +316,31 @@
                             </span>
                         </td>
                         <td class="col-lg-10">
-                            {% for host in report.missingHosts %}
-                            <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ host }}"
-                               type="button" class="btn btn-xs btn-warning">
-                            <small>{{ host }}</small>
-                            </a>
-                            {% endfor %}
+                            <small>
+                                {% if report.showModeOverride %}
+                                    {% for host in report.missingHosts|slice:"100" %}
+                                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ host }}"
+                                           type="button" class="btn btn-xs btn-warning">
+                                           {% if report.showMode == "complete" %}
+                                               {{ host }}
+                                           {% endif %}
+                                           <i class="fa fa-fw fa-circle"></i>
+                                        </a>
+                                    {% endfor %}
+                                <i>Results limited to 100</i>
+                                {% else %}
+                                    {% for host in report.missingHosts %}
+                                        <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host }}"
+                                           type="button" class="btn btn-xs btn-warning">
+                                           {% if report.showMode == "complete" %}
+                                               {{ host }}
+                                           {% endif %}
+                                           <i class="fa fa-fw fa-circle"></i>
+                                        </a>
+                                    {% endfor %}
+                                <i>Results limited to 100</i>
+                                {% endif %}
+                            </small>
                         </td>
                         <td class="col-lg-1 text-right">
                             <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/unknowns/" class="deployToolTip" data-toggle="tooltip"
