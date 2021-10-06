@@ -182,7 +182,7 @@ def update_deploy_progress(request, name, stage):
     report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
 
     # override showMode when env.systemPriority > 0
-    if env.get('systemPriority', 0) > 0:
+    if env and env.get('systemPriority', 0) > 0:
         report.showModeOverride = True
     report.showMode = showMode
     report.sortByStatus = sortByStatus
