@@ -170,7 +170,7 @@
                                 {% else %}
                                     <small>
                                         {% if report.showModeOverride %}
-                                            {% for agentStat in report.agentStats|slice:":5" %}
+                                            {% for agentStat in report.agentStats|slice:":100" %}
                                                 <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                                                    type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                                                    title="{{ agentStat | agentTip }}">
@@ -180,7 +180,7 @@
                                                 <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                                                 </a>
                                             {% endfor %}
-                                            <i>Results limited to 5</i>
+                                            <i>Results limited to 100</i>
                                         {% else %}
                                             {% for agentStat in report.agentStats %}
                                                 <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
@@ -217,7 +217,7 @@
                         <td class="col-lg-10">
                             <small>
                                 {% if report.showModeOverride %}
-                                    {% for agentStat in report.firstTimeAgentStats|slice:":5" %}
+                                    {% for agentStat in report.firstTimeAgentStats|slice:":100" %}
                                         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                                            type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                                            title="{{ agentStat | agentTip }}">
@@ -227,7 +227,7 @@
                                            <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                                         </a>
                                     {% endfor %}
-                                    <i>Results limited to 5</i>
+                                    <i>Results limited to 100</i>
                                 {% else %}
                                     {% for agentStat in report.firstTimeAgentStats %}
                                         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
@@ -268,7 +268,7 @@
                         <td class="col-lg-10">
                             <small>
                                 {% if report.showModeOverride %}
-                                    {% for host in report.provisioningHosts|slice:":5" %}
+                                    {% for host in report.provisioningHosts|slice:":100" %}
                                     <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
                                        type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
                                        title="{{ host | hostTip }}">
@@ -278,7 +278,7 @@
                                        <i class="fa fa-fw {{ host | hostIcon }}"></i>
                                     </a>
                                     {% endfor %}
-                                    <i>Results limited to 5</i>
+                                    <i>Results limited to 100</i>
                                 {% else %}
                                     {% for host in report.provisioningHosts %}
                                     <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
