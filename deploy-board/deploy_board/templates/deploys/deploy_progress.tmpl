@@ -1,241 +1,367 @@
 {% load utils %}
 {% load static %}
 {% with deploy=report.currentDeployStat.deploy build=report.currentDeployStat.build tag=report.currentDeployStat.buildTag %}
-{% include "deploys/deploy_progress_summary.tmpl" %}
-
-{% if report.showMode != "simple" %}
-<div class="panel panel-default">
-  <div class="panel-body">
-<div class="row">
-    {% if report.sortByTag %}
-        {% for tagValue, hostTags in host_tag_infos.items %}
-        <div class="panel panel-default table-responsive">
-            {% for agentStat in report.agentStats %}
-                {% for hostTag in hostTags %}
-                    {% if agentStat.agent.hostName == hostTag.hostName %}
-                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                           type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                           title="{{ agentStat | agentTip }}">
-                           {% if report.showMode == "complete" %}
-                           <small>{{ agentStat.agent.hostName }}</small>
-                           {% endif %}
-                           <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                        </a>
+    {% include "deploys/deploy_progress_summary.tmpl" %}
+    <div class="panel panel-default" style="overflow-x: auto">
+        <table class="table table-striped table-condensed table-hover">
+            <tr>
+                <th class="col-lg-2">
+                    <small>
+                        Commit
+                    </small>
+                </th>
+                {% for key, value in report.currentDeployStat.stageDistMap.items %}
+                    {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
+                    <th class="col-lg-1 text-right">
+                        <span class="pointer-cursor deployToolTip" data-toggle="tooltip" title="{{ key|deployStageTip }}">
+                            <small>
+                                {{ key }}
+                            </small>
+                        </span>
+                    </th>
                     {% endif %}
                 {% endfor %}
-            {% endfor %}
-        </div>
-        {% endfor %}
-    {% else %}
-        {% for agentStat in report.agentStats %}
-            <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-               type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-               title="{{ agentStat | agentTip }}">
-               {% if report.showMode == "complete" %}
-               <small>{{ agentStat.agent.hostName }}</small>
-               {% endif %}
-               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-            </a>
-        {% endfor %}
-    {% endif %}
-
-    <br><br>
-    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/failed/"
-       title="Click to see the details of all failed hosts">
-       <strong>Failed Hosts</strong>
-    </a>
-    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/"
-       title="Click to see the details of all the hosts">
-       <strong>All Details</strong>
-    </a>
-</div>
-  </div>
-</div>
-{% endif %}
-
-{% if report.firstTimeAgentStats %}
-<div class="panel panel-default table-responsive">
-    <table class="table table-condensed table-hover">
-        <tr>
-            <td class="col-lg-2">
-                <span class="deployToolTip" data-toggle="tooltip"
-                   title="New hosts being installed for the first time">
-                <small>New Hosts</small>
-                </span>
-            </td>
-            <td class="col-lg-10">
-                <small>
-                    {% for agentStat in report.firstTimeAgentStats %}
-                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                           type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                           title="{{ agentStat | agentTip }}">
-                           {% if report.showMode == "complete" %}
-                           <small>{{ agentStat.agent.hostName }}</small>
-                           {% endif %}
-                           <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                        </a>
-                    {% endfor %}
-                </small>
-            </td>
-            <td class="col-lg-1 text-right">
-                <small>
-                <a href="hosts/show?stage=TODO" class="deployToolTip" data-toggle="tooltip"
-                   title="Click to see more details">
-                    {{ report.firstTimeAgentStats|length }}
-                </a>
-                </small>
-            </td>
-        </tr>
-    </table>
-</div>
-{% endif %}
-
-<div class="panel panel-default table-responsive">
-    <table class="table table-condensed table-hover">
-        <tr>
-            <td class="col-lg-1 text-right"></td>
-            {% for key, value in report.currentDeployStat.stageDistMap.items %}
-                {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
-                <td class="text-right">
-                    <span class="pointer-cursor deployToolTip" data-toggle="tooltip" title="{{ key|deployStageTip }}">
-                        <small>{{ key }}</small>
+                <th class="text-right">
+                    <small>
+                        Total
+                    </small>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                    <span class="deployToolTip" data-toggle="tooltip" title="Detailed deploy steps statistics for current deploy.">
+                        <small>Current({{ build.commitShort }})</small>
                     </span>
                 </td>
-                {% endif %}
-            {% endfor %}
-            <td class="col-lg-1 text-right"><small>Total</small></td>
-        </tr>
-        <tr>
-            <td>
-                <span class="deployToolTip" data-toggle="tooltip" title="Detailed deploy steps statistics for current deploy.">
-                    <small>Current({{ build.commitShort }})</small>
-                </span>
-            </td>
-            {% for key, value in report.currentDeployStat.stageDistMap.items %}
-                {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
-                <td class="text-right">
-                    <small>
-                        <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts?hostStage={{ key }}"
-                            class="deployToolTip" data-toggle="tooltip"
-                            title="Click to see more details">
-                            {{ value }}
-                        </a>
-                    </small>
-                </td>
-                {% endif %}
-            {% endfor %}
-            <td class="text-right">
-                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                    href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts/"
-                    title="Click to see more details">
-                    <small>{{ report.currentDeployStat.total }}</small>
-                </a>
-            </td>
-        </tr>
-
-        {% for deployStat in report.deprecatedDeployStats %}
-        <tr>
-            <td>
-                <a class="deployToolTip" data-toggle="tooltip"
-                    href="/deploy/{{ deployStat.deploy.id }}"
-                    title="Detailed deploy steps statistics for previously deprecated deploy.">
-                    <small>Previous({{ deployStat.build.commitShort }})</small>
-                </a>
-            </td>
-            {% for key, value in deployStat.stageDistMap.items %}
-                {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
-                <td class="text-right">
-                  <small>
-                  <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts?hostStage={{ key }}" class="deployToolTip" data-toggle="tooltip"
-                      title="Click to see more details">
-                      {{ value }}
-                  </a>
-                  </small>
-                </td>
-                {% endif %}
-            {% endfor %}
-            <td class="text-right">
-                <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-                href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts/"
-                title="Click to see more details">
-                <small>{{ deployStat.total }}</small>
-                </a>
-            </td>
-         </tr>
-        {% endfor %}
-    </table>
-</div>
-
-{% if report.provisioningHosts %}
-<div class="panel panel-default table-responsive">
-    <table class="table table-condensed table-hover">
-        <tr>
-            <td class="col-lg-2">
-                <span class="deployToolTip" data-toggle="tooltip"
-                   title="Host is new to this env.">
-                <small>New Hosts</small>
-                </span>
-            </td>
-            <td class="col-lg-10">
-                {% for host in report.provisioningHosts %}
-                <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
-                   type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
-                   title="{{ host | hostTip }}">
-                <small>{{ host.hostName }}</small>
-                    <i class="fa fa-fw {{ host | hostIcon }}"></i>
-                </a>
+                {% for key, value in report.currentDeployStat.stageDistMap.items %}
+                    {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
+                    <td class="text-right">
+                        <small>
+                            <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts?hostStage={{ key }}"
+                                class="deployToolTip" data-toggle="tooltip"
+                                title="Click to see more details">
+                                {{ value }}
+                            </a>
+                        </small>
+                    </td>
+                    {% endif %}
                 {% endfor %}
-            </td>
-            <td class="col-lg-1 text-right">
-                <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/provision/" class="deployToolTip" data-toggle="tooltip"
-                   title="Click to see more details">
-                <small>{{ report.provisioningHosts | length }}</small>
-                </a>
-            </td>
-        </tr>
-    </table>
-</div>
-{% endif %}
+                <td class="text-right">
+                    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+                        href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts/"
+                        title="Total hosts in the current deploy">
+                        <small>{{ report.currentDeployStat.total }}</small>
+                    </a>
+                </td>
+            </tr>
 
-{% if report.missingHosts %}
-<div class="panel panel-default table-responsive">
-    <table class="table table-condensed table-hover">
-        <tr>
-            <td class="col-lg-2">
-                <span class="deployToolTip" data-toggle="tooltip"
-                   title="Host status is unknown to this env. If the host is terminated,
-                   remove it from this env manually.">
-                <small>Unknown Hosts</small>
-                </span>
-            </td>
-            <td class="col-lg-10">
-                {% for host in report.missingHosts %}
-                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ host }}"
-                   type="button" class="btn btn-xs btn-warning">
-                <small>{{ host }}</small>
-                </a>
+            {% for deployStat in report.deprecatedDeployStats %}
+            <tr>
+                <td>
+                    <a class="deployToolTip" data-toggle="tooltip"
+                        href="/deploy/{{ deployStat.deploy.id }}"
+                        title="Detailed deploy steps statistics for previously deprecated deploy.">
+                        <small>Previous({{ deployStat.build.commitShort }})</small>
+                    </a>
+                </td>
+                {% for key, value in deployStat.stageDistMap.items %}
+                    {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
+                    <td class="text-right">
+                      <small>
+                      <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts?hostStage={{ key }}" class="deployToolTip" data-toggle="tooltip"
+                          title="Click to see more details">
+                          {{ value }}
+                      </a>
+                      </small>
+                    </td>
+                    {% endif %}
                 {% endfor %}
-            </td>
-            <td class="col-lg-1 text-right">
-                <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/unknowns/" class="deployToolTip" data-toggle="tooltip"
-                   title="Click to see more details">
-                <small>{{ report.missingHosts|length }}</small>
-                </a>
-            </td>
-        </tr>
-    </table>
-</div>
-{% endif %}
+                <td class="text-right">
+                    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+                    href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts/"
+                    title="Total hosts in a previous deploy">
+                    <small>{{ deployStat.total }}</small>
+                    </a>
+                </td>
+             </tr>
+            {% endfor %}
+        </table>
+    </div>
 
-<div class="row text-right">
-     <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/all/"
-       title="Click to see more details">
-       <small>Total Hosts: {{ report|reportTotal }}</small>
-    </a>
-</div>
+    {% if report.showMode != "simple" %}
+            <div class="panel panel-default table-responsive">
+                <table class="table table-condensed table-hover">
+                    <tr>
+                        <td class="col-lg-2">
+                            <span class="deployToolTip" data-toggle="tooltip"
+                                  title="Hosts in the current deploy">
+                                <small>Deploying Hosts</small>
+                            </span>
+                        </td>
+                        <td class="col-lg-10">
+                            <div>
+                               <table class="table table-striped table-condensed table-hover">
+                                   <tr>
+                                       {% for agentState, value in report.currentDeployStat.stateDistMap.items %}
+                                           <th class="col-lg-1 text-right">
+                                               <span class="pointer-cursor deployToolTip" data-toggle="tooltip" title="{{ agentState|agentStateTip }}">
+                                                   <small>
+                                                       {{ agentState }}
+                                                   </small>
+                                               </span>
+                                           </th>
+                                       {% endfor %}
+                                       <th class="col-lg-1 text-right">
+                                           <small>
+                                               Total
+                                           </small>
+                                       </th>
+                                   </tr>
+                                   <tr>
+                                       {% for agentState, value in report.currentDeployStat.stateDistMap.items %}
+                                           <td class="col-lg-1 text-right">
+                                               <small>
+                                                    {% if agentState == "NORMAL"%}
+                                                       <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/all"
+                                                          class="deployToolTip" data-toggle="tooltip"
+                                                          title="Normal host details">
+                                                           {{ value }}
+                                                       </a>
+                                                    {% else %}
+                                                       <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/failed/"
+                                                          class="deployToolTip" data-toggle="tooltip"
+                                                          title="Failed host details">
+                                                           {{ value }}
+                                                       </a>
+                                                    {% endif %}
+                                               </small>
+                                           </td>
+                                       {% endfor %}
+                                       <td class="col-lg-1 text-right">
+                                           <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+                                               href="/env/{{ report.envName }}/{{ report.stageName }}/{{ report.currentDeployStat.deploy.id }}/hosts/"
+                                               title="Total hosts currently deploying">
+                                               <small>{{ report.currentDeployStat.total }}</small>
+                                           </a>
+                                       </td>
+                                   </tr>
+                               </table>
+                            </div>
+                            <div>
+                                {% if report.sortByTag %}
+                                    {% for tagValue, hostTags in host_tag_infos.items %}
+                                    <div class="panel panel-default table-responsive">
+                                        {% for agentStat in report.agentStats %}
+                                            {% for hostTag in hostTags %}
+                                                {% if agentStat.agent.hostName == hostTag.hostName %}
+                                                    <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+                                                       type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+                                                       title="{{ agentStat | agentTip }}">
+                                                       {% if report.showMode == "complete" %}
+                                                       <small>{{ agentStat.agent.hostName }}</small>
+                                                       {% endif %}
+                                                       <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                                                    </a>
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <small>
+                                        {% if report.showModeOverride %}
+                                            {% for agentStat in report.agentStats|slice:":100" %}
+                                                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+                                                   type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+                                                   title="{{ agentStat | agentTip }}">
+                                                   {% if report.showMode == "complete" %}
+                                                   <small>{{ agentStat.agent.hostName }}</small>
+                                                   {% endif %}
+                                                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                                                </a>
+                                            {% endfor %}
+                                            <i>Results limited to 100</i>
+                                        {% else %}
+                                            {% for agentStat in report.agentStats %}
+                                                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+                                                   type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+                                                   title="{{ agentStat | agentTip }}">
+                                                   {% if report.showMode == "complete" %}
+                                                   <small>{{ agentStat.agent.hostName }}</small>
+                                                   {% endif %}
+                                                   <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                                                </a>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </small>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+    {% endif %}
+
+    {% if report.showMode != "simple" %}
+
+        {% if report.firstTimeAgentStats %}
+            <div class="panel panel-default table-responsive">
+                <table class="table table-condensed table-hover">
+                    <tr>
+                        <td class="col-lg-2">
+                            <span class="deployToolTip" data-toggle="tooltip"
+                               title="New hosts which are being deployed to for the first time">
+                            <small>First Deploy</small>
+                            </span>
+                        </td>
+                        <td class="col-lg-10">
+                            <small>
+                                {% if report.showModeOverride %}
+                                    {% for agentStat in report.firstTimeAgentStats|slice:":100" %}
+                                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+                                           type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+                                           title="{{ agentStat | agentTip }}">
+                                           {% if report.showMode == "complete" %}
+                                           <small>{{ agentStat.agent.hostName }}</small>
+                                           {% endif %}
+                                           <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                                        </a>
+                                    {% endfor %}
+                                    <i>Results limited to 100</i>
+                                {% else %}
+                                    {% for agentStat in report.firstTimeAgentStats %}
+                                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+                                           type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+                                           title="{{ agentStat | agentTip }}">
+                                           {% if report.showMode == "complete" %}
+                                           <small>{{ agentStat.agent.hostName }}</small>
+                                           {% endif %}
+                                           <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                                        </a>
+                                    {% endfor %}
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td class="col-lg-1 text-right">
+                            <small>
+                            <a href="hosts/show?stage=TODO" class="deployToolTip" data-toggle="tooltip"
+                               title="Total new hosts which are being deployed to for the first time">
+                                {{ report.firstTimeAgentStats|length }}
+                            </a>
+                            </small>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        {% endif %}
+
+        {% if report.provisioningHosts %}
+            <div class="panel panel-default table-responsive">
+                <table class="table table-condensed table-hover">
+                    <tr>
+                        <td class="col-lg-2">
+                            <span class="deployToolTip" data-toggle="tooltip"
+                               title="New hosts to this environment and currently being provisioned.">
+                            <small>Provisioning</small>
+                            </span>
+                        </td>
+                        <td class="col-lg-10">
+                            <small>
+                                {% if report.showModeOverride %}
+                                    {% for host in report.provisioningHosts|slice:":100" %}
+                                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
+                                       type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
+                                       title="{{ host | hostTip }}">
+                                       {% if report.showMode == "complete" %}
+                                       <small>{{ host.hostName }}</small>
+                                       {% endif %}
+                                       <i class="fa fa-fw {{ host | hostIcon }}"></i>
+                                    </a>
+                                    {% endfor %}
+                                    <i>Results limited to 100</i>
+                                {% else %}
+                                    {% for host in report.provisioningHosts %}
+                                    <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
+                                       type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
+                                       title="{{ host | hostTip }}">
+                                       {% if report.showMode == "complete" %}
+                                       <small>{{ host.hostName }}</small>
+                                       {% endif %}
+                                       <i class="fa fa-fw {{ host | hostIcon }}"></i>
+                                    </a>
+                                    {% endfor %}
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td class="col-lg-1 text-right">
+                            <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/provision/" class="deployToolTip" data-toggle="tooltip"
+                               title="Click to see more details">
+                            <small>{{ report.provisioningHosts | length }}</small>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        {% endif %}
+
+        {% if report.missingHosts %}
+            <div class="panel panel-default table-responsive">
+                <table class="table table-condensed table-hover">
+                    <tr>
+                        <td class="col-lg-2">
+                            <span class="deployToolTip" data-toggle="tooltip"
+                               title="Host status is unknown to this env. If the host is terminated,
+                               remove it from this env manually.">
+                            <small>Unknown Hosts</small>
+                            </span>
+                        </td>
+                        <td class="col-lg-10">
+                            <small>
+                                {% if report.showModeOverride %}
+                                    {% for host in report.missingHosts|slice:"100" %}
+                                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ host }}"
+                                           type="button" class="btn btn-xs btn-warning">
+                                           {% if report.showMode == "complete" %}
+                                               {{ host }}
+                                           {% endif %}
+                                           <i class="fa fa-fw fa-circle"></i>
+                                        </a>
+                                    {% endfor %}
+                                <i>Results limited to 100</i>
+                                {% else %}
+                                    {% for host in report.missingHosts %}
+                                        <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host }}"
+                                           type="button" class="btn btn-xs btn-warning">
+                                           {% if report.showMode == "complete" %}
+                                               {{ host }}
+                                           {% endif %}
+                                           <i class="fa fa-fw fa-circle"></i>
+                                        </a>
+                                    {% endfor %}
+                                <i>Results limited to 100</i>
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td class="col-lg-1 text-right">
+                            <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/unknowns/" class="deployToolTip" data-toggle="tooltip"
+                               title="Click to see more details">
+                            <small>{{ report.missingHosts|length }}</small>
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        {% endif %}
+
+    {% endif %}
+
+    <div class="row text-right">
+         <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+           href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/all/"
+           title="Click to see more details">
+           <small>Total Hosts: {{ report|reportTotal }}</small>
+        </a>
+    </div>
 {% endwith %}
 
 <script>
