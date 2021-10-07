@@ -291,6 +291,7 @@ def get_advanced_config_names(context):
     for value in environs_helper.DEPLOY_STAGE_VALUES:
         if value != "UNKNOWN" and value != "SERVING_BUILD":
             configNames.append(value + ".process_timeout")
+            configNames.append(value + ".termination_timeout")
             configNames.append(value + ".max_retry")
     configNames.append("target")
     return configNames

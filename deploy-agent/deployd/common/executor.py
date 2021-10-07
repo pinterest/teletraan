@@ -87,7 +87,7 @@ class Executor(object):
                         If service script does not handle SIGTERM, terminate case 2 below should kill
                         """
                         if deploy_report.status_code == AgentStatus.ABORTED_BY_SERVER:
-                            Executor._graceful_shutdown(process)
+                            Executor._graceful_shutdown(process, self._config.get_subprocess_terminate_timeout())
                             return deploy_report
 
                         """
@@ -188,14 +188,19 @@ class Executor(object):
             log.debug('Failed to kill process: {}'.format(e))
 
     @staticmethod
-    def _graceful_shutdown(process):
+    def _graceful_shutdown(process, timeout):
         try:
             log.info("Gracefully shutdown currently running process")
             os.killpg(process.pid, signal.SIGTERM)
-            process.wait(timeout=30)
+            # can switch to process.wait(timeout) once on Py3
+            start_time = datetime.datetime.now()
+            while process.poll() is None:
+                if (datetime.datetime.now() - start_time).seconds > timeout:
+                    raise Exception("Timed out while waiting for the process to shutdown")
+                time.sleep(min(self.PROCESS_POLL_INTERVAL, timeout))
         except Exception as e:
-            log.debug('Failed to terminate process: {}'.format(e))
-            self._kill_process(process)
+            log.debug('Failed to gracefully shutdown: {}'.format(e))
+            Executor._kill_process(process)
 
     def execute_command(self, script):
         try:
