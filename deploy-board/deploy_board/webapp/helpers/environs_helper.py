@@ -64,7 +64,6 @@ if IS_PINTEREST:
 
 # Nimbus-related helpers
 
-
 def get_nimbus_identifier(request, name):
     return nimbusclient.get_one_identifier(name, token=request.teletraan_user_id.token)
 
