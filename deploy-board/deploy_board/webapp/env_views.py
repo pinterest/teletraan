@@ -51,7 +51,7 @@ import datetime
 import time
 
 if IS_PINTEREST:
-    from helpers import s3_helper, autoscaling_groups_helper, private_builds_helper
+    from helpers import autoscaling_groups_helper, private_builds_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
@@ -959,11 +959,6 @@ def get_builds(request, name, stage):
         "show_lock": show_lock,
     })
     return HttpResponse(html)
-
-
-def upload_private_build(request, name, stage):
-    return private_builds_helper.handle_uploaded_build(request, request.FILES['file'], name, stage)
-
 
 def get_groups(request, name, stage):
     groups = common.get_env_groups(request, name, stage)
