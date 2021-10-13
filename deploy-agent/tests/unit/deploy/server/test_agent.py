@@ -19,7 +19,7 @@ import tests
 
 from deployd.agent import DeployAgent
 from deployd.common.utils import ensure_dirs
-from deployd.common.types import DeployReport, DeployStatus, OpCode, DeployStage, AgentStatus
+from deployd.common.types import DeployReport, DeployStatus, OpCode, DeployStage, AgentStatus, PingStatus
 from deployd.types.deploy_goal import DeployGoal
 from deployd.types.ping_report import PingReport
 from deployd.types.ping_response import PingResponse
@@ -112,6 +112,27 @@ class TestDeployAgent(tests.TestCase):
         cls.ping_response5 = {'deployGoal': cls.deploy_goal5, 'opCode': OpCode.DELETE}
         cls.ping_response6 = {'deployGoal': cls.deploy_goal6, 'opCode': OpCode.DELETE}
         cls.ping_noop_response = {'deployGoal': None, 'opCode': OpCode.NOOP}
+
+    def test_agent_status_on_ping_failure(self):
+        ping_response_list = [PingResponse(jsonValue=self.ping_response1), None, PingResponse(jsonValue=self.ping_response1)]
+        client = mock.Mock()
+        client.send_reports = mock.Mock(side_effect=ping_response_list)
+
+        d = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
+                        executor=self.executor, helper=self.helper)
+        self.assertEqual(PingStatus.PLAN_CHANGED, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED)))
+        self.assertEqual(PingStatus.PING_FAILED, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED)))
+        self.assertEqual(PingStatus.PLAN_NO_CHANGE, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED)))
+
+    def test_agent_ends_on_ping_failure(self):
+        ping_response_list = [PingResponse(jsonValue=self.ping_response1), None]
+        client = mock.Mock()
+        client.send_reports = mock.Mock(side_effect=ping_response_list)
+
+        d = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
+                        executor=self.executor, helper=self.helper)
+        # Ping failure should end the deployd process loop
+        d.serve_build()
 
     def test_agent_with_switch_command(self):
         ping_response_list = [
