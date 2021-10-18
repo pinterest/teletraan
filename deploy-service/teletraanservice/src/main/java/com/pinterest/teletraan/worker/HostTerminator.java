@@ -17,7 +17,7 @@ package com.pinterest.teletraan.worker;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
-import com.pinterest.deployservice.bean.AgentStatus;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
@@ -41,15 +41,6 @@ public class HostTerminator implements Runnable {
     private final RodimusManager rodimusManager;
     private final HostHandler hostHandler;
 
-    // TODO: Copied from GoalAnalyst, how to expose interface for this in java?
-    private static final Set<AgentStatus> FATAL_AGENT_STATUSES = new HashSet<>();
-    static {
-        FATAL_AGENT_STATUSES.add(AgentStatus.SCRIPT_TIMEOUT);
-        FATAL_AGENT_STATUSES.add(AgentStatus.TOO_MANY_RETRY);
-        FATAL_AGENT_STATUSES.add(AgentStatus.AGENT_FAILED);
-        FATAL_AGENT_STATUSES.add(AgentStatus.RUNTIME_MISMATCH);
-    }
-
     public HostTerminator(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
         hostDAO = serviceContext.getHostDAO();
@@ -68,7 +59,7 @@ public class HostTerminator implements Runnable {
         List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
         boolean stopSucceeded = true;
         for (AgentBean agentBean : agentBeans) {
-            if (agentBean.getDeploy_stage() != DeployStage.STOPPED && !FATAL_AGENT_STATUSES.contains(agentBean.getStatus())) {
+            if (agentBean.getDeploy_stage() != DeployStage.STOPPED && agentBean.getState() != AgentState.PAUSED_BY_SYSTEM) {
                 stopSucceeded = false;
             }
         }
