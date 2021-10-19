@@ -142,7 +142,7 @@ public class ConfigHelper {
 
         RodimusFactory rodimusFactory = configuration.getRodimusFactory();
         if (rodimusFactory != null) {
-            context.setRodimusManager(new RodimusManagerImpl(rodimusFactory.getRodimusUrl(), rodimusFactory.getToken()));
+            context.setRodimusManager(new RodimusManagerImpl(rodimusFactory.getRodimusUrl(), rodimusFactory.getKnoxKey()));
         } else {
             context.setRodimusManager(new DefaultRodimusManager());
         }

@@ -25,6 +25,8 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
 import com.pinterest.deployservice.common.HTTPClient;
+import com.pinterest.deployservice.knox.FileSystemKnox;
+import com.pinterest.deployservice.knox.Knox;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,15 +45,15 @@ public class RodimusManagerImpl implements RodimusManager {
     private HTTPClient httpClient;
     private Map<String, String> headers;
     private Gson gson;
+    private Knox fsKnox = null;    
 
-    public RodimusManagerImpl(String rodimusUrl, String token) {
+    public RodimusManagerImpl(String rodimusUrl, String knoxKey) {
         this.rodimusUrl = rodimusUrl;
         this.httpClient = new HTTPClient();
         this.headers = new HashMap<>();
         this.headers.put("Content-Type", "application/json");
-        if (token != null) {
-            this.headers.put("Accept", "*/*");
-            this.headers.put("Authorization", String.format("token %s", token));
+        if (knoxKey != null) {
+            this.fsKnox = new FileSystemKnox(knoxKey);
         }
         this.gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
     }
@@ -68,6 +70,13 @@ public class RodimusManagerImpl implements RodimusManager {
         }
     }
 
+    private void setAuthorization() throws Exception {
+        if (this.fsKnox != null) {
+            this.headers.put("Accept", "*/*");
+            this.headers.put("Authorization", String.format("token %s", fsKnox.getPrimaryKey()));
+        }
+    }
+
     @Override
     public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds) throws Exception {
         if (hostIds.isEmpty()) {
@@ -75,6 +84,7 @@ public class RodimusManagerImpl implements RodimusManager {
         }
         
         String url = String.format("%s/v1/clusters/%s/hosts", rodimusUrl, clusterName);
+        setAuthorization();
         httpClient.delete(url, gson.toJson(hostIds), headers, RETRIES);
     }
 
@@ -85,6 +95,7 @@ public class RodimusManagerImpl implements RodimusManager {
         }
         // NOTE: it's better to call this function with single host id
         String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
+        setAuthorization();
         String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
         return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
     }
@@ -92,6 +103,7 @@ public class RodimusManagerImpl implements RodimusManager {
     @Override
     public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
         String url = String.format("%s/v1/groups/%s/config", rodimusUrl, clusterName);
+        setAuthorization();
         String res = httpClient.get(url, null, null, headers, RETRIES);
         JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
         if (jsonObject == null || jsonObject.isJsonNull()) {
@@ -109,6 +121,7 @@ public class RodimusManagerImpl implements RodimusManager {
     @Override
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
         String url = String.format("%s/v1/host_ec2tags", rodimusUrl);
+        setAuthorization();
         String res = httpClient.post(url, gson.toJson(hostIds), headers, RETRIES);
         return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>(){}.getType());
     }

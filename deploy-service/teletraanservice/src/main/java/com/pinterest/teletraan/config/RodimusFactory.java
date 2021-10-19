@@ -8,21 +8,21 @@ public class RodimusFactory {
     private String rodimusUrl;
 
     @JsonProperty
-    private String token;
+    private String knoxKey;
 
     public String getRodimusUrl() {
-        return rodimusUrl;
+        return this.rodimusUrl;
     }
 
     public void setRodimusUrl(String rodimusUrl) {
         this.rodimusUrl = rodimusUrl;
     }
 
-    public String getToken() {
-        return token;
+    public String getKnoxKey() {
+        return this.knoxKey;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setKnoxKey(String keyName) {
+        this.knoxKey = keyName;
     }
 }
