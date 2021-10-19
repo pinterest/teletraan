@@ -42,6 +42,7 @@ class Executor(object):
         self.MAX_RETRY = config.get_subproces_max_retry()
         self.MAX_TAIL_BYTES = config.get_subprocess_max_log_bytes()
         self.PROCESS_POLL_INTERVAL = config.get_subprocess_poll_interval()
+        self.TERMINATE_TIMEOUT = config.get_subprocess_terminate_timeout()
         self.BACK_OFF = config.get_backoff_factor()
         self.MAX_SLEEP_INTERVAL = config.get_subprocess_max_sleep_interval()
         self._config = config
@@ -87,7 +88,7 @@ class Executor(object):
                         If service script does not handle SIGTERM, terminate case 2 below should kill
                         """
                         if deploy_report.status_code == AgentStatus.ABORTED_BY_SERVER:
-                            Executor._graceful_shutdown(process, self._config.get_subprocess_terminate_timeout())
+                            self._graceful_shutdown(process)
                             return deploy_report
 
                         """
@@ -187,17 +188,16 @@ class Executor(object):
         except Exception as e:
             log.debug('Failed to kill process: {}'.format(e))
 
-    @staticmethod
-    def _graceful_shutdown(process, timeout):
+    def _graceful_shutdown(self, process):
         try:
             log.info("Gracefully shutdown currently running process")
             os.killpg(process.pid, signal.SIGTERM)
             # can switch to process.wait(timeout) once on Py3
             start_time = datetime.datetime.now()
             while process.poll() is None:
-                if (datetime.datetime.now() - start_time).seconds > timeout:
+                if (datetime.datetime.now() - start_time).seconds > self.TERMINATE_TIMEOUT:
                     raise Exception("Timed out while waiting for the process to shutdown")
-                time.sleep(min(self.PROCESS_POLL_INTERVAL, timeout))
+                time.sleep(min(self.PROCESS_POLL_INTERVAL, self.TERMINATE_TIMEOUT))
         except Exception as e:
             log.debug('Failed to gracefully shutdown: {}'.format(e))
             Executor._kill_process(process)
