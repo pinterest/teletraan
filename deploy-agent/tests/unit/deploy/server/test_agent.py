@@ -124,16 +124,6 @@ class TestDeployAgent(tests.TestCase):
         self.assertEqual(PingStatus.PING_FAILED, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED)))
         self.assertEqual(PingStatus.PLAN_NO_CHANGE, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED)))
 
-    def test_agent_ends_on_ping_failure(self):
-        ping_response_list = [PingResponse(jsonValue=self.ping_response1), None]
-        client = mock.Mock()
-        client.send_reports = mock.Mock(side_effect=ping_response_list)
-
-        d = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
-                        executor=self.executor, helper=self.helper)
-        # Ping failure should end the deployd process loop
-        d.serve_build()
-
     def test_agent_with_switch_command(self):
         ping_response_list = [
             PingResponse(jsonValue=self.ping_response1),
