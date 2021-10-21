@@ -28,6 +28,7 @@ loadtests/local
 target/
 dist/
 docs/_build/
+.settings/
 
 # Vagrant
 .bundle
