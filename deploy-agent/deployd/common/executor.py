@@ -42,6 +42,7 @@ class Executor(object):
         self.MAX_RETRY = config.get_subproces_max_retry()
         self.MAX_TAIL_BYTES = config.get_subprocess_max_log_bytes()
         self.PROCESS_POLL_INTERVAL = config.get_subprocess_poll_interval()
+        self.TERMINATE_TIMEOUT = config.get_subprocess_terminate_timeout()
         self.BACK_OFF = config.get_backoff_factor()
         self.MAX_SLEEP_INTERVAL = config.get_subprocess_max_sleep_interval()
         self._config = config
@@ -83,11 +84,11 @@ class Executor(object):
                             self.ping_server_if_possible(start, cmd, deploy_report)
                         """
                         terminate case 1:
-                        the server changed the deploy goal, return to the agent to handle next
-                        deploy step
+                        the server changed the deploy goal, notify process and wait for it to shut down
+                        If service script does not handle SIGTERM, terminate case 2 below should kill
                         """
                         if deploy_report.status_code == AgentStatus.ABORTED_BY_SERVER:
-                            Executor._kill_process(process)
+                            self._graceful_shutdown(process)
                             return deploy_report
 
                         """
@@ -182,9 +183,24 @@ class Executor(object):
     @staticmethod
     def _kill_process(process):
         try:
+            log.info('Kill currently running process')
             os.killpg(process.pid, signal.SIGKILL)
         except Exception as e:
             log.debug('Failed to kill process: {}'.format(e))
+
+    def _graceful_shutdown(self, process):
+        try:
+            log.info('Gracefully shutdown currently running process with timeout {}'.format(self.TERMINATE_TIMEOUT))
+            os.killpg(process.pid, signal.SIGTERM)
+            # can switch to process.wait(timeout) once on Py3
+            start_time = datetime.datetime.now()
+            while process.poll() is None:
+                if (datetime.datetime.now() - start_time).seconds > self.TERMINATE_TIMEOUT:
+                    raise Exception('Timed out while waiting for the process to shutdown')
+                time.sleep(min(self.PROCESS_POLL_INTERVAL, self.TERMINATE_TIMEOUT))
+        except Exception as e:
+            log.debug('Failed to gracefully shutdown: {}'.format(e))
+            Executor._kill_process(process)
 
     def execute_command(self, script):
         try:

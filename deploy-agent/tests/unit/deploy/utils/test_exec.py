@@ -13,13 +13,15 @@
 # limitations under the License.
 
 import os
+import time
+import signal
 import tempfile
 import unittest
 import mock
 import tests
 
 from deployd.common.executor import Executor
-from deployd.common.types import AgentStatus
+from deployd.common.types import AgentStatus, PingStatus
 
 
 class TestUtilsFunctions(tests.TestCase):
@@ -125,6 +127,25 @@ class TestUtilsFunctions(tests.TestCase):
         self.assertTrue(ping_server.called)
         self.assertEqual(deploy_report.status_code, AgentStatus.SCRIPT_TIMEOUT)
 
+    def test_run_command_with_shutdown_timeout(self):
+        cmd = ['sleep', '5m']
+        ping_server = mock.Mock(return_value=PingStatus.PLAN_CHANGED)
+        os.killpg = mock.Mock()
+        executor = Executor(callback=ping_server)
+        executor.LOG_FILENAME = self.fdout_fn
+        executor.MAX_RUNNING_TIME = 4
+        executor.MIN_RUNNING_TIME = 2
+        executor.DEFAULT_TAIL_LINES = 1
+        executor.MAX_RETRY = 3
+        executor.PROCESS_POLL_INTERVAL = 2
+        executor.BACK_OFF = 2
+        executor.MAX_SLEEP_INTERVAL = 5
+        executor.MAX_TAIL_BYTES = 10240
+        executor.TERMINATE_TIMEOUT = 0
+        deploy_report = executor.run_cmd(cmd=cmd)
+        self.assertEqual(os.killpg.call_count, 2)
+        calls = [mock.call(mock.ANY, signal.SIGTERM), mock.call(mock.ANY, signal.SIGKILL)]
+        os.killpg.assert_has_calls(calls)
 
 if __name__ == '__main__':
     unittest.main()
