@@ -67,6 +67,7 @@ class AgentReport(object):
         self.envName = envName
         self.stageName = stageName
         self.showMode = 'complete'
+        self.showModeOverride = False
         self.sortByStatus = 'false'
 
 def genStageDistMap():

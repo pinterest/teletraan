@@ -19,6 +19,7 @@ import json
 from django.conf import settings
 from django import template
 from datetime import datetime, timedelta
+from collections import Mapping
 import time
 from math import trunc
 import pytz
@@ -117,7 +118,6 @@ _REPLACE_STATUS_TO_TIPS = {
     "TIMEOUT": "Replacement was timed-out due to no activity within a certain time (default 30 mins)",
 }
 
-
 _JENKINS_TO_ICONS = {
     "RUNNING": "fa fa-spinner fa-spin",
     "FAILURE": "fa fa-circle fa-blink color-red",
@@ -136,6 +136,16 @@ _STAGES_TO_TIPS = {
     "SERVING_BUILD": "Service is up and running",
     "STOPPING": "Stopping the service",
     "STOPPED": "Completed stopping",
+}
+
+_AGENT_STATES_TO_TIPS = {
+    "RESET": "Agent is retrying",
+    "PAUSED_BY_USER": "Agent has been paused explicitly by user request",
+    "NORMAL": "Agent is normal",
+    "STOP": "Agent is gracefully shutting down the service",
+    "PAUSED_BY_SYSTEM": "Agent has failed to deploy and is paused by the Teletraan server",
+    "UNREACHABLE": "Agent has not checked into the Teletraan server",
+    "DELETE": "Agent is being removed from current environment",
 }
 
 _HEALTH_STATUS_TO_ICONS = {
@@ -507,43 +517,48 @@ def percentize(deploy):
 @register.filter("agentTip")
 def agentTip(agentStats):
     agent = agentStats.agent
-    hostname = agent['hostName']
+    hostname = agent["hostName"]
     if agentStats.isStale:
-        return '{}: Agent information is staled, click for more information'.format(hostname)
+        return "{}: Agent information is stale".format(hostname)
 
-    if agent['state'] == "PAUSED_BY_USER":
-        return '{}: Agent is paused explicitly for any deploy'.format(hostname)
+    if agent["state"] == "PAUSED_BY_USER":
+        msg = _AGENT_STATES_TO_TIPS.get("PAUSED_BY_USER")
+        return "{}: {}".format(hostname, msg)
 
-    if agent['state'] == "PAUSED_BY_SYSTEM":
-        return '{}: Agent is failed to deploy, click to see more details'.format(hostname)
+    if agent["state"] == "PAUSED_BY_SYSTEM":
+        msg = _AGENT_STATES_TO_TIPS.get("PAUSED_BY_SYSTEM")
+        return "{}: {}".format(hostname, msg)
 
-    if agent['state'] == "DELETE":
-        return '{}: Agent is removed from current environment'.format(hostname)
+    if agent["state"] == "DELETE":
+        msg = _AGENT_STATES_TO_TIPS.get("DELETE")
+        return "{}: {}".format(hostname, msg)
 
-    if agent['state'] == "UNREACHABLE":
-        return '{}: Agent is not reachable from teletraan server'.format(hostname)
+    if agent["state"] == "UNREACHABLE":
+        msg = _AGENT_STATES_TO_TIPS.get("UNREACHABLE")
+        return "{}: {}".format(hostname, msg)
 
-    if agent['state'] == "STOP":
-        return '{}: Agent is gracefully shutting down the service'.format(hostname)
+    if agent["state"] == "STOP":
+        msg = _AGENT_STATES_TO_TIPS.get("STOP")
+        return "{}: {}".format(hostname, msg)
 
     if agentStats.isCurrent:
-        if agent['deployStage'] == "SERVING_BUILD":
-            return '{}: Agent is serving the current build successfully'.format(hostname)
+        if agent["deployStage"] == "SERVING_BUILD":
+            return "{}: Agent is serving the current build successfully".format(hostname)
         else:
             if is_agent_failed(agent):
-                return '{}: Agent is deploying current build with failures, click to see more detail'.format(
+                return "{}: Agent is deploying current build with failures, click to see more detail".format(
                     hostname)
             else:
-                return '{}: Agent is deploying current build'.format(hostname)
+                return "{}: Agent is deploying current build".format(hostname)
     else:
-        if agent['deployStage'] == "SERVING_BUILD":
-            return '{}: Agent is serving older build and waiting for deploy'.format(hostname)
+        if agent["deployStage"] == "SERVING_BUILD":
+            return "{}: Agent is serving older build and waiting for deploy".format(hostname)
         else:
             if is_agent_failed(agent):
-                return '{}: Agent is on older build with failures, click to see more detail'.format(
+                return "{}: Agent is on older build with failures, click to see more detail".format(
                     hostname)
             else:
-                return '{}: Agent is on older build and waiting for deploy'.format(hostname)
+                return "{}: Agent is on older build and waiting for deploy".format(hostname)
 
 
 @register.filter("agentButton")
@@ -712,7 +727,12 @@ def canResume(env):
 
 @register.filter("deployStageTip")
 def deployStageTip(stage):
-    return _STAGES_TO_TIPS[stage]
+    return _STAGES_TO_TIPS.get(stage, None)
+
+
+@register.filter("agentStateTip")
+def agentStateTip(state):
+    return _AGENT_STATES_TO_TIPS.get(state, None)
 
 
 @register.filter("progressType")
@@ -1015,6 +1035,12 @@ def canReplaceCluster(cluster):
 def get_type(object):
     return type(object).__name__
 
+@register.filter("getValue")
+def get_value(dictionary, key):
+    ''' return value from dict, OrderedDict, UserDict '''
+    if not isinstance(dictionary, Mapping):
+        return None
+    return dictionary.get(key, None)
 
 @register.filter("convertConfigHistoryString")
 def convertConfigHistoryString(change):
