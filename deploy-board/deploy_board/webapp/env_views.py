@@ -51,7 +51,7 @@ import datetime
 import time
 
 if IS_PINTEREST:
-    from helpers import autoscaling_groups_helper, private_builds_helper
+    from helpers import autoscaling_groups_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
