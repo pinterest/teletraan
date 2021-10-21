@@ -183,20 +183,20 @@ class Executor(object):
     @staticmethod
     def _kill_process(process):
         try:
-            log.info("Kill currently running process")
+            log.info('Kill currently running process')
             os.killpg(process.pid, signal.SIGKILL)
         except Exception as e:
             log.debug('Failed to kill process: {}'.format(e))
 
     def _graceful_shutdown(self, process):
         try:
-            log.info("Gracefully shutdown currently running process")
+            log.info('Gracefully shutdown currently running process with timeout {}'.format(self.TERMINATE_TIMEOUT))
             os.killpg(process.pid, signal.SIGTERM)
             # can switch to process.wait(timeout) once on Py3
             start_time = datetime.datetime.now()
             while process.poll() is None:
                 if (datetime.datetime.now() - start_time).seconds > self.TERMINATE_TIMEOUT:
-                    raise Exception("Timed out while waiting for the process to shutdown")
+                    raise Exception('Timed out while waiting for the process to shutdown')
                 time.sleep(min(self.PROCESS_POLL_INTERVAL, self.TERMINATE_TIMEOUT))
         except Exception as e:
             log.debug('Failed to gracefully shutdown: {}'.format(e))
