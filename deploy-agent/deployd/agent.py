@@ -119,7 +119,8 @@ class DeployAgent(object):
                                              output_msg=traceback.format_exc(),
                                              retry_times=1)
 
-            self.update_deploy_status(deploy_report)
+            if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
+                return
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
                                              AgentStatus.TOO_MANY_RETRY,
                                              AgentStatus.SCRIPT_TIMEOUT]:
@@ -245,10 +246,9 @@ class DeployAgent(object):
         self._update_ping_reports(deploy_report=deploy_report)
         response = self._client.send_reports(self._envs)
 
-        # if we failed to get any response from server, set the self._response to None
+        # if we failed to get any response from server, return failure but don't reset previous response
         if response is None:
             log.info('Failed to get response from server')
-            self._response = None
             return PingStatus.PING_FAILED
         else:
             plan_changed = DeployAgent.plan_changed(self._response, response)
