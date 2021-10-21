@@ -965,7 +965,6 @@ def upload_private_build(request, name, stage):
     return private_builds_helper.handle_uploaded_build(request, request.FILES['file'], name, stage)
 
 
-
 def get_groups(request, name, stage):
     groups = common.get_env_groups(request, name, stage)
     html = render_to_string('groups/simple_groups.tmpl', {
