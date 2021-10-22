@@ -44,8 +44,18 @@ class Client(BaseClient):
         self._autoscaling_group = None
         self._availability_zone = None
         self._stage_type = None
+        self._host_info_populated = False
+        if self._read_host_info() is False:
+            log.error("Fail to read host info")
+            create_sc_increment(stats='deploy.failed.agent.hostinfocollection',
+                                sample_rate=1.0,
+                                tags={'host': self._hostname})
+            
 
     def _read_host_info(self):
+        if self._host_info_populated:
+            log.debug("host info already populated")
+            return True
         if self._use_facter:
             log.info("Use facter to get host info")
             name_key = self._config.get_facter_name_key()
@@ -168,6 +178,7 @@ class Client(BaseClient):
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
                  "availability_zone: {}, stage_type: {}, group: {}".format(self._hostname, self._ip, self._id, 
                  self._agent_version, self._autoscaling_group, self._availability_zone, self._stage_type, self._hostgroup))
+        self._host_info_populated = True
         return True
 
     def send_reports(self, env_reports=None):
