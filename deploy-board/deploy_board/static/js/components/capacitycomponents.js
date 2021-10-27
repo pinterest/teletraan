@@ -199,7 +199,7 @@ Vue.component("static-capacity-config", {
         Capacity\
     </label>\
     <div class="col-xs-2" >\
-    <input class="form-control" v-bind:value="capacity" v-on:change="updateValue($event.target.value)"></input>\
+    <input class="form-control" v-bind:value="capacity" v-on:change="updateValue($event.target.value)" @keydown.enter.prevent=""></input>\
     </div></div>',
     props: ['capacity'],
     methods: {
@@ -221,13 +221,13 @@ Vue.component("asg-capacity-config", {
             <div class="col-xs-2">\
                 <div class="input-group" >\
                     <span class="input-group-addon">Min Size</span>\
-                    <input class="form-control" v-bind:value="minsize" v-on:change="updateMinSize($event.target.value)"></input>\
+                    <input class="form-control" v-bind:value="minsize" v-on:change="updateMinSize($event.target.value)" @keydown.enter.prevent=""></input>\
                 </div>\
             </div>\
             <div class="col-xs-2">\
                 <div class="input-group" >\
                     <span class="input-group-addon">Max Size</span>\
-                    <input class="form-control" v-bind:value="maxsize" v-on:change="updateMaxSize($event.target.value)"></input>\
+                    <input class="form-control" v-bind:value="maxsize" v-on:change="updateMaxSize($event.target.value)" @keydown.enter.prevent=""></input>\
                 </div>\
             </div>\
     </div>',
