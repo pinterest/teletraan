@@ -21,13 +21,13 @@ WORKDIR $PROJECT_DIR
 ADD . $PROJECT_DIR
 
 
-# tox recreate=True does not seem to be respected, test later
+# tox.ini setting recreate=True does not seem to be respected in docker
 RUN rm -rf .tox
-RUN python setup.py build
-# For whatever stupid reasons, rerun install will fix the following
-# error: The 'python-daemon==2.0.5' distribution was not found
-#RUN python setup.py install; exit 0
-#RUN python setup.py install
 
-RUN ["bash"]
+RUN python setup.py build
+
+ENTRYPOINT ["bash", "-c", "tox"]
+
+#ENTRYPOINT ["bash"]
+#RUN ["bash"]
 #ENTRYPOINT ["deploy-agent"]
