@@ -17,6 +17,10 @@ ENV PROJECT_DIR=/opt/deploy-agent
 RUN mkdir $PROJECT_DIR
 WORKDIR $PROJECT_DIR
 ADD . $PROJECT_DIR
+
+
+# tox recreate=True does not seem to be respected, test later
+RUN rm -rf .tox
 RUN python setup.py build
 # For whatever stupid reasons, rerun install will fix the following
 # error: The 'python-daemon==2.0.5' distribution was not found

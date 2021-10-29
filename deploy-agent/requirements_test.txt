@@ -1,7 +1,6 @@
 -r requirements.txt
 
 # tests
-pip
 tox==1.6.1
 coverage
 pytest==6.2.2; python_version >= '3'

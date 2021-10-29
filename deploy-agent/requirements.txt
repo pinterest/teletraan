@@ -1,6 +1,5 @@
 -e .
 
-pip
 PyYAML==5.3.1
 zipp==1.2.0
 configparser==4.0.2
