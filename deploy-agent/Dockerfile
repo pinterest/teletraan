@@ -12,6 +12,8 @@ RUN apt-get install -y liblzma-dev libbz2-dev zlib1g-dev libffi-dev
 RUN apt-get install -y python-dev python-setuptools python3-dev python3-setuptools python-pip python3-pip
 RUN apt-get install -y tox
 
+# python3 tests appear to need curl
+RUN apt-get install -y curl
 
 ENV PROJECT_DIR=/opt/deploy-agent
 RUN mkdir $PROJECT_DIR
