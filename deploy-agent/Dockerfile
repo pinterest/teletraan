@@ -4,7 +4,7 @@ FROM ubuntu:18.04
 RUN apt-get update
 RUN apt-get upgrade
 
-# TODO: Move to multi-stage build
+# TODO: Move to multi-stage build, optionally pare down Python dependencies or use a Ubuntu python image that supports 2 & 3
 RUN apt-get install -y git vim
 RUN apt-get install -y build-essential
 RUN apt-get install -y libssl-dev libreadline-dev libsqlite3-dev
