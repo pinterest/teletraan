@@ -20,7 +20,7 @@ import com.pinterest.deployservice.bean.ChatMessageBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.scm.SourceControlManager;
+import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.TeletraanServiceContext;
 
 import org.slf4j.Logger;
@@ -38,6 +38,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import javax.ws.rs.QueryParam;
+import com.google.common.base.Optional;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -49,12 +52,12 @@ import io.swagger.annotations.ApiParam;
 public class Systems {
 
     private static final Logger LOG = LoggerFactory.getLogger(Systems.class);
-    private SourceControlManager sourceControlManager;
+    private SourceControlManagerProxy sourceControlManagerProxy;
     private HostDAO hostDAO;
     private ChatManager chatManager;
 
     public Systems(TeletraanServiceContext context) {
-        sourceControlManager = context.getSourceControlManager();
+        sourceControlManagerProxy = context.getSourceControlManagerProxy();
         chatManager = context.getChatManager();
         hostDAO = context.getHostDAO();
     }
@@ -65,9 +68,9 @@ public class Systems {
         value = "Get SCM commit link template",
         notes = "Returns a Source Control Manager specific commit link template.",
         response = String.class)
-    public String getSCMLinkTemplate() throws Exception {
+    public String getSCMLinkTemplate(@QueryParam("scm") Optional<String> scm) throws Exception {
         return String
-            .format("{\"template\": \"%s\"}", sourceControlManager.getCommitLinkTemplate());
+            .format("{\"template\": \"%s\"}", sourceControlManagerProxy.getCommitLinkTemplate(scm.or("")));
     }
 
     @GET
@@ -76,8 +79,8 @@ public class Systems {
         value = "Get SCM url",
         notes = "Returns a Source Control Manager Url.",
         response = String.class)
-    public String getSCMUrl() throws Exception {
-        return String.format("{\"url\": \"%s\"}", sourceControlManager.getUrlPrefix());
+    public String getSCMUrl(@QueryParam("scm") Optional<String> scm) throws Exception {
+        return String.format("{\"url\": \"%s\"}", sourceControlManagerProxy.getUrlPrefix(scm.or("")));
     }
 
     @GET

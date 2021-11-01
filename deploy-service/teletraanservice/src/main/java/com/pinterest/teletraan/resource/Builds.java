@@ -22,7 +22,7 @@ import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.TagDAO;
-import com.pinterest.deployservice.scm.SourceControlManager;
+import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
@@ -53,7 +53,7 @@ public class Builds {
     private BuildDAO buildDAO;
     private TagDAO tagDAO;
     private Allowlist buildAllowlist;
-    private SourceControlManager sourceControlManager;
+    private SourceControlManagerProxy sourceControlManagerProxy;
     private final Authorizer authorizer;
 
     @Context
@@ -62,7 +62,7 @@ public class Builds {
     public Builds(TeletraanServiceContext context) throws Exception {
         buildDAO = context.getBuildDAO();
         tagDAO = context.getTagDAO();
-        sourceControlManager = context.getSourceControlManager();
+        sourceControlManagerProxy = context.getSourceControlManagerProxy();
         authorizer = context.getAuthorizer();
         buildAllowlist = context.getBuildAllowlist();
     }
@@ -178,7 +178,7 @@ public class Builds {
             @Context SecurityContext sc,
             @ApiParam(value = "BUILD object", required = true)@Valid BuildBean buildBean) throws Exception {
         if (StringUtils.isEmpty(buildBean.getScm())) {
-            buildBean.setScm(sourceControlManager.getType());
+            buildBean.setScm(sourceControlManagerProxy.getType());
         }
 
         if (StringUtils.isEmpty(buildBean.getScm_commit_7())) {
@@ -186,7 +186,7 @@ public class Builds {
         }
 
         if (StringUtils.isEmpty(buildBean.getScm_info())) {
-            buildBean.setScm_info(sourceControlManager.generateCommitLink(buildBean.getScm_repo(), buildBean.getScm_commit()));
+            buildBean.setScm_info(sourceControlManagerProxy.generateCommitLink(buildBean.getScm(), buildBean.getScm_repo(), buildBean.getScm_commit()));
         }
 
         if (StringUtils.isEmpty(buildBean.getPublish_info())) {

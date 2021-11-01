@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright 2021 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 package com.pinterest.deployservice.scm;
 
 import com.pinterest.deployservice.bean.CommitBean;
+import com.pinterest.deployservice.common.EncryptionUtils;
 import com.pinterest.deployservice.common.HTTPClient;
-
+import com.pinterest.deployservice.common.KnoxKeyReader;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
@@ -25,24 +26,69 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
+import org.kohsuke.github.GitHubBuilder;
+
+import org.kohsuke.github.GHAppInstallation;
+import org.kohsuke.github.GHAppInstallationToken;
+import org.kohsuke.github.GitHub;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
+import org.apache.commons.lang.StringUtils;
+
 public class GithubManager extends BaseManager {
 
     public final static String TYPE = "Github";
     private final static String UNKNOWN_LOGIN = "UNKNOWN";
+    private final static long TOKEN_TTL_MILLIS = 600000;  //token expires after 10 mins
     private String apiPrefix;
     private String urlPrefix;
+    private String githubAppId;
+    private String githubAppPrivateKeyKnox;
+    private String githubAppOrganization;
 
-    private Map<String, String> headers = new HashMap<String, String>();
+    public Map<String, String> headers = new HashMap<String, String>();
 
-    public GithubManager(String token, String apiPrefix, String urlPrefix) {
+    public GithubManager(String token, String appId, String appPrivateKeyKnox, String appOrganization, String apiPrefix, String urlPrefix) throws Exception {
         this.apiPrefix = apiPrefix;
         this.urlPrefix = urlPrefix;
-        headers.put("Authorization", String.format("token %s", token));
+        this.githubAppId = appId;
+        this.githubAppPrivateKeyKnox = appPrivateKeyKnox;
+        this.githubAppOrganization = appOrganization;
+
+        // if token is specified, use token auth, otherwise, use github app auth
+        if (StringUtils.isEmpty(token))
+        {
+            try {
+                // get private key PEM from knox
+                KnoxKeyReader knoxKey = new KnoxKeyReader();
+                knoxKey.init(this.githubAppPrivateKeyKnox);
+                String githubAppPrivateKey = knoxKey.getKey();
+                // System.out.println("pemKey: " + githubAppPrivateKey);
+                if (StringUtils.isEmpty(githubAppPrivateKey)) {
+                    throw new IllegalArgumentException("failed to get knox key");
+                }
+
+                // generate jwt token by signing with github app id and private key
+                String jwtToken = EncryptionUtils.createGithubJWT(this.githubAppId, githubAppPrivateKey, TOKEN_TTL_MILLIS);
+                // System.out.println("jtwtoken: " + jwtToken);
+
+                // get installation token using the jwt token
+                GitHub gitHubApp = new GitHubBuilder().withJwtToken(jwtToken).build();
+                GHAppInstallation appInstallation = gitHubApp.getApp().getInstallationByOrganization(this.githubAppOrganization);
+                GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();    
+                token = appInstallationToken.getToken();
+                // System.out.println("token: " + token);
+            } catch (Exception e) {
+                // e.printStackTrace();
+                throw e;
+            }
+        }
+
+        this.headers.put("Authorization", String.format("Token %s", token));
     }
 
     private String getSha(Map<String, Object> jsonMap) {
@@ -54,6 +100,16 @@ public class GithubManager extends BaseManager {
         if (authorMap != null) {
             return (String) authorMap.get("login");
         }
+        // for some commits, the author info is under "commit"
+        Map<String, Object> commitMap = (Map<String, Object>) jsonMap.get("commit");
+        if (commitMap != null) {
+            authorMap = (Map<String, Object>) commitMap.get("author");
+            if (authorMap != null) {
+                String email = (String) authorMap.get("email");
+                return email.split("@")[0];
+            }
+        }
+
         return UNKNOWN_LOGIN;
     }
 

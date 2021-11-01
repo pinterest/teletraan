@@ -62,12 +62,12 @@ class TestBuilds(unittest.TestCase):
     def _generate_request(self, buildName, commit, branch="master"):
         request = {}
         request['name'] = buildName
-        request['type'] = "phabricator"
+        request['type'] = "Github"
         request['repo'] = "repo-1"
         request['branch'] = branch
         request['commit'] = commit
         request['commitDate'] = int(round(time.time() * 1000))
-        request['artifactUrl'] = "https://whatever.com"
+        request['artifactUrl'] = "https://sample.com"
         request['publishInfo'] = "jenkins12345"
         return request
 

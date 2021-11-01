@@ -30,6 +30,8 @@
             <input class="hiddenCommit" type="hidden" value="{{ buildInfo.build.commit }}"/>
             <input class="hiddenCommit7" type="hidden" value="{{ buildInfo.build.commitShort }}"/>
             <input class="hiddenBranch" type="hidden" value="{{ buildInfo.build.branch }}"/>
+            <input class="hiddenType" type="hidden" value="{{ buildInfo.build.type }}"/>
+            <input class="hiddenRepo" type="hidden" value="{{ buildInfo.build.repo }}"/>
         </td>
         <td>
             {% if buildInfo.build.branch == "private" %}
@@ -85,7 +87,7 @@
                             title="Show commits between two adjacent builds">
                         <span class="glyphicon glyphicon-zoom-in"></span> Show Commits Between Builds
                     </button>
-                    {% if current_build.type == "Github" %}
+                    {% if buildInfo.build.type == "Github" %}
                     <button class="githuber deployToolTip btn btn-default" data-toggle="tooltip"
                             title="Show all the new commits in Gitbhub">
                         <i class="fa fa-github"></i> Show New Commits in Github
@@ -169,9 +171,12 @@
             $(btn).tooltip('hide');
             trid = $(this).closest('tr');
             startSha = trid.prev().find(".hiddenCommit").val();
+            scmType = trid.prev().find(".hiddenType").val();
+            scmRepo = trid.prev().find(".hiddenRepo").val();
             contentId = trid.find('.showContent');
             url = '/commits/compare_commits/?start_sha=' + startSha +
-                '&end_sha={{ current_build.commit }}&repo={{ current_build.repo }}';
+                '&end_sha={{ current_build.commit }}&repo=' + scmRepo +
+                '&scm=' + scmType;
             contentId.load(url, function () {
                 $(btn).button('reset');
             });
@@ -184,9 +189,12 @@
             trid = $(this).closest('tr');
             prevSha = trid.prev().find(".hiddenCommit").val();
             currentSha = trid.next().find(".hiddenCommit").val();
+            scmType = trid.prev().find(".hiddenType").val();
+            scmRepo = trid.prev().find(".hiddenRepo").val();
             contentId = trid.find('.showContent');
             url = '/commits/compare_commits/?start_sha=' + prevSha +
-                '&end_sha=' + currentSha + '&repo={{ current_build.repo }}';
+                '&end_sha=' + currentSha + '&repo=' + scmRepo +
+                '&scm=' + scmType;
             contentId.load(url, function () {
                 $(btn).button('reset');
             });

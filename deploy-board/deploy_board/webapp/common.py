@@ -83,9 +83,9 @@ def get_previous_deploy(request, env, deploy):
 # Return all the commits, up to allowed size, also a
 # boolean indicated if the result was truncated
 # Notice it will never return endSha itself
-def get_commits_batch(request, repo, startSha, endSha, size=DEFAULT_COMMITS_SIZE,
+def get_commits_batch(request, scm, repo, startSha, endSha, size=DEFAULT_COMMITS_SIZE,
                       keep_first=False):
-    commits = builds_helper.get_commits(request=request, repo=repo, startSha=startSha,
+    commits = builds_helper.get_commits(request=request, scm=scm, repo=repo, startSha=startSha,
                                         endSha=endSha, size=size)
     truncated = False
     new_start_sha = None
@@ -100,7 +100,7 @@ def get_commits_batch(request, repo, startSha, endSha, size=DEFAULT_COMMITS_SIZE
 
 
 # it will return all the commits, or max
-def get_commits_between(request, repo, startSha, endSha, max=500):
+def get_commits_between(request, scm, repo, startSha, endSha, max=500):
     total_commits = []
     keep_first = True
     new_start_sha = startSha
@@ -111,7 +111,7 @@ def get_commits_between(request, repo, startSha, endSha, max=500):
                 repo, startSha, endSha))
             break
 
-        commits, truncated, new_start_sha = get_commits_batch(request, repo,
+        commits, truncated, new_start_sha = get_commits_batch(request, scm, repo,
                                                               new_start_sha, endSha,
                                                               keep_first=keep_first)
         keep_first = False
