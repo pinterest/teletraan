@@ -2,6 +2,5 @@
 
 set -ex
 
-BUILD_NAME=deployd_debug
-docker build -t "$BUILD_NAME" . -f Dockerfile.unittest
-docker run -it "$BUILD_NAME" bash
+docker build -t deploy_agent_unittests . -f Dockerfile.unittest
+docker run -it deploy_agent_unittests
