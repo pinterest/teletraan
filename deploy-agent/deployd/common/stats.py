@@ -13,7 +13,9 @@
 # limitations under the License.
 
 from deployd import IS_PINTEREST
+import logging
 
+log = logging.getLogger(__name__)
 
 class DefaultStatsdTimer(object):
     def __enter__(self):
@@ -27,6 +29,8 @@ def create_stats_timer(stats, sample_rate, tags):
     if IS_PINTEREST:
         from pinstatsd.statsd import statsd_context_timer
         return statsd_context_timer(entry_name=stats, sample_rate=sample_rate, tags=tags)
+        log.debug("Created stats timer: {}".format(stats)
+
     else:
         return DefaultStatsdTimer()
 
@@ -35,5 +39,6 @@ def create_sc_increment(stats, sample_rate, tags):
     if IS_PINTEREST:
         from pinstatsd.statsd import sc
         sc.increment(stats, sample_rate, tags)
+        log.debug("Created sc_increment: {}".format(stats)
     else:
         return
