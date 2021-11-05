@@ -37,7 +37,7 @@ class Config(object):
     def __init__(self, filenames=None, config_reader=None):
         self._configs = {}
         self._filenames = None
-        self._environ = {}
+        self._environ = os.environ.copy()
         if config_reader:
             self._config_reader = config_reader
             return
