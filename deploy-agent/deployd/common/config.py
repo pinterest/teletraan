@@ -37,7 +37,7 @@ class Config(object):
     def __init__(self, filenames=None, config_reader=None):
         self._configs = {}
         self._filenames = None
-        self._environ = os.environ.copy()
+        self._environ = {}
         if config_reader:
             self._config_reader = config_reader
             return
@@ -74,7 +74,8 @@ class Config(object):
         if not deploy_status:
             return
 
-        self._environ.clear()
+        for k in self._environ.keys():
+            os.environ.pop(k)
 
         self._configs = {}
         if deploy_status.runtime_config:
@@ -128,9 +129,7 @@ class Config(object):
                 self._environ['BUILD_URL'] = deploy_status.build_info.build_url
 
         self._environ['BUILDS_DIR'] = self.get_builds_directory()
-
-    def get_all_environ_vars(self):
-        return self._environ.copy()
+        os.environ.update(self._environ)
 
     def get_var(self, var_name, default_value=None):
         try:
