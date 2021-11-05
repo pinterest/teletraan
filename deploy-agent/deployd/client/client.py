@@ -45,12 +45,17 @@ class Client(BaseClient):
         self._availability_zone = None
         self._stage_type = None
         self._host_info_populated = False
-        if self._read_host_info() is False:
-            log.error("Fail to read host info")
+        try:
+            if self._read_host_info() is False:
+                log.error("Fail to read host info")
+                create_sc_increment(stats='deploy.failed.agent.hostinfocollection',
+                                    sample_rate=1.0,
+                                    tags={'host': self._hostname})
+        except Exception:
+            log.error(traceback.format_exc())
             create_sc_increment(stats='deploy.failed.agent.hostinfocollection',
                                 sample_rate=1.0,
-                                tags={'host': self._hostname})
-            
+                                tags={'host': self._hostname}) 
 
     def _read_host_info(self):
         if self._host_info_populated:
@@ -77,6 +82,8 @@ class Client(BaseClient):
                 keys_to_fetch.add(group_key)
 
             facter_data = utils.get_info_from_facter(keys_to_fetch)
+            if facter_data is None:
+                return False
 
             if not self._hostname:
                 self._hostname = facter_data.get(name_key, None)
