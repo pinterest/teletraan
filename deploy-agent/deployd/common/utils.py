@@ -91,6 +91,14 @@ def mkdir_p(path):
         else:
             raise
 
+def uptime():
+    """ return int: seconds of uptime in int, default 0 """
+    sec = 0
+    if sys.platform.startswith('linux'):
+        with open('/proc/uptime') as proc:
+            line = proc.readline().split()
+            sec = int(float(line[0]))
+    return sec
 
 def ensure_dirs(config):
     # make sure deployd directories exist
