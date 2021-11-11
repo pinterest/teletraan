@@ -13,12 +13,13 @@
 # limitations under the License.
 
 import argparse
+import daemon
+import logging
 import os
 from random import randrange
 import time
+import timeit
 import traceback
-import daemon
-import logging
 
 from deployd.client.client import Client
 from deployd.client.serverless_client import ServerlessClient
@@ -27,6 +28,7 @@ from deployd.common.exceptions import AgentException
 from deployd.common.helper import Helper
 from deployd.common.single_instance import SingleInstance
 from deployd.common.env_status import EnvStatus
+from deployd.common.stats import create_sc_increment, create_sc_gauge
 from deployd.common import utils
 from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
@@ -51,6 +53,51 @@ class AgentRunMode(object):
     def is_serverless(mode):
         return AgentRunMode.SERVERLESS == mode
 
+class TimeElapsed():
+    def __init__(self):
+        """ keep track of elapsed time in seconds """
+        self._time_start = self._timer()
+        self._time_now = None
+        self._time_elapsed = float(0)
+        self._time_pause = None
+
+    def __call__(self):
+        """ total elapsed running time in seconds """
+        if self._paused():
+            return self._time_elapsed
+        self._time_now = self._timer()
+        self._time_elapsed += float(self._time_now - self._time_start)
+        self._time_start = self._time_now
+        return self._time_elapsed
+
+    def _paused(self):
+        """ timer pause state """
+        if self._time_pause:
+            return True
+        return False
+
+    @staticmethod
+    def _timer():
+        """ timer in seconds """
+        return timeit.default_timer()
+
+    def since_pause(self):
+        """ time elapsed since pause """
+        if self._paused:
+            return float(self._timer() - self._time_pause)
+        return float(0)
+
+    def pause(self):
+        """ pause timer if not paused """
+        if not self._paused:
+            self._time_pause = self._timer()
+
+    def resume(self):
+        """ resume timer if paused """
+        if self._paused:
+            self._time_start = self._timer()
+            self._time_pause = None
+
 
 class DeployAgent(object):
     _STATUS_FILE = None
@@ -64,6 +111,7 @@ class DeployAgent(object):
         self._envs = {}
         self._config = conf or Config()
         self._executor = executor
+        self.stat_time_elapsed_internal = TimeElapsed()
         self._helper = helper or Helper(self._config)
         self._STATUS_FILE = self._config.get_env_status_fn()
         self._client = client
@@ -80,6 +128,12 @@ class DeployAgent(object):
 
         self._curr_report = list(self._envs.values())[0]
         self._config.update_variables(self._curr_report)
+
+    def first_run(self):
+        """ check if this the very first run of agent on this instance """
+        if not self._envs:
+            return True
+        return False
 
     def serve_build(self):
         """This is the main function of the ``DeployAgent``.
@@ -100,10 +154,12 @@ class DeployAgent(object):
                 return
 
         while self._response and self._response.opCode and self._response.opCode != OpCode.NOOP:
+            self.stat_time_elapsed_internal.resume()
             try:
                 # update the current deploy goal
                 if self._response.deployGoal:
                     deploy_report = self.process_deploy(self._response)
+                    self.stat_time_elapsed_internal.resume()
                 else:
                     log.info('No new deploy goal to get updated')
                     deploy_report = DeployReport(AgentStatus.SUCCEEDED)
@@ -114,11 +170,13 @@ class DeployAgent(object):
 
             except Exception:
                 # anything catch-up here should be treated as agent failure
+                self.stat_time_elapsed_internal.resume()
                 deploy_report = DeployReport(status_code=AgentStatus.AGENT_FAILED,
                                              error_code=1,
                                              output_msg=traceback.format_exc(),
                                              retry_times=1)
 
+            self.stat_time_elapsed_internal.resume()
             if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
                 return
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
@@ -176,6 +234,7 @@ class DeployAgent(object):
 
 
     def process_deploy(self, response):
+        self.stat_time_elapsed_internal.resume()
         op_code = response.opCode
         deploy_goal = response.deployGoal
         if op_code == OpCode.TERMINATE or op_code == OpCode.DELETE:
@@ -197,6 +256,7 @@ class DeployAgent(object):
             STAGING: In this step, deploy agent will chmod and change the symlink pointing to
               new service code, and etc.
             '''
+            self.stat_time_elapsed_internal.pause()
             if curr_stage == DeployStage.DOWNLOADING:
                 return self._executor.run_cmd(self.get_download_script(deploy_goal=deploy_goal))
             elif curr_stage == DeployStage.STAGING:
@@ -416,7 +476,11 @@ def main():
         client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,
                                   script_variables=args.script_variables)
 
+    uptime = utils.uptime()
     agent = DeployAgent(client=client, conf=config)
+    create_sc_increment('deployd.stats.ec2_uptime_sec',
+                        1.0,
+                        {'first_run': agent.first_run()})
     utils.listen()
     if args.daemon:
         logger = logging.getLogger()
@@ -428,6 +492,10 @@ def main():
     else:
         agent.serve_once()
 
+    create_sc_gauge('deployd.stats.internal.time_elapsed_proc_sec',
+                    agent.stat_time_elapsed_internal(),
+                    1.0,
+                    {'first_run': agent.first_run()})
 
 if __name__ == '__main__':
     main()
