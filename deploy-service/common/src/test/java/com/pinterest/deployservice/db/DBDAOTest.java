@@ -40,6 +40,7 @@ import com.pinterest.deployservice.bean.DeployType;
 import com.pinterest.deployservice.bean.EnvState;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.EnvironState;
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.GroupRolesBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
@@ -539,7 +540,7 @@ public class DBDAOTest {
 
         // Test getById
         EnvironBean envBean2 = environDAO.getById(envBean.getEnv_id());
-        //assertTrue(EqualsBuilder.reflectionEquals(envBean, envBean2));
+        assertTrue(EqualsBuilder.reflectionEquals(envBean, envBean2));
 
         // Test getByStage
         EnvironBean envBean22 = environDAO.getByStage("s-1", "prod");
@@ -1071,6 +1072,8 @@ public class DBDAOTest {
         envBean.setOverride_policy(OverridePolicy.OVERRIDE);
         envBean.setAllow_private_build(false);
         envBean.setEnsure_trusted_build(false);
+        envBean.setStage_type(EnvType.DEFAULT);
+        envBean.setIs_sox(false);
         return envBean;
     }
 
