@@ -1056,7 +1056,6 @@ public class DBDAOTest {
         envBean.setDescription("foo");
         envBean.setDeploy_id(deployId);
         envBean.setAdv_config_id("config_id_1");
-        envBean.setSc_config_id("envvar_id_1");
         envBean.setLast_operator("bar");
         envBean.setLast_update(System.currentTimeMillis());
         envBean.setAccept_type(AcceptanceType.AUTO);
