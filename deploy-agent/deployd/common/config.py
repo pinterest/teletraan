@@ -76,6 +76,7 @@ class Config(object):
 
         for k in self._environ.keys():
             os.environ.pop(k)
+        self._environ = {}
 
         self._configs = {}
         if deploy_status.runtime_config:
