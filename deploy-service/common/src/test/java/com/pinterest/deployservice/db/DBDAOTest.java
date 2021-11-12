@@ -284,9 +284,9 @@ public class DBDAOTest {
         assertEquals(resultBean.getDeploys().size(), 2);
         assertEquals(resultBean.getTotal().longValue(), 6);
 
-        EnvironBean envBean1 = genDefaultEnvBean("env-1", "s-1", "prod", "d-3");
-        EnvironBean envBean2 = genDefaultEnvBean("env-2", "s-2", "prod", "d-4");
-        EnvironBean envBean3 = genDefaultEnvBean("env-3", "s-3", "prod", "d-5");
+        EnvironBean envBean1 = genDefaultEnvBean("env-1", "s-1", "prod", "d-3", "scconfig_id_1");
+        EnvironBean envBean2 = genDefaultEnvBean("env-2", "s-2", "prod", "d-4", "scconfig_id_2");
+        EnvironBean envBean3 = genDefaultEnvBean("env-3", "s-3", "prod", "d-5", "scconfig_id_3");
         environDAO.insert(envBean1);
         environDAO.insert(envBean2);
         environDAO.insert(envBean3);
@@ -534,7 +534,7 @@ public class DBDAOTest {
     public void testEnvDAO() throws Exception {
 
         // Test insert
-        EnvironBean envBean = genDefaultEnvBean("env-1", "s-1", "prod", "deploy-1");
+        EnvironBean envBean = genDefaultEnvBean("env-1", "s-1", "prod", "deploy-1", "envvar_id_1");
         environDAO.insert(envBean);
 
         // Test getById
@@ -557,7 +557,7 @@ public class DBDAOTest {
         assertTrue(EqualsBuilder.reflectionEquals(envBean2, envBean4));
 
         // Test getByName return 2 envs after add another env
-        envBean = genDefaultEnvBean("env-2", "s-1", "whatever", "deploy-1");
+        envBean = genDefaultEnvBean("env-2", "s-1", "whatever", "deploy-1", "envvar_id_2");
         environDAO.insert(envBean);
         List<EnvironBean> envBeans = environDAO.getByName("s-1");
         assertEquals(envBeans.size(), 2);
@@ -1041,7 +1041,7 @@ public class DBDAOTest {
 
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage,
-                                          String deployId) {
+                                          String deployId, String scConfigId) {
         EnvironBean envBean = new EnvironBean();
         envBean.setEnv_id(envId);
         envBean.setEnv_name(envName);
@@ -1056,6 +1056,7 @@ public class DBDAOTest {
         envBean.setDescription("foo");
         envBean.setDeploy_id(deployId);
         envBean.setAdv_config_id("config_id_1");
+        envBean.setSc_config_id(scConfigId);
         envBean.setLast_operator("bar");
         envBean.setLast_update(System.currentTimeMillis());
         envBean.setAccept_type(AcceptanceType.AUTO);
