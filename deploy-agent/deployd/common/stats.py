@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from deployd import IS_PINTEREST
+import timeit
 
 
 class DefaultStatsdTimer(object):
@@ -31,6 +32,14 @@ def create_stats_timer(stats, sample_rate, tags):
         return DefaultStatsdTimer()
 
 
+def create_sc_timing(stat, value, sample_rate, tags):
+    if IS_PINTEREST:
+        from pinstatsd.statsd import sc
+        return sc.timing(stat, value, sample_rate=sample_rate, tags=tags)
+    else:
+        return
+
+
 def create_sc_increment(stats, sample_rate, tags):
     if IS_PINTEREST:
         from pinstatsd.statsd import sc
@@ -39,9 +48,56 @@ def create_sc_increment(stats, sample_rate, tags):
         return
 
 
-def create_sc_gauge(stats, value, sample_rate, tags):
+def create_sc_gauge(stat, value, sample_rate, tags):
     if IS_PINTEREST:
         from pinstatsd.statsd import sc
-        sc.gauge(stats, value, sample_rate=sample_rate, tags=tags)
+        sc.gauge(stat, value, sample_rate=sample_rate, tags=tags)
     else:
         return
+
+
+class TimeElapsed():
+    """ keep track of elapsed time in seconds """
+
+    def __init__(self):
+        self._time_start = self._timer()
+        self._time_now = None
+        self._time_elapsed = float(0)
+        self._time_pause = None
+
+    def get(self):
+        """ total elapsed running time in seconds """
+        if self._is_paused():
+            return self._time_elapsed
+        self._time_now = self._timer()
+        self._time_elapsed += float(self._time_now - self._time_start)
+        self._time_start = self._time_now
+        return self._time_elapsed
+
+    def _is_paused(self):
+        """ timer pause state """
+        if self._time_pause:
+            return True
+        return False
+
+    @staticmethod
+    def _timer():
+        """ timer in seconds """
+        return timeit.default_timer()
+
+    def since_pause(self):
+        """ time elapsed since pause """
+        if self._is_paused():
+            return float(self._timer() - self._time_pause)
+        return float(0)
+
+    def pause(self):
+        """ pause timer if not paused """
+        if not self._is_paused():
+            self._time_pause = self._timer()
+
+    def resume(self):
+        """ resume timer if paused """
+        if self._is_paused():
+            self._time_start = self._timer()
+            self._time_pause = None

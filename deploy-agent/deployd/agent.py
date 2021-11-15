@@ -18,7 +18,6 @@ import logging
 import os
 from random import randrange
 import time
-import timeit
 import traceback
 
 from deployd.client.client import Client
@@ -28,7 +27,7 @@ from deployd.common.exceptions import AgentException
 from deployd.common.helper import Helper
 from deployd.common.single_instance import SingleInstance
 from deployd.common.env_status import EnvStatus
-from deployd.common.stats import create_sc_increment, create_sc_gauge
+from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_gauge
 from deployd.common import utils
 from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
@@ -52,51 +51,6 @@ class AgentRunMode(object):
     @staticmethod
     def is_serverless(mode):
         return AgentRunMode.SERVERLESS == mode
-
-class TimeElapsed():
-    def __init__(self):
-        """ keep track of elapsed time in seconds """
-        self._time_start = self._timer()
-        self._time_now = None
-        self._time_elapsed = float(0)
-        self._time_pause = None
-
-    def __call__(self):
-        """ total elapsed running time in seconds """
-        if self._paused():
-            return self._time_elapsed
-        self._time_now = self._timer()
-        self._time_elapsed += float(self._time_now - self._time_start)
-        self._time_start = self._time_now
-        return self._time_elapsed
-
-    def _paused(self):
-        """ timer pause state """
-        if self._time_pause:
-            return True
-        return False
-
-    @staticmethod
-    def _timer():
-        """ timer in seconds """
-        return timeit.default_timer()
-
-    def since_pause(self):
-        """ time elapsed since pause """
-        if self._paused:
-            return float(self._timer() - self._time_pause)
-        return float(0)
-
-    def pause(self):
-        """ pause timer if not paused """
-        if not self._paused:
-            self._time_pause = self._timer()
-
-    def resume(self):
-        """ resume timer if paused """
-        if self._paused:
-            self._time_start = self._timer()
-            self._time_pause = None
 
 
 class DeployAgent(object):
@@ -478,9 +432,10 @@ def main():
 
     uptime = utils.uptime()
     agent = DeployAgent(client=client, conf=config)
-    create_sc_increment('deployd.stats.ec2_uptime_sec',
-                        1.0,
-                        {'first_run': agent.first_run()})
+    create_sc_timing('deployd.stats.ec2_uptime_sec',
+                     uptime,
+                     1.0,
+                     {'first_run': agent.first_run()})
     utils.listen()
     if args.daemon:
         logger = logging.getLogger()
@@ -493,7 +448,7 @@ def main():
         agent.serve_once()
 
     create_sc_gauge('deployd.stats.internal.time_elapsed_proc_sec',
-                    agent.stat_time_elapsed_internal(),
+                    agent.stat_time_elapsed_internal.get(),
                     1.0,
                     {'first_run': agent.first_run()})
 
