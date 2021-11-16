@@ -108,11 +108,13 @@ class DeployAgent(object):
                 return
 
         while self._response and self._response.opCode and self._response.opCode != OpCode.NOOP:
+            # ensure stat_time_elapsed_internal is always running
             self.stat_time_elapsed_internal.resume()
             try:
                 # update the current deploy goal
                 if self._response.deployGoal:
                     deploy_report = self.process_deploy(self._response)
+                    # resume stat_time_elapsed_internal immediately, previous process_deploy may have paused
                     self.stat_time_elapsed_internal.resume()
                 else:
                     log.info('No new deploy goal to get updated')
@@ -124,13 +126,13 @@ class DeployAgent(object):
 
             except Exception:
                 # anything catch-up here should be treated as agent failure
+                # resume stat_time_elapsed_internal, previous process_deploy may have paused
                 self.stat_time_elapsed_internal.resume()
                 deploy_report = DeployReport(status_code=AgentStatus.AGENT_FAILED,
                                              error_code=1,
                                              output_msg=traceback.format_exc(),
                                              retry_times=1)
 
-            self.stat_time_elapsed_internal.resume()
             if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
                 return
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
@@ -166,6 +168,7 @@ class DeployAgent(object):
         try:
             if len(self._envs) > 0:
                 # randomly sleep some time before pinging server
+                # TODO: consider pause stat_time_elapsed_internal here
                 sleep_secs = randrange(self._config.get_init_sleep_time())
                 log.info("Randomly sleep {} seconds before starting.".format(sleep_secs))
                 time.sleep(sleep_secs)
@@ -210,6 +213,7 @@ class DeployAgent(object):
             STAGING: In this step, deploy agent will chmod and change the symlink pointing to
               new service code, and etc.
             '''
+            # pause stat_time_elapsed_internal so that external actions are not counted
             self.stat_time_elapsed_internal.pause()
             if curr_stage == DeployStage.DOWNLOADING:
                 return self._executor.run_cmd(self.get_download_script(deploy_goal=deploy_goal))
@@ -434,8 +438,7 @@ def main():
     agent = DeployAgent(client=client, conf=config)
     create_sc_timing('deployd.stats.ec2_uptime_sec',
                      uptime,
-                     1.0,
-                     {'first_run': agent.first_run()})
+                     tags={'first_run': agent.first_run()})
     utils.listen()
     if args.daemon:
         logger = logging.getLogger()
@@ -447,10 +450,9 @@ def main():
     else:
         agent.serve_once()
 
-    create_sc_gauge('deployd.stats.internal.time_elapsed_proc_sec',
+    create_sc_timing('deployd.stats.internal.time_elapsed_proc_sec',
                     agent.stat_time_elapsed_internal.get(),
-                    1.0,
-                    {'first_run': agent.first_run()})
+                    tags={'first_run': agent.first_run()})
 
 if __name__ == '__main__':
     main()
