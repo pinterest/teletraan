@@ -1,6 +1,7 @@
 -r requirements.txt
 
 # tests
+black==21.7b0; python_version >= '3'
 tox==1.6.1
 coverage
 pytest==6.2.2; python_version >= '3'

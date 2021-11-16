@@ -37,3 +37,10 @@ jobs:
       - name: Tests
         run: |
           tox -v
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: psf/black@stable
+        with:
+          src: "./deploy-agent"
