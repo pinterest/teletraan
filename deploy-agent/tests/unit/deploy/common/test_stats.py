@@ -27,7 +27,7 @@ class TestTimeElapsed(tests.TestCase):
         elapsed = TimeElapsed()
         then = elapsed.get()
         self.assertFalse(elapsed._is_paused())
-        sleep(0.5)
+        sleep(2)
         now = elapsed.get()
         self.assertTrue(now > then)
 
@@ -40,7 +40,7 @@ class TestTimeElapsed(tests.TestCase):
         self.assertFalse(elapsed._is_paused())
         self.assertEqual(elapsed.since_pause(), float(0))
 
-        sleep(0.5)
+        sleep(2)
         elapsed.pause()
         self.assertTrue(elapsed._is_paused())
         self.assertTrue(elapsed.since_pause() > 0)
@@ -49,7 +49,7 @@ class TestTimeElapsed(tests.TestCase):
         elapsed = TimeElapsed()
         self.assertFalse(elapsed._is_paused())
         elapsed.pause()
-        sleep(1)
+        sleep(2)
         self.assertTrue(elapsed._is_paused())
 
     def test_resume(self):

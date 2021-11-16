@@ -191,7 +191,6 @@ class Client(BaseClient):
                                         stageType=self._stage_type)
 
                 with create_stats_timer('deploy.agent.request.latency',
-                                        sample_rate=1.0,
                                         tags={'host': self._hostname}):
                     ping_response = self.send_reports_internal(ping_request)
 
@@ -200,12 +199,10 @@ class Client(BaseClient):
             else:
                 log.error("Fail to read host info")
                 create_sc_increment(stats='deploy.failed.agent.hostinfocollection',
-                                sample_rate=1.0,
-                                tags={'host': self._hostname})
+                                    tags={'host': self._hostname})
         except Exception:
             log.error(traceback.format_exc())
             create_sc_increment(stats='deploy.failed.agent.requests',
-                                sample_rate=1.0,
                                 tags={'host': self._hostname})
             return None
 

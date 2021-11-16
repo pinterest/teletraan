@@ -20,11 +20,11 @@ class DefaultStatsdTimer(object):
     def __enter__(self):
         pass
 
-    def __exit__(self, stats, sample_rate, tags):
+    def __exit__(self, stats, sample_rate=1.0, tags=None):
         pass
 
 
-def create_stats_timer(stats, sample_rate, tags):
+def create_stats_timer(stats, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         from pinstatsd.statsd import statsd_context_timer
         return statsd_context_timer(entry_name=stats, sample_rate=sample_rate, tags=tags)
@@ -32,7 +32,7 @@ def create_stats_timer(stats, sample_rate, tags):
         return DefaultStatsdTimer()
 
 
-def create_sc_timing(stat, value, sample_rate, tags):
+def create_sc_timing(stat, value, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         from pinstatsd.statsd import sc
         return sc.timing(stat, value, sample_rate=sample_rate, tags=tags)
@@ -40,7 +40,7 @@ def create_sc_timing(stat, value, sample_rate, tags):
         return
 
 
-def create_sc_increment(stats, sample_rate, tags):
+def create_sc_increment(stats, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         from pinstatsd.statsd import sc
         sc.increment(stats, sample_rate, tags)
@@ -48,7 +48,7 @@ def create_sc_increment(stats, sample_rate, tags):
         return
 
 
-def create_sc_gauge(stat, value, sample_rate, tags):
+def create_sc_gauge(stat, value, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         from pinstatsd.statsd import sc
         sc.gauge(stat, value, sample_rate=sample_rate, tags=tags)
@@ -56,7 +56,7 @@ def create_sc_gauge(stat, value, sample_rate, tags):
         return
 
 
-class TimeElapsed():
+class TimeElapsed:
     """ keep track of elapsed time in seconds """
 
     def __init__(self):
@@ -66,13 +66,13 @@ class TimeElapsed():
         self._time_pause = None
 
     def get(self):
-        """ total elapsed running time in seconds """
+        """ total elapsed running time, accuracy in seconds """
         if self._is_paused():
             return self._time_elapsed
         self._time_now = self._timer()
         self._time_elapsed += float(self._time_now - self._time_start)
         self._time_start = self._time_now
-        return self._time_elapsed
+        return int(self._time_elapsed)
 
     def _is_paused(self):
         """ timer pause state """
