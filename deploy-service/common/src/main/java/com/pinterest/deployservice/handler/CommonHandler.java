@@ -303,6 +303,7 @@ public class CommonHandler {
 
         if (stucked * 10000 > (10000 - sucThreshold) * total) {
             newDeployBean.setState(DeployState.FAILING);
+            newDeployBean.setAcc_status(AcceptanceStatus.REJECTED);
             LOG.info("Set deploy {} as FAILING since {} agents are stuck.", deployId, stucked);
             return;
         }
@@ -325,6 +326,7 @@ public class CommonHandler {
                     }
                 }
                 newDeployBean.setState(DeployState.FAILING);
+                newDeployBean.setAcc_status(AcceptanceStatus.REJECTED);
                 LOG.info("Set deploy {} as FAILING since {} seconds past without complete the deploy.", deployId, duration);
                 
                 // TODO, temp hack do NOT set lastUpdate for deploy stuck case, otherwise the
