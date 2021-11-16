@@ -108,9 +108,9 @@ class DeployAgent(object):
                 return
 
         while self._response and self._response.opCode and self._response.opCode != OpCode.NOOP:
-            # ensure stat_time_elapsed_internal is always running
-            self.stat_time_elapsed_internal.resume()
             try:
+                # ensure stat_time_elapsed_internal is always running
+                self.stat_time_elapsed_internal.resume()
                 # update the current deploy goal
                 if self._response.deployGoal:
                     deploy_report = self.process_deploy(self._response)
