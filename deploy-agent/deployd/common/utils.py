@@ -1,12 +1,13 @@
 from __future__ import print_function
+
 # Copyright 2016 Pinterest, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -53,7 +54,7 @@ def touch(fname, times=None):
 
 
 def hash_file(filepath):
-    """ hash the file content
+    """hash the file content
     :param filepath: the full path of the file
     :return:the sha1 of the file data
     """
@@ -67,7 +68,7 @@ def hash_file(filepath):
 def debug(sig, frame):
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
-    d = {'_frame': frame}      # Allow access to frame object.
+    d = {'_frame': frame}  # Allow access to frame object.
     d.update(frame.f_globals)  # Unless shadowed by global
     d.update(frame.f_locals)
 
@@ -104,9 +105,7 @@ def run_prereqs(config):
     if IS_PINTEREST:
         respect_puppet = config.respect_puppet()
         puppet_file_path = config.get_puppet_file_path()
-        if respect_puppet and \
-           puppet_file_path is not None and \
-           not os.path.exists(puppet_file_path):
+        if respect_puppet and puppet_file_path is not None and not os.path.exists(puppet_file_path):
             print("Waiting for first puppet run.")
             sys.exit(0)
 
@@ -127,8 +126,8 @@ def get_info_from_facter(keys):
         log.error("Failed to get info from facter by keys {}".format(keys))
         return None
 
+
 def check_not_none(arg, msg=None):
     if arg is None:
         raise ValueError(msg)
     return arg
-

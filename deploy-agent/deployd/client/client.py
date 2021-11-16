@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,8 +31,9 @@ log = logging.getLogger(__name__)
 
 
 class Client(BaseClient):
-    def __init__(self, config=None, hostname=None, ip=None, hostgroup=None, 
-                host_id=None, use_facter=None, use_host_info=False):
+    def __init__(
+        self, config=None, hostname=None, ip=None, hostgroup=None, host_id=None, use_facter=None, use_host_info=False
+    ):
         self._hostname = hostname
         self._ip = ip
         self._hostgroup = hostgroup
@@ -122,7 +123,7 @@ class Client(BaseClient):
 
         if not self._id:
             if self._use_facter:
-                #Must fail here as it cannot identify the host if id is missing
+                # Must fail here as it cannot identify the host if id is missing
                 return False
             else:
                 self._id = self._hostname
@@ -133,7 +134,7 @@ class Client(BaseClient):
             except Exception:
                 log.warn('Host ip information does not exist.')
                 pass
-        
+
         if IS_PINTEREST and self._use_host_info is False:
             # Read new keys from facter always
             az_key = self._config.get_facter_az_key()
@@ -164,10 +165,20 @@ class Client(BaseClient):
             if not self._stage_type:
                 self._stage_type = facter_data.get(stage_type_key, None)
 
-        log.info("Host information is loaded. "
-                 "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
-                 "availability_zone: {}, stage_type: {}, group: {}".format(self._hostname, self._ip, self._id, 
-                 self._agent_version, self._autoscaling_group, self._availability_zone, self._stage_type, self._hostgroup))
+        log.info(
+            "Host information is loaded. "
+            "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
+            "availability_zone: {}, stage_type: {}, group: {}".format(
+                self._hostname,
+                self._ip,
+                self._id,
+                self._agent_version,
+                self._autoscaling_group,
+                self._availability_zone,
+                self._stage_type,
+                self._hostgroup,
+            )
+        )
         return True
 
     def send_reports(self, env_reports=None):
@@ -183,30 +194,31 @@ class Client(BaseClient):
                     # https://app.asana.com/0/11815463290546/40714916594784
                     if report.errorMessage:
                         report.errorMessage = report.errorMessage.encode('ascii', 'ignore').decode()
-                ping_request = PingRequest(hostId=self._id, hostName=self._hostname, hostIp=self._ip,
-                                        groups=self._hostgroup, reports=reports,
-                                        agentVersion=self._agent_version,
-                                        autoscalingGroup=self._autoscaling_group,
-                                        availabilityZone=self._availability_zone,
-                                        stageType=self._stage_type)
+                ping_request = PingRequest(
+                    hostId=self._id,
+                    hostName=self._hostname,
+                    hostIp=self._ip,
+                    groups=self._hostgroup,
+                    reports=reports,
+                    agentVersion=self._agent_version,
+                    autoscalingGroup=self._autoscaling_group,
+                    availabilityZone=self._availability_zone,
+                    stageType=self._stage_type,
+                )
 
-                with create_stats_timer('deploy.agent.request.latency',
-                                        sample_rate=1.0,
-                                        tags={'host': self._hostname}):
+                with create_stats_timer('deploy.agent.request.latency', sample_rate=1.0, tags={'host': self._hostname}):
                     ping_response = self.send_reports_internal(ping_request)
 
                 log.debug('%s -> %s' % (ping_request, ping_response))
                 return ping_response
             else:
                 log.error("Fail to read host info")
-                create_sc_increment(stats='deploy.failed.agent.hostinfocollection',
-                                sample_rate=1.0,
-                                tags={'host': self._hostname})
+                create_sc_increment(
+                    stats='deploy.failed.agent.hostinfocollection', sample_rate=1.0, tags={'host': self._hostname}
+                )
         except Exception:
             log.error(traceback.format_exc())
-            create_sc_increment(stats='deploy.failed.agent.requests',
-                                sample_rate=1.0,
-                                tags={'host': self._hostname})
+            create_sc_increment(stats='deploy.failed.agent.requests', sample_rate=1.0, tags={'host': self._hostname})
             return None
 
     @retry(ExceptionToCheck=Exception, delay=1, tries=3)

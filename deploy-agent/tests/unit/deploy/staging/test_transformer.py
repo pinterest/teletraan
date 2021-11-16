@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,9 +46,7 @@ class TransformTest(unittest.TestCase):
         with open(fn2, 'w') as f:
             f.write('$TEST="$TELETRAAN_Wh-O"')
 
-        lines = ['foo = \"bar\"\n',
-                 'Wh-O =   \'test2\'\n',
-                 'TEST = test3\n']
+        lines = ['foo = \"bar\"\n', 'Wh-O =   \'test2\'\n', 'TEST = test3\n']
         with open(os.path.join(self.base_dir, '123_SCRIPT_CONFIG'), 'w') as f:
             f.writelines(lines)
 
@@ -82,7 +80,7 @@ class TransformTest(unittest.TestCase):
             "foo7": value2,
             "foo8": "foo-${TELETRAAN_bar}-",
             "foo9": "foo-{$TELETRAAN_bar}-",
-            "foo10": "foo-$TELETRAAN_bar $TELETRAAN_bar"
+            "foo10": "foo-$TELETRAAN_bar $TELETRAAN_bar",
         }
 
         with open(fn1, 'r') as f:
@@ -113,7 +111,7 @@ class TransformTest(unittest.TestCase):
             "foo7": value1,
             "foo8": "foo-${TELETRAAN_bar}-",
             "foo9": "foo-{$TELETRAAN_bar}-",
-            "foo10": "foo-$TELETRAAN_bar $TELETRAAN_bar"
+            "foo10": "foo-$TELETRAAN_bar $TELETRAAN_bar",
         }
 
         with open(fn1, 'r') as f:

@@ -16,12 +16,13 @@ from deployd import __version__
 from setuptools import setup
 import os
 
-markdown_contents = open(os.path.join(os.path.dirname(__file__),
-                                      'README.md')).read()
+markdown_contents = open(os.path.join(os.path.dirname(__file__), 'README.md')).read()
 
-console_scripts = ['deploy-agent = deployd.agent:main',
-                   'deploy-downloader = deployd.download.downloader:main',
-                   'deploy-stager = deployd.staging.stager:main']
+console_scripts = [
+    'deploy-agent = deployd.agent:main',
+    'deploy-downloader = deployd.download.downloader:main',
+    'deploy-stager = deployd.staging.stager:main',
+]
 
 install_requires = [
     "requests==2.20.0",
@@ -30,7 +31,7 @@ install_requires = [
     "lockfile==0.10.2",
     "boto>=2.39.0",
     "python-daemon==2.0.6",
-    "future==0.18.2"
+    "future==0.18.2",
 ]
 
 setup(
@@ -52,5 +53,5 @@ setup(
         'deployd.types',
     ],
     include_package_data=True,
-    package_data={'deployd/conf': ['*.conf']}
+    package_data={'deployd/conf': ['*.conf']},
 )

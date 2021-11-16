@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -69,9 +69,12 @@ class TestHelper(unittest.TestCase):
         if not os.path.exists(script_dir):
             os.mkdir(script_dir)
 
-        self.assertTrue(Stager(config=self.config, transformer=self.transformer,
-                               build="24714bc", target=self.target,
-                               env_name="test").enable_package() == Status.SUCCEEDED)
+        self.assertTrue(
+            Stager(
+                config=self.config, transformer=self.transformer, build="24714bc", target=self.target, env_name="test"
+            ).enable_package()
+            == Status.SUCCEEDED
+        )
         self.assertTrue(os.path.exists(self.target))
         self.assertTrue(os.path.exists(os.path.join(self.target, "teletraan_template")))
         self.assertEqual(os.readlink(self.target), os.path.join(self.builds_dir, '24714bc'))
@@ -88,9 +91,9 @@ class TestHelper(unittest.TestCase):
         if not os.path.exists(tarball_dir):
             os.mkdir(tarball_dir)
 
-        Stager(config=self.config, transformer=self.transformer,
-               build="1234567", target=self.target,
-               env_name="test").enable_package()
+        Stager(
+            config=self.config, transformer=self.transformer, build="1234567", target=self.target, env_name="test"
+        ).enable_package()
 
         self.assertEqual(os.readlink(self.target), os.path.join(self.builds_dir, '1234567'))
         os.remove(self.target)
@@ -98,8 +101,9 @@ class TestHelper(unittest.TestCase):
     def test_get_enabled_build(self):
         missing_target = os.path.join(self.builds_dir, 'foo')
         os.symlink(missing_target, self.target)
-        stager = Stager(config=self.config, transformer=self.transformer,
-                        build="24714bc", target=self.target, env_name="test")
+        stager = Stager(
+            config=self.config, transformer=self.transformer, build="24714bc", target=self.target, env_name="test"
+        )
         self.assertEqual(None, stager.get_enabled_build())
         # now let's make our missing_target a real target!
         os.mkdir(missing_target)

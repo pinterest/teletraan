@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -66,9 +66,7 @@ class OpCode(object):
 
 
 class DeployReport(object):
-
-    def __init__(self, status_code=AgentStatus.UNKNOWN,
-                 error_code=0, output_msg=None, retry_times=0):
+    def __init__(self, status_code=AgentStatus.UNKNOWN, error_code=0, output_msg=None, retry_times=0):
         self.status_code = status_code
         self.error_code = error_code
         self.output_msg = output_msg
@@ -82,9 +80,7 @@ class PingStatus(object):
 
 
 class BuildInfo(object):
-
-    def __init__(self, commit, build_url, build_id, build_name=None,
-                 build_repo=None, build_branch=None):
+    def __init__(self, commit, build_url, build_id, build_name=None, build_repo=None, build_branch=None):
         self.build_commit = commit
         self.build_url = build_url
         self.build_id = build_id
@@ -115,10 +111,12 @@ class DeployStatus(object):
             self.load_from_json(json_value)
 
     def __eq__(self, other):
-        return self.build_info == other.build_info and \
-            self.report == other.report and \
-            self.runtime_config == other.runtime_config and \
-            self.op_code == other.op_code
+        return (
+            self.build_info == other.build_info
+            and self.report == other.report
+            and self.runtime_config == other.runtime_config
+            and self.op_code == other.op_code
+        )
 
     # update the deploy status by the current ping response from teletraan server
     def update_by_response(self, response):
@@ -139,12 +137,14 @@ class DeployStatus(object):
 
         if deploy_goal.build:
             build = deploy_goal.build
-            self.build_info = BuildInfo(commit=build.scmCommit,
-                                        build_url=build.artifactUrl,
-                                        build_id=build.buildId,
-                                        build_name=build.buildName,
-                                        build_repo=build.scmRepo,
-                                        build_branch=build.scmBranch)
+            self.build_info = BuildInfo(
+                commit=build.scmCommit,
+                build_url=build.artifactUrl,
+                build_id=build.buildId,
+                build_name=build.buildName,
+                build_repo=build.scmRepo,
+                build_branch=build.scmBranch,
+            )
         if deploy_goal.scriptVariables:
             self.script_variables = deploy_goal.scriptVariables
 
@@ -172,12 +172,14 @@ class DeployStatus(object):
         if report:
             self.report = PingReport(jsonValue=report)
         if build_info:
-            self.build_info = BuildInfo(commit=build_info.get('build_commit'),
-                                        build_url=build_info.get('build_url'),
-                                        build_id=build_info.get('build_id'),
-                                        build_name=build_info.get('build_name'),
-                                        build_repo=build_info.get('build_repo'),
-                                        build_branch=build_info.get('build_branch'))
+            self.build_info = BuildInfo(
+                commit=build_info.get('build_commit'),
+                build_url=build_info.get('build_url'),
+                build_id=build_info.get('build_id'),
+                build_name=build_info.get('build_name'),
+                build_repo=build_info.get('build_repo'),
+                build_branch=build_info.get('build_branch'),
+            )
 
         self.runtime_config = json_value.get('runtime_config')
         op_code = json_value.get('op_code', OpCode.NOOP)

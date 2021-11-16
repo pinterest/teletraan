@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,7 +17,6 @@ from deployd.types.agent_status import AgentStatus
 
 
 class PingReport(object):
-
     def __init__(self, jsonValue=None):
         self.deployId = None
         self.envId = None
@@ -53,8 +52,18 @@ class PingReport(object):
             self.deployAlias = jsonValue.get('deployAlias')
 
     def __str__(self):
-        return "PingReport(deployId={}, envId={}, deployStage={}, status={}, " \
-               "errorCode={}), errorMessage={}, failCount={}, extraInfo={}, " \
-               "deployAlias={})".format(self.deployId, self.envId, self.deployStage,
-                                        self.status, self.errorCode, self.errorMessage,
-                                        self.failCount, self.extraInfo, self.deployAlias,)
+        return (
+            "PingReport(deployId={}, envId={}, deployStage={}, status={}, "
+            "errorCode={}), errorMessage={}, failCount={}, extraInfo={}, "
+            "deployAlias={})".format(
+                self.deployId,
+                self.envId,
+                self.deployStage,
+                self.status,
+                self.errorCode,
+                self.errorMessage,
+                self.failCount,
+                self.extraInfo,
+                self.deployAlias,
+            )
+        )
