@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -46,17 +46,19 @@ class Executor(object):
         self.BACK_OFF = config.get_backoff_factor()
         self.MAX_SLEEP_INTERVAL = config.get_subprocess_max_sleep_interval()
         self._config = config
-        log.debug('Executor configs have been updated: '
-                  'PING_INTERVAL={}, TIME_OUT={}, MAX_RETRY={}'.format(self.MIN_RUNNING_TIME,
-                                                                      self.MAX_RUNNING_TIME,
-                                                                      self.MAX_RETRY))
+        log.debug(
+            'Executor configs have been updated: '
+            'PING_INTERVAL={}, TIME_OUT={}, MAX_RETRY={}'.format(
+                self.MIN_RUNNING_TIME, self.MAX_RUNNING_TIME, self.MAX_RETRY
+            )
+        )
 
     def get_subprocess_output(self, fd, file_pos):
         curr_pos = fd.tell()
         fd.seek(file_pos, 0)
         output = fd.read()
         fd.seek(curr_pos, 0)
-        return output[-(self.MAX_TAIL_BYTES+1):-1]
+        return output[-(self.MAX_TAIL_BYTES + 1) : -1]
 
     def run_cmd(self, cmd, **kw):
         if not isinstance(cmd, list):
@@ -64,9 +66,7 @@ class Executor(object):
         cmd_str = ' '.join(cmd)
         log.info('Running: {} with {} retries.'.format(cmd_str, self.MAX_RETRY))
 
-        deploy_report = DeployReport(status_code=AgentStatus.UNKNOWN,
-                                     error_code=0,
-                                     retry_times=0)
+        deploy_report = DeployReport(status_code=AgentStatus.UNKNOWN, error_code=0, retry_times=0)
         process_interval = self.PROCESS_POLL_INTERVAL
         start = datetime.datetime.now()
         init_start = datetime.datetime.now()
@@ -77,11 +77,9 @@ class Executor(object):
                 try:
                     fdout.seek(0, 2)
                     file_pos = fdout.tell()
-                    process = subprocess.Popen(cmd, stdout=fdout, stderr=fdout,
-                                               preexec_fn=os.setsid, **kw)
+                    process = subprocess.Popen(cmd, stdout=fdout, stderr=fdout, preexec_fn=os.setsid, **kw)
                     while process.poll() is None:
-                        start, deploy_report = \
-                            self.ping_server_if_possible(start, cmd, deploy_report)
+                        start, deploy_report = self.ping_server_if_possible(start, cmd, deploy_report)
                         """
                         terminate case 1:
                         the server changed the deploy goal, notify process and wait for it to shut down
@@ -98,8 +96,7 @@ class Executor(object):
                         if (datetime.datetime.now() - init_start).seconds >= self.MAX_RUNNING_TIME:
                             Executor._kill_process(process)
                             # the best way to get output is to tail the log
-                            deploy_report.output_msg = self.get_subprocess_output(fd=fdout,
-                                                                                  file_pos=file_pos)
+                            deploy_report.output_msg = self.get_subprocess_output(fd=fdout, file_pos=file_pos)
                             log.info("Exceed max running time: {}.".format(self.MAX_RUNNING_TIME))
                             log.info("Output from subprocess: {}".format(deploy_report.output_msg))
                             deploy_report.status_code = AgentStatus.SCRIPT_TIMEOUT
@@ -112,8 +109,7 @@ class Executor(object):
 
                     # finish executing sub process
                     deploy_report.error_code = process.returncode
-                    deploy_report.output_msg = self.get_subprocess_output(fd=fdout,
-                                                                          file_pos=file_pos)
+                    deploy_report.output_msg = self.get_subprocess_output(fd=fdout, file_pos=file_pos)
                     if process.returncode == 0:
                         log.info('Running: {} succeeded.'.format(cmd_str))
                         deploy_report.status_code = AgentStatus.SUCCEEDED
@@ -141,9 +137,11 @@ class Executor(object):
 
                 init_start = datetime.datetime.now()  # reset the initial start time
 
-                log.info('Failed: {}, at {} retry. Error:\n{}'.format(cmd_str,
-                                                                      deploy_report.retry_times,
-                                                                      deploy_report.output_msg))
+                log.info(
+                    'Failed: {}, at {} retry. Error:\n{}'.format(
+                        cmd_str, deploy_report.retry_times, deploy_report.output_msg
+                    )
+                )
                 sleep_time = self._get_sleep_interval(start, process_interval)
                 time.sleep(sleep_time)
                 start, deploy_report = self.ping_server_if_possible(start, cmd, deploy_report)
@@ -165,13 +163,11 @@ class Executor(object):
         log.debug("start: {}, now: {}, process: {}".format(start, now, processed_time))
         if processed_time >= self.MIN_RUNNING_TIME and self._ping_server:
             start = now
-            log.info('Exceed min running time: {}, '
-                     'reporting to the server'.format(self.MIN_RUNNING_TIME))
+            log.info('Exceed min running time: {}, ' 'reporting to the server'.format(self.MIN_RUNNING_TIME))
             result = self._ping_server(deploy_report)
             if result == PingStatus.PLAN_CHANGED:
                 deploy_report.status_code = AgentStatus.ABORTED_BY_SERVER
-                log.info('Deploy goal has changed, '
-                         'aborting the current command {}.'.format(' '.join(cmd_str)))
+                log.info('Deploy goal has changed, ' 'aborting the current command {}.'.format(' '.join(cmd_str)))
 
         return start, deploy_report
 
@@ -210,15 +206,15 @@ class Executor(object):
                 means it's a newly added host (never deployed before). Show a warning message
                 and exit. Otherwise, we treat it as an agent failure (nothing to execute)
                 """
-                error_msg = "teletraan directory cannot be found " \
-                            "in the tar ball in step {}!".format(deploy_step)
+                error_msg = "teletraan directory cannot be found " "in the tar ball in step {}!".format(deploy_step)
                 if deploy_step in PRE_STAGE_STEPS:
                     log.warning(error_msg)
                     return DeployReport(status_code=AgentStatus.SUCCEEDED)
                 else:
                     log.error(error_msg)
-                    return DeployReport(status_code=AgentStatus.AGENT_FAILED, error_code=1,
-                                        retry_times=1, output_msg=error_msg)
+                    return DeployReport(
+                        status_code=AgentStatus.AGENT_FAILED, error_code=1, retry_times=1, output_msg=error_msg
+                    )
 
             script = os.path.join(self._config.get_script_directory(), script)
             if not os.path.exists(script):
@@ -226,8 +222,9 @@ class Executor(object):
                     # RESTARTING script is required
                     error_msg = 'RESTARTING script does not exist.'
                     log.error(error_msg)
-                    return DeployReport(status_code=AgentStatus.AGENT_FAILED, error_code=1,
-                                        retry_times=1, output_msg=error_msg)
+                    return DeployReport(
+                        status_code=AgentStatus.AGENT_FAILED, error_code=1, retry_times=1, output_msg=error_msg
+                    )
                 else:
                     log.info('script: {} does not exist.'.format(script))
                     return DeployReport(status_code=AgentStatus.SUCCEEDED)
@@ -241,6 +238,4 @@ class Executor(object):
             error_msg = str(e)
             log.error('Failed to execute command: {}. Reason: {}'.format(script, error_msg))
             log.error(traceback.format_exc())
-            return DeployReport(status_code=AgentStatus.AGENT_FAILED,
-                                error_code=1,
-                                output_msg=str(e))
+            return DeployReport(status_code=AgentStatus.AGENT_FAILED, error_code=1, output_msg=str(e))

@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -41,6 +41,7 @@ class DownloadFunctionsTest(unittest.TestCase):
         def get_contents_to_filename(fn):
             with open(fn, 'w') as file:
                 file.write("hello mock\n")
+
         aws_filekey.get_contents_to_filename = mock.Mock(side_effect=get_contents_to_filename)
         aws_filekey.etag = "f7673f4693aab49e3f8e643bc54cb70a"
 
@@ -49,13 +50,14 @@ class DownloadFunctionsTest(unittest.TestCase):
         downloader.download(self.target)
         self.aws_conn.get_bucket.assert_called_once_with("pinterest-builds")
         self.aws_conn.get_bucket.return_value.get_key.assert_called_once_with("teletraan/mock.txt")
-        self.aws_conn.get_bucket.return_value.get_key.return_value\
-            .get_contents_to_filename\
-            .assert_called_once_with(self.target)
+        self.aws_conn.get_bucket.return_value.get_key.return_value.get_contents_to_filename.assert_called_once_with(
+            self.target
+        )
 
     @classmethod
     def tearDownClass(cls):
         shutil.rmtree(cls.base_dir)
+
 
 if __name__ == '__main__':
     unittest.main()

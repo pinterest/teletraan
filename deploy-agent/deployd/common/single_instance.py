@@ -1,13 +1,14 @@
 from __future__ import print_function
 from __future__ import absolute_import
+
 # Copyright 2016 Pinterest, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,8 +46,7 @@ class SingleInstance(object):
         try:
             fcntl.lockf(lockfile_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
-            print(('Error: {0} may already be running. Only one instance of it '
-                   'can run at a time.').format(appname))
+            print(('Error: {0} may already be running. Only one instance of it ' 'can run at a time.').format(appname))
             # noinspection PyTypeChecker
             os.close(lockfile_fd)
             utils.exit_abruptly(1)

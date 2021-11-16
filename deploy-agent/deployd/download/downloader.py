@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,7 +29,6 @@ log = logging.getLogger(__name__)
 
 
 class Downloader(object):
-
     def __init__(self, config, build, url, env_name):
         self._matcher = re.compile(r'^.*?[.](?P<ext>tar\.gz|tar\.bz2|\w+)$')
         self._base_dir = config.get_builds_directory()
@@ -71,7 +70,7 @@ class Downloader(object):
         if extension == 'gpg':
             try:
                 log.info("gpg decrypting {}.".format(local_full_fn))
-                
+
                 # assuming we use the standard GPG toolset, it creates the following format with gpg --encrypt:
                 # input: file.extension
                 # output: file.extension.gpg
@@ -79,18 +78,18 @@ class Downloader(object):
                 innerExtension = self._get_inner_extension(self._url.lower())
 
                 # replace the existing outer extension (gpg) with the inner extension
-                dest_full_fn = local_full_fn[:(len(extension) * -1)] + innerExtension
+                dest_full_fn = local_full_fn[: (len(extension) * -1)] + innerExtension
 
                 # decrypt gpg archive
                 status = gpgHelper.decryptFile(local_full_fn, dest_full_fn)
-                
+
                 if status != Status.SUCCEEDED:
                     # die if we hit a decryption or signing error
                     return status
 
                 # remove encrypted gpg archive since it is no longer needed
                 os.remove(local_full_fn)
-                
+
                 # Rebase the extension and file path to the decrypted file
                 local_full_fn = dest_full_fn
                 extension = innerExtension
@@ -134,16 +133,28 @@ class Downloader(object):
 def main():
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-f', '--config-file', dest='config_file', required=False,
-                        help='the deploy agent config file path.')
-    parser.add_argument('-v', '--build-version', dest='build', required=True,
-                        help="the current deploying build version for the current environment.")
-    parser.add_argument('-u', '--url', dest='url', required=True,
-                        help="the url of the source code where the downloader would download from. "
-                             "The url can start"
-                             "with s3:// or https://")
-    parser.add_argument('-e', '--env-name', dest='env_name', required=True,
-                        help="the environment name currently in deploy.")
+    parser.add_argument(
+        '-f', '--config-file', dest='config_file', required=False, help='the deploy agent config file path.'
+    )
+    parser.add_argument(
+        '-v',
+        '--build-version',
+        dest='build',
+        required=True,
+        help="the current deploying build version for the current environment.",
+    )
+    parser.add_argument(
+        '-u',
+        '--url',
+        dest='url',
+        required=True,
+        help="the url of the source code where the downloader would download from. "
+        "The url can start"
+        "with s3:// or https://",
+    )
+    parser.add_argument(
+        '-e', '--env-name', dest='env_name', required=True, help="the environment name currently in deploy."
+    )
     args = parser.parse_args()
     config = Config(args.config_file)
     logging.basicConfig(level=config.get_log_level())
@@ -156,6 +167,7 @@ def main():
     else:
         log.info("Download succeeded.")
         sys.exit(0)
+
 
 if __name__ == '__main__':
     main()

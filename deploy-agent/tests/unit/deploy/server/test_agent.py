@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +26,6 @@ from deployd.types.ping_response import PingResponse
 
 
 class TestDeployAgent(tests.TestCase):
-
     @classmethod
     def setUpClass(cls):
         cls.estatus = mock.Mock()
@@ -42,8 +41,7 @@ class TestDeployAgent(tests.TestCase):
         cls.config.get_log_directory = mock.Mock(return_value='/tmp/logs/')
         ensure_dirs(cls.config)
         cls.executor = mock.Mock()
-        cls.executor.execute_command = \
-            mock.Mock(return_value=(DeployReport(AgentStatus.SUCCEEDED)))
+        cls.executor.execute_command = mock.Mock(return_value=(DeployReport(AgentStatus.SUCCEEDED)))
         cls.executor.run_cmd = mock.Mock(return_value=(DeployReport(AgentStatus.SUCCEEDED)))
         cls.helper = mock.Mock()
         cls.helper.get_stale_builds = mock.Mock(return_value=[])
@@ -114,15 +112,26 @@ class TestDeployAgent(tests.TestCase):
         cls.ping_noop_response = {'deployGoal': None, 'opCode': OpCode.NOOP}
 
     def test_agent_status_on_ping_failure(self):
-        ping_response_list = [PingResponse(jsonValue=self.ping_response1), None, PingResponse(jsonValue=self.ping_response1)]
+        ping_response_list = [
+            PingResponse(jsonValue=self.ping_response1),
+            None,
+            PingResponse(jsonValue=self.ping_response1),
+        ]
         client = mock.Mock()
         client.send_reports = mock.Mock(side_effect=ping_response_list)
 
-        d = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
-                        executor=self.executor, helper=self.helper)
-        self.assertEqual(PingStatus.PLAN_CHANGED, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED)))
-        self.assertEqual(PingStatus.PING_FAILED, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED)))
-        self.assertEqual(PingStatus.PLAN_NO_CHANGE, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED)))
+        d = DeployAgent(
+            client=client, estatus=self.estatus, conf=self.config, executor=self.executor, helper=self.helper
+        )
+        self.assertEqual(
+            PingStatus.PLAN_CHANGED, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED))
+        )
+        self.assertEqual(
+            PingStatus.PING_FAILED, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED))
+        )
+        self.assertEqual(
+            PingStatus.PLAN_NO_CHANGE, d.update_deploy_status(DeployReport(status_code=AgentStatus.SUCCEEDED))
+        )
 
     def test_agent_with_switch_command(self):
         ping_response_list = [
@@ -132,19 +141,23 @@ class TestDeployAgent(tests.TestCase):
             PingResponse(jsonValue=self.ping_response4),
             PingResponse(jsonValue=self.ping_response5),
             PingResponse(jsonValue=self.ping_response6),
-            PingResponse(jsonValue=self.ping_noop_response)]
+            PingResponse(jsonValue=self.ping_noop_response),
+        ]
 
         client = mock.Mock()
         client.send_reports = mock.Mock(side_effect=ping_response_list)
 
-        d = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
-                        executor=self.executor, helper=self.helper)
+        d = DeployAgent(
+            client=client, estatus=self.estatus, conf=self.config, executor=self.executor, helper=self.helper
+        )
         d.serve_build()
 
-        calls = [mock.call(['deploy-downloader', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-u', 'https://test', '-e', 'abc']),
-                 mock.call(['deploy-stager', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-t', '/tmp/tests', '-e', 'abc'])]
+        calls = [
+            mock.call(
+                ['deploy-downloader', '-f', '/etc/deployagent.conf', '-v', '123', '-u', 'https://test', '-e', 'abc']
+            ),
+            mock.call(['deploy-stager', '-f', '/etc/deployagent.conf', '-v', '123', '-t', '/tmp/tests', '-e', 'abc']),
+        ]
         self.executor.run_cmd.assert_has_calls(calls)
         self.assertEqual(len(d._envs), 0)
 
@@ -242,22 +255,25 @@ class TestDeployAgent(tests.TestCase):
             PingResponse(jsonValue=ping_response8),
             PingResponse(jsonValue=ping_response9),
             PingResponse(jsonValue=ping_response10),
-            PingResponse(jsonValue=self.ping_noop_response)
+            PingResponse(jsonValue=self.ping_noop_response),
         ]
 
         client = mock.Mock()
         client.send_reports = mock.Mock(side_effect=ping_response_list)
-        d = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
-                        executor=self.executor, helper=self.helper)
+        d = DeployAgent(
+            client=client, estatus=self.estatus, conf=self.config, executor=self.executor, helper=self.helper
+        )
         d.serve_build()
-        calls = [mock.call(['deploy-downloader', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-u', 'https://test', '-e', 'abc']),
-                 mock.call(['deploy-stager', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-t', '/tmp/tests', '-e', 'abc']),
-                 mock.call(['deploy-downloader', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-u', 'https://test2', '-e', 'bcd']),
-                 mock.call(['deploy-stager', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-t', '/tmp/tests', '-e', 'bcd'])]
+        calls = [
+            mock.call(
+                ['deploy-downloader', '-f', '/etc/deployagent.conf', '-v', '123', '-u', 'https://test', '-e', 'abc']
+            ),
+            mock.call(['deploy-stager', '-f', '/etc/deployagent.conf', '-v', '123', '-t', '/tmp/tests', '-e', 'abc']),
+            mock.call(
+                ['deploy-downloader', '-f', '/etc/deployagent.conf', '-v', '123', '-u', 'https://test2', '-e', 'bcd']
+            ),
+            mock.call(['deploy-stager', '-f', '/etc/deployagent.conf', '-v', '123', '-t', '/tmp/tests', '-e', 'bcd']),
+        ]
         self.executor.run_cmd.assert_has_calls(calls)
         self.assertEqual(len(d._envs), 2)
         self.assertEqual(d._envs['abc'].report.deployStage, DeployStage.PRE_RESTART)
@@ -296,13 +312,11 @@ class TestDeployAgent(tests.TestCase):
         deploy_goal['stageName'] = 'beta'
         ping_response = {'deployGoal': deploy_goal, 'opCode': OpCode.DELETE}
 
-        responses = [
-            PingResponse(jsonValue=ping_response),
-            PingResponse(jsonValue=self.ping_noop_response)
-        ]
+        responses = [PingResponse(jsonValue=ping_response), PingResponse(jsonValue=self.ping_noop_response)]
         client.send_reports = mock.Mock(side_effect=responses)
-        agent = DeployAgent(client=client, estatus=estatus, conf=self.config,
-                            executor=self.executor, helper=self.helper)
+        agent = DeployAgent(
+            client=client, estatus=estatus, conf=self.config, executor=self.executor, helper=self.helper
+        )
         agent.serve_build()
         calls = [mock.call(envs), mock.call({})]
         client.send_reports.assert_has_calls(calls)
@@ -314,10 +328,10 @@ class TestDeployAgent(tests.TestCase):
             os.remove('/tmp/env_status')
 
         client = mock.Mock()
-        client.send_reports = \
-            mock.Mock(return_value=(PingResponse(jsonValue=self.ping_noop_response)))
-        d = DeployAgent(client=client, estatus=self.estatus,
-                        conf=self.config, executor=self.executor, helper=self.helper)
+        client.send_reports = mock.Mock(return_value=(PingResponse(jsonValue=self.ping_noop_response)))
+        d = DeployAgent(
+            client=client, estatus=self.estatus, conf=self.config, executor=self.executor, helper=self.helper
+        )
         d.serve_build()
         client.send_reports.assert_called_once_with({})
 
@@ -336,10 +350,10 @@ class TestDeployAgent(tests.TestCase):
         client = mock.Mock()
         estatus = mock.Mock()
         estatus.load_envs = mock.Mock(return_value=envs)
-        client.send_reports = \
-            mock.Mock(return_value=PingResponse(jsonValue=self.ping_noop_response))
-        agent = DeployAgent(client=client, estatus=estatus, conf=self.config,
-                            executor=self.executor, helper=self.helper)
+        client.send_reports = mock.Mock(return_value=PingResponse(jsonValue=self.ping_noop_response))
+        agent = DeployAgent(
+            client=client, estatus=estatus, conf=self.config, executor=self.executor, helper=self.helper
+        )
         agent.serve_build()
         client.send_reports.assert_called_once_with(envs)
         self.assertEqual(agent._curr_report.report.envId, '234')
@@ -363,13 +377,11 @@ class TestDeployAgent(tests.TestCase):
         deploy_goal['scriptVariables'] = build
         ping_response = {'deployGoal': deploy_goal, 'opCode': OpCode.DEPLOY}
 
-        responses = [
-            PingResponse(jsonValue=ping_response),
-            PingResponse(jsonValue=self.ping_noop_response)
-        ]
+        responses = [PingResponse(jsonValue=ping_response), PingResponse(jsonValue=self.ping_noop_response)]
         client.send_reports = mock.Mock(side_effect=responses)
-        agent = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
-                            executor=self.executor, helper=self.helper)
+        agent = DeployAgent(
+            client=client, estatus=self.estatus, conf=self.config, executor=self.executor, helper=self.helper
+        )
         agent.process_deploy = mock.Mock(return_value=(DeployReport(AgentStatus.SUCCEEDED)))
         agent.serve_build()
         self.assertEqual(agent._curr_report.report.envId, '789')
@@ -426,16 +438,16 @@ class TestDeployAgent(tests.TestCase):
             PingResponse(jsonValue=ping_response5),
             PingResponse(jsonValue=ping_response6),
             PingResponse(jsonValue=ping_response7),
-            PingResponse(jsonValue=self.ping_noop_response)
+            PingResponse(jsonValue=self.ping_noop_response),
         ]
 
         client = mock.Mock()
         client.send_reports = mock.Mock(side_effect=ping_response_list)
-        d = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
-                        executor=self.executor, helper=self.helper)
+        d = DeployAgent(
+            client=client, estatus=self.estatus, conf=self.config, executor=self.executor, helper=self.helper
+        )
         d.serve_build()
-        calls = [mock.call(stage)
-                 for stage in ['PRE_DOWNLOAD', 'PRE_RESTART', 'RESTARTING', 'POST_RESTART']]
+        calls = [mock.call(stage) for stage in ['PRE_DOWNLOAD', 'PRE_RESTART', 'RESTARTING', 'POST_RESTART']]
         self.executor.execute_command.assert_has_calls(calls)
         self.assertEqual(len(d._envs), 1)
         self.assertEqual(d._curr_report.report.envId, 'def')
@@ -471,6 +483,7 @@ class TestDeployAgent(tests.TestCase):
 
     def test_switch_goal_download_variable_failed(self):
         pass
+
 
 if __name__ == '__main__':
     unittest.main()

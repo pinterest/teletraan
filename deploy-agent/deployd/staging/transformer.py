@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,7 +28,6 @@ class TeletraanTemplate(Template):
 
 
 class Transformer(object):
-
     def __init__(self, agent_dir, env_name, dict_fn=None):
         self._agent_dir = agent_dir
         self._env_name = env_name
@@ -70,8 +69,7 @@ class Transformer(object):
             with open(to_path, 'w') as f:
                 f.write(res)
         except:
-            log.error('Fail to translate script {}, stacktrace: {}'.format(from_path,
-                                                                           traceback.format_exc()))
+            log.error('Fail to translate script {}, stacktrace: {}'.format(from_path, traceback.format_exc()))
 
     def transform_scripts(self, script_dir, template_dirname, script_dirname):
         scripts = []

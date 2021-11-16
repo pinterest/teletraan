@@ -29,8 +29,7 @@ from deployd.common.single_instance import SingleInstance
 from deployd.common.env_status import EnvStatus
 from deployd.common import utils
 from deployd.common.executor import Executor
-from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
-    DeployStage, AgentStatus
+from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, DeployStage, AgentStatus
 from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -82,8 +81,7 @@ class DeployAgent(object):
         self._config.update_variables(self._curr_report)
 
     def serve_build(self):
-        """This is the main function of the ``DeployAgent``.
-        """
+        """This is the main function of the ``DeployAgent``."""
         log.info('The deploy agent is starting.')
         if not self._executor:
             self._executor = Executor(callback=PingServer(self), config=self._config)
@@ -114,18 +112,22 @@ class DeployAgent(object):
 
             except Exception:
                 # anything catch-up here should be treated as agent failure
-                deploy_report = DeployReport(status_code=AgentStatus.AGENT_FAILED,
-                                             error_code=1,
-                                             output_msg=traceback.format_exc(),
-                                             retry_times=1)
+                deploy_report = DeployReport(
+                    status_code=AgentStatus.AGENT_FAILED, error_code=1, output_msg=traceback.format_exc(), retry_times=1
+                )
 
             if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
                 return
-            if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
-                                             AgentStatus.TOO_MANY_RETRY,
-                                             AgentStatus.SCRIPT_TIMEOUT]:
-                log.error('Unexpeted exceptions: {}, error message {}'.format(
-                    deploy_report.status_code, deploy_report.output_msg))
+            if deploy_report.status_code in [
+                AgentStatus.AGENT_FAILED,
+                AgentStatus.TOO_MANY_RETRY,
+                AgentStatus.SCRIPT_TIMEOUT,
+            ]:
+                log.error(
+                    'Unexpeted exceptions: {}, error message {}'.format(
+                        deploy_report.status_code, deploy_report.output_msg
+                    )
+                )
                 return
 
         self.clean_stale_builds()
@@ -147,7 +149,6 @@ class DeployAgent(object):
             finally:
                 time.sleep(self._config.get_daemon_sleep_time())
                 self.load_status_file()
-
 
     def serve_once(self):
         log.info("Running deploy agent in non daemon mode")
@@ -173,7 +174,6 @@ class DeployAgent(object):
             if envId == value.report.envId:
                 return name
         return None
-
 
     def process_deploy(self, response):
         op_code = response.opCode
@@ -216,8 +216,17 @@ class DeployAgent(object):
         if not self._config.get_config_filename():
             return ['deploy-downloader', '-v', build, '-u', url, "-e", env_name]
         else:
-            return ['deploy-downloader', '-f', self._config.get_config_filename(),
-                    '-v', build, '-u', url, "-e", env_name]
+            return [
+                'deploy-downloader',
+                '-f',
+                self._config.get_config_filename(),
+                '-v',
+                build,
+                '-u',
+                url,
+                "-e",
+                env_name,
+            ]
 
     def get_staging_script(self):
         build = self._curr_report.build_info.build_id
@@ -225,8 +234,17 @@ class DeployAgent(object):
         if not self._config.get_config_filename():
             return ['deploy-stager', '-v', build, '-t', self._config.get_target(), "-e", env_name]
         else:
-            return ['deploy-stager', '-f', self._config.get_config_filename(),
-                    '-v', build, '-t', self._config.get_target(), "-e", env_name]
+            return [
+                'deploy-stager',
+                '-f',
+                self._config.get_config_filename(),
+                '-v',
+                build,
+                '-t',
+                self._config.get_target(),
+                "-e",
+                env_name,
+            ]
 
     def _update_ping_reports(self, deploy_report):
         if self._curr_report:
@@ -238,9 +256,10 @@ class DeployAgent(object):
         result = self._env_status.dump_envs(self._envs)
         if (not result) and self._curr_report:
             self._curr_report.update_by_deploy_report(
-                DeployReport(status_code=AgentStatus.AGENT_FAILED,
-                             error_code=1,
-                             output_msg='Failed to dump status to the disk'))
+                DeployReport(
+                    status_code=AgentStatus.AGENT_FAILED, error_code=1, output_msg='Failed to dump status to the disk'
+                )
+            )
 
     def update_deploy_status(self, deploy_report):
         self._update_ping_reports(deploy_report=deploy_report)
@@ -271,8 +290,7 @@ class DeployAgent(object):
         if not (self._curr_report and self._curr_report.report):
             return
 
-        builds_to_keep = [status.build_info.build_id for status in self._envs.values()
-                          if status.build_info]
+        builds_to_keep = [status.build_info.build_id for status in self._envs.values() if status.build_info]
         builds_dir = self._config.get_builds_directory()
         num_retain_builds = self._config.get_num_builds_retain()
         env_name = self._curr_report.report.envName
@@ -281,11 +299,11 @@ class DeployAgent(object):
             self.clean_stale_files(env_name, builds_dir, builds_to_keep, num_retain_builds)
 
     def clean_stale_files(self, env_name, dir, files_to_keep, num_file_to_retain):
-        for build in self._helper.get_stale_builds(self._helper.builds_available_locally(dir,env_name),
-                                                   num_file_to_retain):
+        for build in self._helper.get_stale_builds(
+            self._helper.builds_available_locally(dir, env_name), num_file_to_retain
+        ):
             if build not in files_to_keep:
-                log.info("Stale file {} found in {}... removing.".format(
-                    build, dir))
+                log.info("Stale file {} found in {}... removing.".format(build, dir))
                 self._helper.clean_package(dir, build, env_name)
 
     # private functions: update per deploy step configuration specified by services owner on the
@@ -306,8 +324,7 @@ class DeployAgent(object):
 
         # update script variables
         if deploy_goal.scriptVariables:
-            log.info('Start to generate script variables for deploy: {}'.
-                     format(deploy_goal.deployId))
+            log.info('Start to generate script variables for deploy: {}'.format(deploy_goal.deployId))
             env_dir = self._config.get_agent_directory()
             working_dir = os.path.join(env_dir, "{}_SCRIPT_CONFIG".format(env_name))
             with open(working_dir, "w+") as f:
@@ -327,8 +344,7 @@ class DeployAgent(object):
             log.warning('Env name does not exist, ignore it.')
         elif deploy_goal.deployAlias:
             self._envs[env_name].deployAlias = deploy_goal.deployAlias
-            log.warning('Update deploy alias to {} for {}'.format(deploy_goal.deployAlias,
-                                                                  deploy_goal.envName))
+            log.warning('Update deploy alias to {} for {}'.format(deploy_goal.deployAlias, deploy_goal.envName))
 
     @staticmethod
     def plan_changed(old_response, new_response):
@@ -355,40 +371,68 @@ class DeployAgent(object):
 
         return False
 
+
 # make sure only one instance is running
 instance = SingleInstance()
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('-e', '--server_stage', dest='stage', default='prod',
-                        help="This option is deprecated")
-    parser.add_argument('-f', '--config-file', dest='config_file', required=False,
-                        help="the deploy agent config file path.")
-    parser.add_argument('-d', '--daemon', dest="daemon", action='store_true',
-                        help="Run deploy agent in daemon mode. Default is false.")
-    parser.add_argument('-n', '--host', dest="hostname", required=False, default=None,
-                        help="Host name being used when interact with Teletraan service. "
-                             "This is optional. By default the hostname defined in host-info "
-                             "file will be used")
-    parser.add_argument('-g', '--group', dest='hostgroup', required=False, default=None,
-                        help="Group name being used when interact with Teletraan service. "
-                             "This is optional. By default the group name defined in host-info "
-                             "file will be used")
+    parser.add_argument('-e', '--server_stage', dest='stage', default='prod', help="This option is deprecated")
+    parser.add_argument(
+        '-f', '--config-file', dest='config_file', required=False, help="the deploy agent config file path."
+    )
+    parser.add_argument(
+        '-d', '--daemon', dest="daemon", action='store_true', help="Run deploy agent in daemon mode. Default is false."
+    )
+    parser.add_argument(
+        '-n',
+        '--host',
+        dest="hostname",
+        required=False,
+        default=None,
+        help="Host name being used when interact with Teletraan service. "
+        "This is optional. By default the hostname defined in host-info "
+        "file will be used",
+    )
+    parser.add_argument(
+        '-g',
+        '--group',
+        dest='hostgroup',
+        required=False,
+        default=None,
+        help="Group name being used when interact with Teletraan service. "
+        "This is optional. By default the group name defined in host-info "
+        "file will be used",
+    )
     parser.add_argument('--use-facter', dest='use_facter', action='store_true', default=False)
     parser.add_argument('--use-host-info', dest='use_host_info', action='store_true', default=False)
-    parser.add_argument('--mode', dest='mode', default=None,
-                        help="Optional. 'serverless' is the only non default mode supported. "
-                             "In this mode, agent can be run for one time deployment without "
-                             "interacting with teletraan service.")
-    parser.add_argument('--build', dest='build', default=None,
-                        help="Optional. In 'serverless' mode, build information is needed in "
-                             "json format.")
-    parser.add_argument('--env-name', dest='env_name', default=None,
-                        help="Optional. In 'serverless' mode, env_name needs to be passed in.")
-    parser.add_argument('--script-variables', dest='script_variables', default='{}',
-                        help="Optional. In 'serverless' mode,  script_variables is needed in "
-                             "json format.")
+    parser.add_argument(
+        '--mode',
+        dest='mode',
+        default=None,
+        help="Optional. 'serverless' is the only non default mode supported. "
+        "In this mode, agent can be run for one time deployment without "
+        "interacting with teletraan service.",
+    )
+    parser.add_argument(
+        '--build',
+        dest='build',
+        default=None,
+        help="Optional. In 'serverless' mode, build information is needed in " "json format.",
+    )
+    parser.add_argument(
+        '--env-name',
+        dest='env_name',
+        default=None,
+        help="Optional. In 'serverless' mode, env_name needs to be passed in.",
+    )
+    parser.add_argument(
+        '--script-variables',
+        dest='script_variables',
+        default='{}',
+        help="Optional. In 'serverless' mode,  script_variables is needed in " "json format.",
+    )
 
     args = parser.parse_args()
 
@@ -405,16 +449,25 @@ def main():
         pinlogger.LOG_TO_STDERR = True
     else:
         log_filename = os.path.join(config.get_log_directory(), 'deploy-agent.log')
-        logging.basicConfig(filename=log_filename, level=config.get_log_level(),
-                            format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
+        logging.basicConfig(
+            filename=log_filename,
+            level=config.get_log_level(),
+            format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s',
+        )
 
     log.info("Start to run deploy-agent.")
-    client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup,
-                    use_facter=args.use_facter, use_host_info=args.use_host_info)
+    client = Client(
+        config=config,
+        hostname=args.hostname,
+        hostgroup=args.hostgroup,
+        use_facter=args.use_facter,
+        use_host_info=args.use_host_info,
+    )
     if is_serverless_mode:
         log.info("Running agent with severless client")
-        client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,
-                                  script_variables=args.script_variables)
+        client = ServerlessClient(
+            env_name=args.env_name, stage=args.stage, build=args.build, script_variables=args.script_variables
+        )
 
     agent = DeployAgent(client=client, conf=config)
     utils.listen()

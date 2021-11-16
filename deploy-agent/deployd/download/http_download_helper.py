@@ -1,12 +1,13 @@
 from __future__ import absolute_import
+
 # Copyright 2016 Pinterest, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,13 +20,13 @@ from deployd.download.download_helper import DownloadHelper
 import os
 import requests
 import logging
+
 requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
 
 
 class HTTPDownloadHelper(DownloadHelper):
-
     def _download_files(self, local_full_fn):
         download_cmd = ['curl', '-o', local_full_fn, '-fks', self._url]
         log.info('Running command: {}'.format(' '.join(download_cmd)))
@@ -41,8 +42,7 @@ class HTTPDownloadHelper(DownloadHelper):
         return error_code
 
     def download(self, local_full_fn):
-        log.info("Start to download from url {} to {}".format(
-            self._url, local_full_fn))
+        log.info("Start to download from url {} to {}".format(self._url, local_full_fn))
 
         error = self._download_files(local_full_fn)
         if error != Status.SUCCEEDED:

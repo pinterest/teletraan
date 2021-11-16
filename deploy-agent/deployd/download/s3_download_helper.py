@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,7 +26,6 @@ log = logging.getLogger(__name__)
 
 
 class S3DownloadHelper(DownloadHelper):
-
     def __init__(self, local_full_fn, aws_connection=None, url=None):
         super(S3DownloadHelper, self).__init__(local_full_fn)
         self._s3_matcher = "^s3://(?P<BUCKET>[a-zA-Z0-9\-_]+)/(?P<KEY>[a-zA-Z0-9\-_/\.]+)/?"
@@ -44,8 +43,7 @@ class S3DownloadHelper(DownloadHelper):
         s3url_parse = re.match(self._s3_matcher, self._url)
         bucket_name = s3url_parse.group("BUCKET")
         key = s3url_parse.group("KEY")
-        log.info("Start to download file {} from s3 bucket {} to {}".format(
-            key, bucket_name, local_full_fn))
+        log.info("Start to download file {} from s3 bucket {} to {}".format(key, bucket_name, local_full_fn))
 
         try:
             filekey = self._aws_connection.get_bucket(bucket_name).get_key(key)
@@ -58,7 +56,7 @@ class S3DownloadHelper(DownloadHelper):
             if "-" not in etag:
                 if etag.startswith('"') and etag.endswith('"'):
                     etag = etag[1:-1]
-            
+
                 md5 = self.md5_file(local_full_fn)
                 if md5 != etag:
                     log.error("MD5 verification failed. tarball is corrupt.")
