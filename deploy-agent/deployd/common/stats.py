@@ -12,8 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 from deployd import IS_PINTEREST
 import timeit
+
+log = logging.getLogger(__name__)
 
 
 class DefaultStatsdTimer(object):
@@ -26,32 +29,48 @@ class DefaultStatsdTimer(object):
 
 def create_stats_timer(stats, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
-        from pinstatsd.statsd import statsd_context_timer
-        return statsd_context_timer(entry_name=stats, sample_rate=sample_rate, tags=tags)
+        try:
+            from pinstatsd.statsd import statsd_context_timer
+            return statsd_context_timer(entry_name=stats, sample_rate=sample_rate, tags=tags)
+        except Exception as e:
+            error_msg = str(e)
+            log.error('unable to send metric: {}'.format(error_msg))
     else:
         return DefaultStatsdTimer()
 
 
 def create_sc_timing(stat, value, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
-        from pinstatsd.statsd import sc
-        return sc.timing(stat, value, sample_rate=sample_rate, tags=tags)
+        try:
+            from pinstatsd.statsd import sc
+            return sc.timing(stat, value, sample_rate=sample_rate, tags=tags)
+        except Exception as e:
+            error_msg = str(e)
+            log.error('unable to send metric: {}'.format(error_msg))
     else:
         return
 
 
 def create_sc_increment(stats, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
-        from pinstatsd.statsd import sc
-        sc.increment(stats, sample_rate, tags)
+        try:
+            from pinstatsd.statsd import sc
+            sc.increment(stats, sample_rate, tags)
+        except Exception as e:
+            error_msg = str(e)
+            log.error('unable to send metric: {}'.format(error_msg))
     else:
         return
 
 
 def create_sc_gauge(stat, value, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
-        from pinstatsd.statsd import sc
-        sc.gauge(stat, value, sample_rate=sample_rate, tags=tags)
+        try:
+            from pinstatsd.statsd import sc
+            sc.gauge(stat, value, sample_rate=sample_rate, tags=tags)
+        except Exception as e:
+            error_msg = str(e)
+            log.error('unable to send metric: {}'.format(error_msg))
     else:
         return
 
