@@ -32,6 +32,7 @@ usage() {
 resolve_target_version() {
   # list all files like schema-update-N.sql, and use the largest N as the target version
   TARGET_VERSION=0
+  cd /var/teletraan/tools/
   for f in schema-update-*.sql
   do
     tmp=${f#schema-update*-}
