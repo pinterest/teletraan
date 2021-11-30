@@ -147,6 +147,8 @@ class GroupHostDetailView(View):
 
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
+      try:
+        hosts, host_id, agent_wrappers, show_terminate, show_warning_message, asg, is_unreachable, is_protected, host_details = [None for _ in range(9)]
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         duplicate_stage = ''
@@ -167,24 +169,25 @@ class HostDetailView(View):
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         host_details = get_host_details(host_id)
-
-        return render(request, 'hosts/host_details.html', {
-            'env_name': name,
-            'stage_name': stage,
-            'hostname': hostname,
-            'hosts': hosts,
-            'host_id': host_id,
-            'agent_wrappers': agent_wrappers,
-            'show_terminate': show_terminate,
-            'show_warning_message': show_warning_message,
-            'show_force_terminate': IS_PINTEREST,
-            'asg_group': asg,
-            'is_unreachable': is_unreachable,
-            'pinterest': IS_PINTEREST,
-            'host_information_url': CMDB_UI_HOST,
-            'instance_protected': is_protected,
-            'host_details': host_details,
-            'duplicate_stage': duplicate_stage,
+      except:
+        pass
+      return render(request, 'hosts/host_details.html', {
+        'env_name': name,
+        'stage_name': stage,
+        'hostname': hostname,
+        'hosts': hosts,
+        'host_id': host_id,
+        'agent_wrappers': agent_wrappers,
+        'show_terminate': show_terminate,
+        'show_warning_message': show_warning_message,
+        'show_force_terminate': IS_PINTEREST,
+        'asg_group': asg,
+        'is_unreachable': is_unreachable,
+        'pinterest': IS_PINTEREST,
+        'host_information_url': CMDB_UI_HOST,
+        'instance_protected': is_protected,
+        'host_details': host_details,
+        'duplicate_stage': duplicate_stage,
         })
 
 
