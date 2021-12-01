@@ -16,7 +16,6 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
 import logging
-import traceback
 from helpers import environs_helper, agents_helper, autoscaling_groups_helper
 from helpers import environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
@@ -148,7 +147,6 @@ class GroupHostDetailView(View):
 
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
-      try:
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
         duplicate_stage = ''
@@ -177,25 +175,6 @@ class HostDetailView(View):
             'hosts': hosts,
             'host_id': host_id,
             'agent_wrappers': agent_wrappers,
-            'show_terminate': show_terminate,
-            'show_warning_message': show_warning_message,
-            'show_force_terminate': IS_PINTEREST,
-            'asg_group': asg,
-            'is_unreachable': is_unreachable,
-            'pinterest': IS_PINTEREST,
-            'host_information_url': CMDB_UI_HOST,
-            'instance_protected': is_protected,
-            'host_details': host_details,
-            'duplicate_stage': duplicate_stage,
-        })
-      except:
-        log.error(traceback.format_exc())
-        return render(request, 'hosts/host_details.html', {
-            'env_name': name,
-            'stage_name': stage,
-            'hostname': hostname,
-            'hosts': hosts,
-            'host_id': host_id,
             'show_terminate': show_terminate,
             'show_warning_message': show_warning_message,
             'show_force_terminate': IS_PINTEREST,
