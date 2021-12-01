@@ -23,9 +23,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
-    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL,\
-    TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL,\
-    TELETRAAN_RESOURCE_OWNERSHIP_SLACK
+    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import GUINEA_PIG_ENVS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
@@ -181,9 +179,6 @@ def update_deploy_progress(request, name, stage):
 
     report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
 
-    # override showMode when env.systemPriority > 0
-    if env and env.get('systemPriority', 0) > 0:
-        report.showModeOverride = True
     report.showMode = showMode
     report.sortByStatus = sortByStatus
     context = {
@@ -203,9 +198,7 @@ def update_deploy_progress(request, name, stage):
     response = HttpResponse(html)
 
     # save preferences
-    # don't showMode change if overriden
-    if not report.showModeOverride:
-        response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(MODE_COOKIE_NAME, showMode)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
@@ -341,20 +334,18 @@ class EnvLandingView(View):
                 stage_with_external_id = env_stage
                 break
 
-        project_info = dict()
-        project_info['project_name'] = None
-        project_info['project_url'] = None
-        project_info['project_valid'] = False
         if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
             try:
                 existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
                 project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
-                project_info['project_valid'] = True
             except TeletraanException as detail:
                 log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
+
+        project_info = None
         if existing_stage_identifier:
             project_name = existing_stage_identifier.get('projectName', None)
             if project_name:
+                project_info = {}
                 project_info['project_name'] = project_name
                 project_info['project_url'] = environs_helper.get_nimbus_project_console_url(project_name)
 
@@ -382,7 +373,6 @@ class EnvLandingView(View):
                 "jira_source_url": TELETRAAN_JIRA_SOURCE_URL,
                 "transfer_ownership_url": TELETRAAN_TRANSFER_OWNERSHIP_URL,
                 "resource_ownership_wiki_url": TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL,
-                "resource_ownership_slack": TELETRAAN_RESOURCE_OWNERSHIP_SLACK,
                 "groups": groups,
                 "capacity_hosts": capacity_hosts,
                 "provisioning_hosts": provisioning_hosts,
@@ -406,10 +396,6 @@ class EnvLandingView(View):
                 request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
             report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
             report.showMode = showMode
-            # override showMode when env.systemPriority > 0
-            if env.get('systemPriority', 0) > 0:
-                report.showModeOverride = True
-                report.showMode = 'compact'
             report.sortByStatus = sortByStatus
             context = {
                 "envs": envs,
@@ -427,7 +413,6 @@ class EnvLandingView(View):
                 "jira_source_url": TELETRAAN_JIRA_SOURCE_URL,
                 "transfer_ownership_url": TELETRAAN_TRANSFER_OWNERSHIP_URL,
                 "resource_ownership_wiki_url": TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL,
-                "resource_ownership_slack": TELETRAAN_RESOURCE_OWNERSHIP_SLACK,
                 "groups": groups,
                 "basic_cluster_info": basic_cluster_info,
                 "capacity_info": json.dumps(capacity_info),
@@ -876,7 +861,7 @@ def post_add_stage(request, name):
     stages, _ = common.get_all_stages(all_envs_stages, None)
     if from_stage and from_stage not in stages:
         raise Exception("Can not clone from non-existing stage!")
-
+    
     external_id = None
     if IS_PINTEREST:
         identifier = create_identifier_for_new_stage(request, name, stage)
@@ -1194,51 +1179,31 @@ def get_hosts(request, name, stage):
 # get total alive hosts (hostStage == -1000)
 # get alive hosts by using deploy_id and its stage (hostStage = 0 ~ 8)
 def get_hosts_by_deploy(request, name, stage, deploy_id):
-    req_host_stage = request.GET.get('hostStage')
-    deploy_stage_values = environs_helper.DEPLOY_STAGE_VALUES
-    if req_host_stage is None:
-        host_stage = TOTAL_ALIVE_HOST_REPORT
-        host_stage_str = "ALL"
+    hostStageString = request.GET.get('hostStage')
+    if hostStageString is None:
+        hostStage = TOTAL_ALIVE_HOST_REPORT
     else:
-        if req_host_stage not in deploy_stage_values:
-            host_stage = None
-            host_stage_str = "INVALID"
-        else:
-            host_stage = req_host_stage
-            host_stage_str = host_stage
+        hostStage = hostStageString
     envs = environs_helper.get_all_env_stages(request, name)
     stages, env = common.get_all_stages(envs, stage)
     progress = deploys_helper.update_progress(request, name, stage)
-    agents_wrapper = agent_report.gen_agent_by_deploy(progress,
-                                                      deploy_id,
-                                                      ALIVE_STAGE_HOST_REPORT,
-                                                      host_stage)
-    builds_wrapper = dict()
-    for agent_deploy_id in agents_wrapper:
-        deploy = deploys_helper.get(request, agent_deploy_id)
-        if not deploy:
-            continue
-        if agent_deploy_id not in builds_wrapper:
-            build = builds_helper.get_build(request, deploy['buildId'])
-            if build:
-                builds_wrapper[agent_deploy_id] = build
-    title = "All hosts with deploy {} in stage: {}".format(deploy_id, host_stage_str)
+    agents_wrapper = agent_report.gen_agent_by_deploy(progress, deploy_id,
+                                                      ALIVE_STAGE_HOST_REPORT, hostStage)
+    title = "All hosts with deploy " + deploy_id
+
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
         "env": env,
         "stages": stages,
         "agents_wrapper": agents_wrapper,
-        "builds_wrapper": builds_wrapper,
         "title": title,
-        "deploy_stages": deploy_stage_values,
-        "host_stage": host_stage,
     })
 
 
-# reset all failed hosts for this env name, stage, deploy
+# reset all failed hosts for this env, this deploy
 def reset_failed_hosts(request, name, stage, deploy_id):
     agents_helper.reset_failed_agents(request, name, stage, deploy_id)
-    return redirect('/env/{}/{}/'.format(name, stage))
+    return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
 
 # retry failed deploy stage for this env, this host
@@ -1295,7 +1260,7 @@ def get_unknown_hosts(request, name, stage):
     progress = deploys_helper.update_progress(request, name, stage)
     agents_wrapper = agent_report.gen_agent_by_deploy(progress, env['deployId'],
                                                       UNKNOWN_HOST_REPORT)
-    title = "Unknown hosts"
+    title = "Unknow hosts"
 
     return render(request, 'environs/env_hosts.html', {
         "envs": envs,
