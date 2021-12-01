@@ -191,6 +191,21 @@ class HostDetailView(View):
       except:
         log.error(traceback.format_exc())
         return render(request, 'hosts/host_details.html', {
+            'env_name': name,
+            'stage_name': stage,
+            'hostname': hostname,
+            'hosts': hosts,
+            'host_id': host_id,
+            'show_terminate': show_terminate,
+            'show_warning_message': show_warning_message,
+            'show_force_terminate': IS_PINTEREST,
+            'asg_group': asg,
+            'is_unreachable': is_unreachable,
+            'pinterest': IS_PINTEREST,
+            'host_information_url': CMDB_UI_HOST,
+            'instance_protected': is_protected,
+            'host_details': host_details,
+            'duplicate_stage': duplicate_stage,
         })
 
 
