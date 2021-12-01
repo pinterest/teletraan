@@ -16,6 +16,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
 import logging
+import traceback
 from helpers import environs_helper, agents_helper, autoscaling_groups_helper
 from helpers import environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
@@ -169,7 +170,7 @@ class HostDetailView(View):
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         host_details = get_host_details(host_id)
       except:
-        pass
+        log.error(traceback.format_exc())
       return render(request, 'hosts/host_details.html', {
         'env_name': name,
         'stage_name': stage,
