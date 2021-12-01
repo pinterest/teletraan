@@ -148,11 +148,11 @@ class GroupHostDetailView(View):
 
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
-      hosts, host_id, agent_wrappers, show_terminate, show_warning_message, asg, is_unreachable, is_protected, host_details = [None for _ in range(9)]
-      duplicate_stage = ''
+      hosts, host_id, agent_wrappers, show_terminate, show_warning_message, asg, is_unreachable, is_protected, host_details, duplicate_stage = [None for _ in range(10)]
       try:
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
+        duplicate_stage = ''
         for stage_name in stages:
             if stage_name != stage:
                 hosts = environs_helper.get_env_capacity(request, name, stage_name, capacity_type="HOST")
@@ -172,7 +172,9 @@ class HostDetailView(View):
         host_details = get_host_details(host_id)
       except:
         log.error(traceback.format_exc())
+
       return render(request, 'hosts/host_details.html', {
+        'duplicate_stage': duplicate_stage,
         'env_name': name,
         'stage_name': stage,
         'hostname': hostname,
@@ -188,7 +190,6 @@ class HostDetailView(View):
         'host_information_url': CMDB_UI_HOST,
         'instance_protected': is_protected,
         'host_details': host_details,
-        'duplicate_stage': duplicate_stage,
         })
 
 
