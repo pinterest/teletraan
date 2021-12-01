@@ -148,7 +148,8 @@ class GroupHostDetailView(View):
 
 class HostDetailView(View):
     def get(self, request, name, stage, hostname):
-      hosts, host_id, agent_wrappers, show_terminate, show_warning_message, asg, is_unreachable, is_protected, host_details, duplicate_stage = [None for _ in range(10)]
+      hosts, host_id, agent_wrappers, show_terminate, show_warning_message, asg, is_unreachable, is_protected, host_details = [None for _ in range(9)]
+      duplicate_stage = ''
       try:
         envs = environs_helper.get_all_env_stages(request, name)
         stages, env = common.get_all_stages(envs, stage)
