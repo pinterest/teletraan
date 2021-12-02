@@ -1015,6 +1015,12 @@ def canReplaceCluster(cluster):
 def get_type(object):
     return type(object).__name__
 
+@register.filter("getValue")
+def get_value(dictionary, key):
+    ''' return value from dict, OrderedDict, UserDict '''
+    if not isinstance(dictionary, Mapping):
+        return None
+    return dictionary.get(key, None)
 
 @register.filter("convertConfigHistoryString")
 def convertConfigHistoryString(change):
