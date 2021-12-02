@@ -241,9 +241,9 @@ class ClusterConfigurationView(View):
                             log.error("Teletraan does not support user to update %s %s" % (field, cluster_info['spiffe_id']))
                             raise TeletraanException("Teletraan does not support user to update %s" % field)
 
-                        if field in current_cluster['configs'] and field not in cluster_info['configs']:
-                            log.error("Teletraan does not support user to remove %s %s" % (field, cluster_info[field]))
-                            raise TeletraanException("Teletraan does not support user to remove %s" % field)
+                    if field in current_cluster['configs'] and field not in cluster_info['configs']:
+                        log.error("Teletraan does not support user to remove %s %s" % (field, cluster_info[field]))
+                        raise TeletraanException("Teletraan does not support user to remove %s" % field)
 
             image = baseimages_helper.get_by_id(request, cluster_info['baseImageId'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
