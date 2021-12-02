@@ -19,6 +19,7 @@ import json
 from django.conf import settings
 from django import template
 from datetime import datetime, timedelta
+from collections import Mapping
 import time
 from math import trunc
 import pytz
