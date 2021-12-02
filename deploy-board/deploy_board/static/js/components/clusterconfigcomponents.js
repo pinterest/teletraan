@@ -204,6 +204,7 @@ Vue.component("aws-config-modal", {
             if (this.useCustomizedName) {
                 if (
                     this.customizedName != "spiffe_id" &&
+                    this.customizedName != "nimbus_id" &&
                     this.customizedName != "assign_public_ip"
                 ) {
                     this.$emit("click", {
@@ -225,13 +226,14 @@ Vue.component("aws-config-modal", {
         checkReadOnlyValue: function () {
             if (this.useCustomizedName) {
                 if (this.customizedName === "spiffe_id" ||
+                    this.customizedName === "nimbus_id" ||
                     this.customizedName === "assign_public_ip"
                 ) {
                     document.getElementById(
                         "disableConfigButton"
                     ).disabled = true;
                     this.shouldShowError = true;
-                    if (this.customizedName === "spiffe_id") {
+                    if (["spiffe_id", "nimbus_id"].indexOf(this.customizedName) >= 0) {
                         this.errorMessage =
                             this.customizedName + " cannot be added. it will be auto generated";
                     } else {

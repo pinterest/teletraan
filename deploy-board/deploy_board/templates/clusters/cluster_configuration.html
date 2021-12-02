@@ -428,18 +428,22 @@
             return item2.publish_date - item1.publish_date;
         });
 
+        var readonlyValues = info.readonlyFields.reduce((obj, field) => {
+            obj[field] = field in currentCluster.configs ? currentCluster.configs[field] : null
+            return obj;
+        }, {});
+
         var capacitySetting = new Vue({
             el: "#mainPanel",
-            data: {
+            data: Object.assign(readonlyValues, {
                 allUserData:  Object.keys(currentCluster.configs).map(
                         function(key) {
                             return {
                                 name: key,
                                 value: currentCluster.configs[key],
-                                readonly: key === 'spiffe_id'
+                                readonly: info.readonlyFields.indexOf(key) >= 0
                             }
                         }).filter(function(item){return item.name!='assign_public_ip'}),
-                spiffeId: 'spiffe_id' in currentCluster.configs ? currentCluster.configs['spiffe_id']:null,
                 assignPublicIP: currentCluster.configs.assign_public_ip == "true" ? true : false,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
@@ -508,7 +512,7 @@
                 placementsHelpData: [],
                 canSaveCapacity: !showReplaceAlert,
                 showCmpGroup: Boolean(getUrlParameter("showcmpgroup"))
-            },
+            }),
             methods: {
                 addConfig: function(config) {
                     var filter = this.allUserData.filter(function(data) {
@@ -770,10 +774,12 @@
                         return false
                     }
 
-                    //Validate spiffe_id not modified by user
-                    if ('spiffe_id' in clusterInfo.configs && clusterInfo.configs['spiffe_id'] != this.spiffeId){
-                        globalNotificationBanner.error = "spiffe id cannot be modified by user"
-                        return false
+                    for (var i in info.readonlyFields) {
+                        var readonlyField = info.readonlyFields[i];
+                        if (readonlyField in clusterInfo.configs && clusterInfo.configs[readonlyField] != this[readonlyField]){
+                            globalNotificationBanner.error = readonlyField + " cannot be modified by user"
+                            return false
+                        }
                     }
 
                     if (imageNameValue.startsWith('cmp_base')){

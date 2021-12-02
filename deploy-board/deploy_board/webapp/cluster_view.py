@@ -23,7 +23,7 @@ from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, \
-        DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI
+        DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS
 import json
 import logging
 
@@ -77,9 +77,10 @@ class EnvCapacityBasicCreateView(View):
 
             log.info("Create Capacity in the provider")
             if 'configs' in cluster_info:
-                if 'spiffe_id' in cluster_info['configs']:
-                    log.error("Teletraan does not support user to change spiffe_id %s"  % cluster_info['spiffe_id'])
-                    raise TeletraanException("Teletraan does not support user to create spiffe_id")
+                for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
+                  if field in cluster_info['configs']:
+                      log.error("Teletraan does not support user to change %s %s" % (field, cluster_info[field]))
+                      raise TeletraanException("Teletraan does not support user to create %s" % s)
 
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
 
@@ -211,6 +212,7 @@ class ClusterConfigurationView(View):
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'providerList': provider_list,
+            'readonlyFields': TELETRAAN_CLUSTER_READONLY_FIELDS,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'currentCluster': current_cluster
         }
@@ -233,14 +235,15 @@ class ClusterConfigurationView(View):
             current_cluster = clusters_helper.get_cluster(request, cluster_name)
             log.info("getting current Cluster Configuration is {}", current_cluster)
             if 'configs' in current_cluster and 'configs' in cluster_info:
-                if 'spiffe_id' in current_cluster['configs'] and 'spiffe_id' in cluster_info['configs']:
-                    if current_cluster['configs']['spiffe_id'] != cluster_info['configs']['spiffe_id']:
-                       log.error("Teletraan does not support user to update spiffe_id %s" % cluster_info['spiffe_id'])
-                       raise TeletraanException("Teletraan does not support user to update spiffe_id")
+                for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
+                    if field in current_cluster['configs'] and field in cluster_info['configs']:
+                        if current_cluster['configs'][field] != cluster_info['configs'][field]:
+                            log.error("Teletraan does not support user to update %s %s" % (field, cluster_info['spiffe_id']))
+                            raise TeletraanException("Teletraan does not support user to update %s" % field)
 
-                if 'spiffe_id' in current_cluster['configs'] and 'spiffe_id' not in cluster_info['configs']:
-                    log.error("Teletraan does not support user to remove spiffe_id %s" % cluster_info['spiffe_id'])
-                    raise TeletraanException("Teletraan does not support user to remove spiffe_id")
+                    if field in current_cluster['configs'] and field not in cluster_info['configs']:
+                        log.error("Teletraan does not support user to remove %s %s" % (field, cluster_info[field]))
+                        raise TeletraanException("Teletraan does not support user to remove %s" % field)
 
             image = baseimages_helper.get_by_id(request, cluster_info['baseImageId'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
