@@ -284,6 +284,7 @@ if IS_PINTEREST:
     DEFAULT_CMP_IMAGE = 'cmp_base-ebs-18.04'
 
     #Pinterest Default Host Type
+    # TODO: This is a description of the host type but is nonunique. It should be replaced by the host type ID.
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
 
     DEFAULT_CELL = 'aws-us-east-1'

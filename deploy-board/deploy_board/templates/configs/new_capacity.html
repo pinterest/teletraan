@@ -135,7 +135,7 @@ var capacitySetting = new Vue({
                 isSelected: item.abstract_name === capacityCreationInfo.defaultSeurityZone
             }
         }),
-        selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType).id,
+        selectedHostTypeValue: capacityCreationInfo.defaultHostType,
         selectedSecurityZoneValue: capacityCreationInfo.defaultSeurityZone,
         selectedPlacements: null
     },

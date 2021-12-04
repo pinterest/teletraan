@@ -499,7 +499,7 @@
                         isSelected: item.abstract_name === currentCluster.securityZone
                     }
                 }),
-                selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === currentCluster.hostType).id,
+                selectedHostTypeValue: currentCluster.hostType,
                 selectedSecurityZoneValue: currentCluster.securityZone,
                 selectedPlacements: currentPlacements,
                 showBaseImageHelp: false,

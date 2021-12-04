@@ -183,7 +183,8 @@ var capacitySetting = new Vue({
                     isSelected: item.abstract_name === info.defaultSeurityZone
                 }
             }),
-        selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType).id,
+        // need to check on capacityCreationInfo.defaultHostType
+        selectedHostTypeValue: capacityCreationInfo.defaultHostType,
         selectedSecurityZoneValue: info.defaultSeurityZone,
         selectedPlacements: [],
         showBaseImageHelp: false,

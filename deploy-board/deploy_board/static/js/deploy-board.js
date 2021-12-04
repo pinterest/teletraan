@@ -104,6 +104,7 @@ function getDefaultPlacement(capacityCreationInfo) {
     $.each(this.capacityCreationInfo.placements, function (index, item) {
         if (item.assign_public_ip) {
             allPublicIPPlacements.push(item)
+            // TODO this should not be hardcoded around the codebase
             if (capacityCreationInfo.defaultHostType === "EbsComputeLo(Recommended)" ) {
                 if (defaultAssignedGroupForC5Instance.has(item.abstract_name)) {
                     addToMaxGroup(item, cmpPublicIPPlacements)
@@ -114,6 +115,7 @@ function getDefaultPlacement(capacityCreationInfo) {
         }
         else {
             allPrivateIPPlacements.push(item)
+            // TODO this should not be hardcoded around the codebase
             if (capacityCreationInfo.defaultHostType === "EbsComputeLo(Recommended)" ) {
                 if (defaultAssignedGroupForC5Instance.has(item.abstract_name)) {
                     addToMaxGroup(item, cmpPrivateIPPlacements)
