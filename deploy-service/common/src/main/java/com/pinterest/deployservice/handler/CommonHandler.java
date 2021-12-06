@@ -159,7 +159,7 @@ public class CommonHandler {
                     envBean.getStage_name(),
                     webLink);
             } else {
-                return String.format("%s/%s: %s %s/%s failed (yaqin test). See details <%s>",
+                return String.format("%s/%s: %s %s/%s failed. See details <%s>",
                     envBean.getEnv_name(),
                     envBean.getStage_name(),
                     action,
