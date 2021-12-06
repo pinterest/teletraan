@@ -48,11 +48,14 @@ public class SlackChatManager implements ChatManager {
 					.channel(channel)
 					.text(message)
 				);
-                ChatPostMessageResponse
-                    response = slack.methods(this.token).chatPostMessage(req -> req
+                response = slack.methods(this.token).chatPostMessage(req -> req
                     .channel(channel)
                     .text(message + " (Operated by: <@" + from + ">)")
                 );
+                response = slack.methods(this.token).chatPostMessage(req -> req
+					.channel(channel)
+					.text(message)
+				);
                 if (response.isOk()) {
                     return;
                 } else {
