@@ -43,15 +43,16 @@ public class SlackChatManager implements ChatManager {
         message = message + " (Operated by: <@" + from + ">)";
         for (int i = 0; i < TOTAL_RETRY; i++) {
             try {
-                response = slack.methods(this.token).chatPostMessage(req -> req
-                    .channel(channel)
-                    .text(message)
-                );
-                if (response.isOk()) {
-                    return;
-                } else {
-                    LOG.warn("Failed to send Slack message to " + channel + " (" + response.getError() + ")");
-                }
+				ChatPostMessageResponse
+					response = slack.methods(this.token).chatPostMessage(req -> req
+					.channel(channel)
+					.text(message)
+				);
+				if (response.isOk()) {
+					return;
+				} else {
+					LOG.warn("Failed to send Slack message to " + channel + " (" + response.getError() + ")");
+				}
             } catch (Exception e) {
                 LOG.warn("Received exception from slack: " + e.getMessage());
             }
