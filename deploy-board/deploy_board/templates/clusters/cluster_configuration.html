@@ -463,7 +463,7 @@
                     return {
                         value: item.id,
                         text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
-                        isSelected: item.abstract_name === currentCluster.hostType
+                        isSelected: item.id === currentCluster.hostType
                     }
                 }),
                 imageNameValue: currentCluster.baseImageName,
@@ -499,7 +499,7 @@
                         isSelected: item.abstract_name === currentCluster.securityZone
                     }
                 }),
-                selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === currentCluster.hostType).id,
+                selectedHostTypeValue: currentCluster.hostType,
                 selectedSecurityZoneValue: currentCluster.securityZone,
                 selectedPlacements: currentPlacements,
                 showBaseImageHelp: false,
