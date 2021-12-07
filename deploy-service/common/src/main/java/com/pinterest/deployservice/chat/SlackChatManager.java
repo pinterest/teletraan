@@ -40,7 +40,7 @@ public class SlackChatManager implements ChatManager {
     }
 
     private void postMessage(String from, String channel, String message) throws Exception {
-        String msg = message + " (Operated b: <@" + from + ">)";
+        String msg = message + " (Operated by: <@" + from + ">)";
         LOG.debug("slack post message: " + msg);
         for (int i = 0; i < TOTAL_RETRY; i++) {
             try {
