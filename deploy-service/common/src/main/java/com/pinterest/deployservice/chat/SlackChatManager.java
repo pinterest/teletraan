@@ -40,13 +40,13 @@ public class SlackChatManager implements ChatManager {
     }
 
     private void postMessage(String from, String channel, String message) throws Exception {
-        message = message + " (Operated by: <@" + from + ">)";
+        String msg = message + " (Operated by: <@" + from + ">)";
         for (int i = 0; i < TOTAL_RETRY; i++) {
             try {
 				ChatPostMessageResponse
 					response = slack.methods(this.token).chatPostMessage(req -> req
 					.channel(channel)
-					.text(message)
+					.text(msg)
 				);
 				if (response.isOk()) {
 					return;
