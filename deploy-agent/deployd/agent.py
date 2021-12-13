@@ -332,7 +332,7 @@ class DeployAgent(object):
                 tags['deploy_stage'] = self.deploy_goal_prev.deployStage
             if self.deploy_goal_prev.envName:
                 tags['env_name'] = self.deploy_goal_prev.envName
-            create_sc_timing('deployd.stats.deploy.stage.time_elapsed_sec'.format(self.deploy_goal_prev.deployStage),
+            create_sc_timing('deployd.stats.deploy.stage.time_elapsed_sec',
                              self.stat_stage_time_elapsed.get(),
                              tags=tags)
 
@@ -377,7 +377,7 @@ class DeployAgent(object):
             if deploy_goal.envName:
                 tags['env_name'] = deploy_goal.envName
             self.stat_stage_time_elapsed = TimeElapsed()
-            create_sc_timing('deployd.stats.deploy.stage.time_start_sec'.format(deploy_goal.deployStage),
+            create_sc_timing('deployd.stats.deploy.stage.time_start_sec',
                              self.stat_stage_time_elapsed.get(),
                              tags=tags)
             self.deploy_goal_prev = deploy_goal
