@@ -25,6 +25,7 @@ import subprocess
 import yaml
 import json
 from deployd import IS_PINTEREST
+from deployd.common.stats import create_sc_increment
 
 log = logging.getLogger(__name__)
 
@@ -124,6 +125,7 @@ def run_prereqs(config):
 def get_info_from_facter(keys):
     try:
         log.info("Fetching {} keys from facter".format(keys))
+        create_sc_increment('deployd.stats.internal.facter_calls_sum', 1)
         cmd = ['facter', '-p', '-j']
         cmd.extend(keys)
         output = subprocess.check_output(cmd)
