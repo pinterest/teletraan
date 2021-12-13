@@ -29,7 +29,9 @@ class DefaultStatsdTimer(object):
 
 
 def _add_default_tags(tags=None):
+    """ add default tags to stats """
     if not __version__:
+        # defensive case, should not be hit
         return tags
     if __version__ and not tags:
         tags = dict()
