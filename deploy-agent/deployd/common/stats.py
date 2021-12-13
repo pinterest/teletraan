@@ -14,6 +14,7 @@
 
 import logging
 from deployd import IS_PINTEREST
+from deployd import __version__
 import timeit
 
 log = logging.getLogger(__name__)
@@ -27,10 +28,22 @@ class DefaultStatsdTimer(object):
         pass
 
 
+def _add_default_tags(tags=None):
+    """ add default tags to stats """
+    if not __version__:
+        # defensive case, should not be hit
+        return tags
+    if __version__ and not tags:
+        tags = dict()
+    tags['deploy_agent_version'] = __version__
+    return tags
+
+
 def create_stats_timer(stats, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         try:
             from pinstatsd.statsd import statsd_context_timer
+            tags = _add_default_tags(tags)
             return statsd_context_timer(entry_name=stats, sample_rate=sample_rate, tags=tags)
         except Exception as e:
             error_msg = str(e)
@@ -43,6 +56,7 @@ def create_sc_timing(stat, value, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         try:
             from pinstatsd.statsd import sc
+            tags = _add_default_tags(tags)
             return sc.timing(stat, value, sample_rate=sample_rate, tags=tags)
         except Exception as e:
             error_msg = str(e)
@@ -55,6 +69,7 @@ def create_sc_increment(stats, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         try:
             from pinstatsd.statsd import sc
+            tags = _add_default_tags(tags)
             sc.increment(stats, sample_rate, tags)
         except Exception as e:
             error_msg = str(e)
@@ -67,6 +82,7 @@ def create_sc_gauge(stat, value, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         try:
             from pinstatsd.statsd import sc
+            tags = _add_default_tags(tags)
             sc.gauge(stat, value, sample_rate=sample_rate, tags=tags)
         except Exception as e:
             error_msg = str(e)
