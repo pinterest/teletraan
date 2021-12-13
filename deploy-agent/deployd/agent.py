@@ -145,7 +145,9 @@ class DeployAgent(object):
                     tags['env_name'] = self._response.deployGoal.envName
                 if self._response.deployGoal.stageName:
                     tags['stage'] = self._response.deployGoal.stageName
-                create_sc_increment('deployd.stats.deploy.status.{}.sum'.format(deploy_report.status_code),
+                if deploy_report.status_code:
+                    tags['status_code'] = deploy_report.status_code
+                create_sc_increment('deployd.stats.deploy.status.sum',
                                     1,
                                     tags=tags)
 
@@ -340,6 +342,7 @@ class DeployAgent(object):
         deploy_goal = response.deployGoal
         if not deploy_goal:
             log.info('No deploy goal to be updated.')
+            self._timing_stats_deploy_stage_time_elapsed()
             return DeployReport(status_code=AgentStatus.SUCCEEDED)
 
         # use envName as status map key
@@ -365,22 +368,19 @@ class DeployAgent(object):
             # a deploy goal has changed
             tags = {'first_run': self.first_run()}
 
-            if self.deploy_goal_prev and self.deploy_goal_prev.deployStage and self.stat_stage_time_elapsed:
-                # deploy stage has changed, close old previous timer
-                tags['deploy_stage'] = self.deploy_goal_prev.deployStage
-                tags['env_name'] = self.deploy_goal_prev.envName
-                tags['stage_name'] = self.deploy_goal_prev.stageName
-                create_sc_timing('deployd.stats.deploy.stage.{}.time_elapsed_sec'.format(self.deploy_goal_prev.deployStage),
-                                 self.stat_stage_time_elapsed.get(),
-                                 tags=tags)
+            # deploy stage has changed, close old previous timer
+            self._timing_stats_deploy_stage_time_elapsed()
+
             # create a new timer for the new deploy goal
-            tags['deploy_stage'] = deploy_goal.deployStage
-            tags['env_name'] = deploy_goal.envName
-            tags['stage_name'] = deploy_goal.stageName
+            if deploy_goal.deployStage:
+                tags['deploy_stage'] = deploy_goal.deployStage
+            if deploy_goal.envName:
+                tags['env_name'] = deploy_goal.envName
             self.stat_stage_time_elapsed = TimeElapsed()
-            create_sc_timing('deployd.stats.deploy.stage.{}.time_start_sec'.format(deploy_goal.deployStage),
+            create_sc_timing('deployd.stats.deploy.stage.time_start_sec'.format(deploy_goal.deployStage),
                              self.stat_stage_time_elapsed.get(),
                              tags=tags)
+            self.deploy_goal_prev = deploy_goal
 
         # load deploy goal to the config
         self._curr_report = self._envs[env_name]
