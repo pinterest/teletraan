@@ -66,6 +66,7 @@ class DeployAgent(object):
         self._config = conf or Config()
         self._executor = executor
         self.stat_time_elapsed_internal = TimeElapsed()
+        self.stat_time_elapsed_total = TimeElapsed()
         self._helper = helper or Helper(self._config)
         self._STATUS_FILE = self._config.get_env_status_fn()
         self._client = client
@@ -427,6 +428,7 @@ def main():
                             format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
 
     log.info("Start to run deploy-agent.")
+    # time - start
     create_sc_timing('deployd.stats.internal.time_start_sec',
                      int(time.time()))
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup,
@@ -452,9 +454,15 @@ def main():
     else:
         agent.serve_once()
 
+    # time - total processing time excluding external actions
     create_sc_timing('deployd.stats.internal.time_elapsed_proc_sec',
                     agent.stat_time_elapsed_internal.get(),
                     tags={'first_run': agent.first_run()})
+    # time - total
+    create_sc_timing('deployd.stats.internal.time_elapsed_proc_total_sec',
+                     agent.stat_time_elapsed_total.get(),
+                     tags={'first_run': agent.first_run()})
+    # time - exit
     create_sc_timing('deployd.stats.internal.time_end_sec',
                      int(time.time()))
 
