@@ -68,7 +68,7 @@ class DeployAgent(object):
         self.stat_time_elapsed_internal = TimeElapsed()
         self.stat_time_elapsed_total = TimeElapsed()
         self.stat_stage_time_elapsed = None
-        self.deploy_goal_prev = None
+        self.deploy_goal_previous = None
         self._helper = helper or Helper(self._config)
         self._STATUS_FILE = self._config.get_env_status_fn()
         self._client = client
@@ -136,7 +136,7 @@ class DeployAgent(object):
                                              output_msg=traceback.format_exc(),
                                              retry_times=1)
 
-            # inc stats - deploy status
+            # increment stats - deploy status
             if self._response.deployGoal and deploy_report:
                 tags = {'first_run': self.first_run()}
                 if self._response.deployGoal.deployStage:
@@ -144,7 +144,7 @@ class DeployAgent(object):
                 if self._response.deployGoal.envName:
                     tags['env_name'] = self._response.deployGoal.envName
                 if self._response.deployGoal.stageName:
-                    tags['stage'] = self._response.deployGoal.stageName
+                    tags['stage_name'] = self._response.deployGoal.stageName
                 if deploy_report.status_code:
                     tags['status_code'] = deploy_report.status_code
                 create_sc_increment('deployd.stats.deploy.status.sum',
@@ -326,12 +326,14 @@ class DeployAgent(object):
 
     def _timing_stats_deploy_stage_time_elapsed(self):
         """ a deploy goal has finished, send stats for the elapsed time """
-        if self.deploy_goal_prev and self.deploy_goal_prev.deployStage and self.stat_stage_time_elapsed:
+        if self.deploy_goal_previous and self.deploy_goal_previous.deployStage and self.stat_stage_time_elapsed:
             tags = {'first_run': self.first_run()}
-            if self.deploy_goal_prev.deployStage:
-                tags['deploy_stage'] = self.deploy_goal_prev.deployStage
-            if self.deploy_goal_prev.envName:
-                tags['env_name'] = self.deploy_goal_prev.envName
+            if self.deploy_goal_previous.deployStage:
+                tags['deploy_stage'] = self.deploy_goal_previous.deployStage
+            if self.deploy_goal_previous.envName:
+                tags['env_name'] = self.deploy_goal_previous.envName
+            if self.deploy_goal_previous.stageName:
+                tags['stage_name'] = self.deploy_goal_previous.stageName
             create_sc_timing('deployd.stats.deploy.stage.time_elapsed_sec',
                              self.stat_stage_time_elapsed.get(),
                              tags=tags)
@@ -364,7 +366,7 @@ class DeployAgent(object):
                     f.write("{}={}\n".format(key, value))
 
         # timing stats - deploy stage start
-        if deploy_goal != self.deploy_goal_prev:
+        if deploy_goal != self.deploy_goal_previous:
             # a deploy goal has changed
             tags = {'first_run': self.first_run()}
 
@@ -376,11 +378,13 @@ class DeployAgent(object):
                 tags['deploy_stage'] = deploy_goal.deployStage
             if deploy_goal.envName:
                 tags['env_name'] = deploy_goal.envName
+            if deploy_goal.stageName:
+                tags['stage_name'] = deploy_goal.stageName
             self.stat_stage_time_elapsed = TimeElapsed()
             create_sc_timing('deployd.stats.deploy.stage.time_start_sec',
                              self.stat_stage_time_elapsed.get(),
                              tags=tags)
-            self.deploy_goal_prev = deploy_goal
+            self.deploy_goal_previous = deploy_goal
 
         # load deploy goal to the config
         self._curr_report = self._envs[env_name]
