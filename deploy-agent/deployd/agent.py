@@ -333,6 +333,19 @@ class DeployAgent(object):
                 for key, value in deploy_goal.scriptVariables.items():
                     f.write("{}={}\n".format(key, value))
 
+        # timing - deploy stage start
+        deploy_stage = deploy_goal.deployStage
+        if deploy_stage:
+            tags = {'first_run': self.first_run(),
+                    'deploy_stage': deploy_stage}
+            if deploy_goal.envName:
+                tags['env_name'] = deploy_goal.envName
+            if deploy_goal.stageName:
+                tags['stage'] = deploy_goal.stageName
+            create_sc_timing("deployd.stats.deploy.stage.{}.time_start_sec".format(deploy_stage),
+                             int(time.time()),
+                             tags=tags)
+
         # load deploy goal to the config
         self._curr_report = self._envs[env_name]
         self._config.update_variables(self._curr_report)
