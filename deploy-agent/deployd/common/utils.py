@@ -25,7 +25,7 @@ import subprocess
 import yaml
 import json
 from deployd import IS_PINTEREST
-from deployd.common.stats import create_sc_increment
+from deployd.common.stats import TimeElapsed, create_sc_increment, create_sc_timing
 
 log = logging.getLogger(__name__)
 
@@ -124,11 +124,16 @@ def run_prereqs(config):
 
 def get_info_from_facter(keys):
     try:
-        log.info("Fetching {} keys from facter".format(keys))
+        time_facter = TimeElapsed()
+        # inc - facter
         create_sc_increment('deployd.stats.internal.facter_calls_sum', 1)
+        log.info("Fetching {} keys from facter".format(keys))
         cmd = ['facter', '-p', '-j']
         cmd.extend(keys)
         output = subprocess.check_output(cmd)
+        # time - facter
+        create_sc_timing('deployd.stats.internal.time_elapsed_facter_calls_sec',
+                         time_facter.get())
         if output:
             return json.loads(output)
         else:
