@@ -427,6 +427,8 @@ def main():
                             format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
 
     log.info("Start to run deploy-agent.")
+    create_sc_timing('deployd.stats.internal.time_start_sec',
+                     int(time.time()))
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup,
                     use_facter=args.use_facter, use_host_info=args.use_host_info)
     if is_serverless_mode:
@@ -453,6 +455,8 @@ def main():
     create_sc_timing('deployd.stats.internal.time_elapsed_proc_sec',
                     agent.stat_time_elapsed_internal.get(),
                     tags={'first_run': agent.first_run()})
+    create_sc_timing('deployd.stats.internal.time_end_sec',
+                     int(time.time()))
 
 if __name__ == '__main__':
     main()
