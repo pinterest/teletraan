@@ -125,13 +125,13 @@ def run_prereqs(config):
 def get_info_from_facter(keys):
     try:
         time_facter = TimeElapsed()
-        # inc - facter
+        # inc stats - facter calls
         create_sc_increment('deployd.stats.internal.facter_calls_sum', 1)
         log.info("Fetching {} keys from facter".format(keys))
         cmd = ['facter', '-p', '-j']
         cmd.extend(keys)
         output = subprocess.check_output(cmd)
-        # time - facter
+        # timing stats - facter run time
         create_sc_timing('deployd.stats.internal.time_elapsed_facter_calls_sec',
                          time_facter.get())
         if output:

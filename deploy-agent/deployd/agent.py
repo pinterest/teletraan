@@ -27,7 +27,7 @@ from deployd.common.exceptions import AgentException
 from deployd.common.helper import Helper
 from deployd.common.single_instance import SingleInstance
 from deployd.common.env_status import EnvStatus
-from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_gauge
+from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_increment
 from deployd.common import utils
 from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
@@ -135,6 +135,19 @@ class DeployAgent(object):
                                              error_code=1,
                                              output_msg=traceback.format_exc(),
                                              retry_times=1)
+
+            # inc stats - deploy status
+            if self._response.deployGoal and deploy_report:
+                tags = {'first_run': self.first_run()}
+                if self._response.deployGoal.deployStage:
+                    tags['deploy_stage'] = self._response.deployGoal.deployStage
+                if self._response.deployGoal.envName:
+                    tags['env_name'] = self._response.deployGoal.envName
+                if self._response.deployGoal.stageName:
+                    tags['stage'] = self._response.deployGoal.stageName
+                create_sc_increment('deployd.stats.deploy.status.{}.sum'.format(deploy_report.status_code),
+                                    1,
+                                    tags=tags)
 
             if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
                 return
@@ -347,7 +360,7 @@ class DeployAgent(object):
                 for key, value in deploy_goal.scriptVariables.items():
                     f.write("{}={}\n".format(key, value))
 
-        # timing - deploy stage start
+        # timing stats - deploy stage start
         if deploy_goal != self.deploy_goal_prev:
             # a deploy goal has changed
             tags = {'first_run': self.first_run()}
@@ -357,7 +370,7 @@ class DeployAgent(object):
                 tags['deploy_stage'] = self.deploy_goal_prev.deployStage
                 tags['env_name'] = self.deploy_goal_prev.envName
                 tags['stage_name'] = self.deploy_goal_prev.stageName
-                create_sc_timing("deployd.stats.deploy.stage.{}.time_elapsed_sec".format(self.deploy_goal_prev.deployStage),
+                create_sc_timing('deployd.stats.deploy.stage.{}.time_elapsed_sec'.format(self.deploy_goal_prev.deployStage),
                                  self.stat_stage_time_elapsed.get(),
                                  tags=tags)
             # create a new timer for the new deploy goal
@@ -365,7 +378,7 @@ class DeployAgent(object):
             tags['env_name'] = deploy_goal.envName
             tags['stage_name'] = deploy_goal.stageName
             self.stat_stage_time_elapsed = TimeElapsed()
-            create_sc_timing("deployd.stats.deploy.stage.{}.time_start_sec".format(deploy_goal.deployStage),
+            create_sc_timing('deployd.stats.deploy.stage.{}.time_start_sec'.format(deploy_goal.deployStage),
                              self.stat_stage_time_elapsed.get(),
                              tags=tags)
 
@@ -464,7 +477,7 @@ def main():
                             format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
 
     log.info("Start to run deploy-agent.")
-    # time - start
+    # timing stats - agent start time
     create_sc_timing('deployd.stats.internal.time_start_sec',
                      int(time.time()))
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup,
@@ -490,15 +503,15 @@ def main():
     else:
         agent.serve_once()
 
-    # time - total processing time excluding external actions
+    # timing stats - total processing time excluding external actions
     create_sc_timing('deployd.stats.internal.time_elapsed_proc_sec',
                     agent.stat_time_elapsed_internal.get(),
                     tags={'first_run': agent.first_run()})
-    # time - total
+    # timing stats - agent total run time
     create_sc_timing('deployd.stats.internal.time_elapsed_proc_total_sec',
                      agent.stat_time_elapsed_total.get(),
                      tags={'first_run': agent.first_run()})
-    # time - exit
+    # timing stats - agent exit time
     create_sc_timing('deployd.stats.internal.time_end_sec',
                      int(time.time()))
 
