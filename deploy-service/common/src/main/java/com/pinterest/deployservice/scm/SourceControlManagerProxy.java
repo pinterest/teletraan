@@ -6,8 +6,11 @@ import java.util.List;
 import com.pinterest.deployservice.bean.CommitBean;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SourceControlManagerProxy {
+    private static final Logger LOG = LoggerFactory.getLogger(SourceControlManagerProxy.class);
     private final static String DEFAULT_TYPE = PhabricatorManager.TYPE;
 
     HashMap<String, SourceControlManager> managers;
@@ -22,7 +25,8 @@ public class SourceControlManagerProxy {
         }
         SourceControlManager manager = this.managers.get(scmType);
         if (manager == null) {
-            throw new Exception("unsupported SCM type");
+            LOG.error("Unsupported SCM type: " + scmType);
+            throw new Exception("Unsupported SCM type: " + scmType);
         }
         return manager;
     }

@@ -27,7 +27,6 @@ public class GithubManagerTest {
         
         this.manager = new GithubManager(token, appId, appPrivateKeyKnox, appOrgnization, apiPrefix, urlPrefix);
         Assert.assertEquals(this.manager.getUrlPrefix(), urlPrefix);
-        System.out.println(this.manager.headers);
     }
 
     @Test

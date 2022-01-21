@@ -38,9 +38,11 @@ import java.util.Map;
 import java.util.Queue;
 
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GithubManager extends BaseManager {
-
+    private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
     public final static String TYPE = "Github";
     private final static String UNKNOWN_LOGIN = "UNKNOWN";
     private final static long TOKEN_TTL_MILLIS = 600000;  //token expires after 10 mins
@@ -71,23 +73,22 @@ public class GithubManager extends BaseManager {
                 KnoxKeyReader knoxKey = new KnoxKeyReader();
                 knoxKey.init(this.githubAppPrivateKeyKnox);
                 String githubAppPrivateKey = knoxKey.getKey();
-                // System.out.println("pemKey: " + githubAppPrivateKey);
                 if (StringUtils.isEmpty(githubAppPrivateKey)) {
-                    throw new IllegalArgumentException("failed to get knox key");
+                    LOG.error("Failed to get Github Knox key");
+                    throw new IllegalArgumentException("Failed to get Github Knox key");
                 }
 
                 // generate jwt token by signing with github app id and private key
                 String jwtToken = EncryptionUtils.createGithubJWT(this.githubAppId, githubAppPrivateKey, TOKEN_TTL_MILLIS);
-                // System.out.println("jtwtoken: " + jwtToken);
 
                 // get installation token using the jwt token
                 GitHub gitHubApp = new GitHubBuilder().withJwtToken(jwtToken).build();
                 GHAppInstallation appInstallation = gitHubApp.getApp().getInstallationByOrganization(this.githubAppOrganization);
                 GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();    
                 this.token = appInstallationToken.getToken();
-                // System.out.println("token: " + token);
             } catch (Exception e) {
                 // e.printStackTrace();
+                LOG.error("Exception when getting Github token: ", e);
                 throw e;
             }
         }
