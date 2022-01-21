@@ -78,7 +78,7 @@ public class GithubManager extends BaseManager {
 
                 // generate jwt token by signing with github app id and private key
                 String jwtToken = EncryptionUtils.createGithubJWT(this.githubAppId, githubAppPrivateKey, TOKEN_TTL_MILLIS);
-                System.out.println("jtwtoken: " + jwtToken);
+                // System.out.println("jtwtoken: " + jwtToken);
 
                 // get installation token using the jwt token
                 GitHub gitHubApp = new GitHubBuilder().withJwtToken(jwtToken).build();
