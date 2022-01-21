@@ -49,6 +49,7 @@ public class GithubManager extends BaseManager {
     private String githubAppId;
     private String githubAppPrivateKeyKnox;
     private String githubAppOrganization;
+    private String token;
 
     public Map<String, String> headers = new HashMap<String, String>();
 
@@ -58,9 +59,12 @@ public class GithubManager extends BaseManager {
         this.githubAppId = appId;
         this.githubAppPrivateKeyKnox = appPrivateKeyKnox;
         this.githubAppOrganization = appOrganization;
+        this.token = token;
+    }
 
+    private void setHeaders() throws Exception {
         // if token is specified, use token auth, otherwise, use github app auth
-        if (StringUtils.isEmpty(token))
+        if (StringUtils.isEmpty(this.token))
         {
             try {
                 // get private key PEM from knox
@@ -74,13 +78,13 @@ public class GithubManager extends BaseManager {
 
                 // generate jwt token by signing with github app id and private key
                 String jwtToken = EncryptionUtils.createGithubJWT(this.githubAppId, githubAppPrivateKey, TOKEN_TTL_MILLIS);
-                // System.out.println("jtwtoken: " + jwtToken);
+                System.out.println("jtwtoken: " + jwtToken);
 
                 // get installation token using the jwt token
                 GitHub gitHubApp = new GitHubBuilder().withJwtToken(jwtToken).build();
                 GHAppInstallation appInstallation = gitHubApp.getApp().getInstallationByOrganization(this.githubAppOrganization);
                 GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();    
-                token = appInstallationToken.getToken();
+                this.token = appInstallationToken.getToken();
                 // System.out.println("token: " + token);
             } catch (Exception e) {
                 // e.printStackTrace();
@@ -88,7 +92,7 @@ public class GithubManager extends BaseManager {
             }
         }
 
-        this.headers.put("Authorization", String.format("Token %s", token));
+        this.headers.put("Authorization", String.format("Token %s", this.token));
     }
 
     private String getSha(Map<String, Object> jsonMap) {
@@ -168,6 +172,7 @@ public class GithubManager extends BaseManager {
         String url = String.format("%s/repos/%s/commits/%s", apiPrefix, repo, sha);
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
+        setHeaders();
         String jsonPayload = httpClient.get(url, null, null, headers, 1);
         GsonBuilder builder = new GsonBuilder();
         Map<String, Object>
@@ -187,6 +192,7 @@ public class GithubManager extends BaseManager {
         Map<String, String> params = new HashMap<String, String>();
         params.put("sha", startSha);
 
+        setHeaders();
         String jsonPayload = httpClient.get(url, null, params, headers, 1);
         Queue<CommitBean> CommitBeans = new LinkedList<CommitBean>();
         GsonBuilder builder = new GsonBuilder();
