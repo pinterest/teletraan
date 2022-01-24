@@ -66,7 +66,7 @@
 <script>
     $(function () {
         $('#newCommitsDivId').load('/commits/compare_commits_datatables/?start_sha={{ startSha }}' +
-                '&end_sha={{ endSha }}&repo={{ repo }}'
+                '&end_sha={{ endSha }}&repo={{ repo }}&scm={{ repo|commitRepoType }}'
         );
 
         $('#githuber').click(function () {

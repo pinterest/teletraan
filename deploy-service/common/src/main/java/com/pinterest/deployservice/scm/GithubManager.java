@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright 2021 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
 package com.pinterest.deployservice.scm;
 
 import com.pinterest.deployservice.bean.CommitBean;
+import com.pinterest.deployservice.common.EncryptionUtils;
 import com.pinterest.deployservice.common.HTTPClient;
-
+import com.pinterest.deployservice.common.KnoxKeyReader;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
@@ -25,24 +26,74 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
+import org.kohsuke.github.GitHubBuilder;
+
+import org.kohsuke.github.GHAppInstallation;
+import org.kohsuke.github.GHAppInstallationToken;
+import org.kohsuke.github.GitHub;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 
-public class GithubManager extends BaseManager {
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+public class GithubManager extends BaseManager {
+    private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
     public final static String TYPE = "Github";
     private final static String UNKNOWN_LOGIN = "UNKNOWN";
+    private final static long TOKEN_TTL_MILLIS = 600000;  //token expires after 10 mins
     private String apiPrefix;
     private String urlPrefix;
+    private String githubAppId;
+    private String githubAppPrivateKeyKnox;
+    private String githubAppOrganization;
+    private String token;
 
-    private Map<String, String> headers = new HashMap<String, String>();
+    public Map<String, String> headers = new HashMap<String, String>();
 
-    public GithubManager(String token, String apiPrefix, String urlPrefix) {
+    public GithubManager(String token, String appId, String appPrivateKeyKnox, String appOrganization, String apiPrefix, String urlPrefix) throws Exception {
         this.apiPrefix = apiPrefix;
         this.urlPrefix = urlPrefix;
-        headers.put("Authorization", String.format("token %s", token));
+        this.githubAppId = appId;
+        this.githubAppPrivateKeyKnox = appPrivateKeyKnox;
+        this.githubAppOrganization = appOrganization;
+        this.token = token;
+    }
+
+    private void setHeaders() throws Exception {
+        // if token is specified, use token auth, otherwise, use github app auth
+        if (StringUtils.isEmpty(this.token))
+        {
+            try {
+                // get private key PEM from knox
+                KnoxKeyReader knoxKey = new KnoxKeyReader();
+                knoxKey.init(this.githubAppPrivateKeyKnox);
+                String githubAppPrivateKey = knoxKey.getKey();
+                if (StringUtils.isEmpty(githubAppPrivateKey)) {
+                    LOG.error("Failed to get Github Knox key");
+                    throw new IllegalArgumentException("Failed to get Github Knox key");
+                }
+
+                // generate jwt token by signing with github app id and private key
+                String jwtToken = EncryptionUtils.createGithubJWT(this.githubAppId, githubAppPrivateKey, TOKEN_TTL_MILLIS);
+
+                // get installation token using the jwt token
+                GitHub gitHubApp = new GitHubBuilder().withJwtToken(jwtToken).build();
+                GHAppInstallation appInstallation = gitHubApp.getApp().getInstallationByOrganization(this.githubAppOrganization);
+                GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();    
+                this.token = appInstallationToken.getToken();
+            } catch (Exception e) {
+                // e.printStackTrace();
+                LOG.error("Exception when getting Github token: ", e);
+                throw e;
+            }
+        }
+
+        this.headers.put("Authorization", String.format("Token %s", this.token));
     }
 
     private String getSha(Map<String, Object> jsonMap) {
@@ -54,6 +105,16 @@ public class GithubManager extends BaseManager {
         if (authorMap != null) {
             return (String) authorMap.get("login");
         }
+        // for some commits, the author info is under "commit"
+        Map<String, Object> commitMap = (Map<String, Object>) jsonMap.get("commit");
+        if (commitMap != null) {
+            authorMap = (Map<String, Object>) commitMap.get("author");
+            if (authorMap != null) {
+                String email = (String) authorMap.get("email");
+                return email.split("@")[0];
+            }
+        }
+
         return UNKNOWN_LOGIN;
     }
 
@@ -112,6 +173,7 @@ public class GithubManager extends BaseManager {
         String url = String.format("%s/repos/%s/commits/%s", apiPrefix, repo, sha);
 
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
+        setHeaders();
         String jsonPayload = httpClient.get(url, null, null, headers, 1);
         GsonBuilder builder = new GsonBuilder();
         Map<String, Object>
@@ -131,6 +193,7 @@ public class GithubManager extends BaseManager {
         Map<String, String> params = new HashMap<String, String>();
         params.put("sha", startSha);
 
+        setHeaders();
         String jsonPayload = httpClient.get(url, null, params, headers, 1);
         Queue<CommitBean> CommitBeans = new LinkedList<CommitBean>();
         GsonBuilder builder = new GsonBuilder();

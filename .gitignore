@@ -11,6 +11,13 @@ deploy-service/teletraanservice/teletraan/
 
 # VSCode
 .vscode/
+deploy-service/common/.settings/
+deploy-service/.settings/
+deploy-service/common/.*
+deploy-service/teletraanservice/.settings/
+deploy-service/teletraanservice/.*
+docs/docs_generator/.settings/
+
 
 # C extensions
 *.so

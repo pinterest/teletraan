@@ -21,8 +21,6 @@ import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.HotfixDAO;
-import com.pinterest.deployservice.scm.GithubManager;
-import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
@@ -45,7 +43,6 @@ public class Hotfixs {
     private DeployDAO deployDAO;
     private BuildDAO buildDAO;
     private HotfixDAO hotfixDAO;
-    private SourceControlManager sourceControlManager;
     private final Authorizer authorizer;
 
     @Context
@@ -55,7 +52,6 @@ public class Hotfixs {
         deployDAO = context.getDeployDAO();
         buildDAO = context.getBuildDAO();
         hotfixDAO = context.getHotfixDAO();
-        sourceControlManager = context.getSourceControlManager();
         authorizer = context.getAuthorizer();
     }
 
@@ -90,9 +86,10 @@ public class Hotfixs {
     }
 
     private String generateJobName(String repo) {
-        if (sourceControlManager.getType().equals(GithubManager.TYPE)) {
-            // Special case for Github to extract repo
-            repo = repo.split("/")[1];
+        String[] repoSplit = repo.split("/");
+        if (repoSplit.length > 1) {
+            // Special case for Github repo to extract repo name from org
+            repo = repoSplit[1];
         }
         return String.format("%s-hotfix-job", repo);
     }

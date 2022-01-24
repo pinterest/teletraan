@@ -21,12 +21,12 @@ DEFAULT_NAME_SIZE = 30
 deployclient = DeployClient()
 
 
-def get_url_pattern(request):
-    return deployclient.get("/system/scm_link_template", request.teletraan_user_id.token)
+def get_url_pattern(request, type=""):
+    return deployclient.get("/system/scm_link_template/?scm=" + type, request.teletraan_user_id.token)
 
 
-def get_scm_url(request):
-    return deployclient.get("/system/scm_url", request.teletraan_user_id.token)['url']
+def get_scm_url(request, type=""):
+    return deployclient.get("/system/scm_url/?scm=" + type, request.teletraan_user_id.token)['url']
 
 
 def send_chat_message(request, from_name, to_name, message):

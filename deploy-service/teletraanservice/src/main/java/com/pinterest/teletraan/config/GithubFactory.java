@@ -25,9 +25,17 @@ import javax.validation.constraints.NotNull;
 
 @JsonTypeName("github")
 public class GithubFactory implements SourceControlFactory {
-    @NotNull
     @JsonProperty
     private String token;
+
+    @JsonProperty
+    private String appId;
+
+    @JsonProperty
+    private String appPrivateKeyKnox;
+
+    @JsonProperty
+    private String appOrganization;
 
     @NotNull
     @JsonProperty
@@ -43,6 +51,29 @@ public class GithubFactory implements SourceControlFactory {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getAppId() {
+        return appId;
+    }
+    public void setAppId(String appId) {
+        this.appId = appId;
+    }
+
+    public String getAppPrivateKeyKnox() {
+        return appPrivateKeyKnox;
+    }
+
+    public void setAppPrivateKeyKnox(String appPrivateKeyKnox) {
+        this.appPrivateKeyKnox = appPrivateKeyKnox;
+    }
+
+    public String getAppOrganization() {
+        return appOrganization;
+    }
+
+    public void setAppOrganization(String appOrganization) {
+        this.appOrganization = appOrganization;
     }
 
     public String getApiPrefix() {
@@ -63,6 +94,6 @@ public class GithubFactory implements SourceControlFactory {
 
     @Override
     public SourceControlManager create() throws Exception {
-        return new GithubManager(token, apiPrefix, urlPrefix);
+        return new GithubManager(token, appId, appPrivateKeyKnox, appOrganization, apiPrefix, urlPrefix);
     }
 }

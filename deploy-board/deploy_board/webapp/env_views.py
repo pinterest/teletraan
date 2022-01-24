@@ -957,13 +957,15 @@ def deploy_build(request, name, stage, build_id):
     env = environs_helper.get_env_by_stage(request, name, stage)
     current_build = None
     deploy_state = None
+    scmType = ""
     if env.get('deployId'):
         current_deploy = deploys_helper.get(request, env['deployId'])
         current_build = builds_helper.get_build(request, current_deploy['buildId'])
         deploy_state = deploys_helper.get(request, env['deployId'])['state']
+        scmType = current_build['type']
     build = builds_helper.get_build_and_tag(request, build_id)
     builds = [build]
-    scm_url = systems_helper.get_scm_url(request)
+    scm_url = systems_helper.get_scm_url(request, scmType)
 
     html = render_to_string('deploys/deploy_build.html', {
         "env": env,
@@ -983,10 +985,12 @@ def deploy_commit(request, name, stage, commit):
     env = environs_helper.get_env_by_stage(request, name, stage)
     builds = builds_helper.get_builds_and_tags(request, name=env.get('buildName', ''), commit=commit)
     current_build = None
+    scmType = ""
     if env.get('deployId'):
         deploy = deploys_helper.get(request, env['deployId'])
         current_build = builds_helper.get_build(request, deploy['buildId'])
-    scm_url = systems_helper.get_scm_url(request)
+        scmType = current_build['type']
+    scm_url = systems_helper.get_scm_url(request, scmType)
 
     html = render_to_string('deploys/deploy_build.html', {
         "env": env,
@@ -1545,7 +1549,7 @@ def get_new_commits(request, name, stage):
     current_build = builds_helper.get_build(request, current_deploy['buildId'])
     startSha = current_build['commit']
     repo = current_build['repo']
-    scm_url = systems_helper.get_scm_url(request)
+    scm_url = systems_helper.get_scm_url(request, current_build['type'])
     diffUrl = "%s/%s/compare/%s...%s" % (scm_url, repo, startSha, startSha)
     last_deploy = common.get_last_completed_deploy(request, env)
     if not last_deploy:
@@ -1590,6 +1594,7 @@ def compare_deploys(request, name, stage):
     start_build = builds_helper.get_build(request, start_deploy['buildId'])
     startSha = start_build['commit']
     repo = start_build['repo']
+    scm = start_build['type']
 
     end_deploy_id = request.GET.get('end_deploy', None)
     if end_deploy_id:
@@ -1602,7 +1607,7 @@ def compare_deploys(request, name, stage):
     end_build = builds_helper.get_build(request, end_deploy['buildId'])
     endSha = _get_endSha(end_build)
 
-    commits, truncated, new_start_sha = common.get_commits_batch(request, repo, startSha,
+    commits, truncated, new_start_sha = common.get_commits_batch(request, scm, repo, startSha,
                                                                  endSha, keep_first=True)
 
     html = render_to_string('builds/commits.tmpl', {
@@ -1610,6 +1615,7 @@ def compare_deploys(request, name, stage):
         "start_sha": new_start_sha,
         "end_sha": endSha,
         "repo": repo,
+        "scm": scm,
         "truncated": truncated,
         "show_checkbox": False,
     })
@@ -1637,7 +1643,7 @@ def compare_deploys_2(request, name, stage):
     end_build = builds_helper.get_build(request, end_build_id)
     endSha = _get_endSha(end_build)
 
-    scm_url = systems_helper.get_scm_url(request)
+    scm_url = systems_helper.get_scm_url(request, start_build['type'])
     diffUrl = "%s/%s/compare/%s...%s" % (scm_url, repo, endSha, startSha)
     return render(request, 'deploys/deploy_commits.html', {
         "env": env,
