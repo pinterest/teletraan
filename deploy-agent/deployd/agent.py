@@ -180,6 +180,7 @@ class DeployAgent(object):
                 time.sleep(self._config.get_daemon_sleep_time())
                 self.load_status_file()
 
+
     def serve_once(self):
         log.info("Running deploy agent in non daemon mode")
         try:
@@ -205,6 +206,7 @@ class DeployAgent(object):
             if envId == value.report.envId:
                 return name
         return None
+
 
     def process_deploy(self, response):
         self.stat_time_elapsed_internal.resume()
@@ -425,7 +427,6 @@ class DeployAgent(object):
 
         return False
 
-
 # make sure only one instance is running
 instance = SingleInstance()
 
@@ -517,7 +518,6 @@ def main():
     # timing stats - agent exit time
     create_sc_timing('deployd.stats.internal.time_end_sec',
                      int(time.time()))
-
 
 if __name__ == '__main__':
     main()

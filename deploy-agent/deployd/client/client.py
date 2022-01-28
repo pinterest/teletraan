@@ -26,6 +26,7 @@ from deployd.common import utils
 from deployd.types.ping_request import PingRequest
 from deployd import IS_PINTEREST
 
+
 log = logging.getLogger(__name__)
 
 
