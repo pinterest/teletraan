@@ -31,6 +31,9 @@ else:
         def gauge(name, value, sample_rate=None, tags=None):
             pass
 
+        @staticmethod
+        def timing(name, value, sample_rate=None, tags=None):
+            pass
 
     class sc_v2(sc):
         pass
