@@ -13,9 +13,27 @@
 # limitations under the License.
 
 import logging
-from deployd import IS_PINTEREST
-from deployd import __version__
+from deployd import __version__, IS_PINTEREST, METRIC_PORT_HEALTH, METRIC_CACHE_PATH
 import timeit
+import socket
+import json
+import os
+
+if IS_PINTEREST:
+    from pinstatsd.statsd import sc, sc_v2
+else:
+    class sc:
+        @staticmethod
+        def increment(name, sample_rate, tags):
+            pass
+
+        @staticmethod
+        def gauge(name, value, sample_rate=None, tags=None):
+            pass
+
+
+    class sc_v2(sc):
+        pass
 
 log = logging.getLogger(__name__)
 
@@ -28,67 +46,285 @@ class DefaultStatsdTimer(object):
         pass
 
 
-def _add_default_tags(tags=None):
-    """ add default tags to stats """
-    if not __version__:
-        # defensive case, should not be hit
+def create_stats_timer(name, sample_rate=1.0, tags=None):
+    if IS_PINTEREST:
+        from pinstatsd.statsd import statsd_context_timer
+
+        class TimingOnlyStatClient:
+            """ timing only stat client in order to use caching """
+            @staticmethod
+            def timing(*args, **kwargs):
+                client = MetricClient()
+                return client.send_context_timer(*args, **kwargs)
+
+        timer = statsd_context_timer(entry_name=name, sample_rate=sample_rate, tags=tags)
+        timer._statsd_context_timer__stat_client = TimingOnlyStatClient()
+        return timer
+    else:
+        return
+
+
+def create_sc_timing(name, value, sample_rate=1.0, tags=None):
+    if IS_PINTEREST:
+        mtype = 'timing'
+        client = MetricClient()
+        client.send(mtype=mtype,
+                    name=name,
+                    value=value,
+                    sample_rate=sample_rate,
+                    tags=tags)
+    else:
+        return
+
+
+def create_sc_increment(name, sample_rate=1.0, tags=None):
+    if IS_PINTEREST:
+        mtype = 'increment'
+        client = MetricClient()
+        client.send(mtype=mtype,
+                    name=name,
+                    sample_rate=sample_rate,
+                    tags=tags)
+    else:
+        return
+
+
+def create_sc_gauge(name, value, sample_rate=1.0, tags=None):
+    if IS_PINTEREST:
+        mtype = 'gauge'
+        client = MetricClient()
+        client.send(mtype=mtype,
+                    name=name,
+                    value=value,
+                    sample_rate=sample_rate,
+                    tags=tags)
+    else:
+        return
+
+
+class Cache:
+    """ local cache for metrics
+        creates empty cache file
+    """
+    def __init__(self, path):
+        self.path = path
+        # maximum cache size in bytes
+        self.max_size = (10 * 1024 * 1024)
+        # init cache
+        if not self.exists():
+            self.truncate()
+
+    def limit(self):
+        """ check to see if cache file has exceeded maximum size
+            return: bool
+        """
+        return os.path.getsize(self.path) > self.max_size
+
+    def exists(self):
+        """ cache file exists and is read/write
+            return: bool
+        """
+        if os.access(self.path, os.F_OK) and \
+           os.access(self.path, os.R_OK) and \
+           os.access(self.path, os.W_OK):
+            return True
+        return False
+
+    def is_empty(self):
+        """ check if the cache not empty
+            return: bool
+        """
+        return not os.stat(self.path).st_size > 0
+
+    def read(self):
+        """ read metrics from cache, then delete
+            return: generator
+        """
+        with open(self.path, 'r') as fh:
+            for line in fh:
+                yield Stat(ins=line)
+
+    def write(self, output):
+        """ write metrics to cache file respecting max cache size
+            appends newline to metric
+        """
+        if self.limit():
+            msg = 'cache file {} has exceeded maximum file size of {}'
+            log.error(msg.format(self.path, self.max_size))
+            return
+        with open(self.path, 'a') as fh:
+            fh.write('{}\n'.format(output))
+
+    def truncate(self):
+        """ purge cache file """
+        with open(self.path, 'w') as fh:
+            fh.truncate()
+
+
+class Stat:
+    """ stat class for simple data management, dataclasses are py3.7+
+        supports all methods for stats
+    """
+
+    def __init__(self, mtype=None, name=None, value=None, sample_rate=None, tags=None, ins=None):
+        self.mtype = mtype
+        self.name = name
+        self.value = value
+        self.sample_rate = sample_rate
+        self.tags = tags
+        self.ins = ins
+        try:
+            self.JSONDecodeError = json.decoder.JSONDecodeError
+        except AttributeError:
+            # python2 support
+            self.JSONDecodeError = ValueError
+
+    def __repr__(self):
+        obj = dict()
+        obj['mtype'] = self.mtype
+        if self.value is not None:
+            # value can be 0
+            obj['value'] = self.value
+        obj['name'] = self.name
+        obj['sample_rate'] = self.sample_rate
+        obj['tags'] = self.tags
+        return obj
+
+    def serialize(self):
+        """ serialize for cache writing """
+        return json.dumps(self.__repr__())
+
+    def _deserialize(self):
+        """ read in json, setting defaults for a stat
+            return: None
+        """
+        obj = json.loads(self.ins)
+        self.mtype = obj.get('mtype', None)
+        self.name = obj.get('name', None)
+        self.value = obj.get('value', None)
+        self.sample_rate = obj.get('sample_rate', None)
+        self.tags = obj.get('tags', None)
+
+    def deserialize(self, ins=None):
+        """ attempt to deserialize
+            :param: ins json as str
+            return: bool, False on error
+        """
+        if ins:
+            self.ins = ins
+        try:
+            self._deserialize()
+            return True
+        except self.JSONDecodeError:
+            return False
+        except TypeError:
+            return False
+
+
+class MetricClient:
+    """ metrics client wrapper, enables disk cache """
+
+    def __init__(self, port=METRIC_PORT_HEALTH, cache_path=METRIC_CACHE_PATH):
+        self.port = port
+        self.cache = Cache(path=cache_path)
+        self.stat = None
+
+    @staticmethod
+    def _add_default_tags(tags=None):
+        """ add default tags to stats
+            :param: tags as dict
+            return: dict
+        """
+        if not __version__:
+            # defensive case, should not be hit
+            return tags
+        if __version__ and not tags:
+            tags = dict()
+        tags['deploy_agent_version'] = __version__
         return tags
-    if __version__ and not tags:
-        tags = dict()
-    tags['deploy_agent_version'] = __version__
-    return tags
 
+    @staticmethod
+    def _parse_stat(mtype=None, name=None, value=None, sample_rate=None, tags=None):
+        """ return Stat for given kwargs """
+        return Stat(mtype=mtype,
+                    name=name,
+                    value=value,
+                    sample_rate=sample_rate,
+                    tags=tags)
 
-def create_stats_timer(stats, sample_rate=1.0, tags=None):
-    if IS_PINTEREST:
+    def _send_mtype(self):
+        """ send metric to sc using corrected
+            calls per metric type
+        """
+        func = getattr(sc, self.stat.mtype)
+        func_v2 = getattr(sc_v2, self.stat.mtype)
+
+        if self.stat.mtype == 'increment':
+            func(self.stat.name, self.stat.sample_rate, self.stat.tags)
+            func_v2(self.stat.name, self.stat.sample_rate, self.stat.tags)
+        elif self.stat.mtype == 'gauge' or self.stat.mtype == 'timing':
+            func(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
+            func_v2(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
+
+    def _send(self):
+        """ send metric to sc """
         try:
-            from pinstatsd.statsd import statsd_context_timer
-            tags = _add_default_tags(tags)
-            return statsd_context_timer(entry_name=stats, sample_rate=sample_rate, tags=tags)
-        except Exception as e:
-            error_msg = str(e)
-            log.error('unable to send metric: {}'.format(error_msg))
-    else:
-        return DefaultStatsdTimer()
+            self._send_mtype()
+        except Exception as error:
+            log.error('unable to send metric: {}'.format(error))
 
+    def _flush_cache(self):
+        """ read from cache, send every metric, truncate cache """
+        log.warning('flushing metrics from cache')
+        for stat in self.cache.read():
+            if not stat.deserialize():
+                # unable to parse stat, skip
+                log.error('unable to parse stat: {}'.format(stat))
+                continue
+            self.stat = stat
+            self._send()
+        # truncate cache file after flush
+        self.cache.truncate()
 
-def create_sc_timing(stat, value, sample_rate=1.0, tags=None):
-    if IS_PINTEREST:
+    def send_context_timer(self, name, value, sample_rate=None, tags=None):
+        """ convert a context_timer to timing
+            for cacheability
+        """
+        self.send(mtype='timing', name=name, value=value, sample_rate=sample_rate, tags=tags)
+
+    def send(self, mtype=None, name=None, value=None, sample_rate=None, tags=None):
+        """ add default tags, send metric, write to, or flush cache
+            depending on health check """
+        tags = self._add_default_tags(tags)
+        if self.is_healthy():
+            # trigger flush cache first
+            if self.cache and (self.cache.exists() and not self.cache.is_empty()):
+                self._flush_cache()
+            # send metric
+            self.stat = self._parse_stat(mtype=mtype, name=name, value=value, sample_rate=sample_rate, tags=tags)
+            self._send()
+        else:
+            # health check failed, write stat to cache
+            stat = self._parse_stat(mtype=mtype, name=name, value=value, sample_rate=sample_rate, tags=tags)
+            self.cache.write(stat.serialize())
+
+    def is_healthy(self):
+        """ health-check by connecting to local IPv4 TCP listening socket
+            return: bool
+        """
+        sock = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+        # socket context manager was added in python3.2
+        passing = False
         try:
-            from pinstatsd.statsd import sc
-            tags = _add_default_tags(tags)
-            return sc.timing(stat, value, sample_rate=sample_rate, tags=tags)
-        except Exception as e:
-            error_msg = str(e)
-            log.error('unable to send metric: {}'.format(error_msg))
-    else:
-        return
-
-
-def create_sc_increment(stats, sample_rate=1.0, tags=None):
-    if IS_PINTEREST:
-        try:
-            from pinstatsd.statsd import sc
-            tags = _add_default_tags(tags)
-            sc.increment(stats, sample_rate, tags)
-        except Exception as e:
-            error_msg = str(e)
-            log.error('unable to send metric: {}'.format(error_msg))
-    else:
-        return
-
-
-def create_sc_gauge(stat, value, sample_rate=1.0, tags=None):
-    if IS_PINTEREST:
-        try:
-            from pinstatsd.statsd import sc
-            tags = _add_default_tags(tags)
-            sc.gauge(stat, value, sample_rate=sample_rate, tags=tags)
-        except Exception as e:
-            error_msg = str(e)
-            log.error('unable to send metric: {}'.format(error_msg))
-    else:
-        return
+            indicator = sock.connect_ex((str(), int(self.port)))
+            if indicator == 0:
+                passing = True
+        except socket.error as error:
+            log.error('metric health-check failed: {}'.format(error))
+            passing = False
+        finally:
+            sock.close()
+        return passing
 
 
 class TimeElapsed:
@@ -101,7 +337,9 @@ class TimeElapsed:
         self._time_pause = None
 
     def get(self):
-        """ total elapsed running time, accuracy in seconds """
+        """ total elapsed running time, accuracy in seconds
+            return: int
+        """
         if self._is_paused():
             return self._time_elapsed
         self._time_now = self._timer()
@@ -110,29 +348,39 @@ class TimeElapsed:
         return int(self._time_elapsed)
 
     def _is_paused(self):
-        """ timer pause state """
+        """ timer pause state
+            return: bool
+        """
         if self._time_pause:
             return True
         return False
 
     @staticmethod
     def _timer():
-        """ timer in seconds """
+        """ timer in seconds
+            return: float
+        """
         return timeit.default_timer()
 
     def since_pause(self):
-        """ time elapsed since pause """
+        """ time elapsed since pause
+            return: float
+        """
         if self._is_paused():
             return float(self._timer() - self._time_pause)
         return float(0)
 
     def pause(self):
-        """ pause timer if not paused """
+        """ pause timer if not paused
+            return: None
+        """
         if not self._is_paused():
             self._time_pause = self._timer()
 
     def resume(self):
-        """ resume timer if paused """
+        """ resume timer if paused
+            return: None
+        """
         if self._is_paused():
             self._time_start = self._timer()
             self._time_pause = None
