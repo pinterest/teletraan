@@ -109,7 +109,7 @@ class MetricCache:
     """ local cache for metrics
         creates empty cache file
     """
-    def __init__(self, path):
+    def __init__(self, path=METRIC_CACHE_PATH):
         self.path = path
         # maximum cache size in bytes
         self.max_size = (10 * 1024 * 1024)
