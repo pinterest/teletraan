@@ -105,7 +105,7 @@ def create_sc_gauge(name, value, sample_rate=1.0, tags=None):
         return
 
 
-class Cache:
+class MetricCache:
     """ local cache for metrics
         creates empty cache file
     """
@@ -229,7 +229,7 @@ class MetricClient:
 
     def __init__(self, port=METRIC_PORT_HEALTH, cache_path=METRIC_CACHE_PATH):
         self.port = port
-        self.cache = Cache(path=cache_path)
+        self.cache = MetricCache(path=cache_path)
         self.stat = None
 
     @staticmethod

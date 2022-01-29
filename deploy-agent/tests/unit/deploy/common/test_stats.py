@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from deployd.common.stats import Cache, Stat, MetricClient, TimeElapsed
+from deployd.common.stats import MetricCache, Stat, MetricClient, TimeElapsed
 from deployd import __version__
 import unittest
 import os
@@ -26,21 +26,21 @@ except ImportError:
     import mock
 
 
-class TestCache(unittest.TestCase):
+class TestMetricCache(unittest.TestCase):
     path = 'tests/unit/deploy/common/test_stats.cache'
     data = 'testdata'
 
     def test_exists(self):
-        cache = Cache(self.path)
+        cache = MetricCache(self.path)
         self.assertTrue(cache.exists())
 
     def test_is_empty(self):
-        cache = Cache(self.path)
+        cache = MetricCache(self.path)
         cache.truncate()
         self.assertTrue(cache.is_empty())
 
     def test_read(self):
-        cache = Cache(self.path)
+        cache = MetricCache(self.path)
         cache.truncate()
         with open(self.path, 'w') as fh:
             fh.write('{}\n'.format(self.data))
@@ -50,7 +50,7 @@ class TestCache(unittest.TestCase):
         self.assertEqual(count, 1)
 
     def test_write(self):
-        cache = Cache(self.path)
+        cache = MetricCache(self.path)
         cache.truncate()
         cache.write(self.data)
         with open(self.path, 'r') as fh:
@@ -59,7 +59,7 @@ class TestCache(unittest.TestCase):
         self.assertEqual(validate, expect)
 
     def tearDown(self):
-        Cache(self.path)
+        MetricCache(self.path)
         os.remove(self.path)
 
 
@@ -100,7 +100,6 @@ class TestStat(unittest.TestCase):
         self.assertEqual(stat.name, self.name)
         self.assertEqual(stat.sample_rate, self.sample_rate)
         self.assertEqual(stat.tags, self.tags)
-
 
     def test_deserialize(self):
         stat = Stat(mtype=None,
@@ -148,8 +147,9 @@ class TestMetricClient(unittest.TestCase):
         self.assertFalse(self.client.is_healthy())
 
     def tearDown(self):
-        Cache(self.cache_path)
+        MetricCache(self.cache_path)
         os.remove(self.cache_path)
+
 
 class TestTimeElapsed(unittest.TestCase):
 
