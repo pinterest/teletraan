@@ -126,12 +126,15 @@ public class GoalAnalyst {
                 return 1;
             }
 
-
-            // choose the one does not need to wait, or in the middle of deploying already
-            if (needWait && !installCandidate.needWait) {
-                return 1;
-            } else if (!needWait && installCandidate.needWait) {
-                return -1;
+            if (priority1 == priority2) {
+                // If same priority, choose the one does not need to wait, or in the middle of deploying already
+                if (needWait && !installCandidate.needWait) {
+                    return 1;
+                } else if (!needWait && installCandidate.needWait) {
+                    return -1;
+                } else {
+                    return 0;
+                }
             }
             return priority1 - priority2;
         }
