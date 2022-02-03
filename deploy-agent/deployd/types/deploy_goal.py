@@ -72,7 +72,8 @@ class DeployGoal(object):
 
     def __ne__(self, other):
         """ compare DeployGoals """
-        return not self.__key() == other.__key()
+        return not (isinstance(other, DeployGoal)
+                    and self.__key() == other.__key())
 
     def __str__(self):
         return "DeployGoal(deployId={}, envId={}, envName={}, stageName={}, " \

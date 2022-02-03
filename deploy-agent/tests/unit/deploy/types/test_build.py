@@ -120,6 +120,7 @@ class TestBuild(unittest.TestCase):
         build_2 = Build(jsonValue=data_2)
         self.assertEqual(build_1, build_2)
         self.assertTrue(Build(jsonValue=None) == Build(jsonValue=None))
+        self.assertFalse(Build(jsonValue=None) is None)
 
     def test____ne__(self):
         data = {self.j_buildId: self.buildId,
@@ -146,5 +147,5 @@ class TestBuild(unittest.TestCase):
         self.assertNotEqual(build, Build(jsonValue={self.j_commitDate: other}))
         self.assertNotEqual(build, Build(jsonValue={self.j_publishInfo: other}))
         self.assertNotEqual(build, Build(jsonValue={self.j_publishDate: other}))
-        self.assertFalse(Build(jsonValue=None) is None)
+        self.assertTrue(Build(jsonValue=None) is not None)
         self.assertFalse(Build(jsonValue=None) == "")

@@ -63,11 +63,12 @@ class Build(object):
     def __eq__(self, other):
         """ compare Builds """
         return isinstance(other, Build) \
-               and self.__key() == other.__key()
+            and self.__key() == other.__key()
 
     def __ne__(self, other):
         """ compare Builds """
-        return not self.__key() == other.__key()
+        return not (isinstance(other, Build)
+                    and self.__key() == other.__key())
 
     def __str__(self):
         return "Build(buildId={}, buildName={}, buildVersion={}, artifactUrl={}, scm={}, " \

@@ -106,6 +106,7 @@ class TestDeployGoal(unittest.TestCase):
         deploy_goal_2 = DeployGoal(jsonValue=data_2)
         self.assertEqual(deploy_goal_1, deploy_goal_2)
         self.assertTrue(DeployGoal(jsonValue=None) == DeployGoal(jsonValue=None))
+        self.assertFalse(DeployGoal(jsonValue=None) is None)
 
     def test____ne__(self):
         data = {self.deployId: self.deployId,
@@ -130,5 +131,5 @@ class TestDeployGoal(unittest.TestCase):
         self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.scriptVariables: other}))
         self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.firstDeploy: other}))
         self.assertNotEqual(deploy_goal, DeployGoal(jsonValue={self.isDocker: other}))
-        self.assertFalse(DeployGoal(jsonValue=None) is None)
+        self.assertTrue(DeployGoal(jsonValue=None) is not None)
         self.assertFalse(DeployGoal(jsonValue=None) == "")
