@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from deployd.common.stats import MetricCache, Stat, MetricClient, TimeElapsed
+from deployd.common.stats import MetricCache, Stat, MetricClient, TimeElapsed, \
+                                 MetricCacheConfigurationError, MetricClientConfigurationError
 from deployd import __version__
 import unittest
 import os
@@ -24,6 +25,12 @@ try:
 except ImportError:
     # python2 support
     import mock
+
+
+class TestMetricCacheExceptions(unittest.TestCase):
+    def test__MetricCacheConfigurationError(self):
+        with self.assertRaises(MetricCacheConfigurationError):
+            MetricCache(path=None)
 
 
 class TestMetricCache(unittest.TestCase):
@@ -119,12 +126,22 @@ class TestStat(unittest.TestCase):
         self.assertFalse(stat.deserialize(ins=invalid_type))
 
 
+class TestMetricClientExceptions(unittest.TestCase):
+    def test__MetricClientConfigurationError(self):
+        with self.assertRaises(MetricClientConfigurationError):
+            MetricClient(port=None, cache_path=None)
+
+
 class TestMetricClient(unittest.TestCase):
     cache_path = 'tests/unit/deploy/common/test_stats.cache'
     port = 5000
 
     def setUp(self):
         self.client = MetricClient(port=self.port, cache_path=self.cache_path)
+
+    def tearDown(self):
+        MetricCache(self.cache_path)
+        os.remove(self.cache_path)
 
     def test__add_default_tags(self):
         tag_version = {'deploy_agent_version': __version__}
@@ -145,10 +162,6 @@ class TestMetricClient(unittest.TestCase):
         self.assertFalse(self.client.is_healthy())
         mock_connect_ex.raiseError.side_effect = Exception(socket.error)
         self.assertFalse(self.client.is_healthy())
-
-    def tearDown(self):
-        MetricCache(self.cache_path)
-        os.remove(self.cache_path)
 
 
 class TestTimeElapsed(unittest.TestCase):

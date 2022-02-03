@@ -105,11 +105,20 @@ def create_sc_gauge(name, value, sample_rate=1.0, tags=None):
         return
 
 
+class MetricCacheConfigurationError(ValueError):
+    """ Raised when MetricCache has missing configuration """
+    def __init__(self, name, value):
+        msg = '{} is {}'.format(name, value)
+        super(MetricCacheConfigurationError, self).__init__(msg)
+
+
 class MetricCache:
     """ local cache for metrics
         creates empty cache file
     """
     def __init__(self, path=METRIC_CACHE_PATH):
+        if not path:
+            raise MetricCacheConfigurationError('path', path)
         self.path = path
         # maximum cache size in bytes
         self.max_size = (10 * 1024 * 1024)
@@ -224,10 +233,19 @@ class Stat:
             return False
 
 
+class MetricClientConfigurationError(ValueError):
+    """ Raised when MetricClient has missing configuration """
+    def __init__(self, name, value):
+        msg = '{} is {}'.format(name, value)
+        super(MetricClientConfigurationError, self).__init__(msg)
+
+
 class MetricClient:
     """ metrics client wrapper, enables disk cache """
 
     def __init__(self, port=METRIC_PORT_HEALTH, cache_path=METRIC_CACHE_PATH):
+        if not port:
+            raise MetricClientConfigurationError('port', port)
         self.port = port
         self.cache = MetricCache(path=cache_path)
         self.stat = None
