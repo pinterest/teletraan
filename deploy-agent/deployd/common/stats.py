@@ -191,7 +191,8 @@ class Stat:
             # python2 support
             self.JSONDecodeError = ValueError
 
-    def __repr__(self):
+    def serialize(self):
+        """ serialize for cache writing """
         obj = dict()
         obj['mtype'] = self.mtype
         if self.value is not None:
@@ -200,11 +201,7 @@ class Stat:
         obj['name'] = self.name
         obj['sample_rate'] = self.sample_rate
         obj['tags'] = self.tags
-        return obj
-
-    def serialize(self):
-        """ serialize for cache writing """
-        return json.dumps(self.__repr__())
+        return json.dumps(obj)
 
     def _deserialize(self):
         """ read in json, setting defaults for a stat
