@@ -152,47 +152,47 @@ class TestMetricClient(unittest.TestCase):
 
 
 class TestTimeElapsed(unittest.TestCase):
+    def setUp(self):
+        self.elapsed = TimeElapsed()
+
+    def tearDown(self):
+        self.elapsed = None
 
     def test__is_paused(self):
-        elapsed = TimeElapsed()
-        self.assertFalse(elapsed._is_paused())
+        self.assertFalse(self.elapsed._is_paused())
 
     def test_get(self):
-        elapsed = TimeElapsed()
-        then = elapsed.get()
-        self.assertFalse(elapsed._is_paused())
+        then = self.elapsed.get()
+        self.assertFalse(self.elapsed._is_paused())
         sleep(2)
-        now = elapsed.get()
+        now = self.elapsed.get()
         self.assertTrue(now > then)
 
-        elapsed.pause()
-        self.assertTrue(elapsed._is_paused())
-        self.assertEqual(elapsed.get(), elapsed._time_elapsed)
+        self.elapsed.pause()
+        self.assertTrue(self.elapsed._is_paused())
+        self.assertEqual(self.elapsed.get(), self.elapsed._time_elapsed)
 
     def test_since_pause(self):
-        elapsed = TimeElapsed()
-        self.assertFalse(elapsed._is_paused())
-        self.assertEqual(elapsed.since_pause(), float(0))
+        self.assertFalse(self.elapsed._is_paused())
+        self.assertEqual(self.elapsed.since_pause(), float(0))
 
         sleep(2)
-        elapsed.pause()
-        self.assertTrue(elapsed._is_paused())
-        self.assertTrue(elapsed.since_pause() > 0)
+        self.elapsed.pause()
+        self.assertTrue(self.elapsed._is_paused())
+        self.assertTrue(self.elapsed.since_pause() > 0)
 
     def test_pause(self):
-        elapsed = TimeElapsed()
-        self.assertFalse(elapsed._is_paused())
-        elapsed.pause()
+        self.assertFalse(self.elapsed._is_paused())
+        self.elapsed.pause()
         sleep(2)
-        self.assertTrue(elapsed._is_paused())
+        self.assertTrue(self.elapsed._is_paused())
 
     def test_resume(self):
-        elapsed = TimeElapsed()
-        self.assertFalse(elapsed._is_paused())
-        elapsed.resume()
-        self.assertFalse(elapsed._is_paused())
+        self.assertFalse(self.elapsed._is_paused())
+        self.elapsed.resume()
+        self.assertFalse(self.elapsed._is_paused())
 
-        elapsed.pause()
-        self.assertTrue(elapsed._is_paused())
-        elapsed.resume()
-        self.assertFalse(elapsed._is_paused())
+        self.elapsed.pause()
+        self.assertTrue(self.elapsed._is_paused())
+        self.elapsed.resume()
+        self.assertFalse(self.elapsed._is_paused())
