@@ -49,25 +49,30 @@ class DeployGoal(object):
             self.firstDeploy = jsonValue.get('firstDeploy')
             self.isDocker = jsonValue.get('isDocker')
 
+    def __key(self):
+        return (self.deployId,
+                self.envId,
+                self.envName,
+                self.stageName,
+                self.deployStage,
+                self.build,
+                self.deployAlias,
+                self.config,
+                self.scriptVariables,
+                self.firstDeploy,
+                self.isDocker)
+
+    def __hash__(self):
+        return hash(self.__key())
+
     def __eq__(self, other):
-        if not other:
-            return False
-        if (self.deployId == other.deployId) \
-           and (self.envId == other.envId) \
-           and (self.envName == other.envName) \
-           and (self.stageName == other.stageName) \
-           and (self.deployStage == other.deployStage) \
-           and (self.build == other.build) \
-           and (self.deployAlias == other.deployAlias) \
-           and (self.config == other.config) \
-           and (self.scriptVariables == other.scriptVariables) \
-           and (self.firstDeploy == other.firstDeploy) \
-           and (self.isDocker == other.isDocker):
-            return True
-        return False
+        """ compare DeployGoals """
+        return isinstance(other, DeployGoal) \
+            and self.__key() == other.__key()
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        """ compare DeployGoals """
+        return not self.__key() == other.__key()
 
     def __str__(self):
         return "DeployGoal(deployId={}, envId={}, envName={}, stageName={}, " \
