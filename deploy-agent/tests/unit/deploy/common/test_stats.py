@@ -168,9 +168,6 @@ class TestTimeElapsed(unittest.TestCase):
     def setUp(self):
         self.elapsed = TimeElapsed()
 
-    def tearDown(self):
-        self.elapsed = None
-
     def test__is_paused(self):
         self.assertFalse(self.elapsed._is_paused())
 
