@@ -49,17 +49,17 @@ class DefaultStatsdTimer(object):
         pass
 
 
+class TimingOnlyStatClient:
+    """ timing only stat client in order to use caching """
+    @staticmethod
+    def timing(*args, **kwargs):
+        client = MetricClient()
+        return client.send_context_timer(*args, **kwargs)
+
+
 def create_stats_timer(name, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         from pinstatsd.statsd import statsd_context_timer
-
-        class TimingOnlyStatClient:
-            """ timing only stat client in order to use caching """
-            @staticmethod
-            def timing(*args, **kwargs):
-                client = MetricClient()
-                return client.send_context_timer(*args, **kwargs)
-
         timer = statsd_context_timer(entry_name=name, sample_rate=sample_rate, tags=tags)
         timer._statsd_context_timer__stat_client = TimingOnlyStatClient()
         return timer
