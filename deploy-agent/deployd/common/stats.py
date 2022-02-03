@@ -283,6 +283,9 @@ class MetricClient:
         elif self.stat.mtype == 'gauge' or self.stat.mtype == 'timing':
             func(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
             func_v2(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
+        else:
+            msg = 'encountered unsupported mtype:{} while sending name:{}, value:{}, sample_rate:{}, tags:{}'
+            log.error(msg.format(self.stat.name, self.stat.value, self.stat.sample_rate, self.stat.tags))
 
     def _send(self):
         """ send metric to sc """
