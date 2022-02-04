@@ -59,23 +59,6 @@
             </div>
 
             <div class="form-group">
-                <label for="autoScalingType" class="deployToolTip control-label col-xs-2"
-                  data-toggle="tooltip"
-                  title="Auto Scaling Type">
-                  Auto Scaling Type
-                </label>
-                <div class="col-xs-4">
-                <select class="form-control" name="autoScalingType" id="autoScalingType">
-                    {% if time_based_asg %}
-                        <option value="time" selected>Time based</option>
-                        <option value="alarm">Alarm based</option>
-                    {% else %}
-                        <option value="alarm" selected>Alarm based</option>
-                        <option value="time">Time based</option>
-                    {% endif %}
-                </select>
-                </div>
-
                 <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
                   data-toggle="tooltip"
                   title="termination policy">
@@ -147,19 +130,9 @@ function loadAsgAlarms() {
 }
 
 function getAdvancedSetting() {
-    var auto_scaling_type = $("#autoScalingType option:selected").val();
-    if (auto_scaling_type == "time") {
-        $("#scalingPolicyPid").empty();
-        $("#scalingPolicyPid").removeClass("panel panel-default");
-        $("#alarmMetricPid").empty();
-        $("#alarmMetricPid").removeClass("panel panel-default");
-        loadAsgScheduledActions();
-    } else {
-        $("#scheduledActionsPid").empty();
-        $("#scheduledActionsPid").removeClass("panel panel-default");
-        loadAsgPolicy();
-        loadAsgAlarms();
-    }
+j   loadAsgScheduledActions();
+    loadAsgPolicy();
+    loadAsgAlarms();
 }
 
 $(document).ready(function() {
