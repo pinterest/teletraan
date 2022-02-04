@@ -63,10 +63,6 @@ def launch_hosts_with_placement_group(request, group_name, host_count, subnet, p
     return rodimus_client.post("/groups/%s/hosts" % group_name, request.teletraan_user_id.token, data=data)
 
 
-def terminate_all_hosts(request, group_name):
-    return rodimus_client.delete("/groups/%s/terminate/all" % group_name, request.teletraan_user_id.token)
-
-
 # Health Checks
 def create_health_check(request, group_name, health_check_info):
     return rodimus_client.post("/groups/%s/healthcheck" % group_name, request.teletraan_user_id.token,

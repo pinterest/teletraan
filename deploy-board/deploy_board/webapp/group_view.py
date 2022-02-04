@@ -1093,44 +1093,6 @@ def add_instance(request, group_name):
     return redirect('/groups/{}'.format(group_name))
 
 
-# Terminate all instances
-def terminate_all_hosts(request, group_name):
-
-    try:
-        response = autoscaling_groups_helper.terminate_all_hosts(request, group_name)
-        if response is not None and type(response) is dict:
-
-            success_count = 0
-            failed_count = 0
-            failed_instance_ids = []
-
-            content = "{} hosts were marked for termination \n".format(len(response))
-
-            for id, status in response.iteritems():
-                if status == "UNKNOWN" or status == "FAILED":
-                    failed_count += 1
-                    failed_instance_ids.append(id)
-                else:
-                    success_count += 1
-
-            content += "{} hosts successfully terminating...\n".format(success_count)
-            content += "{} hosts failed to terminate \n".format(failed_count)
-            content += ",".join(failed_instance_ids)
-
-            messages.add_message(request, messages.SUCCESS, content)
-
-        else:
-            content = "Unexpected response from rodimus backend"
-            messages.add_message(request, messages.ERROR, content)
-
-    except Exception as e:
-        messages.add_message(request, messages.ERROR, str(e))
-        log.error(traceback.format_exc())
-        raise
-
-    return redirect('/groups/{}'.format(group_name))
-
-
 def instance_action_in_asg(request, group_name):
     host_id = request.GET.get("hostId", "")
     action = request.GET.get("action", "")
