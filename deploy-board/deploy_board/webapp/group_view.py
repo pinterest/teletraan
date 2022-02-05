@@ -307,8 +307,6 @@ def get_asg_config(request, group_name):
     policies = autoscaling_groups_helper.TerminationPolicy
     if asg_summary.get("sensitivityRatio", None):
         asg_summary["sensitivityRatio"] *= 100
-
-    # handle scheduled actions
     scheduled_actions = autoscaling_groups_helper.get_scheduled_actions(request, group_name)
     content = render_to_string("groups/asg_config.tmpl", {
         "group_name": group_name,
@@ -393,7 +391,6 @@ def update_asg_config(request, group_name):
 
         autoscaling_groups_helper.update_autoscaling(request, group_name, asg_request)
 
-        # TODO: this may not be used anymore, but related to time based autoscaling
         # Save new pas min and max, disable pas
         pas_config = {}
         pas_config['group_name'] = group_name
