@@ -277,15 +277,20 @@ class MetricClient:
         func = getattr(sc, self.stat.mtype)
         func_v2 = getattr(sc_v2, self.stat.mtype)
 
+        # remove specific tags
+        if isinstance(self.stat.tags, dict):
+            self.stat.tags.pop('host', None)
+
         if self.stat.mtype == 'increment':
-            func(self.stat.name, self.stat.sample_rate, self.stat.tags)
+            # v2 is called first due to tag mutability
             func_v2(self.stat.name, self.stat.sample_rate, self.stat.tags)
+            func(self.stat.name, self.stat.sample_rate, self.stat.tags)
         elif self.stat.mtype == 'gauge' or self.stat.mtype == 'timing':
-            func(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
             func_v2(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
+            func(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
         else:
             msg = 'encountered unsupported mtype:{} while sending name:{}, value:{}, sample_rate:{}, tags:{}'
-            log.error(msg.format(self.stat.name, self.stat.value, self.stat.sample_rate, self.stat.tags))
+            log.error(msg.format(self.stat.mtype, self.stat.name, self.stat.value, self.stat.sample_rate, self.stat.tags))
 
     def _send(self):
         """ send metric to sc """
