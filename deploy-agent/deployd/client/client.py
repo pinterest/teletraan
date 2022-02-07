@@ -198,11 +198,11 @@ class Client(BaseClient):
                 return ping_response
             else:
                 log.error("Fail to read host info")
-                create_sc_increment(stats='deploy.failed.agent.hostinfocollection',
+                create_sc_increment(name='deploy.failed.agent.hostinfocollection',
                                     tags={'host': self._hostname})
         except Exception:
             log.error(traceback.format_exc())
-            create_sc_increment(stats='deploy.failed.agent.requests',
+            create_sc_increment(name='deploy.failed.agent.requests',
                                 tags={'host': self._hostname})
             return None
 
