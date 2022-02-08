@@ -463,6 +463,9 @@ def _parse_metrics_configs(query_data, group_name):
         if key.startswith('TELETRAAN_'):
             alarm_info = {}
             alarm_id = key[len('TELETRAAN_'):]
+            # skip scheduled actions
+            if page_data.get("schedule_{}".format(alarm_id)) or page_data.get("capacity_{}".format(alarm_id)):
+                continue
             alarm_info["alarmId"] = alarm_id
             alarm_info["actionType"] = page_data["actionType_{}".format(alarm_id)][0]
             alarm_info["metricSource"] = page_data["metricsUrl_{}".format(alarm_id)][0]
