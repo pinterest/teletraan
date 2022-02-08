@@ -102,11 +102,47 @@ class TestStat(unittest.TestCase):
                     sample_rate=None,
                     tags=None,
                     ins=data)
-        stat._deserialize()
+        self.assertTrue(stat._deserialize())
         self.assertEqual(stat.mtype, self.mtype)
         self.assertEqual(stat.name, self.name)
         self.assertEqual(stat.sample_rate, self.sample_rate)
         self.assertEqual(stat.tags, self.tags)
+        invalid_str = '{1:'
+        stat = Stat(mtype=None,
+                    name=None,
+                    value=None,
+                    sample_rate=None,
+                    tags=None,
+                    ins=invalid_str)
+        with self.assertRaises(stat.JSONDecodeError):
+            stat._deserialize()
+        invalid_prop = b'{\x48:\x69}'
+        stat = Stat(mtype=None,
+                    name=None,
+                    value=None,
+                    sample_rate=None,
+                    tags=None,
+                    ins=invalid_prop)
+        with self.assertRaises(stat.JSONDecodeError):
+            stat._deserialize()
+        invalid_type_1 = list()
+        stat = Stat(mtype=None,
+                    name=None,
+                    value=None,
+                    sample_rate=None,
+                    tags=None,
+                    ins=invalid_type_1)
+        with self.assertRaises(TypeError):
+            stat._deserialize()
+        invalid_type_2 = 1
+        stat = Stat(mtype=None,
+                    name=None,
+                    value=None,
+                    sample_rate=None,
+                    tags=None,
+                    ins=invalid_type_2)
+        with self.assertRaises(TypeError):
+            stat._deserialize()
 
     def test_deserialize(self):
         stat = Stat(mtype=None,
