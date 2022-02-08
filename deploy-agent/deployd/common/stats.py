@@ -205,14 +205,17 @@ class Stat:
 
     def _deserialize(self):
         """ read in json, setting defaults for a stat
-            return: None
+            return: bool
         """
         obj = json.loads(self.ins)
-        self.mtype = obj.get('mtype', None)
-        self.name = obj.get('name', None)
-        self.value = obj.get('value', None)
-        self.sample_rate = obj.get('sample_rate', None)
-        self.tags = obj.get('tags', None)
+        if isinstance(obj, dict):
+            self.mtype = obj.get('mtype', None)
+            self.name = obj.get('name', None)
+            self.value = obj.get('value', None)
+            self.sample_rate = obj.get('sample_rate', None)
+            self.tags = obj.get('tags', None)
+            return True
+        return False
 
     def deserialize(self, ins=None):
         """ attempt to deserialize
@@ -222,12 +225,14 @@ class Stat:
         if ins:
             self.ins = ins
         try:
-            self._deserialize()
-            return True
+            valid = self._deserialize()
+            if valid:
+                return True
         except self.JSONDecodeError:
             return False
         except TypeError:
             return False
+        return False
 
 
 class MetricClientConfigurationError(ValueError):
