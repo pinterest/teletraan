@@ -73,11 +73,6 @@ public class RodimusManagerImpl implements RodimusManager {
         }
     }
 
-// TO REMOVE ???
-    public void setKnoxKey(String knoxKey) throws Exception {
-        this.fsKnox = new FileSystemKnox(knoxKey);
-    }
-
     private boolean refreshCachedKey() throws Exception {
         String prevKnoxKey = this.catchedKey;
 
