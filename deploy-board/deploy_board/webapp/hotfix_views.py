@@ -44,7 +44,7 @@ def get_hotfix(request, name, stage, id):
     hotfix = hotfixs_helper.get(request, id)
     deploy = deploys_helper.get(request, hotfix['baseDeployId'])
     build = builds_helper.get_build(request, deploy['buildId'])
-    urlPattern = systems_helper.get_url_pattern(request)
+    urlPattern = systems_helper.get_url_pattern(request, build.get('type'))
     commits = []
     _create_commits(commits, urlPattern['template'], hotfix)
     jenkins_url = "%s/%s/%s" % (BUILD_URL, hotfix['jobName'],
@@ -63,7 +63,7 @@ def get_hotfix_detail(request, id):
     hotfix = hotfixs_helper.get(request, id)
     deploy = deploys_helper.get(request, hotfix['baseDeployId'])
     build = builds_helper.get_build(request, deploy['buildId'])
-    urlPattern = systems_helper.get_url_pattern(request)
+    urlPattern = systems_helper.get_url_pattern(request, build.get('type'))
     commits = []
     _create_commits(commits, urlPattern['template'], hotfix)
     jenkins_url = "%s/%s/%s" % (BUILD_URL, hotfix['jobName'],
@@ -85,7 +85,8 @@ def patch(request, name, stage):
         deploy_id = env['deployId']
     deploy = deploys_helper.get(request, deploy_id)
     build = builds_helper.get_build(request, deploy['buildId'])
-    commits, truncated, new_start_sha = common.get_commits_batch(request, build['repo'],
+    commits, truncated, new_start_sha = common.get_commits_batch(request, build['type'], 
+                                                                 build['repo'],
                                                                  env['branch'],
                                                                  build['commit'],
                                                                  keep_first=True)
@@ -107,7 +108,7 @@ class HotfixesView(View):
         index = int(request.GET.get('page_index', '1'))
         size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
         hotfixes = hotfixs_helper.get_all(request, name, index, size)
-        urlPattern = systems_helper.get_url_pattern(request)
+        urlPattern = systems_helper.get_url_pattern(request, "")
         for hotfix in hotfixes:
             commits = []
             _create_commits(commits, urlPattern['template'], hotfix)

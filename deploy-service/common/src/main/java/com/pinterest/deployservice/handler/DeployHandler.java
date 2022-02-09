@@ -52,7 +52,7 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
-import com.pinterest.deployservice.scm.SourceControlManager;
+import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.deployservice.allowlists.Allowlist;
 
 import com.google.common.base.Joiner;
@@ -92,7 +92,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private BasicDataSource dataSource;
     private CommonHandler commonHandler;
     private DataHandler dataHandler;
-    private SourceControlManager sourceControlManager;
+    private SourceControlManagerProxy sourceControlManagerProxy;
     private ExecutorService jobPool;
     private String deployBoardUrlPrefix;
     private String changeFeedUrl;
@@ -192,7 +192,7 @@ public class DeployHandler implements DeployHandlerInterface{
         dataSource = serviceContext.getDataSource();
         commonHandler = new CommonHandler(serviceContext);
         dataHandler = new DataHandler(serviceContext);
-        sourceControlManager = serviceContext.getSourceControlManager();
+        sourceControlManagerProxy = serviceContext.getSourceControlManagerProxy();
         jobPool = serviceContext.getJobPool();
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
         changeFeedUrl = serviceContext.getChangeFeedUrl();
@@ -224,7 +224,12 @@ public class DeployHandler implements DeployHandlerInterface{
             BuildBean oldBuildBean = buildDAO.getById(oldBuildId);
 
             // Get all the commits between old and new deploy
-            List<CommitBean> commits = sourceControlManager.getCommits(newBuildBean.getScm_repo(),
+            if (! newBuildBean.getScm().equals(oldBuildBean.getScm())) {
+                LOG.error("Failed to generate author notification message: new and old commit has different SCM type");
+                return null;
+            }
+
+            List<CommitBean> commits = sourceControlManagerProxy.getCommits(newBuildBean.getScm(), newBuildBean.getScm_repo(),
                 newBuildBean.getScm_commit(), oldBuildBean.getScm_commit(), 0);
 
             Set<String> authors = new HashSet<>();

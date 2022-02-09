@@ -15,7 +15,6 @@
 from deployd.types.build import Build
 from deployd.types.deploy_stage import DeployStage
 
-
 class DeployGoal(object):
     def __init__(self, jsonValue=None):
         self.deployId = None
@@ -49,6 +48,32 @@ class DeployGoal(object):
             self.scriptVariables = jsonValue.get('scriptVariables')
             self.firstDeploy = jsonValue.get('firstDeploy')
             self.isDocker = jsonValue.get('isDocker')
+
+    def __key(self):
+        return (self.deployId,
+                self.envId,
+                self.envName,
+                self.stageName,
+                self.deployStage,
+                self.build,
+                self.deployAlias,
+                self.config,
+                self.scriptVariables,
+                self.firstDeploy,
+                self.isDocker)
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __eq__(self, other):
+        """ compare DeployGoals """
+        return isinstance(other, DeployGoal) \
+            and self.__key() == other.__key()
+
+    def __ne__(self, other):
+        """ compare DeployGoals """
+        return not (isinstance(other, DeployGoal)
+                    and self.__key() == other.__key())
 
     def __str__(self):
         return "DeployGoal(deployId={}, envId={}, envName={}, stageName={}, " \

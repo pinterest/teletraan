@@ -308,16 +308,12 @@ def get_asg_config(request, group_name):
     if asg_summary.get("sensitivityRatio", None):
         asg_summary["sensitivityRatio"] *= 100
     scheduled_actions = autoscaling_groups_helper.get_scheduled_actions(request, group_name)
-    time_based_asg = False
-    if len(scheduled_actions) > 0:
-        time_based_asg = True
     content = render_to_string("groups/asg_config.tmpl", {
         "group_name": group_name,
         "asg": asg_summary,
         "group_size": group_size,
         "terminationPolicies": policies,
         "instanceType": launch_config.get("instanceType"),
-        "time_based_asg": time_based_asg,
         "csrf_token": get_token(request),
         "pas_config": pas_config,
     })
@@ -467,6 +463,9 @@ def _parse_metrics_configs(query_data, group_name):
         if key.startswith('TELETRAAN_'):
             alarm_info = {}
             alarm_id = key[len('TELETRAAN_'):]
+            # skip scheduled actions
+            if page_data.get("schedule_{}".format(alarm_id)) or page_data.get("capacity_{}".format(alarm_id)):
+                continue
             alarm_info["alarmId"] = alarm_id
             alarm_info["actionType"] = page_data["actionType_{}".format(alarm_id)][0]
             alarm_info["metricSource"] = page_data["metricsUrl_{}".format(alarm_id)][0]

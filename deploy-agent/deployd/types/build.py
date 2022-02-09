@@ -43,6 +43,33 @@ class Build(object):
             self.publishInfo = jsonValue.get('publishInfo')
             self.publishDate = jsonValue.get('publishDate')
 
+    def __key(self):
+        return (self.buildId,
+                self.buildName,
+                self.buildVersion,
+                self.artifactUrl,
+                self.scm,
+                self.scmRepo,
+                self.scmBranch,
+                self.scmCommit,
+                self.scmInfo,
+                self.commitDate,
+                self.publishInfo,
+                self.publishDate)
+
+    def __hash__(self):
+        return hash(self.__key())
+
+    def __eq__(self, other):
+        """ compare Builds """
+        return isinstance(other, Build) \
+            and self.__key() == other.__key()
+
+    def __ne__(self, other):
+        """ compare Builds """
+        return not (isinstance(other, Build)
+                    and self.__key() == other.__key())
+
     def __str__(self):
         return "Build(buildId={}, buildName={}, buildVersion={}, artifactUrl={}, scm={}, " \
                "scmRepo={}, scmBranch={}, scmCommit={}, scmInfo={}, commitDate={}, publishInfo={}, " \

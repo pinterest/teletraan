@@ -1,31 +1,33 @@
-
 <div id="clusterPanelId" v-if="hasCluster" class="panel panel-default">
-<panel-heading title="Cluster Capacity" target="#clusterConfigId" initcollapse="false">
-</panel-heading>
-<div id="clusterConfigId" class="collapse in panel-body">
-    <div class="container-fluid">
-        <form id="clusterConfigFormId" class="form-horizontal" role="form">
-            <fieldset id="clusterConfigFieldSetId">
-                <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
-                <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
-                <static-capacity-config v-if="!autoscalingEnabled" v-bind:capacity="desiredCapacity" v-on:change="updateStatic">
-                </static-capacity-config>
-                <asg-capacity-config v-if="autoscalingEnabled" v-bind:minsize="minsize" v-bind:maxsize="maxsize" v-on:minchange="updateMin" v-on:maxchange="updateMax">
-                </asg-capacity-config>
-            </fieldset>
-        </form>
+    <panel-heading title="Cluster Capacity" target="#clusterConfigId" initcollapse="false"></panel-heading>
+    <div id="clusterConfigId" class="collapse in panel-body">
+        <div class="container-fluid">
+            <form id="clusterConfigFormId" class="form-horizontal" role="form">
+                <fieldset id="clusterConfigFieldSetId">
+                    <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
+                    <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
+                    <static-capacity-config v-if="!autoscalingEnabled" v-bind:capacity="desiredCapacity" v-on:change="updateStatic"></static-capacity-config>
+                    <asg-capacity-config v-if="autoscalingEnabled" v-bind:minsize="minsize" v-bind:maxsize="maxsize" v-on:minchange="updateMin" v-on:maxchange="updateMax"></asg-capacity-config>
+                </fieldset>
+            </form>
+        </div>
     </div>
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity"
+                    data-toggle="modal"
+                    :data-target="`#${confirmDialogId}`"
+                    title="Save cluster capacity configuration">
+                <span class="glyphicon glyphicon-floppy-save"></span>
+                Save
+            </button>
+        </div>
+    </div>
+    <modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">
+        <div slot="body"> Are you sure you want to <strong>change capacity</strong> for this cluster?</div>
+    </modal>
 </div>
 
-<div class="panel-footer clearfix">
-    <div class="pull-right">
-        <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity"
-                data-loading-text="Saving..." v-on:click="save">
-            <span class="glyphicon glyphicon-floppy-save"></span> Save
-        </button>
-    </div>
-</div>
-</div>
 <script>
     var cluster = info.basic_cluster_info;
     if (cluster!=null){
@@ -46,6 +48,8 @@
                 cell: cluster.cellName,
                 clusterstate: cluster.state,
                 clusterStateStyle: cluster.state === "NORMAL" ? "text-success" : "text-danger",
+                confirmDialogTitle:"Change Cluster Capacity Confirmation",
+                confirmDialogId:"confirmClusterCapacityDialog",
                 desiredCapacity: cluster.capacity,
                 instancetype: cluster.hostType,
                 minsize: asg_launch_info.minSize,
@@ -67,6 +71,11 @@
                     this.maxsize = Number(value)
                     if (this.maxsize<this.minsize){
                         this.minsize = this.maxsize
+                    }
+                },
+                clickDialog: function(value){
+                    if (value){
+                        this.save();
                     }
                 },
                 save:function(){

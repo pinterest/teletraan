@@ -76,19 +76,22 @@ def get_all_builds(request):
     size = int(request.GET.get('page_size', common.DEFAULT_BUILD_SIZE))
     builds = builds_helper.get_builds_and_tags(request, name=name, branch=branch, pageIndex=index,
                                       pageSize=size)
-    scm_url = systems_helper.get_scm_url(request)
     deploy_state = None
     current_build_id = request.GET.get('current_build_id', None)
     override_policy = request.GET.get('override_policy')
     deploy_id = request.GET.get('deploy_id')
     current_build = None
+    scmType = ""
     if current_build_id:
         current_build = builds_helper.get_build_and_tag(request, current_build_id)
         current_build = current_build.get('build')
+        scmType = current_build.get('type')
     if deploy_id:
         deploy_config = deploys_helper.get(request, deploy_id)
         if deploy_config:
             deploy_state = deploy_config.get('state', None)
+
+    scm_url = systems_helper.get_scm_url(request, scmType)
 
     html = render_to_string('builds/pick_a_build.tmpl', {
         "builds": builds,
@@ -124,8 +127,9 @@ def get_more_commits(request):
     startSha = request.GET.get('start_sha')
     endSha = request.GET.get('end_sha')
     repo = request.GET.get('repo')
+    scm = request.GET.get('scm')
 
-    commits, truncated, new_start_sha = common.get_commits_batch(request, repo,
+    commits, truncated, new_start_sha = common.get_commits_batch(request, scm, repo,
                                                                  startSha, endSha,
                                                                  keep_first=False)
 
@@ -146,14 +150,16 @@ def compare_commits(request):
     startSha = request.GET.get('start_sha')
     endSha = request.GET.get('end_sha')
     repo = request.GET.get('repo')
-    commits, truncated, new_start_sha = common.get_commits_batch(request, repo,
-                                                                 startSha, endSha,
+    scm = request.GET.get('scm')
+    commits, truncated, new_start_sha = common.get_commits_batch(request, scm, repo,
+                                                                 startSha, endSha, 
                                                                  keep_first=True)
     html = render_to_string('builds/commits.tmpl', {
         "commits": commits,
         "start_sha": new_start_sha,
         "end_sha": endSha,
         "repo": repo,
+        "scm": scm,
         "truncated": truncated,
         "show_checkbox": False,
     })
@@ -164,7 +170,8 @@ def compare_commits_datatables(request):
     startSha = request.GET.get('start_sha')
     endSha = request.GET.get('end_sha')
     repo = request.GET.get('repo')
-    commits, truncated, new_start_sha = common.get_commits_batch(request, repo,
+    scm = request.GET.get('scm')    
+    commits, truncated, new_start_sha = common.get_commits_batch(request, scm, repo,
                                                                  startSha, endSha,
                                                                  size=2000,
                                                                  keep_first=True)
@@ -173,6 +180,7 @@ def compare_commits_datatables(request):
         "start_sha": new_start_sha,
         "end_sha": endSha,
         "repo": repo,
+        "scm": scm,
         "truncated": truncated,
         "show_checkbox": False,
     })

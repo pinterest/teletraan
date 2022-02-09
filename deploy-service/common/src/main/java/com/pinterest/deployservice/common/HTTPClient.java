@@ -114,7 +114,7 @@ public class HTTPClient {
                     throw new DeployInternalException("HTTP request failed, status = {}, content = {}",
                         responseCode, ret);
                 }
-                LOG.debug("HTTP Request returned with response code {} for URL {}", responseCode, scrubbedUrl);
+                LOG.info("HTTP Request returned with response code {} for URL {}", responseCode, scrubbedUrl);
                 return ret;
             } catch (Exception e) {
                 lastException = e;

@@ -42,11 +42,14 @@ import com.pinterest.deployservice.events.DefaultEventSender;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
+import com.pinterest.deployservice.scm.SourceControlManager;
+import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
 import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
+import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 import com.pinterest.teletraan.worker.AgentJanitor;
 import com.pinterest.teletraan.worker.AutoPromoter;
@@ -71,6 +74,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -128,10 +132,18 @@ public class ConfigHelper {
 
         // Inject proper implementation based on config
         context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
-        context.setSourceControlManager(configuration.getSourceControlFactory().create());
         context.setChatManager(configuration.getChatFactory().create());
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
+
+        List<SourceControlFactory> sourceControlConfigs = configuration.getSourceControlConfigs();
+        HashMap<String, SourceControlManager> managers = new HashMap<String, SourceControlManager>();
+        for(SourceControlFactory scf : sourceControlConfigs) {
+            SourceControlManager scm = scf.create();
+            String type = scm.getType();
+            managers.put(type, scm);
+        }
+        context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers));
 
         EventSenderFactory eventSenderFactory = configuration.getEventSenderFactory();
         if (eventSenderFactory != null) {

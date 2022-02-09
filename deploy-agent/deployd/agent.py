@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import argparse
+import daemon
+import logging
 import os
 from random import randrange
 import time
 import traceback
-import daemon
-import logging
 
 from deployd.client.client import Client
 from deployd.client.serverless_client import ServerlessClient
@@ -27,6 +27,7 @@ from deployd.common.exceptions import AgentException
 from deployd.common.helper import Helper
 from deployd.common.single_instance import SingleInstance
 from deployd.common.env_status import EnvStatus
+from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_increment
 from deployd.common import utils
 from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
@@ -64,6 +65,10 @@ class DeployAgent(object):
         self._envs = {}
         self._config = conf or Config()
         self._executor = executor
+        self.stat_time_elapsed_internal = TimeElapsed()
+        self.stat_time_elapsed_total = TimeElapsed()
+        self.stat_stage_time_elapsed = None
+        self.deploy_goal_previous = None
         self._helper = helper or Helper(self._config)
         self._STATUS_FILE = self._config.get_env_status_fn()
         self._client = client
@@ -80,6 +85,12 @@ class DeployAgent(object):
 
         self._curr_report = list(self._envs.values())[0]
         self._config.update_variables(self._curr_report)
+
+    def first_run(self):
+        """ check if this the very first run of agent on this instance """
+        if not self._envs:
+            return True
+        return False
 
     def serve_build(self):
         """This is the main function of the ``DeployAgent``.
@@ -101,9 +112,13 @@ class DeployAgent(object):
 
         while self._response and self._response.opCode and self._response.opCode != OpCode.NOOP:
             try:
+                # ensure stat_time_elapsed_internal is always running
+                self.stat_time_elapsed_internal.resume()
                 # update the current deploy goal
                 if self._response.deployGoal:
                     deploy_report = self.process_deploy(self._response)
+                    # resume stat_time_elapsed_internal immediately, previous process_deploy may have paused
+                    self.stat_time_elapsed_internal.resume()
                 else:
                     log.info('No new deploy goal to get updated')
                     deploy_report = DeployReport(AgentStatus.SUCCEEDED)
@@ -114,12 +129,30 @@ class DeployAgent(object):
 
             except Exception:
                 # anything catch-up here should be treated as agent failure
+                # resume stat_time_elapsed_internal, previous process_deploy may have paused
+                self.stat_time_elapsed_internal.resume()
                 deploy_report = DeployReport(status_code=AgentStatus.AGENT_FAILED,
                                              error_code=1,
                                              output_msg=traceback.format_exc(),
                                              retry_times=1)
 
-            self.update_deploy_status(deploy_report)
+            # increment stats - deploy status
+            if self._response.deployGoal and deploy_report:
+                tags = {'first_run': self.first_run()}
+                if self._response.deployGoal.deployStage:
+                    tags['deploy_stage'] = self._response.deployGoal.deployStage
+                if self._response.deployGoal.envName:
+                    tags['env_name'] = self._response.deployGoal.envName
+                if self._response.deployGoal.stageName:
+                    tags['stage_name'] = self._response.deployGoal.stageName
+                if deploy_report.status_code:
+                    tags['status_code'] = deploy_report.status_code
+                create_sc_increment('deployd.stats.deploy.status.sum',
+                                    1,
+                                    tags=tags)
+
+            if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
+                return
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
                                              AgentStatus.TOO_MANY_RETRY,
                                              AgentStatus.SCRIPT_TIMEOUT]:
@@ -153,6 +186,7 @@ class DeployAgent(object):
         try:
             if len(self._envs) > 0:
                 # randomly sleep some time before pinging server
+                # TODO: consider pause stat_time_elapsed_internal here
                 sleep_secs = randrange(self._config.get_init_sleep_time())
                 log.info("Randomly sleep {} seconds before starting.".format(sleep_secs))
                 time.sleep(sleep_secs)
@@ -175,6 +209,7 @@ class DeployAgent(object):
 
 
     def process_deploy(self, response):
+        self.stat_time_elapsed_internal.resume()
         op_code = response.opCode
         deploy_goal = response.deployGoal
         if op_code == OpCode.TERMINATE or op_code == OpCode.DELETE:
@@ -196,6 +231,8 @@ class DeployAgent(object):
             STAGING: In this step, deploy agent will chmod and change the symlink pointing to
               new service code, and etc.
             '''
+            # pause stat_time_elapsed_internal so that external actions are not counted
+            self.stat_time_elapsed_internal.pause()
             if curr_stage == DeployStage.DOWNLOADING:
                 return self._executor.run_cmd(self.get_download_script(deploy_goal=deploy_goal))
             elif curr_stage == DeployStage.STAGING:
@@ -245,10 +282,9 @@ class DeployAgent(object):
         self._update_ping_reports(deploy_report=deploy_report)
         response = self._client.send_reports(self._envs)
 
-        # if we failed to get any response from server, set the self._response to None
+        # if we failed to get any response from server, return failure but don't reset previous response
         if response is None:
             log.info('Failed to get response from server')
-            self._response = None
             return PingStatus.PING_FAILED
         else:
             plan_changed = DeployAgent.plan_changed(self._response, response)
@@ -288,12 +324,27 @@ class DeployAgent(object):
                     build, dir))
                 self._helper.clean_package(dir, build, env_name)
 
+    def _timing_stats_deploy_stage_time_elapsed(self):
+        """ a deploy goal has finished, send stats for the elapsed time """
+        if self.deploy_goal_previous and self.deploy_goal_previous.deployStage and self.stat_stage_time_elapsed:
+            tags = {'first_run': self.first_run()}
+            if self.deploy_goal_previous.deployStage:
+                tags['deploy_stage'] = self.deploy_goal_previous.deployStage
+            if self.deploy_goal_previous.envName:
+                tags['env_name'] = self.deploy_goal_previous.envName
+            if self.deploy_goal_previous.stageName:
+                tags['stage_name'] = self.deploy_goal_previous.stageName
+            create_sc_timing('deployd.stats.deploy.stage.time_elapsed_sec',
+                             self.stat_stage_time_elapsed.get(),
+                             tags=tags)
+
     # private functions: update per deploy step configuration specified by services owner on the
     # environment config page
     def _update_internal_deploy_goal(self, response):
         deploy_goal = response.deployGoal
         if not deploy_goal:
             log.info('No deploy goal to be updated.')
+            self._timing_stats_deploy_stage_time_elapsed()
             return DeployReport(status_code=AgentStatus.SUCCEEDED)
 
         # use envName as status map key
@@ -313,6 +364,27 @@ class DeployAgent(object):
             with open(working_dir, "w+") as f:
                 for key, value in deploy_goal.scriptVariables.items():
                     f.write("{}={}\n".format(key, value))
+
+        # timing stats - deploy stage start
+        if deploy_goal != self.deploy_goal_previous:
+            # a deploy goal has changed
+            tags = {'first_run': self.first_run()}
+
+            # deploy stage has changed, close old previous timer
+            self._timing_stats_deploy_stage_time_elapsed()
+
+            # create a new timer for the new deploy goal
+            if deploy_goal.deployStage:
+                tags['deploy_stage'] = deploy_goal.deployStage
+            if deploy_goal.envName:
+                tags['env_name'] = deploy_goal.envName
+            if deploy_goal.stageName:
+                tags['stage_name'] = deploy_goal.stageName
+            self.stat_stage_time_elapsed = TimeElapsed()
+            create_sc_timing('deployd.stats.deploy.stage.time_start_sec',
+                             self.stat_stage_time_elapsed.get(),
+                             tags=tags)
+            self.deploy_goal_previous = deploy_goal
 
         # load deploy goal to the config
         self._curr_report = self._envs[env_name]
@@ -409,6 +481,9 @@ def main():
                             format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
 
     log.info("Start to run deploy-agent.")
+    # timing stats - agent start time
+    create_sc_timing('deployd.stats.internal.time_start_sec',
+                     int(time.time()))
     client = Client(config=config, hostname=args.hostname, hostgroup=args.hostgroup,
                     use_facter=args.use_facter, use_host_info=args.use_host_info)
     if is_serverless_mode:
@@ -416,7 +491,11 @@ def main():
         client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,
                                   script_variables=args.script_variables)
 
+    uptime = utils.uptime()
     agent = DeployAgent(client=client, conf=config)
+    create_sc_timing('deployd.stats.ec2_uptime_sec',
+                     uptime,
+                     tags={'first_run': agent.first_run()})
     utils.listen()
     if args.daemon:
         logger = logging.getLogger()
@@ -428,6 +507,17 @@ def main():
     else:
         agent.serve_once()
 
+    # timing stats - total processing time excluding external actions
+    create_sc_timing('deployd.stats.internal.time_elapsed_proc_sec',
+                    agent.stat_time_elapsed_internal.get(),
+                    tags={'first_run': agent.first_run()})
+    # timing stats - agent total run time
+    create_sc_timing('deployd.stats.internal.time_elapsed_proc_total_sec',
+                     agent.stat_time_elapsed_total.get(),
+                     tags={'first_run': agent.first_run()})
+    # timing stats - agent exit time
+    create_sc_timing('deployd.stats.internal.time_end_sec',
+                     int(time.time()))
 
 if __name__ == '__main__':
     main()

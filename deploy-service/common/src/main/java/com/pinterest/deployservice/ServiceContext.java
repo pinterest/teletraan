@@ -45,8 +45,7 @@ import com.pinterest.deployservice.events.EventSender;
 import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
-import com.pinterest.deployservice.scm.SourceControlManager;
-import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
+import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.deployservice.allowlists.Allowlist;
 
 import org.apache.commons.dbcp.BasicDataSource;
@@ -85,7 +84,7 @@ public class ServiceContext {
 
     private String serviceStage;
     private MailManager mailManager;
-    private SourceControlManager sourceControlManager;
+    private SourceControlManagerProxy sourceControlManagerProxy;
     private ChatManager chatManager;
     private ExecutorService jobPool;
     private RodimusManager rodimusManager;
@@ -287,12 +286,12 @@ public class ServiceContext {
         return this.serviceStage;
     }
 
-    public SourceControlManager getSourceControlManager() {
-        return sourceControlManager;
+    public SourceControlManagerProxy getSourceControlManagerProxy() {
+        return sourceControlManagerProxy;
     }
 
-    public void setSourceControlManager(SourceControlManager sourceControlManager) {
-        this.sourceControlManager = sourceControlManager;
+    public void setSourceControlManagerProxy(SourceControlManagerProxy sourceControlManagerProxy) {
+        this.sourceControlManagerProxy = sourceControlManagerProxy;
     }
 
     public ChatManager getChatManager() {

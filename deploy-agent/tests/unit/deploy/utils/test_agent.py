@@ -19,6 +19,7 @@ import time
 import unittest
 
 from deployd.common.helper import Helper
+from deployd.common import utils
 
 
 class TestAgentHelperFunctions(tests.FileTestCase):
@@ -84,6 +85,12 @@ class TestAgentHelperFunctions(tests.FileTestCase):
         self.assertFalse(Helper.get_build_id("whateverfile", "cmp_test")[0])
         self.assertFalse(Helper.get_build_id("whateverfile.tar.gz", "cmp_test")[0])
         self.assertFalse(Helper.get_build_id("cmp_test-tmp", "cmp_test")[0])
+
+    def test_get_uptime(self):
+        """
+        Test utils.uptime()
+        """
+        self.assertTrue(isinstance(utils.uptime(), int))
 
 if __name__ == '__main__':
     unittest.main()

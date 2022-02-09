@@ -230,12 +230,12 @@ USER_DATA_CONFIG_SETTINGS_WIKI = os.getenv("USER_DATA_CONFIG_SETTINGS_WIKI", Non
 
 TELETRAAN_DISABLE_CREATE_ENV_PAGE = True if os.getenv("TELETRAAN_DISABLE_CREATE_ENV_PAGE", "false") == "true" else False
 TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL = os.getenv("TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL", None)
+TELETRAAN_CLUSTER_READONLY_FIELDS = os.getenv("TELETRAAN_CLUSTER_READONLY_FIELDS", "spiffe_id").split(",")
 IS_DURING_CODE_FREEZE = True if os.getenv("TELETRAAN_CODE_FREEZE", "false") == "true" else False
 TELETRAAN_CODE_FREEZE_URL = os.getenv("TELETRAAN_CODE_FREEZE_URL", None)
 TELETRAAN_JIRA_SOURCE_URL = os.getenv("TELETRAAN_JIRA_SOURCE_URL", None)
 TELETRAAN_TRANSFER_OWNERSHIP_URL = os.getenv("TELETRAAN_TRANSFER_OWNERSHIP_URL", None)
 TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL = os.getenv("TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL", None)
-TELETRAAN_RESOURCE_OWNERSHIP_SLACK = os.getenv("TELETRAAN_RESOURCE_OWNERSHIP_SLACK", None)
 TELETRAAN_PROJECT_URL_FORMAT = os.getenv("TELETRAAN_PROJECT_URL_FORMAT", None)
 
 # use Rodimus if present
@@ -284,6 +284,8 @@ if IS_PINTEREST:
     DEFAULT_CMP_IMAGE = 'cmp_base-ebs-18.04'
 
     #Pinterest Default Host Type
+    # TODO: This is a description of the host type but is nonunique. However, it cannot be replaced by host_type ID since it is unique per service database.
+    # TODO: The model for host type should be rebuilt based on a unique abstract factor such as ec2 instance type, for now we should keep expected behavior.
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
 
     DEFAULT_CELL = 'aws-us-east-1'

@@ -60,7 +60,7 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     @Valid
     @JsonProperty("scm")
-    private SourceControlFactory sourceControlFactory;
+    private List<SourceControlFactory> sourceControlConfigs;
 
     @Valid
     @JsonProperty("chat")
@@ -129,15 +129,15 @@ public class TeletraanServiceConfiguration extends Configuration {
         this.authenticationFactory = authenticationFactory;
     }
 
-    public SourceControlFactory getSourceControlFactory() {
-        if (sourceControlFactory == null) {
-            return new DefaultSourceControlFactory();
+    public List<SourceControlFactory> getSourceControlConfigs() {
+        if (sourceControlConfigs == null) {
+            return Collections.emptyList();
         }
-        return sourceControlFactory;
+        return sourceControlConfigs;
     }
 
-    public void setSourceControlFactory(SourceControlFactory sourceControlFactory) {
-        this.sourceControlFactory = sourceControlFactory;
+    public void setSourceControlConfigs(List<SourceControlFactory> sourceControlConfigs) {
+        this.sourceControlConfigs = sourceControlConfigs;
     }
 
     public AuthorizationFactory getAuthorizationFactory() {

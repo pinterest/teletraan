@@ -17,6 +17,7 @@ package com.pinterest.teletraan.worker;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
@@ -58,7 +59,7 @@ public class HostTerminator implements Runnable {
         List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
         boolean stopSucceeded = true;
         for (AgentBean agentBean : agentBeans) {
-            if (agentBean.getDeploy_stage() != DeployStage.STOPPED) {
+            if (agentBean.getDeploy_stage() != DeployStage.STOPPED && agentBean.getState() != AgentState.PAUSED_BY_SYSTEM) {
                 stopSucceeded = false;
             }
         }
