@@ -69,6 +69,7 @@ class DeployAgent(object):
         self.stat_time_elapsed_total = TimeElapsed()
         self.stat_stage_time_elapsed = None
         self.deploy_goal_previous = None
+        self._first_run = None
         self._helper = helper or Helper(self._config)
         self._STATUS_FILE = self._config.get_env_status_fn()
         self._client = client
@@ -87,10 +88,22 @@ class DeployAgent(object):
         self._config.update_variables(self._curr_report)
 
     def first_run(self):
-        """ check if this the very first run of agent on this instance """
+        """ check if this the very first run of agent on this instance
+            supports sticky Truth: re-evaluate first run
+            only if self._first_run is None or False
+            return: bool self._first_run
+        """
+        if self._first_run:
+            # first run already signaled
+            return self._first_run
+        # re-evaluate first run
         if not self._envs:
-            return True
-        return False
+            # no self._envs presence signals agent first run
+            self._first_run = True
+        else:
+            # not first run
+            self._first_run = False
+        return self._first_run
 
     def serve_build(self):
         """This is the main function of the ``DeployAgent``.
