@@ -60,8 +60,10 @@ class TimingOnlyStatClient:
 def create_stats_timer(name, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         from pinstatsd.statsd import statsd_context_timer
-        timer = statsd_context_timer(entry_name=name, sample_rate=sample_rate, tags=tags)
-        timer._statsd_context_timer__stat_client = TimingOnlyStatClient()
+        timer = statsd_context_timer(entry_name=name,
+                                     sample_rate=sample_rate,
+                                     tags=tags,
+                                     stat_client=TimingOnlyStatClient)
         return timer
     else:
         return
