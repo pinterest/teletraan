@@ -60,8 +60,10 @@ class TimingOnlyStatClient:
 def create_stats_timer(name, sample_rate=1.0, tags=None):
     if IS_PINTEREST:
         from pinstatsd.statsd import statsd_context_timer
-        timer = statsd_context_timer(entry_name=name, sample_rate=sample_rate, tags=tags)
-        timer._statsd_context_timer__stat_client = TimingOnlyStatClient()
+        timer = statsd_context_timer(entry_name=name,
+                                     sample_rate=sample_rate,
+                                     tags=tags,
+                                     stat_client=TimingOnlyStatClient())
         return timer
     else:
         return
@@ -286,12 +288,15 @@ class MetricClient:
         if isinstance(self.stat.tags, dict):
             self.stat.tags.pop('host', None)
 
+        # name suffix to differentiate sc from sc_v2
+        name_sc_v2 = '{}.cluster'.format(self.stat.name)
+
         if self.stat.mtype == 'increment':
             # v2 is called first due to tag mutability
-            func_v2(self.stat.name, self.stat.sample_rate, self.stat.tags)
+            func_v2(name_sc_v2, self.stat.sample_rate, self.stat.tags)
             func(self.stat.name, self.stat.sample_rate, self.stat.tags)
         elif self.stat.mtype == 'gauge' or self.stat.mtype == 'timing':
-            func_v2(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
+            func_v2(name_sc_v2, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
             func(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
         else:
             msg = 'encountered unsupported mtype:{} while sending name:{}, value:{}, sample_rate:{}, tags:{}'
