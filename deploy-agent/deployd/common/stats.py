@@ -286,12 +286,15 @@ class MetricClient:
         if isinstance(self.stat.tags, dict):
             self.stat.tags.pop('host', None)
 
+        # name suffix to differentiate sc from sc_v2
+        name_sc_v2 = '{}.cluster'.format(self.stat.name)
+
         if self.stat.mtype == 'increment':
             # v2 is called first due to tag mutability
-            func_v2(self.stat.name, self.stat.sample_rate, self.stat.tags)
+            func_v2(name_sc_v2, self.stat.sample_rate, self.stat.tags)
             func(self.stat.name, self.stat.sample_rate, self.stat.tags)
         elif self.stat.mtype == 'gauge' or self.stat.mtype == 'timing':
-            func_v2(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
+            func_v2(name_sc_v2, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
             func(self.stat.name, self.stat.value, sample_rate=self.stat.sample_rate, tags=self.stat.tags)
         else:
             msg = 'encountered unsupported mtype:{} while sending name:{}, value:{}, sample_rate:{}, tags:{}'
