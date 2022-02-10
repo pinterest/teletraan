@@ -63,7 +63,7 @@ def create_stats_timer(name, sample_rate=1.0, tags=None):
         timer = statsd_context_timer(entry_name=name,
                                      sample_rate=sample_rate,
                                      tags=tags,
-                                     stat_client=TimingOnlyStatClient)
+                                     stat_client=TimingOnlyStatClient())
         return timer
     else:
         return
