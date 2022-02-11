@@ -89,9 +89,9 @@ class DeployAgent(object):
 
     @property
     def first_run(self):
-        """ check if this the very first run of agent on this instance
-            supports sticky Truth: re-evaluate first run
-            only if self._first_run is None or False
+        """ check if this the very first run of agent on this instance.
+            first_run will evaluate to True, even if self._envs is set, until the process has exited.
+            self._envs is not populated when running for the first time on a new instance
             return: bool self._first_run
         """
         if self._first_run or not self._envs:
