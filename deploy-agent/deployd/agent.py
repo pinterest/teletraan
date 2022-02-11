@@ -69,7 +69,7 @@ class DeployAgent(object):
         self.stat_time_elapsed_total = TimeElapsed()
         self.stat_stage_time_elapsed = None
         self.deploy_goal_previous = None
-        self._first_run = None
+        self._first_run = False
         self._helper = helper or Helper(self._config)
         self._STATUS_FILE = self._config.get_env_status_fn()
         self._client = client
@@ -87,22 +87,15 @@ class DeployAgent(object):
         self._curr_report = list(self._envs.values())[0]
         self._config.update_variables(self._curr_report)
 
+    @property
     def first_run(self):
         """ check if this the very first run of agent on this instance
             supports sticky Truth: re-evaluate first run
             only if self._first_run is None or False
             return: bool self._first_run
         """
-        if self._first_run:
-            # first run already signaled
-            return self._first_run
-        # re-evaluate first run
-        if not self._envs:
-            # no self._envs presence signals agent first run
+        if self._first_run or not self._envs:
             self._first_run = True
-        else:
-            # not first run
-            self._first_run = False
         return self._first_run
 
     def serve_build(self):
@@ -151,7 +144,7 @@ class DeployAgent(object):
 
             # increment stats - deploy status
             if self._response.deployGoal and deploy_report:
-                tags = {'first_run': self.first_run()}
+                tags = {'first_run': self.first_run}
                 if self._response.deployGoal.deployStage:
                     tags['deploy_stage'] = self._response.deployGoal.deployStage
                 if self._response.deployGoal.envName:
@@ -340,7 +333,7 @@ class DeployAgent(object):
     def _timing_stats_deploy_stage_time_elapsed(self):
         """ a deploy goal has finished, send stats for the elapsed time """
         if self.deploy_goal_previous and self.deploy_goal_previous.deployStage and self.stat_stage_time_elapsed:
-            tags = {'first_run': self.first_run()}
+            tags = {'first_run': self.first_run}
             if self.deploy_goal_previous.deployStage:
                 tags['deploy_stage'] = self.deploy_goal_previous.deployStage
             if self.deploy_goal_previous.envName:
@@ -381,7 +374,7 @@ class DeployAgent(object):
         # timing stats - deploy stage start
         if deploy_goal != self.deploy_goal_previous:
             # a deploy goal has changed
-            tags = {'first_run': self.first_run()}
+            tags = {'first_run': self.first_run}
 
             # deploy stage has changed, close old previous timer
             self._timing_stats_deploy_stage_time_elapsed()
@@ -508,7 +501,7 @@ def main():
     agent = DeployAgent(client=client, conf=config)
     create_sc_timing('deployd.stats.ec2_uptime_sec',
                      uptime,
-                     tags={'first_run': agent.first_run()})
+                     tags={'first_run': agent.first_run})
     utils.listen()
     if args.daemon:
         logger = logging.getLogger()
@@ -523,11 +516,11 @@ def main():
     # timing stats - total processing time excluding external actions
     create_sc_timing('deployd.stats.internal.time_elapsed_proc_sec',
                     agent.stat_time_elapsed_internal.get(),
-                    tags={'first_run': agent.first_run()})
+                    tags={'first_run': agent.first_run})
     # timing stats - agent total run time
     create_sc_timing('deployd.stats.internal.time_elapsed_proc_total_sec',
                      agent.stat_time_elapsed_total.get(),
-                     tags={'first_run': agent.first_run()})
+                     tags={'first_run': agent.first_run})
     # timing stats - agent exit time
     create_sc_timing('deployd.stats.internal.time_end_sec',
                      int(time.time()))

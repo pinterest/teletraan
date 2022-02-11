@@ -115,21 +115,23 @@ class TestDeployAgent(tests.TestCase):
 
     def test_agent_first_run(self):
         # first run
-        ping_response_list = [PingResponse(jsonValue=self.ping_response1), None, PingResponse(jsonValue=self.ping_response1)]
+        ping_response_list = [PingResponse(jsonValue=self.ping_response1),
+                              None,
+                              PingResponse(jsonValue=self.ping_response1)]
         client = mock.Mock()
         client.send_reports = mock.Mock(side_effect=ping_response_list)
         d = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
                         executor=self.executor, helper=self.helper)
-        self.assertTrue(d.first_run())
+        self.assertTrue(d.first_run)
         # first run stickiness
         d._envs = {'data': 'data'}
-        self.assertTrue(d.first_run())
+        self.assertTrue(d.first_run)
         # subsequent run
         client.send_reports = mock.Mock(side_effect=ping_response_list)
         d = DeployAgent(client=client, estatus=self.estatus, conf=self.config,
                         executor=self.executor, helper=self.helper)
         d._envs = {'data': 'data'}
-        self.assertFalse(d.first_run())
+        self.assertFalse(d.first_run)
 
 
     def test_agent_status_on_ping_failure(self):
