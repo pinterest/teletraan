@@ -21,6 +21,7 @@ import shutil
 import traceback
 import logging
 
+from deployd.common import LOG_FORMAT
 from deployd.common.caller import Caller
 from deployd.common.config import Config
 from deployd.common.status_code import Status
@@ -133,7 +134,7 @@ def main():
                         help="the environment name currently in deploy.")
     args = parser.parse_args()
     config = Config(args.config_file)
-    logging.basicConfig(level=config.get_log_level())
+    logging.basicConfig(format=LOG_FORMAT, level=config.get_log_level())
 
     log.info("Start to stage the package.")
     result = Stager(config=config, build=args.build,
