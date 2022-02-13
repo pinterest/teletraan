@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,6 +23,12 @@ deployclient = DeployClient()
 def get_agents(request, env_name, stage_name):
     return deployclient.get("/envs/%s/%s/agents" % (env_name, stage_name),
                             request.teletraan_user_id.token)
+
+
+def get_agents_paginated(request, env_name, stage_name, index, size):
+    params = [('page', index), ('size', size)]
+    return deployclient.get("/envs/%s/%s/agents/paginated" % (env_name, stage_name),
+                            request.teletraan_user_id.token, params)
 
 
 def reset_failed_agents(request, env_name, stage_name, deploy_id):
@@ -53,7 +59,7 @@ def resume_deploy(request, env_name, stage_name, host_id):
 
 def get_agents_by_host(request, host_name):
     return deployclient.get("/agents/%s" % host_name, request.teletraan_user_id.token)
-    
+
 
 def get_agents_total_by_env(request, env_id):
     return deployclient.get("/agents/env/%s/total" % env_id, request.teletraan_user_id.token)

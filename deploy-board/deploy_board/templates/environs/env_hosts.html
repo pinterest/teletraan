@@ -89,6 +89,22 @@ $('#showHosts').on('show.bs.modal', function (event) {
     </div>
     <div class="panel-body table-responsive">
         {% include "hosts/hosts.tmpl" %}
+        {% if agents_wrapper.items|length >= 2 %}
+            <ul class="pager">
+                <li>
+                    <a href='/env/{{ env.envName }}/{{ env.stageName }}/hosts/?page={{ pageIndex|add:"-1" }}&size={{ pageSize }}'
+                       class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+                        <span class="glyphicon glyphicon-chevron-left"></span> Previous
+                    </a>
+                </li>
+                <li>
+                    <a href='/env/{{ env.envName }}/{{ env.stageName }}/hosts/?page={{ pageIndex|add:"1" }}&size={{ pageSize }}'
+                       class="btn btn-default {% if disableNext %}disabled{% endif %}">
+                        Next <span class="glyphicon glyphicon-chevron-right"></span>
+                    </a>
+                </li>
+            </ul>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
