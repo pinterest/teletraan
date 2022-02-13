@@ -43,12 +43,6 @@
             <span class="glyphicon glyphicon-plus-sign"></span> Launch Instance
         </button>
     </div>
-    <div class="row">
-        <button id="terminateAllHosts" class="deployToolTip btn btn-default btn-block"
-            data-toggle="modal" title="Terminate All Hosts">
-            <span class="glyphicon glyphicon-remove"></span> Terminate All Hosts
-        </button>
-    </div>
 	<div class="row">
         <a type="button" href="/groups/{{ group_name }}/config/"
                 class="deployToolTip btn btn-default btn-block"
@@ -271,32 +265,6 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-<!--- terminate hosts modal-->
-<div class="modal fade" id="terminateAllHostsModalId" tabindex="-1" role="dialog" aria-labelledby="terminateAllHostsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-md">
-        <div class="modal-content">
-            <form id="terminateAllHostsFormId" class="form-horizontal" role="form" method="delete" action="/groups/{{ group_name }}/terminate/all">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Terminate All Hosts</h4>
-                </div>
-                <div class="modal-body" id="newMetricModal">
-                    <h4 style="color: darkred;"> <span class="glyphicon glyphicon-warning-sign"></span> Do you wish to terminate all hosts in this group ?</h4>
-                    <br>
-                    <h4> Warning</h4>
-                    <p> This will only delete the hosts. Not the group.</p>
-                    <p> If auto scaling is set up, this will re launch the hosts to manage capacity</p>
-                </div>
-                <div class="modal-footer">
-                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Terminate</button>
-                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                </div>
-                {% csrf_token %}
-            </form>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
 <!--- Enable Scaling Down event button dialog-->
 <div class="modal fade" id="enableScalingDownModelId" tabindex="-1" role="dialog"
      aria-labelledby="enableScalingDownModalLabel" aria-hidden="true">
@@ -424,10 +392,6 @@
         {% else %}
         $("#launchWarningModalId").modal();
         {% endif %}
-    });
-
-    $('#terminateAllHosts').click(function () {
-        $('#terminateAllHostsModalId').modal();
     });
 
     $(document).ready(function() {
