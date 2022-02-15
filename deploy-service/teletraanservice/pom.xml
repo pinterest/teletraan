@@ -18,7 +18,7 @@
         <!-- use UTF-8 for everything -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <dropwizard.version>0.8.1</dropwizard.version>
+        <dropwizard.version>2.0.0</dropwizard.version>
     </properties>
 
     <dependencies>
@@ -26,6 +26,27 @@
             <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-auth</artifactId>
             <version>${dropwizard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-core</artifactId>
+              <exclusions>
+                <exclusion>
+                  <groupId>org.hibernate.validator</groupId>
+                  <artifactId>hibernate-validator</artifactId>
+                </exclusion>
+	      </exclusions>
+	    <version>2.0.12</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-json-logging</artifactId>
+            <version>${dropwizard.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>6.0.17.Final</version>
         </dependency>
         <dependency>
             <groupId>com.pinterest.teletraan</groupId>
