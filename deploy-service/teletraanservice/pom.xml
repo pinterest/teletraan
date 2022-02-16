@@ -41,7 +41,7 @@
                   <artifactId>hibernate-validator</artifactId>
                 </exclusion>
 	      </exclusions>
-	    <version>5.6.3.Final</version>
+	    <version>${dropwizard.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate.validator</groupId>
