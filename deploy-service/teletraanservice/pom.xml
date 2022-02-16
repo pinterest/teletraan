@@ -33,6 +33,22 @@
             <version>${dropwizard.version}</version>
         </dependency>
         <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-core</artifactId>
+              <exclusions>
+                <exclusion>
+                  <groupId>org.hibernate.validator</groupId>
+                  <artifactId>hibernate-validator</artifactId>
+                </exclusion>
+	      </exclusions>
+	    <version>5.6.3.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>6.1.7.Final</version>
+        </dependency>
+        <dependency>
             <groupId>com.pinterest.teletraan</groupId>
             <artifactId>common</artifactId>
             <version>0.1-SNAPSHOT</version>
