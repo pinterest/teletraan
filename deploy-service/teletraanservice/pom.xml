@@ -27,7 +27,8 @@
             <artifactId>dropwizard-auth</artifactId>
             <version>${dropwizard.version}</version>
         </dependency>
-        <dependency>
+	<dependency>
+	    <groupId>io.dropwizard</groupId>
             <artifactId>dropwizard-json-logging</artifactId>
             <version>${dropwizard.version}</version>
         </dependency>
