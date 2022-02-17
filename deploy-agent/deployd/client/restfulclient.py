@@ -18,6 +18,7 @@ import logging
 from deployd.types.ping_response import PingResponse
 from deployd.common.decorators import singleton
 from deployd.common.exceptions import AgentException
+from deployd.common.stats import create_sc_increment
 requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
@@ -33,6 +34,12 @@ class RestfulClient(object):
         self.verify = (config.get_verify_https_certificate() == 'True')
         self.default_timeout = 30
 
+    @staticmethod
+    def sc_fail(reason):
+        """ send RestfulClient failure metrics """
+        create_sc_increment(name='deploy.agent.rest.failure',
+                            tags={'reason': reason})
+
     def __call(self, method):
         def api(path, params=None, data=None):
             url = '%s/%s%s' % (self.url_prefix, self.url_version, path)
@@ -40,8 +47,20 @@ class RestfulClient(object):
                 headers = {'Authorization': 'token %s' % self.token, 'Content-type': 'application/json'}
             else:
                 headers = {'Content-type': 'application/json'}
-            response = getattr(requests, method)(url, headers=headers, params=params, json=data,
-                                                 timeout=self.default_timeout, verify=self.verify)
+            try:
+                response = getattr(requests, method)(url,
+                                                     headers=headers,
+                                                     params=params,
+                                                     json=data,
+                                                     timeout=self.default_timeout,
+                                                     verify=self.verify)
+            except Exception as exception:
+                ex = type(exception).__name__
+                self.sc_fail(ex)
+                raise
+
+            create_sc_increment(name='deploy.agent.rest.status',
+                                tags={'status_code': response.status_code})
 
             if response.status_code > 300:
                 msg = "Teletraan failed to call backend server. Hint: %s, %s" % (response.status_code, response.content)
@@ -50,6 +69,8 @@ class RestfulClient(object):
 
             if response.content:
                 return response.json()
+            else:
+                self.sc_fail('response_content_empty')
 
         return api
 
