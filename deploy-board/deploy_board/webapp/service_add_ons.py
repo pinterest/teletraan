@@ -16,7 +16,7 @@
 from deploy_board.settings import IS_PINTEREST, SERVICE_RATELIMIT_CONFIG_URL, \
                                   STATSBOARD_API_FORMAT, RATELIMIT_ENABLED_METRIC_FORMAT, \
                                   ENABLING_SERVICE_RATELIMIT_URL, KAFKA_MSGS_DELIVERED_METRIC, \
-                                  STATSBOARD_HUB_URL_ENDPOINT_FORMAT, STATSBOARD_HOST_TYPE_FORMAT
+                                  STATSBOARD_HUB_URL_ENDPOINT_FORMAT, STATSBOARD_HOST_TYPE_API_FORMAT
 import urllib2
 import simplejson as json
 import socket
@@ -150,6 +150,7 @@ class KafkaLoggingAddOn(ServiceAddOn):
 
         self.logHealthReport = logHealthReport
 
+
 class DashboardAddOn(ServiceAddOn):
     """
     Encapsulates the information managed by the statsboard hub add-on tag.
@@ -175,7 +176,9 @@ class DashboardAddOn(ServiceAddOn):
 
         self.buttonUrl = buttonUrl
         if self.buttonUrl is None and dashboardStateReport.hostType is not None:
-            self.buttonUrl = STATSBOARD_HUB_URL_ENDPOINT_FORMAT.format(hostType=dashboardStateReport.hostType)
+            self.buttonUrl = STATSBOARD_HUB_URL_ENDPOINT_FORMAT.format(
+                hostType=dashboardStateReport.hostType)
+
 
 class LogHealthReport(object):
     """
@@ -440,7 +443,7 @@ def getDashboardReport(env, stage):
 
     state = ServiceAddOn.DEFAULT
     if hostType is None:
-      state = ServiceAddOn.UNKNOWN
+        state = ServiceAddOn.UNKNOWN
     return DashboardStateReport(state=state, hostType=hostType)
 
 def getRatelimitingAddOn(serviceName, report):
@@ -472,7 +475,7 @@ def getDashboardAddOn(serviceName, metrics_dashboard_url, report):
     dashboardStateReport = getDashboardReport(report.envName, report.stageName)
 
     return DashboardAddOn(serviceName=serviceName,
-                          buttonUrl = metrics_dashboard_url,
+                          buttonUrl=metrics_dashboard_url,
                           dashboardStateReport=dashboardStateReport)
 
 """ --- Utility functions live below here --- """
@@ -626,12 +629,8 @@ def getStatsboardHostType(env, stage):
     """
     env = 'statsboard-api'
     stage = 'prod'
-    apiUrl = STATSBOARD_HOST_TYPE_FORMAT.format(env=env, stage=stage)
+    apiUrl = STATSBOARD_HOST_TYPE_API_FORMAT.format(env=env, stage=stage)
     url = urllib2.urlopen(apiUrl, timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
     j = json.loads(url.read())
     hostType = j[0] if len(j) > 0 else None
     return hostType
-
-
-
-
