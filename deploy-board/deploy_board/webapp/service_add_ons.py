@@ -627,8 +627,6 @@ def getStatsboardHostType(env, stage):
     :param stage:
     :return:
     """
-    env = 'statsboard-api'
-    stage = 'prod'
     apiUrl = STATSBOARD_HOST_TYPE_API_FORMAT.format(env=env, stage=stage)
     url = urllib2.urlopen(apiUrl, timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
     j = json.loads(url.read())
