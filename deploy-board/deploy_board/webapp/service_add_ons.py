@@ -49,13 +49,15 @@ class ServiceAddOn(object):
                  buttonUrl=None,
                  tagHoverInfo=None,
                  tagInfo=None,
-                 state=UNKNOWN):
+                 state=UNKNOWN,
+                 promoText=None):
         self.serviceName = serviceName
         self.addOnName = addOnName
         self.buttonUrl = buttonUrl
         self.tagHoverInfo = tagHoverInfo
         self.tagInfo = tagInfo
         self.state = state
+        self.promoText = promoText
 
 
 class RatelimitingAddOn(ServiceAddOn):
@@ -169,7 +171,8 @@ class DashboardAddOn(ServiceAddOn):
                               buttonUrl=buttonUrl,
                               tagHoverInfo=tagHoverInfo,
                               tagInfo=tagInfo,
-                              state=state)
+                              state=state,
+                              promoText='New')
         self.dashboardStateReport = dashboardStateReport
         if dashboardStateReport is not None:
             self.state = dashboardStateReport.state

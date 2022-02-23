@@ -22,6 +22,9 @@
                   <i class="{{ addOn | addOnIcon}}"></i>
                </a>
             {% endif %}
+            {% if addOn.promoText != None %}
+                <span class="label label-info">{{ addOn.promoText}}</span>
+            {% endif %}
             <script>
                 $(function () {
                     $('.deployToolTip').tooltip({html: true, container: "#toolTipContent", delay: { show: 400, hide: 10 }});
