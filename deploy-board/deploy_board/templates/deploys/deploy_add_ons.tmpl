@@ -21,9 +21,9 @@
                   <small>{{ addOn.tagInfo }}</small>
                   <i class="{{ addOn | addOnIcon}}"></i>
                </a>
-            {% endif %}
-            {% if addOn.promoText != None %}
-                <span class="label label-info">{{ addOn.promoText}}</span>
+               {% if addOn.promoText != None %}
+                   <span class="label label-info">{{ addOn.promoText}}</span>
+               {% endif %}
             {% endif %}
             <script>
                 $(function () {

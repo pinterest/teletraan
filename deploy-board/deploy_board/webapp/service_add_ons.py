@@ -238,8 +238,8 @@ class DashboardStateReport(object):
     def __init__(self,
                  hostType=None,
                  state=ServiceAddOn.UNKNOWN):
-        self.state = state
         self.hostType = hostType
+        self.state = state
 
 def getRatelimitingReport(serviceName, agentStats):
     """
@@ -438,15 +438,19 @@ def getLogHealthReport(configStr, report):
                            lastLogMinutesAgo=lastLogMinutesAgo,
                            errorMsg=errorMsg)
 
-def getDashboardReport(env, stage):
-    try:
-        hostType = getStatsboardHostType(env, stage)
-    except:
-        return DashboardStateReport(state=ServiceAddOn.UNKNOWN)
-
+def getDashboardReport(env, stage, metricsDashboardUrl, isSidecar):
     state = ServiceAddOn.DEFAULT
-    if hostType is None:
-        state = ServiceAddOn.UNKNOWN
+    hostType = None
+    if metricsDashboardUrl is None:
+        if isSidecar:
+            state = ServiceAddOn.UNKNOWN
+        else:
+            try:
+                hostType = getStatsboardHostType(env, stage)
+            except:
+                state = ServiceAddOn.UNKNOWN
+            if hostType is None:
+                state = ServiceAddOn.UNKNOWN
     return DashboardStateReport(state=state, hostType=hostType)
 
 def getRatelimitingAddOn(serviceName, report):
@@ -474,11 +478,11 @@ def getKafkaLoggingAddOn(serviceName, report, configStr=None):
                              state=ServiceAddOn.DEFAULT,
                              logHealthReport=logHealthReport)
 
-def getDashboardAddOn(serviceName, metrics_dashboard_url, report):
-    dashboardStateReport = getDashboardReport(report.envName, report.stageName)
+def getDashboardAddOn(serviceName, metricsDashboardUrl, report, isSidecar):
+    dashboardStateReport = getDashboardReport(report.envName, report.stageName, metricsDashboardUrl, isSidecar)
 
     return DashboardAddOn(serviceName=serviceName,
-                          buttonUrl=metrics_dashboard_url,
+                          buttonUrl=metricsDashboardUrl,
                           dashboardStateReport=dashboardStateReport)
 
 """ --- Utility functions live below here --- """
