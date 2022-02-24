@@ -447,8 +447,8 @@ def getDashboardReport(env, stage, metricsDashboardUrl, isSidecar):
         else:
             try:
                 hostType = getStatsboardHostType(env, stage)
-            if hostType is None:
-                state = ServiceAddOn.UNKNOWN
+                if hostType is None:
+                    state = ServiceAddOn.UNKNOWN
             except:
                 state = ServiceAddOn.UNKNOWN
     return DashboardStateReport(state=state, hostType=hostType)
