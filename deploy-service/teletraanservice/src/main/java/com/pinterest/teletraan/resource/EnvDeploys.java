@@ -36,6 +36,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,7 +111,7 @@ public class EnvDeploys {
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
-            @ApiParam(value = "ActionType enum selection", required = true)@NotEmpty @QueryParam("actionType") ActionType actionType,
+            @ApiParam(value = "ActionType enum selection", required = true)@NotNull @QueryParam("actionType") ActionType actionType,
             @ApiParam(value = "Lower bound deploy id", required = true)@QueryParam("fromDeployId") String fromDeployId,
             @ApiParam(value = "Upper bound deploy id", required = true)@QueryParam("toDeployId") String toDeployId,
             @ApiParam(value = "Description", required = true)@QueryParam("description") String description) throws Exception {
@@ -159,7 +160,7 @@ public class EnvDeploys {
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName, 
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
-            @ApiParam(value = "Agent object to update with", required = true)@NotEmpty @QueryParam("actionType") HostActions actionType,
+            @ApiParam(value = "Agent object to update with", required = true)@NotNull @QueryParam("actionType") HostActions actionType,
             @NotEmpty List<String> hostIds) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);

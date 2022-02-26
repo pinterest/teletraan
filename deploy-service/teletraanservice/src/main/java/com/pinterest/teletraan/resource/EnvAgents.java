@@ -25,6 +25,7 @@ import com.pinterest.teletraan.security.Authorizer;
 import io.swagger.annotations.*;
 
 import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +133,7 @@ public class EnvAgents {
     @Path("/count")
     public long countServingAgents(@PathParam("envName") String envName,
                                    @PathParam("stageName") String stageName,
-                                   @NotEmpty @QueryParam("actionType") CountActionType actionType) throws Exception {
+                                   @NotNull @QueryParam("actionType") CountActionType actionType) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         if (envBean == null) {
             return 0;
