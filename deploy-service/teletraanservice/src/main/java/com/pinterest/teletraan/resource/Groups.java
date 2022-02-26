@@ -24,6 +24,7 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 
 import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -63,7 +64,7 @@ public class Groups {
     @GET
     @Path("/{groupName: [a-zA-Z0-9\\-_]+}/hosts")
     public Collection<String> getHostIds(@PathParam("groupName") String groupName,
-                                         @NotEmpty @QueryParam("actionType") HostInfoActionType actionType) throws Exception {
+                                         @NotNull @QueryParam("actionType") HostInfoActionType actionType) throws Exception {
         Collection<String> hostIds;
         switch (actionType) {
             case ALL:
