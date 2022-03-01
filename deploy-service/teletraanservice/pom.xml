@@ -51,7 +51,7 @@
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>5.4.1.Final</version>
+            <version>6.0.23.Final</version>
         </dependency>
         <dependency>
             <groupId>com.pinterest.teletraan</groupId>
