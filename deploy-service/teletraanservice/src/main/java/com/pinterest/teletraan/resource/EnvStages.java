@@ -36,6 +36,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
 import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
@@ -173,7 +174,7 @@ public class EnvStages {
     public void action(@Context SecurityContext sc,
                        @PathParam("envName") String envName,
                        @PathParam("stageName") String stageName,
-                       @NotEmpty @QueryParam("actionType") ActionType actionType,
+                       @NotNull @QueryParam("actionType") ActionType actionType,
                        @NotEmpty @QueryParam("description") String description) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
