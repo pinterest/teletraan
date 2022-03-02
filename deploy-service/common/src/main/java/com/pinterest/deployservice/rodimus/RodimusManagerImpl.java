@@ -47,7 +47,7 @@ public class RodimusManagerImpl implements RodimusManager {
     private Map<String, String> headers;
     private Gson gson;
     private Knox fsKnox = null;
-    private String catchedKey = null;
+    private String cachedKey = null;
 
     public RodimusManagerImpl(String rodimusUrl, String knoxKey) throws Exception {
         this.rodimusUrl = rodimusUrl;
@@ -73,29 +73,32 @@ public class RodimusManagerImpl implements RodimusManager {
         }
     }
 
+// TO REMOVE ???
+    public void setKnoxKey(String knoxKey) throws Exception {
+        this.fsKnox = new FileSystemKnox(knoxKey);
+    }
+
     private boolean refreshCachedKey() throws Exception {
-        String prevKnoxKey = this.catchedKey;
+        String prevKnoxKey = this.cachedKey;
 
         if (this.fsKnox != null) {
-            this.catchedKey = new String(this.fsKnox.getPrimaryKey());
+            this.cachedKey = new String(this.fsKnox.getPrimaryKey());
         }
 
         if ( prevKnoxKey == null )
         {
-            return this.catchedKey != null;
+            return this.cachedKey != null;
         }else{
-            return ! prevKnoxKey.equals( this.catchedKey );
+            return ! prevKnoxKey.equals( this.cachedKey );
         }
         
     }
 
     private void setAuthorization() throws Exception {
-        if (this.fsKnox != null) {
-            if (this.catchedKey == null) {
-                this.refreshCachedKey();
-            }
-            this.headers.put("Authorization", String.format("token %s", this.catchedKey));
+        if (this.cachedKey == null) {
+            this.refreshCachedKey();
         }
+        this.headers.put("Authorization", String.format("token %s", this.cachedKey));
     }
 
     @Override
@@ -106,7 +109,7 @@ public class RodimusManagerImpl implements RodimusManager {
         
         int rtry = this.RETRIES;
         do{
-            LOG.info("terminateHostsByClusterName");
+//            LOG.info("terminateHostsByClusterName");
             String url = String.format("%s/v1/clusters/%s/hosts", this.rodimusUrl, clusterName);
             setAuthorization();
             try {
@@ -117,8 +120,9 @@ public class RodimusManagerImpl implements RodimusManager {
                 rtry--;
             }
         }while( rtry>0 );
-        throw new DeployInternalException("HTTP request failed, too many retries.");
-    }
+        throw new DeployInternalException(
+            "HTTP request to Rodimus API failed on terminateHostsByClusterName, too many retries.");
+    } // terminateHostsByClusterName
 
     @Override
     public Collection<String> getTerminatedHosts(Collection<String> hostIds) throws Exception {
@@ -128,7 +132,7 @@ public class RodimusManagerImpl implements RodimusManager {
 
         int rtry = this.RETRIES;
         do{
-            LOG.info("getTerminatedHosts");
+//            LOG.info("getTerminatedHosts");
             // NOTE: it's better to call this function with single host id
             String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
             setAuthorization();
@@ -140,8 +144,9 @@ public class RodimusManagerImpl implements RodimusManager {
                 rtry--;
             }
         }while( rtry>0 );
-        throw new DeployInternalException("HTTP request failed, too many retries.");
-    }
+        throw new DeployInternalException(
+            "HTTP request to Rodimus API failed on getTerminatedHosts, too many retries.");
+    } // getTerminatedHosts
 
     @Override
     public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
@@ -149,11 +154,11 @@ public class RodimusManagerImpl implements RodimusManager {
 
         int rtry = this.RETRIES;
         do{
-            LOG.info("getClusterInstanceLaunchGracePeriod");
+//            LOG.info("getClusterInstanceLaunchGracePeriod");
             String url = String.format("%s/v1/groups/%s/config", rodimusUrl, clusterName);
             setAuthorization();
             try {
-                res = httpClient.get(url, null, null, headers, RETRIES);
+                res = httpClient.get(url, null, null, this.headers, this.RETRIES);
                 rtry = this.RETRIES + 1;
             } catch (DeployInternalException e) {
                 if ( ! this.refreshCachedKey() ) throw e;
@@ -161,7 +166,8 @@ public class RodimusManagerImpl implements RodimusManager {
             }
         }while( ( rtry<=this.RETRIES )&&( rtry>0 ) );
         if( rtry<=this.RETRIES ) { 
-            throw new DeployInternalException("HTTP request failed, too many retries.");
+            throw new DeployInternalException(
+                "HTTP request to Rodimus API failed on getClusterInstanceLaunchGracePeriod, too many retries.");
         }
 
         JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
@@ -175,14 +181,14 @@ public class RodimusManagerImpl implements RodimusManager {
         }
 
         return launchGracePeriod.getAsLong();
-    }
+    } // getClusterInstanceLaunchGracePeriod
 
     @Override
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
 
         int rtry = this.RETRIES;
         do{
-            LOG.info("getEc2Tags");
+//            LOG.info("getEc2Tags");
             String url = String.format("%s/v1/host_ec2tags", this.rodimusUrl);
             setAuthorization();
             try {
@@ -193,6 +199,8 @@ public class RodimusManagerImpl implements RodimusManager {
                 rtry--;
             }
         }while( rtry>0 );
-        throw new DeployInternalException("HTTP request failed, too many retries.");
-    }
-}
+        throw new DeployInternalException( // "HTTP request failed, too many retries.");
+            "HTTP request to Rodimus API failed on getEc2Tags, too many retries.");        
+    } // getEc2Tags
+
+} // class RodimusManagerImpl
