@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import argparse
+from deployd.common import LOG_FORMAT
 from deployd.common.config import Config
 from deployd.common.status_code import Status
 from deployd.download.download_helper_factory import DownloadHelperFactory
@@ -146,7 +147,7 @@ def main():
                         help="the environment name currently in deploy.")
     args = parser.parse_args()
     config = Config(args.config_file)
-    logging.basicConfig(level=config.get_log_level())
+    logging.basicConfig(format=LOG_FORMAT, level=config.get_log_level())
 
     log.info("Start to download the package.")
     status = Downloader(config, args.build, args.url, args.env_name).download()

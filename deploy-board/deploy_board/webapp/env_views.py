@@ -209,17 +209,18 @@ def update_service_add_ons(request, name, stage):
     progress = deploys_helper.update_progress(request, name, stage)
     report = agent_report.gen_report(request, env, progress)
     metrics = environs_helper.get_env_metrics_config(request, name, stage)
-    metrics_dashboard_url = None
+    metricsDashboardUrl = None
+    isSidecar = env['systemPriority'] is not None
     for metric in metrics:
         if metric['title'] == "dashboard":
-            metrics_dashboard_url = metric['url']
+            metricsDashboardUrl = metric['url']
     # Currently we assume that the servicename is the same as the environment name.
     serviceName = name
     rateLimitingAddOn = service_add_ons.getRatelimitingAddOn(serviceName=serviceName,
                                                              report=report)
     dashboardAddOn = service_add_ons.getDashboardAddOn(serviceName=serviceName,
-                                                       metrics_dashboard_url=metrics_dashboard_url,
-                                                       report=report)
+                                                       metricsDashboardUrl=metricsDashboardUrl,
+                                                       report=report, isSidecar=isSidecar)
     serviceAddOns.append(rateLimitingAddOn)
 
     if name in KAFKA_LOGGING_ADD_ON_ENVS:
