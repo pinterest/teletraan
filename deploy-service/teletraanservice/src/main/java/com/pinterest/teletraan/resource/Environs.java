@@ -36,6 +36,7 @@ import io.swagger.annotations.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -181,7 +182,7 @@ public class Environs {
     @POST
     @Path("/actions")
     public void action(@Context SecurityContext sc,
-                       @NotEmpty @QueryParam("actionType") ActionType actionType,
+                       @NotNull @QueryParam("actionType") ActionType actionType,
                        @NotEmpty @QueryParam("description") String description) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         TagBean tagBean = new TagBean();
