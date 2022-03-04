@@ -104,7 +104,6 @@ public class RodimusManagerImpl implements RodimusManager {
         
         int rtry = this.RETRIES;
         do{
-//            LOG.info("terminateHostsByClusterName");
             String url = String.format("%s/v1/clusters/%s/hosts", this.rodimusUrl, clusterName);
             setAuthorization();
             try {
@@ -127,7 +126,6 @@ public class RodimusManagerImpl implements RodimusManager {
 
         int rtry = this.RETRIES;
         do{
-//            LOG.info("getTerminatedHosts");
             // NOTE: it's better to call this function with single host id
             String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
             setAuthorization();
@@ -149,7 +147,6 @@ public class RodimusManagerImpl implements RodimusManager {
 
         int rtry = this.RETRIES;
         do{
-//            LOG.info("getClusterInstanceLaunchGracePeriod");
             String url = String.format("%s/v1/groups/%s/config", rodimusUrl, clusterName);
             setAuthorization();
             try {
@@ -183,7 +180,6 @@ public class RodimusManagerImpl implements RodimusManager {
 
         int rtry = this.RETRIES;
         do{
-//            LOG.info("getEc2Tags");
             String url = String.format("%s/v1/host_ec2tags", this.rodimusUrl);
             setAuthorization();
             try {
