@@ -31,6 +31,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,7 +96,7 @@ public class EnvCapacities {
   public void update(@PathParam("envName") String envName,
                      @PathParam("stageName") String stageName,
                      @QueryParam("capacityType") Optional<CapacityType> capacityType,
-                     @NotEmpty List<String> names, @Context SecurityContext sc) throws Exception {
+                     @NotNull List<String> names, @Context SecurityContext sc) throws Exception {
     EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
     authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
     String operator = sc.getUserPrincipal().getName();
