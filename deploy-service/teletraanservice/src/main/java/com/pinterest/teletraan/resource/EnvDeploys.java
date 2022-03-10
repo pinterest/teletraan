@@ -161,7 +161,7 @@ public class EnvDeploys {
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName, 
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "Agent object to update with", required = true)@NotNull @QueryParam("actionType") HostActions actionType,
-            @NotEmpty List<String> hostIds) throws Exception {
+            @NotNull List<String> hostIds) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         AgentBean agentBean = new AgentBean();
