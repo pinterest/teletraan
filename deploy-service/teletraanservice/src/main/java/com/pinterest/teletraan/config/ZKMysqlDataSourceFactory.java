@@ -38,10 +38,13 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
     private String pool;
 
     @JsonProperty
+    private boolean useProxy;
+
+    @JsonProperty
     private String proxyHost;
 
     @JsonProperty
-    private String proxyPort;
+    private int proxyPort;
 
     public String getReplicaSet() {
         return replicaSet;
@@ -68,11 +71,19 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
     }
 
     public BasicDataSource build() throws Exception {
-        // get from local ZK maintained DB config file
-        DBConfigReader reader = new DBConfigReader();
-        // use proxyHost, proxyPort if set, otherwise use replicaSet
-        String host = this.proxyHost != null ? this.proxyHost : reader.getHost(replicaSet);
-        int port = this.proxyPort != null ? Integer.parseInt(this.proxyPort) : reader.getPort(replicaSet);
+        // use proxyHost:proxyPort if useProxy for database connection
+        // otherwise utilize replicaSet
+        String host;
+        int port;
+        if (this.useProxy) {
+            host = this.proxyHost;
+            port = this.proxyPort;
+        } else {
+            // get from local ZK maintained DB config file
+            DBConfigReader reader = new DBConfigReader();
+            host = reader.getHost(replicaSet);
+            port = reader.getPort(replicaSet);
+        }
         KnoxDBKeyReader.init((role));
         String userName = KnoxDBKeyReader.getUserName();
         String password = KnoxDBKeyReader.getPassword();
