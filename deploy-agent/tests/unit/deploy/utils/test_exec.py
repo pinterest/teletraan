@@ -58,7 +58,7 @@ class TestUtilsFunctions(tests.TestCase):
         os.remove(fdout_fn)
 
     def test_run_command(self):
-        cmd = ['echo', 'hello world']
+        cmd = ['/bin/echo', 'hello world']
         self.executor.MAX_RUNNING_TIME = 5
         self.executor.MAX_RETRY = 3
         self.executor.PROCESS_POLL_INTERVAL = 2
@@ -78,7 +78,7 @@ class TestUtilsFunctions(tests.TestCase):
         self.assertIsNotNone(deploy_report.output_msg)
 
     def test_run_command_with_max_retry(self):
-        cmd = ['ls', '-ltr', '/abc']
+        cmd = ['/bin/ls', '-ltr', '/abc']
         ping_server = mock.Mock(return_value=False)
         executor = Executor(callback=ping_server)
         executor.LOG_FILENAME = self.fdout_fn
@@ -97,7 +97,7 @@ class TestUtilsFunctions(tests.TestCase):
         self.assertEqual(deploy_report.retry_times, 3)
 
     def test_run_command_with_timeout(self):
-        cmd = ['ls', '-ltr', '/abc']
+        cmd = ['/bin/ls', '-ltr', '/abc']
         ping_server = mock.Mock(return_value=True)
         executor = Executor(callback=ping_server)
         executor.LOG_FILENAME = self.fdout_fn
@@ -111,7 +111,7 @@ class TestUtilsFunctions(tests.TestCase):
         self.assertEqual(deploy_report.status_code, AgentStatus.ABORTED_BY_SERVER)
 
     def test_run_command_with_timeout_error(self):
-        cmd = ['sleep', '20']
+        cmd = ['/bin/sleep', '20']
         ping_server = mock.Mock(return_value=False)
         executor = Executor(callback=ping_server)
         executor.LOG_FILENAME = self.fdout_fn
@@ -128,7 +128,7 @@ class TestUtilsFunctions(tests.TestCase):
         self.assertEqual(deploy_report.status_code, AgentStatus.SCRIPT_TIMEOUT)
 
     def test_run_command_with_shutdown_timeout(self):
-        cmd = ['sleep', '5m']
+        cmd = ['/bin/sleep', '5']
         ping_server = mock.Mock(return_value=PingStatus.PLAN_CHANGED)
         os.killpg = mock.Mock()
         executor = Executor(callback=ping_server)
