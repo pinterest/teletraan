@@ -82,7 +82,7 @@
                         <span class="glyphicon glyphicon-zoom-in"></span> Show New Commits
                     </button>
                     {% endif %}
-                    {% if !singleBuildPage %}
+                    {% if singleBuildPage is None %}
                     <button class="showdiffbetween deployToolTip btn btn-default"
                             data-loading-text="Loading..." data-toggle="tooltip"
                             title="Show commits between two adjacent builds">
