@@ -102,20 +102,15 @@ public class RodimusManagerImpl implements RodimusManager {
             return;
         }
         
-        int rtry = this.RETRIES;
-        do{
-            String url = String.format("%s/v1/clusters/%s/hosts", this.rodimusUrl, clusterName);
+        String url = String.format("%s/v1/clusters/%s/hosts", this.rodimusUrl, clusterName);
+        setAuthorization();
+        try {
+            httpClient.delete(url, gson.toJson(hostIds), this.headers, RETRIES);
+        } catch (DeployInternalException e) {
+            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
             setAuthorization();
-            try {
-                httpClient.delete(url, gson.toJson(hostIds), this.headers, RETRIES);
-                return;
-            } catch (DeployInternalException e) {
-                if ( ! this.refreshCachedKey() ) throw e;
-                rtry--;
-            }
-        }while( rtry>0 );
-        throw new DeployInternalException(
-            "HTTP request to Rodimus API failed on terminateHostsByClusterName, too many retries.");
+            httpClient.delete(url, gson.toJson(hostIds), this.headers, RETRIES);
+        }
     } // terminateHostsByClusterName
 
     @Override
@@ -124,42 +119,31 @@ public class RodimusManagerImpl implements RodimusManager {
             return Collections.emptyList();
         }
 
-        int rtry = this.RETRIES;
-        do{
-            // NOTE: it's better to call this function with single host id
-            String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
+        // NOTE: it's better to call this function with single host id
+        String res;
+        String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
+        setAuthorization();
+        try {
+            res = httpClient.post(url, gson.toJson(hostIds), this.headers, this.RETRIES);
+        } catch (DeployInternalException e) {
+            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
             setAuthorization();
-            try {
-                String res = httpClient.post(url, gson.toJson(hostIds), this.headers, this.RETRIES);
-                return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
-            } catch (DeployInternalException e) {
-                if ( ! this.refreshCachedKey() ) throw e;
-                rtry--;
-            }
-        }while( rtry>0 );
-        throw new DeployInternalException(
-            "HTTP request to Rodimus API failed on getTerminatedHosts, too many retries.");
+            res = httpClient.post(url, gson.toJson(hostIds), this.headers, this.RETRIES);
+        }
+        return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
     } // getTerminatedHosts
 
     @Override
     public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
-        String res = null;
-
-        int rtry = this.RETRIES;
-        do{
-            String url = String.format("%s/v1/groups/%s/config", rodimusUrl, clusterName);
+        String res;
+        String url = String.format("%s/v1/groups/%s/config", rodimusUrl, clusterName);
+        setAuthorization();
+        try {
+            res = httpClient.get(url, null, null, this.headers, RETRIES);
+        } catch (DeployInternalException e) {
+            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
             setAuthorization();
-            try {
-                res = httpClient.get(url, null, null, this.headers, this.RETRIES);
-                rtry = this.RETRIES + 1;
-            } catch (DeployInternalException e) {
-                if ( ! this.refreshCachedKey() ) throw e;
-                rtry--;
-            }
-        }while( ( rtry<=this.RETRIES )&&( rtry>0 ) );
-        if( rtry<=this.RETRIES ) { 
-            throw new DeployInternalException(
-                "HTTP request to Rodimus API failed on getClusterInstanceLaunchGracePeriod, too many retries.");
+            res = httpClient.get(url, null, null, this.headers, RETRIES);
         }
 
         JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
@@ -177,21 +161,19 @@ public class RodimusManagerImpl implements RodimusManager {
 
     @Override
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
+        String res;
+        String url = String.format("%s/v1/host_ec2tags", rodimusUrl);
 
-        int rtry = this.RETRIES;
-        do{
-            String url = String.format("%s/v1/host_ec2tags", this.rodimusUrl);
+        setAuthorization();
+        try {
+            res = httpClient.post(url, gson.toJson(hostIds), this.headers, RETRIES);
+        } catch (DeployInternalException e) {
+            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
             setAuthorization();
-            try {
-                String res = httpClient.post(url, gson.toJson(hostIds), this.headers, this.RETRIES);
-                return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>(){}.getType());
-            } catch (DeployInternalException e) {
-                if ( ! this.refreshCachedKey() ) throw e;
-                rtry--;
-            }
-        }while( rtry>0 );
-        throw new DeployInternalException( // "HTTP request failed, too many retries.");
-            "HTTP request to Rodimus API failed on getEc2Tags, too many retries.");        
+            res = httpClient.post(url, gson.toJson(hostIds), this.headers, RETRIES);
+        }
+
+        return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>(){}.getType());
     } // getEc2Tags
 
 } // class RodimusManagerImpl
