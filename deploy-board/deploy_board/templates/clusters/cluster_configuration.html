@@ -417,7 +417,7 @@
         var currentPlacements = currentCluster.placement.split(',');
         var placements = getDefaultPlacement(info);
         var showReplaceAlert = currentCluster != null && currentCluster.state != "NORMAL";
-        var assignPublicIP = currentCluster.configs.assign_public_ip == "true" ? true : false
+        var assignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
         var alert = new Vue({
             el: "#clusterAlert",
             data: {
