@@ -82,11 +82,13 @@
                         <span class="glyphicon glyphicon-zoom-in"></span> Show New Commits
                     </button>
                     {% endif %}
+                    {% if !singleBuildPage %}
                     <button class="showdiffbetween deployToolTip btn btn-default"
                             data-loading-text="Loading..." data-toggle="tooltip"
                             title="Show commits between two adjacent builds">
                         <span class="glyphicon glyphicon-zoom-in"></span> Show Commits Between Builds
                     </button>
+                    {% endif %}
                     {% if buildInfo.build.type == "Github" %}
                     <button class="githuber deployToolTip btn btn-default" data-toggle="tooltip"
                             title="Show all the new commits in Gitbhub">
