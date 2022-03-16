@@ -417,7 +417,6 @@
         var currentPlacements = currentCluster.placement.split(',');
         var placements = getDefaultPlacement(info);
         var showReplaceAlert = currentCluster != null && currentCluster.state != "NORMAL";
-        var assignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
         var alert = new Vue({
             el: "#clusterAlert",
             data: {
@@ -445,7 +444,7 @@
                                 readonly: info.readonlyFields.indexOf(key) >= 0
                             }
                         }).filter(function(item){return item.name!='assign_public_ip'}),
-                assignPublicIP: assignPublicIP,
+                assignPublicIP: currentCluster.configs.assign_public_ip == "true" ? true : false,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
                     var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
@@ -477,8 +476,8 @@
                 }),
                 inAdvanced: false,
                 placements: this.inAdvanced ?
-                    placements.getFullList(assignPublicIP, currentPlacements) :
-                    placements.getSimpleList(assignPublicIP, currentPlacements),
+                    placements.getFullList(currentCluster.configs.assign_public_ip, currentPlacements) :
+                    placements.getSimpleList(currentCluster.configs.assign_public_ip, currentPlacements),
                 providers: info.providerList.map(function(o) {
                     return {
                         value: o,
