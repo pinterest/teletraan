@@ -39,8 +39,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
-import java.lang.reflect.Method;
-
 public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
     private static final int RETRIES = 3;
