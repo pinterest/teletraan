@@ -42,6 +42,7 @@ import java.util.List;
 public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
     private static final int RETRIES = 3;
+    private static enum Verb { get, post, delete };
     private String rodimusUrl;
     private HTTPClient httpClient;
     private Map<String, String> headers;
@@ -96,17 +97,17 @@ public class RodimusManagerImpl implements RodimusManager {
         this.headers.put("Authorization", String.format("token %s", this.cachedKey));
     }
 
-    private String switchHttpClient( String verb, String url, String payload ) throws Exception {
+    private String switchHttpClient( Verb verb, String url, String payload ) throws Exception {
         String res = null;
 
         switch(verb) {
-            case "get":
+            case get:
                 res = httpClient.get(url, payload, null, this.headers, this.RETRIES);
                 break;
-            case "post":
+            case post:
                 res = httpClient.post(url, payload, this.headers, this.RETRIES);
                 break;
-            case "delete":
+            case delete:
                 res = httpClient.delete(url, payload, this.headers, this.RETRIES);
                 break;
         }
@@ -114,7 +115,7 @@ public class RodimusManagerImpl implements RodimusManager {
         return res;
     }
 
-    private String callHttpClient( String verb, String url, String payload ) throws Exception {
+    private String callHttpClient( Verb verb, String url, String payload ) throws Exception {
         String res;
 
         setAuthorization();
@@ -136,7 +137,7 @@ public class RodimusManagerImpl implements RodimusManager {
         }
         
         String url = String.format("%s/v1/clusters/%s/hosts", this.rodimusUrl, clusterName);
-        callHttpClient( "delete", url, gson.toJson(hostIds) );
+        callHttpClient( Verb.delete, url, gson.toJson(hostIds) );
     } // terminateHostsByClusterName
 
     @Override
@@ -147,14 +148,14 @@ public class RodimusManagerImpl implements RodimusManager {
 
         // NOTE: it's better to call this function with single host id
         String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
-        String res = callHttpClient( "post", url, gson.toJson(hostIds) );
+        String res = callHttpClient( Verb.post, url, gson.toJson(hostIds) );
         return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
     } // getTerminatedHosts
 
     @Override
     public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
         String url = String.format("%s/v1/groups/%s/config", rodimusUrl, clusterName);
-        String res = callHttpClient( "get", url, null );
+        String res = callHttpClient( Verb.get, url, null );
 
         JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
         if (jsonObject == null || jsonObject.isJsonNull()) {
@@ -172,7 +173,7 @@ public class RodimusManagerImpl implements RodimusManager {
     @Override
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
         String url = String.format("%s/v1/host_ec2tags", rodimusUrl);
-        String res = callHttpClient( "post", url, gson.toJson(hostIds) );
+        String res = callHttpClient( Verb.post, url, gson.toJson(hostIds) );
 
         return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>(){}.getType());
     } // getEc2Tags
