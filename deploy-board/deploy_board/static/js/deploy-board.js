@@ -206,8 +206,11 @@ function getDefaultPlacement(capacityCreationInfo) {
             return arr;
 
         },
-        getFullList: function (assignPublicIp, existingItems) {
-            var arr = assignPublicIp == 'true' ? this.allPublic : this.allPrivate
+        getFullList: function (showPublicOnly, existingItems) {
+            if (typeof showPublicOnly !== "boolean") {
+                console.error("getFullList expects parameter assignPublicIp to be of boolean type.")
+            }
+            var arr = showPublicOnly ? this.allPublic : this.allPrivate
             if (existingItems != null && existingItems.length > 0) {
                 existingItems = existingItems.map(function (item) {
                     var fullInfo = arr.find(

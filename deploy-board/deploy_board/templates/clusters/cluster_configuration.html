@@ -21,7 +21,7 @@
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2016.12.19.150000"></script>
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2017.07.05.180000"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2018.05.17.153000"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2022.03.17.153000"></script>
 
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
@@ -64,8 +64,8 @@
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
-                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP"
-                    showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
+                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" v-bind:subnettype="subnetType"
+                    showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip" v-on:subnetfilterclick="changeSubnetType"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <div v-if="inAdvanced">
                         <div class="form-group"></div>
@@ -511,7 +511,8 @@
                 showPlacementsHelp: false,
                 placementsHelpData: [],
                 canSaveCapacity: !showReplaceAlert,
-                showCmpGroup: Boolean(getUrlParameter("showcmpgroup"))
+                showCmpGroup: Boolean(getUrlParameter("showcmpgroup")),
+                subnetType: assignPublicIP,
             }),
             methods: {
                 addConfig: function(config) {
@@ -840,13 +841,23 @@
                 },
                 selectpublicip: function(value){
                     this.assignPublicIP = value
+                    if (this.assignPublicIP && this.subnetType == 'private' ||
+                        !this.assignPublicIP && this.subnetType == 'public') {
+                        globalNotificationBanner.error =
+                            `Warning: You ${this.assignPublicIP ? 'selected' :'unselected'} 'Assign Public IP' for ${this.subnetType} subnet type. ` +
+                            `Please double check if this is desiered. If you DO require this configuration, please report your scenario to the CDP team.`
+                    }
+                },
+                changeSubnetType: function(value) {
+                    this.subnetType = value
+                    var showPublicSubnets = value == 'public' ? true : false
+                    this.assignPublicIP = showPublicSubnets
                     if (this.inAdvanced){
-                        this.placements = placements.getFullList(this.assignPublicIP, currentPlacements)
+                        this.placements = placements.getFullList(showPublicSubnets, currentPlacements)
                     }
                     else{
-                        this.placements = placements.getSimpleList(this.assignPublicIP, currentPlacements)
+                        this.placements = placements.getSimpleList(showPublicSubnets, currentPlacements)
                     }
-
                 },
                 updateAwsRole:function(value){
                     this.awsRole = value

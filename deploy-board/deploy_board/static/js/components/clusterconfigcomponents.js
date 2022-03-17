@@ -315,7 +315,7 @@ Vue.component("placements-select", {
     <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">\
       {{label}}\
     </label>\
-    <div class="col-xs-7"><div v-bind:class="groupStyle">\
+    <div class="col-xs-6"><div v-bind:class="groupStyle">\
           <select class="form-control chosen-select"  v-on:change="updateValue($event.target.value)" multiple>\
             <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected">{{option.text}}</option>\
           </select>\
@@ -325,11 +325,19 @@ Vue.component("placements-select", {
     </button>\
    </span></div>\
     </div>\
-    <div class="col-xs-3">\
-      <input type="checkbox" id="checkbox" v-bind:checked="assignpublicip" v-on:click="assignipchange($event.target.checked)">\
-      <label for="checkbox">Assign Public IP</label>\
-    <div></div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip'],
+    <div class="col-xs-2">\
+        <input type="radio" id="public" value="public" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
+        <label for="public">Public subnets</label>\
+        <br>\
+        <input type="radio" id="private" value="private" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
+        <label for="private">Private subnets</label>\
+        <br>\
+    </div>\
+    <div class="col-xs-2">\
+        <input type="checkbox" id="checkbox" v-bind:checked="assignpublicip" v-on:click="assignipchange($event.target.checked)">\
+        <label for="checkbox">Assign Public IP</label>\
+    </div></div>',
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype'],
     data: function () {
         return {
             groupStyle: this.showhelp ? 'input-group' : ''
@@ -344,8 +352,9 @@ Vue.component("placements-select", {
         },
         assignipchange: function (value) {
             this.$emit('assignpublicipclick', value)
+        },
+        filterclick: function(value) {
+            this.$emit('subnetfilterclick', value)
         }
     }
 });
-
-
