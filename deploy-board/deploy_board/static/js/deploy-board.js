@@ -158,10 +158,7 @@ function getDefaultPlacement(capacityCreationInfo) {
             //for each abstract_name, we have one candidate.
             //If existingItems is null or empty, the abstract_name
             //will be the existing one
-            if (typeof assignPublicIp !== "boolean") {
-                console.error("getSimpleList expects parameter assignPublicIp to be of boolean type.")
-            }
-            var arr = assignPublicIp == true ? this.cmpPublic : this.cmpPrivate
+            var arr = assignPublicIp == 'true' ? this.cmpPublic : this.cmpPrivate
             var fullArr = assignPublicIp ? this.allPublic : this.allPrivate
             if (existingItems != null && existingItems.length > 0) {
 
@@ -210,10 +207,7 @@ function getDefaultPlacement(capacityCreationInfo) {
 
         },
         getFullList: function (assignPublicIp, existingItems) {
-            if (typeof assignPublicIp !== "boolean") {
-                console.error("getFullList expects parameter assignPublicIp to be of boolean type.")
-            }
-            var arr = assignPublicIp == true ? this.allPublic : this.allPrivate
+            var arr = assignPublicIp == 'true' ? this.allPublic : this.allPrivate
             if (existingItems != null && existingItems.length > 0) {
                 existingItems = existingItems.map(function (item) {
                     var fullInfo = arr.find(
