@@ -39,6 +39,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
+import java.lang.reflect.Method;
+
 public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
     private static final int RETRIES = 3;
@@ -96,6 +98,39 @@ public class RodimusManagerImpl implements RodimusManager {
         this.headers.put("Authorization", String.format("token %s", this.cachedKey));
     }
 
+    private String switchHttpClient( String verb, String url, String payload ) throws Exception {
+        String res = null;
+
+        switch(verb) {
+            case "get":
+                res = httpClient.get(url, payload, null, this.headers, this.RETRIES);
+                break;
+            case "post":
+                res = httpClient.post(url, payload, this.headers, this.RETRIES);
+                break;
+            case "delete":
+                res = httpClient.delete(url, payload, this.headers, this.RETRIES);
+                break;
+        }
+
+        return res;
+    }
+
+    private String callHttpClient( String verb, String url, String payload ) throws Exception {
+        String res;
+
+        setAuthorization();
+        try{
+            res = switchHttpClient( verb, url, payload );
+        }catch (DeployInternalException e) {
+            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
+            setAuthorization();
+            res = switchHttpClient( verb, url, payload );
+        }
+
+        return res;
+    }
+
     @Override
     public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds) throws Exception {
         if (hostIds.isEmpty()) {
@@ -103,14 +138,7 @@ public class RodimusManagerImpl implements RodimusManager {
         }
         
         String url = String.format("%s/v1/clusters/%s/hosts", this.rodimusUrl, clusterName);
-        setAuthorization();
-        try {
-            httpClient.delete(url, gson.toJson(hostIds), this.headers, RETRIES);
-        } catch (DeployInternalException e) {
-            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
-            setAuthorization();
-            httpClient.delete(url, gson.toJson(hostIds), this.headers, RETRIES);
-        }
+        callHttpClient( "delete", url, gson.toJson(hostIds) );
     } // terminateHostsByClusterName
 
     @Override
@@ -120,31 +148,15 @@ public class RodimusManagerImpl implements RodimusManager {
         }
 
         // NOTE: it's better to call this function with single host id
-        String res;
         String url = String.format("%s/v1/hosts/state?actionType=%s", rodimusUrl, "TERMINATED");
-        setAuthorization();
-        try {
-            res = httpClient.post(url, gson.toJson(hostIds), this.headers, this.RETRIES);
-        } catch (DeployInternalException e) {
-            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
-            setAuthorization();
-            res = httpClient.post(url, gson.toJson(hostIds), this.headers, this.RETRIES);
-        }
+        String res = callHttpClient( "post", url, gson.toJson(hostIds) );
         return gson.fromJson(res, new TypeToken<ArrayList<String>>() {}.getType());
     } // getTerminatedHosts
 
     @Override
     public Long getClusterInstanceLaunchGracePeriod(String clusterName) throws Exception {
-        String res;
         String url = String.format("%s/v1/groups/%s/config", rodimusUrl, clusterName);
-        setAuthorization();
-        try {
-            res = httpClient.get(url, null, null, this.headers, RETRIES);
-        } catch (DeployInternalException e) {
-            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
-            setAuthorization();
-            res = httpClient.get(url, null, null, this.headers, RETRIES);
-        }
+        String res = callHttpClient( "get", url, null );
 
         JsonObject jsonObject = gson.fromJson(res, JsonObject.class);
         if (jsonObject == null || jsonObject.isJsonNull()) {
@@ -161,17 +173,8 @@ public class RodimusManagerImpl implements RodimusManager {
 
     @Override
     public Map<String, Map<String, String>> getEc2Tags(Collection<String> hostIds) throws Exception {
-        String res;
         String url = String.format("%s/v1/host_ec2tags", rodimusUrl);
-
-        setAuthorization();
-        try {
-            res = httpClient.post(url, gson.toJson(hostIds), this.headers, RETRIES);
-        } catch (DeployInternalException e) {
-            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
-            setAuthorization();
-            res = httpClient.post(url, gson.toJson(hostIds), this.headers, RETRIES);
-        }
+        String res = callHttpClient( "post", url, gson.toJson(hostIds) );
 
         return gson.fromJson(res, new TypeToken<Map<String, Map<String, String>>>(){}.getType());
     } // getEc2Tags
