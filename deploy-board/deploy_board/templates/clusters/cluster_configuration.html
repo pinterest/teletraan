@@ -512,7 +512,7 @@
                 placementsHelpData: [],
                 canSaveCapacity: !showReplaceAlert,
                 showCmpGroup: Boolean(getUrlParameter("showcmpgroup")),
-                subnetType: assignPublicIP,
+                subnetType: assignPublicIP ? "public" : "private",
             }),
             methods: {
                 addConfig: function(config) {
