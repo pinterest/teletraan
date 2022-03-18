@@ -65,6 +65,45 @@ if IS_PINTEREST:
 # Nimbus-related helpers
 
 
+def create_identifier_for_new_stage(request, env_name, stage_name):
+    """ Create a Nimbus Identifier for the new stage. Assumes that the environment has at least one stage with externalId set.
+        This is needed so that the method knows which project to associate the new stage to.
+
+        If the environment has no stage with externalId set, this method will not attempt to create an Identifier.
+    """
+    # Only create identifier for Pinterest environments
+    if not IS_PINTEREST:
+        return None
+
+    # get all stages within this environment
+    all_env_stages = get_all_env_stages(request, env_name)
+    stage_with_external_id = None
+
+    # find a stage in this environment that has externalId set
+    for env_stage in all_env_stages:
+        if env_stage['externalId'] is not None:
+            stage_with_external_id = env_stage
+            break
+
+    if stage_with_external_id == None:
+        return None
+
+    # retrieve Nimbus identifier for existing_stage
+    existing_stage_identifier = get_nimbus_identifier(request, stage_with_external_id['externalId'])
+    # create Nimbus Identifier for the new stage
+    new_stage_identifier = None
+    if existing_stage_identifier is not None:
+        nimbus_request_data = existing_stage_identifier.copy()
+        nimbus_request_data['stage_name'] = stage_name
+        nimbus_request_data['env_name'] = env_name
+        new_stage_identifier = create_nimbus_identifier(request, nimbus_request_data)
+
+    # if there is no stage in this env with externalId, still create the new stage
+    if new_stage_identifier is None:
+        return None
+    return new_stage_identifier.get('uuid')
+
+
 def get_nimbus_identifier(request, name):
     return nimbusclient.get_one_identifier(name, token=request.teletraan_user_id.token)
 
@@ -74,6 +113,9 @@ def create_nimbus_identifier(request, data):
 
 
 def delete_nimbus_identifier(request, name):
+    # Nimbus identifiers are only for Pinterest environments
+    if not IS_PINTEREST:
+        return None
     return nimbusclient.delete_one_identifier(name, token=request.teletraan_user_id.token)
 
 
