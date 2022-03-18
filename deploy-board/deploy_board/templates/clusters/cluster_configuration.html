@@ -64,7 +64,7 @@
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
-                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" v-bind:subnettype="subnetType"
+                    <placements-select label="Placements" title="Placements" showsubnettype="true" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" v-bind:subnettype="subnetType"
                     showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip" v-on:subnetfilterclick="changeSubnetType"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <div v-if="inAdvanced">

@@ -323,9 +323,9 @@ Vue.component("placements-select", {
     <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" v-on:click="helpClick" title="click to see more information">\
         <span class="glyphicon glyphicon-question-sign"></span>\
     </button>\
-   </span></div>\
+    </span></div>\
     </div>\
-    <div class="col-xs-2">\
+    <div class="col-xs-2" v-if="showsubnettype">\
         <input type="radio" id="public" value="public" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
         <label for="public">Public subnets</label>\
         <br>\
@@ -337,7 +337,7 @@ Vue.component("placements-select", {
         <input type="checkbox" id="checkbox" v-bind:checked="assignpublicip" v-on:click="assignipchange($event.target.checked)">\
         <label for="checkbox">Assign Public IP</label>\
     </div></div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype'],
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype', 'showsubnettype'],
     data: function () {
         return {
             groupStyle: this.showhelp ? 'input-group' : ''
