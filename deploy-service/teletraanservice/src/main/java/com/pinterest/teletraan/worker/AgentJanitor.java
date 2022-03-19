@@ -29,6 +29,9 @@ import com.pinterest.deployservice.handler.CommonHandler;
 import com.pinterest.deployservice.common.NotificationJob;
 import java.util.concurrent.ExecutorService;
 import io.prometheus.client.Gauge;
+import com.codahale.metrics.MetricRegistry;
+import io.prometheus.client.CollectorRegistry;
+import io.prometheus.client.dropwizard.DropwizardExports;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +54,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private final CommonHandler commonHandler;
     private final ExecutorService jobPool;
     private String deployBoardUrlPrefix;
+    private static final MetricRegistry metricRegistry = new MetricRegistry();
     private static final Gauge unreachableHosts = Gauge.build()
             .name("unreachable_hosts")
             .help("Unreachable hosts in Teletraan")
@@ -66,7 +70,9 @@ public class AgentJanitor extends SimpleAgentJanitor {
         commonHandler = new CommonHandler(serviceContext);
         jobPool = serviceContext.getJobPool();
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
-
+        
+        //metricRegistry.register("unreachableHosts", unreachableHosts);
+        new DropwizardExports(metricRegistry).register();
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
 
@@ -147,22 +153,13 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 unreachableCountPerASG.put(entry.getValue(), unreachableCountPerASG.getOrDefault(entry.getValue(), 0) + 1);
             }
         }
-        notifyOnUnreachableHosts(unreachableCountPerASG);
+        reportUnreachableHosts(unreachableCountPerASG);
     }
 
-    private void notifyOnUnreachableHosts(Map<String, Integer> unreachableCountPerASG) throws Exception {
+    private void reportUnreachableHosts(Map<String, Integer> unreachableCountPerASG) throws Exception {
         for (Map.Entry<String, Integer> entry : unreachableCountPerASG.entrySet()) {
             unreachableHosts.labels(entry.getKey()).set(entry.getValue());
-            EnvironBean environBean = entry.getValue() != null ? environDAO.getByCluster(entry.getKey()) : null;
-            if (environBean != null) {
-                String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s", environBean.getEnv_name(), environBean.getStage_name());
-                String message = String.format("Instances not reporting (unreachable) to Teletraan.");
-                String subject = String.format("Cluster %s has %d unreachable instances.", webLink, entry.getValue());
-                LOG.debug("Cluster %s has %d unreachable instances.", webLink, entry.getValue());
-                jobPool.submit(new NotificationJob(message, subject, environBean.getEmail_recipients(), environBean.getChatroom(), commonHandler));
-            } 
         }
-
     }
 
     @Override
