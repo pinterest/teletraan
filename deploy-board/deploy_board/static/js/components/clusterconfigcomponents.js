@@ -326,10 +326,10 @@ Vue.component("placements-select", {
     </span></div>\
     </div>\
     <div class="col-xs-2" v-if="showsubnettype">\
-        <input type="radio" id="public" value="public" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
+        <input type="radio" id="public-subnet" value="public" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
         <label for="public">Public subnets</label>\
         <br>\
-        <input type="radio" id="private" value="private" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
+        <input type="radio" id="private-subnet" value="private" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
         <label for="private">Private subnets</label>\
         <br>\
     </div>\
