@@ -44,6 +44,9 @@ class Client(BaseClient):
         self._autoscaling_group = None
         self._availability_zone = None
         self._stage_type = None
+        # stage_type doesn't always exist, and if it doesn't we don't want to
+        # keep trying to fetch it from facter every time
+        self._stage_type_fetched = False
 
     def _read_host_info(self):
         if self._use_facter:
@@ -66,7 +69,8 @@ class Client(BaseClient):
             if not self._hostgroup and group_key:
                 keys_to_fetch.add(group_key)
 
-            facter_data = utils.get_info_from_facter(keys_to_fetch)
+            if keys_to_fetch:
+                facter_data = utils.get_info_from_facter(keys_to_fetch)
 
             if not self._hostname:
                 self._hostname = facter_data.get(name_key, None)
@@ -147,10 +151,11 @@ class Client(BaseClient):
             if not self._autoscaling_group:
                 keys_to_fetch.add(ec2_tags_key)
 
-            if not self._stage_type:
+            if not self._stage_type and not self._stage_type_fetched:
                 keys_to_fetch.add(stage_type_key)
 
-            facter_data = utils.get_info_from_facter(keys_to_fetch)
+            if keys_to_fetch:
+                facter_data = utils.get_info_from_facter(keys_to_fetch)
 
             if not self._availability_zone:
                 self._availability_zone = facter_data.get(az_key, None)
@@ -161,8 +166,9 @@ class Client(BaseClient):
             if not self._autoscaling_group:
                 self._autoscaling_group = facter_data.get(ec2_tags_key, {}).get(asg_tag_key, None)
 
-            if not self._stage_type:
+            if not self._stage_type and not self._stage_type_fetched:
                 self._stage_type = facter_data.get(stage_type_key, None)
+                self._stage_type_fetched = True
 
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
