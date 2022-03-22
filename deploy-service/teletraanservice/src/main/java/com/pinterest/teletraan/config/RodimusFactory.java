@@ -8,7 +8,7 @@ public class RodimusFactory {
     private String rodimusUrl;
 
     @JsonProperty
-    private String token;
+    private String knoxKey;
 
     public String getRodimusUrl() {
         return rodimusUrl;
@@ -18,11 +18,11 @@ public class RodimusFactory {
         this.rodimusUrl = rodimusUrl;
     }
 
-    public String getToken() {
-        return token;
+    public String getKnoxKey() {
+        return this.knoxKey;
     }
 
-    public void setToken(String token) {
-        this.token = token;
+    public void setKnoxKey(String keyName) {
+        this.knoxKey = keyName;
     }
 }
