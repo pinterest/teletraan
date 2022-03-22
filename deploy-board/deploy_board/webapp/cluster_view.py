@@ -635,6 +635,7 @@ def delete_cluster(request, name, stage):
 
 
 def clone_cluster(request, src_name, src_stage):
+    external_id = None
     try:
         params = request.POST
         dest_name = params.get('new_environment', src_name)
@@ -646,7 +647,7 @@ def clone_cluster(request, src_name, src_stage):
         ##0. teletraan service get src env buildName
         src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
         build_name = src_env.get('buildName', None)
-        external_id = src_env.get('externalId', None)
+        external_id = environs_helper.create_identifier_for_new_stage(request, dest_name, dest_stage)
 
         ##1. teletraan service create a new env
         dest_env = environs_helper.create_env(request, {
@@ -709,10 +710,15 @@ def clone_cluster(request, src_name, src_stage):
         return HttpResponse(json.dumps(src_cluster_info), content_type="application/json")
     except NotAuthorizedException as e:
         log.error("Have an NotAuthorizedException error {}".format(e))
+        if external_id is not None:
+            environs_helper.delete_nimbus_identifier(request, external_id)
+
         return HttpResponse(e, status=403, content_type="application/json")
     except Exception as e:
         log.error("Failed to clone cluster env_name: %s, stage_name: %s" % (src_name, src_stage))
         log.error(traceback.format_exc())
+        if external_id is not None:
+            environs_helper.delete_nimbus_identifier(request, external_id)
         return HttpResponse(e, status=500, content_type="application/json")
 
 
