@@ -1,6 +1,6 @@
 /**
- * Common Components 
- *  
+ * Common Components
+ *
  */
 
 
@@ -251,8 +251,6 @@ Vue.component("panel-heading", {
   }
 });
 
-
-
 /**
  * A form table
  */
@@ -264,3 +262,16 @@ Vue.component("help-table", {
     </tr></tbody></table></div></div>',
   props: ['headers', 'data', 'keys']
 })
+
+/**
+ * A form inline warning
+ */
+ Vue.component("form-warning", {
+    template:'<div class="form-group"><div class="col-xs-2"></div>\
+    <div class="col-xs-10">\
+        <div class="alert alert-warning">\
+            <button v-if="dismissible" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
+            <strong>Warning!</strong> {{ warningtext }}</div>\
+    </div></div>',
+    props: ['dismissible', 'warningtext']
+  })
