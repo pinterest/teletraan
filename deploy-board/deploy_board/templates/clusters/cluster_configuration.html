@@ -848,6 +848,9 @@
                             `Warning: You ${this.assignPublicIP ? 'selected' :'unselected'} 'Assign Public IP' for ${this.subnetType} subnet type. ` +
                             `Please double check if this is desired. If you DO require this configuration, please report your scenario to the Teletraan team.`
                     }
+                    else {
+                        globalNotificationBanner.error = ""
+                    }
                 },
                 changeSubnetType: function(value) {
                     this.subnetType = value
