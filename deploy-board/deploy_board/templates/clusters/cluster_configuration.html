@@ -857,10 +857,10 @@
                     var showPublicSubnets = value == 'public' ? true : false
                     this.assignPublicIP = showPublicSubnets
                     if (this.inAdvanced){
-                        this.placements = placements.getFullList(showPublicSubnets, currentPlacements)
+                        this.placements = placements.getFullList(showPublicSubnets, this.selectedPlacements)
                     }
                     else{
-                        this.placements = placements.getSimpleList(showPublicSubnets, currentPlacements)
+                        this.placements = placements.getSimpleList(showPublicSubnets, this.selectedPlacements)
                     }
                 },
                 updateAwsRole:function(value){
