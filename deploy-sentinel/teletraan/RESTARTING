@@ -4,5 +4,9 @@ set -e
 
 echo Running RESTARTING script.
 
+# Register knox keys
+knox register -g -k teletraan:prod:rodimusapitoken
+knox register -g -k teletraan:integ:rodimusapitoken
+
 # Start service
 python ../mysite/manage.py runserver 0.0.0.0:8000 &
