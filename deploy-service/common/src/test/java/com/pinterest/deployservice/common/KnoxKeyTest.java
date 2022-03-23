@@ -605,13 +605,7 @@ public class KnoxKeyTest {
 
     private int getRetries(RodimusManager rodimusMngr) throws Exception {
         // Get how many retries rodimusManager should do
-/*        
-        int RETRIES;
-        Field retries = rodimusMngr.getClass().getDeclaredField("RETRIES");
-        retries.setAccessible(true);
-        RETRIES = (int)retries.get(rodimusMngr);
-        retries.setAccessible(false);
-*/
+
         int RETRIES = 2; // fixed to 2 due to logic change on retry loop
         return RETRIES;
     }
