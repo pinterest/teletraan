@@ -152,14 +152,17 @@ function getDefaultPlacement(capacityCreationInfo) {
             }
             return foundIdx >= 0 && foundIdx < 3
         },
-        getSimpleList: function (assignPublicIp, existingItems) {
+        getSimpleList: function (showPublicOnly, existingItems) {
             //Return a simple list fo selection.
             //Simple list is grouped by the abstract_name,
             //for each abstract_name, we have one candidate.
             //If existingItems is null or empty, the abstract_name
             //will be the existing one
-            var arr = assignPublicIp == 'true' ? this.cmpPublic : this.cmpPrivate
-            var fullArr = assignPublicIp ? this.allPublic : this.allPrivate
+            if (typeof showPublicOnly !== "boolean") {
+                console.error("getSimpleList expects parameter showPublicOnly to be of boolean type.")
+            }
+            var arr = showPublicOnly ? this.cmpPublic : this.cmpPrivate
+            var fullArr = showPublicOnly ? this.allPublic : this.allPrivate
             if (existingItems != null && existingItems.length > 0) {
 
                 existingItems = existingItems.map(function (item) {
@@ -206,8 +209,11 @@ function getDefaultPlacement(capacityCreationInfo) {
             return arr;
 
         },
-        getFullList: function (assignPublicIp, existingItems) {
-            var arr = assignPublicIp == 'true' ? this.allPublic : this.allPrivate
+        getFullList: function (showPublicOnly, existingItems) {
+            if (typeof showPublicOnly !== "boolean") {
+                console.error("getFullList expects parameter showPublicOnly to be of boolean type.")
+            }
+            var arr = showPublicOnly ? this.allPublic : this.allPrivate
             if (existingItems != null && existingItems.length > 0) {
                 existingItems = existingItems.map(function (item) {
                     var fullInfo = arr.find(

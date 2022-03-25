@@ -64,8 +64,9 @@
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
-                    <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP"
-                    showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
+                    <placements-select label="Placements" title="Placements" showsubnettype="true" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" v-bind:subnettype="subnetType"
+                    showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip" v-on:subnetfilterclick="changeSubnetType"></placements-select>
+                    <form-warning v-show="showSubnetReplacementAlert" v-bind:warningtext="subnetReplacementWarning"></form-warning>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <div v-if="inAdvanced">
                         <div class="form-group"></div>
@@ -417,6 +418,7 @@
         var currentPlacements = currentCluster.placement.split(',');
         var placements = getDefaultPlacement(info);
         var showReplaceAlert = currentCluster != null && currentCluster.state != "NORMAL";
+        var initialAssignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
         var alert = new Vue({
             el: "#clusterAlert",
             data: {
@@ -444,7 +446,7 @@
                                 readonly: info.readonlyFields.indexOf(key) >= 0
                             }
                         }).filter(function(item){return item.name!='assign_public_ip'}),
-                assignPublicIP: currentCluster.configs.assign_public_ip == "true" ? true : false,
+                assignPublicIP: initialAssignPublicIP,
                 awsRole: currentCluster.configs.aws_role,
                 baseimages: info.baseImages.map(function(o) {
                     var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
@@ -476,8 +478,8 @@
                 }),
                 inAdvanced: false,
                 placements: this.inAdvanced ?
-                    placements.getFullList(currentCluster.configs.assign_public_ip, currentPlacements) :
-                    placements.getSimpleList(currentCluster.configs.assign_public_ip, currentPlacements),
+                    placements.getFullList(initialAssignPublicIP, currentPlacements) :
+                    placements.getSimpleList(initialAssignPublicIP, currentPlacements),
                 providers: info.providerList.map(function(o) {
                     return {
                         value: o,
@@ -511,7 +513,10 @@
                 showPlacementsHelp: false,
                 placementsHelpData: [],
                 canSaveCapacity: !showReplaceAlert,
-                showCmpGroup: Boolean(getUrlParameter("showcmpgroup"))
+                showCmpGroup: Boolean(getUrlParameter("showcmpgroup")),
+                subnetType: initialAssignPublicIP ? "public" : "private",
+                showSubnetReplacementAlert: false,
+                subnetReplacementWarning: "Cluster can't have a mix of public and private subnets. Saving this config will remove existing subnets.",
             }),
             methods: {
                 addConfig: function(config) {
@@ -840,13 +845,27 @@
                 },
                 selectpublicip: function(value){
                     this.assignPublicIP = value
+                    if (this.assignPublicIP && this.subnetType == 'private' ||
+                        !this.assignPublicIP && this.subnetType == 'public') {
+                        globalNotificationBanner.error =
+                            `Warning: You ${this.assignPublicIP ? 'selected' :'unselected'} 'Assign Public IP' for ${this.subnetType} subnet type. ` +
+                            `Please double check if this is desired. If you DO require this configuration, please report your scenario to the Teletraan team.`
+                    }
+                    else {
+                        globalNotificationBanner.error = ""
+                    }
+                },
+                changeSubnetType: function(value) {
+                    this.subnetType = value
+                    var showPublicSubnets = value == 'public' ? true : false
+                    this.assignPublicIP = showPublicSubnets
+                    this.showSubnetReplacementAlert = initialAssignPublicIP != showPublicSubnets
                     if (this.inAdvanced){
-                        this.placements = placements.getFullList(this.assignPublicIP, currentPlacements)
+                        this.placements = placements.getFullList(showPublicSubnets, this.selectedPlacements)
                     }
                     else{
-                        this.placements = placements.getSimpleList(this.assignPublicIP, currentPlacements)
+                        this.placements = placements.getSimpleList(showPublicSubnets, this.selectedPlacements)
                     }
-
                 },
                 updateAwsRole:function(value){
                     this.awsRole = value
