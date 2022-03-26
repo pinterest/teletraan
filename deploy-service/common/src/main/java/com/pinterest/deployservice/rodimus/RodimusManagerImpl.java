@@ -121,7 +121,7 @@ public class RodimusManagerImpl implements RodimusManager {
         setAuthorization();
         try{
             res = switchHttpClient( verb, url, payload );
-        }catch (DeployInternalException e) {
+        }catch (Exception e) {
             if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
             setAuthorization();
             res = switchHttpClient( verb, url, payload );

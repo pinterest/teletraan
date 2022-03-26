@@ -32,10 +32,11 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 
 import java.util.*;
+import java.lang.*;
 
 public class KnoxKeyTest {
 
-    private static enum Answer { NULL, EXCEPTION, ARRAY, LATENCY };
+    private static enum Answer { NULL, POST_EXCEPTION, GET_EXCEPTION, DELETE_EXCEPTION, ARRAY, LATENCY };
 
     private static String msgUnauthException =
         "HTTP request failed, status = 401, content = Unauthorized";
@@ -53,6 +54,7 @@ public class KnoxKeyTest {
     private byte[][] testKey = new byte[3][];
     private int rodimusManagerRETRIES;
     private String postAnswerReturn = null;
+    private Exception exceptionToThrow = null;
     private boolean swapKey = false;
 
     @Before
@@ -75,6 +77,9 @@ public class KnoxKeyTest {
 
         // Allocate answerList
         answerList = new ArrayList<Answer>();
+
+        // Default exception to throw
+        this.exceptionToThrow = new DeployInternalException(this.msgUnauthException);        
     }
   
     @After
@@ -134,7 +139,7 @@ public class KnoxKeyTest {
         }
 
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-            {{ add(Answer.EXCEPTION); add(Answer.NULL); }};        
+            {{ add(Answer.DELETE_EXCEPTION); add(Answer.NULL); }};        
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -160,7 +165,7 @@ public class KnoxKeyTest {
 
         Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {{ add(Answer.EXCEPTION); }};
+        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {{ add(Answer.DELETE_EXCEPTION); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -179,17 +184,25 @@ public class KnoxKeyTest {
 
         this.mockClasses(this.rodimusManager, this.mockKnox, this.mockHttpClient );
 
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.terminateHostsByClusterName("cluster",Collections.singletonList("i-001"));
-            } 
-        );
+        Exception[] exceptionToTest = new Exception[2];
+        exceptionToTest[0] = new DeployInternalException(this.msgUnauthException);
+        exceptionToTest[1] = new java.lang.IllegalArgumentException(this.msgUnauthException);
 
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+        for ( Exception toTest: exceptionToTest ) {
 
-        int retries = this.getRetries(this.rodimusManager);
+            this.exceptionToThrow = toTest;
+            Exception exception = Assert.assertThrows( toTest.getClass(), () -> {
+                this.rodimusManager.terminateHostsByClusterName("cluster",Collections.singletonList("i-001"));
+                } 
+            );
+            Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+
+        }
+
+        int retries = this.getRetries(this.rodimusManager) * exceptionToTest.length;
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
         {{ 
-            for( int i=1; i<=retries; i++ ){ add(Answer.EXCEPTION); };
+            for( int i=1; i<=retries; i++ ){ add(Answer.DELETE_EXCEPTION); };
         }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
@@ -254,7 +267,7 @@ public class KnoxKeyTest {
         }
 
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-            {{ add(Answer.EXCEPTION); add(Answer.ARRAY); }};
+            {{ add(Answer.POST_EXCEPTION); add(Answer.ARRAY); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -282,7 +295,7 @@ public class KnoxKeyTest {
 
         Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {{ add(Answer.EXCEPTION); }};
+        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {{ add(Answer.POST_EXCEPTION); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -303,17 +316,25 @@ public class KnoxKeyTest {
 
         this.postAnswerReturn = this.postAnswerArray;
 
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001","i-002"));
-            } 
-        );
+        Exception[] exceptionToTest = new Exception[2];
+        exceptionToTest[0] = new DeployInternalException(this.msgUnauthException);
+        exceptionToTest[1] = new java.lang.IllegalArgumentException(this.msgUnauthException);
 
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+        for ( Exception toTest: exceptionToTest ) {
 
-        int retries = this.getRetries(this.rodimusManager);
+            this.exceptionToThrow = toTest;
+            Exception exception = Assert.assertThrows( toTest.getClass(), () -> {
+                this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001","i-002"));
+                } 
+            );
+            Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+
+        }
+
+        int retries = this.getRetries(this.rodimusManager) * exceptionToTest.length;
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
         {{ 
-            for( int i=1; i<=retries; i++ ){ add(Answer.EXCEPTION); }; 
+            for( int i=1; i<=retries; i++ ){ add(Answer.POST_EXCEPTION); }; 
         }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
@@ -379,7 +400,7 @@ public class KnoxKeyTest {
         }
 
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-            {{ add(Answer.EXCEPTION); add(Answer.LATENCY); }};
+            {{ add(Answer.GET_EXCEPTION); add(Answer.LATENCY); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -406,7 +427,7 @@ public class KnoxKeyTest {
 
         Assert.assertTrue( exception.getMessage().contains("HTTP request failed, status") );
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {{ add(Answer.EXCEPTION); }};
+        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {{ add(Answer.GET_EXCEPTION); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -426,17 +447,25 @@ public class KnoxKeyTest {
 
         this.mockClasses(this.rodimusManager, this.mockKnox, this.mockHttpClient);
 
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
-            } 
-        );
+        Exception[] exceptionToTest = new Exception[2];
+        exceptionToTest[0] = new DeployInternalException(this.msgUnauthException);
+        exceptionToTest[1] = new java.lang.IllegalArgumentException(this.msgUnauthException);
 
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );        
+        for ( Exception toTest: exceptionToTest ) {
 
-        int retries = this.getRetries(this.rodimusManager);
+            this.exceptionToThrow = toTest;
+            Exception exception = Assert.assertThrows( toTest.getClass(), () -> {
+                    this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
+                } 
+            );
+            Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+
+        }
+
+        int retries = this.getRetries(this.rodimusManager) * exceptionToTest.length;
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
         {{ 
-            for( int i=1; i<=retries; i++ ){ add(Answer.EXCEPTION); }; 
+            for( int i=1; i<=retries; i++ ){ add(Answer.GET_EXCEPTION); }; 
         }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
@@ -500,7 +529,7 @@ public class KnoxKeyTest {
         }
 
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-            {{ add(Answer.EXCEPTION); add(Answer.ARRAY); }};
+            {{ add(Answer.POST_EXCEPTION); add(Answer.ARRAY); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
 
     }
@@ -529,7 +558,7 @@ public class KnoxKeyTest {
 
         Assert.assertTrue( exception.getMessage().contains("HTTP request failed, status") );
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {{ add(Answer.EXCEPTION); }};
+        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {{ add(Answer.POST_EXCEPTION); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -550,17 +579,25 @@ public class KnoxKeyTest {
 
         this.postAnswerReturn = this.postAnswerTag;
 
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.getEc2Tags(Arrays.asList("i-001","i-002"));
-            } 
-        );
+        Exception[] exceptionToTest = new Exception[2];
+        exceptionToTest[0] = new DeployInternalException(this.msgUnauthException);
+        exceptionToTest[1] = new java.lang.IllegalArgumentException(this.msgUnauthException);
 
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+        for ( Exception toTest: exceptionToTest ) {
 
-        int retries = this.getRetries(this.rodimusManager);
+            this.exceptionToThrow = toTest;
+            Exception exception = Assert.assertThrows( toTest.getClass(), () -> {
+                this.rodimusManager.getEc2Tags(Arrays.asList("i-001","i-002"));
+                } 
+            );
+            Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+
+        }
+
+        int retries = this.getRetries(this.rodimusManager) * exceptionToTest.length;
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
         {{ 
-            for( int i=1; i<=retries; i++ ){ add(Answer.EXCEPTION); }; 
+            for( int i=1; i<=retries; i++ ){ add(Answer.POST_EXCEPTION); }; 
         }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
@@ -648,8 +685,8 @@ public class KnoxKeyTest {
             this.answerList.add(Answer.NULL);
             return null;
         }else{
-            this.answerList.add(Answer.EXCEPTION);
-            throw new DeployInternalException(this.msgUnauthException);
+            this.answerList.add(Answer.DELETE_EXCEPTION);
+            throw this.exceptionToThrow;
         }
     }
 
@@ -666,8 +703,8 @@ public class KnoxKeyTest {
             this.answerList.add(Answer.ARRAY);
             return this.postAnswerReturn;
         }else{
-            this.answerList.add(Answer.EXCEPTION);
-            throw new DeployInternalException(this.msgUnauthException);
+            this.answerList.add(Answer.POST_EXCEPTION);
+            throw this.exceptionToThrow;
         }
     }
 
@@ -684,8 +721,8 @@ public class KnoxKeyTest {
             this.answerList.add(Answer.LATENCY);
             return this.getAnswerValue;
         }else{
-            this.answerList.add(Answer.EXCEPTION);
-            throw new DeployInternalException(this.msgUnauthException);
+            this.answerList.add(Answer.GET_EXCEPTION);
+            throw this.exceptionToThrow;
         }
     }
 
