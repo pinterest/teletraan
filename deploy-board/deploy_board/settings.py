@@ -110,6 +110,10 @@ LOGGING = {
         'standard': {
             'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
         },
+        'json': {
+            '()': 'deploy_board.webapp.helpers.settings_logging.StructuredMessage',
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
     },
     'handlers': {
         'default': {
@@ -118,20 +122,36 @@ LOGGING = {
             'filename': '%s/service.log' % LOG_DIR,
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
-            'formatter': 'standard',
+            'formatter': 'json',
         },
-        'request_handler': {
+        'django.request': {
             'level': LOG_LEVEL,
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '%s/access.log' % LOG_DIR,
+            'filename': '%s/request.log' % LOG_DIR,
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
-            'formatter': 'standard',
+            'formatter': 'json',
+        },
+        'django.server': {
+            'level': LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '%s/server.log' % LOG_DIR,
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'json',
+        },
+        'django.template': {
+            'level': LOG_LEVEL,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '%s/template.log' % LOG_DIR,
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'json',
         },
         'console': {
             'level': LOG_LEVEL,
             'class': 'logging.StreamHandler',
-            'formatter': 'standard',
+            'formatter': 'json',
         },
     },
     'loggers': {
@@ -141,7 +161,22 @@ LOGGING = {
             'propagate': True
         },
         'django.request': {
-            'handlers': ['request_handler'],
+            'handlers': ['django.request'],
+            'level': LOG_LEVEL,
+            'propagate': False
+        },
+        'requests.packages.urllib3.connectionpool': {
+            'handlers': ['django.request'],
+            'level': LOG_LEVEL,
+            'propagate': False
+        },
+        'django.server': {
+            'handlers': ['django.server'],
+            'level': LOG_LEVEL,
+            'propagate': False
+        },
+        'django.template': {
+            'handlers': ['django.template'],
             'level': LOG_LEVEL,
             'propagate': False
         },
