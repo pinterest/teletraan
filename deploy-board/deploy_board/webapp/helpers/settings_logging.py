@@ -17,7 +17,6 @@ class StructuredMessage(logging.Formatter):
 
     def format(self, record):
         """
-
         param: record: class 'logging.LogRecord'
         return: json as str
         """
