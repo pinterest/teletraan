@@ -78,7 +78,8 @@ public class RodimusManagerImpl implements RodimusManager {
         String prevKnoxKey = this.cachedKey;
 
         if (this.fsKnox != null) {
-            this.cachedKey = new String(this.fsKnox.getPrimaryKey());
+            String temp = new String(this.fsKnox.getPrimaryKey());
+            this.cachedKey = temp.replaceAll("[\n\r]*$", "");
         }
 
         if ( prevKnoxKey == null )
