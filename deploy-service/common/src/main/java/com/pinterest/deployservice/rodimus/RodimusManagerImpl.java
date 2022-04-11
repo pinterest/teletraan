@@ -56,8 +56,10 @@ public class RodimusManagerImpl implements RodimusManager {
         this.headers = new HashMap<>();
         this.headers.put("Content-Type", "application/json");
         this.headers.put("Accept", "*/*");
-        if (knoxKey != null) {
+        if ( (knoxKey != null)&&(knoxKey.length() > 0) ) {
             this.fsKnox = new FileSystemKnox(knoxKey);
+        }else{
+            throw new DeployInternalException("Knox Key for Rodimus Authorization Token is missing!");
         }
         this.gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
     }
@@ -75,11 +77,9 @@ public class RodimusManagerImpl implements RodimusManager {
     }
 
     private void setAuthorization() throws Exception {
-        if (this.fsKnox != null) {
-            String temp = new String(this.fsKnox.getPrimaryKey());
-            String rodimusKey = temp.replaceAll("[\n\r]*$", "");
-            this.headers.put("Authorization", String.format("token %s", rodimusKey));
-        }
+        String temp = new String(this.fsKnox.getPrimaryKey());
+        String rodimusKey = temp.replaceAll("[\n\r]*$", "");
+        this.headers.put("Authorization", String.format("token %s", rodimusKey));
     }
 
     private String switchHttpClient( Verb verb, String url, String payload ) throws Exception {

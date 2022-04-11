@@ -39,6 +39,8 @@ public class KnoxKeyTest {
 
     private static String msgUnauthException =
         "HTTP request failed, status = 401, content = Unauthorized";
+    private static String msgMissingKey =
+        "Knox Key for Rodimus Authorization Token is missing!";
     private static String postAnswerTag = 
         "{\"i-001\":{\"Name\": \"devapp-example1\"},\"i-002\":{\"Name\": \"devrestricted-example2\"}}";
     private static String postAnswerArray =
@@ -46,7 +48,7 @@ public class KnoxKeyTest {
     private static String getAnswerValue = 
         "{\"launchLatencyTh\": 10}";
 
-    private RodimusManager rodimusManager = null;    
+    private RodimusManager rodimusManager = null;
     private Knox mockKnox;
     private HTTPClient mockHttpClient;
     private List<Answer> answerList;
@@ -79,6 +81,33 @@ public class KnoxKeyTest {
     @After
     public void tearDown() throws Exception {
     }
+
+
+
+
+
+    // ### calling RodimusManagerImpl with erroneous knox key ###
+
+    @Test
+    public void noKnoxKeyOnConstructor() throws Exception {
+
+        // given key is null
+        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
+            RodimusManager tempRodimusManager = new RodimusManagerImpl( "http://localhost", null );
+            } 
+        );
+
+        Assert.assertTrue( exception.getMessage().contains(msgMissingKey) );
+
+        // given key is length=0
+        exception = Assert.assertThrows( DeployInternalException.class, () -> {
+            RodimusManager tempRodimusManager = new RodimusManagerImpl( "http://localhost", "" );
+            } 
+        );
+
+        Assert.assertTrue( exception.getMessage().contains(msgMissingKey) );
+
+    };
 
 
 
