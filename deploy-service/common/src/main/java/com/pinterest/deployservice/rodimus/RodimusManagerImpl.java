@@ -74,27 +74,12 @@ public class RodimusManagerImpl implements RodimusManager {
         }
     }
 
-    private boolean refreshCachedKey() throws Exception {
-        String prevKnoxKey = this.cachedKey;
-
-        if (this.fsKnox != null) {
-            this.cachedKey = new String(this.fsKnox.getPrimaryKey());
-        }
-
-        if ( prevKnoxKey == null )
-        {
-            return this.cachedKey != null;
-        }else{
-            return ! prevKnoxKey.equals( this.cachedKey );
-        }
-        
-    }
-
     private void setAuthorization() throws Exception {
-        if (this.cachedKey == null) {
-            this.refreshCachedKey();
+        if (this.fsKnox != null) {
+            String temp = new String(this.fsKnox.getPrimaryKey());
+            String rodimusKey = temp.replaceAll("[\n\r]*$", "");
+            this.headers.put("Authorization", String.format("token %s", rodimusKey));
         }
-        this.headers.put("Authorization", String.format("token %s", this.cachedKey));
     }
 
     private String switchHttpClient( Verb verb, String url, String payload ) throws Exception {
@@ -119,15 +104,7 @@ public class RodimusManagerImpl implements RodimusManager {
         String res;
 
         setAuthorization();
-        try{
-            res = switchHttpClient( verb, url, payload );
-        }catch (DeployInternalException e) {
-            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
-            setAuthorization();
-            res = switchHttpClient( verb, url, payload );
-        }
-
-        return res;
+        return switchHttpClient( verb, url, payload );
     }
 
     @Override
