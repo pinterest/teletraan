@@ -1,11 +1,9 @@
-# FROM maven:3.8-openjdk-8-slim AS builder
 FROM maven:3.8-openjdk-11-slim AS builder
 
 COPY . /deploy-service
 
 RUN cd /deploy-service && mvn clean package -DskipTests
 
-# FROM openjdk:8
 FROM openjdk:11
 
 ENV PROJECT_DIR=/opt/deploy-service

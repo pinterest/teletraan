@@ -18,11 +18,6 @@ CP=${ROOT_DIR}/*:${ROOT_DIR}/lib/*:${TARGET_DIR}/classes:${TARGET_DIR}/lib/*
 CONFIG_FILE=${ROOT_DIR}/bin/server.yaml
 PID_FILE=${HOME}/teletraan.pid
 ACTION="run"
-# JAVA_OPTS="-server -Xmx1024m -Xms1024m \
-# -verbosegc -Xloggc:/tmp/gc.log -XX:ErrorFile=/tmp/jvm_error.log \
-# -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -XX:+PrintClassHistogram \
-# -XX:+HeapDumpOnOutOfMemoryError -XX:+UseConcMarkSweepGC -XX:+UseParNewGC \
-# -XX:ConcGCThreads=7 -XX:ParallelGCThreads=7"
 JAVA_OPTS="-server -Xmx1024m -Xms1024m \
 -verbosegc -Xloggc:/tmp/gc.log -XX:ErrorFile=/tmp/jvm_error.log \
 -XX:+PrintClassHistogram \
