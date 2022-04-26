@@ -151,14 +151,7 @@ var capacitySetting = new Vue({
                 }
             }),
         instanceCount: "",
-        placements: placements.allPrivate.map(
-            function (item) {
-                return {
-                    value: item.id,
-                    text: item.provider_name,
-                    isSelected: placements.inDefault(item)
-                }
-            }),
+        placements: placements.getFullList(false, null),
         placementsHelpData: [],
         providers: info.providerList.map(
             function (o) {
