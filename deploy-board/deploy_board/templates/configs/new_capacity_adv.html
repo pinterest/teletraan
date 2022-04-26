@@ -416,16 +416,9 @@ var capacitySetting = new Vue({
                     })
                 }
         },
-        selectpublicip: function(value){
-            this.assignPublicIP = value
-            var arr = value ? placements.allPublic : placements.allPrivate
-            this.placements = arr.map(function(item, index) {
-                return {
-                    value: item.id,
-                    text: item.provider_name,
-                    isSelected:  placements.inDefault(item)//Select Top 3 by default
-                }
-            })
+        selectpublicip: function(assignPublicIP){
+            this.assignPublicIP = assignPublicIP
+            this.placements = placements.getFullList(assignPublicIP, null)
         },
         validateInput: function (clusterInfo) {
             //Validate input data.
