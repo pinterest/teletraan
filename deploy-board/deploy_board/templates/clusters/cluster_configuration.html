@@ -676,14 +676,7 @@
                 success: function (data) {
                     var placements = getDefaultPlacement({'placements': data});
 
-                    capacitySetting.placements =  placements.allPrivate.map(
-                        function (item, index) {
-                            return {
-                                value: item.id,
-                                text: item.provider_name,
-                                isSelected: index < 3 //Select Top 3 by default
-                            }
-                        });
+                    capacitySetting.placements =  placements.getFullList(false, null);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
