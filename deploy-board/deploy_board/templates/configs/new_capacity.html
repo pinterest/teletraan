@@ -121,13 +121,7 @@ var capacitySetting = new Vue({
                 text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.storage+")",
                 isSelected: item.abstract_name === capacityCreationInfo.defaultHostType
             }}),
-        placements: placements.cmpPrivate.map(function(item, index) {
-                return {
-                    value: item.id,
-                    text: item.abstract_name,
-                    isSelected: index < 3 //Select Top 3 by default
-                }
-            }),
+        placements: placements.getSimpleList(false, null),
         securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){
             return {
                 value:item.abstract_name,
@@ -210,16 +204,9 @@ var capacitySetting = new Vue({
                 this.createCapacity();
             }
         },
-        selectpublicip: function(value){
-            this.assignPublicIP = value;
-            var arr = value ? placements.cmpPublic : placements.cmpPrivate;
-            this.placements = arr.map(function(item, index) {
-                return {
-                    value: item.id,
-                    text: item.abstract_name,
-                    isSelected: index < 3 //Select Top 3 by default
-                }
-            })
+        selectpublicip: function(assignPublicIP){
+            this.assignPublicIP = assignPublicIP;
+            this.placements = placements.getSimpleList(assignPublicIP, null);
         },
         updateAwsRole: function(value){
             this.awsRole = value
