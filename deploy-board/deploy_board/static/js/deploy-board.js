@@ -91,11 +91,11 @@ function getDefaultPlacement(capacityCreationInfo) {
         return items.sort(function (item1, item2) { return item1.capacity < item2.capacity; })
     }
 
-    function convertToPlacementOptionsAdv(rawPlacements) {
-        if (rawPlacements === null || rawPlacements.length < 1 ) {
+    function convertToPlacementOptionsAdv(placements) {
+        if (placements === null || placements.length < 1 ) {
             return {}
         }
-        const cellName = rawPlacements ? rawPlacements[0].cell_name : '1'
+        const cellName = placements ? placements[0].cell_name : '1'
         const cellNum = cellName[cellName.length - 1]
         const azRegex = new RegExp(`\\b(${cellNum}[a-g])\\b`)
 
@@ -116,7 +116,7 @@ function getDefaultPlacement(capacityCreationInfo) {
 
         var options = {}
 
-        for (placement of rawPlacements) {
+        for (const placement of placements) {
             var obj = {
                 value: placement.id,
                 text: `${placement.provider_name} | ${placement.capacity}`,
@@ -262,36 +262,23 @@ function getDefaultPlacement(capacityCreationInfo) {
         },
         getFullList: function (showPublicOnly, existingItems) {
             if (typeof showPublicOnly !== "boolean") {
-                console.error("getFullList expects parameter showPublicOnly to be of boolean type.")
+                console.error("getFullList expects parameter showPublicOnly to be of boolean type.");
             }
-            var arr = showPublicOnly ? this.allPublic : this.allPrivate
+            var placements = showPublicOnly ? this.allPublic : this.allPrivate;
             if (existingItems != null && existingItems.length > 0) {
-                existingItems = existingItems.map(function (item) {
-                    var fullInfo = arr.find(
-                        function (i) {
-                            return i.id === item
-                        }
-                    )
-
-                    return fullInfo != null ? fullInfo : { id: item }
-                })
-                arr = arr.map(function (item) {
-                    var existing = existingItems.find(
-                        function (value) {
-                            return item.id === value.id
-                        })
-                    item['isSelected'] = existing ? true : false
-                    return item
-                })
+                const existingItemsSet = new Set(existingItems);
+                placements = placements.map(function (item) {
+                    item['isSelected'] = existingItemsSet.has(item.id) ? true : false;
+                    return item;
+                });
             }
             else {
-                arr = arr.map(function (item) {
-                    item['isSelected'] = inDefault(item)
-                    return item
-                })
+                placements = placements.map(function (item) {
+                    item['isSelected'] = inDefault(item);
+                    return item;
+                });
             }
-            return convertToPlacementOptionsAdv(arr);
+            return convertToPlacementOptionsAdv(placements);
         }
     }
 }
-
