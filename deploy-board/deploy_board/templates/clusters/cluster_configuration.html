@@ -418,13 +418,14 @@
         var currentPlacements = currentCluster.placement.split(',');
         var placements = getDefaultPlacement(info);
         var showReplaceAlert = currentCluster != null && currentCluster.state != "NORMAL";
-        var initialAssignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
         var alert = new Vue({
             el: "#clusterAlert",
             data: {
                 showReplaceAlert: showReplaceAlert
             }
         });
+        const initialAssignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
+        const initialCell = currentCluster.cellName;
 
         var sorted = info.baseImages.sort(function(item1, item2) {
             return item2.publish_date - item1.publish_date;
@@ -477,6 +478,7 @@
                     }
                 }),
                 inAdvanced: false,
+                initialCell: this.currentCell,
                 placements: this.inAdvanced ?
                     placements.getFullList(initialAssignPublicIP, currentPlacements) :
                     placements.getSimpleList(initialAssignPublicIP, currentPlacements),
@@ -641,48 +643,48 @@
                     });
 
                      // grab all security zone for this cell
-            $.ajax({
-                type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + cell,
-                dataType: "json",
-                beforeSend: function (xhr) {
-                    var csrftoken = getCookie('csrftoken');
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                },
-                success: function (data) {
-                    capacitySetting.securityZones = data.map(
-                        function (item) {
-                            return {
-                                value: item.abstract_name,
-                                text: item.abstract_name,
-                                isSelected: item.id === data[0].id
-                            }
-                        });
-                    capacitySetting.selectedSecurityZoneValue = data[0].abstract_name;
-                },
-                error: function (data) {
-                    globalNotificationBanner.error = data
-                }
-            });
-            // grab all placement for this cell
-            $.ajax({
-                type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + cell,
-                dataType: "json",
-                beforeSend: function (xhr) {
-                    var csrftoken = getCookie('csrftoken');
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                },
-                success: function (data) {
-                    var placements = getDefaultPlacement({'placements': data});
+                    $.ajax({
+                        type: 'GET',
+                        url: location.protocol + '//' + location.host + '/clouds/securityzones/' + provider + '/' + cell,
+                        dataType: "json",
+                        beforeSend: function (xhr) {
+                            var csrftoken = getCookie('csrftoken');
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        },
+                        success: function (data) {
+                            capacitySetting.securityZones = data.map(
+                                function (item) {
+                                    return {
+                                        value: item.abstract_name,
+                                        text: item.abstract_name,
+                                        isSelected: item.id === data[0].id
+                                    }
+                                });
+                            capacitySetting.selectedSecurityZoneValue = data[0].abstract_name;
+                        },
+                        error: function (data) {
+                            globalNotificationBanner.error = data
+                        }
+                    });
 
-                    capacitySetting.placements =  placements.getFullList(false, null);
-                },
-                error: function (data) {
-                    globalNotificationBanner.error = data
-                }
-            })
-
+                    // grab all placement for this cell
+                    $.ajax({
+                        type: 'GET',
+                        url: location.protocol + '//' + location.host + '/clouds/placements/' + provider + '/' + cell,
+                        dataType: "json",
+                        beforeSend: function (xhr) {
+                            var csrftoken = getCookie('csrftoken');
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        },
+                        success: function (data) {
+                            var placements = getDefaultPlacement({'placements': data});
+                            capacitySetting.placements =
+                                placements.getFullList(false, cell == initialCell ? currentPlacements : null);
+                        },
+                        error: function (data) {
+                            globalNotificationBanner.error = data
+                        }
+                    })
                 },
                 imageNameChange: function(value) {
                     var cell = capacitySetting.currentCell;
