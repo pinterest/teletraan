@@ -60,6 +60,8 @@ function getDefaultPlacement(capacityCreationInfo) {
     this.capacityCreationInfo = capacityCreationInfo
     var cmpPublicIPPlacements = {}
     var cmpPrivateIPPlacements = {}
+    var topCmpPublicIPPlacements = []
+    var topCmpPrivateIPPlacements = []
     var allPrivateIPPlacements = []
     var allPublicIPPlacements = []
 
@@ -89,6 +91,73 @@ function getDefaultPlacement(capacityCreationInfo) {
         return items.sort(function (item1, item2) { return item1.capacity < item2.capacity; })
     }
 
+    function convertToPlacementOptionsAdv(rawPlacements) {
+        if (rawPlacements === null || rawPlacements.length < 1 ) {
+            return {}
+        }
+        const cellName = rawPlacements ? rawPlacements[0].cell_name : '1'
+        const cellNum = cellName[cellName.length - 1]
+        const azRegex = new RegExp(`\\b(${cellNum}[a-g])\\b`)
+
+        function getAZ(abstractName) {
+            var matched = abstractName.match(azRegex)
+            return matched ? matched[0] : 'unknown'
+        }
+
+        function determineColorClass(capacity) {
+            if (capacity < 50) {
+                return 'text-danger'
+            }
+            else if (capacity < 200) {
+                return 'text-warning'
+            }
+            return 'text-primary'
+        }
+
+        var options = {}
+
+        for (placement of rawPlacements) {
+            var obj = {
+                value: placement.id,
+                text: `${placement.provider_name} | ${placement.capacity}`,
+                isSelected: placement.isSelected,
+                colorClass: determineColorClass(placement.capacity)
+            }
+            var group = `${getAZ(placement.abstract_name)} (Parsed info, for reference only)`
+            if ( !(group in options)) {
+                options[group] = []
+            }
+            options[group].push(obj)
+        }
+        return options
+    }
+
+    function convertToPlacementOptions(placements) {
+        return {'Basic Settings': placements};
+    }
+
+    function inDefault(item) {
+        var foundIdx = -1
+        if (item.assign_public_ip) {
+            topCmpPublicIPPlacements.find(function (value, idx) {
+                if (item.id === value.id) {
+                    foundIdx = idx;
+                    return true
+                }
+                return false
+            })
+        }
+        else {
+            topCmpPrivateIPPlacements.find(function (value, idx) {
+                if (item.id === value.id) {
+                    foundIdx = idx;
+                    return true
+                }
+                return false
+            })
+        }
+        return foundIdx >= 0 && foundIdx < 3
+    }
 
     //This function creates the default placements. The default algorithm is as below:
     //1. Find the placement has the highest capacity under each abstract_name
@@ -125,33 +194,16 @@ function getDefaultPlacement(capacityCreationInfo) {
             }
         }
     })
+
+    topCmpPublicIPPlacements = getTopSelection(cmpPublicIPPlacements)
+    topCmpPrivateIPPlacements = getTopSelection(cmpPrivateIPPlacements)
+
     return {
-        cmpPrivate: getTopSelection(cmpPrivateIPPlacements),
-        cmpPublic: getTopSelection(cmpPublicIPPlacements),
+        cmpPrivate: topCmpPublicIPPlacements,
+        cmpPublic: topCmpPrivateIPPlacements,
         allPrivate: allPrivateIPPlacements,
         allPublic: allPublicIPPlacements,
-        inDefault: function (item) {
-            var foundIdx = -1
-            if (item.assign_public_ip) {
-                this.cmpPublic.find(function (value, idx) {
-                    if (item.id === value.id) {
-                        foundIdx = idx;
-                        return true
-                    }
-                    return false
-                })
-            }
-            else {
-                this.cmpPrivate.find(function (value, idx) {
-                    if (item.id === value.id) {
-                        foundIdx = idx;
-                        return true
-                    }
-                    return false
-                })
-            }
-            return foundIdx >= 0 && foundIdx < 3
-        },
+        inDefault: inDefault,
         getSimpleList: function (showPublicOnly, existingItems) {
             //Return a simple list fo selection.
             //Simple list is grouped by the abstract_name,
@@ -202,12 +254,11 @@ function getDefaultPlacement(capacityCreationInfo) {
                     return {
                         value: item.id,
                         text: item.abstract_name,
-                        isSelected: this.isDefault(item)
+                        isSelected: inDefault(item)
                     }
                 })
             }
-            return arr;
-
+            return convertToPlacementOptions(arr);
         },
         getFullList: function (showPublicOnly, existingItems) {
             if (typeof showPublicOnly !== "boolean") {
@@ -229,32 +280,17 @@ function getDefaultPlacement(capacityCreationInfo) {
                         function (value) {
                             return item.id === value.id
                         })
-                    if (existing != null) {
-                        return {
-                            value: existing.id,
-                            text: existing.provider_name,
-                            isSelected: true
-                        }
-                    }
-                    else {
-                        return {
-                            value: item.id,
-                            text: item.provider_name,
-                            isSelected: false
-                        };
-                    }
+                    item['isSelected'] = existing ? true : false
+                    return item
                 })
             }
             else {
-                arr = arr.map(function (item, idx) {
-                    return {
-                        value: item.id,
-                        text: item.provider_name,
-                        isSelected: this.isDefault(item)
-                    }
+                arr = arr.map(function (item) {
+                    item['isSelected'] = inDefault(item)
+                    return item
                 })
             }
-            return arr;
+            return convertToPlacementOptionsAdv(arr);
         }
     }
 }

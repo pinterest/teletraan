@@ -313,12 +313,14 @@ Vue.component('placements-help', {
 Vue.component("placements-select", {
     template: '<div class="form-group">\
     <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">\
-      {{label}}\
+        {{label}}\
     </label>\
     <div class="col-xs-6"><div v-bind:class="groupStyle">\
-          <select class="form-control chosen-select"  v-on:change="updateValue($event.target.value)" multiple>\
-            <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected">{{option.text}}</option>\
-          </select>\
+        <select class="form-control chosen-select"  v-on:change="updateValue($event.target.value)" multiple>\
+            <optgroup v-for="(group, name) in selectoptions" :label="name">\
+                <option v-for="option in group" v-bind:value="option.value" v-bind:selected="option.isSelected" v-bind:class="option.colorClass">{{option.text}}</option>\
+            </optgroup>\
+        </select>\
     <span v-if="showhelp" class="input-group-btn">\
     <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" v-on:click="helpClick" title="click to see more information">\
         <span class="glyphicon glyphicon-question-sign"></span>\
