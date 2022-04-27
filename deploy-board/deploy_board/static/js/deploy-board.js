@@ -119,7 +119,7 @@ function getDefaultPlacement(capacityCreationInfo) {
         for (const placement of placements) {
             var obj = {
                 value: placement.id,
-                text: `${placement.provider_name} | ${placement.capacity}`,
+                text: `${placement.provider_name} | cap.: ${placement.capacity} | ${placement.abstract_name}`,
                 isSelected: placement.isSelected,
                 colorClass: determineColorClass(placement.capacity)
             };
