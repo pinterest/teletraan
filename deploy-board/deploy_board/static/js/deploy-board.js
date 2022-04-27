@@ -91,28 +91,28 @@ function getDefaultPlacement(capacityCreationInfo) {
         return items.sort(function (item1, item2) { return item1.capacity < item2.capacity; })
     }
 
+    function determineColorClass(capacity) {
+        if (capacity < 50) {
+            return 'text-danger';
+        }
+        else if (capacity < 200) {
+            return 'text-warning';
+        }
+        return 'text-primary';
+    }
+
+    function getAZ(abstractName, azRegex) {
+        var matched = abstractName.match(azRegex);
+        return matched ? matched[0] : 'unknown';
+    }
+
     function convertToPlacementOptionsAdv(placements) {
         if (placements === null || placements.length < 1 ) {
-            return {}
+            return {};
         }
-        const cellName = placements ? placements[0].cell_name : '1'
-        const cellNum = cellName[cellName.length - 1]
-        const azRegex = new RegExp(`\\b(${cellNum}[a-g])\\b`)
-
-        function getAZ(abstractName) {
-            var matched = abstractName.match(azRegex)
-            return matched ? matched[0] : 'unknown'
-        }
-
-        function determineColorClass(capacity) {
-            if (capacity < 50) {
-                return 'text-danger'
-            }
-            else if (capacity < 200) {
-                return 'text-warning'
-            }
-            return 'text-primary'
-        }
+        const cellName = placements ? placements[0].cell_name : '1';
+        const cellNum = cellName[cellName.length - 1];
+        const azRegex = new RegExp(`\\b(${cellNum}[a-g])\\b`);
 
         var options = {}
 
@@ -122,14 +122,14 @@ function getDefaultPlacement(capacityCreationInfo) {
                 text: `${placement.provider_name} | ${placement.capacity}`,
                 isSelected: placement.isSelected,
                 colorClass: determineColorClass(placement.capacity)
-            }
-            var group = `${getAZ(placement.abstract_name)} (Parsed info, for reference only)`
+            };
+            var group = `${getAZ(placement.abstract_name, azRegex)} (Parsed info, for reference only)`;
             if ( !(group in options)) {
-                options[group] = []
+                options[group] = [];
             }
-            options[group].push(obj)
+            options[group].push(obj);
         }
-        return options
+        return options;
     }
 
     function convertToPlacementOptions(placements) {
@@ -137,26 +137,11 @@ function getDefaultPlacement(capacityCreationInfo) {
     }
 
     function inDefault(item) {
-        var foundIdx = -1
-        if (item.assign_public_ip) {
-            topCmpPublicIPPlacements.find(function (value, idx) {
-                if (item.id === value.id) {
-                    foundIdx = idx;
-                    return true
-                }
-                return false
-            })
-        }
-        else {
-            topCmpPrivateIPPlacements.find(function (value, idx) {
-                if (item.id === value.id) {
-                    foundIdx = idx;
-                    return true
-                }
-                return false
-            })
-        }
-        return foundIdx >= 0 && foundIdx < 3
+        const searchSource = item.assign_public_ip ? topCmpPublicIPPlacements : topCmpPrivateIPPlacements;
+        var foundIdx = searchSource.findIndex(function (value) {
+            return item.id === value.id;
+        });
+        return foundIdx >= 0 && foundIdx < 3;
     }
 
     //This function creates the default placements. The default algorithm is as below:
@@ -199,11 +184,6 @@ function getDefaultPlacement(capacityCreationInfo) {
     topCmpPrivateIPPlacements = getTopSelection(cmpPrivateIPPlacements)
 
     return {
-        cmpPrivate: topCmpPublicIPPlacements,
-        cmpPublic: topCmpPrivateIPPlacements,
-        allPrivate: allPrivateIPPlacements,
-        allPublic: allPublicIPPlacements,
-        inDefault: inDefault,
         getSimpleList: function (showPublicOnly, existingItems) {
             //Return a simple list fo selection.
             //Simple list is grouped by the abstract_name,
@@ -213,8 +193,8 @@ function getDefaultPlacement(capacityCreationInfo) {
             if (typeof showPublicOnly !== "boolean") {
                 console.error("getSimpleList expects parameter showPublicOnly to be of boolean type.")
             }
-            var arr = showPublicOnly ? this.cmpPublic : this.cmpPrivate
-            var fullArr = showPublicOnly ? this.allPublic : this.allPrivate
+            var arr = showPublicOnly ? topCmpPublicIPPlacements : topCmpPrivateIPPlacements;
+            var fullArr = showPublicOnly ? allPublicIPPlacements : allPrivateIPPlacements;
             if (existingItems != null && existingItems.length > 0) {
 
                 existingItems = existingItems.map(function (item) {
@@ -264,7 +244,7 @@ function getDefaultPlacement(capacityCreationInfo) {
             if (typeof showPublicOnly !== "boolean") {
                 console.error("getFullList expects parameter showPublicOnly to be of boolean type.");
             }
-            var placements = showPublicOnly ? this.allPublic : this.allPrivate;
+            var placements = showPublicOnly ? allPublicIPPlacements : allPrivateIPPlacements;
             if (existingItems != null && existingItems.length > 0) {
                 const existingItemsSet = new Set(existingItems);
                 placements = placements.map(function (item) {
