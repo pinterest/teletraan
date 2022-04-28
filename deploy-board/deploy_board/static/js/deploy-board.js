@@ -107,14 +107,13 @@ function getDefaultPlacement(capacityCreationInfo) {
     }
 
     function convertToPlacementOptionsAdv(placements) {
+        var options = {}
         if (placements === null || placements.length < 1 ) {
-            return {};
+            return options;
         }
         const cellName = placements ? placements[0].cell_name : '1';
         const cellNum = cellName[cellName.length - 1];
         const azRegex = new RegExp(`\\b(${cellNum}[a-g])\\b`);
-
-        var options = {}
 
         for (const placement of placements) {
             var obj = {
@@ -123,7 +122,7 @@ function getDefaultPlacement(capacityCreationInfo) {
                 isSelected: placement.isSelected,
                 colorClass: determineColorClass(placement.capacity)
             };
-            var group = `${getAZ(placement.abstract_name, azRegex)} (Parsed info, for reference only)`;
+            const group = `${getAZ(placement.abstract_name, azRegex)} (Parsed info, for reference only)`;
             if ( !(group in options)) {
                 options[group] = [];
             }
