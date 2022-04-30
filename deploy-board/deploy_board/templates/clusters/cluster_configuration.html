@@ -828,6 +828,8 @@
                             globalNotificationBanner.info = "Request sent successfully"
                         },
                         error: function(data) {
+                            console.log("cluster_conf");
+                            console.log(data);
                             globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                         }
                     });
