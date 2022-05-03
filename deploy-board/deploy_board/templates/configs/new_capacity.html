@@ -171,7 +171,7 @@ var capacitySetting = new Vue({
                         window.location.href='/env/'+environment.envName+'/'+environment.stageName+'/config/capacity/'
                     },
                     error: function (data) {
-                        globalNotificationBanner.error = data
+                        globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                     }
             });
         },
