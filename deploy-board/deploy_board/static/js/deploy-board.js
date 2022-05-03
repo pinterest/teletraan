@@ -60,6 +60,8 @@ function getDefaultPlacement(capacityCreationInfo) {
     this.capacityCreationInfo = capacityCreationInfo
     var cmpPublicIPPlacements = {}
     var cmpPrivateIPPlacements = {}
+    var topCmpPublicIPPlacements = []
+    var topCmpPrivateIPPlacements = []
     var allPrivateIPPlacements = []
     var allPublicIPPlacements = []
 
@@ -89,6 +91,57 @@ function getDefaultPlacement(capacityCreationInfo) {
         return items.sort(function (item1, item2) { return item1.capacity < item2.capacity; })
     }
 
+    function determineColorClass(capacity) {
+        if (capacity < 50) {
+            return 'text-danger';
+        }
+        else if (capacity < 200) {
+            return 'text-warning';
+        }
+        return 'text-primary';
+    }
+
+    function getAZ(abstractName, azRegex) {
+        var matched = abstractName.match(azRegex);
+        return matched ? matched[0] : 'unknown';
+    }
+
+    function convertToPlacementOptionsAdv(placements) {
+        var options = {}
+        if (placements === null || placements.length < 1 ) {
+            return options;
+        }
+        const cellName = placements ? placements[0].cell_name : '1';
+        const cellNum = cellName[cellName.length - 1];
+        const azRegex = new RegExp(`\\b(${cellNum}[a-g])\\b`);
+
+        for (const placement of placements) {
+            var obj = {
+                value: placement.id,
+                text: `${placement.provider_name} | cap.: ${placement.capacity} | ${placement.abstract_name}`,
+                isSelected: placement.isSelected,
+                colorClass: determineColorClass(placement.capacity)
+            };
+            const group = `${getAZ(placement.abstract_name, azRegex)} (Parsed info, for reference only)`;
+            if ( !(group in options)) {
+                options[group] = [];
+            }
+            options[group].push(obj);
+        }
+        return options;
+    }
+
+    function convertToPlacementOptions(placements) {
+        return {'Basic Settings': placements};
+    }
+
+    function inDefault(item) {
+        const searchSource = item.assign_public_ip ? topCmpPublicIPPlacements : topCmpPrivateIPPlacements;
+        var foundIdx = searchSource.findIndex(function (value) {
+            return item.id === value.id;
+        });
+        return foundIdx >= 0 && foundIdx < 3;
+    }
 
     //This function creates the default placements. The default algorithm is as below:
     //1. Find the placement has the highest capacity under each abstract_name
@@ -125,33 +178,11 @@ function getDefaultPlacement(capacityCreationInfo) {
             }
         }
     })
+
+    topCmpPublicIPPlacements = getTopSelection(cmpPublicIPPlacements)
+    topCmpPrivateIPPlacements = getTopSelection(cmpPrivateIPPlacements)
+
     return {
-        cmpPrivate: getTopSelection(cmpPrivateIPPlacements),
-        cmpPublic: getTopSelection(cmpPublicIPPlacements),
-        allPrivate: allPrivateIPPlacements,
-        allPublic: allPublicIPPlacements,
-        inDefault: function (item) {
-            var foundIdx = -1
-            if (item.assign_public_ip) {
-                this.cmpPublic.find(function (value, idx) {
-                    if (item.id === value.id) {
-                        foundIdx = idx;
-                        return true
-                    }
-                    return false
-                })
-            }
-            else {
-                this.cmpPrivate.find(function (value, idx) {
-                    if (item.id === value.id) {
-                        foundIdx = idx;
-                        return true
-                    }
-                    return false
-                })
-            }
-            return foundIdx >= 0 && foundIdx < 3
-        },
         getSimpleList: function (showPublicOnly, existingItems) {
             //Return a simple list fo selection.
             //Simple list is grouped by the abstract_name,
@@ -161,8 +192,8 @@ function getDefaultPlacement(capacityCreationInfo) {
             if (typeof showPublicOnly !== "boolean") {
                 console.error("getSimpleList expects parameter showPublicOnly to be of boolean type.")
             }
-            var arr = showPublicOnly ? this.cmpPublic : this.cmpPrivate
-            var fullArr = showPublicOnly ? this.allPublic : this.allPrivate
+            var arr = showPublicOnly ? topCmpPublicIPPlacements : topCmpPrivateIPPlacements;
+            var fullArr = showPublicOnly ? allPublicIPPlacements : allPrivateIPPlacements;
             if (existingItems != null && existingItems.length > 0) {
 
                 existingItems = existingItems.map(function (item) {
@@ -202,60 +233,31 @@ function getDefaultPlacement(capacityCreationInfo) {
                     return {
                         value: item.id,
                         text: item.abstract_name,
-                        isSelected: this.isDefault(item)
+                        isSelected: inDefault(item)
                     }
                 })
             }
-            return arr;
-
+            return convertToPlacementOptions(arr);
         },
         getFullList: function (showPublicOnly, existingItems) {
             if (typeof showPublicOnly !== "boolean") {
-                console.error("getFullList expects parameter showPublicOnly to be of boolean type.")
+                console.error("getFullList expects parameter showPublicOnly to be of boolean type.");
             }
-            var arr = showPublicOnly ? this.allPublic : this.allPrivate
+            var placements = showPublicOnly ? allPublicIPPlacements : allPrivateIPPlacements;
             if (existingItems != null && existingItems.length > 0) {
-                existingItems = existingItems.map(function (item) {
-                    var fullInfo = arr.find(
-                        function (i) {
-                            return i.id === item
-                        }
-                    )
-
-                    return fullInfo != null ? fullInfo : { id: item }
-                })
-                arr = arr.map(function (item) {
-                    var existing = existingItems.find(
-                        function (value) {
-                            return item.id === value.id
-                        })
-                    if (existing != null) {
-                        return {
-                            value: existing.id,
-                            text: existing.provider_name,
-                            isSelected: true
-                        }
-                    }
-                    else {
-                        return {
-                            value: item.id,
-                            text: item.provider_name,
-                            isSelected: false
-                        };
-                    }
-                })
+                const existingItemsSet = new Set(existingItems);
+                placements = placements.map(function (item) {
+                    item['isSelected'] = existingItemsSet.has(item.id) ? true : false;
+                    return item;
+                });
             }
             else {
-                arr = arr.map(function (item, idx) {
-                    return {
-                        value: item.id,
-                        text: item.provider_name,
-                        isSelected: this.isDefault(item)
-                    }
-                })
+                placements = placements.map(function (item) {
+                    item['isSelected'] = inDefault(item);
+                    return item;
+                });
             }
-            return arr;
+            return convertToPlacementOptionsAdv(placements);
         }
     }
 }
-
