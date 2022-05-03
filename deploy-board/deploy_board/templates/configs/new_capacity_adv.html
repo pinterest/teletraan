@@ -151,14 +151,7 @@ var capacitySetting = new Vue({
                 }
             }),
         instanceCount: "",
-        placements: placements.allPrivate.map(
-            function (item) {
-                return {
-                    value: item.id,
-                    text: item.provider_name,
-                    isSelected: placements.inDefault(item)
-                }
-            }),
+        placements: placements.getFullList(false, null),
         placementsHelpData: [],
         providers: info.providerList.map(
             function (o) {
@@ -332,14 +325,7 @@ var capacitySetting = new Vue({
                 success: function (data) {
                     var placements = getDefaultPlacement({'placements': data});
 
-                    capacitySetting.placements =  placements.allPrivate.map(
-                        function (item, index) {
-                            return {
-                                value: item.id,
-                                text: item.provider_name,
-                                isSelected: index < 3 //Select Top 3 by default
-                            }
-                        });
+                    capacitySetting.placements =  placements.getFullList(false, null);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
@@ -430,16 +416,9 @@ var capacitySetting = new Vue({
                     })
                 }
         },
-        selectpublicip: function(value){
-            this.assignPublicIP = value
-            var arr = value ? placements.allPublic : placements.allPrivate
-            this.placements = arr.map(function(item, index) {
-                return {
-                    value: item.id,
-                    text: item.provider_name,
-                    isSelected:  placements.inDefault(item)//Select Top 3 by default
-                }
-            })
+        selectpublicip: function(assignPublicIP){
+            this.assignPublicIP = assignPublicIP
+            this.placements = placements.getFullList(assignPublicIP, null)
         },
         validateInput: function (clusterInfo) {
             //Validate input data.
