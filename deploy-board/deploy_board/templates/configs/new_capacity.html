@@ -181,7 +181,8 @@ var capacitySetting = new Vue({
                 clusterInfo['placement'] = this.selectedPlacements.join(',');
             }
             else{
-                clusterInfo['placement'] = this.placements.filter(function(item){
+                const placementArray = Object.entries(this.placements).map(function(x){return x[1]}).flat(1);
+                clusterInfo['placement'] = placementArray.filter(function(item){
                     return item.isSelected
                 }).map(function(item){ return item.value}).join(',')
             }
