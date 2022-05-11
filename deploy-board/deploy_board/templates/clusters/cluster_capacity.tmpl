@@ -109,7 +109,11 @@
                             window.location.href='/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/'
                         },
                         error: function (data) {
-                            globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
+                            var optionalInstruction = '';
+                            if (window.info.is_pinterest && data.responseText.includes('capacity')) {
+                                optionalInstruction = 'If you encounter a capacity issue, please follow this guide: http://pinch/teletraan_subnets';
+                            }
+                            globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText, optionalInstruction].join(' ');
                         }
                     });
                 }
