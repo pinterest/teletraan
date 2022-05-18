@@ -47,8 +47,7 @@ public class SlackChatManager implements ChatManager {
                 ChatPostMessageResponse
                     response = slack.methods(this.token).chatPostMessage(req -> req
                     .channel(channel)
-                    .text(message)
-                    .username(from)
+                    .text(msg)
                 );
                 if (response.isOk()) {
                     return;
