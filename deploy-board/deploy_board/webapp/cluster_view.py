@@ -78,9 +78,9 @@ class EnvCapacityBasicCreateView(View):
             log.info("Create Capacity in the provider")
             if 'configs' in cluster_info:
                 for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
-                  if field in cluster_info['configs']:
-                      log.error("Teletraan does not support user to change %s %s" % (field, cluster_info[field]))
-                      raise TeletraanException("Teletraan does not support user to create %s" % s)
+                    if field in cluster_info['configs']:
+                        log.error("Teletraan does not support user to change %s %s" % (field, cluster_info[field]))
+                        raise TeletraanException("Teletraan does not support user to create %s" % s)
 
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
 
@@ -310,6 +310,7 @@ def get_base_images(request):
         'disableNext': len(base_images) < DEFAULT_PAGE_SIZE,
     })
 
+
 def add_acceptance(request, base_images):
     fetched_names = set()
     name_acceptance_map = {}
@@ -317,11 +318,15 @@ def add_acceptance(request, base_images):
         name = img['abstract_name']
         if name not in fetched_names and name.startswith('cmp_base'):
             fetched_names.add(name)
-            base_image_infos = baseimages_helper.get_acceptance_by_name(request, name, img.get('cell', None))
+            base_image_infos = baseimages_helper.get_acceptance_by_name(
+                request, name, img.get('cell', None))
             for img_info in base_image_infos:
-                name_acceptance_map[img_info['baseImage']['provider_name']] = img_info.get('acceptance') or 'UNKNOWN'
-        img['acceptance'] = name_acceptance_map.get(img['provider_name'], 'N/A')
+                name_acceptance_map[img_info['baseImage'][
+                    'provider_name']] = img_info.get('acceptance') or 'UNKNOWN'
+        img['acceptance'] = name_acceptance_map.get(img['provider_name'],
+                                                    'N/A')
     return base_images
+
 
 def get_image_names_by_provider_and_cell(request, provider, cell):
     image_names = baseimages_helper.get_image_names(request, provider, cell)
