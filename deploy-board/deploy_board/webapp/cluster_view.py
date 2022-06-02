@@ -301,7 +301,7 @@ def get_base_images(request):
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/base_images.html', {
-        'base_images': base_images,
+        'base_images': add_acceptance(request, base_images),
         'provider_list': provider_list,
         'cells_list': cells_list,
         'pageIndex': index,
@@ -310,6 +310,18 @@ def get_base_images(request):
         'disableNext': len(base_images) < DEFAULT_PAGE_SIZE,
     })
 
+def add_acceptance(request, base_images):
+    fetched_names = set()
+    name_acceptance_map = {}
+    for img in base_images:
+        name = img['abstract_name']
+        if name not in fetched_names and name.startswith('cmp_base'):
+            fetched_names.add(name)
+            base_image_infos = baseimages_helper.get_acceptance_by_name(request, name, img.get('cell', None))
+            for img_info in base_image_infos:
+                name_acceptance_map[img_info['baseImage']['provider_name']] = img_info.get('acceptance') or 'UNKNOWN'
+        img['acceptance'] = name_acceptance_map.get(img['provider_name'], 'N/A')
+    return base_images
 
 def get_image_names_by_provider_and_cell(request, provider, cell):
     image_names = baseimages_helper.get_image_names(request, provider, cell)
