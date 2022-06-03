@@ -816,7 +816,7 @@ class EnvNewDeployView(View):
 
     def post(self, request, name, stage):
         common.deploy(request, name, stage)
-        return redirect('/env/%s/%s/deploy' % (name, stage))
+        return redirect('/env/%s/%s/deploy/' % (name, stage))
 
 def post_add_stage(request, name):
     """handler for creating a new stage depending on configuration (IS_PINTEREST, from_stage i.e. clone stage). """
@@ -977,17 +977,17 @@ def promote_to(request, name, stage, deploy_id):
     for toStage in toStages.split(','):
         deploys_helper.promote(request, name, toStage, deploy_id, description)
 
-    return redirect('/env/%s/%s/deploy' % (name, toStage))
+    return redirect('/env/%s/%s/deploy/' % (name, toStage))
 
 
 def restart(request, name, stage):
     common.restart(request, name, stage)
-    return redirect('/env/%s/%s/deploy' % (name, stage))
+    return redirect('/env/%s/%s/deploy/' % (name, stage))
 
 
 def rollback_to(request, name, stage, deploy_id):
     common.rollback_to(request, name, stage, deploy_id)
-    return redirect('/env/%s/%s/deploy' % (name, stage))
+    return redirect('/env/%s/%s/deploy/' % (name, stage))
 
 
 def rollback(request, name, stage):
@@ -1085,26 +1085,26 @@ def promote(request, name, stage, deploy_id):
 
 def pause(request, name, stage):
     deploys_helper.pause(request, name, stage)
-    return redirect('/env/%s/%s/deploy' % (name, stage))
+    return redirect('/env/%s/%s/deploy/' % (name, stage))
 
 
 def resume(request, name, stage):
     deploys_helper.resume(request, name, stage)
-    return redirect('/env/%s/%s/deploy' % (name, stage))
+    return redirect('/env/%s/%s/deploy/' % (name, stage))
 
 
 def enable_env_change(request, name, stage):
     params = request.POST
     description = params.get('description')
     environs_helper.enable_env_changes(request, name, stage, description)
-    return redirect('/env/%s/%s/deploy' % (name, stage))
+    return redirect('/env/%s/%s/deploy/' % (name, stage))
 
 
 def disable_env_change(request, name, stage):
     params = request.POST
     description = params.get('description')
     environs_helper.disable_env_changes(request, name, stage, description)
-    return redirect('/env/%s/%s/deploy' % (name, stage))
+    return redirect('/env/%s/%s/deploy/' % (name, stage))
 
 
 def enable_all_env_change(request):
@@ -1219,7 +1219,7 @@ def reset_hosts(request, name, stage):
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
     environs_helper.reset_hosts(request, name, stage, host_ids)
-    return redirect('/env/{}/{}/hosts'.format(name, stage))
+    return redirect('/env/{}/{}/hosts/'.format(name, stage))
 
 
 # get total unknown(unreachable) hosts
@@ -1659,7 +1659,7 @@ def add_instance(request, name, stage):
     except:
         log.error(traceback.format_exc())
         raise
-    return redirect('/env/{}/{}/deploy'.format(name, stage))
+    return redirect('/env/{}/{}/deploy/'.format(name, stage))
 
 
 def get_tag_message(request):

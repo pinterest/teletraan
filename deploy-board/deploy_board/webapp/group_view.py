@@ -278,12 +278,12 @@ def gen_asg_setting(request, group_name):
 
 def disable_asg(request, group_name):
     autoscaling_groups_helper.disable_autoscaling(request, group_name)
-    return redirect('/groups/{}'.format(group_name))
+    return redirect('/groups/{}/'.format(group_name))
 
 
 def resume_asg(request, group_name):
     autoscaling_groups_helper.enable_autoscaling(request, group_name)
-    return redirect('/groups/{}'.format(group_name))
+    return redirect('/groups/{}/'.format(group_name))
 
 
 def create_asg(request, group_name):
@@ -1089,7 +1089,7 @@ def add_instance(request, group_name):
         log.error(traceback.format_exc())
         raise
 
-    return redirect('/groups/{}'.format(group_name))
+    return redirect('/groups/{}/'.format(group_name))
 
 
 # Terminate all instances
@@ -1127,7 +1127,7 @@ def terminate_all_hosts(request, group_name):
         log.error(traceback.format_exc())
         raise
 
-    return redirect('/groups/{}'.format(group_name))
+    return redirect('/groups/{}/'.format(group_name))
 
 
 def instance_action_in_asg(request, group_name):
@@ -1140,7 +1140,7 @@ def instance_action_in_asg(request, group_name):
     except:
         log.error(traceback.format_exc())
         raise
-    return redirect('/groups/{}'.format(group_name))
+    return redirect('/groups/{}/'.format(group_name))
 
 
 def attach_instances(request, group_name):
@@ -1215,17 +1215,17 @@ def create_manually_health_check(request, group_name):
     health_check_info["group_name"] = group_name
     health_check_info["type"] = "MANUALLY_TRIGGERED"
     autoscaling_groups_helper.create_health_check(request, group_name, health_check_info)
-    return redirect('/groups/{}/health_check_activities'.format(group_name))
+    return redirect('/groups/{}/health_check_activities/'.format(group_name))
 
 
 def enable_scaling_down_event(request, group_name):
     autoscaling_groups_helper.enable_autoscaling(request, group_name)
-    return redirect('/groups/{}'.format(group_name))
+    return redirect('/groups/{}/'.format(group_name))
 
 
 def disable_scaling_down_event(request, group_name):
     autoscaling_groups_helper.disable_scaling_down_event(request, group_name)
-    return redirect('/groups/{}'.format(group_name))
+    return redirect('/groups/{}/'.format(group_name))
 
 
 def add_scheduled_actions(request, group_name):
