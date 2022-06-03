@@ -296,12 +296,12 @@ def create_base_image(request):
 def get_base_images(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
-    base_images = baseimages_helper.get_all(request, index, size)
+    base_images = baseimages_helper.get_all_with_acceptance(request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/base_images.html', {
-        'base_images': add_acceptance(request, base_images),
+        'base_images': base_images,
         'provider_list': provider_list,
         'cells_list': cells_list,
         'pageIndex': index,
@@ -309,23 +309,6 @@ def get_base_images(request):
         'disablePrevious': index <= 1,
         'disableNext': len(base_images) < DEFAULT_PAGE_SIZE,
     })
-
-
-def add_acceptance(request, base_images):
-    fetched_names = set()
-    name_acceptance_map = {}
-    for img in base_images:
-        name = img['abstract_name']
-        if name not in fetched_names and name.startswith('cmp_base'):
-            fetched_names.add(name)
-            base_image_infos = baseimages_helper.get_acceptance_by_name(
-                request, name, img.get('cell', None))
-            for img_info in base_image_infos:
-                name_acceptance_map[img_info['baseImage'][
-                    'provider_name']] = img_info.get('acceptance') or 'UNKNOWN'
-        img['acceptance'] = name_acceptance_map.get(img['provider_name'],
-                                                    'N/A')
-    return base_images
 
 
 def get_image_names_by_provider_and_cell(request, provider, cell):
