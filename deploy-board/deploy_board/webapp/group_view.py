@@ -1046,7 +1046,8 @@ def add_instance(request, group_name):
                 use_placement_group = True
 
         # When a group has an associated ASG, its status is either ENABLED or DISABLED.
-        # We should always launch in ASG unless placement group is specified
+        # We should always launch in ASG when there is an ASG setup regardless its status
+        # unless placement group is specified
         if (asg_status == "ENABLED" or asg_status == "DISABLED") and not use_placement_group:
             launch_in_asg = True
 
