@@ -296,7 +296,8 @@ def create_base_image(request):
 def get_base_images(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
-    base_images = baseimages_helper.get_all_with_acceptance(request, index, size)
+    base_images = baseimages_helper.get_all_with_acceptance(
+        request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
