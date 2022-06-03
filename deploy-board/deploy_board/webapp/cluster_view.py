@@ -290,7 +290,7 @@ def create_base_image(request):
     else:
         base_image_info['basic'] = False
     baseimages_helper.create_base_image(request, base_image_info)
-    return redirect('/clouds/baseimages')
+    return redirect('/clouds/baseimages/')
 
 
 def get_base_images(request):
@@ -416,7 +416,7 @@ def create_host_type(request):
     else:
         host_type_info['basic'] = False
     hosttypes_helper.create_host_type(request, host_type_info)
-    return redirect('/clouds/hosttypes')
+    return redirect('/clouds/hosttypes/')
 
 
 def get_host_types(request):
@@ -477,7 +477,7 @@ def create_security_zone(request):
     else:
         security_zone_info['basic'] = False
     securityzones_helper.create_security_zone(request, security_zone_info)
-    return redirect('/clouds/securityzones')
+    return redirect('/clouds/securityzones/')
 
 
 def get_security_zones(request):
@@ -534,7 +534,7 @@ def create_placement(request):
     else:
         placement_info['basic'] = False
     placements_helper.create_placement(request, placement_info)
-    return redirect('/clouds/placements')
+    return redirect('/clouds/placements/')
 
 
 def get_placements(request):
@@ -765,7 +765,7 @@ def terminate_hosts(request, name, stage):
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
     environ_hosts_helper.stop_service_on_host(request, name, stage, host_ids)
-    return redirect('/env/{}/{}'.format(name, stage))
+    return redirect('/env/{}/{}/'.format(name, stage))
 
 
 def force_terminate_hosts(request, name, stage):
@@ -792,7 +792,7 @@ def force_terminate_hosts(request, name, stage):
             cluster_name = group_name
     clusters_helper.force_terminate_hosts(
         request, cluster_name, host_ids, replace_host)
-    return redirect('/env/{}/{}'.format(name, stage))
+    return redirect('/env/{}/{}/'.format(name, stage))
 
 
 def enable_cluster_replacement(request, name, stage):

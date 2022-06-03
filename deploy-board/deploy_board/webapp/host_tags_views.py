@@ -56,10 +56,10 @@ def add_constraint(request, name, stage):
             'maxParallel': max_parallel,
             'constraintType': constraint_type
         })
-        return redirect('/env/{}/{}/constraint'.format(name, stage))
+        return redirect('/env/{}/{}/constraint/'.format(name, stage))
     except Exception as e:
         log.error("add constraint failed with {}", e)
-        return redirect('/env/{}/{}/constraint'.format(name, stage))
+        return redirect('/env/{}/{}/constraint/'.format(name, stage))
 
 
 def edit_constraint(request, name, stage):
@@ -74,7 +74,7 @@ def edit_constraint(request, name, stage):
             'maxParallel': max_parallel,
             'constraintType': constraint_type
         })
-        return redirect('/env/{}/{}/constraint'.format(name, stage))
+        return redirect('/env/{}/{}/constraint/'.format(name, stage))
     except Exception as e:
         log.error("get constraint failed with {}", e)
         return HttpResponse(json.dumps({'html': 'Failed to get deploy constraint.'}), status=500,
@@ -87,10 +87,10 @@ def remove_constraint(request, name, stage):
         tag_name = deploy_constraint.get('constraintKey')
         environ_hosts_helper.remove_deploy_constraint(request, name, stage)
         environ_hosts_helper.remove_host_tags(request, name, stage, tag_name)
-        return redirect('/env/{}/{}/constraint'.format(name, stage))
+        return redirect('/env/{}/{}/constraint/'.format(name, stage))
     except Exception as e:
         log.error("remove constraint failed with {}", e)
-        return redirect('/env/{}/{}/constraint'.format(name, stage))
+        return redirect('/env/{}/{}/constraint/'.format(name, stage))
 
 
 def get_constraint(request, name, stage):
