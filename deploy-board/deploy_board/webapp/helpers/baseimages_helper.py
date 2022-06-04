@@ -28,6 +28,24 @@ def get_all(request, index, size):
     return rodimus_client.get("/base_images", request.teletraan_user_id.token, params=params)
 
 
+def get_all_with_acceptance(request, index, size):
+    base_images = get_all(request, index, size)
+    fetched_names = set()
+    name_acceptance_map = {}
+    for img in base_images:
+        name = img['abstract_name']
+        if name not in fetched_names and name.startswith('cmp_base'):
+            fetched_names.add(name)
+            base_image_infos = get_acceptance_by_name(request, name,
+                                                      img.get('cell', None))
+            for img_info in base_image_infos:
+                name_acceptance_map[img_info['baseImage'][
+                    'provider_name']] = img_info.get('acceptance') or 'UNKNOWN'
+        img['acceptance'] = name_acceptance_map.get(img['provider_name'],
+                                                    'N/A')
+    return base_images
+
+
 def get_image_names(request, provider, cell_name):
     params = [('provider', provider), ('cellName', cell_name)]
     return rodimus_client.get("/base_images/names", request.teletraan_user_id.token, params=params)

@@ -78,9 +78,9 @@ class EnvCapacityBasicCreateView(View):
             log.info("Create Capacity in the provider")
             if 'configs' in cluster_info:
                 for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
-                  if field in cluster_info['configs']:
-                      log.error("Teletraan does not support user to change %s %s" % (field, cluster_info[field]))
-                      raise TeletraanException("Teletraan does not support user to create %s" % s)
+                    if field in cluster_info['configs']:
+                        log.error("Teletraan does not support user to change %s %s" % (field, cluster_info[field]))
+                        raise TeletraanException("Teletraan does not support user to create %s" % s)
 
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
 
@@ -296,7 +296,8 @@ def create_base_image(request):
 def get_base_images(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
-    base_images = baseimages_helper.get_all(request, index, size)
+    base_images = baseimages_helper.get_all_with_acceptance(
+        request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
