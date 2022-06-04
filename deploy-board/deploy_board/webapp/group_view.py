@@ -1047,7 +1047,7 @@ def add_instance(request, group_name):
 
         # When a group has an associated ASG, its status is either ENABLED or DISABLED.
         # We should always launch in ASG when an ASG is set up regardless its status,
-        # unless placement group is specified
+        # unless placement group is specified.
         if (asg_status == "ENABLED" or asg_status == "DISABLED") and not use_placement_group:
             launch_in_asg = True
 
@@ -1057,6 +1057,8 @@ def add_instance(request, group_name):
             content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
                       '<a href="/groups/{}/">group page</a> ' \
                       'to check new hosts information.'.format(num, group_name, group_name)
+            if 'customSubnet' in params:
+                content += '\nNote: the subnet {} you selected was ignored.'.format(subnet)
             messages.add_message(request, messages.SUCCESS, content)
         else:
             # Launch hosts outside ASG / static hosts
