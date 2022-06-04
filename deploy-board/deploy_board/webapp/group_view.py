@@ -194,7 +194,7 @@ def update_launch_config(request, group_name):
         launch_config = group_info.get("launchInfo")
         if 'userData' in launch_config:
             actual_spiffe_id = get_spiffe_id(launch_config['userData'].splitlines())
-        
+
         if desired_spiffe_id != actual_spiffe_id:
             log.error("Teletraan does not allow spiffe_id changes from user")
             raise TeletraanException("Teletraan does not allow spiffe_id changes from user")
@@ -1061,7 +1061,7 @@ def add_instance(request, group_name):
             if not subnet:
                 # No subnet specified show error message
                 content = 'Failed to launch hosts to group {}. Please choose subnets in' \
-                          ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>.' \
+                          ' <a href="/groups/{}/config/">group config</a>.' \
                           ' If you have any question, please contact your friendly Teletraan owners' \
                           ' for immediate assistance!'.format(group_name, group_name)
                 messages.add_message(request, messages.ERROR, content)
@@ -1079,7 +1079,7 @@ def add_instance(request, group_name):
                     messages.add_message(request, messages.SUCCESS, content)
                 else:
                     content = 'Failed to launch hosts to group {}. Please make sure the' \
-                              ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
+                              ' <a href="/groups/{}/config/">group config</a>' \
                               ' is correct. If you have any question, please contact your friendly Teletraan owners' \
                               ' for immediate assistance!'.format(group_name, group_name)
                     messages.add_message(request, messages.ERROR, content)
