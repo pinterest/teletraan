@@ -1637,7 +1637,7 @@ def add_instance(request, name, stage):
         if not launch_in_asg:
             if not subnet:
                 content = 'Failed to launch hosts to group {}. Please choose subnets in' \
-                          ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>.' \
+                          ' <a href="/groups/{}/config/">group config</a>.' \
                           ' If you have any question, please contact your friendly Teletraan owners' \
                           ' for immediate assistance!'.format(groupName, groupName)
                 messages.add_message(request, messages.ERROR, content)
@@ -1648,7 +1648,7 @@ def add_instance(request, name, stage):
                     messages.add_message(request, messages.SUCCESS, content)
                 else:
                     content = 'Failed to launch hosts to group {}. Please make sure the' \
-                              ' <a href="https://deploy.pinadmin.com/groups/{}/config/">group config</a>' \
+                              ' <a href="/groups/{}/config/">group config</a>' \
                               ' is correct. If you have any question, please contact your friendly Teletraan owners' \
                               ' for immediate assistance!'.format(groupName, groupName)
                     messages.add_message(request, messages.ERROR, content)
