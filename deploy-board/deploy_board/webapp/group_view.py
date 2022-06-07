@@ -1032,7 +1032,6 @@ def add_instance(request, group_name):
     subnet = None
     placement_group = None
     asg_status = str(params['asgStatus']).upper()
-    launch_in_asg = False
     use_placement_group = False
 
     try:
@@ -1049,9 +1048,6 @@ def add_instance(request, group_name):
         # We should always launch in ASG when an ASG is set up regardless its status,
         # unless placement group is specified.
         if (asg_status == 'ENABLED' or asg_status == 'DISABLED') and not use_placement_group:
-            launch_in_asg = True
-
-        if launch_in_asg:
             # Launch hosts inside ASG / Bump ASG size by required instances
             autoscaling_groups_helper.launch_hosts(request, group_name, num, None)
             content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
