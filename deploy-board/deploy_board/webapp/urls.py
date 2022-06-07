@@ -184,8 +184,6 @@ urlpatterns = [
         env_views.get_hosts_by_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/reset_failed_hosts/'
         r'(?P<deploy_id>[a-zA-Z0-9\-_]+)/$', env_views.reset_failed_hosts),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/addinstance/$',
-        env_views.add_instance),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/reset_deploy/'
         r'(?P<host_id>[a-zA-Z0-9\-_]+)/$', env_views.reset_deploy),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause_deploy/'
