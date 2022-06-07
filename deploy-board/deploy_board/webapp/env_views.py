@@ -1619,49 +1619,6 @@ def compare_deploys_2(request, name, stage):
         "diffUrl": diffUrl,
     })
 
-
-def add_instance(request, name, stage):
-    params = request.POST
-    groupName = params['groupName']
-    num = int(params['instanceCnt'])
-    subnet = None
-    asg_status = params['asgStatus']
-    launch_in_asg = True
-    if 'subnet' in params:
-        subnet = params['subnet']
-        if asg_status == 'UNKNOWN':
-            launch_in_asg = False
-        elif 'customSubnet' in params:
-            launch_in_asg = False
-    try:
-        if not launch_in_asg:
-            if not subnet:
-                content = 'Failed to launch hosts to group {}. Please choose subnets in' \
-                          ' <a href="/groups/{}/config/">group config</a>.' \
-                          ' If you have any question, please contact your friendly Teletraan owners' \
-                          ' for immediate assistance!'.format(groupName, groupName)
-                messages.add_message(request, messages.ERROR, content)
-            else:
-                host_ids = autoscaling_groups_helper.launch_hosts(request, groupName, num, subnet)
-                if len(host_ids) > 0:
-                    content = '{} hosts have been launched to group {} (host ids: {})'.format(num, groupName, host_ids)
-                    messages.add_message(request, messages.SUCCESS, content)
-                else:
-                    content = 'Failed to launch hosts to group {}. Please make sure the' \
-                              ' <a href="/groups/{}/config/">group config</a>' \
-                              ' is correct. If you have any question, please contact your friendly Teletraan owners' \
-                              ' for immediate assistance!'.format(groupName, groupName)
-                    messages.add_message(request, messages.ERROR, content)
-        else:
-            autoscaling_groups_helper.launch_hosts(request, groupName, num, None)
-            content = 'Capacity increased by {}'.format(num)
-            messages.add_message(request, messages.SUCCESS, content)
-    except:
-        log.error(traceback.format_exc())
-        raise
-    return redirect('/env/{}/{}/deploy/'.format(name, stage))
-
-
 def get_tag_message(request):
     envs_tag = tags_helper.get_latest_by_target_id(request, 'TELETRAAN')
     html = render_to_string('environs/tag_message.tmpl', {
