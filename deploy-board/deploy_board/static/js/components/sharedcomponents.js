@@ -269,7 +269,7 @@ Vue.component("help-table", {
  Vue.component("form-warning", {
     template:'<div class="form-group"><div class="col-xs-2"></div>\
     <div class="col-xs-10">\
-        <div class="alert alert-warning">\
+        <div class="alert alert-warning" style="white-space: pre-wrap;">\
             <button v-if="dismissible" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
             <strong>Warning!</strong> {{ warningtext }}</div>\
     </div></div>',
