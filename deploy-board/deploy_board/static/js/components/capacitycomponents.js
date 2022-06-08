@@ -214,24 +214,52 @@ Vue.component("static-capacity-config", {
  * In this case, both min size and max size buttons are shown
  */
 Vue.component("asg-capacity-config", {
-    template: '<div class="form-group">\
-    <label for="capacity" class="deployToolTip control-label col-xs-4" title="Number of hosts for this service">\
-        Capacity\
-    </label>\
-            <div class="col-xs-2">\
-                <div class="input-group" >\
-                    <span class="input-group-addon">Min Size</span>\
-                    <input class="form-control" v-bind:value="minsize" v-on:change="updateMinSize($event.target.value)"@keydown.enter.prevent="" type="number" min="0"></input>\
-                </div>\
-            </div>\
-            <div class="col-xs-2">\
-                <div class="input-group" >\
-                    <span class="input-group-addon">Max Size</span>\
-                    <input class="form-control" v-bind:value="maxsize" v-on:change="updateMaxSize($event.target.value)" @keydown.enter.prevent="" type="number" min="0"></input>\
-                </div>\
-            </div>\
-    </div>',
-    props: ['minsize', 'maxsize'],
+    template: `
+    <div class="form-group">
+        <label for="capacity" data-toggle="tooltip" class="deployToolTip control-label" :class="labelbootstrapclass" :title="labeltext">
+            {{ labeltitle }}
+        </label>
+        <div :class="inputbootstrapclass">
+            <div class="input-group">
+                <span class="input-group-addon">Min Size</span>
+                <input name="minSize" class="form-control" type="number" min="0" required
+                    v-bind:value="minsize" v-on:change="updateMinSize($event.target.value)" @keydown.enter.prevent="" >
+            </div>
+        </div>
+        <div :class="inputbootstrapclass">
+            <div class="input-group">
+                <span class="input-group-addon">Max Size</span>
+                <input name="maxSize" class="form-control" type="number" min="0" required
+                    v-bind:value="maxsize" v-on:change="updateMaxSize($event.target.value)" @keydown.enter.prevent="">
+            </div>
+        </div>
+    </div>`,
+    props: {
+        minsize: {
+            type: Number,
+            default: 0,
+        },
+        maxsize: {
+            type: Number,
+            default: 0,
+        },
+        labelbootstrapclass: {
+            type: String,
+            default: 'col-xs-4',
+        },
+        inputbootstrapclass: {
+            type: String,
+            default: 'col-xs-2',
+        },
+        labeltext: {
+            type: String,
+            default: 'Number of hosts for this service',
+        },
+        labeltitle: {
+            type: String,
+            default: 'Capacity'
+        }
+    },
     methods: {
         updateMinSize: function (value) {
             this.$emit('minchange', value)

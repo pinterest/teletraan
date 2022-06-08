@@ -1,4 +1,5 @@
 {% extends 'environs/env_base.html' %}
+{% load static %}
 {% load utils %}
 
 {% block breadcrumb-items %}
@@ -38,6 +39,8 @@
     </div>
 
     {% if asg_vm_config.asgStatus != "UNKNOWN" %}
+    <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}"></script>
+    <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}"></script>
     <div id="asgConfigPid" class="panel panel-default">
     {% include "groups/asg_config.tmpl" %}
     </div>

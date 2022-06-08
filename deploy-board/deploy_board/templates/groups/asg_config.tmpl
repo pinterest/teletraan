@@ -22,64 +22,38 @@
     </div>
 </div>
 <div id="autoscalingConfigId" class="collapse in panel-body">
-<div class="container-fluid">
-    <form id="autoscalingGroupConfigFormId" class="form-horizontal" role="form">
-        <input type="hidden" name="asgStatus" value="{{ asg.status }}" />
-        <input type="hidden" name="groupName" value="{{ group_name }}" />
-        <fieldset id="envConfigFieldSetId">
-            <div class="form-group">
-                <label for="minSize" class="deployToolTip control-label col-xs-2"
-                    data-toggle="tooltip"
-                    title="minimum number of hosts in one autoscaling group">
-                    Min Size (Current size is {{ group_size }})
-                </label>
-                <div class="col-xs-4">
-                    <input class="form-control" name="minSize" required="true" id="minSizeInput"
-                           type="text" value="{{ asg.minSize }}"/>
-                </div>
-
-                <label for="maxSize" class="deployToolTip control-label col-xs-2"
-                    data-toggle="tooltip"
-                    title="maximum number of hosts in one autoscaling group">
-                    Max Size
-                </label>
-                <div class="col-xs-4">
-                    <input class="form-control" name="maxSize" required="true" id="maxSizeInput"
-                           type="text" value="{{ asg.maxSize }}"/>
-                </div>
-            </div>
-
-            <div id="minSizeWarningDivId" class="hidden">
+    <div class="container-fluid">
+        <form id="autoscalingGroupConfigFormId" class="form-horizontal" role="form">
+            <input type="hidden" name="asgStatus" value="{{ asg.status }}">
+            <input type="hidden" name="groupName" value="{{ group_name }}">
+            <fieldset id="envConfigFieldSetId">
+                <asg-capacity-config v-bind:minsize="minsize" v-bind:maxsize="maxsize"
+                    labelbootstrapclass="col-xs-2" inputbootstrapclass="col-xs-4"
+                    labeltitle="Capacity (Current size is {{ group_size }})"
+                    labeltext="Minimun and maximum number of hosts in one autoscaling group"
+                    v-on:minchange="updateMin" v-on:maxchange="updateMax"></asg-capacity-config>
+                <form-warning v-show="showSizeWarning" v-bind:warningtext="sizeWarning"></form-warning>
                 <div class="form-group">
-                    <label class="control-label col-xs-2"></label>
-                    <div class="col-xs-10">
-                    <h4><span class="label label-danger">Minimum size is too low for your group!</span></h4>
+                    <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
+                            data-toggle="tooltip" title="termination policy">
+                        Termination Policy
+                    </label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="terminationPolicy" required="true" id="terminationPolicyInput">
+                        {% for policy in terminationPolicies %}
+                            {% if policy == asg.terminationPolicy %}
+                                <option value="{{policy}}" selected>{{policy}}</option>
+                            {% else %}
+                                <option value="{{policy}}">{{policy}}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
                     </div>
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
-                  data-toggle="tooltip"
-                  title="termination policy">
-                  Termination Policy
-                </label>
-                <div class="col-xs-4">
-                    <select class="form-control" name="terminationPolicy" required="true" id="terminationPolicyInput">
-                    {% for policy in terminationPolicies %}
-                        {% if policy == asg.terminationPolicy %}
-                            <option value="{{policy}}" selected>{{policy}}</option>
-                        {% else %}
-                            <option value="{{policy}}">{{policy}}</option>
-                        {% endif %}
-                    {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </fieldset>
-      {% csrf_token %}
-       </form>
-</div>
+            </fieldset>
+        {% csrf_token %}
+        </form>
+    </div>
 </div>
 
 
@@ -103,6 +77,61 @@ $(function() {
     $.get('/groups/{{ group_name }}/autoscaling/get_pas_config/', function (response) {
         $('#pasConfigPid').html(response);
     });
+});
+
+{% if placements %}
+const placements = {{ placements | safe }};
+{% else %}
+const placements = null;
+{% endif %}
+const remainingCapacity = placements != null ?  placements.reduce((s, e) => s + e.capacity, 0) : Infinity;
+
+var asgConfigVue = new Vue({
+    el: '#autoscalingConfigId',
+    data: {
+        {% if asg %}
+            minsize: {{ asg.minSize }},
+            maxsize: {{ asg.maxSize }},
+            originalMinSize: {{ asg.minSize }},
+            originalMaxSize: {{ asg.maxSize }},
+        {% else %}
+            minsize: 0,
+            maxsize: 0,
+            originalMinSize: 0,
+            originalMaxSize: 0,
+        {% endif%}
+        showSizeWarning: false,
+        sizeWarning: '',
+    },
+    methods: {
+        updateMin:function(value){
+            this.minsize = Number(value)
+            if (this.maxsize<this.minsize){
+                this.maxsize = this.minsize
+            }
+            this.validateSize(this.originalMinSize, this.minsize)
+        },
+        updateMax: function(value){
+            this.maxsize = Number(value)
+            if (this.maxsize<this.minsize){
+                this.minsize = this.maxsize
+            }
+            this.validateSize(this.originalMinSize, this.maxsize)
+        },
+        validateSize: function(fromSize, toSize) {
+            if (toSize - fromSize >= remainingCapacity) {
+                this.sizeWarning = `Insufficient combined remaining capacity in this cluster. ` +
+                    `You can save this configuration but the cluster might run into capacity issues in the future. ` +
+                    `You can attach additional placements to the cluter to increase total potential capacity at Cluter Configuration -> Advanced Settings.\n` +
+                    `Combined remaining capacity: ${remainingCapacity}\n` +
+                    `Requested size increase: ${toSize - fromSize}\n` +
+                    `Current placement(s): ${JSON.stringify(placements, null, 2)}`
+                this.showSizeWarning = true
+            } else {
+                this.showSizeWarning = false
+            }
+        },
+    }
 });
 
 function loadAsgScheduledActions() {

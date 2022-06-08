@@ -51,10 +51,10 @@ class EnvCapacityConfigView(View):
                 basic_cluster_info['asg_info'] = asg_cluster
                 basic_cluster_info['base_image_info'] = base_image
                 try:
-                    placements = self.get_placements(
+                    placements = placements_helper.get_simplified_by_ids(
                         request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 except Exception as e:
-                    logger.warning('Failed to get remaining capacity: {}'.format(e))
+                    logger.warning('Failed to get placements: {}'.format(e))
 
             params = request.GET
             if params.get('adv'):
@@ -118,12 +118,3 @@ class EnvCapacityConfigView(View):
                                                 data=groups)
 
         return self.get(request, name, stage)
-
-    def get_placements(self, request, placement_str, provider, cell):
-        current_placement_ids = set(placement_str.split(','))
-        all_placements = placements_helper.get_by_provider_and_cell_name(request, provider, cell)
-        current_placements = filter(lambda p: p['id'] in current_placement_ids, all_placements)
-        return map(lambda p: {'id': p['id'],
-                              'capacity': p['capacity'],
-                              'abstract_name': p['abstract_name'],
-                              'provider_name': p['provider_name']}, current_placements)

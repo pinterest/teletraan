@@ -127,7 +127,6 @@
                         },
                         success: function (data) {
                             globalNotificationBanner.info = "Capacity updated successfully"
-                            window.location.href='/env/{{ env.envName }}/{{ env.stageName }}/config/capacity/'
                         },
                         error: function (data) {
                             var optionalInstruction = '';
