@@ -120,9 +120,9 @@ var asgConfigVue = new Vue({
         },
         validateSize: function(fromSize, toSize) {
             if (toSize - fromSize >= remainingCapacity) {
-                this.sizeWarning = `Insufficient combined remaining capacity in this cluster. ` +
-                    `You can save this configuration but the cluster might run into capacity issues in the future. ` +
-                    `You can attach additional placements to the cluter to increase total potential capacity at Cluter Configuration -> Advanced Settings.\n` +
+                this.sizeWarning = `Insufficient combined remaining capacity in this Auto Scaling Group. ` +
+                    `You can save this configuration but the ASG might run into capacity issues in the future. ` +
+                    `You can attach additional placements to the corresponding cluter to increase total potential capacity at Cluter Configuration -> Advanced Settings.\n` +
                     `Combined remaining capacity: ${remainingCapacity}\n` +
                     `Requested size increase: ${toSize - fromSize}\n` +
                     `Current placement(s): ${JSON.stringify(placements, null, 2)}`
