@@ -196,10 +196,11 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
                    `Current placement(s): ${JSON.stringify(placements, null, 2)}`;
 
     if (isWarning) {
-        return errorMessage + `You shouldn't save this configuration because the cluster/ASG will run into capacity issues. ` +
+        return errorMessage + `You can save this configuration but the cluster/ASG might run into capacity issues in the future. ` +
                 instruction + `Requested size increase: ${increase}\n` + status
     } else {
-        return errorMessage + `You can save this configuration but the cluster/ASG might run into capacity issues in the future. ` +
+        // error
+        return errorMessage + `You shouldn't save this configuration because the cluster/ASG will run into capacity issues. ` +
                 instruction + `Requested size increase: ${increase}\n` + status;
     }
 }
@@ -222,9 +223,9 @@ Vue.component("static-capacity-config", {
     <form-error v-show="showSizeError" :alert-text="sizeError"></form-error>
     </div>`,
     props: {
-        originalCapacity: 0,
-        remainingCapacity: Infinity,
-        placements: {},
+        originalCapacity: Number,
+        remainingCapacity: Number,
+        placements: Object,
     },
     data: function() {
         return {
@@ -282,14 +283,26 @@ Vue.component("asg-capacity-config", {
     <form-error v-show="showSizeError" :alert-text="sizeError"></form-error>
     </div>`,
     props: {
-        labelBootstrapClass: 'col-xs-4',
-        inputBootstrapClass: 'col-xs-2',
-        labelText: 'Number of hosts for this service',
-        labelTitle: 'Capacity',
-        originalMinSize: 0,
-        originalMaxSize: 0,
-        remainingCapacity: Infinity,
-        placements: {},
+        labelBootstrapClass: {
+            type: String,
+            default: 'col-xs-4',
+        },
+        inputBootstrapClass: {
+            type: String,
+            default: 'col-xs-2',
+        },
+        labelText: {
+            type: String,
+            default: 'Number of hosts for this service',
+        },
+        labelTitle: {
+            type: String,
+            default: 'Capacity'
+        },
+        originalMinSize: Number,
+        originalMaxSize: Number,
+        remainingCapacity: Number,
+        placements: Object,
     },
     data: function() {
         return {

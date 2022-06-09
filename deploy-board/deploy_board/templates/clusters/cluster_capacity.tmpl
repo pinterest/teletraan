@@ -12,7 +12,7 @@
                         v-on:change="updateStatic">
                     </static-capacity-config>
                     <asg-capacity-config v-if="autoscalingEnabled"
-                        :original-min-size="minsize" :original-max-size="maxsize"
+                        :original-min-size="asg_launch_info.minSize" :original-max-size="asg_launch_info.maxSize"
                         :remaining-capacity="remainingCapacity" :placements="placements"
                         v-on:minchange="updateMin" v-on:maxchange="updateMax">
                     </asg-capacity-config>
@@ -67,7 +67,7 @@
                 canSaveCapacity: cluster.state === "NORMAL",
                 showSizeWarning: false,
                 sizeWarning: "",
-                remainingCapacity: placements != null ?  placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
+                remainingCapacity: info.placements != null ?  info.placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
                 placements: info.placements,
             },
             methods:{
