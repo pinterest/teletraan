@@ -188,23 +188,67 @@ Vue.component('in-rolling-alert', {
     props:['actionlink']
 });
 
+function getCapacityAlertMessage(isWarning, remainingCapacity, placements, increase) {
+    const errorMessage = `Insufficient combined remaining capacity in this cluster/auto scaling group. `;
+    const instruction = `You can attach additional placements to the corresponding clutter to increase` +
+                        ` total potential capacity at Cluster Configuration -> Advanced Settings.\n`;
+    const status = `Combined remaining capacity: ${remainingCapacity}\n` +
+                   `Current placement(s): ${JSON.stringify(placements, null, 2)}`;
+
+    if (isWarning) {
+        return errorMessage + `You shouldn't save this configuration because the cluster/ASG will run into capacity issues. ` +
+                instruction + `Requested size increase: ${increase}\n` + status
+    } else {
+        return errorMessage + `You can save this configuration but the cluster/ASG might run into capacity issues in the future. ` +
+                instruction + `Requested size increase: ${increase}\n` + status;
+    }
+}
 
 /**
  * The capacity button. This is shown when autoscaling is disabled or min\max size are the same.
  * In this case, only one capacity box is shown
  */
 Vue.component("static-capacity-config", {
-    template: '<div class="form-group">\
-    <label for="capacity" class="deployToolTip control-label col-xs-4" title="Number of hosts for this service">\
-        Capacity\
-    </label>\
-    <div class="col-xs-2" >\
-    <input class="form-control" v-bind:value="capacity" v-on:change="updateValue($event.target.value)" @keydown.enter.prevent="" type="number" min="0"></input>\
-    </div></div>',
-    props: ['capacity'],
+    template: `<div>
+    <div class="form-group">
+        <label for="capacity" class="deployToolTip control-label col-xs-4" title="Number of hosts for this service">
+            Capacity
+        </label>
+        <div class="col-xs-2" >
+            <input name='"capacity" class="form-control" type="number" min="0" required
+                v-model="capacity" @keydown.enter.prevent="">
+        </div>
+    </div>
+    <form-error v-show="showSizeError" :alert-text="sizeError"></form-error>
+    </div>`,
+    props: {
+        originalCapacity: 0,
+        remainingCapacity: Infinity,
+        placements: {},
+    },
+    data: function() {
+        return {
+            capacity: this.originalCapacity,
+            showSizeError: false,
+            sizeError: '',
+        }
+    },
+    watch: {
+        capacity: function (value) {
+            this.capacity = Number(capacity);
+            this.validateSize();
+            this.$emit('change', value);
+        },
+    },
     methods: {
-        updateValue: function (value) {
-            this.$emit("change", value)
+        validateSize: function () {
+            const sizeIncrease = this.capacity - this.originalCapacity;
+            if (sizeIncrease >= this.remainingCapacity) {
+                this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
+                this.showSizeError = true;
+            } else {
+                this.showSizeError = false;
+            }
         }
     }
 });
@@ -234,8 +278,8 @@ Vue.component("asg-capacity-config", {
             </div>
         </div>
     </div>
-    <form-warning v-show="showSizeWarning" :warning-text="sizeWarning"></form-warning>
-    <form-error v-show="showSizeError" :error-text="sizeError"></form-error>
+    <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
+    <form-error v-show="showSizeError" :alert-text="sizeError"></form-error>
     </div>`,
     props: {
         labelBootstrapClass: 'col-xs-4',
@@ -259,42 +303,36 @@ Vue.component("asg-capacity-config", {
     },
     watch: {
         minSize: function (value) {
-            this.minSize = value;
+            this.minSize = Number(value);
             if (this.maxSize < this.minSize) {
                 this.maxSize = this.minSize;
             }
             this.validateSize();
+            this.$emit('minchange', value);
         },
-        maxSize: function (value, oldValue) {
-            this.maxSize = value;
+        maxSize: function (value) {
+            this.maxSize = Number(value);
             if (this.maxSize < this.minSize) {
                 this.minSize = this.maxSize;
             }
             this.validateSize();
+            this.$emit('maxchange', value);
         },
     },
     methods: {
         validateSize: function() {
             const minIncrease = this.minSize - this.originalMinSize;
             const maxIncrease = this.maxSize - this.originalMaxSize;
-            const instruction = `You can attach additional placements to the corresponding clutter to increase ` +
-                                `total potential capacity at Cluster Configuration -> Advanced Settings.\n`;
-            const status = `Combined remaining capacity: ${this.remainingCapacity}\n` +
-                           `Current placement(s): ${JSON.stringify(this.placements, null, 2)}`;
-            if (minIncrease >= this.remainingCapacity) {
-                this.sizeError = `Insufficient combined remaining capacity in this cluster/auto scaling group. ` +
-                    `You shouldn't save this configuration because the cluster/ASG will run into capacity issues. ` +
-                    instruction + `Requested size increase: ${minIncrease}\n` + status
 
+            if (minIncrease >= this.remainingCapacity) {
+                this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, minIncrease);
                 this.showSizeError = true;
             } else {
                 this.showSizeError = false;
             }
 
             if(!this.showSizeError && maxIncrease >= this.remainingCapacity){
-                this.sizeWarning = `Insufficient combined remaining capacity in this cluster/auto scaling group. ` +
-                    `You can save this configuration but the cluster/ASG might run into capacity issues in the future. ` +
-                    instruction + `Requested size increase: ${maxIncrease}\n` + status;
+                this.sizeWarning = getCapacityAlertMessage(true, this.remainingCapacity, this.placements, maxIncrease);
                 this.showSizeWarning = true;
             } else {
                 this.showSizeWarning = false;

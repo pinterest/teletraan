@@ -6,9 +6,17 @@
                 <fieldset id="clusterConfigFieldSetId">
                     <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
                     <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
-                    <static-capacity-config v-if="!autoscalingEnabled" v-bind:capacity="desiredCapacity" v-on:change="updateStatic"></static-capacity-config>
-                    <asg-capacity-config v-if="autoscalingEnabled" v-bind:minsize="minsize" v-bind:maxsize="maxsize" v-on:minchange="updateMin" v-on:maxchange="updateMax"></asg-capacity-config>
-                    <form-warning v-show="showSizeWarning" v-bind:warningtext="sizeWarning"></form-warning>
+                    <static-capacity-config v-if="!autoscalingEnabled"
+                        :original-capacity="desiredCapacity"
+                        :remaining-capacity="remainingCapacity" :placements="placements"
+                        v-on:change="updateStatic">
+                    </static-capacity-config>
+                    <asg-capacity-config v-if="autoscalingEnabled"
+                        :original-min-size="minsize" :original-max-size="maxsize"
+                        :remaining-capacity="remainingCapacity" :placements="placements"
+                        v-on:minchange="updateMin" v-on:maxchange="updateMax">
+                    </asg-capacity-config>
+                    <form-warning v-show="showSizeWarning" v-bind:alert-text="sizeWarning"></form-warning>
                 </fieldset>
             </form>
         </div>
@@ -31,7 +39,6 @@
 
 <script>
     var cluster = info.basic_cluster_info;
-    const placements = info.placements;
     if (cluster!=null){
         var asg_launch_info = cluster.asg_info.launchInfo;
         //Decide if we show one capacity box or min/max size
@@ -42,11 +49,6 @@
                 cluster.capacity = asg_launch_info.minSize
             }
         }
-
-        const originalDesiredCapacity = cluster.capacity
-        const originalMinSize = asg_launch_info.minSize
-        const originalMaxSize = asg_launch_info.maxSize
-        const remainingCapacity = placements != null ?  placements.reduce((s, e) => s + e.capacity, 0) : Infinity
 
         var clusterVue = new Vue({
             el:"#clusterPanelId",
@@ -65,42 +67,22 @@
                 canSaveCapacity: cluster.state === "NORMAL",
                 showSizeWarning: false,
                 sizeWarning: "",
+                remainingCapacity: placements != null ?  placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
+                placements: info.placements,
             },
             methods:{
                 updateStatic: function(value){
                    this.desiredCapacity = Number(value)
-                   this.validateSize(originalDesiredCapacity, this.desiredCapacity)
                 },
                 updateMin:function(value){
                     this.minsize = Number(value)
-                    if (this.maxsize<this.minsize){
-                        this.maxsize = this.minsize
-                    }
-                    this.validateSize(originalMinSize, this.minsize)
                 },
                 updateMax: function(value){
                     this.maxsize = Number(value)
-                    if (this.maxsize<this.minsize){
-                        this.minsize = this.maxsize
-                    }
-                    this.validateSize(originalMinSize, this.maxsize)
                 },
                 clickDialog: function(value){
                     if (value){
                         this.save();
-                    }
-                },
-                validateSize: function(fromSize, toSize) {
-                    if (toSize - fromSize >= remainingCapacity) {
-                        this.sizeWarning = `Insufficient combined remaining capacity in this cluster. ` +
-                            `You can save this configuration but the cluster might run into capacity issues in the future. ` +
-                            `You can attach additional placements to the cluter to increase total potential capacity at Cluter Configuration -> Advanced Settings.\n` +
-                            `Combined remaining capacity: ${remainingCapacity}\n` +
-                            `Requested size increase: ${toSize - fromSize}\n` +
-                            `Current placement(s): ${JSON.stringify(placements, null, 2)}`
-                        this.showSizeWarning = true
-                    } else {
-                        this.showSizeWarning = false
                     }
                 },
                 save:function(){
