@@ -214,58 +214,91 @@ Vue.component("static-capacity-config", {
  * In this case, both min size and max size buttons are shown
  */
 Vue.component("asg-capacity-config", {
-    template: `
+    template: `<div>
     <div class="form-group">
-        <label for="capacity" data-toggle="tooltip" class="deployToolTip control-label" :class="labelbootstrapclass" :title="labeltext">
-            {{ labeltitle }}
+        <label for="capacity" data-toggle="tooltip" class="deployToolTip control-label" :class="labelBootstrapClass" :title="labelText">
+            {{ labelTitle }}
         </label>
-        <div :class="inputbootstrapclass">
+        <div :class="inputBootstrapClass">
             <div class="input-group">
                 <span class="input-group-addon">Min Size</span>
                 <input name="minSize" class="form-control" type="number" min="0" required
-                    v-bind:value="minsize" v-on:change="updateMinSize($event.target.value)" @keydown.enter.prevent="" >
+                    v-model="minSize" @keydown.enter.prevent="" >
             </div>
         </div>
-        <div :class="inputbootstrapclass">
+        <div :class="inputBootstrapClass">
             <div class="input-group">
                 <span class="input-group-addon">Max Size</span>
                 <input name="maxSize" class="form-control" type="number" min="0" required
-                    v-bind:value="maxsize" v-on:change="updateMaxSize($event.target.value)" @keydown.enter.prevent="">
+                    v-model="maxSize" @keydown.enter.prevent="">
             </div>
         </div>
+    </div>
+    <form-warning v-show="showSizeWarning" :warning-text="sizeWarning"></form-warning>
+    <form-error v-show="showSizeError" :error-text="sizeError"></form-error>
     </div>`,
     props: {
-        minsize: {
-            type: Number,
-            default: 0,
-        },
-        maxsize: {
-            type: Number,
-            default: 0,
-        },
-        labelbootstrapclass: {
-            type: String,
-            default: 'col-xs-4',
-        },
-        inputbootstrapclass: {
-            type: String,
-            default: 'col-xs-2',
-        },
-        labeltext: {
-            type: String,
-            default: 'Number of hosts for this service',
-        },
-        labeltitle: {
-            type: String,
-            default: 'Capacity'
+        labelBootstrapClass: 'col-xs-4',
+        inputBootstrapClass: 'col-xs-2',
+        labelText: 'Number of hosts for this service',
+        labelTitle: 'Capacity',
+        originalMinSize: 0,
+        originalMaxSize: 0,
+        remainingCapacity: Infinity,
+        placements: {},
+    },
+    data: function() {
+        return {
+            minSize: this.originalMinSize,
+            maxSize: this.originalMaxSize,
+            showSizeError: false,
+            showSizeWarning: false,
+            sizeError: '',
+            sizeWarning: '',
         }
     },
-    methods: {
-        updateMinSize: function (value) {
-            this.$emit('minchange', value)
+    watch: {
+        minSize: function (value) {
+            this.minSize = value;
+            if (this.maxSize < this.minSize) {
+                this.maxSize = this.minSize;
+            }
+            this.validateSize();
         },
-        updateMaxSize: function (value) {
-            this.$emit('maxchange', value)
-        }
+        maxSize: function (value, oldValue) {
+            this.maxSize = value;
+            if (this.maxSize < this.minSize) {
+                this.minSize = this.maxSize;
+            }
+            this.validateSize();
+        },
+    },
+    methods: {
+        validateSize: function() {
+            const minIncrease = this.minSize - this.originalMinSize;
+            const maxIncrease = this.maxSize - this.originalMaxSize;
+            const instruction = `You can attach additional placements to the corresponding clutter to increase ` +
+                                `total potential capacity at Cluster Configuration -> Advanced Settings.\n`;
+            const status = `Combined remaining capacity: ${this.remainingCapacity}\n` +
+                           `Current placement(s): ${JSON.stringify(this.placements, null, 2)}`;
+            if (minIncrease >= this.remainingCapacity) {
+                this.sizeError = `Insufficient combined remaining capacity in this cluster/auto scaling group. ` +
+                    `You shouldn't save this configuration because the cluster/ASG will run into capacity issues. ` +
+                    instruction + `Requested size increase: ${minIncrease}\n` + status
+
+                this.showSizeError = true;
+            } else {
+                this.showSizeError = false;
+            }
+
+            if(!this.showSizeError && maxIncrease >= this.remainingCapacity){
+                this.sizeWarning = `Insufficient combined remaining capacity in this cluster/auto scaling group. ` +
+                    `You can save this configuration but the cluster/ASG might run into capacity issues in the future. ` +
+                    instruction + `Requested size increase: ${maxIncrease}\n` + status;
+                this.showSizeWarning = true;
+            } else {
+                this.showSizeWarning = false;
+            }
+        },
     }
 });

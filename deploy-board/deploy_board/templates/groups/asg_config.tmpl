@@ -27,12 +27,14 @@
             <input type="hidden" name="asgStatus" value="{{ asg.status }}">
             <input type="hidden" name="groupName" value="{{ group_name }}">
             <fieldset id="envConfigFieldSetId">
-                <asg-capacity-config v-bind:minsize="minsize" v-bind:maxsize="maxsize"
-                    labelbootstrapclass="col-xs-2" inputbootstrapclass="col-xs-4"
-                    labeltitle="Capacity (Current size is {{ group_size }})"
-                    labeltext="Minimun and maximum number of hosts in one autoscaling group"
-                    v-on:minchange="updateMin" v-on:maxchange="updateMax"></asg-capacity-config>
-                <form-warning v-show="showSizeWarning" v-bind:warningtext="sizeWarning"></form-warning>
+                <asg-capacity-config
+                    original-min-size="{{ asg.minSize }}" original-max-size="{{ asg.maxSize }}"
+                    label-bootstrap-class="col-xs-2" input-bootstrap-class="col-xs-4"
+                    label-title="Capacity (Current size is {{ group_size }})"
+                    label-text="Minimun and maximum number of hosts in one autoscaling group"
+                    :remaining-capacity="remainingCapacity" :placements="placements">
+                </asg-capacity-config>
+
                 <div class="form-group">
                     <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
                             data-toggle="tooltip" title="termination policy">
@@ -79,58 +81,16 @@ $(function() {
     });
 });
 
-{% if placements %}
-const placements = {{ placements | safe }};
-{% else %}
-const placements = null;
-{% endif %}
-const remainingCapacity = placements != null ?  placements.reduce((s, e) => s + e.capacity, 0) : Infinity;
-
 var asgConfigVue = new Vue({
     el: '#autoscalingConfigId',
     data: {
-        {% if asg %}
-            minsize: {{ asg.minSize }},
-            maxsize: {{ asg.maxSize }},
-            originalMinSize: {{ asg.minSize }},
-            originalMaxSize: {{ asg.maxSize }},
+        {% if placements %}
+        placements: {{ placements | safe }},
+        remainingCapacity: {{placements| safe }}.reduce((s, e) => s + e.capacity, 0),
         {% else %}
-            minsize: 0,
-            maxsize: 0,
-            originalMinSize: 0,
-            originalMaxSize: 0,
-        {% endif%}
-        showSizeWarning: false,
-        sizeWarning: '',
-    },
-    methods: {
-        updateMin:function(value){
-            this.minsize = Number(value)
-            if (this.maxsize<this.minsize){
-                this.maxsize = this.minsize
-            }
-            this.validateSize(this.originalMinSize, this.minsize)
-        },
-        updateMax: function(value){
-            this.maxsize = Number(value)
-            if (this.maxsize<this.minsize){
-                this.minsize = this.maxsize
-            }
-            this.validateSize(this.originalMinSize, this.maxsize)
-        },
-        validateSize: function(fromSize, toSize) {
-            if (toSize - fromSize >= remainingCapacity) {
-                this.sizeWarning = `Insufficient combined remaining capacity in this Auto Scaling Group. ` +
-                    `You can save this configuration but the ASG might run into capacity issues in the future. ` +
-                    `You can attach additional placements to the corresponding cluter to increase total potential capacity at Cluter Configuration -> Advanced Settings.\n` +
-                    `Combined remaining capacity: ${remainingCapacity}\n` +
-                    `Requested size increase: ${toSize - fromSize}\n` +
-                    `Current placement(s): ${JSON.stringify(placements, null, 2)}`
-                this.showSizeWarning = true
-            } else {
-                this.showSizeWarning = false
-            }
-        },
+        placements: {},
+        remainingCapacity: Infinity,
+        {% endif %}
     }
 });
 
