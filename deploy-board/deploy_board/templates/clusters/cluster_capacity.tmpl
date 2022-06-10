@@ -82,11 +82,6 @@
                         this.maxsize = this.desiredCapacity
                     }
 
-                    if (this.minsize > this.maxsize){
-                        globalNotificationBanner.error = "Max size cannot be less than Min size"
-                        return
-                    }
-
                     $.ajax({
                         type: 'POST',
                         url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/capacity/',
