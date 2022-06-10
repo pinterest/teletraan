@@ -7,14 +7,13 @@
                     <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
                     <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
                     <static-capacity-config v-if="!autoscalingEnabled"
-                        :original-capacity="desiredCapacity"
-                        :remaining-capacity="remainingCapacity" :placements="placements"
-                        v-on:change="updateStatic">
+                        :original-capacity="cluster.capacity" @change="desiredCapacity = $event"
+                        :remaining-capacity="remainingCapacity" :placements="placements">
                     </static-capacity-config>
                     <asg-capacity-config v-if="autoscalingEnabled"
-                        :original-min-size="asg_launch_info.minSize" :original-max-size="asg_launch_info.maxSize"
-                        :remaining-capacity="remainingCapacity" :placements="placements"
-                        v-on:minchange="updateMin" v-on:maxchange="updateMax">
+                        :original-min-size="asg_launch_info.minSize" @min-change="minSize = $event"
+                        :original-max-size="asg_launch_info.maxSize" @max-change="maxSize = $event"
+                        :remaining-capacity="remainingCapacity" :placements="placements">
                     </asg-capacity-config>
                     <form-warning v-show="showSizeWarning" v-bind:alert-text="sizeWarning"></form-warning>
                 </fieldset>
@@ -61,8 +60,8 @@
                 confirmDialogId:"confirmClusterCapacityDialog",
                 desiredCapacity: cluster.capacity,
                 instancetype: cluster.hostType,
-                minsize: asg_launch_info.minSize,
-                maxsize: asg_launch_info.maxSize,
+                minSize: asg_launch_info.minSize,
+                maxSize: asg_launch_info.maxSize,
                 autoscalingEnabled:autoscalingEnabled,
                 canSaveCapacity: cluster.state === "NORMAL",
                 showSizeWarning: false,
@@ -71,15 +70,6 @@
                 placements: info.placements,
             },
             methods:{
-                updateStatic: function(value){
-                   this.desiredCapacity = Number(value)
-                },
-                updateMin:function(value){
-                    this.minsize = Number(value)
-                },
-                updateMax: function(value){
-                    this.maxsize = Number(value)
-                },
                 clickDialog: function(value){
                     if (value){
                         this.save();
