@@ -11,8 +11,8 @@
                         :remaining-capacity="remainingCapacity" :placements="placements">
                     </static-capacity-config>
                     <asg-capacity-config v-if="autoscalingEnabled"
-                        :original-min-size="asg_launch_info.minSize" @min-change="minSize = $event"
-                        :original-max-size="asg_launch_info.maxSize" @max-change="maxSize = $event"
+                        :original-min-size="asg_launch_info.minSize" @min-change="minsize = $event"
+                        :original-max-size="asg_launch_info.maxSize" @max-change="maxsize = $event"
                         :remaining-capacity="remainingCapacity" :placements="placements">
                     </asg-capacity-config>
                     <form-warning v-show="showSizeWarning" v-bind:alert-text="sizeWarning"></form-warning>
@@ -60,8 +60,8 @@
                 confirmDialogId:"confirmClusterCapacityDialog",
                 desiredCapacity: cluster.capacity,
                 instancetype: cluster.hostType,
-                minSize: asg_launch_info.minSize,
-                maxSize: asg_launch_info.maxSize,
+                minsize: asg_launch_info.minSize,
+                maxsize: asg_launch_info.maxSize,
                 autoscalingEnabled:autoscalingEnabled,
                 canSaveCapacity: cluster.state === "NORMAL",
                 showSizeWarning: false,
