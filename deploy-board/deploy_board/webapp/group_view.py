@@ -266,14 +266,14 @@ def update_group_config(request, group_name):
 
 
 def gen_asg_setting(request, group_name):
-     asg = autoscaling_groups_helper.get_autoscaling(request, group_name)
-     policies = autoscaling_groups_helper.TerminationPolicy
-     content = render_to_string("groups/create_asg_modal.tmpl", {
-         "asg": asg,
-         "group_name": group_name,
-         "policies": policies,
-         "csrf_token": get_token(request)})
-     return HttpResponse(content)
+    asg = autoscaling_groups_helper.get_autoscaling(request, group_name)
+    policies = autoscaling_groups_helper.TerminationPolicy
+    content = render_to_string("groups/create_asg_modal.tmpl", {
+        "asg": asg,
+        "group_name": group_name,
+        "policies": policies,
+        "csrf_token": get_token(request)})
+    return HttpResponse(content)
 
 
 def disable_asg(request, group_name):
@@ -1031,8 +1031,7 @@ def add_instance(request, group_name):
     num = int(params["instanceCnt"])
     subnet = None
     placement_group = None
-    asg_status = params['asgStatus']
-    launch_in_asg = False
+    asg_status = str(params['asgStatus']).upper()
     use_placement_group = False
 
     try:
@@ -1045,16 +1044,17 @@ def add_instance(request, group_name):
                 placement_group = params['placementGroup']
                 use_placement_group = True
 
-        # Check if asg is enabled and does not use placement group. Then launch in asg
-        if str(asg_status).upper() == "ENABLED" and not use_placement_group:
-            launch_in_asg = True
-
-        if launch_in_asg:
+        # When a group has an associated ASG, its status is either ENABLED or DISABLED.
+        # We should always launch in ASG when an ASG is set up regardless its status,
+        # unless placement group is specified.
+        if (asg_status == 'ENABLED' or asg_status == 'DISABLED') and not use_placement_group:
             # Launch hosts inside ASG / Bump ASG size by required instances
             autoscaling_groups_helper.launch_hosts(request, group_name, num, None)
             content = 'Capacity increased by {} for Auto Scaling Group {}. Please go to ' \
-                      '<a href="https://deploy.pinadmin.com/groups/{}/">group page</a> ' \
+                      '<a href="/groups/{}/">group page</a> ' \
                       'to check new hosts information.'.format(num, group_name, group_name)
+            if 'customSubnet' in params:
+                content += '\nNote: the subnet {} you selected was ignored.'.format(subnet)
             messages.add_message(request, messages.SUCCESS, content)
         else:
             # Launch hosts outside ASG / static hosts
