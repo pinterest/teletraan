@@ -85,15 +85,19 @@ public class GithubManager extends BaseManager {
                 GitHub gitHubApp = new GitHubBuilder().withJwtToken(jwtToken).build();
                 GHAppInstallation appInstallation = gitHubApp.getApp().getInstallationByOrganization(this.githubAppOrganization);
                 GHAppInstallationToken appInstallationToken = appInstallation.createToken().create();    
-                this.token = appInstallationToken.getToken();
+
+                // always use the newly created github app token as the token will expire
+                this.headers.put("Authorization", String.format("Token %s", appInstallationToken.getToken()));
             } catch (Exception e) {
                 // e.printStackTrace();
                 LOG.error("Exception when getting Github token: ", e);
                 throw e;
             }
         }
-
-        this.headers.put("Authorization", String.format("Token %s", this.token));
+        else {
+            // this is the token that does not expire
+            this.headers.put("Authorization", String.format("Token %s", this.token));
+        }
     }
 
     private String getSha(Map<String, Object> jsonMap) {
