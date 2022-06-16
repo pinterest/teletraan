@@ -193,7 +193,7 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
     const instruction = `You can attach additional placements to the corresponding clutter to increase` +
                         ` total potential capacity at Cluster Configuration -> Advanced Settings.\n`;
     const status = `Combined remaining capacity: ${remainingCapacity}\n` +
-                   `Current placement(s): ${JSON.stringify(placements, null, 2)}`;
+                   `Current placement(s): ${JSON.stringify(placements, ['capacity', 'provider_name', 'abstract_name'], 2)}`;
 
     if (isWarning) {
         return errorMessage + `You can save this configuration but the cluster/ASG might run into capacity issues in the future. ` +
