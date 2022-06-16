@@ -47,11 +47,11 @@ class DelegatedOAuthMiddleware(object):
 
     def process_request(self, request):
         if request.path.startswith('/auth/'):
-            logger.debug("Bypass OAuth redirect request " + request.path)
+            logger.info("Bypass OAuth redirect request " + request.path)
             return None
 
         if request.path.startswith('/health_check/'):
-            logger.debug("Bypass health_check request " + request.path)
+            logger.info("Bypass health_check request " + request.path)
             return None
 
         if not self.is_oauth_enabled:
@@ -83,7 +83,7 @@ class FixedOAuthMiddleware(object):
     def __init__(self):
         if not settings.OAUTH_ENABLED and settings.TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN:
             self._token = settings.TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN
-            logger.debug("Using fixed OAuth credentials")
+            logger.info("Using fixed OAuth credentials")
         else:
             self._token = None
 
@@ -141,7 +141,7 @@ def login_authorized(request):
         oauth.oauth_handler.token_remove(session=request.session)
         return HttpResponseRedirect("/")
 
-    logger.debug("get user_name %s and data %s back from oauth!" % (user_name, data))
+    logger.info("get user_name %s and data %s back from oauth!" % (user_name, data))
     request.session['teletraan_user'] = user_name
 
     if data and 'origin_path' in data:
@@ -150,7 +150,7 @@ def login_authorized(request):
     return HttpResponseRedirect('/')
 
 def logout(request):
-    logger.debug("Logout %s!" % request.session.get("teletraan_user", "anonymous"))
+    logger.info("Logout %s!" % request.session.get("teletraan_user", "anonymous"))
     if not settings.OAUTH_ENABLED:
         logger.error("OAuth is not enabled!")
         return HttpResponseRedirect('/')
