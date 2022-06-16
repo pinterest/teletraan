@@ -181,6 +181,11 @@ LOGGING = {
             'level': LOG_LEVEL,
             'propagate': False
         },
+        'deploy_board.webapp.security': {
+            'handlers': ['default'],
+            'level': 'INFO',
+            'propagate': False
+        }
     }
 }
 
