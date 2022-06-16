@@ -1149,10 +1149,12 @@ def attach_instances(request, group_name):
         hosts = params.get("other_hosts")
         host_ids = hosts.split(',')
         autoscaling_groups_helper.hosts_action_in_group(request, group_name, host_ids, "ATTACH")
-        return redirect('/groups/{}/'.format(group_name))
-    except:
+        content = "Successfully attached instances to ASG."
+        messages.add_message(request, messages.SUCCESS, content)
+    except Exception as e:
+        messages.add_message(request, messages.ERROR, str(e))
         log.error(traceback.format_exc())
-        return redirect('/groups/{}/'.format(group_name))
+    return redirect('/groups/{}/'.format(group_name))
 
 
 # Health Check related
