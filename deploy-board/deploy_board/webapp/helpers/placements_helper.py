@@ -41,8 +41,5 @@ def get_by_id(request, placement_id):
 def get_simplified_by_ids(request, placement_str, provider, cell):
     current_placement_ids = set(placement_str.split(','))
     all_placements = get_by_provider_and_cell_name(request, provider, cell)
-    current_placements = filter(lambda p: p['id'] in current_placement_ids, all_placements)
-    return map(lambda p: {'id': p['id'],
-                          'capacity': p['capacity'],
-                          'abstract_name': p['abstract_name'],
-                          'provider_name': p['provider_name']}, current_placements)
+    return [{k: placement[k] for k in placement if k in ['id', 'capacity', 'abstract_name', 'provider_name']}
+            for placement in all_placements if placement['id'] in current_placement_ids]
