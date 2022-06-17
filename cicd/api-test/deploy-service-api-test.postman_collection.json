@@ -2,8 +2,7 @@
 	"info": {
 		"_postman_id": "8be72625-9319-4d16-b6d2-b4c4a23ee558",
 		"name": "deploy-service-api-test",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "21469645"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
@@ -41,7 +40,7 @@
 					"variable": [
 						{
 							"key": "id",
-							"value": "rm8pBynKR1OsemuZph8kAw",
+							"value": "{{deployId}}",
 							"description": "(Required) Deploy id"
 						}
 					]
@@ -55,10 +54,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/v1/deploys/:id",
-							"host": [
-								"{{baseUrl}}"
-							],
+							"raw": "/v1/deploys/:id",
 							"path": [
 								"v1",
 								"deploys",
@@ -131,8 +127,12 @@
 		},
 		{
 			"key": "token",
-			"value": "",
+			"value": null,
 			"type": "string"
+		},
+		{
+			"key": "deployId",
+			"value": ""
 		}
 	]
 }
