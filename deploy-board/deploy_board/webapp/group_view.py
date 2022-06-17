@@ -1055,6 +1055,9 @@ def add_instance(request, group_name):
                       'to check new hosts information.'.format(num, group_name, group_name)
             if 'customSubnet' in params:
                 content += '\nNote: the subnet {} you selected was ignored.'.format(subnet)
+            if asg_status == 'DISABLED':
+                content += '\nNote: The ASG is currently DISABLED, so the instance you '\
+                           'requested will be launched when ASG is ENABLED.'
             messages.add_message(request, messages.SUCCESS, content)
         else:
             # Launch hosts outside ASG / static hosts
