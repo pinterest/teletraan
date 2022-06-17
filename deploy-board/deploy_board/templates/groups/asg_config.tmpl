@@ -28,7 +28,7 @@
             <input type="hidden" name="groupName" value="{{ group_name }}">
             <fieldset id="envConfigFieldSetId">
                 <asg-capacity-config
-                    original-min-size="{{ asg.minSize }}" original-max-size="{{ asg.maxSize }}"
+                    original-min-size="{{ asg.minSize }}" original-max-size="{{ asg.maxSize }}" current-size="{{ group_size }}"
                     label-bootstrap-class="col-xs-2" input-bootstrap-class="col-xs-4"
                     label-title="Capacity (Current size is {{ group_size }})"
                     label-text="Minimun and maximum number of hosts in one autoscaling group"

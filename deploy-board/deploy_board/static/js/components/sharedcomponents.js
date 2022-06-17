@@ -279,12 +279,12 @@ Vue.component("help-table", {
 /**
  * A form inline error alert
  */
- Vue.component("form-error", {
+ Vue.component("form-danger", {
     template:'<div class="form-group"><div class="col-xs-2"></div>\
     <div class="col-xs-10">\
         <div class="alert alert-danger" style="white-space: pre-wrap;">\
             <button v-if="dismissible" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
-            <strong>Error!</strong> {{ alertText }}</div>\
+            <strong>Danger!</strong> {{ alertText }}</div>\
     </div></div>',
     props: ['dismissible', 'alertText']
   })

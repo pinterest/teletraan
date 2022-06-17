@@ -205,6 +205,20 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
     }
 }
 
+function checkImbalance(placements, threshold) {
+    var insufficientPlacements = [];
+    var showImbalanceWarning = false;
+    for (var p of placements) {
+        if (p.capacity < threshold) {
+            showImbalanceWarning = true;
+            insufficientPlacements.push(p)
+        }
+    }
+    return showImbalanceWarning ? `The ASG might have AZ imbalance based on a potential increase of ${threshold} hosts per placement. `+
+        `Please pay attention to the following placements:\n` +
+        `${JSON.stringify(insufficientPlacements, ['capacity', 'provider_name', 'abstract_name'], 2)}` : '';
+}
+
 /**
  * The capacity button. This is shown when autoscaling is disabled or min\max size are the same.
  * In this case, only one capacity box is shown
@@ -220,7 +234,8 @@ Vue.component("static-capacity-config", {
                 :value="capacity" @input="onCapacityChange($event.target.value)" @keydown.enter.prevent="">
         </div>
     </div>
-    <form-error v-show="showSizeError" :alert-text="sizeError"></form-error>
+    <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
+    <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
     </div>`,
     props: {
         originalCapacity: Number,
@@ -231,7 +246,9 @@ Vue.component("static-capacity-config", {
         return {
             capacity: this.originalCapacity,
             showSizeError: false,
+            showImbalanceWarning: false,
             sizeError: '',
+            imbalanceWarning: '',
         }
     },
     methods: {
@@ -248,6 +265,8 @@ Vue.component("static-capacity-config", {
             } else {
                 this.showSizeError = false;
             }
+            this.imbalanceWarning = checkImbalance(this.placements, (sizeIncrease / this.placements.length).toFixed());
+            this.showImbalanceWarning = this.imbalanceWarning != '';
         }
     }
 });
@@ -277,8 +296,9 @@ Vue.component("asg-capacity-config", {
             </div>
         </div>
     </div>
+    <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
-    <form-error v-show="showSizeError" :alert-text="sizeError"></form-error>
+    <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
     </div>`,
     props: {
         labelBootstrapClass: {
@@ -297,6 +317,7 @@ Vue.component("asg-capacity-config", {
             type: String,
             default: 'Capacity'
         },
+        currentSize: Number,
         originalMinSize: Number,
         originalMaxSize: Number,
         remainingCapacity: Number,
@@ -308,8 +329,10 @@ Vue.component("asg-capacity-config", {
             maxSize: this.originalMaxSize,
             showSizeError: false,
             showSizeWarning: false,
+            showImbalanceWarning: false,
             sizeError: '',
             sizeWarning: '',
+            imbalanceWarning: '',
         }
     },
     methods: {
@@ -340,12 +363,19 @@ Vue.component("asg-capacity-config", {
                 this.showSizeError = false;
             }
 
-            if(!this.showSizeError && maxIncrease >= this.remainingCapacity){
+            if (!this.showSizeError && maxIncrease >= this.remainingCapacity) {
                 this.sizeWarning = getCapacityAlertMessage(true, this.remainingCapacity, this.placements, maxIncrease);
                 this.showSizeWarning = true;
             } else {
                 this.showSizeWarning = false;
             }
+
+            const avgSizeIncreasePerPlacement = ((this.maxSize - this.currentSize) / this.placements.length).toFixed();
+            this.imbalanceWarning = checkImbalance(this.placements, avgSizeIncreasePerPlacement);
+            this.showImbalanceWarning = this.imbalanceWarning != '';
         },
+    },
+    attached: function() {
+        this.validateSize();
     }
 });

@@ -10,7 +10,7 @@
                         :original-capacity="cluster.capacity" @change="desiredCapacity = $event"
                         :remaining-capacity="remainingCapacity" :placements="placements">
                     </static-capacity-config>
-                    <asg-capacity-config v-if="autoscalingEnabled"
+                    <asg-capacity-config v-if="autoscalingEnabled" :current-size="cluster.capacity"
                         :original-min-size="asg_launch_info.minSize" @min-change="minsize = $event"
                         :original-max-size="asg_launch_info.maxSize" @max-change="maxsize = $event"
                         :remaining-capacity="remainingCapacity" :placements="placements">
