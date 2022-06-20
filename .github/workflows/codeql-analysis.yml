@@ -11,6 +11,7 @@ on:
       - '**/*.md'
       - '**/tests/**'
       - '**/test/**'
+      - '**/integ_test/**'
 
 
 jobs:
@@ -36,6 +37,7 @@ jobs:
       uses: github/codeql-action/init@v2
       with:
         languages: ${{ matrix.language }}
+        config-file: ./.github/codeql-config.yml
 
     - name: Autobuild
       uses: github/codeql-action/autobuild@v2
