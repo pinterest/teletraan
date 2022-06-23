@@ -1,138 +1,138 @@
 {
-	"info": {
-		"_postman_id": "8be72625-9319-4d16-b6d2-b4c4a23ee558",
-		"name": "deploy-service-api-test",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "Get deploy info",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Accept",
-						"value": "application/json"
-					}
-				],
-				"url": {
-					"raw": "{{baseUrl}}v1/deploys/:id",
-					"host": [
-						"{{baseUrl}}v1"
-					],
-					"path": [
-						"deploys",
-						":id"
-					],
-					"variable": [
-						{
-							"key": "id",
-							"value": "{{deployId}}",
-							"description": "(Required) Deploy id"
-						}
-					]
-				},
-				"description": "Returns a deploy object given a deploy id"
-			},
-			"response": [
-				{
-					"name": "successful operation",
-					"originalRequest": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "/v1/deploys/:id",
-							"path": [
-								"v1",
-								"deploys",
-								":id"
-							],
-							"variable": [
-								{
-									"key": "id",
-									"value": "<string>",
-									"description": "(Required) Deploy id"
-								}
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						}
-					],
-					"cookie": [],
-					"body": "{\n  \"alias\": \"<string>\",\n  \"state\": \"<string>\",\n  \"operator\": \"<string>\",\n  \"description\": \"<string>\",\n  \"total\": \"<integer>\",\n  \"id\": \"<string>\",\n  \"envId\": \"<string>\",\n  \"buildId\": \"<string>\",\n  \"type\": \"<string>\",\n  \"startDate\": \"<long>\",\n  \"lastUpdateDate\": \"<long>\",\n  \"successTotal\": \"<integer>\",\n  \"failTotal\": \"<integer>\",\n  \"successDate\": \"<long>\",\n  \"acceptanceStatus\": \"<string>\",\n  \"fromDeployId\": \"<string>\"\n}"
-				}
-			]
-		}
-	],
-	"auth": {
-		"type": "apikey",
-		"apikey": [
-			{
-				"key": "key",
-				"value": "Authorization",
-				"type": "string"
-			},
-			{
-				"key": "value",
-				"value": "Token {{token}}",
-				"type": "string"
-			}
-		]
-	},
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "baseUrl",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "token",
-			"value": null,
-			"type": "string"
-		},
-		{
-			"key": "deployId",
-			"value": ""
-		}
-	]
+    "info": {
+        "_postman_id": "8be72625-9319-4d16-b6d2-b4c4a23ee558",
+        "name": "deploy-service-api-test",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Get deploy info",
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "exec": [
+                            "pm.test(\"Status code is 200\", function () {",
+                            "    pm.response.to.have.status(200);",
+                            "});"
+                        ],
+                        "type": "text/javascript"
+                    }
+                }
+            ],
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}v1/deploys/:id",
+                    "host": [
+                        "{{baseUrl}}v1"
+                    ],
+                    "path": [
+                        "deploys",
+                        ":id"
+                    ],
+                    "variable": [
+                        {
+                            "key": "id",
+                            "value": "{{deployId}}",
+                            "description": "(Required) Deploy id"
+                        }
+                    ]
+                },
+                "description": "Returns a deploy object given a deploy id"
+            },
+            "response": [
+                {
+                    "name": "successful operation",
+                    "originalRequest": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "/v1/deploys/:id",
+                            "path": [
+                                "v1",
+                                "deploys",
+                                ":id"
+                            ],
+                            "variable": [
+                                {
+                                    "key": "id",
+                                    "value": "<string>",
+                                    "description": "(Required) Deploy id"
+                                }
+                            ]
+                        }
+                    },
+                    "status": "OK",
+                    "code": 200,
+                    "_postman_previewlanguage": "json",
+                    "header": [
+                        {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ],
+                    "cookie": [],
+                    "body": "{\n  \"alias\": \"<string>\",\n  \"state\": \"<string>\",\n  \"operator\": \"<string>\",\n  \"description\": \"<string>\",\n  \"total\": \"<integer>\",\n  \"id\": \"<string>\",\n  \"envId\": \"<string>\",\n  \"buildId\": \"<string>\",\n  \"type\": \"<string>\",\n  \"startDate\": \"<long>\",\n  \"lastUpdateDate\": \"<long>\",\n  \"successTotal\": \"<integer>\",\n  \"failTotal\": \"<integer>\",\n  \"successDate\": \"<long>\",\n  \"acceptanceStatus\": \"<string>\",\n  \"fromDeployId\": \"<string>\"\n}"
+                }
+            ]
+        }
+    ],
+    "auth": {
+        "type": "apikey",
+        "apikey": [
+            {
+                "key": "key",
+                "value": "Authorization",
+                "type": "string"
+            },
+            {
+                "key": "value",
+                "value": "Token {{token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "token",
+            "value": null,
+            "type": "string"
+        },
+        {
+            "key": "deployId",
+            "value": ""
+        }
+    ]
 }
