@@ -66,7 +66,7 @@ def create_stats_timer(name, sample_rate=1.0, tags=None):
                                      stat_client=TimingOnlyStatClient())
         return timer
     else:
-        return
+        return DefaultStatsdTimer()
 
 
 def create_sc_timing(name, value, sample_rate=1.0, tags=None):
