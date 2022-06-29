@@ -5,9 +5,9 @@ from __future__ import absolute_import
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,11 +17,13 @@ from __future__ import absolute_import
 import logging
 import os
 import stat
-import tempfile
+import errno
 import fcntl
 from . import utils
+from future.utils import PY3
 
 log = logging.getLogger(__name__)
+LOCKFILE_DIR = '/var/lock'
 
 
 class SingleInstance(object):
@@ -29,7 +31,8 @@ class SingleInstance(object):
         # Establish lock file settings
         appname = 'deploy-agent'
         lockfile_name = '.{}.lock'.format(appname)
-        lockfile_path = os.path.join(tempfile.gettempdir(), lockfile_name)
+        self._create_lock_dir()
+        lockfile_path = os.path.join(LOCKFILE_DIR, lockfile_name)
         lockfile_flags = os.O_WRONLY | os.O_CREAT
         # This is 0o222, i.e. 146, --w--w--w-
         lockfile_mode = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
@@ -50,3 +53,14 @@ class SingleInstance(object):
             # noinspection PyTypeChecker
             os.close(lockfile_fd)
             utils.exit_abruptly(1)
+
+    def _create_lock_dir(self):
+        if PY3:
+            os.makedirs(LOCKFILE_DIR, exist_ok=True)
+        else:
+            # Need to handle the case when lock dir exists in py2
+            try:
+                os.makedirs(LOCKFILE_DIR)  # py2
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
