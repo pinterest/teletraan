@@ -205,6 +205,11 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
     }
 }
 
+function calculateImbalanceThreshold(totalIncrease, numPlacements) {
+    // average increase per placement
+    return (totalIncrease / numPlacements).toFixed()
+}
+
 function checkImbalance(placements, threshold) {
     var insufficientPlacements = [];
     var showImbalanceWarning = false;
@@ -265,7 +270,7 @@ Vue.component("static-capacity-config", {
             } else {
                 this.showSizeError = false;
             }
-            this.imbalanceWarning = checkImbalance(this.placements, (sizeIncrease / this.placements.length).toFixed());
+            this.imbalanceWarning = checkImbalance(this.placements, calculateImbalanceThreshold(sizeIncrease, this.placements.length));
             this.showImbalanceWarning = this.imbalanceWarning != '';
         }
     }
@@ -370,7 +375,7 @@ Vue.component("asg-capacity-config", {
                 this.showSizeWarning = false;
             }
 
-            const avgSizeIncreasePerPlacement = ((this.maxSize - this.currentSize) / this.placements.length).toFixed();
+            const avgSizeIncreasePerPlacement = calculateImbalanceThreshold(this.maxSize - this.currentSize, this.placements.length);
             this.imbalanceWarning = checkImbalance(this.placements, avgSizeIncreasePerPlacement);
             this.showImbalanceWarning = this.imbalanceWarning != '';
         },
