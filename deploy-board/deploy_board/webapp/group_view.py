@@ -24,10 +24,8 @@ import json
 import logging
 import traceback
 
-from helpers import environs_helper, clusters_helper
-from helpers import groups_helper, baseimages_helper
-from helpers import specs_helper, autoscaling_groups_helper
-from helpers import autoscaling_metrics_helper
+from helpers import (environs_helper, clusters_helper, groups_helper, baseimages_helper,
+                     specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper)
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
 from helpers.exceptions import TeletraanException
@@ -307,7 +305,15 @@ def get_asg_config(request, group_name):
     policies = autoscaling_groups_helper.TerminationPolicy
     if asg_summary.get("sensitivityRatio", None):
         asg_summary["sensitivityRatio"] *= 100
-    scheduled_actions = autoscaling_groups_helper.get_scheduled_actions(request, group_name)
+
+    placements = None
+    try:
+        basic_cluster_info = clusters_helper.get_cluster(request, group_name)
+        if basic_cluster_info:
+            placements = placements_helper.get_simplified_by_ids(
+                request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
+    except Exception as e:
+        log.warning('Failed to get placements: {}'.format(e))
     content = render_to_string("groups/asg_config.tmpl", {
         "group_name": group_name,
         "asg": asg_summary,
@@ -316,6 +322,7 @@ def get_asg_config(request, group_name):
         "instanceType": launch_config.get("instanceType"),
         "csrf_token": get_token(request),
         "pas_config": pas_config,
+        "placements": json.dumps(placements),
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
 

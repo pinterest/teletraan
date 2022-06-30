@@ -22,64 +22,40 @@
     </div>
 </div>
 <div id="autoscalingConfigId" class="collapse in panel-body">
-<div class="container-fluid">
-    <form id="autoscalingGroupConfigFormId" class="form-horizontal" role="form">
-        <input type="hidden" name="asgStatus" value="{{ asg.status }}" />
-        <input type="hidden" name="groupName" value="{{ group_name }}" />
-        <fieldset id="envConfigFieldSetId">
-            <div class="form-group">
-                <label for="minSize" class="deployToolTip control-label col-xs-2"
-                    data-toggle="tooltip"
-                    title="minimum number of hosts in one autoscaling group">
-                    Min Size (Current size is {{ group_size }})
-                </label>
-                <div class="col-xs-4">
-                    <input class="form-control" name="minSize" required="true" id="minSizeInput"
-                           type="text" value="{{ asg.minSize }}"/>
-                </div>
+    <div class="container-fluid">
+        <form id="autoscalingGroupConfigFormId" class="form-horizontal" role="form">
+            <input type="hidden" name="asgStatus" value="{{ asg.status }}">
+            <input type="hidden" name="groupName" value="{{ group_name }}">
+            <fieldset id="envConfigFieldSetId">
+                <asg-capacity-config
+                    original-min-size="{{ asg.minSize }}" original-max-size="{{ asg.maxSize }}" current-size="{{ group_size }}"
+                    label-bootstrap-class="col-xs-2" input-bootstrap-class="col-xs-4"
+                    label-title="Capacity (Current size is {{ group_size }})"
+                    label-text="Minimun and maximum number of hosts in one autoscaling group"
+                    :remaining-capacity="remainingCapacity" :placements="placements">
+                </asg-capacity-config>
 
-                <label for="maxSize" class="deployToolTip control-label col-xs-2"
-                    data-toggle="tooltip"
-                    title="maximum number of hosts in one autoscaling group">
-                    Max Size
-                </label>
-                <div class="col-xs-4">
-                    <input class="form-control" name="maxSize" required="true" id="maxSizeInput"
-                           type="text" value="{{ asg.maxSize }}"/>
-                </div>
-            </div>
-
-            <div id="minSizeWarningDivId" class="hidden">
                 <div class="form-group">
-                    <label class="control-label col-xs-2"></label>
-                    <div class="col-xs-10">
-                    <h4><span class="label label-danger">Minimum size is too low for your group!</span></h4>
+                    <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
+                            data-toggle="tooltip" title="termination policy">
+                        Termination Policy
+                    </label>
+                    <div class="col-xs-4">
+                        <select class="form-control" name="terminationPolicy" required="true" id="terminationPolicyInput">
+                        {% for policy in terminationPolicies %}
+                            {% if policy == asg.terminationPolicy %}
+                                <option value="{{policy}}" selected>{{policy}}</option>
+                            {% else %}
+                                <option value="{{policy}}">{{policy}}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
                     </div>
                 </div>
-            </div>
-
-            <div class="form-group">
-                <label for="terminationPolicy" class="deployToolTip control-label col-xs-2"
-                  data-toggle="tooltip"
-                  title="termination policy">
-                  Termination Policy
-                </label>
-                <div class="col-xs-4">
-                    <select class="form-control" name="terminationPolicy" required="true" id="terminationPolicyInput">
-                    {% for policy in terminationPolicies %}
-                        {% if policy == asg.terminationPolicy %}
-                            <option value="{{policy}}" selected>{{policy}}</option>
-                        {% else %}
-                            <option value="{{policy}}">{{policy}}</option>
-                        {% endif %}
-                    {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </fieldset>
-      {% csrf_token %}
-       </form>
-</div>
+            </fieldset>
+        {% csrf_token %}
+        </form>
+    </div>
 </div>
 
 
@@ -103,6 +79,19 @@ $(function() {
     $.get('/groups/{{ group_name }}/autoscaling/get_pas_config/', function (response) {
         $('#pasConfigPid').html(response);
     });
+});
+
+var asgConfigVue = new Vue({
+    el: '#autoscalingConfigId',
+    data: {
+        {% if placements %}
+        placements: {{ placements | safe }},
+        remainingCapacity: {{placements| safe }}.reduce((s, e) => s + e.capacity, 0),
+        {% else %}
+        placements: {},
+        remainingCapacity: Infinity,
+        {% endif %}
+    }
 });
 
 function loadAsgScheduledActions() {

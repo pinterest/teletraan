@@ -264,14 +264,27 @@ Vue.component("help-table", {
 })
 
 /**
- * A form inline warning
+ * A form inline warning alert
  */
  Vue.component("form-warning", {
     template:'<div class="form-group"><div class="col-xs-2"></div>\
     <div class="col-xs-10">\
-        <div class="alert alert-warning">\
+        <div class="alert alert-warning" style="white-space: pre-wrap;">\
             <button v-if="dismissible" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
-            <strong>Warning!</strong> {{ warningtext }}</div>\
+            <strong>Warning!</strong> {{ alertText }}</div>\
     </div></div>',
-    props: ['dismissible', 'warningtext']
+    props: ['dismissible', 'alertText']
+  })
+
+/**
+ * A form inline error alert
+ */
+ Vue.component("form-danger", {
+    template:'<div class="form-group"><div class="col-xs-2"></div>\
+    <div class="col-xs-10">\
+        <div class="alert alert-danger" style="white-space: pre-wrap;">\
+            <button v-if="dismissible" type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>\
+            <strong>Danger!</strong> {{ alertText }}</div>\
+    </div></div>',
+    props: ['dismissible', 'alertText']
   })

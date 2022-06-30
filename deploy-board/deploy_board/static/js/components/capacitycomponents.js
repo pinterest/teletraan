@@ -188,23 +188,90 @@ Vue.component('in-rolling-alert', {
     props:['actionlink']
 });
 
+function getCapacityAlertMessage(isWarning, remainingCapacity, placements, increase) {
+    const errorMessage = `Insufficient combined remaining capacity in this cluster/auto scaling group. `;
+    const instruction = `You can attach additional placements to the corresponding clutter to increase` +
+                        ` total potential capacity at Cluster Configuration -> Advanced Settings.\n`;
+    const status = `Combined remaining capacity: ${remainingCapacity}\n` +
+                   `Current placement(s): ${JSON.stringify(placements, ['capacity', 'provider_name', 'abstract_name'], 2)}`;
+
+    if (isWarning) {
+        return errorMessage + `You can save this configuration but the cluster/ASG might run into capacity issues in the future. ` +
+                instruction + `Requested size increase: ${increase}\n` + status
+    } else {
+        // error
+        return errorMessage + `You shouldn't save this configuration because the cluster/ASG will run into capacity issues. ` +
+                instruction + `Requested size increase: ${increase}\n` + status;
+    }
+}
+
+function calculateImbalanceThreshold(totalIncrease, numPlacements) {
+    // average increase per placement
+    return (totalIncrease / numPlacements).toFixed()
+}
+
+function checkImbalance(placements, threshold) {
+    var insufficientPlacements = [];
+    var showImbalanceWarning = false;
+    for (var p of placements) {
+        if (p.capacity < threshold) {
+            showImbalanceWarning = true;
+            insufficientPlacements.push(p)
+        }
+    }
+    return showImbalanceWarning ? `The ASG might have AZ imbalance based on a potential increase of ${threshold} hosts per placement. `+
+        `Please pay attention to the following placements:\n` +
+        `${JSON.stringify(insufficientPlacements, ['capacity', 'provider_name', 'abstract_name'], 2)}` : '';
+}
 
 /**
  * The capacity button. This is shown when autoscaling is disabled or min\max size are the same.
  * In this case, only one capacity box is shown
  */
 Vue.component("static-capacity-config", {
-    template: '<div class="form-group">\
-    <label for="capacity" class="deployToolTip control-label col-xs-4" title="Number of hosts for this service">\
-        Capacity\
-    </label>\
-    <div class="col-xs-2" >\
-    <input class="form-control" v-bind:value="capacity" v-on:change="updateValue($event.target.value)" @keydown.enter.prevent=""></input>\
-    </div></div>',
-    props: ['capacity'],
+    template: `<div>
+    <div class="form-group">
+        <label for="capacity" class="deployToolTip control-label col-xs-4" title="Number of hosts for this service">
+            Capacity
+        </label>
+        <div class="col-xs-2" >
+            <input name="capacity" class="form-control" type="number" min="0" required
+                :value="capacity" @input="onCapacityChange($event.target.value)" @keydown.enter.prevent="">
+        </div>
+    </div>
+    <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
+    <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
+    </div>`,
+    props: {
+        originalCapacity: Number,
+        remainingCapacity: Number,
+        placements: Object,
+    },
+    data: function() {
+        return {
+            capacity: this.originalCapacity,
+            showSizeError: false,
+            showImbalanceWarning: false,
+            sizeError: '',
+            imbalanceWarning: '',
+        }
+    },
     methods: {
-        updateValue: function (value) {
-            this.$emit("change", value)
+        onCapacityChange: function (value) {
+            this.capacity = Number(value);
+            this.validateSize();
+            this.$emit('change', this.capacity );
+        },
+        validateSize: function () {
+            const sizeIncrease = this.capacity - this.originalCapacity;
+            if (sizeIncrease >= this.remainingCapacity) {
+                this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
+                this.showSizeError = true;
+            } else {
+                this.showSizeError = false;
+            }
+            this.imbalanceWarning = checkImbalance(this.placements, calculateImbalanceThreshold(sizeIncrease, this.placements.length));
+            this.showImbalanceWarning = this.imbalanceWarning != '';
         }
     }
 });
@@ -214,30 +281,106 @@ Vue.component("static-capacity-config", {
  * In this case, both min size and max size buttons are shown
  */
 Vue.component("asg-capacity-config", {
-    template: '<div class="form-group">\
-    <label for="capacity" class="deployToolTip control-label col-xs-4" title="Number of hosts for this service">\
-        Capacity\
-    </label>\
-            <div class="col-xs-2">\
-                <div class="input-group" >\
-                    <span class="input-group-addon">Min Size</span>\
-                    <input class="form-control" v-bind:value="minsize" v-on:change="updateMinSize($event.target.value)" @keydown.enter.prevent=""></input>\
-                </div>\
-            </div>\
-            <div class="col-xs-2">\
-                <div class="input-group" >\
-                    <span class="input-group-addon">Max Size</span>\
-                    <input class="form-control" v-bind:value="maxsize" v-on:change="updateMaxSize($event.target.value)" @keydown.enter.prevent=""></input>\
-                </div>\
-            </div>\
-    </div>',
-    props: ['minsize', 'maxsize'],
-    methods: {
-        updateMinSize: function (value) {
-            this.$emit('minchange', value)
+    template: `<div>
+    <div class="form-group">
+        <label for="capacity" data-toggle="tooltip" class="deployToolTip control-label" :class="labelBootstrapClass" :title="labelText">
+            {{ labelTitle }}
+        </label>
+        <div :class="inputBootstrapClass">
+            <div class="input-group">
+                <span class="input-group-addon">Min Size</span>
+                <input name="minSize" class="form-control" type="number" min="0" required
+                    :value="minSize" @input="onMinSizeChange($event.target.value)" @keydown.enter.prevent="" >
+            </div>
+        </div>
+        <div :class="inputBootstrapClass">
+            <div class="input-group">
+                <span class="input-group-addon">Max Size</span>
+                <input name="maxSize" class="form-control" type="number" min="0" required
+                    :value="maxSize" @input="onMaxSizeChange($event.target.value)" @keydown.enter.prevent="">
+            </div>
+        </div>
+    </div>
+    <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
+    <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
+    <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
+    </div>`,
+    props: {
+        labelBootstrapClass: {
+            type: String,
+            default: 'col-xs-4',
         },
-        updateMaxSize: function (value) {
-            this.$emit('maxchange', value)
+        inputBootstrapClass: {
+            type: String,
+            default: 'col-xs-2',
+        },
+        labelText: {
+            type: String,
+            default: 'Number of hosts for this service',
+        },
+        labelTitle: {
+            type: String,
+            default: 'Capacity'
+        },
+        currentSize: Number,
+        originalMinSize: Number,
+        originalMaxSize: Number,
+        remainingCapacity: Number,
+        placements: Object,
+    },
+    data: function() {
+        return {
+            minSize: this.originalMinSize,
+            maxSize: this.originalMaxSize,
+            showSizeError: false,
+            showSizeWarning: false,
+            showImbalanceWarning: false,
+            sizeError: '',
+            sizeWarning: '',
+            imbalanceWarning: '',
         }
+    },
+    methods: {
+        onMinSizeChange: function (value) {
+            this.minSize = Number(value);
+            if (this.maxSize < this.minSize) {
+                this.maxSize = this.minSize;
+            }
+            this.validateSize();
+            this.$emit('min-change', this.minSize);
+        },
+        onMaxSizeChange: function (value) {
+            this.maxSize = Number(value);
+            if (this.maxSize < this.minSize) {
+                this.minSize = this.maxSize;
+            }
+            this.validateSize();
+            this.$emit('max-change', this.maxSize);
+        },
+        validateSize: function() {
+            const minIncrease = this.minSize - this.originalMinSize;
+            const maxIncrease = this.maxSize - this.originalMaxSize;
+
+            if (minIncrease >= this.remainingCapacity) {
+                this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, minIncrease);
+                this.showSizeError = true;
+            } else {
+                this.showSizeError = false;
+            }
+
+            if (!this.showSizeError && maxIncrease >= this.remainingCapacity) {
+                this.sizeWarning = getCapacityAlertMessage(true, this.remainingCapacity, this.placements, maxIncrease);
+                this.showSizeWarning = true;
+            } else {
+                this.showSizeWarning = false;
+            }
+
+            const avgSizeIncreasePerPlacement = calculateImbalanceThreshold(this.maxSize - this.currentSize, this.placements.length);
+            this.imbalanceWarning = checkImbalance(this.placements, avgSizeIncreasePerPlacement);
+            this.showImbalanceWarning = this.imbalanceWarning != '';
+        },
+    },
+    attached: function() {
+        this.validateSize();
     }
 });

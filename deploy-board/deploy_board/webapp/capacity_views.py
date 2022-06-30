@@ -20,18 +20,18 @@ import logging
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
-from django.template.loader import render_to_string
 from django.views.generic import View
 import common
-from helpers import environs_helper, clusters_helper, autoscaling_groups_helper
+from helpers import environs_helper, clusters_helper, autoscaling_groups_helper, placements_helper
 from helpers import baseimages_helper
 from deploy_board.settings import IS_PINTEREST
 
 
-
 logger = logging.getLogger(__name__)
 
+
 class EnvCapacityConfigView(View):
+
     def get(self, request, name, stage):
         # cluster manager
         provider_list = None
@@ -40,6 +40,7 @@ class EnvCapacityConfigView(View):
         adv = False
         env = environs_helper.get_env_by_stage(request, name, stage)
         cluster_name = env.get('clusterName')
+        placements = None
         if IS_PINTEREST:
             provider_list = baseimages_helper.get_all_providers(request)
             basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
@@ -49,6 +50,11 @@ class EnvCapacityConfigView(View):
                 asg_cluster = autoscaling_groups_helper.get_group_info(request, cluster_name)
                 basic_cluster_info['asg_info'] = asg_cluster
                 basic_cluster_info['base_image_info'] = base_image
+                try:
+                    placements = placements_helper.get_simplified_by_ids(
+                        request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
+                except Exception as e:
+                    logger.warning('Failed to get placements: {}'.format(e))
 
             params = request.GET
             if params.get('adv'):
@@ -72,6 +78,7 @@ class EnvCapacityConfigView(View):
                 'basic_cluster_info': basic_cluster_info,
                 'adv': adv,
                 'create_new': create_new,
+                'placements': placements,
             }
             return HttpResponse(json.dumps(info), content_type="application/json")
 
@@ -92,7 +99,8 @@ class EnvCapacityConfigView(View):
             'provider_list': provider_list,
             'basic_cluster_info': basic_cluster_info,
             'adv': adv,
-            'create_new': create_new
+            'create_new': create_new,
+            'placements': placements,
         }
         data['info'] = json.dumps(data)
         return render(request, 'configs/capacity.html', data)
@@ -100,14 +108,12 @@ class EnvCapacityConfigView(View):
     def post(self, request, name, stage):
         logger.info("Post to capacity with data {0}".format(request.body))
         data = json.loads(request.body)
-        hosts =  data.get('hosts')
-        if hosts != None:
+        hosts = data.get('hosts')
+        if hosts:
             environs_helper.update_env_capacity(request, name, stage, capacity_type="HOST", data=hosts)
 
         groups = data.get("groups")
-        if groups != None:
-            environs_helper.update_env_capacity(request, name, stage, capacity_type="GROUP",
-                                                data=groups)
+        if groups:
+            environs_helper.update_env_capacity(request, name, stage, capacity_type="GROUP", data=groups)
 
         return self.get(request, name, stage)
-

@@ -66,7 +66,7 @@
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
                     <placements-select label="Placements" title="Placements" showsubnettype="true" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" v-bind:subnettype="subnetType"
                     showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip" v-on:subnetfilterclick="changeSubnetType"></placements-select>
-                    <form-warning v-show="showSubnetReplacementAlert" v-bind:warningtext="subnetReplacementWarning"></form-warning>
+                    <form-warning v-show="showSubnetReplacementAlert" v-bind:alert-text="subnetReplacementWarning"></form-warning>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <div v-if="inAdvanced">
                         <div class="form-group"></div>
