@@ -333,8 +333,8 @@ if IS_PINTEREST:
 
     #CSP Config
     CSP_SCRIPT_SRC = ("'self'", "https://*.gstatic.com/ https://cdn.jsdelivr.net/ https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
-    CSP_DEFAULT_SRC = ("'self'", "*.pinadmin.com")
-    CSP_CONNECT_SRC = ("'self'", "*.pinadmin.com")
+    CSP_DEFAULT_SRC = ("'self'", "*.pinadmin.com", "*.pin220.com")
+    CSP_CONNECT_SRC = ("'self'", "*.pinadmin.com", "*.pin220.com")
     CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
     CSP_STYLE_SRC = ("'self'", "https://*.gstatic.com/ https://cdn.jsdelivr.net/ 'unsafe-inline'")
 
