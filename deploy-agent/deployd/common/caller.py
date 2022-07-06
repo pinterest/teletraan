@@ -17,8 +17,6 @@ import traceback
 import logging
 import time
 
-from future.utils import PY3
-
 log = logging.getLogger(__name__)
 
 
@@ -31,12 +29,8 @@ class Caller(object):
         output = ""
         start = time.time()
         try:
-            if PY3:
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE, encoding='utf-8', **kwargs)
-            else:
-                process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE, **kwargs)
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE, encoding='utf-8', **kwargs)
             while process.poll() is None:
                 line = process.stdout.readline()
                 if line:

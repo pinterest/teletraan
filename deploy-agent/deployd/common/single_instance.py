@@ -20,7 +20,6 @@ import stat
 import errno
 import fcntl
 from . import utils
-from future.utils import PY3
 
 log = logging.getLogger(__name__)
 LOCKFILE_DIR = '/var/lock'
@@ -55,12 +54,4 @@ class SingleInstance(object):
             utils.exit_abruptly(1)
 
     def _create_lock_dir(self):
-        if PY3:
-            os.makedirs(LOCKFILE_DIR, exist_ok=True)
-        else:
-            # Need to handle the case when lock dir exists in py2
-            try:
-                os.makedirs(LOCKFILE_DIR)  # py2
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise
+        os.makedirs(LOCKFILE_DIR, exist_ok=True)
