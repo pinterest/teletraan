@@ -24,7 +24,8 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+import org.joda.time.DateTimeUtils;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -32,9 +33,11 @@ import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
 
 
-public class AutoPromotBuildTest {
+public class AutoPromoteBuildTest {
 
     final static String CronTenAMPerDay = "0 0 10 * * ?";
     ServiceContext context;
@@ -44,6 +47,23 @@ public class AutoPromotBuildTest {
     BuildDAO buildDAO;
     TagDAO tagDAO;
     BuildTagsManager buildTagsManager;
+    TestTimeProvider timeProvider = new TestTimeProvider();
+    DateTime t9AM = new DateTime(2022, 7, 4, 9, 0, 0);
+    DateTime t10AM = t9AM.plusHours(1);
+
+    class TestTimeProvider implements DateTimeUtils.MillisProvider {
+        private long millis = 0L;
+
+        public void setClock(long millis) {
+            this.millis = millis;
+        }
+
+        @Override
+        public long getMillis() {
+            return this.millis;
+        }
+
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -57,66 +77,49 @@ public class AutoPromotBuildTest {
         first.setBuild_id("0000001");
         second.setBuild_id("0000002");
         environBean.setEnv_id("test1");
-
     }
 
-
-    @Test
-    public void testGetScheduledCheckDueTime() throws Exception {
-        DeployBean currentDeploy = new DeployBean();
-        AutoPromoter promoter = new AutoPromoter(context);
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        currentDeploy.setStart_date(now.minusDays(1).getMillis());
-        DateTime due =
-            new DateTime(
-                promoter.getScheduledCheckDueTime(currentDeploy.getStart_date(), CronTenAMPerDay));
-
-        if (now.getHourOfDay() < 10) {
-            DateTime yesterday = now.minusDays(1);
-            DateTime
-                start =
-                new DateTime(yesterday.getYear(), yesterday.getMonthOfYear(),
-                    yesterday.getDayOfMonth(),
-                    10, 0, 0);
-            Assert.assertEquals(due, start);
-        } else {
-            DateTime
-                start =
-                new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(), 10, 0, 0);
-            Assert.assertEquals(due, start);
-        }
+    @After
+    public void tearDown() throws Exception {
+        DateTimeUtils.setCurrentMillisSystem();
     }
 
     @Test
     public void testGetScheduledCheckDueResult() throws Exception {
-   /* PromoteBean promoteBean = new PromoteBean();
-    AutoPromoter promoter = new AutoPromoter(context);
-    DeployBean currentDeploy = new DeployBean();
-    currentDeploy.setStart_date(DateTime.now().minusDays(1).getMillis());
-    currentDeploy.setBuild_id("prev123");
-    DateTime now = DateTime.now();
+        PromoteBean promoteBean = new PromoteBean();
+        promoteBean.setDelay(1);
+        AutoPromoter promoter = new AutoPromoter(context);
+        DateTimeUtils.setCurrentMillisProvider(timeProvider);
 
-    promoteBean.setSchedule("* * * * * ?");
-    Pair<Boolean, Long> result =
-        promoter.getScheduleCheckResult(environBean, currentDeploy, promoteBean);
-    Assert.assertTrue(result.getLeft().booleanValue());
-    promoteBean.setSchedule(CronTenAMPerDay);
-    result =
-        promoter.getScheduleCheckResult(environBean, currentDeploy, promoteBean);
+        BuildBean build1 = new BuildBean();
+        build1.setPublish_date(t9AM.plusMinutes(1).getMillis());
+        BuildBean build2 = new BuildBean();
+        build2.setPublish_date(t9AM.plusMinutes(2).getMillis());
+        BuildBean build3 = new BuildBean();
+        build3.setPublish_date(t10AM.getMillis());
+        List<BuildBean> candidates = Arrays.asList(build3, build2, build1);
 
-    if (now.getHourOfDay() < 10) {
-      DateTime yesterday = now.minusDays(-1);
-      DateTime
-          start =
-          new DateTime(yesterday.getYear(), yesterday.getMonthOfYear(), yesterday.getDayOfMonth(),
-              10, 0, 0);
-      Assert.assertEquals(result.getRight().longValue(), start.getMillis());
-    } else {
-      DateTime
-          start =
-          new DateTime(now.getYear(), now.getMonthOfYear(), now.getDayOfMonth(), 10, 0, 0);
-      Assert.assertEquals(result.getRight().longValue(), start.getMillis());*/
-        //}
+        Function<BuildBean, Long> getPublishDate = b-> b.getPublish_date();
+        promoteBean.setSchedule("* * * * * ?");
+
+        timeProvider.setClock(t9AM.getMillis());
+        BuildBean buildToPromote = promoter.getScheduledCheckResult(environBean, promoteBean, candidates, getPublishDate);
+        Assert.assertNull(buildToPromote);
+
+        // build3 is not selected due to delay is not fulfilled
+        timeProvider.setClock(t10AM.getMillis());
+        buildToPromote = promoter.getScheduledCheckResult(environBean, promoteBean, candidates, getPublishDate);
+        Assert.assertEquals(build2, buildToPromote);
+
+        // build3 is selected after delay
+        timeProvider.setClock(t10AM.plusMinutes(1).getMillis());
+        buildToPromote = promoter.getScheduledCheckResult(environBean, promoteBean, candidates, getPublishDate);
+        Assert.assertEquals(build3, buildToPromote);
+
+        // build3 is not selected due to schedule is set at 10AM
+        promoteBean.setSchedule(CronTenAMPerDay);
+        buildToPromote = promoter.getScheduledCheckResult(environBean, promoteBean, candidates, getPublishDate);
+        Assert.assertEquals(build2, buildToPromote);
     }
 
     /* Autopromote enabled for any new build. But no builds and no prev deploys*/
@@ -129,7 +132,6 @@ public class AutoPromotBuildTest {
             result =
             promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
         Assert.assertEquals(PromoteResult.ResultCode.NoAvailableBuild, result.getResult());
-
     }
 
     /* Autopromote enabled for any new build. no previous deploy and one new build*/
@@ -148,7 +150,7 @@ public class AutoPromotBuildTest {
             result =
             promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
         Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
-        Assert.assertEquals("123", result.getPromotedBuild());
+        Assert.assertEquals(build.getBuild_id(), result.getPromotedBuild());
     }
 
     @Test
@@ -168,7 +170,7 @@ public class AutoPromotBuildTest {
         TagBean tagBean = new TagBean();
         tagBean.setId(CommonUtils.getBase64UUID());
         tagBean.setTarget_type(TagTargetType.BUILD);
-        tagBean.setTarget_id(build.getBuild_id());
+        tagBean.setTarget_id(buildName);
         tagBean.setValue(TagValue.BAD_BUILD);
         tagBean.serializeTagMetaInfo(build);
         when(tagDAO.getLatestByTargetIdAndType(buildName, TagTargetType.BUILD,
@@ -189,9 +191,9 @@ public class AutoPromotBuildTest {
 
     @Test
     public void testOneBadBuildOneGoodBuildPromote() throws Exception {
-//    build1, bad
-//    build2, good
-//    build3, current
+        // build1, bad
+        // build2, good
+        // build3, current
         BuildBean build1 = new BuildBean();
         build1.setBuild_id("build1bad");
         build1.setBuild_name("build1bad");
@@ -209,7 +211,7 @@ public class AutoPromotBuildTest {
         TagBean tagBean = new TagBean();
         tagBean.setId(CommonUtils.getBase64UUID());
         tagBean.setTarget_type(TagTargetType.BUILD);
-        tagBean.setTarget_id(build1.getBuild_id());
+        tagBean.setTarget_id(build1.getBuild_name());
         tagBean.setValue(TagValue.BAD_BUILD);
         tagBean.serializeTagMetaInfo(build1);
 
@@ -217,7 +219,7 @@ public class AutoPromotBuildTest {
         currentDeploy.setEnv_id("testenv");
         currentDeploy.setBuild_id("build3");
 
-        when(tagDAO.getLatestByTargetIdAndType("build1bad", TagTargetType.BUILD,
+        when(tagDAO.getLatestByTargetIdAndType(build1.getBuild_name(), TagTargetType.BUILD,
             BuildTagsManagerImpl.MAXCHECKTAGS))
             .thenReturn(new ArrayList<TagBean>(Arrays.asList(tagBean)));
 
@@ -233,7 +235,7 @@ public class AutoPromotBuildTest {
             result =
             promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
         Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
-        Assert.assertEquals("build2good", result.getPromotedBuild());
+        Assert.assertEquals(build2.getBuild_id(), result.getPromotedBuild());
     }
 
     /* Autopromote enabled for any new build. Have previous deploy but no new build*/
@@ -282,7 +284,7 @@ public class AutoPromotBuildTest {
             result =
             promoter.computePromoteBuildResult(environBean, previousDeploy, 1, promoteBean);
         Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
-        Assert.assertEquals("123", result.getPromotedBuild());
+        Assert.assertEquals(build.getBuild_id(), result.getPromotedBuild());
     }
 
     /* Autopromote enabled for daily schedule. But no builds and no prev deploys*/
@@ -294,6 +296,9 @@ public class AutoPromotBuildTest {
         promoteBean.setLast_update(0L);
         AutoPromoter promoter = new AutoPromoter(context);
 
+        DateTimeUtils.setCurrentMillisProvider(timeProvider);
+        timeProvider.setClock(t10AM.getMillis());
+
         //No build. No previous deploy
         PromoteResult
             result =
@@ -301,7 +306,7 @@ public class AutoPromotBuildTest {
         Assert.assertEquals(PromoteResult.ResultCode.NoAvailableBuild, result.getResult());
     }
 
-    /* Autopromote enabled for 10:00 AM every day. no previous deploy and one new build*/
+    /* Autopromote enabled for 10:00 AM every day. No previous deploy and one new build*/
     @Test
     public void testOneBuildNoPreviousDeploySchedulePromote() throws Exception {
         PromoteBean promoteBean = new PromoteBean();
@@ -315,24 +320,21 @@ public class AutoPromotBuildTest {
         BuildBean build = new BuildBean();
         build.setBuild_name("buildName");
         build.setBuild_id("123");
-        DateTime now = DateTime.now();
+        build.setPublish_date(t9AM.getMillis());
 
-        //Set build time to be before 10 am today
-        if (now.getHourOfDay() >= 10) {
-            build.setPublish_date(now.minusHours(now.getHourOfDay() - 10 + 1).getMillis());
-        } else {
-            build.setPublish_date(DateTime.now().minusDays(1).getMillis());
-        }
+        DateTimeUtils.setCurrentMillisProvider(timeProvider);
+        timeProvider.setClock(t10AM.getMillis());
+
         when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
             .thenReturn(Arrays.asList(build));
         PromoteResult
             result =
             promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
         Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
-        Assert.assertEquals("123", result.getPromotedBuild());
+        Assert.assertEquals(build.getBuild_id(), result.getPromotedBuild());
     }
 
-    /* Autopromote enabled for 10:00 AM every day. no previous deploy and one new build after
+    /* Autopromote enabled for 10:00 AM every day. No previous deploy and one new build after
     schedule*/
     @Test
     public void testOneBuildNoPreviousDeploySchedulePromote2() throws Exception {
@@ -346,14 +348,11 @@ public class AutoPromotBuildTest {
         BuildBean build = new BuildBean();
         build.setBuild_name("buildName");
         build.setBuild_id("123");
-        DateTime now = DateTime.now();
+        build.setPublish_date(t10AM.plusMinutes(1).getMillis());
 
-        //Set build time to be after 10 am today
-        if (now.getHourOfDay() < 10) {
-            build.setPublish_date(now.plusHours(10 - now.getHourOfDay() + 1).getMillis());
-        } else {
-            build.setPublish_date(DateTime.now().getMillis());
-        }
+        DateTimeUtils.setCurrentMillisProvider(timeProvider);
+        timeProvider.setClock(t10AM.getMillis());
+
         when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
             .thenReturn(Arrays.asList(build));
         PromoteResult
@@ -362,7 +361,7 @@ public class AutoPromotBuildTest {
         Assert.assertEquals(PromoteResult.ResultCode.NoAvailableBuild, result.getResult());
     }
 
-    /* Autopromote enabled for 10:00 AM every day. Have old previous deploy but no new build*/
+    /* Autopromote enabled for 10:00 AM every day. Has old previous deploy but no new build*/
     @Test
     public void testNoBuildWithPreviousDeploySchedule() throws Exception {
         PromoteBean promoteBean = new PromoteBean();
@@ -373,13 +372,16 @@ public class AutoPromotBuildTest {
         AutoPromoter promoter = new AutoPromoter(context);
 
         DeployBean previousDeploy = new DeployBean();
-        previousDeploy.setStart_date(DateTime.now().minusDays(1).getMillis());
+        previousDeploy.setStart_date(t9AM.getMillis());
         previousDeploy.setBuild_id("prev123");
 
         BuildBean preBuild = new BuildBean();
         preBuild.setBuild_name("buildName");
         preBuild.setBuild_id("prev123");
-        preBuild.setPublish_date(DateTime.now().minusHours(3).getMillis());
+        preBuild.setPublish_date(t9AM.getMillis());
+
+        DateTimeUtils.setCurrentMillisProvider(timeProvider);
+        timeProvider.setClock(t10AM.getMillis());
 
         when(buildDAO.getById("prev123")).thenReturn(preBuild);
         PromoteResult
@@ -388,7 +390,7 @@ public class AutoPromotBuildTest {
         Assert.assertEquals(PromoteResult.ResultCode.NoAvailableBuild, result.getResult());
     }
 
-    /* Autopromote enabled for 10:00 AM every day. Have a very recent previous deploy and no new
+    /* Autopromote enabled for 10:00 AM every day. Has a very recent previous deploy and no new
     build*/
     @Test
     public void testNoBuildWithPreviousDeploySchedule2() throws Exception {
@@ -399,13 +401,16 @@ public class AutoPromotBuildTest {
         AutoPromoter promoter = new AutoPromoter(context);
 
         DeployBean previousDeploy = new DeployBean();
-        previousDeploy.setStart_date(DateTime.now().minusMinutes(1).getMillis());
+        previousDeploy.setStart_date(t10AM.minusMinutes(1).getMillis());
         previousDeploy.setBuild_id("prev123");
 
         BuildBean preBuild = new BuildBean();
         preBuild.setBuild_name("buildName");
         preBuild.setBuild_id("prev123");
-        preBuild.setPublish_date(DateTime.now().minusHours(3).getMillis());
+        preBuild.setPublish_date(t9AM.getMillis());
+
+        DateTimeUtils.setCurrentMillisProvider(timeProvider);
+        timeProvider.setClock(t10AM.getMillis());
 
         when(buildDAO.getById("prev123")).thenReturn(preBuild);
         PromoteResult
@@ -414,40 +419,96 @@ public class AutoPromotBuildTest {
         Assert.assertEquals(PromoteResult.ResultCode.NoAvailableBuild, result.getResult());
     }
 
-
+    /* Autopromote enabled for 10:00 AM every day. Has a previous deploy and one new build */
     @Test
-    public void testOneBuildwithPreviousDeploySchedule() throws Exception {
+    public void testOneBuildWithPreviousDeploySchedule() throws Exception {
         PromoteBean promoteBean = new PromoteBean();
         promoteBean.setEnv_id(environBean.getEnv_id());
         promoteBean.setSchedule(CronTenAMPerDay);
         promoteBean.setLast_update(0L);
         promoteBean.setDelay(0);
         AutoPromoter promoter = new AutoPromoter(context);
-        //Has builds. No previous deploy
+        //Has builds & previous deploy
         DeployBean previousDeploy = new DeployBean();
-        previousDeploy.setStart_date(DateTime.now(DateTimeZone.UTC).minusDays(1).getMillis());
+        previousDeploy.setStart_date(t9AM.plusMinutes(1).getMillis());
         previousDeploy.setBuild_id("prev123");
 
         BuildBean preBuild = new BuildBean();
         preBuild.setBuild_name("buildName");
         preBuild.setBuild_id("prev123");
-        preBuild.setPublish_date(DateTime.now(DateTimeZone.UTC).minusHours(48).getMillis());
+        preBuild.setPublish_date(t9AM.getMillis());
 
         BuildBean build = new BuildBean();
         build.setBuild_name("buildName");
         build.setBuild_id("123");
-        DateTime now = DateTime.now(DateTimeZone.UTC);
-        if (now.getHourOfDay() > 10) {
-            build.setPublish_date((now.minusHours(now.getHourOfDay() - 10 + 1)).getMillis());
-        } else {
-            build.setPublish_date(DateTime.now(DateTimeZone.UTC).minusDays(1).minusHours(1).getMillis());
-        }
+        build.setPublish_date(t9AM.plusMinutes(10).getMillis());
+
+        DateTimeUtils.setCurrentMillisProvider(timeProvider);
+        timeProvider.setClock(t10AM.getMillis());
+
         when(buildDAO.getById("prev123")).thenReturn(preBuild);
         when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
             .thenReturn(Arrays.asList(build));
         PromoteResult
             result =
             promoter.computePromoteBuildResult(environBean, previousDeploy, 1, promoteBean);
+        Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
+        Assert.assertEquals(build.getBuild_id(), result.getPromotedBuild());
+    }
+
+    @Test
+    public void testPromotionOnlyHappensWithinBufferTimeWindow() throws Exception {
+        AutoPromoter promoter = new AutoPromoter(context);
+        AutoPromoter promoterSpy = Mockito.spy(promoter);
+        int bufferTimeMinute = AutoPromoter.BUFFER_TIME_MINUTE;
+
+        BuildBean build = new BuildBean();
+        build.setBuild_name("buildName");
+        build.setBuild_id("123");
+        build.setCommit_date(t9AM.minusHours(1).getMillis());
+        build.setPublish_date(t9AM.getMillis());
+        build.setScm_commit("abcde");
+
+        PromoteBean promoteBean = new PromoteBean();
+        promoteBean.setEnv_id(environBean.getEnv_id());
+        promoteBean.setSchedule(CronTenAMPerDay);
+        promoteBean.setLast_update(0L);
+        promoteBean.setDelay(0);
+
+        when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
+                .thenReturn(Arrays.asList(build));
+
+        DateTimeUtils.setCurrentMillisProvider(timeProvider);
+
+        // Set time to 9:01 AM, before scheduled time
+        timeProvider.setClock(t9AM.plusMinutes(1).getMillis());
+        PromoteResult result = promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
+        Assert.assertEquals(PromoteResult.ResultCode.NotInScheduledTime, result.getResult());
+
+        // Set time to 10AM, at the scheduled time
+        timeProvider.setClock(t9AM.plusHours(1).getMillis());
+        result = promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
+        Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
+        Assert.assertEquals("123", result.getPromotedBuild());
+
+        // Set time to the end of buffer time window
+        timeProvider.setClock(t9AM.plusHours(1).plusMinutes(bufferTimeMinute).getMillis() - 1);
+        result = promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
+        Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
+        Assert.assertEquals("123", result.getPromotedBuild());
+
+        // Set time to just after the buffer time window
+        timeProvider.setClock(t9AM.plusHours(1).plusMinutes(bufferTimeMinute).getMillis());
+        result = promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
+        Assert.assertEquals(PromoteResult.ResultCode.NotInScheduledTime, result.getResult());
+
+        promoter.promoteBuild(environBean, null, 1, promoteBean);
+        verify(promoterSpy, never())
+                .safePromote(anyObject(), anyString(), anyString(), anyObject(), anyObject());
+
+        // Set time to tomorrow 10AM, next buffer time window
+        timeProvider.setClock(t9AM.plusDays(1).plusHours(1).getMillis());
+        result = promoter.computePromoteBuildResult(environBean, null, 1, promoteBean);
         Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
         Assert.assertEquals("123", result.getPromotedBuild());
     }

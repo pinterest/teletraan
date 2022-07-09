@@ -49,6 +49,7 @@ import java.util.function.Function;
 public class AutoPromoter implements Runnable {
 
     public static final String AUTO_PROMOTER_NAME = "AutoPromoter";
+    public static final int BUFFER_TIME_MINUTE = 2;
     private static final Logger LOG = LoggerFactory.getLogger(AutoPromoter.class);
     public BuildDAO buildDAO;
     private EnvironDAO environDAO;
@@ -113,14 +114,14 @@ public class AutoPromoter implements Runnable {
         return ret;
     }
 
-    public <E>  E  getScheduledCheckResult(EnvironBean currEnvBean,
-                                                PromoteBean promoteBean,
-                                                List<E> candidates,
-                                                Function<E, Long> timeSupplier) throws Exception {
+    public <E> E getScheduledCheckResult(EnvironBean currEnvBean,
+            PromoteBean promoteBean,
+            List<E> candidates,
+            Function<E, Long> timeSupplier) throws Exception {
 
         E ret = null;
 
-        //If we have a cron schedule set, foreach candidates, we compute the earilest due
+        // If we have a cron schedule set, foreach candidates, we compute the earliest due
         // time per schedule for the build.
         CronExpression cronExpression = new CronExpression(promoteBean.getSchedule());
         for(E bean:candidates) {
@@ -229,6 +230,15 @@ public class AutoPromoter implements Runnable {
             return new PromoteResult().withResultCode(PromoteResult.ResultCode.NoAvailableBuild);
         }
 
+        String schedule = promoteBean.getSchedule();
+        if (!StringUtils.isEmpty(schedule)) {
+            CronExpression cronExpression = new CronExpression(schedule);
+            DateTime nextDueTime = new DateTime(
+                    cronExpression.getTimeAfter(DateTime.now().minusMinutes(BUFFER_TIME_MINUTE).toDate()));
+            if (nextDueTime.isAfterNow()) {
+                return new PromoteResult().withResultCode(PromoteResult.ResultCode.NotInScheduledTime);
+            }
+        }
 
         //Get builds available between the deployed build and end time ordered by publish_date
         //It is either Long.MAX_VALUE (Get all builds) or the due time for scheduled deployment
@@ -240,7 +250,6 @@ public class AutoPromoter implements Runnable {
                 .withResultCode(PromoteResult.ResultCode.NoAvailableBuild);
         }
 
-        String schedule = promoteBean.getSchedule();
         if (!StringUtils.isEmpty(schedule)) {
             Function<BuildBean, Long> getPublishDate = b-> b.getPublish_date();
             BuildBean toPromoteBuild = getScheduledCheckResult(currEnvBean,
@@ -271,9 +280,9 @@ public class AutoPromoter implements Runnable {
         LOG.info("Promote result {} for env {}", result.getResult().toString(),
             currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteBuild &&
-            StringUtils.isNotEmpty(result.getPromotedBuild())) {
+                StringUtils.isNotEmpty(result.getPromotedBuild())) {
             safePromote(null, result.getPromotedBuild(), Constants.BUILD_STAGE, currDeployBean,
-                currEnvBean);
+                    currEnvBean);
         }
     }
 
@@ -434,40 +443,6 @@ public class AutoPromoter implements Runnable {
         } else {
             // Otherwise, promote from pred env deploys
             promoteDeploy(currEnvBean, currDeployBean, size, promoteBean);
-        }
-    }
-
-    boolean autoDeployDue(DeployBean deployBean, String cronExpressionString) {
-        Date date = new Date();
-        return !date
-            .before(getScheduledCheckDueTime(deployBean.getStart_date(), cronExpressionString));
-    }
-
-    public Date getScheduledCheckDueTime(long start_date, String cronExpressionString) {
-        Date ret = new Date(0);
-        try {
-            if (!CronExpression.isValidExpression(cronExpressionString)) {
-                LOG.error(
-                    String.format("Cron expression %s is not valid. Ignore it.",
-                        cronExpressionString));
-                return ret;
-            }
-            CronExpression cronExpression = new CronExpression(cronExpressionString);
-            Date lastCheckDate = new Date(start_date);
-            ret = cronExpression.getNextValidTimeAfter(lastCheckDate);
-            LOG.info("Get cron {} due time is {} for check time {}",
-                cronExpressionString,
-                new DateTime(ret).toString(ISODateTimeFormat.dateTime()),
-                new DateTime(lastCheckDate).toString(ISODateTimeFormat.dateTime()));
-
-            return ret;
-        } catch (ParseException e) {
-            LOG.error(String.format("Failed to parse cron expression: %s. Reason: %s",
-                cronExpressionString, e.getMessage()));
-            return ret;
-        } catch (Exception e) {
-            LOG.error(String.format("Failed to validate date. Reason: %s", e.getMessage()));
-            return ret;
         }
     }
 
