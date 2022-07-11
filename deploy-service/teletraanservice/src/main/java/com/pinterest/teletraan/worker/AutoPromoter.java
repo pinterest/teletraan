@@ -38,7 +38,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
-import java.text.ParseException;
 import java.util.*;
 import java.util.function.Function;
 
@@ -114,10 +113,10 @@ public class AutoPromoter implements Runnable {
         return ret;
     }
 
-    public <E> E getScheduledCheckResult(EnvironBean currEnvBean,
-            PromoteBean promoteBean,
-            List<E> candidates,
-            Function<E, Long> timeSupplier) throws Exception {
+    public <E>  E  getScheduledCheckResult(EnvironBean currEnvBean,
+                                                PromoteBean promoteBean,
+                                                List<E> candidates,
+                                                Function<E, Long> timeSupplier) throws Exception {
 
         E ret = null;
 
@@ -280,9 +279,9 @@ public class AutoPromoter implements Runnable {
         LOG.info("Promote result {} for env {}", result.getResult().toString(),
             currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteBuild &&
-                StringUtils.isNotEmpty(result.getPromotedBuild())) {
+            StringUtils.isNotEmpty(result.getPromotedBuild())) {
             safePromote(null, result.getPromotedBuild(), Constants.BUILD_STAGE, currDeployBean,
-                    currEnvBean);
+                currEnvBean);
         }
     }
 
