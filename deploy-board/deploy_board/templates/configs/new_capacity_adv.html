@@ -213,7 +213,7 @@ var capacitySetting = new Vue({
                             })
                     capacitySetting.baseImageHelpData = data
                     capacitySetting.showBaseImageHelp = true
-                })
+                }, {cell: capacitySetting.currentCell})
             }
         },
         configChange: function(input){
@@ -229,34 +229,36 @@ var capacitySetting = new Vue({
         deleteConfig: function (name) {
             this.allUserData = this.allUserData.filter(function (config) { return config.name != name })
         },
-        getHelpInfo: function(path, onSuccess){
-             $.ajax({
-                        type: 'GET',
-                        url: location.protocol + '//' + location.host + '/clouds/'+path+'/',
-                        dataType: "json",
-                        beforeSend: function(xhr, settings) {
-                            var csrftoken = getCookie('csrftoken')
-                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        getHelpInfo: function(path, onSuccess, params){
+            const searchParams = new URLSearchParams(params);
+            const seachParamStr = params != null ? `?${searchParams}` : '';
+            $.ajax({
+                type: 'GET',
+                url: `${location.protocol}//${location.host}/clouds/${path}/${seachParamStr}`,
+                dataType: "json",
+                beforeSend: function(xhr, settings) {
+                    var csrftoken = getCookie('csrftoken')
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
 
-                        },
-                        success: function(data){
-                            onSuccess(data)
-                        },
-                        error: function(data) {
-                            globalNotificationBanner.error = data
-                        }
+                },
+                success: function(data){
+                    onSuccess(data)
+                },
+                error: function(data) {
+                    globalNotificationBanner.error = data
+                }
             });
         },
         hostTypeHelpClick: function(){
-                if (this.showHostTypeHelp){
-                    this.showHostTypeHelp = false;
-                }
-                else{
-                    this.getHelpInfo('get_host_type_info', function(data){
-                            capacitySetting.hostTypeHelpData = data
-                            capacitySetting.showHostTypeHelp = true
-                    })
-                }
+            if (this.showHostTypeHelp){
+                this.showHostTypeHelp = false;
+            }
+            else{
+                this.getHelpInfo('get_host_type_info', function(data){
+                        capacitySetting.hostTypeHelpData = data
+                        capacitySetting.showHostTypeHelp = true
+                    }, {cell: capacitySetting.currentCell})
+            }
         },
         cellChange: function(value) {
             capacitySetting.cellValue = value;
