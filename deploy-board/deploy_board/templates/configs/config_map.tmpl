@@ -176,12 +176,12 @@
             $('#resetConfigMapBtnId').removeAttr('disabled');
         });
 
-        $('#mapConfigFieldSetId').on('click', 'textarea', function () {
+        $('#mapConfigFieldSetId').on('hange click keyup keydown', 'textarea', function () {
             var scrollLeft = window.pageXOffset ||
-            (document.documentElement || document.body.parentNode || document.body).scrollLeft;
+                (document.documentElement || document.body.parentNode || document.body).scrollLeft;
 
             var scrollTop  = window.pageYOffset ||
-            (document.documentElement || document.body.parentNode || document.body).scrollTop;
+                (document.documentElement || document.body.parentNode || document.body).scrollTop;
 
             this.style.height = 'auto';
             this.style.height = this.scrollHeight + 'px';
