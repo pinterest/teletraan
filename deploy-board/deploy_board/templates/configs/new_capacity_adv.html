@@ -90,12 +90,13 @@ var capacityView = new Vue({
 
 var info = {{capacity_creation_info|safe}}
 var environment = info.environment;
-var accepted = info.baseImages.filter(function (e) {
+var baseImagesAccepted = info.baseImages.filter(function (e) {
         return e.acceptance == 'ACCEPTED';
     });
-var sorted = accepted.sort(function(item1,item2){
+var baseImagesAcceptedSorted = baseImagesAccepted.sort(function(item1,item2){
         return item2.publish_date - item1.publish_date;
 });
+const firstBaseImageId = baseImagesAcceptedSorted[0].id;
 var placements = getDefaultPlacement(info);
 var capacitySetting = new Vue({
     el: "#mainPanel",
@@ -109,16 +110,16 @@ var capacitySetting = new Vue({
             }).filter(function(item){return item.name!='cmp_group'}),
         assignPublicIP: false,
         baseImageHelpData: [],
-        baseimages: info.baseImages.map(
+        baseimages: baseImagesAcceptedSorted.map(
             function (o) {
                 var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
                 return {
                     value: o.id,
                     text: o.provider_name + acceptance,
-                    isSelected: o.id === sorted[0].id
+                    isSelected: o.id === firstBaseImageId
                 }
             }),
-        baseImageValue: sorted[0].id,
+        baseImageValue: firstBaseImageId,
         configOptions: Object.keys(info.configList).map(
             function (key) {
                 return {
