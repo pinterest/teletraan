@@ -215,6 +215,16 @@ public class AutoPromoter implements Runnable {
         return false;
     }
 
+    // Returns true if the current time is no longer than bufferTimeMinutes later
+    // than the scheduled time. For example, if the schedule is at 10:00, it returns
+    // true only between 10:00 (included) and 10:00 + bufferTimeMinutes (excluded).
+    boolean isWithinScheduledWindow(String schedule) throws Exception {
+        CronExpression cronExpression = new CronExpression(schedule);
+        DateTime nextDueTime = new DateTime(
+                cronExpression.getTimeAfter(DateTime.now().minusMinutes(bufferTimeMinutes).toDate()));
+        return !nextDueTime.isAfterNow();
+    }
+
     //This contains the logic about if there is build should be promoted
     public PromoteResult computePromoteBuildResult(EnvironBean currEnvBean,
                                                    DeployBean currDeployBean,
@@ -237,13 +247,8 @@ public class AutoPromoter implements Runnable {
         }
 
         String schedule = promoteBean.getSchedule();
-        if (!StringUtils.isEmpty(schedule)) {
-            CronExpression cronExpression = new CronExpression(schedule);
-            DateTime nextDueTime = new DateTime(
-                    cronExpression.getTimeAfter(DateTime.now().minusMinutes(bufferTimeMinutes).toDate()));
-            if (nextDueTime.isAfterNow()) {
-                return new PromoteResult().withResultCode(PromoteResult.ResultCode.NotInScheduledTime);
-            }
+        if (!StringUtils.isEmpty(schedule) && !isWithinScheduledWindow(schedule)) {
+            return new PromoteResult().withResultCode(PromoteResult.ResultCode.NotInScheduledTime);
         }
 
         //Get builds available between the deployed build and end time ordered by publish_date

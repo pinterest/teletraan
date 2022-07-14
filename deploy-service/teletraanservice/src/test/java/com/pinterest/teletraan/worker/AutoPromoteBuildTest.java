@@ -432,6 +432,11 @@ public class AutoPromoteBuildTest {
         PromoteResult result = promoter.computePromoteBuildResult(environBean, null, 1, t10AMPromoteBean);
         Assert.assertEquals(PromoteResult.ResultCode.NotInScheduledTime, result.getResult());
 
+        // Set time to 10AM - 1ms, just before the scheduled time
+        timeProvider.setClock(t10AM.getMillis() - 1);
+        result = promoter.computePromoteBuildResult(environBean, null, 1, t10AMPromoteBean);
+        Assert.assertEquals(PromoteResult.ResultCode.NotInScheduledTime, result.getResult());
+
         // Set time to 10AM, at the scheduled time
         timeProvider.setClock(t10AM.getMillis());
         result = promoter.computePromoteBuildResult(environBean, null, 1, t10AMPromoteBean);
