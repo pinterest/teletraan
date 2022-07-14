@@ -48,7 +48,7 @@ import java.util.function.Function;
 public class AutoPromoter implements Runnable {
 
     public static final String AUTO_PROMOTER_NAME = "AutoPromoter";
-    public static final int BUFFER_TIME_MINUTE = 2;
+    public static final int DEFAULT_BUFFER_TIME_MINUTE = 2;
     private static final Logger LOG = LoggerFactory.getLogger(AutoPromoter.class);
     public BuildDAO buildDAO;
     private EnvironDAO environDAO;
@@ -57,6 +57,7 @@ public class AutoPromoter implements Runnable {
     private UtilDAO utilDAO;
     private DeployHandler deployHandler;
     private BuildTagsManager buildTagsManager;
+    private int bufferTimeMinutes;
     private final int maxCheckBuildsOrDeploys = 100;
 
 
@@ -68,6 +69,12 @@ public class AutoPromoter implements Runnable {
         buildDAO = serviceContext.getBuildDAO();
         buildTagsManager = new BuildTagsManagerImpl(serviceContext.getTagDAO());
         deployHandler = new DeployHandler(serviceContext);
+        bufferTimeMinutes = DEFAULT_BUFFER_TIME_MINUTE;
+    }
+
+    public AutoPromoter withBufferTimeMinutes(int bufferTime) {
+        bufferTimeMinutes = bufferTime;
+        return this;
     }
 
     void processBatch() throws Exception {
@@ -233,7 +240,7 @@ public class AutoPromoter implements Runnable {
         if (!StringUtils.isEmpty(schedule)) {
             CronExpression cronExpression = new CronExpression(schedule);
             DateTime nextDueTime = new DateTime(
-                    cronExpression.getTimeAfter(DateTime.now().minusMinutes(BUFFER_TIME_MINUTE).toDate()));
+                    cronExpression.getTimeAfter(DateTime.now().minusMinutes(bufferTimeMinutes).toDate()));
             if (nextDueTime.isAfterNow()) {
                 return new PromoteResult().withResultCode(PromoteResult.ResultCode.NotInScheduledTime);
             }

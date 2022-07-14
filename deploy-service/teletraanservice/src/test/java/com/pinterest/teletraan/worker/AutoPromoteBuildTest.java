@@ -417,9 +417,10 @@ public class AutoPromoteBuildTest {
 
     @Test
     public void testPromotionOnlyHappensWithinBufferTimeWindow() throws Exception {
-        AutoPromoter promoter = new AutoPromoter(context);
+        int bufferTimeMinutes = 1;
+        AutoPromoter promoter = new AutoPromoter(context)
+                .withBufferTimeMinutes(bufferTimeMinutes);
         AutoPromoter promoterSpy = Mockito.spy(promoter);
-        int bufferTimeMinute = AutoPromoter.BUFFER_TIME_MINUTE;
 
         when(buildDAO.getAcceptedBuilds(anyString(), anyString(), anyObject(), anyInt()))
                 .thenReturn(Arrays.asList(t9AMBuildBean));
@@ -438,13 +439,13 @@ public class AutoPromoteBuildTest {
         Assert.assertEquals(t9AMBuildBean.getBuild_id(), result.getPromotedBuild());
 
         // Set time to the end of buffer time window
-        timeProvider.setClock(t10AM.plusMinutes(bufferTimeMinute).getMillis() - 1);
+        timeProvider.setClock(t10AM.plusMinutes(bufferTimeMinutes).getMillis() - 1);
         result = promoter.computePromoteBuildResult(environBean, null, 1, t10AMPromoteBean);
         Assert.assertEquals(PromoteResult.ResultCode.PromoteBuild, result.getResult());
         Assert.assertEquals(t9AMBuildBean.getBuild_id(), result.getPromotedBuild());
 
         // Set time to just after the buffer time window
-        timeProvider.setClock(t10AM.plusMinutes(bufferTimeMinute).getMillis());
+        timeProvider.setClock(t10AM.plusMinutes(bufferTimeMinutes).getMillis());
         result = promoter.computePromoteBuildResult(environBean, null, 1, t10AMPromoteBean);
         Assert.assertEquals(PromoteResult.ResultCode.NotInScheduledTime, result.getResult());
 
