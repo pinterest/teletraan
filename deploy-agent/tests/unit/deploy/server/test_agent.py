@@ -493,5 +493,57 @@ class TestDeployAgent(tests.TestCase):
     def test_switch_goal_download_variable_failed(self):
         pass
 
+    @mock.patch('deployd.agent.create_sc_increment')
+    def test_send_deploy_status(self, mock_create_sc):
+        status = DeployStatus()
+        status.report = PingReport(jsonValue=self.deploy_goal1)
+
+        envs = {'abc': status}
+        client = mock.Mock()
+        estatus = mock.Mock()
+        estatus.load_envs = mock.Mock(return_value=envs)
+        ping_response_list = [
+            PingResponse(jsonValue=self.ping_response1),
+            PingResponse(jsonValue=self.ping_noop_response)
+        ]
+        mock_create_sc.return_value = None
+
+        client = mock.Mock()
+        client.send_reports = mock.Mock(side_effect=ping_response_list)
+        agent = DeployAgent(client=client, estatus=estatus, conf=self.config,
+                            executor=self.executor, helper=self.helper)
+        agent.serve_build()
+        mock_create_sc.assert_called_once_with('deployd.stats.deploy.status', tags={
+                                               'first_run': False, 'deploy_stage': 'PRE_DOWNLOAD', 'env_name': 'abc', 'stage_name': 'beta', 'status_code': 'SUCCEEDED'})
+        self.assertEqual(agent._curr_report.report.deployStage, DeployStage.PRE_DOWNLOAD)
+        self.assertEqual(agent._curr_report.report.status, AgentStatus.SUCCEEDED)
+
+    @mock.patch('deployd.agent.create_sc_increment')
+    def test_send_deploy_status_with_errors(self, mock_create_sc):
+        status = DeployStatus()
+        status.report = PingReport(jsonValue=self.deploy_goal1)
+
+        envs = {'abc': status}
+        client = mock.Mock()
+        estatus = mock.Mock()
+        estatus.load_envs = mock.Mock(return_value=envs)
+        ping_response_list = [
+            PingResponse(jsonValue=self.ping_response1),
+            PingResponse(jsonValue=self.ping_noop_response)
+        ]
+        mock_create_sc.return_value = None
+
+        client = mock.Mock()
+        client.send_reports = mock.Mock(side_effect=ping_response_list)
+        agent = DeployAgent(client=client, estatus=estatus, conf=self.config,
+                            executor=self.executor, helper=self.helper)
+        report = DeployReport(status_code=AgentStatus.UNKNOWN, error_code=1, output_msg="teletraan_config_manager error", retry_times=3)
+        agent.process_deploy= mock.Mock(side_effect=[report])
+        agent.serve_build()
+        mock_create_sc.assert_called_once_with('deployd.stats.deploy.status', tags={
+                                               'first_run': False, 'deploy_stage': 'PRE_DOWNLOAD', 'env_name': 'abc', 'stage_name': 'beta', 'status_code': 'UNKNOWN', 'error_source': 'TELEFIG'})
+        self.assertEqual(agent._curr_report.report.deployStage, DeployStage.PRE_DOWNLOAD)
+        self.assertEqual(agent._curr_report.report.status, AgentStatus.UNKNOWN)
+
 if __name__ == '__main__':
     unittest.main()
