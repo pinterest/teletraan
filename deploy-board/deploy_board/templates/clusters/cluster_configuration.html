@@ -426,8 +426,18 @@
         });
         const initialAssignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
         const initialCell = currentCluster.cellName;
+        var baseImageAccepted = info.baseImages.filter(function (o) {
+            return o.acceptance == 'ACCEPTED';
+        });
 
-        var sorted = info.baseImages.sort(function(item1, item2) {
+        if (currentCluster.baseImage != null) {
+            // Make sure in the base image dropdown the current base image exists.
+            if (!baseImageAccepted.some(image => image.id === currentCluster.baseImage.id)) {
+                baseImageAccepted.push(currentCluster.baseImage);
+            }
+        }
+
+        var baseImageSorted = baseImageAccepted.sort(function(item1, item2) {
             return item2.publish_date - item1.publish_date;
         });
 
@@ -449,7 +459,7 @@
                         }).filter(function(item){return item.name!='assign_public_ip'}),
                 assignPublicIP: initialAssignPublicIP,
                 awsRole: currentCluster.configs.aws_role,
-                baseimages: info.baseImages.map(function(o) {
+                baseimages: baseImageSorted.map(function(o) {
                     var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
                     return {
                         value: o.id,
@@ -571,7 +581,7 @@
                             })
                             capacitySetting.baseImageHelpData = data
                             capacitySetting.showBaseImageHelp = true
-                        })
+                        }, {cell: capacitySetting.cellValue})
                     }
                 },
                 baseImageChange: function(value) {
@@ -582,23 +592,25 @@
                         return config.name != name
                     })
                 },
-                getHelpInfo: function(path, onSuccess){
-                        $.ajax({
-                            type: 'GET',
-                            url: location.protocol + '//' + location.host + '/clouds/'+path+'/',
-                            dataType: "json",
-                            beforeSend: function(xhr, settings) {
-                                var csrftoken = getCookie('csrftoken')
-                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                getHelpInfo: function(path, onSuccess, params){
+                    const searchParams = new URLSearchParams(params);
+                    const seachParamStr = params != null ? `?${searchParams}` : '';
+                    $.ajax({
+                        type: 'GET',
+                        url: `${location.protocol}//${location.host}/clouds/${path}/${seachParamStr}`,
+                        dataType: "json",
+                        beforeSend: function(xhr, settings) {
+                            var csrftoken = getCookie('csrftoken')
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
 
-                            },
-                            success: function(data){
-                                onSuccess(data)
-                            },
-                            error: function(data) {
-                                globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
-                            }
-                        });
+                        },
+                        success: function(data){
+                            onSuccess(data)
+                        },
+                        error: function(data) {
+                            globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
+                        }
+                    });
                 },
                 hostTypeHelpClick: function(){
                     if (this.showHostTypeHelp){
@@ -608,7 +620,7 @@
                         this.getHelpInfo('get_host_type_info', function(data){
                                 capacitySetting.hostTypeHelpData = data
                                 capacitySetting.showHostTypeHelp = true
-                        })
+                            }, {cell: capacitySetting.cellValue})
                     }
                 },
                 cellChange: function(value) {

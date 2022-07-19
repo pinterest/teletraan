@@ -4,9 +4,9 @@ from __future__ import absolute_import
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +25,7 @@ from deployd.common import LOG_FORMAT
 from deployd.common.caller import Caller
 from deployd.common.config import Config
 from deployd.common.status_code import Status
+from deployd.common.stats import create_sc_increment
 from .transformer import Transformer
 
 log = logging.getLogger(__name__)
@@ -42,6 +43,7 @@ class Stager(object):
             transformer or Transformer(agent_dir=agent_dir, env_name=env_name)
         self._build = build
         self._target = target
+        self._env_name = env_name
 
     def enable_package(self):
         """Set the enabled build.
@@ -82,6 +84,8 @@ class Stager(object):
             self.transform_script()
         except Exception:
             log.error(traceback.format_exc())
+            create_sc_increment(name='deploy.failed.stager.symlink',
+                                tags={'env': self._env_name, 'build': self._build})
             status_code = Status.FAILED
         finally:
             return status_code
@@ -142,6 +146,8 @@ def main():
     if result == Status.SUCCEEDED:
         return 0
     else:
+        create_sc_increment(name='deploy.failed.stager.enable_package',
+                            tags={'env': args.env_name, 'build': args.build})
         return 1
 
 

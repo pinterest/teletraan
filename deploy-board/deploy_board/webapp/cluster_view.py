@@ -183,7 +183,9 @@ class ClusterConfigurationView(View):
             request, DEFAULT_PROVIDER)
         current_image = baseimages_helper.get_by_id(
             request, current_cluster['baseImageId'])
+        # TODO: remove baseImageName and access the prop from baseImage directly.
         current_cluster['baseImageName'] = current_image['abstract_name']
+        current_cluster['baseImage'] = current_image
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 

@@ -45,11 +45,12 @@ workers:
       period: 30
 
   # AutoPromoter provides the Auto Deploy support. It finds the deploy
-  # cadidates from preceeding stage and promote them to next stages.
+  # candidates from preceding stage and promote them to next stages.
   - name: AutoPromoter
     properties:
       initialDelay: 20
       period: 30
+      bufferTimeMinutess: 2
 
   # AgentJanitor cleans up any obsoleted hosts or agents records
   - name: SimpleAgentJanitor

@@ -31,7 +31,7 @@ from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_increm
 from deployd.common import utils
 from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
-    DeployStage, AgentStatus
+    DeployErrorSource, DeployStage, AgentStatus
 from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -98,13 +98,29 @@ class DeployAgent(object):
             self._first_run = True
         return self._first_run
 
+    def _send_deploy_status_stats(self, deploy_report):
+        if not self._response.deployGoal or not deploy_report:
+            return 
+        
+        tags = {'first_run': self.first_run}
+        if self._response.deployGoal.deployStage:
+            tags['deploy_stage'] = self._response.deployGoal.deployStage
+        if self._response.deployGoal.envName:
+            tags['env_name'] = self._response.deployGoal.envName
+        if self._response.deployGoal.stageName:
+            tags['stage_name'] = self._response.deployGoal.stageName
+        if deploy_report.status_code:
+            tags['status_code'] = deploy_report.status_code
+        if deploy_report.output_msg and deploy_report.output_msg.find("teletraan_config_manager") != -1:
+            tags['error_source'] = DeployErrorSource.TELEFIG
+        create_sc_increment('deployd.stats.deploy.status', tags=tags)
+        
     def serve_build(self):
         """This is the main function of the ``DeployAgent``.
         """
         log.info('The deploy agent is starting.')
         if not self._executor:
             self._executor = Executor(callback=PingServer(self), config=self._config)
-
         # start to ping server to get the latest deploy goal
         self._response = self._client.send_reports(self._envs)
 
@@ -142,23 +158,11 @@ class DeployAgent(object):
                                              output_msg=traceback.format_exc(),
                                              retry_times=1)
 
-            # increment stats - deploy status
-            if self._response.deployGoal and deploy_report:
-                tags = {'first_run': self.first_run}
-                if self._response.deployGoal.deployStage:
-                    tags['deploy_stage'] = self._response.deployGoal.deployStage
-                if self._response.deployGoal.envName:
-                    tags['env_name'] = self._response.deployGoal.envName
-                if self._response.deployGoal.stageName:
-                    tags['stage_name'] = self._response.deployGoal.stageName
-                if deploy_report.status_code:
-                    tags['status_code'] = deploy_report.status_code
-                create_sc_increment('deployd.stats.deploy.status.sum',
-                                    1,
-                                    tags=tags)
+            self._send_deploy_status_stats(deploy_report)
 
             if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
                 return
+                
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
                                              AgentStatus.TOO_MANY_RETRY,
                                              AgentStatus.SCRIPT_TIMEOUT]:

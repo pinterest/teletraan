@@ -52,7 +52,10 @@ class DeployType(object):
     RESTART = 'RESTART'
     STOP = 'STOP'
 
-
+class DeployErrorSource(object): 
+    TELEFIG = 'TELEFIG'
+    UNKNOWN = 'UNKNOWN'
+    
 class OpCode(object):
     NOOP = 'NOOP'
     DEPLOY = 'DEPLOY'

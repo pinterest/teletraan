@@ -176,15 +176,18 @@
             $('#resetConfigMapBtnId').removeAttr('disabled');
         });
 
-        $('textarea').on('change click keyup keydown', function() {
-           this.style.height = "32px";
-           this.style.height = (this.scrollHeight + 2)+"px";
-        });
+        $('#mapConfigFieldSetId, #newEntryFormId').on('change click keyup keydown', 'textarea', function () {
+            var scrollLeft = window.pageXOffset ||
+                (document.documentElement || document.body.parentNode || document.body).scrollLeft;
 
-        $('#mapConfigFieldSetId').on('change click keyup keydown', 'textarea', function () {
-           this.style.height = "32px";
-           this.style.height = (this.scrollHeight + 2)+"px";
-        });
+            var scrollTop  = window.pageYOffset ||
+                (document.documentElement || document.body.parentNode || document.body).scrollTop;
+
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+
+            window.scrollTo(scrollLeft, scrollTop);
+         });
 
     });
 </script>

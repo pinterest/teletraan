@@ -35,8 +35,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.MetricRegistry;
+
 public class CommonHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CommonHandler.class);
+    // metrics
+    private final MetricRegistry metrics = new MetricRegistry();
     private DeployDAO deployDAO;
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
@@ -49,6 +54,8 @@ public class CommonHandler {
     private ExecutorService jobPool;
     private DataHandler dataHandler;
     private String deployBoardUrlPrefix;
+    private Counter successCounter;
+    private Counter failureCounter;
 
     private final class FinishNotifyJob implements Callable<Void> {
         private EnvironBean envBean;
@@ -75,11 +82,10 @@ public class CommonHandler {
                 return;
             }
 
-            String color;
+            String color = state == DeployState.SUCCEEDING ? "green" : "red";
+
             if (state == DeployState.SUCCEEDING) {
-                color = "green";
-            } else {
-                color = "red";
+                successCounter.inc();
             }
 
             sendWatcherMessage(operator, envBean.getWatch_recipients(), message, color);
@@ -92,6 +98,7 @@ public class CommonHandler {
                     String subject = String.format("%s/%s Deploy Failed.", envBean.getEnv_name(), envBean.getStage_name());
                     sendEmailMessage(message, subject, recipients);
                 }
+                failureCounter.inc();
             }
         }
 
@@ -121,7 +128,13 @@ public class CommonHandler {
         jobPool = serviceContext.getJobPool();
         dataHandler = new DataHandler(serviceContext);
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
+        initializeMetrics();
     }
+
+    private void initializeMetrics() {
+        successCounter = metrics.counter("deploys.success.count");
+        failureCounter = metrics.counter("deploys.failure.count");
+      }
 
     public String getDeployAction(DeployType deployType) {
         String action = "deploy of";
@@ -368,7 +381,6 @@ public class CommonHandler {
 
         // if newState is SUCCEEDING and suc_date is set, do not report ( because we already did )
         return !(newState == DeployState.SUCCEEDING && sucDate != null);
-
     }
 
     void sendDeployEvents(DeployBean oldDeployBean, DeployBean newDeployBean, EnvironBean environBean) {
@@ -427,9 +439,9 @@ public class CommonHandler {
         } 
 
         String envId = deployBean.getEnv_id();
-        if (envBean == null)
+        if (envBean == null) {
             envBean = environDAO.getById(envId);
-        
+        }
         /*
          * Make sure we do not have such a deploy which is not current but somehow not in the
          * final state. This should NOT happen, treat this as cleaning up for any potential wrong states

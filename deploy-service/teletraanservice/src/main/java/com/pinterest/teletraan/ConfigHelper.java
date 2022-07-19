@@ -210,7 +210,7 @@ public class ConfigHelper {
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
-        // Only applies to Teletraan agent service 
+        // Only applies to Teletraan agent service
         context.setAgentCountCacheTtl(configuration.getSystemFactory().getAgentCountCacheTtl());
         context.setMaxParallelThreshold(configuration.getSystemFactory().getMaxParallelThreshold());
         return context;
@@ -234,7 +234,9 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(AutoPromoter.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new AutoPromoter(serviceContext);
+                int bufferTimeMinutes = MapUtils.getIntValue(properties, "bufferTimeMinutes", AutoPromoter.DEFAULT_BUFFER_TIME_MINUTE);
+                Runnable worker = new AutoPromoter(serviceContext)
+                        .withBufferTimeMinutes(bufferTimeMinutes);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled AutoPromoter.");
             }
