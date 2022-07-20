@@ -50,7 +50,7 @@ workers:
     properties:
       initialDelay: 20
       period: 30
-      bufferTimeMinutess: 2
+      bufferTimeMinutes: 2
 
   # AgentJanitor cleans up any obsoleted hosts or agents records
   - name: SimpleAgentJanitor
