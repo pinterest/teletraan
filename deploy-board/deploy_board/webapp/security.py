@@ -69,7 +69,7 @@ class DelegatedOAuthMiddleware(object):
         else:
             # TODO call logout to remove session cleanly
             # self.logout(request)
-            data = {'origin_path': request.get_full_path(), 'meta': request.META}
+            data = {'origin_path': request.get_full_path()}
             url = self.oauth.get_authorization_url(session=request.session, data=data)
             logger.debug("Redirect oauth for authentication!, url = " + url)
             return HttpResponseRedirect(url)
