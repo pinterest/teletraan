@@ -38,11 +38,9 @@ public class SourceControlManagerProxy {
         return validSCMs;
     }
 
-    public Boolean approved(String scmName) {
-        for (String validSCM : validSCMs) {
-            if (scmName.equals(validSCM)) {
-                return true;
-            }
+    public Boolean hasSCMType(String scmName) {
+        if (validSCMs.contains(scmName)) {
+            return true;
         }
         return false;
     }

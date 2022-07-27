@@ -141,7 +141,7 @@ public class ConfigHelper {
         for(SourceControlFactory scf : sourceControlConfigs) {
             SourceControlManager scm = scf.create();
             String type = scm.getTypeName();
-            managers.put(type, scm);  
+            managers.put(type, scm);
         }
         context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers));
 
