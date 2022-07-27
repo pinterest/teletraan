@@ -1,5 +1,6 @@
 package com.pinterest.deployservice.scm;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -11,7 +12,8 @@ import org.slf4j.LoggerFactory;
 
 public class SourceControlManagerProxy {
     private static final Logger LOG = LoggerFactory.getLogger(SourceControlManagerProxy.class);
-    private final static String DEFAULT_TYPE = PhabricatorManager.TYPE;
+    private static final String DEFAULT_TYPE = PhabricatorManager.getStaticTypeName();
+    private List<String> validSCMs;
 
     HashMap<String, SourceControlManager> managers;
 
@@ -31,7 +33,21 @@ public class SourceControlManagerProxy {
         return manager;
     }
 
-    public String getType() {
+    public List<String> getSCMs() throws Exception {
+        validSCMs = new ArrayList<String> (this.managers.keySet());
+        return validSCMs;
+    }
+
+    public Boolean approved(String scmName) {
+        for (String validSCM : validSCMs) {
+            if (scmName.equals(validSCM)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getTypeName() {
         return DEFAULT_TYPE;
     }
 

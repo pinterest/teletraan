@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 public class PhabricatorManager extends BaseManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(PhabricatorManager.class);
-    public static final String TYPE = "Phabricator";
+    public static String TYPE;
     private static final
     String
         QUERY_COMMITS_HISTORY_PARAMETER =
@@ -57,14 +57,18 @@ public class PhabricatorManager extends BaseManager {
     private static final String UNKNOWN = "UNKNOWN";
     private static final Pattern AUTHOR_NAME_PATTERN = Pattern.compile("(.*)<(.*)@(.*)>");
 
+    private String typeName;
     private String urlPrefix;
     private String arcLocation;
     private String arcrcLocation;
 
-    public PhabricatorManager(String urlPrefix, String arcLocation, String arcrcLocation) {
+    public PhabricatorManager(String typeName, String urlPrefix, String arcLocation, String arcrcLocation) {
+        this.typeName = typeName;
         this.urlPrefix = urlPrefix;
         this.arcLocation = arcLocation;
         this.arcrcLocation = arcrcLocation;
+
+        TYPE = typeName;
     }
 
     private Map<String, Object> queryCLI(String input) throws Exception {
@@ -181,7 +185,11 @@ public class PhabricatorManager extends BaseManager {
     }
 
     @Override
-    public String getType() {
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public static String getStaticTypeName() {
         return TYPE;
     }
 

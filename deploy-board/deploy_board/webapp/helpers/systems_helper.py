@@ -22,14 +22,10 @@ deployclient = DeployClient()
 
 
 def get_url_pattern(request, type=""):   
-    if type.lower() != "github" or type.lower() != "phabricator":
-        type = "UNKOWN"
     return deployclient.get("/system/scm_link_template/?scm=" + type, request.teletraan_user_id.token)
 
 
 def get_scm_url(request, type=""):
-    if type.lower() != "github" or type.lower() != "phabricator":
-        type = "UNKOWN"
     return deployclient.get("/system/scm_url/?scm=" + type, request.teletraan_user_id.token)['url']
 
 

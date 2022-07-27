@@ -178,7 +178,7 @@ public class Builds {
             @Context SecurityContext sc,
             @ApiParam(value = "BUILD object", required = true)@Valid BuildBean buildBean) throws Exception {
         if (StringUtils.isEmpty(buildBean.getScm())) {
-            buildBean.setScm(sourceControlManagerProxy.getType());
+            buildBean.setScm(sourceControlManagerProxy.getTypeName());
         }
 
         if (StringUtils.isEmpty(buildBean.getScm_commit_7())) {
@@ -208,6 +208,15 @@ public class Builds {
         if (!buildAllowlist.approved(buildBean.getArtifact_url())) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                 "Artifact URL points to unapproved location.");
+        }
+
+        // Initialize the list of Source Control Managers
+        sourceControlManagerProxy.getSCMs();
+
+        // Check if build SCM is approved via allow list of SCMs
+        if (!sourceControlManagerProxy.approved(buildBean.getScm())) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, 
+                String.format("Unsupported SCM type. %s not in list %s.", buildBean.getScm(), sourceControlManagerProxy.getSCMs()));
         }
 
         // We append commit SHA after build id to make build directory name human friendly

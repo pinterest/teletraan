@@ -140,12 +140,8 @@ public class ConfigHelper {
         HashMap<String, SourceControlManager> managers = new HashMap<String, SourceControlManager>();
         for(SourceControlFactory scf : sourceControlConfigs) {
             SourceControlManager scm = scf.create();
-            String type = scm.getType();
-            // This allows for SCM lookup by lowercase value
-            if (type.toLowerCase() != type) {
-                managers.put(type.toLowerCase(), scm);
-            }
-            managers.put(type, scm);
+            String type = scm.getTypeName();
+            managers.put(type, scm);  
         }
         context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers));
 

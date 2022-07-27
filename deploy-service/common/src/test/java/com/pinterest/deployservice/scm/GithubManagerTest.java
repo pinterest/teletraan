@@ -18,6 +18,7 @@ public class GithubManagerTest {
 
     @Before
     public void setUp() throws Exception {
+        String typeName = "Github";
         String apiPrefix = "https://api.github.com";
         String urlPrefix = "https://github.com";
         String appId = "yourAppId";
@@ -25,7 +26,7 @@ public class GithubManagerTest {
         String appOrgnization = "yourOrg";
         String token = "";   // github personal token
         
-        this.manager = new GithubManager(token, appId, appPrivateKeyKnox, appOrgnization, apiPrefix, urlPrefix);
+        this.manager = new GithubManager(token, appId, appPrivateKeyKnox, appOrgnization, typeName, apiPrefix, urlPrefix);
         Assert.assertEquals(this.manager.getUrlPrefix(), urlPrefix);
     }
 

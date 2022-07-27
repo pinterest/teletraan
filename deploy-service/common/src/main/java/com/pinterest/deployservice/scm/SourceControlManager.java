@@ -28,7 +28,7 @@ public interface SourceControlManager {
 
     String getUrlPrefix();
 
-    String getType();
+    String getTypeName();
 
     CommitBean getCommit(String repo, String sha) throws Exception;
 
