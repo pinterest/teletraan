@@ -210,9 +210,6 @@ public class Builds {
                 "Artifact URL points to unapproved location.");
         }
 
-        // Initialize the list of Source Control Managers
-        sourceControlManagerProxy.getSCMs();
-
         // Check if build SCM is approved via allow list of SCMs
         if (!sourceControlManagerProxy.hasSCMType(buildBean.getScm())) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,

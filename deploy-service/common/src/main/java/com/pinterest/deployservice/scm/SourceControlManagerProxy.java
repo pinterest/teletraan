@@ -20,6 +20,7 @@ public class SourceControlManagerProxy {
     public SourceControlManagerProxy(HashMap<String, SourceControlManager> managers, String defaultScmTypeName) {
         this.managers = managers;
         this.defaultScmTypeName = defaultScmTypeName;
+        validSCMs = new ArrayList<String> (this.managers.keySet());
     }
 
     private SourceControlManager getSourceControlManager(String scmType) throws Exception {
@@ -35,7 +36,6 @@ public class SourceControlManagerProxy {
     }
 
     public List<String> getSCMs() throws Exception {
-        validSCMs = new ArrayList<String> (this.managers.keySet());
         return validSCMs;
     }
 
