@@ -12,18 +12,19 @@ import org.slf4j.LoggerFactory;
 
 public class SourceControlManagerProxy {
     private static final Logger LOG = LoggerFactory.getLogger(SourceControlManagerProxy.class);
-    private static final String DEFAULT_TYPE = PhabricatorManager.getStaticTypeName();
     private List<String> validSCMs;
 
     HashMap<String, SourceControlManager> managers;
+    String defaultScmTypeName;
 
-    public SourceControlManagerProxy(HashMap<String, SourceControlManager> managers) {
+    public SourceControlManagerProxy(HashMap<String, SourceControlManager> managers, String defaultScmTypeName) {
         this.managers = managers;
+        this.defaultScmTypeName = defaultScmTypeName;
     }
 
     private SourceControlManager getSourceControlManager(String scmType) throws Exception {
         if(StringUtils.isEmpty(scmType)) {
-            scmType = DEFAULT_TYPE;
+            scmType = defaultScmTypeName;
         }
         SourceControlManager manager = this.managers.get(scmType);
         if (manager == null) {
@@ -46,7 +47,7 @@ public class SourceControlManagerProxy {
     }
 
     public String getTypeName() {
-        return DEFAULT_TYPE;
+        return defaultScmTypeName;
     }
 
     public String getCommitLinkTemplate(String scmType) throws Exception {

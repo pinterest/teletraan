@@ -136,6 +136,7 @@ public class ConfigHelper {
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
 
+        String defaultScmTypeName = configuration.getDefaultScmTypeName();
         List<SourceControlFactory> sourceControlConfigs = configuration.getSourceControlConfigs();
         HashMap<String, SourceControlManager> managers = new HashMap<String, SourceControlManager>();
         for(SourceControlFactory scf : sourceControlConfigs) {
@@ -143,7 +144,7 @@ public class ConfigHelper {
             String type = scm.getTypeName();
             managers.put(type, scm);
         }
-        context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers));
+        context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers, defaultScmTypeName));
 
         EventSenderFactory eventSenderFactory = configuration.getEventSenderFactory();
         if (eventSenderFactory != null) {

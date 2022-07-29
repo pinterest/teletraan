@@ -41,7 +41,6 @@ import java.util.regex.Pattern;
 public class PhabricatorManager extends BaseManager {
 
     private static final Logger LOG = LoggerFactory.getLogger(PhabricatorManager.class);
-    public static String TYPE;
     private static final
     String
         QUERY_COMMITS_HISTORY_PARAMETER =
@@ -67,8 +66,6 @@ public class PhabricatorManager extends BaseManager {
         this.urlPrefix = urlPrefix;
         this.arcLocation = arcLocation;
         this.arcrcLocation = arcrcLocation;
-
-        TYPE = typeName;
     }
 
     private Map<String, Object> queryCLI(String input) throws Exception {
@@ -187,10 +184,6 @@ public class PhabricatorManager extends BaseManager {
     @Override
     public String getTypeName() {
         return typeName;
-    }
-
-    public static String getStaticTypeName() {
-        return TYPE;
     }
 
     @Override
