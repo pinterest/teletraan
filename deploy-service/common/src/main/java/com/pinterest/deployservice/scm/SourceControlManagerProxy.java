@@ -40,13 +40,10 @@ public class SourceControlManagerProxy {
     }
 
     public Boolean hasSCMType(String scmName) {
-        if (validSCMs.contains(scmName)) {
-            return true;
-        }
-        return false;
+        return validSCMs.contains(scmName);
     }
 
-    public String getTypeName() {
+    public String getDefaultTypeName() {
         return defaultScmTypeName;
     }
 

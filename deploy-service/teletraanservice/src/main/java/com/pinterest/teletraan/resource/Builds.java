@@ -178,7 +178,7 @@ public class Builds {
             @Context SecurityContext sc,
             @ApiParam(value = "BUILD object", required = true)@Valid BuildBean buildBean) throws Exception {
         if (StringUtils.isEmpty(buildBean.getScm())) {
-            buildBean.setScm(sourceControlManagerProxy.getTypeName());
+            buildBean.setScm(sourceControlManagerProxy.getDefaultTypeName());
         }
 
         if (StringUtils.isEmpty(buildBean.getScm_commit_7())) {
