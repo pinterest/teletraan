@@ -960,14 +960,6 @@ def truncateWord(word):
         return word
 
 
-@register.filter("basicIcon")
-def isBasic(basic):
-    if basic:
-        return "fa fa-pinterest color-red"
-    else:
-        return ""
-
-
 @register.filter("qualifiedIcon")
 def isQualified(qualified):
     if qualified:

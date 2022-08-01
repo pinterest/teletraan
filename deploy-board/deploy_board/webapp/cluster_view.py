@@ -287,10 +287,6 @@ def create_base_image(request):
     base_image_info['provider'] = params['provider']
     base_image_info['description'] = params['description']
     base_image_info['cell_name'] = params['cellName']
-    if 'basic' in params:
-        base_image_info['basic'] = True
-    else:
-        base_image_info['basic'] = False
     baseimages_helper.create_base_image(request, base_image_info)
     return redirect('/clouds/baseimages/')
 
@@ -414,10 +410,6 @@ def create_host_type(request):
     host_type_info['mem'] = float(params['mem']) * 1024
     host_type_info['core'] = int(params['core'])
     host_type_info['storage'] = params['storage']
-    if 'basic' in params:
-        host_type_info['basic'] = True
-    else:
-        host_type_info['basic'] = False
     hosttypes_helper.create_host_type(request, host_type_info)
     return redirect('/clouds/hosttypes/')
 
@@ -475,10 +467,6 @@ def create_security_zone(request):
     security_zone_info['provider'] = params['provider']
     security_zone_info['description'] = params['description']
     security_zone_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
-    if 'basic' in params:
-        security_zone_info['basic'] = True
-    else:
-        security_zone_info['basic'] = False
     securityzones_helper.create_security_zone(request, security_zone_info)
     return redirect('/clouds/securityzones/')
 
@@ -532,10 +520,6 @@ def create_placement(request):
     placement_info['provider'] = params['provider']
     placement_info['description'] = params['description']
     placement_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
-    if 'basic' in params:
-        placement_info['basic'] = True
-    else:
-        placement_info['basic'] = False
     placements_helper.create_placement(request, placement_info)
     return redirect('/clouds/placements/')
 
