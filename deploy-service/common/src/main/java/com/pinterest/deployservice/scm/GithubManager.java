@@ -45,7 +45,6 @@ public class GithubManager extends BaseManager {
     private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
     private final static String UNKNOWN_LOGIN = "UNKNOWN";
     private final static long TOKEN_TTL_MILLIS = 600000;  //token expires after 10 mins
-    private String typeName;
     private String apiPrefix;
     private String urlPrefix;
     private String githubAppId;
@@ -165,11 +164,6 @@ public class GithubManager extends BaseManager {
     @Override
     public String getUrlPrefix() {
         return urlPrefix;
-    }
-
-    @Override
-    public String getTypeName() {
-        return typeName;
     }
 
     @Override

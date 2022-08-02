@@ -18,6 +18,7 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Keep the bean and table in sync
@@ -117,11 +118,11 @@ public class BuildBean implements Updatable {
     }
 
     public String getScm() {
-        return scm;
+       return StringUtils.capitalize(scm);
     }
 
     public void setScm(String scm) {
-        this.scm = scm;
+        this.scm = StringUtils.capitalize(scm);
     }
 
     public String getScm_repo() {
@@ -194,7 +195,7 @@ public class BuildBean implements Updatable {
         clause.addColumn("build_id", build_id);
         clause.addColumn("build_name", build_name);
         clause.addColumn("artifact_url", artifact_url);
-        clause.addColumn("scm", scm);
+        clause.addColumn("scm", StringUtils.capitalize(scm));
         clause.addColumn("scm_repo", scm_repo);
         clause.addColumn("scm_branch", scm_branch);
         clause.addColumn("scm_commit_7", scm_commit_7);

@@ -56,7 +56,6 @@ public class PhabricatorManager extends BaseManager {
     private static final String UNKNOWN = "UNKNOWN";
     private static final Pattern AUTHOR_NAME_PATTERN = Pattern.compile("(.*)<(.*)@(.*)>");
 
-    private String typeName;
     private String urlPrefix;
     private String arcLocation;
     private String arcrcLocation;
@@ -179,11 +178,6 @@ public class PhabricatorManager extends BaseManager {
     @Override
     public String getUrlPrefix() {
         return urlPrefix;
-    }
-
-    @Override
-    public String getTypeName() {
-        return typeName;
     }
 
     @Override
