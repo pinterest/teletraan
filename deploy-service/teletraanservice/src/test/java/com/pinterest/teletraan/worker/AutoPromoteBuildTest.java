@@ -83,6 +83,7 @@ public class AutoPromoteBuildTest {
         t8AMBuildBean.setCommit_date(t9AM.minusHours(2).getMillis());
         t8AMBuildBean.setPublish_date(t9AM.minusHours(1).getMillis());
         t8AMBuildBean.setScm_commit("fghij");
+        t8AMBuildBean.setScm("PHABRICATOR");
 
         t9AMBuildBean = new BuildBean();
         t9AMBuildBean.setBuild_id("9AMBuildId");
@@ -90,6 +91,7 @@ public class AutoPromoteBuildTest {
         t9AMBuildBean.setCommit_date(t9AM.minusHours(1).getMillis());
         t9AMBuildBean.setPublish_date(t9AM.getMillis());
         t9AMBuildBean.setScm_commit("abcde");
+        t9AMBuildBean.setScm("PHABRICATOR");
 
         t10AMPromoteBean = new PromoteBean();
         t10AMPromoteBean.setEnv_id(environBean.getEnv_id());
@@ -174,6 +176,7 @@ public class AutoPromoteBuildTest {
         build1.setCommit_date(DateTime.now().minusHours(10).getMillis());
         build1.setPublish_date(DateTime.now().minusHours(10).getMillis());
         build1.setScm_commit("abcde");
+        build1.setScm("PHABRICATOR");
 
         BuildBean build2 = new BuildBean();
         build2.setBuild_id("build2good");
@@ -181,6 +184,7 @@ public class AutoPromoteBuildTest {
         build2.setCommit_date(DateTime.now().minusHours(9).getMillis());
         build2.setPublish_date(DateTime.now().minusHours(9).getMillis());
         build2.setScm_commit("abcdxe");
+        build2.setScm("PHABRICATOR");
 
         TagBean tagBean = new TagBean();
         tagBean.setId(CommonUtils.getBase64UUID());

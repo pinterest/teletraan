@@ -134,6 +134,7 @@ public class AutoPromoteDeployTest {
         badBuild.setCommit_date(now.minusHours(24).getMillis());
         badBuild.setPublish_date(now.minusHours(24).getMillis());
         badBuild.setScm_commit("abcde");
+        badBuild.setScm("PHABRICATOR");
 
         TagBean tagBean = new TagBean();
         tagBean.setId(CommonUtils.getBase64UUID());
