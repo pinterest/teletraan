@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -178,7 +178,7 @@ public class Builds {
             @Context SecurityContext sc,
             @ApiParam(value = "BUILD object", required = true)@Valid BuildBean buildBean) throws Exception {
         if (StringUtils.isEmpty(buildBean.getScm())) {
-            buildBean.setScm(sourceControlManagerProxy.getType());
+            buildBean.setScm(sourceControlManagerProxy.getDefaultTypeName());
         }
 
         if (StringUtils.isEmpty(buildBean.getScm_commit_7())) {
@@ -210,11 +210,17 @@ public class Builds {
                 "Artifact URL points to unapproved location.");
         }
 
+        // Check if build SCM is approved via allow list of SCMs
+        if (!sourceControlManagerProxy.hasSCMType(buildBean.getScm())) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
+                String.format("Unsupported SCM type. %s not in list %s.", buildBean.getScm(), sourceControlManagerProxy.getSCMs()));
+        }
+
         // We append commit SHA after build id to make build directory name human friendly
         String id = CommonUtils.getBase64UUID();
         String buildId = String.format("%s_%s", id, buildBean.getScm_commit_7());
         buildBean.setBuild_id(buildId);
-        
+
         buildDAO.insert(buildBean);
         LOG.info("Successfully published build {} by {}.", buildId, sc.getUserPrincipal().getName());
 

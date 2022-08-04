@@ -39,6 +39,10 @@ public class GithubFactory implements SourceControlFactory {
 
     @NotNull
     @JsonProperty
+    private String typeName;
+
+    @NotNull
+    @JsonProperty
     private String apiPrefix;
 
     @NotNull
@@ -76,6 +80,14 @@ public class GithubFactory implements SourceControlFactory {
         this.appOrganization = appOrganization;
     }
 
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
+
     public String getApiPrefix() {
         return apiPrefix;
     }
@@ -94,6 +106,6 @@ public class GithubFactory implements SourceControlFactory {
 
     @Override
     public SourceControlManager create() throws Exception {
-        return new GithubManager(token, appId, appPrivateKeyKnox, appOrganization, apiPrefix, urlPrefix);
+        return new GithubManager(token, appId, appPrivateKeyKnox, appOrganization, typeName, apiPrefix, urlPrefix);
     }
 }

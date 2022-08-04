@@ -43,7 +43,6 @@ import org.slf4j.LoggerFactory;
 
 public class GithubManager extends BaseManager {
     private static final Logger LOG = LoggerFactory.getLogger(GithubManager.class);
-    public final static String TYPE = "Github";
     private final static String UNKNOWN_LOGIN = "UNKNOWN";
     private final static long TOKEN_TTL_MILLIS = 600000;  //token expires after 10 mins
     private String apiPrefix;
@@ -55,7 +54,8 @@ public class GithubManager extends BaseManager {
 
     public Map<String, String> headers = new HashMap<String, String>();
 
-    public GithubManager(String token, String appId, String appPrivateKeyKnox, String appOrganization, String apiPrefix, String urlPrefix) throws Exception {
+    public GithubManager(String token, String appId, String appPrivateKeyKnox, String appOrganization, String typeName, String apiPrefix, String urlPrefix) throws Exception {
+        this.typeName = typeName;
         this.apiPrefix = apiPrefix;
         this.urlPrefix = urlPrefix;
         this.githubAppId = appId;
@@ -164,11 +164,6 @@ public class GithubManager extends BaseManager {
     @Override
     public String getUrlPrefix() {
         return urlPrefix;
-    }
-
-    @Override
-    public String getType() {
-        return TYPE;
     }
 
     @Override

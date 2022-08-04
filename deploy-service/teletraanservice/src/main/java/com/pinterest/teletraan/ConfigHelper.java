@@ -74,10 +74,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -136,14 +136,15 @@ public class ConfigHelper {
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
 
+        String defaultScmTypeName = configuration.getDefaultScmTypeName();
         List<SourceControlFactory> sourceControlConfigs = configuration.getSourceControlConfigs();
-        HashMap<String, SourceControlManager> managers = new HashMap<String, SourceControlManager>();
+        Map<String, SourceControlManager> managers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);;
         for(SourceControlFactory scf : sourceControlConfigs) {
             SourceControlManager scm = scf.create();
-            String type = scm.getType();
+            String type = scm.getTypeName();
             managers.put(type, scm);
         }
-        context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers));
+        context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers, defaultScmTypeName));
 
         EventSenderFactory eventSenderFactory = configuration.getEventSenderFactory();
         if (eventSenderFactory != null) {

@@ -109,13 +109,17 @@ db:
 # Currently Teletraan supports Github and Phabricator. Uncommment one of the
 # following sections to enable the SCM support.
 #
+#defaultScmTypeName: Phabricator
+
 #scm:
   #type: github
+  #typeName: Github
   #token:
   #apiPrefix: https://api.github.com
   #urlPrefix: https://github.com
 
   #type: phabricator
+  #typeName: Phabricator
   #urlPrefix: https://phabricator.sample.com
   #arc: /usr/local/bin/arc
   #arcrc: /root/.arcrc
