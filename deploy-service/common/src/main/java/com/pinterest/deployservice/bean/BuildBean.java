@@ -18,7 +18,6 @@ package com.pinterest.deployservice.bean;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.validator.constraints.NotEmpty;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Keep the bean and table in sync
