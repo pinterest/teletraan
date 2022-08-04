@@ -3,6 +3,7 @@ package com.pinterest.deployservice.scm;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.pinterest.deployservice.bean.CommitBean;
 
@@ -14,10 +15,10 @@ public class SourceControlManagerProxy {
     private static final Logger LOG = LoggerFactory.getLogger(SourceControlManagerProxy.class);
     private List<String> validSCMs;
 
-    HashMap<String, SourceControlManager> managers;
+    Map<String, SourceControlManager> managers;
     String defaultScmTypeName;
 
-    public SourceControlManagerProxy(HashMap<String, SourceControlManager> managers, String defaultScmTypeName) {
+    public SourceControlManagerProxy(Map<String, SourceControlManager> managers, String defaultScmTypeName) {
         this.managers = managers;
         this.defaultScmTypeName = defaultScmTypeName;
         validSCMs = new ArrayList<String> (this.managers.keySet());
@@ -40,7 +41,7 @@ public class SourceControlManagerProxy {
     }
 
     public Boolean hasSCMType(String scmName) {
-        return validSCMs.contains(scmName);
+        return validSCMs.stream().anyMatch(scmName::equalsIgnoreCase);
     }
 
     public String getDefaultTypeName() {

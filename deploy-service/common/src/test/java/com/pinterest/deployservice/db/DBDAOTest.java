@@ -1108,7 +1108,6 @@ public class DBDAOTest {
         BuildBean buildBean = new BuildBean();
         buildBean.setBuild_id(id);
         buildBean.setBuild_name(buildName);
-        buildBean.setScm("PHABRICATOR");
         buildBean.setScm_repo("repo-1");
         buildBean.setScm_branch("branch-1");
         buildBean.setScm_commit(commitId);
