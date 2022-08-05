@@ -30,6 +30,12 @@ public abstract class BaseManager implements SourceControlManager {
     // Max allowed commits to return
     private final static String DEFAULT_PATH = "";
     private final static int MAX_COMMITS = 500;
+    
+    protected String typeName;
+    
+    public String getTypeName() {
+        return typeName;
+    }
 
     public Queue<CommitBean> getCommits(String repo, String sha, boolean keepHead) throws Exception {
       return getCommits(repo, sha, keepHead, DEFAULT_PATH);

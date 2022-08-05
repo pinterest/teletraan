@@ -1,7 +1,8 @@
 package com.pinterest.deployservice.scm;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.pinterest.deployservice.bean.CommitBean;
 
@@ -11,17 +12,20 @@ import org.slf4j.LoggerFactory;
 
 public class SourceControlManagerProxy {
     private static final Logger LOG = LoggerFactory.getLogger(SourceControlManagerProxy.class);
-    private final static String DEFAULT_TYPE = PhabricatorManager.TYPE;
+    private List<String> validSCMs;
 
-    HashMap<String, SourceControlManager> managers;
+    Map<String, SourceControlManager> managers;
+    String defaultScmTypeName;
 
-    public SourceControlManagerProxy(HashMap<String, SourceControlManager> managers) {
+    public SourceControlManagerProxy(Map<String, SourceControlManager> managers, String defaultScmTypeName) {
         this.managers = managers;
+        this.defaultScmTypeName = defaultScmTypeName;
+        validSCMs = new ArrayList<String> (this.managers.keySet());
     }
 
     private SourceControlManager getSourceControlManager(String scmType) throws Exception {
         if(StringUtils.isEmpty(scmType)) {
-            scmType = DEFAULT_TYPE;
+            scmType = defaultScmTypeName;
         }
         SourceControlManager manager = this.managers.get(scmType);
         if (manager == null) {
@@ -31,8 +35,16 @@ public class SourceControlManagerProxy {
         return manager;
     }
 
-    public String getType() {
-        return DEFAULT_TYPE;
+    public List<String> getSCMs() throws Exception {
+        return validSCMs;
+    }
+
+    public Boolean hasSCMType(String scmName) {
+        return validSCMs.stream().anyMatch(scmName::equalsIgnoreCase);
+    }
+
+    public String getDefaultTypeName() {
+        return defaultScmTypeName;
     }
 
     public String getCommitLinkTemplate(String scmType) throws Exception {
