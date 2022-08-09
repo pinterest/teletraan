@@ -87,7 +87,7 @@
         </div>
     </div>
     <modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">
-        <div slot="body">Are you sure to save the changes?</div>
+        <div slot="body">Are you sure to save the changes? <br><br>Please note that the saved settings will only apply for newly launched hosts. If you have existing hosts in your cluster, you can use the "Replace Cluster" feature on the left to perform a rolling replacement of all existing hosts in your cluster.</div>
     </modal>
 
     <div class="panel-footer clearfix">
