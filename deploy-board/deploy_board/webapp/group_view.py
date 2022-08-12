@@ -1260,8 +1260,6 @@ def add_scheduled_actions(request, group_name):
     except:
         log.error(traceback.format_exc())
         raise
-    return redirect("/groups/{}/config/".format(group_name))
-
 
 def get_scheduled_actions(request, group_name):
     scheduled_actions = autoscaling_groups_helper.get_scheduled_actions(request, group_name)
@@ -1301,7 +1299,9 @@ def update_scheduled_actions(request, group_name):
     try:
         configs = _parse_actions_configs(request.POST, group_name)
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, configs)
-        return get_scheduled_actions(request, group_name)
     except:
         log.error(traceback.format_exc())
-        return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
+        raise
+    
+    return get_scheduled_actions(request, group_name)
+        
