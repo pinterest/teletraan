@@ -42,6 +42,8 @@ def _get_latest_metrics(url):
     data = json.loads(response.read())
     # Return the first datapoint in the datapoints list
     if data:
+        if 'data' in data:
+            data = data['data']
         if 'datapoints' in data[0] and len(data[0]['datapoints']) != 0:
             return data[0]['datapoints']
             # Check for TSDB response
