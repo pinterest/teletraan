@@ -41,7 +41,7 @@ public class DefaultSourceControlManager implements SourceControlManager {
     }
 
     @Override
-    public String getType() {
+    public String getTypeName() {
         return "UNKOWN";
     }
 

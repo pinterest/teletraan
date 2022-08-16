@@ -117,7 +117,7 @@ public class BuildBean implements Updatable {
     }
 
     public String getScm() {
-        return scm;
+       return scm;
     }
 
     public void setScm(String scm) {

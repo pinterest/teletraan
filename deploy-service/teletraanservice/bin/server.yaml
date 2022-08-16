@@ -109,13 +109,17 @@ db:
 # Currently Teletraan supports Github and Phabricator. Uncommment one of the
 # following sections to enable the SCM support.
 #
+#defaultScmTypeName: Phabricator
+
 #scm:
   #type: github
+  #typeName: Github
   #token:
   #apiPrefix: https://api.github.com
   #urlPrefix: https://github.com
 
   #type: phabricator
+  #typeName: Phabricator
   #urlPrefix: https://phabricator.sample.com
   #arc: /usr/local/bin/arc
   #arcrc: /root/.arcrc
@@ -167,11 +171,12 @@ workers:
       period: 30
 
   # AutoPromoter provides the Auto Deploy support. It finds the deploy
-  # cadidates from preceeding stage and promote them to next stages.
+  # candidates from preceding stage and promote them to next stages.
   - name: AutoPromoter
     properties:
       initialDelay: 20
       period: 30
+      bufferTimeMinutes: 2
 
   # AgentJanitor cleans up any obsoleted hosts or agents records
   - name: SimpleAgentJanitor

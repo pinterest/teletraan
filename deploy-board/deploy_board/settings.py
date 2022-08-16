@@ -119,7 +119,7 @@ LOGGING = {
     'handlers': {
         'default': {
             'level': LOG_LEVEL,
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
             'filename': '%s/service.log' % LOG_DIR,
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
@@ -127,7 +127,7 @@ LOGGING = {
         },
         'django.request': {
             'level': LOG_LEVEL,
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
             'filename': '%s/request.log' % LOG_DIR,
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
@@ -135,7 +135,7 @@ LOGGING = {
         },
         'django.server': {
             'level': LOG_LEVEL,
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
             'filename': '%s/server.log' % LOG_DIR,
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,
@@ -143,7 +143,7 @@ LOGGING = {
         },
         'django.template': {
             'level': LOG_LEVEL,
-            'class': 'logging.handlers.RotatingFileHandler',
+            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
             'filename': '%s/template.log' % LOG_DIR,
             'maxBytes': 1024 * 1024 * 5,  # 5 MB
             'backupCount': 5,

@@ -74,10 +74,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -136,14 +136,15 @@ public class ConfigHelper {
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
 
+        String defaultScmTypeName = configuration.getDefaultScmTypeName();
         List<SourceControlFactory> sourceControlConfigs = configuration.getSourceControlConfigs();
-        HashMap<String, SourceControlManager> managers = new HashMap<String, SourceControlManager>();
+        Map<String, SourceControlManager> managers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);;
         for(SourceControlFactory scf : sourceControlConfigs) {
             SourceControlManager scm = scf.create();
-            String type = scm.getType();
+            String type = scm.getTypeName();
             managers.put(type, scm);
         }
-        context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers));
+        context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers, defaultScmTypeName));
 
         EventSenderFactory eventSenderFactory = configuration.getEventSenderFactory();
         if (eventSenderFactory != null) {
@@ -206,7 +207,7 @@ public class ConfigHelper {
 
         context.setDeployBoardUrlPrefix(configuration.getSystemFactory().getDashboardUrl());
         context.setChangeFeedUrl(configuration.getSystemFactory().getChangeFeedUrl());
-        // Only applies to Teletraan agent service 
+        // Only applies to Teletraan agent service
         context.setAgentCountCacheTtl(configuration.getSystemFactory().getAgentCountCacheTtl());
         context.setMaxParallelThreshold(configuration.getSystemFactory().getMaxParallelThreshold());
         return context;
@@ -230,7 +231,9 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(AutoPromoter.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new AutoPromoter(serviceContext);
+                int bufferTimeMinutes = MapUtils.getIntValue(properties, "bufferTimeMinutes", AutoPromoter.DEFAULT_BUFFER_TIME_MINUTE);
+                Runnable worker = new AutoPromoter(serviceContext)
+                        .withBufferTimeMinutes(bufferTimeMinutes);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled AutoPromoter.");
             }

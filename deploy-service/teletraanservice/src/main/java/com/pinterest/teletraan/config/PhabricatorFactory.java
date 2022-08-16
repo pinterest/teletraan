@@ -26,6 +26,10 @@ import javax.validation.constraints.NotNull;
 public class PhabricatorFactory implements SourceControlFactory {
     @NotNull
     @JsonProperty
+    private String typeName;
+
+    @NotNull
+    @JsonProperty
     private String urlPrefix;
 
     @NotNull
@@ -34,6 +38,14 @@ public class PhabricatorFactory implements SourceControlFactory {
 
     @JsonProperty
     private String arcrc;
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
 
     public String getUrlPrefix() {
         return urlPrefix;
@@ -61,6 +73,6 @@ public class PhabricatorFactory implements SourceControlFactory {
 
     @Override
     public SourceControlManager create() throws Exception {
-        return new PhabricatorManager(urlPrefix, arc, arcrc);
+        return new PhabricatorManager(typeName, urlPrefix, arc, arcrc);
     }
 }
