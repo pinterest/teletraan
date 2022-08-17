@@ -1240,22 +1240,24 @@ def disable_scaling_down_event(request, group_name):
 
 def add_scheduled_actions(request, group_name):
     params = request.POST
+    
+    # validate scheduled capacity against ASG config minimum and maximum size
+    asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name) 
+    asg_minsize = int(asg_summary.get("minSize", -1))
+    asg_maxsize = int(asg_summary.get("maxSize", -1)) # invalid value indicates no need to check
+
+    if asg_minsize < 0 or asg_maxsize < 0:
+        raise TeletraanException("ASG's Min Size and Max Size have invalid values. Please update the ASG config to make sure Min Size and Max Size >= 0")
+    scheduled_action_capacity = int(params['capacity'])
+    if scheduled_action_capacity < asg_minsize or scheduled_action_capacity > asg_maxsize:
+        raise TeletraanException("Invalid capacity: {}. Desired capacity must be within the limits of ASG's minimum capacity ({}) and maximum capacity ({}). Please change the value you input for Capacity.".format(params['capacity'], asg_minsize, asg_maxsize))
+
     try:
         schedule_action = {}
         schedule_action['clusterName'] = group_name
         schedule_action['schedule'] = params['schedule']
         schedule_action['capacity'] = params['capacity']
-
-        # validate scheduled capacity against ASG config minimum and maximum size
-        asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
-        asg_minsize = int(asg_summary.get("minSize", -1))
-        asg_maxsize = int(asg_summary.get("maxSize", -1)) # invalid value indicates no need to check
-        if asg_minsize < 0 or asg_maxsize < 0:
-            raise TeletraanException("ASG's Min Size and Max Size have invalid values. Please update the ASG config to make sure Min Size and Max Size >= 0")
-        scheduled_action_capacity = int(params['capacity'])
-        if scheduled_action_capacity < asg_minsize or scheduled_action_capacity > asg_maxsize:
-            raise TeletraanException("Invalid capacity: {}. Desired capacity must be within the limits of ASG's minimum capacity ({}) and maximum capacity ({}). Please change the value you input for Capacity.".format(params['capacity'], asg_minsize, asg_maxsize))
-
+       
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
     except:
         log.error(traceback.format_exc())
