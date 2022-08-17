@@ -12,6 +12,36 @@
 {% endblock %}
 
 {% block side-panel-actions %}
+<link rel="stylesheet" href="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+<style>
+    .ct-series-a .ct-bar {
+        stroke: #2a7b86;
+    }
+
+    .ct-chart table td {
+        text-align: center;
+    }
+</style>
+<script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+<script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2016.12.19.150000"></script>
+<script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2017.07.05.180000"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2018.05.17.153000"></script>
+
+<div class="panel panel-default" id="side-panel">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Capacity</h4>
+    </div>
+    <div v-if="noCluster" class="row">
+        <side-button styleclass="fa fa-cloud" text="Create New Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/newcapacity/" title="Create New Cluster"></side-button>
+    </div>
+    <div v-if="!noCluster" class="row">
+        <side-button-nolink styleclass="fa fa-gears" v-on:click="buttonClick" v-bind:text="settingText" title="Cluster Configuration"></side-button-nolink>
+    </div>
+    <div v-if="!noCluster" class="row">
+        <side-button styleclass="glyphicon glyphicon-time" text="Replacement History" href="/env/{{ env.envName }}/{{ env.stageName }}/replacement" title="Replacement History"></side-button>
+    </div>
+    <replace-cluster v-bind:clusterstate="clusterState" v-on:input="clusterAction"></replace-cluster>
+</div>
 <div class="panel panel-default">
 {% include "groups/group_side_panel.html" %}
 </div>
@@ -58,8 +88,6 @@ $(function() {
 
 </script>
 {% else %}
-<div id="launchConfigPid" class="panel panel-default">
-{% include "groups/create_config.tmpl" %}
-</div>
+{% include "clusters/cluster_configuration.tmpl" %}
 {% endif %}
 {% endblock %}
