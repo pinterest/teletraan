@@ -109,11 +109,11 @@ class EnvCapacityConfigView(View):
         logger.info("Post to capacity with data {0}".format(request.body))
         data = json.loads(request.body)
         hosts = data.get('hosts')
-        if hosts:
+        if hosts is not None:
             environs_helper.update_env_capacity(request, name, stage, capacity_type="HOST", data=hosts)
 
         groups = data.get("groups")
-        if groups:
+        if groups is not None:
             environs_helper.update_env_capacity(request, name, stage, capacity_type="GROUP", data=groups)
 
         return self.get(request, name, stage)
