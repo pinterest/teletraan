@@ -42,14 +42,13 @@ def group_landing(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     group_names = autoscaling_groups_helper.get_env_group_names(request, index, size)
-    # return render(request, 'groups/group_landing.html', {
-    #     'group_names': group_names,
-    #     "pageIndex": index,
-    #     "pageSize": DEFAULT_PAGE_SIZE,
-    #     "disablePrevious": index <= 1,
-    #     "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
-    # })
-    return HttpResponse(json.dumps(group_names), content_type="application/json")
+    return render(request, 'groups/group_landing.html', {
+        'group_names': group_names,
+        "pageIndex": index,
+        "pageSize": DEFAULT_PAGE_SIZE,
+        "disablePrevious": index <= 1,
+        "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
+    })
 
 
 def get_group_names(request):
