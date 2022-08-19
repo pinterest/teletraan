@@ -70,16 +70,17 @@ class EnvListView(View):
         size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
         names = environs_helper.get_all_env_names(request, index=index, size=size)
         envs_tag = tags_helper.get_latest_by_target_id(request, 'TELETRAAN')
-        return render(request, 'environs/envs_landing.html', {
-            "names": names,
-            "pageIndex": index,
-            "pageSize": DEFAULT_PAGE_SIZE,
-            "disablePrevious": index <= 1,
-            "disableNext": len(names) < DEFAULT_PAGE_SIZE,
-            "envs_tag": envs_tag,
-            "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
-            "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
-        })
+        # return render(request, 'environs/envs_landing.html', {
+        #     "names": names,
+        #     "pageIndex": index,
+        #     "pageSize": DEFAULT_PAGE_SIZE,
+        #     "disablePrevious": index <= 1,
+        #     "disableNext": len(names) < DEFAULT_PAGE_SIZE,
+        #     "envs_tag": envs_tag,
+        #     "disable_create_env_page": TELETRAAN_DISABLE_CREATE_ENV_PAGE,
+        #     "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
+        # })
+        return HttpResponse(json.dumps(names), content_type="application/json")
 
 
 class OverrideItem(object):

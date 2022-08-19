@@ -42,14 +42,21 @@ def group_landing(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     group_names = autoscaling_groups_helper.get_env_group_names(request, index, size)
-    return render(request, 'groups/group_landing.html', {
-        'group_names': group_names,
-        "pageIndex": index,
-        "pageSize": DEFAULT_PAGE_SIZE,
-        "disablePrevious": index <= 1,
-        "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
-    })
+    # return render(request, 'groups/group_landing.html', {
+    #     'group_names': group_names,
+    #     "pageIndex": index,
+    #     "pageSize": DEFAULT_PAGE_SIZE,
+    #     "disablePrevious": index <= 1,
+    #     "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
+    # })
+    return HttpResponse(json.dumps(group_names), content_type="application/json")
 
+
+def get_group_names(request):
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    group_names = autoscaling_groups_helper.get_env_group_names(request, index, size)
+    return HttpResponse(json.dumps(group_names), content_type="application/json")
 
 def get_system_specs(request):
     instance_types = specs_helper.get_instance_types(request)
@@ -58,7 +65,25 @@ def get_system_specs(request):
     sorted_subnets = sorted(subnets, key=lambda subnet: subnet["info"]["tag"])
     sorted_sgs = sorted(security_groups, key=lambda sg: sg["info"]["name"])
     return instance_types, sorted_subnets, sorted_sgs
+    
+def search_groups(request, group_name):
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    group_names = autoscaling_groups_helper.get_env_group_names(request, index, size, name_filter=group_name)
+    
+    if not group_names:
+        return redirect('/groups/')
 
+    if len(group_names) == 1:
+        return redirect('/groups/%s/' % group_names[0])
+    
+    return render(request, 'groups/group_landing.html', {
+    "group_names": group_names,
+    "pageIndex": index,
+    "pageSize": DEFAULT_PAGE_SIZE,
+    "disablePrevious": index <= 1,
+    "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
+    })
 
 def get_launch_config(request, group_name):
     try:
