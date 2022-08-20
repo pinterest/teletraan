@@ -50,20 +50,11 @@ def group_landing(request):
         "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
     })
 
-
 def get_group_names(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     group_names = autoscaling_groups_helper.get_env_group_names(request, index, size)
     return HttpResponse(json.dumps(group_names), content_type="application/json")
-
-def get_system_specs(request):
-    instance_types = specs_helper.get_instance_types(request)
-    security_groups = specs_helper.get_security_groups(request)
-    subnets = specs_helper.get_subnets(request)
-    sorted_subnets = sorted(subnets, key=lambda subnet: subnet["info"]["tag"])
-    sorted_sgs = sorted(security_groups, key=lambda sg: sg["info"]["name"])
-    return instance_types, sorted_subnets, sorted_sgs
     
 def search_groups(request, group_name):
     index = int(request.GET.get('page_index', '1'))
@@ -83,6 +74,14 @@ def search_groups(request, group_name):
     "disablePrevious": index <= 1,
     "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
     })
+
+def get_system_specs(request):
+    instance_types = specs_helper.get_instance_types(request)
+    security_groups = specs_helper.get_security_groups(request)
+    subnets = specs_helper.get_subnets(request)
+    sorted_subnets = sorted(subnets, key=lambda subnet: subnet["info"]["tag"])
+    sorted_sgs = sorted(security_groups, key=lambda sg: sg["info"]["name"])
+    return instance_types, sorted_subnets, sorted_sgs
 
 def get_launch_config(request, group_name):
     try:

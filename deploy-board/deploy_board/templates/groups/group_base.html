@@ -24,12 +24,7 @@
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             limit: 10,
             prefetch: {
-                // url points to a json file that contains an array of country names, see
-                // https://github.com/twitter/typeahead.js/blob/gh-pages/data/countries.json
-                url: '/groups/names/',
-                // the json file contains an array of strings, but the Bloodhound
-                // suggestion engine expects JavaScript objects so this converts all of
-                // those strings
+                url: '/groups/names',
                 filter: function (list) {
                     return $.map(list, function (group) {
                         return { name: group };
