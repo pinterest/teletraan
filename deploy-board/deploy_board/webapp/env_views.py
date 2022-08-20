@@ -81,6 +81,7 @@ class EnvListView(View):
             "redirect_create_env_page_url": TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL
         })
 
+
 class OverrideItem(object):
     def __init__(self, key=None, root=None, override=None):
         self.key = key
