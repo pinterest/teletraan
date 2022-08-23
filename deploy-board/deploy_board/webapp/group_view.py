@@ -521,29 +521,28 @@ def delete_alarms(request, group_name):
 
 def add_alarms(request, group_name):
     params = request.POST
-    try:
-        alarm_info = {}
-        action_type = params["asgActionType"]
-        if action_type == "grow":
-            alarm_info["actionType"] = "GROW"
-        else:
-            alarm_info["actionType"] = "SHRINK"
-        alarm_info["comparator"] = params["comparators"]
-        alarm_info["threshold"] = float(params["threshold"])
-        alarm_info["evaluationTime"] = int(params["evaluate_time"])
-        if "customUrlCheckbox" in params:
-            alarm_info["fromAwsMetric"] = False
-            if "metricUrl" in params:
-                alarm_info["metricSource"] = params["metricUrl"]
-        else:
-            alarm_info["fromAwsMetric"] = True
-            if "awsMetrics" in params:
-                alarm_info["metricSource"] = params["awsMetrics"]
-        alarm_info["groupName"] = group_name
-        autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
-    except:
-        log.error(traceback.format_exc())
-        raise
+    alarm_info = {}
+    action_type = params["asgActionType"]
+    if action_type == "grow":
+        alarm_info["actionType"] = "GROW"
+    else:
+        alarm_info["actionType"] = "SHRINK"
+    alarm_info["comparator"] = params["comparators"]
+    alarm_info["threshold"] = float(params["threshold"])
+    alarm_info["evaluationTime"] = int(params["evaluate_time"])
+    if "customUrlCheckbox" in params:
+        alarm_info["fromAwsMetric"] = False
+        if "metricUrl" in params:
+            alarm_info["metricSource"] = params["metricUrl"]
+    else:
+        alarm_info["fromAwsMetric"] = True
+        if "awsMetrics" in params:
+            alarm_info["metricSource"] = params["awsMetrics"]
+    alarm_info["groupName"] = group_name
+    autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
+   
+    log.error(traceback.format_exc())
+
     return redirect("/groups/{}/config/".format(group_name))
 
 
