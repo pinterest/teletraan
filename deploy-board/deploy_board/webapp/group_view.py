@@ -1261,7 +1261,6 @@ def add_scheduled_actions(request, group_name):
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
     except:
         log.error(traceback.format_exc())
-        raise
     return redirect("/groups/{}/config/".format(group_name))
 
 
