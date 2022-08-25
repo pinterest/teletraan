@@ -39,12 +39,16 @@ def _convert_opentsdb_data(dps):
 
 def _get_latest_metrics(url):
     response = urllib2.urlopen(url)
-    data = json.loads(response.read())
+    data = json.load(response)
+
     # Return the first datapoint in the datapoints list
     if data:
-        if 'datapoints' in data[0] and len(data[0]['datapoints']) != 0:
-            return data[0]['datapoints']
-            # Check for TSDB response
+        try:
+            return [datapoint for datapoint in data['data'][0]['datapoints'] if datapoint[1] != None]
+        except:
+            pass
+           
+        # Check for TSDB response
         if 'dps' in data[0] and len(data[0]['dps']) != 0:
             return _convert_opentsdb_data(data[0]['dps'])
     return 0

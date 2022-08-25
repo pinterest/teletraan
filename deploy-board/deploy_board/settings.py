@@ -314,7 +314,7 @@ if IS_PINTEREST:
         {"title": "Latency", "url": LATENCY_URL,
          "specs": [{"min": 800, "max": 1000, "color": "Red"},
                    {"min": 600, "max": 800, "color": "Yellow"},
-                   {"min": 300, "max": 600, "color": "Green"}]}
+                   {"min": 0, "max": 600, "color": "Green"}]}
     ]
 
     DEFAULT_START_TIME = "-1d"
