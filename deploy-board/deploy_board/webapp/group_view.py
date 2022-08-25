@@ -914,6 +914,7 @@ class GroupConfigView(View):
             asg_vm_info = None
             group_info = None
             curr_image = None
+            raise TeletraanException("Group does not exist. Please create capacity from the environments page.")
 
         pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
         return render(request, 'groups/asg_config.html', {
