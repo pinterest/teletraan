@@ -1305,3 +1305,4 @@ def update_scheduled_actions(request, group_name):
     except:
         log.error(traceback.format_exc())
         return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
+
