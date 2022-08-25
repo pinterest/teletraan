@@ -540,9 +540,6 @@ def add_alarms(request, group_name):
             alarm_info["metricSource"] = params["awsMetrics"]
     alarm_info["groupName"] = group_name
     autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
-   
-    log.error(traceback.format_exc())
-
     return redirect("/groups/{}/config/".format(group_name))
 
 
