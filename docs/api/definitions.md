@@ -116,6 +116,7 @@
 |id||false|string||
 |constraintKey||false|string||
 |maxParallel||false|integer (int64)||
+|constraintType||false|enum (GROUP_BY_GROUP, ALL_GROUPS_IN_PARALLEL)||
 |state||false|enum (INIT, PROCESSING, ERROR, FINISHED)||
 |startDate||false|integer (int64)||
 |lastUpdate||false|integer (int64)||
@@ -201,7 +202,11 @@
 |overridePolicy||false|enum (OVERRIDE, WARN)||
 |scheduleId||false|string||
 |deployConstraintId||false|string||
-|stageType||true|enum (production, control, canary, latest)|production|
+|externalId||false|string||
+|allowPrivateBuild||false|boolean|false|
+|ensureTrustedBuild||false|boolean|false|
+|stageType||false|enum (DEFAULT, PRODUCTION, CONTROL, CANARY, LATEST)||
+|isSOX||false|boolean|false|
 
 
 ### GroupRolesBean
@@ -271,6 +276,10 @@
 |hostId||false|string||
 |hostName||false|string||
 |hostIp||false|string||
+|autoscalingGroup||false|string||
+|availabilityZone||false|string||
+|agentVersion||false|string||
+|stageType||false|enum (DEFAULT, PRODUCTION, CONTROL, CANARY, LATEST)||
 |groups||false|string array||
 |reports||false|PingReportBean array||
 
@@ -871,6 +880,34 @@
 
   limitations under the License.
 
+### EnvType
+
+  Copyright 2020 Pinterest, Inc.
+
+ 
+
+  Licensed under the Apache License, Version 2.0 (the "License");
+
+  you may not use this file except in compliance with the License.
+
+  You may obtain a copy of the License at
+
+   
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+     
+
+  Unless required by applicable law or agreed to in writing, software
+
+  distributed under the License is distributed on an "AS IS" BASIS,
+
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+  See the License for the specific language governing permissions and
+
+  limitations under the License.
+
 ### AcceptanceType
 
   Copyright 2016 Pinterest, Inc.
@@ -926,6 +963,18 @@
   See the License for the specific language governing permissions and
 
   limitations under the License.
+
+### DeployConstraintType
+
+  GROUP_BY_GROUP:
+
+       randomly choose X num of hosts from one group, and ONLY deploy this group,
+
+       when all the hosts in this group finish, proceed to the next group
+
+  ALL_GROUPS_IN_PARALLEL:
+
+       randomly choose X num of hosts from EACH group, and deploy at the same time
 
 ### Role
 

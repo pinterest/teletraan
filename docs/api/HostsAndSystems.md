@@ -2,27 +2,6 @@
 
 Host info APIs
 
-#### POST /v1/hosts
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|BodyParameter|body||false|HostBean||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
 #### Ping operation for agent 
 ```
 POST /v1/system/ping
@@ -52,11 +31,10 @@ Returns a deploy goal object given a ping request object
 
 * application/json
 
-#### PUT /v1/hosts/{hostId}
+#### POST /v1/hosts
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|hostId||true|string||
 |BodyParameter|body||false|HostBean||
 
 
@@ -74,17 +52,25 @@ Returns a deploy goal object given a ping request object
 
 * application/json
 
-#### DELETE /v1/hosts/{hostId}
+#### Get SCM commit link template
+```
+GET /v1/system/scm_link_template
+```
+
+##### Description
+
+Returns a Source Control Manager specific commit link template.
+
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|hostId||true|string||
+|QueryParameter|scm||false|string||
 
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|default|successful operation|No Content|
+|200|successful operation|string|
 
 
 ##### Consumes
@@ -124,14 +110,20 @@ Returns a list of host info objects given a host name
 
 * application/json
 
-#### Get SCM commit link template
+#### Get SCM url
 ```
-GET /v1/system/scm_link_template
+GET /v1/system/scm_url
 ```
 
 ##### Description
 
-Returns a Source Control Manager specific commit link template.
+Returns a Source Control Manager Url.
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|QueryParameter|scm||false|string||
+
 
 ##### Responses
 |HTTP Code|Description|Schema|
@@ -205,19 +197,60 @@ Returns a list of build bean
 
 * application/json
 
-#### Get SCM url
-```
-GET /v1/system/scm_url
-```
+#### GET /v1/hosts/id/{hostId}
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|hostId||true|string||
 
-##### Description
-
-Returns a Source Control Manager Url.
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|200|successful operation|string|
+|200|successful operation|HostBean array|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### DELETE /v1/hosts/{hostId}
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|hostId||true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### PUT /v1/hosts/{hostId}
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|hostId||true|string||
+|BodyParameter|body||false|HostBean||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
 
 
 ##### Consumes
@@ -241,27 +274,6 @@ Returns a list of host info objects given a host name
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
 |PathParameter|hostName|Host name|true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|HostBean array|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### GET /v1/hosts/id/{hostId}
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|hostId||true|string||
 
 
 ##### Responses

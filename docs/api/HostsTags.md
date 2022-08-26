@@ -6,7 +6,7 @@ GET /v1/envs/{envName}/{stageName}/host_tags
 
 ##### Description
 
-Returns a map group by tagValue and hosts tagged with tagName:tagValue in an environment
+Returns a list the host tags in an environment
 
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
@@ -20,6 +20,29 @@ Returns a map group by tagValue and hosts tagged with tagName:tagValue in an env
 |HTTP Code|Description|Schema|
 |----|----|----|
 |200|successful operation|HostTagInfo|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### DELETE /v1/envs/{envName}/{stageName}/host_tags/{tagName}
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName||true|string||
+|PathParameter|stageName||true|string||
+|PathParameter|tagName||true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
 
 
 ##### Consumes
@@ -52,29 +75,6 @@ Returns a map group by tagValue and hosts tagged with tagName:tagValue in an env
 |HTTP Code|Description|Schema|
 |----|----|----|
 |200|successful operation|HostTagInfo|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### DELETE /v1/envs/{envName}/{stageName}/host_tags/{tagName}
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName||true|string||
-|PathParameter|stageName||true|string||
-|PathParameter|tagName||true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
 
 
 ##### Consumes

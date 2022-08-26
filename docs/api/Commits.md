@@ -6,10 +6,12 @@ Commit info APIs
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
+|QueryParameter|scm||false|string||
 |QueryParameter|repo||false|string||
 |QueryParameter|startSha||false|string||
 |QueryParameter|endSha||false|string||
 |QueryParameter|size||false|integer (int32)||
+|QueryParameter|path||false|string||
 
 
 ##### Responses
@@ -28,7 +30,7 @@ Commit info APIs
 
 #### Get commit infos
 ```
-GET /v1/commits/{repo}/{sha}
+GET /v1/commits/{scm}/{repo}/{sha}
 ```
 
 ##### Description
@@ -38,6 +40,7 @@ Returns a commit object given a repo and commit sha
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
+|PathParameter|scm|Commit's scm type, either github or phabricator|true|string||
 |PathParameter|repo|Commit's repo|true|string||
 |PathParameter|sha|Commit SHA|true|string||
 

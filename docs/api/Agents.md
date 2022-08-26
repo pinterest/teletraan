@@ -2,19 +2,26 @@
 
 Deploy agent information APIs
 
-#### Get Deploy Agent Host Info
-```
-GET /v1/agents/{hostName}
-```
+#### GET /v1/agents/hostcount
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|integer (int64)|
 
-##### Description
 
-Returns a list of all the deploy agent objects running on the specified host
+##### Consumes
 
+* application/json
+
+##### Produces
+
+* application/json
+
+#### GET /v1/agents/id/{hostId}
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|hostName|Host name|true|string||
+|PathParameter|hostId||true|string||
 
 
 ##### Responses
@@ -31,53 +38,12 @@ Returns a list of all the deploy agent objects running on the specified host
 
 * application/json
 
-#### Get deploy agent error
-```
-GET /v1/envs/{envName}/{stageName}/agents/errors/{hostName}
-```
-
-##### Description
-
-Returns an AgentError object given an environment name, stage name, and host name
-
+#### PUT /v1/agents/id/{hostId}
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|envName|Environment name|true|string||
-|PathParameter|stageName|Stage name|true|string||
-|PathParameter|hostName|Host name|true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|AgentErrorBean|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Update host agent
-```
-PUT /v1/envs/{envName}/{stageName}/agents/{hostId}
-```
-
-##### Description
-
-Updates host agent specified by given environment name, stage name, and host id with given agent object
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName|Environment name|true|string||
-|PathParameter|stageName|Stage name|true|string||
-|PathParameter|hostId|Host id|true|string||
-|BodyParameter|body|Agent object to update with|true|AgentBean||
+|PathParameter|hostId||true|string||
+|BodyParameter|body||false|AgentBean||
 
 
 ##### Responses
@@ -124,11 +90,25 @@ Returns a list of all the deploy agent objects for a given environment name and 
 
 * application/json
 
-#### GET /v1/agents/hostcount
+#### Get Deploy Agent Host Info
+```
+GET /v1/agents/{hostName}
+```
+
+##### Description
+
+Returns a list of all the deploy agent objects running on the specified host
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|hostName|Host name|true|string||
+
+
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|200|successful operation|integer (int64)|
+|200|successful operation|AgentBean array|
 
 
 ##### Consumes
@@ -193,17 +173,28 @@ Resets failing deploys given an environment name, stage name, and deploy id
 
 * application/json
 
-#### GET /v1/agents/id/{hostId}
+#### Update host agent
+```
+PUT /v1/envs/{envName}/{stageName}/agents/{hostId}
+```
+
+##### Description
+
+Updates host agent specified by given environment name, stage name, and host id with given agent object
+
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|hostId||true|string||
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+|PathParameter|hostId|Host id|true|string||
+|BodyParameter|body|Agent object to update with|true|AgentBean||
 
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|200|successful operation|AgentBean array|
+|default|successful operation|No Content|
 
 
 ##### Consumes
@@ -214,18 +205,27 @@ Resets failing deploys given an environment name, stage name, and deploy id
 
 * application/json
 
-#### PUT /v1/agents/id/{hostId}
+#### Get deploy agent error
+```
+GET /v1/envs/{envName}/{stageName}/agents/errors/{hostName}
+```
+
+##### Description
+
+Returns an AgentError object given an environment name, stage name, and host name
+
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|hostId||true|string||
-|BodyParameter|body||false|AgentBean||
+|PathParameter|envName|Environment name|true|string||
+|PathParameter|stageName|Stage name|true|string||
+|PathParameter|hostName|Host name|true|string||
 
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|default|successful operation|No Content|
+|200|successful operation|AgentErrorBean|
 
 
 ##### Consumes

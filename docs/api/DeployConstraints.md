@@ -2,6 +2,28 @@
 
 Deploy constraints related APIs
 
+#### DELETE /v1/envs/{envName}/{stageName}/deploy_constraint
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|envName||true|string||
+|PathParameter|stageName||true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
 #### Get deploy constraint info
 ```
 GET /v1/envs/{envName}/{stageName}/deploy_constraint
@@ -22,28 +44,6 @@ Returns a deploy constraint object given a constraint id
 |HTTP Code|Description|Schema|
 |----|----|----|
 |200|successful operation|DeployConstraintBean|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### DELETE /v1/envs/{envName}/{stageName}/deploy_constraint
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName||true|string||
-|PathParameter|stageName||true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
 
 
 ##### Consumes

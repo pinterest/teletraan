@@ -2,9 +2,9 @@
 
 BUILD information APIs
 
-#### Get build info
+#### Get build info with its tags
 ```
-GET /v1/builds/{id}
+GET /v1/builds/{id}/tags
 ```
 
 ##### Description
@@ -20,7 +20,7 @@ Returns a build object given a build id
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|200|successful operation|BuildBean|
+|200|successful operation|BuildTagBean|
 
 
 ##### Consumes
@@ -31,25 +31,46 @@ Returns a build object given a build id
 
 * application/json
 
-#### Delete a build
-```
-DELETE /v1/builds/{id}
-```
-
-##### Description
-
-Deletes a build given a build id
-
+#### GET /v1/builds/current
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|id|BUILD id|true|string||
+|QueryParameter|group||false|string||
 
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|default|successful operation|No Content|
+|200|successful operation|BuildBean array|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### Get branches
+```
+GET /v1/builds/names/{name}/branches
+```
+
+##### Description
+
+Returns a list of the repository branches associated with a given build name
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|PathParameter|name|BUILD name|true|string||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|string array|
 
 
 ##### Consumes
@@ -116,25 +137,25 @@ Publish a build given a build object
 
 * application/json
 
-#### Get branches
+#### Delete a build
 ```
-GET /v1/builds/names/{name}/branches
+DELETE /v1/builds/{id}
 ```
 
 ##### Description
 
-Returns a list of the repository branches associated with a given build name
+Deletes a build given a build id
 
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|PathParameter|name|BUILD name|true|string||
+|PathParameter|id|BUILD id|true|string||
 
 
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|200|successful operation|string array|
+|default|successful operation|No Content|
 
 
 ##### Consumes
@@ -145,9 +166,9 @@ Returns a list of the repository branches associated with a given build name
 
 * application/json
 
-#### Get build info with its tags
+#### Get build info
 ```
-GET /v1/builds/{id}/tags
+GET /v1/builds/{id}
 ```
 
 ##### Description
@@ -163,7 +184,30 @@ Returns a build object given a build id
 ##### Responses
 |HTTP Code|Description|Schema|
 |----|----|----|
-|200|successful operation|BuildTagBean|
+|200|successful operation|BuildBean|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
+#### GET /v1/builds/names
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|QueryParameter|filter||false|string||
+|QueryParameter|start||false|integer (int32)||
+|QueryParameter|size||false|integer (int32)||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|200|successful operation|string array|
 
 
 ##### Consumes
@@ -199,50 +243,6 @@ Return a bean object containing the build and the build tag
 |HTTP Code|Description|Schema|
 |----|----|----|
 |200|successful operation|BuildTagBean|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### GET /v1/builds/names
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|QueryParameter|filter||false|string||
-|QueryParameter|start||false|integer (int32)||
-|QueryParameter|size||false|integer (int32)||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|string array|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### GET /v1/builds/current
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|QueryParameter|group||false|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|BuildBean array|
 
 
 ##### Consumes

@@ -31,6 +31,35 @@ Return a list of TagBean objects
 
 * application/json
 
+#### Create a tag
+```
+POST /v1/tags
+```
+
+##### Description
+
+Create a tag on an object
+
+##### Parameters
+|Type|Name|Description|Required|Schema|Default|
+|----|----|----|----|----|----|
+|BodyParameter|body|Tag object|true|TagBean||
+
+
+##### Responses
+|HTTP Code|Description|Schema|
+|----|----|----|
+|default|successful operation|No Content|
+
+
+##### Consumes
+
+* application/json
+
+##### Produces
+
+* application/json
+
 #### Get tags with the given value
 ```
 GET /v1/tags/values/{value}
@@ -60,19 +89,19 @@ Return a list of TagBean object with given value
 
 * application/json
 
-#### Create a tag
+#### Delete a tag
 ```
-POST /v1/tags
+DELETE /v1/tags/{id}
 ```
 
 ##### Description
 
-Create a tag on an object
+Deletes a build given a tag id
 
 ##### Parameters
 |Type|Name|Description|Required|Schema|Default|
 |----|----|----|----|----|----|
-|BodyParameter|body|Tag object|true|TagBean||
+|PathParameter|id|tag id|true|string||
 
 
 ##### Responses
@@ -108,35 +137,6 @@ Return a TagBean objects
 |HTTP Code|Description|Schema|
 |----|----|----|
 |200|successful operation|TagBean|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Delete a tag
-```
-DELETE /v1/tags/{id}
-```
-
-##### Description
-
-Deletes a build given a tag id
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|id|tag id|true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
 
 
 ##### Consumes
