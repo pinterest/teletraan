@@ -1,9 +1,16 @@
-package io.github.robwin.swagger2markup;
+package io.github.swagger2markup.swagger2markup;
 
 import io.airlift.airline.*;
-import io.github.robwin.markup.builder.MarkupLanguage;
+import io.github.swagger2markup.GroupBy;
+import io.github.swagger2markup.OrderBy;
+import io.github.swagger2markup.Swagger2MarkupConfig;
+import io.github.swagger2markup.Swagger2MarkupConverter;
+import io.github.swagger2markup.builder.Swagger2MarkupConfigBuilder;
+import io.github.swagger2markup.markup.builder.MarkupLanguage;
 
-import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Application {
     public static void main(String[] args) {
@@ -63,29 +70,28 @@ public class Application {
         @Override
         public void run() {
             try {
-                final Swagger2MarkupConverter.Builder builder = Swagger2MarkupConverter
-                        .from(inputFile)
-                        .withMarkupLanguage(MarkupLanguage.valueOf(language.toUpperCase()));
+                final Swagger2MarkupConfigBuilder configBuilder = new Swagger2MarkupConfigBuilder()
+                    .withMarkupLanguage(MarkupLanguage.valueOf(language.toUpperCase()));
+
                 if (pathsGroupedBy != null) {
-                    builder.withPathsGroupedBy(GroupBy.valueOf(pathsGroupedBy.toUpperCase()));
+                    configBuilder.withPathsGroupedBy(GroupBy.valueOf(pathsGroupedBy.toUpperCase()));
                 }
                 if (definitionsOrderedBy != null) {
-                    builder.withDefinitionsOrderedBy(OrderBy.valueOf(definitionsOrderedBy.toUpperCase()));
+                    configBuilder.withDefinitionOrdering(OrderBy.valueOf(definitionsOrderedBy.toUpperCase()));
                 }
-                if (examplesPath != null) {
-                    builder.withExamples(examplesPath);
-                }
-                if (descriptionsPath != null) {
-                    builder.withDescriptions(descriptionsPath);
-                }
-                if (schemasPath != null) {
-                    builder.withSchemas(schemasPath);
-                }
+
                 if (separateDefinitions) {
-                    builder.withSeparatedDefinitions();
+                    configBuilder.withSeparatedDefinitions();
                 }
-                builder.build().intoFolder(outputPath);
-            } catch (IOException e) {
+                Path outputDirectory = Paths.get(outputPath);
+
+                URL remoteSwaggerFile = new URL(inputFile);
+                Swagger2MarkupConverter
+                    .from(remoteSwaggerFile)
+                    .withConfig(configBuilder.build())
+                    .build()
+                    .toFolder(outputDirectory);
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

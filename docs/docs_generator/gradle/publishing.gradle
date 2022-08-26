@@ -19,7 +19,7 @@ jar {
                 'Specification-Version': project.version,
                 'Implementation-Title': projectArtifactId,
                 'Implementation-Version': project.version,
-                'Main-Class': 'io.github.robwin.swagger2markup.Application'
+                'Main-Class': 'io.github.swagger2markup.swagger2markup.Application'
         )
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

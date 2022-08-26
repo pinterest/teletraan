@@ -1,25 +1,30 @@
 # Teletraan API Docs
 
+
+<a name="overview"></a>
 ## Overview
+
 ### Version information
-Version: 1.0.0
+*Version* : 1.0.0
+
 
 ### Tags
 
-* Builds: BUILD information APIs
-* Commits: Commit info APIs
-* Deploys: Deploy info APIs
-* Deploy Constraints: Deploy constraints related APIs
-* Host Tags: Host Tags related APIs
-* Group Roles: Group Roles related APIs
-* User Roles: User Roles related APIs
-* Script Tokens: Internal script tokens APIs
-* Environments: Environment info APIs
-* Agents: Deploy agent information APIs
-* Hosts and Systems: Host info APIs
-* Tags: Tagging APIs
+* Agents : Deploy agent information APIs
+* Builds : BUILD information APIs
+* Commits : Commit info APIs
+* Deploy Constraints : Deploy constraints related APIs
+* Deploys : Deploy info APIs
+* Environments : Environment info APIs
 * ExternalAlerts
+* Group Roles : Group Roles related APIs
+* Host Tags : Host Tags related APIs
 * Hosts
 * Hosts Tags
+* Hosts and Systems : Host info APIs
+* Script Tokens : Internal script tokens APIs
+* Tags : Tagging APIs
+* User Roles : User Roles related APIs
+
 
 
