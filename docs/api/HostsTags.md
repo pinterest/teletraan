@@ -1,4 +1,6 @@
 ### Hosts Tags
+Hosts Tags related APIs
+
 
 <a name="get"></a>
 #### List all the hosts tags

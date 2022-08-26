@@ -182,4 +182,4 @@ Deletes a GroupRoles object by given group and environment names.
 * `application/json`
 
 
-<a name="host-tags_resource"></a>
+<a name="hosts_resource"></a>

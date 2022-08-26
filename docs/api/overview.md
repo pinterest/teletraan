@@ -18,9 +18,8 @@
 * Environments : Environment info APIs
 * ExternalAlerts
 * Group Roles : Group Roles related APIs
-* Host Tags : Host Tags related APIs
 * Hosts
-* Hosts Tags
+* Hosts Tags : Hosts Tags related APIs
 * Hosts and Systems : Host info APIs
 * Script Tokens : Internal script tokens APIs
 * Tags : Tagging APIs
