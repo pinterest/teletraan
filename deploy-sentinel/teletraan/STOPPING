@@ -1,5 +1,5 @@
 #!/bin/bash
 
-sleep 5m # Waits 5 minutes.
-
 echo Running STOPPING script.
+
+sleep 10m # Waits 10 minutes.
