@@ -41,12 +41,16 @@ def _get_latest_metrics(url):
     response = urllib2.urlopen(url)
     data = json.load(response)
 
+    logging.warning('Watch out!') # will print a message to the console
+    logging.info('I told you so') # will not print anything
+    logging.warning(data)
+
     # Return the first datapoint in the datapoints list
     if data:
         try:
             return [datapoint for datapoint in data['data'][0]['datapoints'] if datapoint[1] != None]
         except:
-            pass
+            logging.warning('Format not as expected')
            
         # Check for TSDB response
         if 'dps' in data[0] and len(data[0]['dps']) != 0:
