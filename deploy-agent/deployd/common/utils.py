@@ -24,12 +24,11 @@ import traceback
 import subprocess
 import yaml
 import json
-from deployd import IS_PINTEREST
+from deployd import IS_PINTEREST, TELEFIG_BINARY
 from deployd.common.stats import TimeElapsed, create_sc_increment, create_sc_timing
 
 log = logging.getLogger(__name__)
 
-TELEFIG_BINARY = "configure-serviceset"
 
 # noinspection PyProtectedMember
 def exit_abruptly(status=0):
@@ -148,6 +147,6 @@ def check_not_none(arg, msg=None):
         raise ValueError(msg)
     return arg
 
-def check_telefig_unavaialble_error(msg):
-    telefig_unavaialble_error = "{}: No such file or directory".format(TELEFIG_BINARY)
-    return msg.find(telefig_unavaialble_error) != -1
+def check_telefig_unavailable_error(msg):
+    telefig_unavailable_error = "{}: No such file or directory".format(TELEFIG_BINARY)
+    return msg.find(telefig_unavailable_error) != -1

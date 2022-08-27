@@ -546,6 +546,7 @@ class TestDeployAgent(tests.TestCase):
         self.assertEqual(agent._curr_report.report.status, AgentStatus.UNKNOWN)
 
     @mock.patch('deployd.agent.create_sc_increment')
+    @mock.patch('deployd.common.utils.TELEFIG_BINARY', "telefig")
     def test_send_deploy_status_with_telefig_unavailable_errors(self, mock_create_sc):
         status = DeployStatus()
         status.report = PingReport(jsonValue=self.deploy_goal1)
@@ -559,12 +560,11 @@ class TestDeployAgent(tests.TestCase):
             PingResponse(jsonValue=self.ping_noop_response)
         ]
         mock_create_sc.return_value = None
-
         client = mock.Mock()
         client.send_reports = mock.Mock(side_effect=ping_response_list)
         agent = DeployAgent(client=client, estatus=estatus, conf=self.config,
                             executor=self.executor, helper=self.helper)
-        report = DeployReport(status_code=AgentStatus.UNKNOWN, error_code=1, output_msg="/usr/local/bin/configure-serviceset: No such file or directory", retry_times=3)
+        report = DeployReport(status_code=AgentStatus.UNKNOWN, error_code=1, output_msg="/usr/local/bin/telefig: No such file or directory", retry_times=3)
         agent.process_deploy= mock.Mock(side_effect=[report])
         agent.serve_build()
         mock_create_sc.assert_called_once_with('deployd.stats.deploy.status', tags={

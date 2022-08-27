@@ -32,7 +32,7 @@ from deployd.common import utils
 from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
     DeployError, DeployErrorSource, DeployStage, AgentStatus
-from deployd.common.utils import check_telefig_unavaialble_error
+from deployd.common.utils import check_telefig_unavailable_error
 from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -113,11 +113,12 @@ class DeployAgent(object):
         if deploy_report.status_code:
             tags['status_code'] = deploy_report.status_code
         if deploy_report.output_msg: 
-            if deploy_report.output_msg.find("teletraan_config_manager") != -1:
-                tags['error_source'] = DeployErrorSource.TELEFIG
-            if check_telefig_unavaialble_error(deploy_report.output_msg):
+            if check_telefig_unavailable_error(deploy_report.output_msg):
                 tags['error_source'] = DeployErrorSource.TELEFIG
                 tags['error'] = DeployError.TELEFIG_UNAVAILABLE
+            elif deploy_report.output_msg.find("teletraan_config_manager") != -1:
+                tags['error_source'] = DeployErrorSource.TELEFIG
+            
         create_sc_increment('deployd.stats.deploy.status', tags=tags)
         
     def serve_build(self):
