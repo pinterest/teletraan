@@ -1,0 +1,2 @@
+PATH=/usr/sbin:/usr/bin:/bin
+* * * * * /usr/bin/python /usr/local/bin/ostrich-fetcher --ostrich-port 9999 &> /dev/null

@@ -1,4 +1,0 @@
-groups=deploy-sentinel
-id=deploy-sentinel
-hostname=test-host-1
-ip=127.0.0.1

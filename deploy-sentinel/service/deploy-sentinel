@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+
+import time
+import logging
+import pinlogger
+
+counter = 0
+log = logging.getLogger(__name__)
+
+pinlogger.STDERR_LEVEL = 10
+pinlogger.MIN_LOG_LEVEL = 10
+pinlogger.LOG_TO_STDERR = True
+pinlogger.LOG_DIR = '/var/log'
+pinlogger.initialize_logger(logger_filename='deploy-sentinel.log')
+
+while True:
+    log.critical('Hello world! for the {} times...'.format(counter))
+    time.sleep(60)
+    counter += 1

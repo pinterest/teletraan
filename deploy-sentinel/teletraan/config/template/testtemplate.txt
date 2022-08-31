@@ -1,0 +1,5 @@
+This file is called $FILENAME.
+
+This is a(n) $ADJECTIVE file!
+
+$AUTHOR wrote this file.

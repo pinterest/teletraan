@@ -1,3 +1,30 @@
 #!/bin/bash
 
-echo Running PRE_RESTART script.
+echo "This is PRE_RESTART!"
+
+set -e
+
+# Random test/check
+
+echo $TARGET
+echo "$TELETRAAN_test"
+echo "$TELETRAAN_test1"
+echo "OPCODE: "$OPCODE
+echo "Script variable1: "$TELETRAAN_v1
+echo "Script variable2: "{$TELETRAAN_v2:default_value}
+echo $FIRST_DEPLOY
+if [ -z "$FIRST_DEPLOY" ];then
+	echo "Not first deploy"
+else
+	echo "First deploy flag:"$FIRST_DEPLOY
+fi
+
+if [ "$IS_DOCKER" = "True" ]; then
+	exit
+fi
+
+# install virtualenv and bump up pip version, and verify
+#export VIRTUAL_ENV=$TARGET/venv
+#deploy-pip-install -p 6.0.8
+#$VIRTUAL_ENV/bin/pip show pip | grep "6.0.8" || exit 1
+#deploy-record-build -f settings_build.py

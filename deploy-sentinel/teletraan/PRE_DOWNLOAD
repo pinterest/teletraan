@@ -1,18 +1,7 @@
 #!/bin/bash
 
-set +e
+# PRE_DOWNLOAD is executed before downloading deploy artifact.
+# PRE_DOWNLOAD script is from the current running version, not from the
+# newer version which is yet to be download.
 
-echo Running PRE_DOWNLOAD script.
-# Remove old tmp files
-FILE=/tmp/deploy-sentinel
-if [ ! -d $FILE ]; then
-  echo 'file not found'
-else
-  rm -r $FILE
-fi
-
-# Delete running processes on port 8000
-PORT_NUMBER=8000
-lsof -i tcp:${PORT_NUMBER} | awk 'NR!=1 {print $2}' | xargs kill
-
-exit 0
+echo "This is PRE_DOWNLOAD!"

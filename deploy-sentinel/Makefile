@@ -1,14 +1,9 @@
-all:    publish
+.PHONY: all
+
+all: build
+
+build: clean
+	python setup.py sdist
 
 clean:
-	rm -fr quickstart-build.tar.gz
-
-build:	clean
-	tar -czf quickstart-build.tar.gz mysite teletraan
-
-publish: build quickstart.py
-	python quickstart.py
-        
-
-
-
+	rm -fr *.egg-info dist

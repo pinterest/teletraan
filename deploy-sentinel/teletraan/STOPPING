@@ -1,5 +1,7 @@
 #!/bin/bash
 
-echo Running STOPPING script.
+set -e
 
-sleep 10m # Waits 10 minutes.
+echo "STOPPING"
+#echo "Simulate failure"
+#exit 100

@@ -1,12 +1,14 @@
 #!/bin/bash
 
+# RESTARTING is the script to start or restart service.
+
+echo "This is RESTARTING!"
+
 set -e
+set -x
+#simulate failure
+#echo "yes"
+#sleep 300
+#exit 100
 
-echo Running RESTARTING script.
-
-# Register knox keys
-knox register -g -k teletraan:prod:rodimusapitoken
-knox register -g -k teletraan:integ:rodimusapitoken
-
-# Start service
-python ../mysite/manage.py runserver 0.0.0.0:8000 &
+configure-serviceset -c teletraan/config/serviceset.conf

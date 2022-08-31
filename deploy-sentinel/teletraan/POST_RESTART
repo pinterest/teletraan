@@ -1,20 +1,15 @@
 #!/bin/bash
 
-echo Running POST_RESTART script.
+# POST_RESTART is the last executed script. Typically perform health check, smoke test, register
+# with LB, warm up cache etc.
 
-# Environment Variable defined in DeployBoard Script Config
-echo $PORT
+echo "This is POST_RESTART!"
 
-# Built in Environment Variables 
-echo $ENV_NAME
-echo $STAGE_NAME
-echo $DEPLOY_ID
-echo $DEPLOY_STEP
-echo $OPCODE
-echo $DEPLOY_TYPE
-echo $BUILD_COMMIT
-echo $BUILD_NAME
-echo $BUILD_REPO
-echo $BUILD_BRANCH
-echo $BUILD_ID
-echo $BUILD_URL
+echo 'TEST='$BUILD_COMMIT
+echo 'DEPLOY_ID='$DEPLOY_ID
+echo 'TARGET='$TARGET
+echo 'ENV_NAME='$ENV_NAME
+echo 'STAGE_NAME='$STAGE_NAME
+echo 'BUILD_COMMIT='$BUILD_COMMIT
+echo 'OPCODE='$OPCODE
+

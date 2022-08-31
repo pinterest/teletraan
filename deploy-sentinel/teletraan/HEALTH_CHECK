@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Perform health check. This script will be called by deployagent every min
+
+echo "This is HEALTH_CHECK!"
+
+echo 'TEST='$BUILD_COMMIT
+echo 'DEPLOY_ID='$DEPLOY_ID
+echo 'TARGET='$TARGET
+echo 'ENV_NAME='$ENV_NAME
+echo 'STAGE_NAME='$STAGE_NAME
+echo 'BUILD_COMMIT='$BUILD_COMMIT
+echo 'OPCODE='$OPCODE
+
+# Health check
+if [ "$IS_DOCKER" == "True" ]; then
+    echo 'Perform health check'
+    telefig-healthchecker -u http://localhost:8000/health
+fi
