@@ -27,7 +27,6 @@ urlpatterns = [
         group_view.update_alarms),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/autoscaling/delete_metrics/$',
         group_view.delete_alarms),
-    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/$', group_view.GroupDetailView.as_view()),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/config_history/$', group_view.get_config_history),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/get_config_comparison/',
         group_view.get_config_comparison),
@@ -65,6 +64,10 @@ urlpatterns = [
 
     # groups related
     url(r'^groups/$', group_view.group_landing),
+    url(r'^groups/names', group_view.get_group_names),
+    url(r'^groups/search/(?P<group_name>[a-zA-Z0-9\-_]+)/$', group_view.search_groups),
+    url(r'^groups/search/$', group_view.group_landing),
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/$', group_view.GroupDetailView.as_view()),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/config/$', group_view.GroupConfigView.as_view()),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/envs/', group_view.get_envs),
     url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/gen_asg_setting', group_view.gen_asg_setting),
