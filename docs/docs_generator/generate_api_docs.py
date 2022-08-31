@@ -28,13 +28,13 @@ def generate_big_docs():
     """
     if len(sys.argv) > 1:
         swagger_json_input = sys.argv[1]
-        generate_cmd = ['java', '-jar', 'build/libs/swagger2markup-cli-1.3.3.jar', 'generate', '-i', swagger_json_input,
-                        '-o', api_path, '-l', 'MARKDOWN', '-g', 'tags']
+        generate_cmd = ['java', '-jar', 'build/libs/swagger2markup-cli-1.3.3.jar', 'convert', '-i', swagger_json_input,
+                        '-d', api_path, '-c', 'config.properties']
         process = subprocess.Popen(generate_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         output, error = process.communicate()
-        print output
+        print(output)
         if error and 'SLF4J' not in error:
-            print "Error generating Swagger2Markup docs:", error
+            print("Error generating Swagger2Markup docs:", error)
 
 
 def remove_old_docs():
