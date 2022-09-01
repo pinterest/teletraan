@@ -9,26 +9,57 @@
 {% block navbar-search %}
 <form class="navbar-form navbar-left" role="search">
     <div class="form-group has-feedback">
-        <input id="buildSearchInputId" type="text" class="form-control"
-               placeholder="Search builds...">
-        <span id="buildSearchFeedbackId"
-              class="glyphicon glyphicon-search form-control-feedback"></span>
+        <div>
+            <input id="groupSearchInputId" type="text" class="form-control" placeholder="Search groups...">
+        </div>
+        <span id="groupSearchFeedbackId" class="pointer-cursor glyphicon glyphicon-search form-control-feedback"></span>
     </div>
 </form>
 <script>
-    $('#buildSearchInputId').keypress(function(event) {
+    $(function () {
+        var groups = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            limit: 10,
+            prefetch: {
+                url: '/groups/names',
+                filter: function (list) {
+                    return $.map(list, function (group) {
+                        return { name: group };
+                    });
+                }
+            }
+        });
+
+        // kicks off the loading/processing of `local` and `prefetch`
+        groups.initialize();
+
+        // passing in `null` for the `options` arguments will result in the default
+        // options being used
+        $('#groupSearchInputId').typeahead(null, {
+            name: 'groups',
+            displayKey: 'name',
+            // `ttAdapter` wraps the suggestion engine in an adapter that
+            // is compatible with the typeahead jQuery plugin
+            source: groups.ttAdapter()
+        });
+    });
+    
+    $('#groupSearchInputId').keypress(function(event) {
         if (event.keyCode != 13) {
             return true;
         }
-        search_builds();
+        search_groups();
         return false;
     });
 
-    $('#buildSearchFeedbackId').click(function() {
-        search_builds();
+    $('#groupSearchFeedbackId').click(function() {
+        search_groups();
     });
 
-    function search_builds() {
+    function search_groups() {
+        group_name = $('#groupSearchInputId').val();
+        window.location = "/groups/search/" + group_name;
     }
 </script>
 {% endblock %}

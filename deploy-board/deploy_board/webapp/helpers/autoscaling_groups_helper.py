@@ -29,8 +29,10 @@ Comparator = ["GreaterThanOrEqualToThreshold", "GreaterThanThreshold", "LessThan
 #
 # Groups resource
 #
-def get_env_group_names(request, start, size):
-    params = {"start": start, "size": size}
+def get_env_group_names(request, start, size, name_filter=None):
+    params = [('start', start), ('size', size)]
+    if name_filter:
+        params.append(('nameFilter', name_filter))
     return rodimus_client.get("/groups/names", request.teletraan_user_id.token, params=params)
 
 
