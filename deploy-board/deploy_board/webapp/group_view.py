@@ -1250,7 +1250,7 @@ def create_manually_health_check(request, group_name):
     health_check_info["type"] = "MANUALLY_TRIGGERED"
     output = autoscaling_groups_helper.create_health_check(request, group_name, health_check_info)
     print(output, group_name)
-    raise Exception('output returned: %s' % (output))
+    raise Exception('output returned:')
     return redirect('/groups/{}/health_check_activities/'.format(group_name))
 
 
