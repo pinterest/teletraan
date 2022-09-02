@@ -68,7 +68,7 @@
                     showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip" v-on:subnetfilterclick="changeSubnetType"></placements-select>
                     <form-warning v-show="showSubnetReplacementAlert" v-bind:alert-text="subnetReplacementWarning"></form-warning>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
-                    <label-input v-show="inAdvanced" label="Replacement Timeout" title="Time out for cluster replacement in seconds"
+                    <label-input v-show="inAdvanced" label="Replacement Timeout" title="Time out for cluster replacement in minutes"
                         v-model="replacementTimeout"></label-input>
                     <div v-if="inAdvanced">
                         <div class="form-group"></div>
@@ -822,8 +822,8 @@
                     }
 
                     const replacementTimeout = clusterInfo['replacementTimeout']
-                    if (replacementTimeout == null || isNaN(replacementTimeout) || replacementTimeout < 5 * 60 || replacementTimeout > 24 * 60 * 60) {
-                        globalNotificationBanner.error = "Replacement timeout must be a number between 5 minutes and 24 hours."
+                    if (replacementTimeout == null || isNaN(replacementTimeout) || replacementTimeout < 5 || replacementTimeout > 24 * 60) {
+                        globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)"
                         return false
                     }
 

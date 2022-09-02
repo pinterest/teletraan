@@ -52,7 +52,7 @@
                     <placements-select label="Placements" title="Placements" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP"
                         showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
-                    <label-input label="Replacement Timeout" placeholder="2700" v-model="replacementTimeout" title="Time out for cluster replacement in seconds"></label-input>
+                    <label-input label="Replacement Timeout" placeholder="45" v-model="replacementTimeout" title="Time out for cluster replacement in minutes"></label-input>
                     <div>
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -168,7 +168,7 @@ var capacitySetting = new Vue({
                     isSelected: item.name == info.defaultCell
                 }
             }),
-        replacementTimeout: 2700,
+        replacementTimeout: 45,
         securityZoneHelpData: [],
         securityZones: info.securityZones.map(
             function (item) {
@@ -475,8 +475,8 @@ var capacitySetting = new Vue({
             }
 
             const replacementTimeout = clusterInfo['replacementTimeout']
-            if (replacementTimeout == null || isNaN(replacementTimeout) || replacementTimeout < 5 * 60 || replacementTimeout > 24 * 60 * 60) {
-                globalNotificationBanner.error = "Replacement timeout must be a number between 5 minutes and 24 hours."
+            if (replacementTimeout == null || isNaN(replacementTimeout) || replacementTimeout < 5 || replacementTimeout > 24 * 60) {
+                globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)"
                 return false
             }
 
