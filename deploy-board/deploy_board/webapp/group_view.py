@@ -1250,7 +1250,8 @@ def create_manually_health_check(request, group_name):
     health_check_info["type"] = "MANUALLY_TRIGGERED"
     output = autoscaling_groups_helper.create_health_check(request, group_name, health_check_info)
     print(output, group_name)
-    raise Exception('output returned:')
+    #raise TeletraanException("Invalid capacity: {}. Desired capacity must be within the limits of ASG's minimum capacity ({}) and maximum capacity ({}). Please change the value you input for Capacity.".format(params['capacity'], asg_minsize, asg_maxsize))
+    raise TeletraanException("output returned:{}".format(output))
     return redirect('/groups/{}/health_check_activities/'.format(group_name))
 
 
