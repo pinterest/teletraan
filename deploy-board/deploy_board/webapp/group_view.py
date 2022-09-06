@@ -1250,7 +1250,9 @@ def create_manually_health_check(request, group_name):
     health_check_info["type"] = "MANUALLY_TRIGGERED"
     output = autoscaling_groups_helper.create_health_check(request, group_name, health_check_info)
     if (output) {
-        raise TeletraanException("Healthcheck host could not be created. One of the most primary reason is having healthcheck disabled. Please click on configuration tab to enable health check for the autoscaling setting %s", type(output))
+        raise TeletraanException("Healthcheck host could not be created. \\
+            One of the most primary reason is having healthcheck disabled. \\
+            Please click on configuration tab to enable health check for the autoscaling setting {}".format(type(output)))
     } 
         
     return redirect('/groups/{}/health_check_activities/'.format(group_name))
