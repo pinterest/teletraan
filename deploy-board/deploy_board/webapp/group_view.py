@@ -1207,11 +1207,16 @@ def get_health_check_activities(request, group_name):
         check['env_name'] = env.get('envName')
         check['stage_name'] = env.get('stageName')
 
+    group_info = autoscaling_groups_helper.get_group_info(request, group_name)
+    group_config = group_info.get("groupInfo")
+    healthcheck_state = group_config.get("healthcheckState")
+
     return render(request, 'groups/health_check_activities.html', {
         "group_name": group_name,
         "health_checks": health_checks,
         "asg_status": asg_status,
         "scaling_down_event_enabled": scaling_down_event_enabled,
+        "healthcheck_state": healthcheck_state,
         "pageIndex": index,
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,

@@ -63,6 +63,9 @@
             {% endif %}
         </h4>
 
+        {%if healthcheck_state == False %}
+            <span class="label label-info">Health Check Disabled for cluster. Enable it to manually trigger healthcheck <a href="/groups/{{ group_name }}/config/">{{ group_name }}</a></span>
+        {% endif %}
          <!---- Buttons --->
         {% if not scaling_down_event_enabled and asg_status == "ENABLED" %}
             <div class="btn-group pull-right">
@@ -81,13 +84,15 @@
                 </button>
             </div>
         {% endif %}
-        <div class="btn-group pull-right">
-            <button type="button" class="deployToolTip btn btn-default btn-sm"
-                    data-toggle="modal" data-target="#addHealthCheckModelId"
-                    title="Manually create a new Health Check ">
-            <span class="glyphicon glyphicon-plus"></span> Create a health check
-            </button>
-        </div>
+        {% if healthcheck_state %}
+            <div class="btn-group pull-right">
+                <button type="button" class="deployToolTip btn btn-default btn-sm"
+                        data-toggle="modal" data-target="#addHealthCheckModelId"
+                        title="Manually create a new Health Check ">
+                <span class="glyphicon glyphicon-plus"></span> Create a health check
+                </button>
+            </div>
+        {% endif %}    
     </div>
     <div class="panel-body table-responsive">
         {% include "groups/health_check_activities.tmpl" %}
