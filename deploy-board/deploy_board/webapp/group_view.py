@@ -1245,7 +1245,7 @@ def get_health_check_details(request, id):
 
 
 def create_manually_health_check(request, group_name):
-    try:
+    
         health_check_info = {}
         health_check_info["group_name"] = group_name
         health_check_info["type"] = "MANUALLY_TRIGGERED"
@@ -1254,8 +1254,6 @@ def create_manually_health_check(request, group_name):
         #raise TeletraanException("Invalid capacity: {}. Desired capacity must be within the limits of ASG's minimum capacity ({}) and maximum capacity ({}). Please change the value you input for Capacity.".format(params['capacity'], asg_minsize, asg_maxsize))
         raise TeletraanException("output returned:{} | {}".format(output, group_name))
         return redirect('/groups/{}/health_check_activities/'.format(group_name))
-    except:
-        pass
 
 
 def enable_scaling_down_event(request, group_name):
