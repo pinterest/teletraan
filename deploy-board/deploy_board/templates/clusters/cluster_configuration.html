@@ -68,6 +68,8 @@
                     showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip" v-on:subnetfilterclick="changeSubnetType"></placements-select>
                     <form-warning v-show="showSubnetReplacementAlert" v-bind:alert-text="subnetReplacementWarning"></form-warning>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
+                    <label-input v-show="inAdvanced" label="Replacement Timeout" title="Time out for cluster replacement in minutes"
+                        v-model="replacementTimeout"></label-input>
                     <div v-if="inAdvanced">
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -506,6 +508,7 @@
                             isSelected: item.name == currentCluster.cellName
                         }
                     }),
+                replacementTimeout: currentCluster.replacementTimeout,
                 securityZones: info.securityZones.map(function(item) {
                     return {
                         value: item.abstract_name,
@@ -818,6 +821,12 @@
                         return false
                     }
 
+                    const replacementTimeout = clusterInfo['replacementTimeout']
+                    if (replacementTimeout == null || isNaN(replacementTimeout) || replacementTimeout < 5 || replacementTimeout > 24 * 60) {
+                        globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)"
+                        return false
+                    }
+
                     return true
                 },
                 sendRequest: function(clusterInfo) {
@@ -887,6 +896,7 @@
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
+                    clusterInfo['replacementTimeout'] = this.replacementTimeout;
                     clusterInfo['configs'] = this.allUserData.reduce(function(map, obj) {
                         map[obj.name] = obj.value;
                         return map
