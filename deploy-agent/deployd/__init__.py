@@ -20,4 +20,4 @@ METRIC_PORT_HEALTH = int(os.getenv('METRIC_PORT_HEALTH')) if os.getenv('METRIC_P
 METRIC_CACHE_PATH = os.getenv('METRIC_CACHE_PATH', None)
 TELEFIG_BINARY = os.getenv('TELEFIG_BINARY', "")
 
-__version__ = '1.2.40'
+__version__ = '1.2.41'
