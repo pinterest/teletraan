@@ -446,7 +446,7 @@ def successRateTip(deploy):
 
 @register.filter("hostStateClass")
 def hostStateClass(state):
-    if state == "PENDING_TERMINATE" or state == "TERMINATING":
+    if state in ("PENDING_TERMINATE", "TERMINATING", "PENDING_REPLACEABLE_TERMINATE"):
         return "danger"
     else:
         return ""
@@ -605,7 +605,7 @@ def agentIcon(agentStats):
 
 @register.filter("hostButton")
 def hostButton(host):
-    if host['state'] == 'PENDING_TERMINATE' or host['state'] == 'TERMINATING':
+    if host['state'] in ('PENDING_TERMINATE', 'TERMINATING', 'PENDING_REPLACEABLE_TERMINATE'):
         return 'btn-warning'
 
     return 'btn-default'

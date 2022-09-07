@@ -505,7 +505,8 @@ public class EnvironHandler {
         agentDAO.updateAgentById(hostId, agentBean);
 
         HostBean hostBean = new HostBean();
-        hostBean.setState(HostState.PENDING_TERMINATE);
+        HostState state = replaceHost ? HostState.PENDING_REPLACEABLE_TERMINATE : HostState.PENDING_TERMINATE;
+        hostBean.setState(state);
         hostBean.setLast_update(System.currentTimeMillis());
         hostDAO.updateHostById(hostId, hostBean);
     }
