@@ -1249,17 +1249,12 @@ def get_health_check_details(request, id):
     })
 
 
-def create_manually_health_check(request, group_name):  
+def create_manually_health_check(request, group_name):
     health_check_info = {}
     health_check_info["group_name"] = group_name
     health_check_info["type"] = "MANUALLY_TRIGGERED"
-    output = autoscaling_groups_helper.create_health_check(request, group_name, health_check_info)
-    
-    raise TeletraanException("Healthcheck host could not be created. One of the most primary reason is having healthcheck disabled. Please click on configuration tab to enable health check for the autoscaling setting {}".format(type(output)))
-    
-        
+    autoscaling_groups_helper.create_health_check(request, group_name, health_check_info)
     return redirect('/groups/{}/health_check_activities/'.format(group_name))
-    
 
 
 def enable_scaling_down_event(request, group_name):
