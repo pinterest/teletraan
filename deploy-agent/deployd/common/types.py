@@ -55,7 +55,11 @@ class DeployType(object):
 class DeployErrorSource(object): 
     TELEFIG = 'TELEFIG'
     UNKNOWN = 'UNKNOWN'
-    
+
+class DeployError(object): 
+    TELEFIG_UNAVAILABLE = 'TELEFIG_UNAVAILABLE'
+    UNKNOWN = 'UNKNOWN'
+
 class OpCode(object):
     NOOP = 'NOOP'
     DEPLOY = 'DEPLOY'

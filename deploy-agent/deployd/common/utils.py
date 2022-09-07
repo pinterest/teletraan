@@ -24,7 +24,7 @@ import traceback
 import subprocess
 import yaml
 import json
-from deployd import IS_PINTEREST
+from deployd import IS_PINTEREST, TELEFIG_BINARY
 from deployd.common.stats import TimeElapsed, create_sc_increment, create_sc_timing
 
 log = logging.getLogger(__name__)
@@ -147,3 +147,8 @@ def check_not_none(arg, msg=None):
         raise ValueError(msg)
     return arg
 
+def check_telefig_unavailable_error(msg):
+    if not TELEFIG_BINARY:
+        return False
+    telefig_unavailable_error = "{}: No such file or directory".format(TELEFIG_BINARY)
+    return msg.find(telefig_unavailable_error) != -1
