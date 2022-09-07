@@ -8,27 +8,27 @@
           <button id="pauseButton"
           class="btn btn-default btn-sm" data-toggle="tooltip"
           title="Pause selected hosts">
-          <span class="glyphicon glyphicon-pause"></span> Pause 
+          <span class="glyphicon glyphicon-pause"></span> Pause
           </button>
           <button id="resumeButton"
           class="btn btn-default btn-sm" data-toggle="tooltip"
           title="Resume selected hosts">
-          <span class="glyphicon glyphicon-play"></span> Resume 
+          <span class="glyphicon glyphicon-play"></span> Resume
           </button>
           <button id="resetButton"
           class="btn btn-default btn-sm" data-toggle="tooltip"
           title="reset selected hosts">
-          <span class="glyphicon glyphicon-repeat"></span> Reset 
+          <span class="glyphicon glyphicon-repeat"></span> Reset
           </button>
           <button id="terminateButton"
           class="btn btn-default btn-sm" data-toggle="tooltip"
           title="Soft terminate selected hosts">
-          <span class="glyphicon glyphicon-off"></span> Terminate 
+          <span class="glyphicon glyphicon-off"></span> Terminate
           </button>
           <button id="forceTerminateButton"
           class="btn btn-default btn-sm" data-toggle="tooltip"
           title="Soft terminate selected hosts">
-          <span class="glyphicon glyphicon-remove"></span> Force Terminate 
+          <span class="glyphicon glyphicon-remove"></span> Force Terminate
           </button>
         </div>
   </div>
@@ -145,7 +145,7 @@
                 checkedHosts.push($(this).val());
             }
         });
-      
+
         if ($("#hostTable input:checkbox:checked").length <= 0) {
             $(".btn").prop("disabled", true);
         } else {
@@ -155,12 +155,12 @@
 
     $("#pauseButton").on("click", function() {
         $('#pauseSelectedHosts').modal();
-        $('#pauseSelectedHosts .modal-body #hostsList').val(checkedHosts);  
+        $('#pauseSelectedHosts .modal-body #hostsList').val(checkedHosts);
     });
 
     $("#resumeButton").on("click", function() {
         $('#resumeSelectedHosts').modal();
-        $('#resumeSelectedHosts .modal-body #hostsList').val(checkedHosts);  
+        $('#resumeSelectedHosts .modal-body #hostsList').val(checkedHosts);
     });
 
     $("#resetButton").on("click", function() {
@@ -259,6 +259,8 @@
                 <div class="modal-body">
                     <p> Are you sure you would like to terminate the following hosts?</p>
                     <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
+                    <br>
+                    <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Terminate</button>
@@ -281,6 +283,8 @@
                 <div class="modal-body">
                     <p> Are you sure you would like to force terminate the following hosts?</p>
                     <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
+                    <br>
+                    <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Force Terminate</button>

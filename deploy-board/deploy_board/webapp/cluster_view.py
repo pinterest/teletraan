@@ -751,7 +751,9 @@ def terminate_hosts(request, name, stage):
     if 'hostIds' in post_params:
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
-    environ_hosts_helper.stop_service_on_host(request, name, stage, host_ids)
+
+    replace_host = True if 'replaceHost' in post_params else False
+    environ_hosts_helper.stop_service_on_host(request, name, stage, host_ids, replace_host)
     return redirect('/env/{}/{}/'.format(name, stage))
 
 
@@ -766,11 +768,7 @@ def force_terminate_hosts(request, name, stage):
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
 
-    if 'replaceHost' in post_params:
-        replace_host = True
-    else:
-        replace_host = False
-
+    replace_host = True if 'replaceHost' in post_params else False
     cluster_name = common.get_cluster_name(request, name, stage)
     if not cluster_name:
         groups = environs_helper.get_env_capacity(

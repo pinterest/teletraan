@@ -28,6 +28,10 @@
                             <strong>Warning!</strong> This host is unreachable. It cannot be gracefully shut down.
                         </div>
                     {% endif %}
+
+                    {% if asg_group %}
+                        <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
+                    {% endif %}
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
@@ -58,16 +62,9 @@
                 </div>
                 <div class="modal-body">
                     <p> Are you sure to force terminate {{ hostname }}?</p>
-
-                    <a data-toggle="collapse" href="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                    <span id="collapseToggler" class="glyphicon glyphicon-chevron-right"></span>
-                    </a>
-
-                    <div class="collapse" id="collapseExample">
-                      <div class="card card-block">
-                        <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host
-                      </div>
-                    </div>
+                    {% if asg_group %}
+                        <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
+                    {% endif %}
                 </div>
 
                 <div class="modal-footer">
