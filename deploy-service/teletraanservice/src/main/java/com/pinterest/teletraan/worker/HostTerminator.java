@@ -61,7 +61,7 @@ public class HostTerminator implements Runnable {
         for (AgentBean agentBean : agentBeans) {
             if (agentBean.getDeploy_stage() != DeployStage.STOPPED && agentBean.getState() != AgentState.PAUSED_BY_SYSTEM) {
                 stopSucceeded = false;
-                LOG.info(String.format("Agent stop was unsucessful for {}", agentBean.getHost_id()));
+                LOG.info(String.format("Agent stop was unsucessful for %s", agentBean.getHost_id()));
             }
         }
 
@@ -76,9 +76,9 @@ public class HostTerminator implements Runnable {
     private boolean removeTerminatedHost(HostBean host) throws Exception {
         String hostId = host.getHost_id();
         Collection<String> terminatedHosts = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
-        LOG.info(String.format("Delete records of list of terminated hosts {}", terminatedHosts.toString()));
+        LOG.info(String.format("Delete records of list of terminated hosts %s", terminatedHosts.toString()));
         if (terminatedHosts.contains(hostId)) {
-            LOG.info(String.format("Delete records of terminated host {}", hostId));
+            LOG.info(String.format("Delete records of terminated host %s", hostId));
             hostHandler.removeHost(hostId);
             LOG.info("Host was removed");
             return true;
@@ -89,9 +89,9 @@ public class HostTerminator implements Runnable {
 
     private void processBatch() throws Exception {
         List<HostBean> hosts = hostDAO.getTerminatingHosts();
-        LOG.info(String.format("This is the list of terminating hosts {}", hosts.toString()));
+        LOG.info(String.format("This is the list of terminating hosts %s", hosts.toString()));
         Collections.shuffle(hosts);
-        LOG.info(String.format("This is the list of shuffled terminating hosts {}", hosts.toString()));
+        LOG.info(String.format("This is the list of shuffled terminating hosts %s", hosts.toString()));
         for (HostBean host : hosts) {
             String lockName = String.format("HOSTTERMINATOR-%s", host.getHost_id());
             Connection connection = utilDAO.getLock(lockName);
