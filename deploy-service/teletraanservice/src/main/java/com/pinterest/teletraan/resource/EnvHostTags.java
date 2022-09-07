@@ -26,7 +26,7 @@ import java.util.*;
 @Api(tags = "Hosts Tags")
 @SwaggerDefinition(
     tags = {
-        @Tag(name = "Host Tags", description = "Host Tags related APIs"),
+        @Tag(name = "Hosts Tags", description = "Hosts Tags related APIs"),
     }
 )
 @Produces(MediaType.APPLICATION_JSON)

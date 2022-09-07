@@ -1,154 +1,185 @@
 ### Group Roles
-
 Group Roles related APIs
 
-#### Get group role by group and environment name
-```
-GET /v1/envs/{envName}/group_roles/{groupName}
-```
 
-##### Description
-
-Returns a GroupRoles object containing for given group and environment names.
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName||true|string||
-|PathParameter|groupName||true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|GroupRolesBean|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Update an environment's group role
-```
-PUT /v1/envs/{envName}/group_roles/{groupName}
-```
-
-##### Description
-
-Updates a GroupRoles object for given group and environment names with given GroupRoles object.
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName||true|string||
-|PathParameter|groupName||true|string||
-|BodyParameter|body||false|GroupRolesBean||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|GroupRolesBean|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Deletes a group role from an environment
-```
-DELETE /v1/envs/{envName}/group_roles/{groupName}
-```
-
-##### Description
-
-Deletes a GroupRoles object by given group and environment names.
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName||true|string||
-|PathParameter|groupName||true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
-#### Get all environment group roles
-```
-GET /v1/envs/{envName}/group_roles
-```
-
-##### Description
-
-Returns a list of GroupRoles objects for the given environment name.
-
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName||true|string||
-
-
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|GroupRolesBean array|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
+<a name="create"></a>
 #### Create a group role for an environment
 ```
 POST /v1/envs/{envName}/group_roles
 ```
 
-##### Description
 
+##### Description
 Creates a new GroupRoles object for a given environment name.
 
+
 ##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName|Environment name.|true|string||
-|BodyParameter|body|GroupRolesBean object.|true|GroupRolesBean||
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**envName**  <br>*required*|Environment name.|string|
+|**Body**|**body**  <br>*required*|GroupRolesBean object.|[GroupRolesBean](#grouprolesbean)|
 
 
 ##### Responses
+
 |HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
+|---|---|---|
+|**default**|successful operation|No Content|
 
 
 ##### Consumes
 
-* application/json
+* `application/json`
+
 
 ##### Produces
 
-* application/json
+* `application/json`
 
+
+<a name="getbyresource"></a>
+#### Get all environment group roles
+```
+GET /v1/envs/{envName}/group_roles
+```
+
+
+##### Description
+Returns a list of GroupRoles objects for the given environment name.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|successful operation|< [GroupRolesBean](#grouprolesbean) > array|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="getbynameandresource"></a>
+#### Get group role by group and environment name
+```
+GET /v1/envs/{envName}/group_roles/{groupName}
+```
+
+
+##### Description
+Returns a GroupRoles object containing for given group and environment names.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+|**Path**|**groupName**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|successful operation|[GroupRolesBean](#grouprolesbean)|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="update"></a>
+#### Update an environment's group role
+```
+PUT /v1/envs/{envName}/group_roles/{groupName}
+```
+
+
+##### Description
+Updates a GroupRoles object for given group and environment names with given GroupRoles object.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+|**Path**|**groupName**  <br>*required*|string|
+|**Body**|**body**  <br>*optional*|[GroupRolesBean](#grouprolesbean)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|successful operation|[GroupRolesBean](#grouprolesbean)|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="delete"></a>
+#### Deletes a group role from an environment
+```
+DELETE /v1/envs/{envName}/group_roles/{groupName}
+```
+
+
+##### Description
+Deletes a GroupRoles object by given group and environment names.
+
+
+##### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+|**Path**|**groupName**  <br>*required*|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**default**|successful operation|No Content|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="hosts_resource"></a>
