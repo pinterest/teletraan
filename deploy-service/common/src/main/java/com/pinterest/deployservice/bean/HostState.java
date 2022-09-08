@@ -21,13 +21,13 @@ package com.pinterest.deployservice.bean;
  * ACTIVE:
  *      Host is ready to deploy
  * PENDING_TERMINATE:
- *      Host is pending terminate
+ *      Host is pending terminate with replacement request
  * TERMINATING:
  *      Host if being terminated
  * TERMINATED:
  *      Host is terminated
- * PENDING_REPLACEABLE_TERMINATE:
- *      Host is pending terminate with replacement request
+ * PENDING_TERMINATE_NO_REPLACE:
+ *      Host is pending terminate without replacement request
  */
 public enum HostState {
     PROVISIONED,
@@ -35,5 +35,5 @@ public enum HostState {
     PENDING_TERMINATE,
     TERMINATING,
     TERMINATED,
-    PENDING_REPLACEABLE_TERMINATE
+    PENDING_TERMINATE_NO_REPLACE
 }

@@ -114,7 +114,7 @@ public class DBHostDAOImpl implements HostDAO {
     public void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception {
         long now = System.currentTimeMillis();
         //TODO need to refactoring this to be more generic to all columns, e.g. use genStringGroupClause() like the other DAOs
-        // If state is PENDING_TERMINATE, PENDING_REPLACEABLE_TERMINATE or TERMINATING, do not overwrite its state
+        // If state is PENDING_TERMINATE, PENDING_TERMINATE_NO_REPLACE or TERMINATING, do not overwrite its state
         StringBuilder names = new StringBuilder("(host_id,group_name,create_date,last_update,state");
         if (hostName != null) {
             names.append(",host_name");
@@ -152,7 +152,7 @@ public class DBHostDAOImpl implements HostDAO {
         sb.setLength(sb.length() - 1);
         new QueryRunner(dataSource).update(String.format(INSERT_UPDATE_TEMPLATE, names, sb.toString(),
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                HostState.PENDING_REPLACEABLE_TERMINATE.toString()), ip, now, hostName, hostName, ip);
+                HostState.PENDING_TERMINATE_NO_REPLACE.toString()), ip, now, hostName, hostName, ip);
     }
 
     @Override
@@ -192,7 +192,7 @@ public class DBHostDAOImpl implements HostDAO {
     public List<HostBean> getTerminatingHosts() throws Exception {
         ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
         return new QueryRunner(dataSource).query(GET_HOSTS_BY_STATES, h, HostState.PENDING_TERMINATE.toString(),
-                HostState.TERMINATING.toString(), HostState.PENDING_REPLACEABLE_TERMINATE.toString());
+                HostState.TERMINATING.toString(), HostState.PENDING_TERMINATE_NO_REPLACE.toString());
     }
 
     @Override
@@ -236,7 +236,7 @@ public class DBHostDAOImpl implements HostDAO {
         return new QueryRunner(dataSource).query(GET_RETIRED_HOSTIDS_BY_GROUP,
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                HostState.PENDING_REPLACEABLE_TERMINATE.toString());
+                HostState.PENDING_TERMINATE_NO_REPLACE.toString());
     }
 
     @Override
@@ -244,7 +244,7 @@ public class DBHostDAOImpl implements HostDAO {
         return new QueryRunner(dataSource).query(GET_RETIRED_AND_FAILED_HOSTIDS_BY_GROUP,
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                HostState.PENDING_REPLACEABLE_TERMINATE.toString(),
+                HostState.PENDING_TERMINATE_NO_REPLACE.toString(),
                 AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
     }
 
@@ -254,7 +254,7 @@ public class DBHostDAOImpl implements HostDAO {
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(),
                 AgentState.NORMAL.toString(), DeployStage.SERVING_BUILD.toString(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                HostState.PENDING_REPLACEABLE_TERMINATE.toString());
+                HostState.PENDING_TERMINATE_NO_REPLACE.toString());
     }
 
     @Override
@@ -262,7 +262,7 @@ public class DBHostDAOImpl implements HostDAO {
         return new QueryRunner(dataSource).query(GET_NEW_HOSTIDS_BY_GROUP,
             SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
             HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-            HostState.PENDING_REPLACEABLE_TERMINATE.toString());
+            HostState.PENDING_TERMINATE_NO_REPLACE.toString());
     }
 
     @Override
@@ -270,7 +270,7 @@ public class DBHostDAOImpl implements HostDAO {
         return new QueryRunner(dataSource).query(GET_FAILED_HOSTIDS_BY_GROUP,
                 SingleResultSetHandlerFactory.<String>newListObjectHandler(), groupName,
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                HostState.PENDING_REPLACEABLE_TERMINATE.toString(),
+                HostState.PENDING_TERMINATE_NO_REPLACE.toString(),
                 AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
     }
 }

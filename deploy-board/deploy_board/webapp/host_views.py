@@ -63,7 +63,7 @@ def get_asg_name(request, hosts):
 
 def get_show_terminate(hosts):
     for host in hosts:
-        if host and host.get('state') and host.get('state') not in ('PENDING_TERMINATE', 'TERMINATING', 'TERMINATED', 'PENDING_REPLACEABLE_TERMINATE'):
+        if host and host.get('state') and host.get('state') not in ('PENDING_TERMINATE', 'TERMINATING', 'TERMINATED', 'PENDING_TERMINATE_NO_REPLACE'):
             return True
     return False
 

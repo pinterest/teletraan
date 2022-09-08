@@ -130,7 +130,7 @@ public class HostBean implements Updatable {
     }
 
     public Boolean isPendingTerminate() {
-        return this.state == HostState.PENDING_TERMINATE || this.state == HostState.PENDING_REPLACEABLE_TERMINATE;
+        return this.state == HostState.PENDING_TERMINATE || this.state == HostState.PENDING_TERMINATE_NO_REPLACE;
     }
 
     @Override

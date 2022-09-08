@@ -67,7 +67,8 @@ public class HostTerminator implements Runnable {
         if (stopSucceeded) {
             LOG.info(String.format("Host %s is stopped. Terminate it.", hostId));
             String clusterName = host.getGroup_name();
-            rodimusManager.terminateHostsByClusterName(clusterName, Collections.singletonList(hostId));
+            Boolean replaceHost = host.getState() == HostState.PENDING_TERMINATE;
+            rodimusManager.terminateHostsByClusterName(clusterName, Collections.singletonList(hostId), replaceHost);
         }
     }
 
