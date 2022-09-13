@@ -118,7 +118,7 @@ public class HotfixStateTransitioner implements Runnable {
                     // Initial state, need to start job
                     String buildParams = "BASE_COMMIT=" + buildBean.getScm_commit() + "&COMMITS=" + hotBean.getCommits() +
                         "&SUFFIX=" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
-                        "&HOTFIX_ID=" + hotBean.getId();
+                        "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getScm_repo();
                     // Start job and set start time
                     jenkins.startBuild(hotBean.getJob_name(), buildParams);
                     LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
@@ -143,7 +143,7 @@ public class HotfixStateTransitioner implements Runnable {
                         if (status.equals("SUCCESS")) {
                             String buildName = getBuildName(hotBean);
                             String buildParams = "BRANCH=" + "hotfix_" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
-                                "&BUILD_NAME=" + buildName + "&HOTFIX_ID=" + hotBean.getId();
+                                "&BUILD_NAME=" + buildName + "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getScm_repo();
                             hotBean.setJob_name(hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
                             jenkins.startBuild(hotBean.getJob_name(), buildParams);
                             LOG.info("Starting new Jenkins Job (private-build) for hotfix id {}", hotfixId);
