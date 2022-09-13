@@ -143,7 +143,7 @@ _HEALTH_STATUS_TO_ICONS = {
     "UNKNOWN": "fa fa-spinner fa-spin",
     "SUCCEEDED": "fa fa-spinner fa-spin color-green",
     "QUALIFIED": "fa fa-check-circle color-green",
-    "TELETRAAN_STOP_REQUESTED": "fa fa-circle-stop fa-blink color-yellow",
+    "TELETRAAN_STOP_REQUESTED": "fa fa-circle-stop fa-blink color-green",
     "FAILED": "fa fa-circle fa-blink color-red",
     "TIMEOUT": "fa fa-minus-circle",
 }
