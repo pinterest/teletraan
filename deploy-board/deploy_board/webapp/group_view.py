@@ -49,7 +49,34 @@ def group_landing(request):
         "disablePrevious": index <= 1,
         "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
     })
+    
 
+def get_group_names(request):
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    group_names = autoscaling_groups_helper.get_env_group_names(request, index, size)
+    return HttpResponse(json.dumps(group_names), content_type="application/json")
+    
+    
+def search_groups(request, group_name):
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    group_names = autoscaling_groups_helper.get_env_group_names(request, index, size, name_filter=group_name)
+    
+    if not group_names:
+        return redirect('/groups/')
+
+    if len(group_names) == 1:
+        return redirect('/groups/%s/' % group_names[0])
+    
+    return render(request, 'groups/group_landing.html', {
+    "group_names": group_names,
+    "pageIndex": index,
+    "pageSize": DEFAULT_PAGE_SIZE,
+    "disablePrevious": index <= 1,
+    "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
+    })
+    
 
 def get_system_specs(request):
     instance_types = specs_helper.get_instance_types(request)
@@ -521,29 +548,25 @@ def delete_alarms(request, group_name):
 
 def add_alarms(request, group_name):
     params = request.POST
-    try:
-        alarm_info = {}
-        action_type = params["asgActionType"]
-        if action_type == "grow":
-            alarm_info["actionType"] = "GROW"
-        else:
-            alarm_info["actionType"] = "SHRINK"
-        alarm_info["comparator"] = params["comparators"]
-        alarm_info["threshold"] = float(params["threshold"])
-        alarm_info["evaluationTime"] = int(params["evaluate_time"])
-        if "customUrlCheckbox" in params:
-            alarm_info["fromAwsMetric"] = False
-            if "metricUrl" in params:
-                alarm_info["metricSource"] = params["metricUrl"]
-        else:
-            alarm_info["fromAwsMetric"] = True
-            if "awsMetrics" in params:
-                alarm_info["metricSource"] = params["awsMetrics"]
-        alarm_info["groupName"] = group_name
-        autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
-    except:
-        log.error(traceback.format_exc())
-
+    alarm_info = {}
+    action_type = params["asgActionType"]
+    if action_type == "grow":
+        alarm_info["actionType"] = "GROW"
+    else:
+        alarm_info["actionType"] = "SHRINK"
+    alarm_info["comparator"] = params["comparators"]
+    alarm_info["threshold"] = float(params["threshold"])
+    alarm_info["evaluationTime"] = int(params["evaluate_time"])
+    if "customUrlCheckbox" in params:
+        alarm_info["fromAwsMetric"] = False
+        if "metricUrl" in params:
+            alarm_info["metricSource"] = params["metricUrl"]
+    else:
+        alarm_info["fromAwsMetric"] = True
+        if "awsMetrics" in params:
+            alarm_info["metricSource"] = params["awsMetrics"]
+    alarm_info["groupName"] = group_name
+    autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
     return redirect("/groups/{}/config/".format(group_name))
 
 
@@ -914,6 +937,7 @@ class GroupConfigView(View):
             asg_vm_info = None
             group_info = None
             curr_image = None
+            raise TeletraanException("Group does not exist. Please create capacity from the environments page.")
 
         pas_config = autoscaling_groups_helper.get_pas_config(request, group_name)
         return render(request, 'groups/asg_config.html', {
@@ -1240,22 +1264,24 @@ def disable_scaling_down_event(request, group_name):
 
 def add_scheduled_actions(request, group_name):
     params = request.POST
+    
+    # validate scheduled capacity against ASG config minimum and maximum size
+    asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name) 
+    asg_minsize = int(asg_summary.get("minSize", -1))
+    asg_maxsize = int(asg_summary.get("maxSize", -1)) # invalid value indicates no need to check
+
+    if asg_minsize < 0 or asg_maxsize < 0:
+        raise TeletraanException("ASG's Min Size and Max Size have invalid values. Please update the ASG config to make sure Min Size and Max Size >= 0")
+    scheduled_action_capacity = int(params['capacity'])
+    if scheduled_action_capacity < asg_minsize or scheduled_action_capacity > asg_maxsize:
+        raise TeletraanException("Invalid capacity: {}. Desired capacity must be within the limits of ASG's minimum capacity ({}) and maximum capacity ({}). Please change the value you input for Capacity.".format(params['capacity'], asg_minsize, asg_maxsize))
+
     try:
         schedule_action = {}
         schedule_action['clusterName'] = group_name
         schedule_action['schedule'] = params['schedule']
         schedule_action['capacity'] = params['capacity']
-
-        # validate scheduled capacity against ASG config minimum and maximum size
-        asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
-        asg_minsize = int(asg_summary.get("minSize", -1))
-        asg_maxsize = int(asg_summary.get("maxSize", -1)) # invalid value indicates no need to check
-        if asg_minsize < 0 or asg_maxsize < 0:
-            raise TeletraanException("ASG's Min Size and Max Size have invalid values. Please update the ASG config to make sure Min Size and Max Size >= 0")
-        scheduled_action_capacity = int(params['capacity'])
-        if scheduled_action_capacity < asg_minsize or scheduled_action_capacity > asg_maxsize:
-            raise TeletraanException("Invalid capacity: {}. Desired capacity must be within the limits of ASG's minimum capacity ({}) and maximum capacity ({}). Please change the value you input for Capacity.".format(params['capacity'], asg_minsize, asg_maxsize))
-
+       
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
     except:
         log.error(traceback.format_exc())
@@ -1304,4 +1330,5 @@ def update_scheduled_actions(request, group_name):
     except:
         log.error(traceback.format_exc())
         return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
-
+        
+        

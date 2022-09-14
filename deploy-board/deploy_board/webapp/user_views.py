@@ -24,6 +24,7 @@ from django.template.loader import render_to_string
 from helpers import users_helper
 from deploy_board.settings import IS_PINTEREST
 import logging
+import re
 
 # TODO call backend instead of hardcode
 ALL_ROLES = ['OPERATOR', 'ADMIN']
@@ -80,6 +81,10 @@ def update_users_config(request, name):
             user_name = key[len('TELETRAAN_NEW_'):].lower()
             if ' ' in user_name:
                 raise Exception('Name cannot contain spaces!')
+            unsupported_pattern = re.compile("[^a-zA-Z0-9\\-_]+")
+            if unsupported_pattern.search(user_name):
+                unsupported_chars = re.findall(unsupported_pattern, user_name.encode('ascii'))
+                raise Exception('Script Name cannot contain unsupported characters: %s' % (unsupported_chars))
             if user_name in origin_user_dict:
                 if value != origin_user_dict[user_name]:
                     updated_user_dict[user_name] = value

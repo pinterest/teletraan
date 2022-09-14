@@ -35,6 +35,7 @@ loadtests/local
 target/
 dist/
 docs/_build/
+docs/docs_generator/.gradle
 .settings/
 
 # Vagrant
@@ -78,3 +79,4 @@ MANIFEST
 
 # Virtual Environments
 .venv
+docs/docs_generator/bin/

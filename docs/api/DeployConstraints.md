@@ -1,79 +1,98 @@
 ### Deploy Constraints
-
 Deploy constraints related APIs
 
+
+<a name="update"></a>
+#### POST /v1/envs/{envName}/{stageName}/deploy_constraint
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**envName**  <br>*required*||string|
+|**Path**|**stageName**  <br>*required*||string|
+|**Body**|**body**  <br>*required*|Deploy Constraint Object to update in database|[DeployConstraintBean](#deployconstraintbean)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**default**|successful operation|No Content|
+
+
+##### Consumes
+
+* `application/json`
+
+
+##### Produces
+
+* `application/json`
+
+
+<a name="get"></a>
 #### Get deploy constraint info
 ```
 GET /v1/envs/{envName}/{stageName}/deploy_constraint
 ```
 
-##### Description
 
+##### Description
 Returns a deploy constraint object given a constraint id
 
+
 ##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName||true|string||
-|PathParameter|stageName||true|string||
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+|**Path**|**stageName**  <br>*required*|string|
 
 
 ##### Responses
+
 |HTTP Code|Description|Schema|
-|----|----|----|
-|200|successful operation|DeployConstraintBean|
+|---|---|---|
+|**200**|successful operation|[DeployConstraintBean](#deployconstraintbean)|
 
 
 ##### Consumes
 
-* application/json
+* `application/json`
+
 
 ##### Produces
 
-* application/json
+* `application/json`
 
+
+<a name="delete"></a>
 #### DELETE /v1/envs/{envName}/{stageName}/deploy_constraint
+
 ##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName||true|string||
-|PathParameter|stageName||true|string||
+
+|Type|Name|Schema|
+|---|---|---|
+|**Path**|**envName**  <br>*required*|string|
+|**Path**|**stageName**  <br>*required*|string|
 
 
 ##### Responses
+
 |HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
+|---|---|---|
+|**default**|successful operation|No Content|
 
 
 ##### Consumes
 
-* application/json
+* `application/json`
+
 
 ##### Produces
 
-* application/json
-
-#### POST /v1/envs/{envName}/{stageName}/deploy_constraint
-##### Parameters
-|Type|Name|Description|Required|Schema|Default|
-|----|----|----|----|----|----|
-|PathParameter|envName||true|string||
-|PathParameter|stageName||true|string||
-|BodyParameter|body|Deploy Constraint Object to update in database|true|DeployConstraintBean||
+* `application/json`
 
 
-##### Responses
-|HTTP Code|Description|Schema|
-|----|----|----|
-|default|successful operation|No Content|
-
-
-##### Consumes
-
-* application/json
-
-##### Produces
-
-* application/json
-
+<a name="deploys_resource"></a>
