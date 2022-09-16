@@ -45,6 +45,7 @@ public class DatabaseUtil {
         "jdbc:mysql://%s:%d/deploy?connectTimeout=5000&socketTimeout=3000&characterEncoding=UTF-8"
             + "&connectionCollation=utf8_general_ci",
         host, port);
+    LOG.info("mtls is disabled --- host:{}, port:{}, user:{}, password:{}", host, port, user, passwd);
     return createDataSource(MYSQL_JDBC_DRIVER, url, user, passwd, poolSize,
         MAX_WAIT_TIME_FOR_CONN_IN_MS);
   }
@@ -58,6 +59,7 @@ public class DatabaseUtil {
         "jdbc:mysql://%s:%d/deploy?connectTimeout=5000&socketTimeout=3000&characterEncoding=UTF-8"
             + "&connectionCollation=utf8_general_ci",
         host, port);
+    LOG.info("mtls is enabled --- host:{}, port:{}, user:{}, password:{}", host, port, user, passwd);
     return createDataSource(MYSQL_JDBC_DRIVER, url, user, passwd, poolSize,
         MAX_WAIT_TIME_FOR_CONN_IN_MS, connectionProperties);
   }
@@ -137,6 +139,7 @@ public class DatabaseUtil {
     try {
       // Here not getting the connection from ThreadLocal no need to worry about that.
       conn = dataSource.getConnection();
+      LOG.info("mysql conn: {}", conn);
     } catch (SQLException e) {
       LOG.error(
           String.format("Failed to get a db connection when creating DataSource, url = %s", url),
@@ -144,6 +147,7 @@ public class DatabaseUtil {
     } finally {
       DbUtils.closeQuietly(conn);
     }
+    LOG.info("mysql dataSource: {}", dataSource);
     return dataSource;
   }
 
