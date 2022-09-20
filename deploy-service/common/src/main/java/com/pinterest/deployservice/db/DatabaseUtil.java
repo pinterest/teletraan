@@ -42,7 +42,7 @@ public class DatabaseUtil {
     // autoReconnect by default is false
     // TODO: queryTimeoutKillsConnection to true, "?queryTimeoutKillsConnection=true"
     String url = String.format(
-        "jdbc:mysql://%s:%d/rodimus?connectTimeout=5000&socketTimeout=3000&characterEncoding=UTF-8"
+        "jdbc:mysql://%s:%d/deploy?connectTimeout=5000&socketTimeout=3000&characterEncoding=UTF-8"
             + "&connectionCollation=utf8_general_ci",
         host, port);
     LOG.info("mtls is disabled --- host:{}, port:{}, user:{}, password:{}", host, port, user, passwd);
@@ -56,7 +56,7 @@ public class DatabaseUtil {
     // autoReconnect by default is false
     // TODO: queryTimeoutKillsConnection to true, "?queryTimeoutKillsConnection=true"
     String url = String.format(
-        "jdbc:mysql://%s:%d/rodimus?connectTimeout=5000&socketTimeout=3000&characterEncoding=UTF-8"
+        "jdbc:mysql://%s:%d/deploy?connectTimeout=5000&socketTimeout=3000&characterEncoding=UTF-8"
             + "&connectionCollation=utf8_general_ci",
         host, port);
     LOG.info("mtls is enabled --- host:{}, port:{}, user:{}, password:{}", host, port, user, passwd);
