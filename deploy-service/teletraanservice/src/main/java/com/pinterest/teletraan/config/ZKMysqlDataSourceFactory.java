@@ -54,7 +54,22 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
     private boolean useMTLS;
 
     @JsonProperty
+    private String defaultMtlsPasswd;
+
+    @JsonProperty
+    private String trustUrl;
+
+    @JsonProperty
+    private String trustType;
+
+    @JsonProperty
     private String trustPasswd;
+
+    @JsonProperty
+    private String clientUrl;
+
+    @JsonProperty
+    private String clientType;
 
     @JsonProperty
     private String clientPasswd;
@@ -102,18 +117,16 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
 
         if (this.useMTLS) {
             String userName = getUserNameFromSpiffeId();
-            String password = "password";
-            String trustPassword = this.trustPasswd;
-            String clientPassword = this.clientPasswd;
+            String password = this.defaultMtlsPasswd;
             Map<String, String> proxyConnectionProps = ImmutableMap.<String, String>builder()
                 // ssl properties
                 .put("sslMode", "VERIFY_CA" )
-                .put("trustCertificateKeyStoreUrl", "file:/var/lib/normandie/fuse/jkstrust/generic" )
-                .put("trustCertificateKeyStoreType", "JKS" )
-                .put("trustCertificateKeyStorePassword",  trustPassword)
-                .put("clientCertificateKeyStoreUrl", "file:/var/lib/normandie/fuse/jks/generic" )
-                .put("clientCertificateKeyStoreType", "JKS" )
-                .put("clientCertificateKeyStorePassword",  clientPassword)
+                .put("trustCertificateKeyStoreUrl", this.trustUrl )
+                .put("trustCertificateKeyStoreType", this.trustType )
+                .put("trustCertificateKeyStorePassword", this.trustPasswd )
+                .put("clientCertificateKeyStoreUrl", this.clientUrl )
+                .put("clientCertificateKeyStoreType", this.cclientType )
+                .put("clientCertificateKeyStorePassword",  clientPasswd )
                 .build();
             host = this.replicaSet;
             // we don't need the replica number in the host; 
