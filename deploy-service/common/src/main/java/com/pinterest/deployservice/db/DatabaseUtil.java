@@ -45,7 +45,7 @@ public class DatabaseUtil {
         "jdbc:mysql://%s:%d/deploy?connectTimeout=5000&socketTimeout=3000&characterEncoding=UTF-8"
             + "&connectionCollation=utf8_general_ci",
         host, port);
-    LOG.info("mtls is disabled --- host:{}, port:{}, user:{}, password:{}", host, port, user, passwd);
+    LOG.info("mtls is disabled --- host:{}, port:{}, user:{}", host, port, user);
     return createDataSource(MYSQL_JDBC_DRIVER, url, user, passwd, poolSize,
         MAX_WAIT_TIME_FOR_CONN_IN_MS);
   }

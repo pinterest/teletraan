@@ -53,6 +53,12 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
     @JsonProperty
     private boolean useMTLS;
 
+    @JsonProperty
+    private String trustPasswd;
+
+    @JsonProperty
+    private String clientPasswd;
+
     public String getReplicaSet() {
         return replicaSet;
     }
@@ -97,15 +103,17 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
         if (this.useMTLS) {
             String userName = getUserNameFromSpiffeId();
             String password = "password";
+            String trustPassword = this.trustPasswd;
+            String clientPassword = this.clientPasswd;
             Map<String, String> proxyConnectionProps = ImmutableMap.<String, String>builder()
                 // ssl properties
                 .put("sslMode", "VERIFY_CA" )
                 .put("trustCertificateKeyStoreUrl", "file:/var/lib/normandie/fuse/jkstrust/generic" )
                 .put("trustCertificateKeyStoreType", "JKS" )
-                .put("trustCertificateKeyStorePassword", "pintastic" )
+                .put("trustCertificateKeyStorePassword",  trustPassword)
                 .put("clientCertificateKeyStoreUrl", "file:/var/lib/normandie/fuse/jks/generic" )
                 .put("clientCertificateKeyStoreType", "JKS" )
-                .put("clientCertificateKeyStorePassword", "pintastic" )
+                .put("clientCertificateKeyStorePassword",  clientPassword)
                 .build();
             host = this.replicaSet;
             // we don't need the replica number in the host; 
