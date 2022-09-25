@@ -1,4 +1,4 @@
-### Teletraan Deploy Service 12
+### Teletraan Deploy Service 13
 
 ![](https://github.com/pinterest/teletraan/blob/master/docs/misc/images/TeletraanIntro.png)
 
