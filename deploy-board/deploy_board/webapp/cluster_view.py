@@ -752,7 +752,7 @@ def terminate_hosts(request, name, stage):
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
 
-    replace_host = True if 'replaceHost' in post_params else False
+    replace_host = 'replaceHost' in post_params
     environ_hosts_helper.stop_service_on_host(request, name, stage, host_ids, replace_host)
     return redirect('/env/{}/{}/'.format(name, stage))
 
