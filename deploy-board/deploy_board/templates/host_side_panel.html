@@ -29,9 +29,9 @@
                         </div>
                     {% endif %}
 
-                    {% if asg_group %}
-                        <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
-                    {% endif %}
+                    <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
+                    <br><em>Note replacement will only work if the host belongs to an auto scaling group.</em>
+                    <br><em>If you choose to not replace host, it can't be guarenteed that the auto scaling group's min and max sizes will keep identical.</em>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Terminate</button>
@@ -58,13 +58,13 @@
             <form id="forceTerminateHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env_name }}/{{ stage_name }}/force_terminate_hosts/?host_id={{ host_id }}">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Host Termination Confirm</h4>
+                    <h4 class="modal-title">Host Force Termination Confirm</h4>
                 </div>
                 <div class="modal-body">
                     <p> Are you sure to force terminate {{ hostname }}?</p>
-                    {% if asg_group %}
-                        <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
-                    {% endif %}
+                    <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
+                    <br><em>Note replacement will only work if the host belongs to an auto scaling group.</em>
+                    <br><em>If you choose to not replace host, it can't be guarenteed that the auto scaling group's min and max sizes will keep identical.</em>
                 </div>
 
                 <div class="modal-footer">
