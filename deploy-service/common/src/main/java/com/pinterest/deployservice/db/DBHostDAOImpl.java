@@ -23,8 +23,6 @@ import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.HostDAO;
 
-import io.jsonwebtoken.lang.Collections;
-
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
