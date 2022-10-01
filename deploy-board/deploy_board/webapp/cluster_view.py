@@ -768,7 +768,7 @@ def force_terminate_hosts(request, name, stage):
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
 
-    replace_host = True if 'replaceHost' in post_params else False
+    replace_host = 'replaceHost' in post_params
     cluster_name = common.get_cluster_name(request, name, stage)
     if not cluster_name:
         groups = environs_helper.get_env_capacity(

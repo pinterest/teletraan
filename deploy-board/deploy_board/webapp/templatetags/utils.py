@@ -161,6 +161,7 @@ _HEALTH_TYPE_TO_ICONS = {
     "MANUALLY_TRIGGERED": "fa fa-hand-o-left",
 }
 
+_TERMINATING_STATES = {"PENDING_TERMINATE", "TERMINATING", "PENDING_TERMINATE_NO_REPLACE"}
 
 # convert epoch (in milliseconds) to time
 @register.filter("convertTimestamp")
@@ -446,7 +447,7 @@ def successRateTip(deploy):
 
 @register.filter("hostStateClass")
 def hostStateClass(state):
-    if state in ("PENDING_TERMINATE", "TERMINATING", "PENDING_TERMINATE_NO_REPLACE"):
+    if state in _TERMINATING_STATES:
         return "danger"
     else:
         return ""
@@ -605,7 +606,7 @@ def agentIcon(agentStats):
 
 @register.filter("hostButton")
 def hostButton(host):
-    if host['state'] in ('PENDING_TERMINATE', 'TERMINATING', 'PENDING_TERMINATE_NO_REPLACE'):
+    if host['state'] in _TERMINATING_STATES:
         return 'btn-warning'
 
     return 'btn-default'

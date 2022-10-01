@@ -262,7 +262,7 @@
                     <br>
                     <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
                     <br><em>Note replacement will only work if the host belongs to an auto scaling group.</em>
-                    <br><em>If you choose to not replace host, it can't be guarenteed that the auto scaling group's min and max sizes will keep identical.</em>
+                    <br><em>If you choose to not replace host, it can't be guaranteed that the auto scaling group's min and max sizes will keep identical.</em>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Terminate</button>
@@ -280,7 +280,7 @@
             <form id="forceTerminateSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/force_terminate_hosts/">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                    <h4 class="modal-title">Host(s) Force Termination Confirma</h4>
+                    <h4 class="modal-title">Host(s) Force Termination Confirm</h4>
                 </div>
                 <div class="modal-body">
                     <p> Are you sure you would like to force terminate the following hosts?</p>
@@ -288,7 +288,7 @@
                     <br>
                     <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
                     <br><em>Note replacement will only work if the host belongs to an auto scaling group.</em>
-                    <br><em>If you choose to not replace host, it can't be guarenteed that the auto scaling group's min and max sizes will keep identical.</em>                </div>
+                    <br><em>If you choose to not replace host, it can't be guaranteed that the auto scaling group's min and max sizes will keep identical.</em>                </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" id="terminateInstanceBtnId">Force Terminate</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
