@@ -802,7 +802,6 @@
                             globalNotificationBanner.error = "cmp_base image must have pinfo_role set to cmp_base"
                             return false
                         }
-
                     }
                     else{
                         if ('pinfo_role' in clusterInfo.configs && clusterInfo.configs['pinfo_role']==='cmp_base'){
@@ -818,6 +817,11 @@
 
                     if (imageNameValue === 'cmp_base' && clusterInfo.hostType.startsWith('EbsCompute')){
                         globalNotificationBanner.error = "EbsCompute  instance must use ebs AMI. Try cmp_base-ebs"
+                        return false
+                    }
+
+                    if ('ebs_volume_type' in clusterInfo.configs && (clusterInfo.configs['ebs_volume_type'] != "gp2" && clusterInfo.configs['ebs_volume_type'] != "gp3")) {
+                        globalNotificationBanner.error = "At time time only gp2 and gp3 volume types are supported"
                         return false
                     }
 
