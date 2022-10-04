@@ -474,8 +474,8 @@ var capacitySetting = new Vue({
                 return false
             }
 
-            if ('ebs_volume_type' in clusterInfo.configs && (clusterInfo.configs['ebs_volume_type'] != "gp2" && clusterInfo.configs['ebs_volume_type'] != "gp3")) {
-                globalNotificationBanner.error = "At time time only gp2 and gp3 volume types are supported"
+            if ('root_volume_type' in clusterInfo.configs && (clusterInfo.configs['root_volume_type'] != "gp2" && clusterInfo.configs['root_volume_type'] != "gp3")) {
+                globalNotificationBanner.error = "At time time only gp2 and gp3 root volume types are supported"
                 return false
             }
 
