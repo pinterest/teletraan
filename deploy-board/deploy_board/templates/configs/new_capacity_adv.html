@@ -220,6 +220,7 @@ var capacitySetting = new Vue({
         },
         configChange: function(input){
                 this.allUserData = this.allUserData.map(function(item){
+                    item.text = item.text.trim()
                     if (item.name===input.name){
                         return input
                     }
