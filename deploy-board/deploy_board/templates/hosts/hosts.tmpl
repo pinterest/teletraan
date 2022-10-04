@@ -122,7 +122,7 @@
         });
     });
 
-    $('input[type="checkbox"]').click(function(){
+    $('#hostTable input[type="checkbox"]').click(function(){
         if ($("#hostTable input:checkbox:checked").length <= 0) {
           $(".btn").prop("disabled", true);
         } else {
@@ -140,7 +140,7 @@
     });
 
     $(document).ready(function() {
-        $('input[type=checkbox]').each(function () {
+        $('#hostTable input[type=checkbox]').each(function () {
             if (this.checked) {
                 checkedHosts.push($(this).val());
             }
