@@ -1,4 +1,4 @@
-### Teletraan Deploy Service 16
+### Teletraan Deploy Service
 
 ![](https://github.com/pinterest/teletraan/blob/master/docs/misc/images/TeletraanIntro.png)
 
@@ -29,4 +29,3 @@ Check out [Integrate with Teletraan](https://github.com/pinterest/teletraan/wiki
 ### Help
 
 If you have any questions or comments, you can reach us at teletraan-users@googlegroups.com
-
