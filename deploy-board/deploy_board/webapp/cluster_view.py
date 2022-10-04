@@ -462,8 +462,8 @@ def get_host_type_info(request):
 def create_security_zone(request):
     params = request.POST
     security_zone_info = {}
-    security_zone_info['abstract_name'] = params['abstractName']
-    security_zone_info['provider_name'] = params['providerName']
+    security_zone_info['abstract_name'] = params['abstractName'].strip()
+    security_zone_info['provider_name'] = params['providerName'].strip()
     security_zone_info['provider'] = params['provider']
     security_zone_info['description'] = params['description']
     security_zone_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
