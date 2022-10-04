@@ -17,6 +17,7 @@
 package com.pinterest.teletraan.resource;
 
 
+import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.Resource;
@@ -43,6 +44,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
@@ -95,14 +97,18 @@ public class EnvHosts {
 
     @DELETE
     public void stopServiceOnHost(@Context SecurityContext sc,
-                                  @PathParam("envName") String envName,
-                                  @PathParam("stageName") String stageName,
-                                  @Valid Collection<String> hostIds) throws Exception {
+            @PathParam("envName") String envName,
+            @PathParam("stageName") String stageName,
+            @Valid Collection<String> hostIds,
+            @ApiParam(value = "Replace the host or not") @QueryParam("replaceHost") Optional<Boolean> replaceHost)
+            throws Exception {
         String operator = sc.getUserPrincipal().getName();
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
-        environHandler.stopServiceOnHosts(hostIds);
-        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_HOST_ACTION, String.format("STOP %s", hostIds.toString()), operator);
-        LOG.info(String.format("Successfully stopped %s/%s service on hosts %s by %s", envName, stageName, hostIds.toString(), operator));
+        environHandler.stopServiceOnHosts(hostIds, replaceHost.or(true));
+        configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_HOST_ACTION,
+                String.format("STOP %s", hostIds.toString()), operator);
+        LOG.info(String.format("Successfully stopped %s/%s service on hosts %s by %s", envName, stageName,
+                hostIds.toString(), operator));
     }
 }
