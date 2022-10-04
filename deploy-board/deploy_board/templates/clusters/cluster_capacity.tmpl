@@ -15,6 +15,7 @@
                         :original-max-size="asg_launch_info.maxSize" @max-change="maxsize = $event"
                         :remaining-capacity="remainingCapacity" :placements="placements">
                     </asg-capacity-config>
+                    <label-info title="Remaining Capacity" name="Remaining Capacity" v-bind:text="remainingCapacity"></label-info>
                     <form-warning v-show="showSizeWarning" v-bind:alert-text="sizeWarning"></form-warning>
                 </fieldset>
             </form>
