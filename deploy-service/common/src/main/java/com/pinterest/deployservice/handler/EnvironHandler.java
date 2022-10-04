@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -497,7 +497,7 @@ public class EnvironHandler {
         return envBean;
     }
 
-    public void stopServiceOnHost(String hostId) throws Exception {
+    public void stopServiceOnHost(String hostId, boolean replaceHost) throws Exception {
         LOG.info(String.format("Start to stop host %s", hostId));
         AgentBean agentBean = new AgentBean();
         agentBean.setState(AgentState.STOP);
@@ -505,14 +505,15 @@ public class EnvironHandler {
         agentDAO.updateAgentById(hostId, agentBean);
 
         HostBean hostBean = new HostBean();
-        hostBean.setState(HostState.PENDING_TERMINATE);
+        HostState state = replaceHost ? HostState.PENDING_TERMINATE : HostState.PENDING_TERMINATE_NO_REPLACE;
+        hostBean.setState(state);
         hostBean.setLast_update(System.currentTimeMillis());
         hostDAO.updateHostById(hostId, hostBean);
     }
 
-    public void stopServiceOnHosts(Collection<String> hostIds) throws Exception {
+    public void stopServiceOnHosts(Collection<String> hostIds, boolean replaceHost) throws Exception {
         for (String hostId : hostIds) {
-            stopServiceOnHost(hostId);
+            stopServiceOnHost(hostId, replaceHost);
         }
     }
 }
