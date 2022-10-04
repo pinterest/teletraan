@@ -19,9 +19,11 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.DeployStage;
+import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
@@ -36,6 +38,7 @@ import java.util.*;
 public class HostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HostTerminator.class);
     private final AgentDAO agentDAO;
+    private final HostAgentDAO hostAgentDAO;
     private final HostDAO hostDAO;
     private final UtilDAO utilDAO;
     private final RodimusManager rodimusManager;
@@ -46,6 +49,7 @@ public class HostTerminator implements Runnable {
         hostDAO = serviceContext.getHostDAO();
         utilDAO = serviceContext.getUtilDAO();
         rodimusManager = serviceContext.getRodimusManager();
+        hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
     }
 
@@ -66,8 +70,19 @@ public class HostTerminator implements Runnable {
 
         if (stopSucceeded) {
             LOG.info(String.format("Host %s is stopped. Terminate it.", hostId));
-            String clusterName = host.getGroup_name();
+
             Boolean replaceHost = host.getState() == HostState.PENDING_TERMINATE;
+            String clusterName = host.getGroup_name();
+            HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
+            if (hostAgentBean != null) {
+                // HostBean.getGroup_name() does not necessarily return the Auto scaling group
+                // name. Therefore correct it if we can get the ASG name from HostAgentDAO.
+                clusterName = hostAgentBean.getAuto_scaling_group();
+            } else if (!replaceHost) {
+                LOG.warn("Failed to get ASG name for host {}, using group name {} instead. Host can still be replaced.",
+                        hostId, clusterName);
+            }
+
             rodimusManager.terminateHostsByClusterName(clusterName, Collections.singletonList(hostId), replaceHost);
         }
     }
@@ -115,7 +130,7 @@ public class HostTerminator implements Runnable {
             LOG.info("Start to run HostTerminator");
             processBatch();
         } catch (Throwable t) {
-            LOG.error("Faile to run HostTerminator", t);
+            LOG.error("HostTerminator failed", t);
         }
     }
 }
