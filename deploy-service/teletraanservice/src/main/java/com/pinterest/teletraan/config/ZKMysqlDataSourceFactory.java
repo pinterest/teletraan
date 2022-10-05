@@ -130,7 +130,7 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
                 .put("trustCertificateKeyStorePassword", this.trustPasswd )
                 .put("clientCertificateKeyStoreUrl", this.clientUrl )
                 .put("clientCertificateKeyStoreType", this.clientType )
-                .put("clientCertificateKeyStorePassword",  clientPasswd )
+                .put("clientCertificateKeyStorePassword", this.clientPasswd )
                 .build();
             host = this.replicaSet;
             // we don't need the replica number in the host; 
