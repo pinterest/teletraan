@@ -440,7 +440,7 @@ public class EnvironHandler {
         }
         for (String group : oldGroups) {
             if (group == envBean.getCluster_name()) {
-                LOG.info("Skipping implicit group %s", group);
+                LOG.info("Skipping implicit group {}", group);
                 continue;
 
             }
