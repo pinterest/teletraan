@@ -66,21 +66,29 @@ public class AgentJanitor extends SimpleAgentJanitor {
         return launchGracePeriod == null ? maxLaunchLatencyThreshold : launchGracePeriod * 1000;
     }
 
-    // Process stale hosts (hosts which have not pinged for more than min threshold period)
-    // Removes hosts once confirmed with source
+    /**
+     * Process stale hosts which have not pinged since
+     *   current_time - minStaleHostThreshold
+     * Either mark them as UNREACHABLE, or remove if confirmed with source of truth
+     *
+     * @throws Exception
+     */
     private void processLowWatermarkHosts() throws Exception {
         long current_time = System.currentTimeMillis();
-        // If host fails to ping for longer than min stale threshold,
-        // either mark them as UNREACHABLE, or remove if confirmed with source of truth
         long minThreshold = current_time - minStaleHostThreshold;
         List<HostAgentBean> minStaleHosts = hostAgentDAO.getStaleHosts(minThreshold);
         Set<String> minStaleHostIds = new HashSet<>();
         for (HostAgentBean hostAgentBean: minStaleHosts) {
             minStaleHostIds.add(hostAgentBean.getHost_id());
         }
+
         Collection<String> terminatedHosts = getTerminatedHostsFromSource(minStaleHostIds);
-        for (String removedId: terminatedHosts) {
-            removeStaleHost(removedId);
+        for (String staleId : minStaleHostIds) {
+            if (terminatedHosts.contains(staleId)) {
+                removeStaleHost(staleId);
+            } else {
+                markUnreachableHost(staleId);
+            }
         }
     }
 
@@ -101,9 +109,13 @@ public class AgentJanitor extends SimpleAgentJanitor {
         return false;
     }
 
-    // Process stale hosts (hosts which have not pinged for more than max threshold period)
-    // Marks hosts unreachable if it's stale for max threshold
-    // Removes hosts once confirmed with source
+    /**
+     * Process stale hosts which have not pinged since
+     *   current_time - min(maxStaleHostThreshold, maxLaunchLatencyThreshold)
+     * Removes stale hosts once confirmed with source.
+     *
+     * @throws Exception
+     */
     private void processHighWatermarkHosts() throws Exception {
         long current_time = System.currentTimeMillis();
         long maxThreshold = current_time - Math.min(maxStaleHostThreshold, maxLaunchLatencyThreshold);
@@ -116,12 +128,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
             }
         }
         Collection<String> terminatedHosts = getTerminatedHostsFromSource(staleHostIds);
-        for (String staleId : staleHostIds) {
-            if (terminatedHosts.contains(staleId)) {
-                removeStaleHost(staleId);
-            } else {
-                markUnreachableHost(staleId);
-            }
+        for (String removedId: terminatedHosts) {
+            removeStaleHost(removedId);
         }
     }
 
