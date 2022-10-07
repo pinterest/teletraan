@@ -532,7 +532,11 @@
                 subnetType: initialAssignPublicIP ? "public" : "private",
                 showSubnetReplacementAlert: false,
                 subnetReplacementWarning: "Cluster can't have a mix of public and private subnets. Saving this config will remove existing subnets.",
+                remainingCapacity: info.placements != null ?  info.placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
             }),
+            computed: {
+                capacityText: function() {return `Capacity (max remaining ${this.remainingCapacity})`}
+            },
             methods: {
                 addConfig: function(config) {
                     var filter = this.allUserData.filter(function(data) {

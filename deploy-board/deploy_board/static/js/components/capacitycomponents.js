@@ -232,7 +232,7 @@ Vue.component("static-capacity-config", {
     template: `<div>
     <div class="form-group">
         <label for="capacity" class="deployToolTip control-label col-xs-4" title="Number of hosts for this service">
-            Capacity
+            Capacity (max capacity remaining {{remainingCapacity}})
         </label>
         <div class="col-xs-2" >
             <input name="capacity" class="form-control" type="number" min="0" required
