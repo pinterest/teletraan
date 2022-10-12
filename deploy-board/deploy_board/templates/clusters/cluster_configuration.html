@@ -592,7 +592,7 @@
                 },
                 deleteConfig: function(name) {
                     if (name == 'root_volume_type') {
-                        globalNotificationBanner.info = "On deleteing this configuration and saving it, the root volume type will be set to default value, which is gp3 currently"
+                        globalNotificationBanner.info = "On deleting this configuration and saving it, the root volume type will be set to default value, which is gp3 currently"
                     }
                     this.allUserData = this.allUserData.filter(function(config) {
                         return config.name != name
