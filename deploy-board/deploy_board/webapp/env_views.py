@@ -341,6 +341,7 @@ class EnvLandingView(View):
                 project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
             except TeletraanException as detail:
                 log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
+                messages.add_message(request, messages.ERROR, detail)
 
         project_info = None
         if existing_stage_identifier:

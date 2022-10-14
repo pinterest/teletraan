@@ -128,7 +128,7 @@
         {% endverbatim %}
     </div>
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-database" text="Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
+        <side-button styleclass="fa fa-database" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
     <div v-if="!showCluster" id="groupsDiv">
     </div>
@@ -209,6 +209,7 @@
 <script>
 
 var capacityInfo = {{capacity_info | safe}}
+var placements = {{placements | safe}}
 function loadGroupConfig() {
     var selected_value = $("#group_name option:selected").val();
     var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
@@ -226,7 +227,10 @@ var capacityPanel = new Vue({
             data:{
                title: renderCapacity ? "Cluster" : "Deploy Groups",
                showCluster: renderCapacity,
-
+               remainingCapacity: placements != null ? placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
+            },
+            computed: {
+                capacityText: function() {return `Capacity (max remaining ${this.remainingCapacity})`}
             },
             mounted: function(){
                 if (!renderCapacity){
@@ -340,6 +344,12 @@ $('#privateBldUploadBtnId button').click(function () {
             </h4>
             {% if pinterest %}
                 {% if project_info %}
+                    {% if detail %}
+                    <div class="alert alert-info">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
+                    </div>
+                    {% endif %}
                 <div class="btn-project-info">
                     <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
                     <a href="{{ project_info.project_url }}" target="_blank">Project: {{ project_info.project_name }}</a>
