@@ -21,8 +21,10 @@ class NimbusClient(object):
             raise TeletraanException('Resource conflict - Nimbus already has an Identifier for your proposed new stage. ')
 
         if 400 <= response.status_code < 600:
-            log.error("Teletraan failed to successfully call Nimbus. Contact your friendly Teletraan owners for assistance. Hint: %s, %s" % (response.status_code, response.content))
-            return response.json()
+            log.error("Nimbus API Error %s, %s" % (response.content, response.status_code))
+            raise TeletraanException(
+                "Teletraan failed to successfully call Nimbus. Contact your friendly Teletraan owners for assistance. Hint: %s, %s" % (response.status_code, response.content)
+            )
 
         if response.status_code == 200 or response.status_code == 201:
             return response.json()
