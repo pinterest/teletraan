@@ -509,6 +509,14 @@
                             isSelected: item.name == currentCluster.cellName
                         }
                     }),
+                arches: info.arches.map(
+                    function (item) {
+                        return {
+                            value: item.name,
+                            text: item.name,
+                            isSelected: item.name == currentCluster.archName
+                        }
+                    }),
                 replacementTimeout: currentCluster.replacementTimeout,
                 securityZones: info.securityZones.map(function(item) {
                     return {
