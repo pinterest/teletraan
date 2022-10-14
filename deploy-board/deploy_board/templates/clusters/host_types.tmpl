@@ -4,6 +4,7 @@
 <form name="hostTypeList">
     <table id="hostTypeTableId" class="table table-condensed table-striped table-hover">
         <tr>
+            <th class="col-lg-2">Arch</th>
             <th class="col-lg-2">Abstract Name</th>
             <th class="col-lg-2">Provider Name</th>
             <th class="col-lg-1">Cloud Provider</th>
@@ -14,6 +15,7 @@
         </tr>
         {% for host_type in host_types %}
         <tr>
+            <td> {{ host_type.arch_name }} </td>
             <td> {{ host_type.abstract_name }} </td>
             <td> {{ host_type.provider_name }}  </td>
             <td> {{ host_type.provider }}  </td>

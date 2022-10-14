@@ -22,8 +22,9 @@ from django.views.generic import View
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
-        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, \
+        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST
+
 import json
 import logging
 
@@ -136,6 +137,7 @@ class EnvCapacityAdvCreateView(View):
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultCell': DEFAULT_CELL,
+            'defaultArch': DEFAULT_ARCH,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
@@ -290,6 +292,7 @@ def create_base_image(request):
     base_image_info['provider'] = params['provider']
     base_image_info['description'] = params['description']
     base_image_info['cell_name'] = params['cellName']
+    base_image_info['arch_name'] = params['archName']
     baseimages_helper.create_base_image(request, base_image_info)
     return redirect('/clouds/baseimages/')
 
@@ -301,11 +304,13 @@ def get_base_images(request):
         request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+    arches_list = arches_helper.get_all(request)
 
     return render(request, 'clusters/base_images.html', {
         'base_images': base_images,
         'provider_list': provider_list,
         'cells_list': cells_list,
+        'arch_list': arches_list,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -315,6 +320,11 @@ def get_base_images(request):
 
 def get_image_names_by_provider_and_cell(request, provider, cell):
     image_names = baseimages_helper.get_image_names(request, provider, cell)
+    return HttpResponse(json.dumps(image_names), content_type="application/json")
+
+
+def get_image_names_by_provider_and_cell_and_arch(request, provider, cell, arch):
+    image_names = baseimages_helper.get_image_names_by_arch(request, provider, cell, arch)
     return HttpResponse(json.dumps(image_names), content_type="application/json")
 
 
@@ -406,6 +416,7 @@ def get_base_images_by_name_json(request, name):
 def create_host_type(request):
     params = request.POST
     host_type_info = {}
+    host_type_info['arch_name'] = params['archName']
     host_type_info['abstract_name'] = params['abstractName']
     host_type_info['provider_name'] = params['providerName']
     host_type_info['provider'] = params['provider']
@@ -424,8 +435,10 @@ def get_host_types(request):
     for host_type in host_types:
         host_type['mem'] = float(host_type['mem']) / 1024
     provider_list = baseimages_helper.get_all_providers(request)
+    arches_list = arches_helper.get_all(request)
 
     return render(request, 'clusters/host_types.html', {
+        'arch_list': arches_list,
         'host_types': host_types,
         'provider_list': provider_list,
         'pageIndex': index,
@@ -451,6 +464,14 @@ def get_host_types_by_provider(request):
         'curr_host_type': curr_host_type,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
+
+
+def get_host_types_by_arch(request, arch):
+    host_types = hosttypes_helper.get_by_arch(request, arch)
+    for host_type in host_types:
+        host_type['mem'] = float(host_type['mem']) / 1024
+
+    return HttpResponse(json.dumps(host_types), content_type="application/json")
 
 
 def get_host_type_info(request):

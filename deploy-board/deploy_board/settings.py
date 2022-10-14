@@ -333,6 +333,7 @@ if IS_PINTEREST:
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
 
     DEFAULT_CELL = 'aws-us-east-1'
+    DEFAULT_ARCH = 'X86'
     DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
 
     #Pinterest Default Puppet Environment
