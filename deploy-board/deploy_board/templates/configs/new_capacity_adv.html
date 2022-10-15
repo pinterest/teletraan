@@ -92,6 +92,8 @@ var capacityView = new Vue({
 
 var info = {{capacity_creation_info|safe}}
 var environment = info.environment;
+console.log(info.arches);
+console.log(info.cells);
 var accepted = info.baseImages.filter(function (e) {
         return e.acceptance == 'ACCEPTED';
     });
