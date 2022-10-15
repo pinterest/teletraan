@@ -279,12 +279,14 @@ var capacitySetting = new Vue({
         cellChange: function(value) {
             capacitySetting.currentCell = value;
             capacitySetting.cellValue = value;
-            capacitySetting.archValue = value;
+            capacitySetting.currentCell = value;
             // grab all the image names for this cell
             var scope = this;
             var provider = capacitySetting.currentProvider;
             var arch = capacitySetting.currentArch;
             var cell = value;
+            console.log(cell);
+            console.log(arch);
             $.ajax({
                 type: 'GET',
                 //url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
