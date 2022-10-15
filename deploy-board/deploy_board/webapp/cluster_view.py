@@ -304,14 +304,15 @@ def get_base_images(request):
         request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
-    arches_list = arches_helper.get_all(request)
+    #arches_list = arches_helper.get_all(request)
+    arches_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/base_images.html', {
         'base_images': base_images,
         'provider_list': provider_list,
         'cells_list': cells_list,
-        #'arch_list': arches_list,
-        'arch_list': ['X86', 'ARM'],
+        'arch_list': arches_list,
+        #'arch_list': ['X86', 'ARM'],
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -436,11 +437,12 @@ def get_host_types(request):
     for host_type in host_types:
         host_type['mem'] = float(host_type['mem']) / 1024
     provider_list = baseimages_helper.get_all_providers(request)
-    arches_list = arches_helper.get_all(request)
+    #arches_list = arches_helper.get_all(request)
+    arches_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/host_types.html', {
-        #'arch_list': arches_list,
-        'arch_list': ['X86', 'ARM'],
+        'arch_list': arches_list,
+        #'arch_list': ['X86', 'ARM'],
         'host_types': host_types,
         'provider_list': provider_list,
         'pageIndex': index,
