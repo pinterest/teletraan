@@ -118,6 +118,7 @@ class EnvCapacityAdvCreateView(View):
         placements = placements_helper.get_by_provider_and_cell_name(
             request, DEFAULT_PROVIDER, DEFAULT_CELL)
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        arches = ['X86', 'ARM']
         base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         base_images_names = baseimages_helper.get_image_names(
             request, DEFAULT_PROVIDER, DEFAULT_CELL)
@@ -131,6 +132,7 @@ class EnvCapacityAdvCreateView(View):
             'securityZones': security_zones,
             'placements': placements,
             'cells': cells,
+            'arches': arches,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
@@ -195,6 +197,7 @@ class ClusterConfigurationView(View):
             host_type['mem'] = float(host_type['mem']) / 1024
 
         cells = cells_helper.get_by_provider(request, current_cluster['provider'])
+        arches = ['X86', 'ARM']
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
             request, current_cluster['provider'], current_cluster['cellName'])
         placements = placements_helper.get_by_provider_and_cell_name(
@@ -210,6 +213,7 @@ class ClusterConfigurationView(View):
         capacity_creation_info = {
             'environment': env,
             'cells': cells,
+            'arches': arches,
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
@@ -311,8 +315,8 @@ def get_base_images(request):
         'base_images': base_images,
         'provider_list': provider_list,
         'cells_list': cells_list,
-        'arches_list': arches_list,
-        #'arches_list': ['X86', 'ARM'],
+        #'arches_list': arches_list,
+        'arches_list': ['X86', 'ARM'],
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -441,8 +445,8 @@ def get_host_types(request):
     arches_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
 
     return render(request, 'clusters/host_types.html', {
-        'arches_list': arches_list,
-        #'arches_list': ['X86', 'ARM'],
+        #'arches_list': arches_list,
+        'arches_list': ['X86', 'ARM'],
         'host_types': host_types,
         'provider_list': provider_list,
         'pageIndex': index,
