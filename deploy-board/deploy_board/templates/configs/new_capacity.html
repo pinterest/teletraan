@@ -59,6 +59,7 @@
                 <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole" 
                     showhelp="true" v-on:helpclick="accessRoleHelpClick"></accessrole-input>
                 <accessrole-help v-show="showAccessRoleHelp" v-bind:data="accessRoleHelpText"></accessrole-help>
+            </form>
         </div>
     </div>
     <modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">

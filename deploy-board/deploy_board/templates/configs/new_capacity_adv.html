@@ -541,7 +541,7 @@ var capacitySetting = new Vue({
             else {
                 clusterInfo.configs['assign_public_ip'] = false
             }
-            let accessRoleObj = this.allUserData.find(({role}) => role === "access_role");
+            let accessRoleObj = this.allUserData.find(({name}) => name === "access_role");
             clusterInfo.configs['access_role'] = accessRoleObj.value;
             if (this.validateInput(clusterInfo)) {
                 //Send request
@@ -563,7 +563,7 @@ var capacitySetting = new Vue({
             })
         },
         allUserData: function() {
-            let accessRoleObj = this.allUserData.find(({role}) => role === "access_role");
+            let accessRoleObj = this.allUserData.find(({name}) => name === "access_role");
             localStorage.setItem("accessRole", accessRoleObj.value);
         }
     }
