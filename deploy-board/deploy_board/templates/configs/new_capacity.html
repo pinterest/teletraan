@@ -56,8 +56,9 @@
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
-                <label-input label="Access Role" title="access_role for host access" v-model="accessRole"></label-input>
-            </form>
+                <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole" 
+                    showhelp="true" v-on:helpclick="accessRoleHelpClick"></accessrole-input>
+                <accessrole-help v-show="showAccessRoleHelp" v-bind:data="accessRoleHelpText"></accessrole-help>
         </div>
     </div>
     <modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">
@@ -134,7 +135,9 @@ var capacitySetting = new Vue({
         selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType).id,
         selectedSecurityZoneValue: capacityCreationInfo.defaultSeurityZone,
         selectedPlacements: null,
-        accessRole: localStorage.getItem("accessRole") ? localStorage.getItem("accessRole") : capacityCreationInfo.defaultCMPConfigs['access_role']
+        accessRole: localStorage.getItem("accessRole") ? localStorage.getItem("accessRole") : capacityCreationInfo.defaultCMPConfigs['access_role'],
+        showAccessRoleHelp: false,
+        accessRoleHelpText: "",
     },
     methods:{
         validateInput: function(clusterInfo){
@@ -222,7 +225,15 @@ var capacitySetting = new Vue({
         },
         updateSecurityZone: function(value){
             this.selectedSecurityZoneValue = value
-        }
+        },
+        accessRoleHelpClick: function(){
+            if (this.showAccessRoleHelp){
+                this.showAccessRoleHelp = false
+            } else {
+                this.accessRoleHelpText = "Please enter a valid access role"
+                capacitySetting.showAccessRoleHelp = true
+            }
+        },
     },
     watch: {
         placements: function(){
