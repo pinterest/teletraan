@@ -326,6 +326,9 @@ Vue.component("placements-select", {
         <span class="glyphicon glyphicon-question-sign"></span>\
     </button>\
     </span></div>\
+    <div v-model="remainingcapacity">\
+        Remaining Capacity: {{remainingcapacity}}\
+    </div>\
     </div>\
     <div class="col-xs-2" v-if="showsubnettype">\
         <input type="radio" id="public-subnet" value="public" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
@@ -339,7 +342,7 @@ Vue.component("placements-select", {
         <input type="checkbox" id="checkbox" v-bind:checked="assignpublicip" v-on:click="assignipchange($event.target.checked)">\
         <label for="checkbox">Assign Public IP</label>\
     </div></div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype', 'showsubnettype'],
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype', 'showsubnettype', 'remainingcapacity'],
     data: function () {
         return {
             groupStyle: this.showhelp ? 'input-group' : ''

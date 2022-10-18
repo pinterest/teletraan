@@ -25,7 +25,7 @@ Vue.component('side-button-nolink', {
                 data-toggle="tooltip" v-bind:title=title v-on:click.stop="clickButton">\
            <i v-bind:class=styleclass></i> {{text}} \
         </a>',
-  props: ['styleclass', 'text', 'title', 'remainingCapacity'],
+  props: ['styleclass', 'text', 'title'],
   methods: {
     'clickButton': function () {
       this.$emit('click')

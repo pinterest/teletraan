@@ -230,7 +230,13 @@ var capacityPanel = new Vue({
                remainingCapacity: placements != null ? placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
             },
             computed: {
-                capacityText: function() {return `Capacity (max remaining ${this.remainingCapacity})`}
+                capacityText: function() {
+                    if (this.remainingCapacity < 100) {
+                        return `Capacity (Remaining Capacity: ${this.remainingCapacity})`
+                    } else {
+                        return "Capacity"
+                    }
+                }
             },
             mounted: function(){
                 if (!renderCapacity){
