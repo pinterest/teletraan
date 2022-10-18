@@ -591,6 +591,9 @@
                     this.baseImageValue = value
                 },
                 deleteConfig: function(name) {
+                    if (name == 'root_volume_type') {
+                        globalNotificationBanner.info = "On deleting this configuration and saving it, the root volume type will be set to default value, which is gp3 currently"
+                    }
                     this.allUserData = this.allUserData.filter(function(config) {
                         return config.name != name
                     })
@@ -802,7 +805,6 @@
                             globalNotificationBanner.error = "cmp_base image must have pinfo_role set to cmp_base"
                             return false
                         }
-
                     }
                     else{
                         if ('pinfo_role' in clusterInfo.configs && clusterInfo.configs['pinfo_role']==='cmp_base'){
@@ -818,6 +820,11 @@
 
                     if (imageNameValue === 'cmp_base' && clusterInfo.hostType.startsWith('EbsCompute')){
                         globalNotificationBanner.error = "EbsCompute  instance must use ebs AMI. Try cmp_base-ebs"
+                        return false
+                    }
+
+                    if ('root_volume_type' in clusterInfo.configs && !(["gp2", "gp3"].includes(clusterInfo.configs['root_volume_type']))) {
+                        globalNotificationBanner.error = "At this time only gp2 and gp3 root volume types are supported"
                         return false
                     }
 
