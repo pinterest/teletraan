@@ -474,6 +474,11 @@ var capacitySetting = new Vue({
                 return false
             }
 
+            if ('root_volume_type' in clusterInfo.configs && !(["gp2", "gp3"].includes(clusterInfo.configs['root_volume_type']))) {
+                globalNotificationBanner.error = "At this time only gp2 and gp3 root volume types are supported"
+                return false
+            }
+
             const replacementTimeout = clusterInfo['replacementTimeout']
             if (replacementTimeout == null || isNaN(replacementTimeout) || replacementTimeout < 5 || replacementTimeout > 24 * 60) {
                 globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)"

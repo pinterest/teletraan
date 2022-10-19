@@ -209,7 +209,7 @@ Vue.component("aws-config-modal", {
                 ) {
                     this.$emit("click", {
                         name: this.customizedName,
-                        value: this.selectedOptionValue
+                        value: this.selectedOptionValue.trim()
                     });
                 } else {
                     document.getElementById(
@@ -219,7 +219,7 @@ Vue.component("aws-config-modal", {
             } else {
                 this.$emit("click", {
                     name: this.selectedOption.name,
-                    value: this.selectedOptionValue
+                    value: this.selectedOptionValue.trim()
                 });
             }
         },
