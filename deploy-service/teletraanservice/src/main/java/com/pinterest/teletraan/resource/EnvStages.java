@@ -111,8 +111,8 @@ public class EnvStages {
         }
 
         if (environBean.getStage_type() == null) {
-            // Request has no intention to change stage type, so set it to current value to
-            // avoid the default value being used.
+            // Request has no intention to change stage type, so set it to the current value
+            // to avoid the default value being used.
             environBean.setStage_type(origBean.getStage_type());
         } else if (origBean.getStage_type() != Constants.DEFAULT_STAGE_TYPE) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
