@@ -331,17 +331,16 @@ class EnvLandingView(View):
         stage_with_external_id = None
         existing_stage_identifier = None
         for env_stage in envs:
-            if env_stage['externalId'] is not None and env_stage['stageName'] == stage:
+            if env_stage['externalId'] is None and env_stage['stageName'] == stage:
                 stage_with_external_id = env_stage
                 break
 
-        if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
-            try:
-                existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
-                project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
-            except TeletraanException as detail:
-                log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-                messages.add_message(request, messages.ERROR, detail)
+        try:
+            existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
+            project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
+        except TeletraanException as detail:
+            log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
+            messages.add_message(request, messages.ERROR, detail)
 
         project_info = None
         if existing_stage_identifier:
@@ -349,7 +348,11 @@ class EnvLandingView(View):
             if project_name:
                 project_info = {}
                 project_info['project_name'] = project_name
+            try:    
                 project_info['project_url'] = environs_helper.get_nimbus_project_console_url(project_name)
+            except TeletraanException as detail:
+                log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
+                messages.add_message(request, messages.ERROR, detail)    
 
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
@@ -840,7 +843,11 @@ def post_add_stage(request, name):
         else:
             common.create_simple_stage(request,name, stage, description, external_id)
     except:
-        environs_helper.delete_nimbus_identifier(request, external_id)
+        try:
+            environs_helper.delete_nimbus_identifier(request, external_id)
+        except TeletraanException as detail:
+            log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
+            messages.add_message(request, messages.ERROR, detail)     
         raise
 
     return redirect('/env/' + name + '/' + stage + '/config/')
@@ -855,7 +862,11 @@ def remove_stage(request, name, stage):
             break
 
     if current_env_stage_with_external_id is not None and current_env_stage_with_external_id['externalId'] is not None:
-        environs_helper.delete_nimbus_identifier(request, current_env_stage_with_external_id['externalId'])
+        try:
+            environs_helper.delete_nimbus_identifier(request, current_env_stage_with_external_id['externalId'])
+        except TeletraanException as detail:
+            log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
+            messages.add_message(request, messages.ERROR, detail)    
 
     environs_helper.delete_env(request, name, stage)
     envs = environs_helper.get_all_env_stages(request, name)
