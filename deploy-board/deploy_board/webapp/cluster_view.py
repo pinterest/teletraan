@@ -79,8 +79,9 @@ class EnvCapacityBasicCreateView(View):
             if 'configs' in cluster_info:
                 for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
                     if field in cluster_info['configs']:
-                        log.error("Teletraan does not support user to change %s %s" % (field, cluster_info[field]))
-                        raise TeletraanException("Teletraan does not support user to create %s" % s)
+                        msg = "Teletraan does not support user to change %s %s" % (field, cluster_info[field])
+                        log.error(msg)
+                        raise TeletraanException(msg)
 
             log.info("Associate cluster_name to environment")
             # Update cluster info
@@ -93,7 +94,7 @@ class EnvCapacityBasicCreateView(View):
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
-            
+
             return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
