@@ -353,7 +353,9 @@ class EnvLandingView(View):
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             capacity_info['cluster'] = basic_cluster_info
-            placements = placements_helper.get_simplified_by_ids(
+            placements = None
+            if capacity_info['cluster']:
+                placements = placements_helper.get_simplified_by_ids(
                         request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
 
         if not env['deployId']:
