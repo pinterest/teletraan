@@ -331,16 +331,17 @@ class EnvLandingView(View):
         stage_with_external_id = None
         existing_stage_identifier = None
         for env_stage in envs:
-            if env_stage['externalId'] is None and env_stage['stageName'] == stage:
+            if env_stage['externalId'] is not None and env_stage['stageName'] == stage:
                 stage_with_external_id = env_stage
                 break
-
-        try:
-            existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
-            project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
-        except TeletraanException as detail:
-            log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-            messages.add_message(request, messages.ERROR, detail)
+            
+        if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:       
+            try:
+                existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
+                project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
+            except TeletraanException as detail:
+                log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
+                messages.add_message(request, messages.ERROR, detail)
 
         project_info = None
         if existing_stage_identifier:
