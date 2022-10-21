@@ -311,10 +311,10 @@ Vue.component('accessrole-help', {
     <div class="col-xs-2">\
     </div>\
     <div class="col-xs-10">\
-    {{data}} found <a href="https://phabricator.pinadmin.com/diffusion/HP/browse/master/access_role/">here</a>.\
+    {{data}} found <a v-bind:href="accessrolelist">here</a>.\
     </div>\
     </div>',
-    props: ['data'],
+    props: ['data', 'accessrolelist']
 });
 
 
