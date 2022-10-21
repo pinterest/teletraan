@@ -74,6 +74,8 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
+import com.pinterest.deployservice.dao.UtilDAO;
+
 
 import com.ibatis.common.jdbc.ScriptRunner;
 import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
@@ -119,6 +121,7 @@ public class DBDAOTest {
     private static ConfigHistoryDAO configHistoryDAO;
     private static TagDAO tagDAO;
     private static ScheduleDAO scheduleDAO;
+    private static UtilDAO utilDAO;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -152,6 +155,7 @@ public class DBDAOTest {
         configHistoryDAO = new DBConfigHistoryDAOImpl(DATASOURCE);
         tagDAO = new DBTagDAOImpl(DATASOURCE);
         scheduleDAO = new DBScheduleDAOImpl(DATASOURCE);
+        utilDAO = new DBUtilDAOImpl(DATASOURCE);
     }
 
     @AfterClass
@@ -1057,7 +1061,18 @@ public class DBDAOTest {
         assertEquals(updatedBean.getHost_numbers(), "50,60,500");
 
     }
-
+     
+    @Test
+    public void testUtilDAO() throws Exception {
+        StringBuilder lockNameBuilder = new StringBuilder();
+        for (int i = 1; i < 40; i++) {
+            lockNameBuilder.append("kn");
+            String lockName = lockNameBuilder.toString();
+            Connection conn = utilDAO.getLock(lockName);
+            assertNotNull(conn);
+            utilDAO.releaseLock(lockName, conn);
+        }
+    }
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage,
                                           String deployId) {

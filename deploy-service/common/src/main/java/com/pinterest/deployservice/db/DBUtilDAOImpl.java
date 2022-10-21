@@ -15,6 +15,7 @@
  */
 package com.pinterest.deployservice.db;
 
+import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.UtilDAO;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.DbUtils;
@@ -38,6 +39,12 @@ public class DBUtilDAOImpl implements UtilDAO {
     public DBUtilDAOImpl(BasicDataSource dataSource) {
         this.dataSource = dataSource;
     }
+    
+    private String ensureValidLockName(String lockName) {
+        String lockNameSha = CommonUtils.getShaHex(lockName.getBytes());
+        LOG.debug("Converted lock name {} to {}", lockName, lockNameSha);
+        return lockNameSha;
+    }
 
     @Override
     public Connection getLock(String id) {
@@ -45,7 +52,8 @@ public class DBUtilDAOImpl implements UtilDAO {
         try {
             connection = dataSource.getConnection();
             connection.setAutoCommit(false);
-            long status = new QueryRunner().query(connection, String.format(GET_LOCK_TEMPLATE, id, LOCK_TIMEOUT),
+            long status = new QueryRunner().query(connection,
+                String.format(GET_LOCK_TEMPLATE, ensureValidLockName(id), LOCK_TIMEOUT),
                 SingleResultSetHandlerFactory.<Long>newObjectHandler());
             if (status == 1L) {
                 return connection;
@@ -60,7 +68,8 @@ public class DBUtilDAOImpl implements UtilDAO {
     @Override
     public void releaseLock(String id, Connection connection) {
         try {
-            new QueryRunner().query(connection, String.format(RELEASE_LOCK_TEMPLATE, id),
+            new QueryRunner().query(connection,
+                String.format(RELEASE_LOCK_TEMPLATE, ensureValidLockName(id)),
                 SingleResultSetHandlerFactory.<Long>newObjectHandler());
         } catch (Exception e) {
             LOG.error("Failed to call releaseLock on id {}.", id, e);
