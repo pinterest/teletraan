@@ -334,8 +334,8 @@ class EnvLandingView(View):
             if env_stage['externalId'] is not None and env_stage['stageName'] == stage:
                 stage_with_external_id = env_stage
                 break
-    
-        if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:       
+
+        if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
             try:
                 existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
                 project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
