@@ -306,6 +306,17 @@ Vue.component('placements-help', {
     },
 });
 
+Vue.component('accessrole-help', {
+    template: '<div class="form-group">\
+    <div class="col-xs-2">\
+    </div>\
+    <div class="col-xs-10">\
+    {{data}} found <a v-bind:href="accessrolelist">here</a>.\
+    </div>\
+    </div>',
+    props: ['data', 'accessrolelist']
+});
+
 
 /**
 * A form control with a label and multiple selection box
@@ -358,5 +369,43 @@ Vue.component("placements-select", {
         filterclick: function(value) {
             this.$emit('subnetfilterclick', value)
         }
+    }
+});
+
+
+Vue.component("accessrole-input", {
+    template: '<div class="form-group">\
+    <label for="access_role" class="deployToolTip control-label col-xs-2"\
+    data-toggle="tooltip"\
+    v-bind:title="title">\
+        {{label}}\
+    </label>\
+    <div class="col-xs-4">\
+        <div v-bind:class="groupStyle">\
+        <input class="form-control" id="access_role"  required="false" type="text" \
+            v-on:input="updateValue($event.target.value)" v-bind:value="value"/>\
+    <span v-if="showhelp" class="input-group-btn">\
+        <button id="accessRoleExpressionId" class="deployToolTip btn btn-default"\
+                type="button" data-toggle="tooltip" v-on:click="helpClick"\
+                title="click to see more information">\
+            <span class="glyphicon glyphicon-question-sign"></span>\
+        </button>\
+    </span>\
+    </div>\
+    </div>\
+    </div>',
+    props: ['label', 'value', 'title', 'showhelp'],
+    data: function () {
+        return {
+            groupStyle: this.showhelp ? 'input-group' : ''
+        }
+    },
+    methods: {
+        updateValue: function (value) {
+        this.$emit('input', value)
+        },
+        helpClick: function () {
+            this.$emit('helpclick')
+        },
     }
 });

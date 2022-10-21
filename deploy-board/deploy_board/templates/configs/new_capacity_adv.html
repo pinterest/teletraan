@@ -103,6 +103,9 @@ var capacitySetting = new Vue({
     data: {
         allUserData: Object.keys(info.defaultCMPConfigs).map(
             function (key) {
+                if (key == 'access_role') {
+                    info.defaultCMPConfigs[key] = localStorage.getItem("accessRole") ? localStorage.getItem("accessRole") : info.defaultCMPConfigs[key];
+                }
                 return {
                     name: key,
                     value: info.defaultCMPConfigs[key]
@@ -484,6 +487,11 @@ var capacitySetting = new Vue({
                 globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)"
                 return false
             }
+            var access_role = clusterInfo.configs['access_role'];
+            if (access_role === undefined || access_role === null) {
+                globalNotificationBanner.error = "Access Role must be specified";
+                return false;
+            }
 
             return true
         },
@@ -538,6 +546,8 @@ var capacitySetting = new Vue({
             else {
                 clusterInfo.configs['assign_public_ip'] = false
             }
+            let accessRoleObj = this.allUserData.find(({name}) => name === "access_role");
+            clusterInfo.configs['access_role'] = accessRoleObj.value;
             if (this.validateInput(clusterInfo)) {
                 //Send request
                 this.sendRequest(clusterInfo);
@@ -556,6 +566,10 @@ var capacitySetting = new Vue({
             Vue.nextTick(function(){
                 $(".chosen-select").trigger("chosen:updated")
             })
+        },
+        allUserData: function() {
+            let accessRoleObj = this.allUserData.find(({name}) => name === "access_role");
+            localStorage.setItem("accessRole", accessRoleObj.value);
         }
     }
 })

@@ -56,6 +56,9 @@
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
+                <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole" 
+                    showhelp="true" v-on:helpclick="accessRoleHelpClick"></accessrole-input>
+                <accessrole-help v-show="showAccessRoleHelp" v-bind:data="accessRoleHelpText" v-bind:accessrolelist="accessRoleList"></accessrole-help>
             </form>
         </div>
     </div>
@@ -82,6 +85,7 @@ var capacityView = new Vue({
 
 var capacityCreationInfo = {{capacity_creation_info|safe}};
 var environment = capacityCreationInfo.environment;
+var accessRoleList = capacityCreationInfo.access_role_list;
 
 getDefaultBaseImage = function(){
     var accepted = capacityCreationInfo.baseImages.filter(function (e) {
@@ -132,7 +136,10 @@ var capacitySetting = new Vue({
         // TODO: The default host type comes from settings and should probably not be an abstract_name since they are not guaranteed to be unique.
         selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType).id,
         selectedSecurityZoneValue: capacityCreationInfo.defaultSeurityZone,
-        selectedPlacements: null
+        selectedPlacements: null,
+        accessRole: localStorage.getItem("accessRole") ? localStorage.getItem("accessRole") : capacityCreationInfo.defaultCMPConfigs['access_role'],
+        showAccessRoleHelp: false,
+        accessRoleHelpText: "",
     },
     methods:{
         validateInput: function(clusterInfo){
@@ -146,6 +153,11 @@ var capacitySetting = new Vue({
             var placement = clusterInfo['placement'];
             if (placement ===undefined || placement === null || placement.length===0){
                 globalNotificationBanner.error = "Placement must be specified";
+                return false;
+            }
+            var access_role = clusterInfo.configs['access_role'];
+            if (access_role === undefined || access_role === null) {
+                globalNotificationBanner.error = "Access Role must be specified";
                 return false;
             }
             return true;
@@ -195,6 +207,7 @@ var capacitySetting = new Vue({
             else {
                 clusterInfo.configs['assign_public_ip'] = false
             }
+            clusterInfo.configs['access_role'] = this.accessRole;
             if (this.validateInput(clusterInfo)){
                 //Send request
                 this.sendRequest(clusterInfo);
@@ -214,7 +227,15 @@ var capacitySetting = new Vue({
         },
         updateSecurityZone: function(value){
             this.selectedSecurityZoneValue = value
-        }
+        },
+        accessRoleHelpClick: function(){
+            if (this.showAccessRoleHelp){
+                this.showAccessRoleHelp = false
+            } else {
+                this.accessRoleHelpText = "Please enter a valid access role"
+                capacitySetting.showAccessRoleHelp = true
+            }
+        },
     },
     watch: {
         placements: function(){
@@ -223,6 +244,9 @@ var capacitySetting = new Vue({
             Vue.nextTick(function(){
                 $(".chosen-select").trigger("chosen:updated")
             })
+        },
+        accessRole: function() {
+            localStorage.setItem("accessRole", this.accessRole);
         }
     }
  }
