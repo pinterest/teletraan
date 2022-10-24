@@ -483,7 +483,7 @@ var capacitySetting = new Vue({
                 return false
             }
             var access_role = clusterInfo.configs['access_role'];
-            if (access_role === undefined || access_role === null) {
+            if (access_role === undefined || access_role === null || access_role === "") {
                 globalNotificationBanner.error = "Access Role must be specified";
                 return false;
             }
