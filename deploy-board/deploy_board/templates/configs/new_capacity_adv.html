@@ -487,8 +487,8 @@ var capacitySetting = new Vue({
                 globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)"
                 return false
             }
-            var access_role = clusterInfo.configs['access_role'];
-            if (access_role === undefined || access_role === null) {
+            var access_role = clusterInfo.configs['access_role'].trim();
+            if (!access_role) {
                 globalNotificationBanner.error = "Access Role must be specified";
                 return false;
             }
