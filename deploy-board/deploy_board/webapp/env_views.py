@@ -847,9 +847,9 @@ def post_add_stage(request, name):
         try:
             environs_helper.delete_nimbus_identifier(request, external_id)
         except TeletraanException as detail:
-            log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-            messages.add_message(request, messages.ERROR, detail)     
-        raise
+            message = 'Failed to delete Nimbus identifier {}, Error Message: {}'.format(external_id, detail)
+            log.error(message)
+            messages.add_message(request, messages.ERROR, message)
 
     return redirect('/env/' + name + '/' + stage + '/config/')
 
@@ -866,8 +866,9 @@ def remove_stage(request, name, stage):
         try:
             environs_helper.delete_nimbus_identifier(request, current_env_stage_with_external_id['externalId'])
         except TeletraanException as detail:
-            log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-            messages.add_message(request, messages.ERROR, detail)    
+            message = 'Failed to delete Nimbus identifier {}, Error Message: {}'.format(current_env_stage_with_external_id['externalId'], detail)
+            log.error(message)
+            messages.add_message(request, messages.ERROR, message)
 
     environs_helper.delete_env(request, name, stage)
     envs = environs_helper.get_all_env_stages(request, name)
