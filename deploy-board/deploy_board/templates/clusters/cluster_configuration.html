@@ -584,7 +584,7 @@
                             })
                             capacitySetting.baseImageHelpData = data
                             capacitySetting.showBaseImageHelp = true
-                        }, {cell: capacitySetting.cellValue})
+                        }, {cell: capacitySetting.currentCell})
                     }
                 },
                 baseImageChange: function(value) {
@@ -626,12 +626,10 @@
                         this.getHelpInfo('get_host_type_info', function(data){
                                 capacitySetting.hostTypeHelpData = data
                                 capacitySetting.showHostTypeHelp = true
-                            }, {cell: capacitySetting.cellValue})
+                            }, {cell: capacitySetting.currentCell})
                     }
                 },
                 cellChange: function(value) {
-                    capacitySetting.cellValue = value;
-                    capacitySetting.currentCell = value;
                     // grab all the image names
                     var scope = this;
                     var provider = capacitySetting.currentProvider;
