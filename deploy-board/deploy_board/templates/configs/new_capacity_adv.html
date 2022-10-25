@@ -265,6 +265,7 @@ var capacitySetting = new Vue({
             }
         },
         cellChange: function(value) {
+            capacitySetting.currentCell = value;
             // grab all the image names for this cell
             var scope = this;
             var provider = capacitySetting.currentProvider;
