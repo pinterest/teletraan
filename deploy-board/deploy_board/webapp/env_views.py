@@ -843,10 +843,10 @@ def post_add_stage(request, name):
             common.clone_from_stage_name(request, name, stage, name, from_stage, description, external_id)
         else:
             common.create_simple_stage(request,name, stage, description, external_id)
-    except:
+    except TeletraanException as detail:
         try:
             environs_helper.delete_nimbus_identifier(request, external_id)
-        except TeletraanException as detail:
+        except:
             message = 'Failed to delete Nimbus identifier {}, Error Message: {}'.format(external_id, detail)
             log.error(message)
             messages.add_message(request, messages.ERROR, message)
@@ -866,7 +866,7 @@ def remove_stage(request, name, stage):
         try:
             environs_helper.delete_nimbus_identifier(request, current_env_stage_with_external_id['externalId'])
         except TeletraanException as detail:
-            message = 'Failed to delete Nimbus identifier {}, Error Message: {}'.format(current_env_stage_with_external_id['externalId'], detail)
+            message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(current_env_stage_with_external_id['externalId'], detail)
             log.error(message)
             messages.add_message(request, messages.ERROR, message)
 
