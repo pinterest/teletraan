@@ -37,7 +37,7 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
-                    <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="cellValue"></cell-select>
+                    <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
                         v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" inadvanced="true" v-on:helpclick="baseImageHelpClick">
@@ -144,7 +144,6 @@ var capacitySetting = new Vue({
                     isSelected: item.abstract_name === info.defaultHostType
                 }
             }),
-        cellValue: info.defaultCell,
         imageNameValue: info.defaultBaseImage,
         imagenames: info.baseImageNames.map(
             function (o) {
@@ -266,7 +265,6 @@ var capacitySetting = new Vue({
             }
         },
         cellChange: function(value) {
-            capacitySetting.cellValue = value;
             capacitySetting.currentCell = value;
             // grab all the image names for this cell
             var scope = this;
