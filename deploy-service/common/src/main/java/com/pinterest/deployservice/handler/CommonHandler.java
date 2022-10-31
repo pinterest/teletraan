@@ -45,6 +45,7 @@ public class CommonHandler {
     private DeployDAO deployDAO;
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
+    private TagDAO tagDAO;
     private AgentDAO agentDAO;
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
@@ -119,6 +120,7 @@ public class CommonHandler {
         deployDAO = serviceContext.getDeployDAO();
         environDAO = serviceContext.getEnvironDAO();
         buildDAO = serviceContext.getBuildDAO();
+        tagDAO = serviceContext.getTagDAO();
         agentDAO = serviceContext.getAgentDAO();
         utilDAO = serviceContext.getUtilDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
@@ -152,33 +154,49 @@ public class CommonHandler {
         String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s/deploy/",
             envBean.getEnv_name(),
             envBean.getStage_name());
+        TagBean tagBean = tagDAO.getById(buildId);
 
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
             // TODO this is Slack specific, screw hipchat for now
-            return String.format("%s/%s: %s %s/%s completed successfully. See details <%s>",
+
+            if (tagBean != null && tagBean.getValue() == TagValue.BAD_BUILD) {
+                return String.format("%s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s>",
                 envBean.getEnv_name(),
                 envBean.getStage_name(),
                 action,
                 buildBean.getScm_branch(),
                 buildBean.getScm_commit_7(),
                 webLink);
+            } else {
+                return String.format("%s/%s: %s %s/%s completed successfully. See details <%s>",
+                envBean.getEnv_name(),
+                envBean.getStage_name(),
+                action,
+                buildBean.getScm_branch(),
+                buildBean.getScm_commit_7(),
+                webLink);
+            }
         } else {
             // TODO this is Slack specific, screw hipchat for now
             if (deployBean.getSuc_date() != null && deployBean.getSuc_date() != 0L) {
                 // This is failure after previous success
-                return String.format("%s/%s: can not deploy to all the newly provisioned hosts. See details <%s>",
+                return String.format("%s/%s: can not deploy to all the newly provisioned hosts. See details <%s>. 
+                    This build is currently marked as %s.",
                     envBean.getEnv_name(),
                     envBean.getStage_name(),
-                    webLink);
+                    webLink,
+                    tagBean == null? 'NOT SET': tagBean.getTag_value());
             } else {
-                return String.format("%s/%s: %s %s/%s failed. See details <%s>",
+                return String.format("%s/%s: %s %s/%s failed. See details <%s>
+                    This build is currently marked as %s.",
                     envBean.getEnv_name(),
                     envBean.getStage_name(),
                     action,
                     buildBean.getScm_branch(),
                     buildBean.getScm_commit_7(),
-                    webLink);
+                    webLink,
+                    tagBean == null? 'NOT SET': tagBean.getTag_value());
             }
         }
     }
