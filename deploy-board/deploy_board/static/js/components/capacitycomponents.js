@@ -236,7 +236,7 @@ Vue.component("static-capacity-config", {
         </label>
         <div class="col-xs-2" >
             <input name="capacity" class="form-control" type="number" min="0" required
-                :value="capacity" @input="onCapacityChange($event.target.value)" @keydown.enter.prevent="">
+                :value="capacity" v-on:change="onCapacityChange($event.target.value)" @keydown.enter.prevent="">
         </div>
     </div>
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
@@ -290,14 +290,14 @@ Vue.component("asg-capacity-config", {
             <div class="input-group">
                 <span class="input-group-addon">Min Size</span>
                 <input name="minSize" class="form-control" type="number" min="0" required
-                    :value="minSize" @input="onMinSizeChange($event.target.value)" @keydown.enter.prevent="" >
+                    :value="minSize" v-on:change="onMinSizeChange($event.target.value)" @keydown.enter.prevent="" >
             </div>
         </div>
         <div :class="inputBootstrapClass">
             <div class="input-group">
                 <span class="input-group-addon">Max Size</span>
                 <input name="maxSize" class="form-control" type="number" min="0" required
-                    :value="maxSize" @input="onMaxSizeChange($event.target.value)" @keydown.enter.prevent="">
+                    :value="maxSize" v-on:change="onMaxSizeChange($event.target.value)" @keydown.enter.prevent="">
             </div>
         </div>
     </div>
