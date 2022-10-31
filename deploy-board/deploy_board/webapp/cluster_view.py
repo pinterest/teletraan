@@ -23,7 +23,7 @@ from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, \
-        DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS
+        DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST
 import json
 import logging
 
@@ -62,7 +62,8 @@ class EnvCapacityBasicCreateView(View):
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
-            'defaultSeurityZone': DEFAULT_PLACEMENT
+            'defaultSeurityZone': DEFAULT_PLACEMENT,
+            'access_role_list': ACCESS_ROLE_LIST,
         }
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
@@ -79,10 +80,9 @@ class EnvCapacityBasicCreateView(View):
             if 'configs' in cluster_info:
                 for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
                     if field in cluster_info['configs']:
-                        log.error("Teletraan does not support user to change %s %s" % (field, cluster_info[field]))
-                        raise TeletraanException("Teletraan does not support user to create %s" % s)
-
-            clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
+                        msg = "Teletraan does not support user to change %s %s" % (field, cluster_info[field])
+                        log.error(msg)
+                        raise TeletraanException(msg)
 
             log.info("Associate cluster_name to environment")
             # Update cluster info
@@ -93,6 +93,9 @@ class EnvCapacityBasicCreateView(View):
             # set up env and group relationship
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
+
+            clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
+
             return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -152,9 +155,6 @@ class EnvCapacityAdvCreateView(View):
             cluster_name = '{}-{}'.format(name, stage)
             cluster_info = json.loads(request.body)
 
-            log.info("Create Capacity in the provider")
-            clusters_helper.create_cluster(request, cluster_name, cluster_info)
-
             log.info("Update cluster_name to environment")
             # Update environment
             environs_helper.update_env_basic_config(request, name, stage,
@@ -164,6 +164,9 @@ class EnvCapacityAdvCreateView(View):
             # set up env and group relationship
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
+
+            log.info("Create Capacity in the provider")
+            clusters_helper.create_cluster(request, cluster_name, cluster_info)
 
             return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
@@ -462,8 +465,8 @@ def get_host_type_info(request):
 def create_security_zone(request):
     params = request.POST
     security_zone_info = {}
-    security_zone_info['abstract_name'] = params['abstractName']
-    security_zone_info['provider_name'] = params['providerName']
+    security_zone_info['abstract_name'] = params['abstractName'].strip()
+    security_zone_info['provider_name'] = params['providerName'].strip()
     security_zone_info['provider'] = params['provider']
     security_zone_info['description'] = params['description']
     security_zone_info['cell_name'] = params.get('cellName', DEFAULT_CELL)
@@ -645,7 +648,34 @@ def clone_cluster(request, src_name, src_stage):
         })
         log.info('clone_cluster, created a new env %s' % dest_env)
 
-        ##2. rodimus service get src_cluster config
+        ##2. teletraan service update_env_basic_config
+        environs_helper.update_env_basic_config(request, dest_name, dest_stage,
+                                                data={"clusterName": dest_cluster_name}
+                                                )
+        ##3. teletraan service set up env and group relationship
+        environs_helper.update_env_capacity(request, dest_name, dest_stage, capacity_type="GROUP",
+                                            data=[dest_cluster_name])
+
+        ##4. get src script_config
+        src_script_configs = environs_helper.get_env_script_config(request, src_name, src_stage)
+        src_agent_configs = environs_helper.get_env_agent_config(request, src_name, src_stage)
+        src_alarms_configs = environs_helper.get_env_alarms_config(request, src_name, src_stage)
+        src_metrics_configs = environs_helper.get_env_metrics_config(request, src_name, src_stage)
+        src_webhooks_configs = environs_helper.get_env_hooks_config(request, src_name, src_stage)
+
+        ##5. clone all the extra configs
+        if src_agent_configs:
+            environs_helper.update_env_agent_config(request, dest_name, dest_stage, src_agent_configs)
+        if src_script_configs:
+            environs_helper.update_env_script_config(request, dest_name, dest_stage, src_script_configs)
+        if src_alarms_configs:
+            environs_helper.update_env_alarms_config(request, dest_name, dest_stage, src_alarms_configs)
+        if src_metrics_configs:
+            environs_helper.update_env_metrics_config(request, dest_name, dest_stage, src_metrics_configs)
+        if src_webhooks_configs:
+            environs_helper.update_env_hooks_config(request, dest_name, dest_stage, src_webhooks_configs)
+
+        ##6. rodimus service get src_cluster config
         src_cluster_info = clusters_helper.get_cluster(request, src_cluster_name)
         log.info('clone_cluster, src cluster info %s' % src_cluster_info)
         configs = src_cluster_info.get('configs')
@@ -660,39 +690,12 @@ def clone_cluster(request, src_name, src_stage):
                 configs['cmp_group'] = ','.join(['CMP'] + list(cmp_groups_set))
                 src_cluster_info['configs'] = configs
 
-        ##3. rodimus service post create cluster
+        ##7. rodimus service post create cluster
         src_cluster_info['clusterName'] = dest_cluster_name
         src_cluster_info['capacity'] = 0
         log.info('clone_cluster, request clone cluster info %s' % src_cluster_info)
         dest_cluster_info = clusters_helper.create_cluster_with_env(request, dest_cluster_name, dest_name, dest_stage, src_cluster_info)
         log.info('clone_cluster, cloned cluster info %s' % dest_cluster_info)
-
-        ##4. teletraan service update_env_basic_config
-        environs_helper.update_env_basic_config(request, dest_name, dest_stage,
-                                                data={"clusterName": dest_cluster_name}
-                                                )
-        ##5. teletraan service set up env and group relationship
-        environs_helper.update_env_capacity(request, dest_name, dest_stage, capacity_type="GROUP",
-                                            data=[dest_cluster_name])
-
-        ##6. get src script_config
-        src_script_configs = environs_helper.get_env_script_config(request, src_name, src_stage)
-        src_agent_configs = environs_helper.get_env_agent_config(request, src_name, src_stage)
-        src_alarms_configs = environs_helper.get_env_alarms_config(request, src_name, src_stage)
-        src_metrics_configs = environs_helper.get_env_metrics_config(request, src_name, src_stage)
-        src_webhooks_configs = environs_helper.get_env_hooks_config(request, src_name, src_stage)
-
-        ##8. clone all the extra configs
-        if src_agent_configs:
-            environs_helper.update_env_agent_config(request, dest_name, dest_stage, src_agent_configs)
-        if src_script_configs:
-            environs_helper.update_env_script_config(request, dest_name, dest_stage, src_script_configs)
-        if src_alarms_configs:
-            environs_helper.update_env_alarms_config(request, dest_name, dest_stage, src_alarms_configs)
-        if src_metrics_configs:
-            environs_helper.update_env_metrics_config(request, dest_name, dest_stage, src_metrics_configs)
-        if src_webhooks_configs:
-            environs_helper.update_env_hooks_config(request, dest_name, dest_stage, src_webhooks_configs)
 
         return HttpResponse(json.dumps(src_cluster_info), content_type="application/json")
     except NotAuthorizedException as e:
@@ -752,7 +755,9 @@ def terminate_hosts(request, name, stage):
     if 'hostIds' in post_params:
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
-    environ_hosts_helper.stop_service_on_host(request, name, stage, host_ids)
+
+    replace_host = 'replaceHost' in post_params
+    environ_hosts_helper.stop_service_on_host(request, name, stage, host_ids, replace_host)
     return redirect('/env/{}/{}/'.format(name, stage))
 
 
@@ -767,11 +772,7 @@ def force_terminate_hosts(request, name, stage):
         hosts_str = post_params['hostIds']
         host_ids = [x.strip() for x in hosts_str.split(',')]
 
-    if 'replaceHost' in post_params:
-        replace_host = True
-    else:
-        replace_host = False
-
+    replace_host = 'replaceHost' in post_params
     cluster_name = common.get_cluster_name(request, name, stage)
     if not cluster_name:
         groups = environs_helper.get_env_capacity(
