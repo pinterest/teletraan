@@ -84,7 +84,7 @@ public class EnvMetrics {
         String userName = sc.getUserPrincipal().getName();
         environHandler.updateMetrics(environBean, metrics, userName);
         configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_METRIC, metrics, userName);
-        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_METRIC, userName);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_METRIC, userName, environBean.getExternal_id());
         LOG.info("Successfully updated metrics {} for env {}/{} by {}.",
             metrics, envName, stageName, userName);
     }

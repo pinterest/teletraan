@@ -87,7 +87,7 @@ public class EnvAgentConfigs {
         Utils.trimMapValues(configs);
         environHandler.updateAdvancedConfigs(envBean, configs, userName);
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, configs, userName);
-        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, userName);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_ADVANCED, userName, envBean.getExternal_id());
         LOG.info("Successfully updated agent config {} for env {}/{} by {}.",
             configs, envName, stageName, userName);
     }

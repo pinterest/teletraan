@@ -83,7 +83,7 @@ public class EnvPromotes {
         String operator = sc.getUserPrincipal().getName();
         environHandler.updateEnvPromote(environBean, promoteBean, operator);
         configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, promoteBean, operator);
-        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, operator, environBean.getExternal_id());
         LOG.info("Successfully updated promote with {} to env {}/{} by {}.",
             promoteBean, envName, stageName, operator);
     }
