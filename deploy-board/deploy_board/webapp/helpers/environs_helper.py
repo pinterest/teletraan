@@ -19,7 +19,10 @@ import logging
 from deploy_board.webapp.helpers.deployclient import DeployClient
 from deploy_board.settings import IS_PINTEREST
 from django.contrib import messages
-from exceptions import TeletraanException
+from exceptions import NotFoundException, TeletraanException
+from django.http import HttpResponse
+from django.shortcuts import render, redirect
+import json
 
 log = logging.getLogger(__name__)
 
@@ -95,7 +98,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
         existing_stage_identifier = get_nimbus_identifier(request, stage_with_external_id['externalId'])
     except TeletraanException as detail:
         log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-        messages.add_message(request, messages.ERROR, detail)
+        raise
     # create Nimbus Identifier for the new stage
     new_stage_identifier = None
     if existing_stage_identifier is not None:
@@ -106,7 +109,7 @@ def create_identifier_for_new_stage(request, env_name, stage_name):
             new_stage_identifier = create_nimbus_identifier(request, nimbus_request_data)
         except TeletraanException as detail:
             log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-            messages.add_message(request, messages.ERROR, detail)   
+            raise
 
     # if there is no stage in this env with externalId, still create the new stage
     if new_stage_identifier is None:
