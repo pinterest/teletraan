@@ -209,7 +209,6 @@
 <script>
 
 var capacityInfo = {{capacity_info | safe}}
-var placements = {{placements | safe}}
 function loadGroupConfig() {
     var selected_value = $("#group_name option:selected").val();
     var config_url = "/aws_info/get_configs/?group_name=" + selected_value;
@@ -227,7 +226,7 @@ var capacityPanel = new Vue({
             data:{
                title: renderCapacity ? "Cluster" : "Deploy Groups",
                showCluster: renderCapacity,
-               remainingCapacity: placements != null ? placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
+               remainingCapacity: {{remaining_capacity | safe}},
                capacityStateStyle: "",
             },
             computed: {
