@@ -160,7 +160,7 @@ public class CommonHandler {
         String tagList = "";
         for (int i = 0; i < taglist.size(); i++) {
  
-           tagList = tagList + taglist[i].getId() + "," + taglist[i].getOperator() + "," + taglist[i].getValue().toString() + "|";
+           tagList = tagList + taglist.get(i).getId() + "," + taglist.get(i).getOperator() + "," + taglist.get(i).getValue().toString() + "|";
         }
 
 
