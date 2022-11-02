@@ -29,6 +29,11 @@ public class DefaultRodimusManager implements RodimusManager {
     }
 
     @Override
+    public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds, Boolean replaceHost)
+            throws Exception {
+    }
+
+    @Override
     public Collection<String> getTerminatedHosts(Collection<String> hostIds) throws Exception {
         return Collections.emptyList();
     }

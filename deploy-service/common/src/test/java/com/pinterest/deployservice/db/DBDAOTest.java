@@ -74,6 +74,8 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
+import com.pinterest.deployservice.dao.UtilDAO;
+
 
 import com.ibatis.common.jdbc.ScriptRunner;
 import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
@@ -119,6 +121,7 @@ public class DBDAOTest {
     private static ConfigHistoryDAO configHistoryDAO;
     private static TagDAO tagDAO;
     private static ScheduleDAO scheduleDAO;
+    private static UtilDAO utilDAO;
 
     @BeforeClass
     public static void setUpClass() throws Exception {
@@ -152,6 +155,7 @@ public class DBDAOTest {
         configHistoryDAO = new DBConfigHistoryDAOImpl(DATASOURCE);
         tagDAO = new DBTagDAOImpl(DATASOURCE);
         scheduleDAO = new DBScheduleDAOImpl(DATASOURCE);
+        utilDAO = new DBUtilDAOImpl(DATASOURCE);
     }
 
     @AfterClass
@@ -740,16 +744,24 @@ public class DBDAOTest {
         assertEquals(hostBeans3.get(0).getHost_name(), "i-9");
 
         HashSet<String> groups9 = new HashSet<>(Arrays.asList("test_dup"));
-        hostDAO
-            .insertOrUpdate("h-9", "9.9.9.9", "i-9", HostState.PENDING_TERMINATE.toString(),
-                groups9);
+        hostDAO.insertOrUpdate("h-8", "9.9.9.9", "i-8", HostState.TERMINATING.toString(), groups9);
+        hostDAO.insertOrUpdate("h-9", "9.9.9.9", "i-9", HostState.PENDING_TERMINATE.toString(), groups9);
+        hostDAO.insertOrUpdate("h-10", "9.9.9.9", "i-10", HostState.PENDING_TERMINATE_NO_REPLACE.toString(), groups9);
+
         List<HostBean> hostBeans4 = hostDAO.getHosts("h-9");
         assertEquals(hostBeans4.size(), 1);
         assertEquals(hostBeans4.get(0).getHost_name(), "h-9");
         assertEquals(hostBeans4.get(0).getHost_id(), "i-9");
 
         List<HostBean> hostBeans5 = hostDAO.getTerminatingHosts();
-        assertEquals(hostBeans5.size(), 2);
+        assertEquals(4, hostBeans5.size());
+
+        // If state is PENDING_TERMINATE, PENDING_TERMINATE_NO_REPLACE or TERMINATING, cannot overwrite its state
+        hostDAO.insertOrUpdate("h-8", "9.9.9.8", "i-8", HostState.PROVISIONED.toString(), groups9);
+        hostDAO.insertOrUpdate("h-9", "9.9.9.8", "i-9", HostState.PROVISIONED.toString(), groups9);
+        hostDAO.insertOrUpdate("h-10", "9.9.9.8", "i-10", HostState.PROVISIONED.toString(), groups9);
+        hostBeans5 = hostDAO.getTerminatingHosts();
+        assertEquals(4, hostBeans5.size());
 
         // Test can retire hosts
         HostBean hostBean6 = new HostBean();
@@ -772,27 +784,38 @@ public class DBDAOTest {
         hostBean7.setGroup_name("retire-group");
         hostBean7.setCreate_date(currentTime);
         hostBean7.setLast_update(currentTime);
-        hostBean7.setState(HostState.TERMINATING);
-        hostBean7.setCan_retire(1);
+        hostBean7.setState(HostState.ACTIVE);
         hostDAO.insert(hostBean7);
-
-        Collection<String>
-            retiredHostBeanIds =
-            hostDAO.getToBeRetiredHostIdsByGroup("retire-group");
-        assertEquals(retiredHostBeanIds.size(), 2);
 
         AgentBean
             agentBean1 =
             genDefaultAgentBean("i-11", "i-11", "e-1", "d-1", DeployStage.RESTARTING);
         agentBean1.setStatus(AgentStatus.AGENT_FAILED);
         agentDAO.insertOrUpdate(agentBean1);
-        Collection<String>
-            retiredAndFailedHostIds =
-            hostDAO.getToBeRetiredAndFailedHostIdsByGroup("retire-group");
-        assertEquals(retiredAndFailedHostIds.size(), 1);
 
-        Collection<String> failedHostIds = hostDAO.getFailedHostIdsByGroup("retire-group");
-        assertEquals(failedHostIds.size(), 1);
+        HostState[] nonRetirableStates = { HostState.TERMINATING, HostState.PENDING_TERMINATE_NO_REPLACE,
+                HostState.PENDING_TERMINATE };
+
+        for (HostState state: nonRetirableStates) {
+            hostBean7.setCan_retire(1);
+            hostBean7.setState(state);
+            hostDAO.updateHostById("i-13", hostBean7);
+
+            Collection<String> retiredHostBeanIds = hostDAO.getToBeRetiredHostIdsByGroup("retire-group");
+            assertEquals(2, retiredHostBeanIds.size());
+
+            Collection<String> retiredAndFailedHostIds = hostDAO.getToBeRetiredAndFailedHostIdsByGroup("retire-group");
+            assertEquals(1, retiredAndFailedHostIds.size());
+
+            Collection<String> failedHostIds = hostDAO.getFailedHostIdsByGroup("retire-group");
+            assertEquals(1, failedHostIds.size());
+
+            hostBean7.setCan_retire(0);
+            hostDAO.updateHostById("i-13", hostBean7);
+
+            Collection<String> newHostIds = hostDAO.getNewHostIdsByGroup("retire-group");
+            assertEquals(0, newHostIds.size());
+        }
     }
 
     @Test
@@ -1038,7 +1061,18 @@ public class DBDAOTest {
         assertEquals(updatedBean.getHost_numbers(), "50,60,500");
 
     }
-
+     
+    @Test
+    public void testUtilDAO() throws Exception {
+        StringBuilder lockNameBuilder = new StringBuilder();
+        for (int i = 1; i < 40; i++) {
+            lockNameBuilder.append("kn");
+            String lockName = lockNameBuilder.toString();
+            Connection conn = utilDAO.getLock(lockName);
+            assertNotNull(conn);
+            utilDAO.releaseLock(lockName, conn);
+        }
+    }
 
     private EnvironBean genDefaultEnvBean(String envId, String envName, String envStage,
                                           String deployId) {

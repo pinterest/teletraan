@@ -37,7 +37,7 @@
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
-                    <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="cellValue"></cell-select>
+                    <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
                         v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" inadvanced="true" v-on:helpclick="baseImageHelpClick">
@@ -103,6 +103,9 @@ var capacitySetting = new Vue({
     data: {
         allUserData: Object.keys(info.defaultCMPConfigs).map(
             function (key) {
+                if (key == 'access_role') {
+                    info.defaultCMPConfigs[key] = localStorage.getItem("accessRole") ? localStorage.getItem("accessRole") : info.defaultCMPConfigs[key];
+                }
                 return {
                     name: key,
                     value: info.defaultCMPConfigs[key]
@@ -141,7 +144,6 @@ var capacitySetting = new Vue({
                     isSelected: item.abstract_name === info.defaultHostType
                 }
             }),
-        cellValue: info.defaultCell,
         imageNameValue: info.defaultBaseImage,
         imagenames: info.baseImageNames.map(
             function (o) {
@@ -263,7 +265,6 @@ var capacitySetting = new Vue({
             }
         },
         cellChange: function(value) {
-            capacitySetting.cellValue = value;
             capacitySetting.currentCell = value;
             // grab all the image names for this cell
             var scope = this;
@@ -474,10 +475,20 @@ var capacitySetting = new Vue({
                 return false
             }
 
+            if ('root_volume_type' in clusterInfo.configs && !(["gp2", "gp3"].includes(clusterInfo.configs['root_volume_type']))) {
+                globalNotificationBanner.error = "At this time only gp2 and gp3 root volume types are supported"
+                return false
+            }
+
             const replacementTimeout = clusterInfo['replacementTimeout']
             if (replacementTimeout == null || isNaN(replacementTimeout) || replacementTimeout < 5 || replacementTimeout > 24 * 60) {
                 globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)"
                 return false
+            }
+            var access_role = clusterInfo.configs['access_role'].trim();
+            if (!access_role) {
+                globalNotificationBanner.error = "Access Role must be specified";
+                return false;
             }
 
             return true
@@ -533,6 +544,8 @@ var capacitySetting = new Vue({
             else {
                 clusterInfo.configs['assign_public_ip'] = false
             }
+            let accessRoleObj = this.allUserData.find(({name}) => name === "access_role");
+            clusterInfo.configs['access_role'] = accessRoleObj.value;
             if (this.validateInput(clusterInfo)) {
                 //Send request
                 this.sendRequest(clusterInfo);
@@ -551,6 +564,10 @@ var capacitySetting = new Vue({
             Vue.nextTick(function(){
                 $(".chosen-select").trigger("chosen:updated")
             })
+        },
+        allUserData: function() {
+            let accessRoleObj = this.allUserData.find(({name}) => name === "access_role");
+            localStorage.setItem("accessRole", accessRoleObj.value);
         }
     }
 })
