@@ -1052,7 +1052,7 @@
                     })
                     .change(function() {
                         capacitySetting.selectedPlacements = $('.chosen-select').val();
-                        capacitySetting.remainingCapacity = getRemainingCapacity(info.placements, dup_array);
+                        capacitySetting.remainingCapacity = getRemainingCapacity(info.placements, capacitySetting.selectedPlacements);
                     });
 
            if(showReplaceAlert) {
