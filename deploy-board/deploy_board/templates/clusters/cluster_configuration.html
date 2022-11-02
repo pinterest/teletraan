@@ -418,7 +418,6 @@
     var currentCluster = info.currentCluster;
     if (currentCluster!=null){
         var currentPlacements = currentCluster.placement.split(',');
-        var currentPlacementObjs = info.placements.filter(function(placement) {return currentPlacements.includes(placement.id)});
         var placements = getDefaultPlacement(info);
         var showReplaceAlert = currentCluster != null && currentCluster.state != "NORMAL";
         var alert = new Vue({
@@ -533,7 +532,7 @@
                 subnetType: initialAssignPublicIP ? "public" : "private",
                 showSubnetReplacementAlert: false,
                 subnetReplacementWarning: "Cluster can't have a mix of public and private subnets. Saving this config will remove existing subnets.",
-                remainingCapacity: this.placements != null ?  currentPlacementObjs.reduce((s, e) => s + e.capacity, 0) : Infinity,
+                remainingCapacity = this.placements != null ? getRemainingCapacity(info.placements, currentPlacements) : Infinity;
             }),
             methods: {
                 addConfig: function(config) {
@@ -1047,6 +1046,7 @@
                     })
                     .change(function() {
                         capacitySetting.selectedPlacements = $('.chosen-select').val()
+                        capacitySetting.remainingCapacity = getRemainingCapacity(info.placements, capacitySetting.selectedPlacements)
                     });
 
            if(showReplaceAlert) {
