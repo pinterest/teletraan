@@ -154,11 +154,14 @@ public class CommonHandler {
         String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s/deploy/",
             envBean.getEnv_name(),
             envBean.getStage_name());
-        TagBean tagBean = tagDAO.getLatestByTargetId(buildId);
+        TagBean tagBean = tagDAO.getLatestByTargetId(deployBean.getBuild_id());
+
+        //List<TagBean> = tagDAO.getByTargetId(buildId)
 
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
             // TODO this is Slack specific, screw hipchat for now
+
 
             if (tagBean != null && tagBean.getValue() == TagValue.BAD_BUILD) {
                 return String.format("WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s>",
