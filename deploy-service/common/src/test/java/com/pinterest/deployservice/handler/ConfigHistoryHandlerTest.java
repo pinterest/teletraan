@@ -49,7 +49,7 @@ public class ConfigHistoryHandlerTest {
   }
 
   @Test
-  public void updateChangeFeed() throws Exception {
+  public void updateChangeFeed_withUUIDinPayload() throws Exception {
     String payload =
         "{\"type\":\"Deploy Env Config Change\",\"environment\":\"foo (foo)\","
             + "\"description\":\"https://deploy.pinadmin.com/env/foo/foo/config_history/\","
