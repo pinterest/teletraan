@@ -156,7 +156,9 @@ public class CommonHandler {
             envBean.getStage_name());
         TagBean tagBean = tagDAO.getLatestByTargetId(deployBean.getBuild_id());
 
-        List<TagBean> taglist= tagDAO.getByTargetId(buildId);
+        String tagList = "";
+        tagList = tagList + buildId + "," + deployBean.getBuild_id();
+        List<TagBean> taglist= tagDAO.getByTargetId(deployBean.getBuild_id());
         String tagList = "";
         for (int i = 0; i < taglist.size(); i++) {
  
