@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 
 public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
@@ -87,7 +86,6 @@ public class RodimusManagerImpl implements RodimusManager {
         }else{
             return ! prevKnoxKey.equals( this.cachedKey );
         }
-        
     }
 
     private void setAuthorization() throws Exception {
@@ -132,12 +130,18 @@ public class RodimusManagerImpl implements RodimusManager {
 
     @Override
     public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds) throws Exception {
+        terminateHostsByClusterName(clusterName, hostIds, true);
+    }
+
+    @Override
+    public void terminateHostsByClusterName(String clusterName, Collection<String> hostIds, Boolean replaceHost)
+            throws Exception {
         if (hostIds.isEmpty()) {
             return;
         }
-        
-        String url = String.format("%s/v1/clusters/%s/hosts", this.rodimusUrl, clusterName);
-        callHttpClient( Verb.DELETE, url, gson.toJson(hostIds) );
+
+        String url = String.format("%s/v1/clusters/%s/hosts?replaceHost=%s", this.rodimusUrl, clusterName, replaceHost);
+        callHttpClient(Verb.DELETE, url, gson.toJson(hostIds) );
     } // terminateHostsByClusterName
 
     @Override

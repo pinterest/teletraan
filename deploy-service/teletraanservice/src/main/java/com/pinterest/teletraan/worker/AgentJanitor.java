@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -94,22 +94,22 @@ public class AgentJanitor extends SimpleAgentJanitor {
         if ((hostBean.getState() == HostState.PROVISIONED) && (current_time - hostAgentBean.getLast_update() >= launchGracePeriod)) {
             return true;
         }
-        if (hostBean.getState() != HostState.TERMINATING && hostBean.getState() != HostState.PENDING_TERMINATE && 
-            (current_time - hostAgentBean.getLast_update() >= maxStaleHostThreshold)) {
-                return true;
+        if (hostBean.getState() != HostState.TERMINATING && !hostBean.isPendingTerminate() &&
+                (current_time - hostAgentBean.getLast_update() >= maxStaleHostThreshold)) {
+            return true;
         }
         return false;
     }
 
     // Process stale hosts (hosts which have not pinged for more than max threshold period)
-    // Marks hosts unreachable if it's stale for max threshold 
+    // Marks hosts unreachable if it's stale for max threshold
     // Removes hosts once confirmed with source
     private void processHighWatermarkHosts() throws Exception {
         long current_time = System.currentTimeMillis();
         long maxThreshold = current_time - Math.min(maxStaleHostThreshold, maxLaunchLatencyThreshold);
         List<HostAgentBean> maxStaleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
         Set<String> staleHostIds = new HashSet<>();
-        
+
         for (HostAgentBean hostAgentBean : maxStaleHosts) {
             if (isHostStale(hostAgentBean)) {
                 staleHostIds.add(hostAgentBean.getHost_id());
