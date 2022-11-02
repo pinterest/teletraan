@@ -159,7 +159,7 @@ public class CommonHandler {
         String tagList = "";
         tagList = tagList + buildId + "," + deployBean.getBuild_id();
         List<TagBean> taglist= tagDAO.getByTargetId(deployBean.getBuild_id());
-        String tagList = "";
+
         for (int i = 0; i < taglist.size(); i++) {
  
            tagList = tagList + taglist.get(i).getId() + "," + taglist.get(i).getOperator() + "," + taglist.get(i).getValue().toString() + "|";
