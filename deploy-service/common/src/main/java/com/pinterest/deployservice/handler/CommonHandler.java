@@ -38,6 +38,8 @@ import java.util.concurrent.TimeUnit;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class CommonHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CommonHandler.class);
     // metrics
@@ -154,7 +156,8 @@ public class CommonHandler {
         String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s/deploy/",
             envBean.getEnv_name(),
             envBean.getStage_name());
-        TagBean tagBean = tagDAO.getLatestByTargetId(deployBean.getBuild_id());
+        ObjectMapper mapper = new ObjectMapper();
+        TagBean tagBean = tagDAO.getByMetaInfo(mapper.writeValueAsString(buildBean));
 
         String tagList = "";
         tagList = tagList + buildId + "," + deployBean.getBuild_id();
