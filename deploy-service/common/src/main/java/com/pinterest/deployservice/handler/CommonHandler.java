@@ -91,8 +91,6 @@ public class CommonHandler {
                 successCounter.inc();
             }
 
-            state = DeployState.FAILING;
-
             sendWatcherMessage(operator, envBean.getWatch_recipients(), message, color);
             sendChatMessage(operator, envBean.getChatroom(), message, color);
 
