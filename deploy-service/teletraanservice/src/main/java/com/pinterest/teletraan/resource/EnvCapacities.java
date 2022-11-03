@@ -106,14 +106,14 @@ public class EnvCapacities {
           .updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_GROUP_CAPACITY, names,
               operator);
       configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(),
-          Constants.TYPE_ENV_GROUP_CAPACITY, operator);
+          Constants.TYPE_ENV_GROUP_CAPACITY, operator, envBean.getExternal_id());
     } else {
       environHandler.updateHosts(envBean, names, operator);
       configHistoryHandler
           .updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_HOST_CAPACITY, names,
               operator);
       configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(),
-          Constants.TYPE_ENV_HOST_CAPACITY, operator);
+          Constants.TYPE_ENV_HOST_CAPACITY, operator, envBean.getExternal_id());
     }
     LOG.info("Successfully updated env {}/{} capacity config as {} by {}.",
         envName, stageName, names, operator);

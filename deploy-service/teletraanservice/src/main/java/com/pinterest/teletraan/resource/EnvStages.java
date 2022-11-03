@@ -18,7 +18,6 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
-import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
@@ -39,7 +38,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.validation.Valid;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -123,7 +122,7 @@ public class EnvStages {
         environBean.setStage_name(origBean.getStage_name());
         environHandler.updateStage(environBean, operator);
         configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, environBean, operator);
-        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator, environBean.getExternal_id());
         LOG.info("Successfully updated env {}/{} with {} by {}.",
             envName, stageName, environBean, operator);
     }
