@@ -91,6 +91,8 @@ public class CommonHandler {
                 successCounter.inc();
             }
 
+            state = DeployState.FAILING;
+
             sendWatcherMessage(operator, envBean.getWatch_recipients(), message, color);
             sendChatMessage(operator, envBean.getChatroom(), message, color);
 
@@ -159,21 +161,9 @@ public class CommonHandler {
         ObjectMapper mapper = new ObjectMapper();
         TagBean tagBean = tagDAO.getByMetaInfo(mapper.writeValueAsString(buildBean));
 
-        String tagList = "";
-        tagList = tagList + buildId + "," + deployBean.getBuild_id();
-        List<TagBean> taglist= tagDAO.getByTargetId(deployBean.getBuild_id());
-
-        for (int i = 0; i < taglist.size(); i++) {
- 
-           tagList = tagList + taglist.get(i).getId() + "," + taglist.get(i).getOperator() + "," + taglist.get(i).getValue().toString() + "|";
-        }
-
-
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
             // TODO this is Slack specific, screw hipchat for now
-
-
             if (tagBean != null && tagBean.getValue() == TagValue.BAD_BUILD) {
                 return String.format("WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s> %s",
                 envBean.getEnv_name(),
