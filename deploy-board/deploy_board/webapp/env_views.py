@@ -789,9 +789,20 @@ def post_create_env(request):
     clone_env_name = data.get("clone_env_name")
     clone_stage_name = data.get("clone_stage_name")
     description = data.get('description')
+    
+    external_id = environs_helper.create_identifier_for_new_stage(request, clone_env_name, clone_stage_name)
+    
     if clone_env_name and clone_stage_name:
-        common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
-                                     clone_stage_name, description)
+        try:
+            common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
+                                        clone_stage_name, description, external_id)
+        except TeletraanException as detail:
+            try:
+                environs_helper.delete_nimbus_identifier(request, external_id)
+            except:
+                message = 'Failed to delete Nimbus identifier {}, Error Message: {}'.format(external_id, detail)
+                log.error(message)
+                messages.add_message(request, messages.ERROR, message)
     else:
         data = {}
         data['envName'] = env_name
