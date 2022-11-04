@@ -291,8 +291,7 @@ var capacitySetting = new Vue({
             console.log(arch);
             $.ajax({
                 type: 'GET',
-                //url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
-                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell,
+                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
@@ -367,8 +366,7 @@ var capacitySetting = new Vue({
             var arch = value;
             $.ajax({
                 type: 'GET',
-                //url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
-                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell,
+                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
@@ -392,8 +390,7 @@ var capacitySetting = new Vue({
             // grab all the host types
             $.ajax({
                 type: 'GET',
-                //url: location.protocol + '//' + location.host + '/clouds/get_host_types/' + arch,
-                url: location.protocol + '//' + location.host + '/clouds/get_host_types/',
+                url: location.protocol + '//' + location.host + '/clouds/get_host_types/' + arch,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
