@@ -471,7 +471,9 @@ def get_host_types_by_provider(request):
 
 
 def get_host_types_by_arch(request, arch):
-    host_types = hosttypes_helper.get_by_arch(request, arch)
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    host_types = hosttypes_helper.get_by_arch(request, arch, index, size)
     for host_type in host_types:
         host_type['mem'] = float(host_type['mem']) / 1024
 
