@@ -121,6 +121,9 @@ public class EnvStages {
 
         environBean.setEnv_name(origBean.getEnv_name());
         environBean.setStage_name(origBean.getStage_name());
+        if (environBean.getExternal_id() == null) {
+            environBean.setExternal_id(origBean.getExternal_id());
+        }
         environHandler.updateStage(environBean, operator);
         configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, environBean, operator);
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator, environBean.getExternal_id());
