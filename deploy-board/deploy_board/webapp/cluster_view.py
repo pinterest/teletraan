@@ -518,6 +518,17 @@ def get_security_zone_info(request):
 def create_placement(request):
     params = request.POST
     placement_info = {}
+    index = int(request.GET.get('page_index', '1'))
+    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+    placements = placements_helper.get_all(request, index, size)
+
+    abstract_name_list = map(lambda x: x['abstract_name'], placements)
+    provider_name_list = map(lambda x: x['provider_name'], placements)
+    if params['abstractName'] in abstract_name_list:
+        raise Exception("Duplicate abstract names are not allowed")
+    if params['providerName'] in provider_name_list:
+        raise Exception("Duplicate provider names are not allowed")
+        
     placement_info['abstract_name'] = params['abstractName']
     placement_info['provider_name'] = params['providerName']
     placement_info['provider'] = params['provider']
