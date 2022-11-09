@@ -337,9 +337,6 @@ Vue.component("placements-select", {
         <span class="glyphicon glyphicon-question-sign"></span>\
     </button>\
     </span></div>\
-    <div v-model="remainingcapacity">\
-        Remaining Capacity: {{remainingcapacity}}\
-    </div>\
     </div>\
     <div class="col-xs-2" v-if="showsubnettype">\
         <input type="radio" id="public-subnet" value="public" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
@@ -353,7 +350,7 @@ Vue.component("placements-select", {
         <input type="checkbox" id="checkbox" v-bind:checked="assignpublicip" v-on:click="assignipchange($event.target.checked)">\
         <label for="checkbox">Assign Public IP</label>\
     </div></div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype', 'showsubnettype', 'remainingcapacity'],
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype', 'showsubnettype'],
     data: function () {
         return {
             groupStyle: this.showhelp ? 'input-group' : ''
@@ -375,6 +372,13 @@ Vue.component("placements-select", {
     }
 });
 
+Vue.component('remaining-capacity', {
+    template: '<div class="col-xs-6" style="margin-top:-30px;">\
+        <div class="col-xs-4"></div>\
+        <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Capacity: {{remainingcapacity}}</span>\
+        </div>',
+    props: ['title', 'remainingcapacity']
+});
 
 Vue.component("accessrole-input", {
     template: '<div class="form-group">\
