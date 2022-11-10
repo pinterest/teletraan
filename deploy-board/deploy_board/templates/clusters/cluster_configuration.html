@@ -417,6 +417,7 @@
     var info = {{capacity_creation_info | safe}};
     var env = info.environment;
     var currentCluster = info.currentCluster;
+    console.log('currentCluster:', currentCluster);
     if (currentCluster!=null){
         var currentPlacements = currentCluster.placement.split(',');
         var placements = getDefaultPlacement(info);
