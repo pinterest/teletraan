@@ -15,7 +15,9 @@
 # -*- coding: utf-8 -*-
 """Collection of all helper utils
 """
-from deploy_board.settings import SITE_METRICS_CONFIGS, TELETRAAN_SERVICE_HEALTHCHECK_URL
+from deploy_board.settings import SITE_METRICS_CONFIGS, \
+                                  TELETRAAN_SERVICE_HEALTHCHECK_URL, \
+                                  STATSBOARD_API_PREFIX
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 import json
@@ -47,7 +49,7 @@ def _get_latest_metrics(url):
             return [datapoint for datapoint in data['data'][0]['datapoints'] if datapoint[1] != None]
         except:
             pass
-           
+
         # Check for TSDB response
         if 'dps' in data[0] and len(data[0]['dps']) != 0:
             return _convert_opentsdb_data(data[0]['dps'])
@@ -92,6 +94,8 @@ def get_service_alarms(request, name, stage):
 
 def validate_metrics_url(request):
     url = request.POST['newEntryValue']
+    if not url.startswith(STATSBOARD_API_PREFIX):
+        return HttpResponse(json.dumps({'result': False}), content_type="application/json")
     response = urllib2.urlopen(url)
     data = json.loads(response.read())
     if len(data) > 0:
