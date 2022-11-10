@@ -405,6 +405,7 @@ var capacitySetting = new Vue({
                                     isSelected: item.id === data[0].id
                                 }
                             });
+                    capacitySetting.selectedHostTypeValue = data[0].id;
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
