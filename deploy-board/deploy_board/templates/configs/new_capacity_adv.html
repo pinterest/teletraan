@@ -592,6 +592,7 @@ var capacitySetting = new Vue({
             var clusterInfo = {};
             clusterInfo['provider'] = this.currentProvider;
             clusterInfo['cellName'] = this.currentCell;
+            clusterInfo['archName'] = this.currentArch;
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
