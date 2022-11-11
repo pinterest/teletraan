@@ -62,6 +62,8 @@ class EnvCapacityBasicCreateView(View):
             'baseImages': default_base_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
+            'defaultBaseImage': DEFAULT_CMP_IMAGE,
+            'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
             'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
@@ -70,6 +72,10 @@ class EnvCapacityBasicCreateView(View):
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
             'env': env,
+            'default_cmp_image': DEFAULT_CMP_IMAGE,
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_host_type': DEFAULT_CMP_HOST_TYPE,
+            'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'capacity_creation_info': json.dumps(capacity_creation_info)})
 
     def post(self, request, name, stage):
@@ -139,13 +145,13 @@ class EnvCapacityAdvCreateView(View):
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
+            'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultCell': DEFAULT_CELL,
             'defaultArch': DEFAULT_ARCH,
-            'defaultHostType': DEFAULT_CMP_HOST_TYPE,
-            'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
@@ -231,6 +237,8 @@ class ClusterConfigurationView(View):
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
+            'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'providerList': provider_list,
