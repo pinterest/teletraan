@@ -21,8 +21,8 @@ from django.views.generic import View
 
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
-    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
-        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
+    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
+        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST
 
 import json
@@ -63,6 +63,7 @@ class EnvCapacityBasicCreateView(View):
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'access_role_list': ACCESS_ROLE_LIST,
         }
@@ -138,11 +139,13 @@ class EnvCapacityAdvCreateView(View):
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
+            'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultCell': DEFAULT_CELL,
             'defaultArch': DEFAULT_ARCH,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
@@ -152,6 +155,9 @@ class EnvCapacityAdvCreateView(View):
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
             'default_cmp_image': DEFAULT_CMP_IMAGE,
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE,
+            'default_host_type': DEFAULT_CMP_HOST_TYPE,
+            'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'is_pinterest': IS_PINTEREST})
 
@@ -224,6 +230,7 @@ class ClusterConfigurationView(View):
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
+            'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'providerList': provider_list,
@@ -236,6 +243,9 @@ class ClusterConfigurationView(View):
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
             'default_cmp_image': DEFAULT_CMP_IMAGE,
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_host_type': DEFAULT_CMP_HOST_TYPE,
+            'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'is_pinterest': IS_PINTEREST})
 
@@ -759,7 +769,7 @@ def get_aws_config_name_list_by_image(image_name):
         config_map['ebs_volume_type'] = 'gp3'
         config_map['root_volume_type'] = 'gp3'
         config_map['root_volume_size'] = 100
-        if image_name == DEFAULT_CMP_IMAGE:
+        if image_name == DEFAULT_CMP_IMAGE OR image_name == DEFAULT_CMP_ARM_IMAGE:
             config_map['pinfo_role'] = 'cmp_base'
             config_map['pinfo_team'] = 'cloudeng'
         else:

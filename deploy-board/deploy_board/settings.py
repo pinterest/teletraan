@@ -326,11 +326,14 @@ if IS_PINTEREST:
 
     #Pinterest Default AMI image name
     DEFAULT_CMP_IMAGE = 'cmp_base-ebs-18.04'
+    DEFAULT_CMP_ARM_IMAGE = 'cmp_base_arm64'
 
     #Pinterest Default Host Type
     # TODO: This is a description of the host type but is nonunique. However, it cannot be replaced by host_type ID since it is unique per service database.
     # TODO: The model for host type should be rebuilt based on a unique abstract factor such as ec2 instance type, for now we should keep expected behavior.
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
+    DEFAULT_CMP_ARM_HOST_TYPE = 'EbsComputeXLoArm'
+
 
     DEFAULT_CELL = 'aws-us-east-1'
     DEFAULT_ARCH = 'X86'
