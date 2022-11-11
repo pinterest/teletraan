@@ -725,9 +725,11 @@
                     var cell = capacitySetting.currentCell;
                     var arch = value;
                     value = '{{ default_cmp_image }}';
+                    /*
                     if (capacitySetting.currentArch == 'ARM') {
                         value = '{{ default_cmp_arm_image }}';
                     }
+                    */
                     $.ajax({
                         type: 'GET',
                         url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
@@ -753,10 +755,12 @@
                         }
                     });
                     // grab all the host types
-                    value = '{{ default_host_type }}';
+                    //value = '{{ default_host_type }}';
+                    /*
                     if (capacitySetting.currentArch == 'ARM') {
                         value = '{{ default_arm_host_type }}';
                     }
+                    */
                     $.ajax({
                         type: 'GET',
                         url: location.protocol + '//' + location.host + '/clouds/get_host_types/' + arch,
@@ -771,10 +775,10 @@
                                         return {
                                             value: item.id,
                                             text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
-                                            isSelected: item.abstract_name === value
+                                            isSelected: item.id === data[0].id
                                         }
                                     });
-                            capacitySetting.selectedHostTypeValue = capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === value).id;
+                            capacitySetting.selectedHostTypeValue = data[0].id;
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data
