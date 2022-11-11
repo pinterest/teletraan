@@ -108,8 +108,10 @@ class EnvCapacityBasicCreateView(View):
 
 class EnvCapacityAdvCreateView(View):
     def get(self, request, name, stage):
-        host_types = hosttypes_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+        index = int(request.GET.get('page_index', '1'))
+        size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+        host_types = hosttypes_helper.get_by_arch(
+            request, DEFAULT_ARCH, index, size)
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
@@ -186,8 +188,10 @@ class ClusterConfigurationView(View):
 
         cluster_name = '{}-{}'.format(name, stage)
         current_cluster = clusters_helper.get_cluster(request, cluster_name)
-        host_types = hosttypes_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+        index = int(request.GET.get('page_index', '1'))
+        size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+        host_types = hosttypes_helper.get_by_arch(
+            request, DEFAULT_ARCH, index, size)
         current_image = baseimages_helper.get_by_id(
             request, current_cluster['baseImageId'])
         # TODO: remove baseImageName and access the prop from baseImage directly.
