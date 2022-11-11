@@ -380,6 +380,7 @@ var capacitySetting = new Vue({
                                     text: o, isSelected: o === data[0]
                                 }
                             });
+                    info.baseImageNames = data;
                     capacitySetting.imageNameValue = data[0];
                     scope.imageNameChange(data[0]);
                 },
@@ -443,7 +444,8 @@ var capacitySetting = new Vue({
             const selectedHostTypeObject = capacityCreationInfo.hostTypes.find(hostType => hostType.id === this.selectedHostTypeValue);
             if (selectedHostTypeObject.abstract_name.startsWith('EbsCompute')) {
                 capacitySetting.imageNameValue = value;
-                capacitySetting.imagenames = capacitySetting.imagenames.map(
+
+                capacitySetting.imagenames = info.baseImageNames.map(
                     function (o) {
                         return {
                             value: o,
