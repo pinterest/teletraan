@@ -120,8 +120,8 @@ class EnvCapacityAdvCreateView(View):
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
         arches = arches_helper.get_all(request)
         base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
-        base_images_names = baseimages_helper.get_image_names(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+        base_images_names = baseimages_helper.get_image_names_by_arch(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL, DEFAULT_ARCH)
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -204,8 +204,8 @@ class ClusterConfigurationView(View):
             request, current_cluster['provider'], current_cluster['cellName'])
         base_images = get_base_image_info_by_name(
             request, current_image['abstract_name'], current_cluster['cellName'])
-        base_images_names = baseimages_helper.get_image_names(
-            request, current_cluster['provider'], current_cluster['cellName'])
+        base_images_names = baseimages_helper.get_image_names_by_arch(
+            request, current_cluster['provider'], current_cluster['cellName'], current_cluster['archName'])
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
