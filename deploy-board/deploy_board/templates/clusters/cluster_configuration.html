@@ -724,10 +724,10 @@
                     var provider = capacitySetting.currentProvider;
                     var cell = capacitySetting.currentCell;
                     var arch = value;
+                    value = '{{ default_cmp_image }}';
                     $.ajax({
                         type: 'GET',
-                        //url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
-                        url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell,
+                        url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
                         dataType: "json",
                         beforeSend: function (xhr) {
                             var csrftoken = getCookie('csrftoken');
@@ -738,11 +738,12 @@
                                     function (o) {
                                         return {
                                             value: o,
-                                            text: o, isSelected: o === data[0]
+                                            text: o, isSelected: o === value
                                         }
                                     });
-                            capacitySetting.imageNameValue = data[0];
-                            scope.imageNameChange(data[0]);
+                            info.baseImageNames = data;
+                            capacitySetting.imageNameValue = value;
+                            scope.imageNameChange(value);
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data
@@ -751,8 +752,7 @@
                     // grab all the host types
                     $.ajax({
                         type: 'GET',
-                        //url: location.protocol + '//' + location.host + '/clouds/get_host_types/' + arch,
-                        url: location.protocol + '//' + location.host + '/clouds/get_host_types/',
+                        url: location.protocol + '//' + location.host + '/clouds/get_host_types/' + arch,
                         dataType: "json",
                         beforeSend: function (xhr) {
                             var csrftoken = getCookie('csrftoken');
@@ -767,6 +767,7 @@
                                             isSelected: item.id === data[0].id
                                         }
                                     });
+                            capacitySetting.selectedHostTypeValue = data[0].id;
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data
