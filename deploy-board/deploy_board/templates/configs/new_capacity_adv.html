@@ -443,7 +443,7 @@ var capacitySetting = new Vue({
             const selectedHostTypeObject = capacityCreationInfo.hostTypes.find(hostType => hostType.id === this.selectedHostTypeValue);
             if (selectedHostTypeObject.abstract_name.startsWith('EbsCompute')) {
                 capacitySetting.imageNameValue = value;
-                capacitySetting.imagenames = info.baseImageNames.map(
+                capacitySetting.imagenames = capacitySetting.imagenames.map(
                     function (o) {
                         return {
                             value: o,
