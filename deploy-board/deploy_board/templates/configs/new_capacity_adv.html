@@ -364,6 +364,7 @@ var capacitySetting = new Vue({
             var provider = capacitySetting.currentProvider;
             var cell = capacitySetting.currentCell;
             var arch = value;
+            value = '{{ default_cmp_image }}';
             $.ajax({
                 type: 'GET',
                 url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
@@ -377,12 +378,12 @@ var capacitySetting = new Vue({
                             function (o) {
                                 return {
                                     value: o,
-                                    text: o, isSelected: o === data[0]
+                                    text: o, isSelected: o === value
                                 }
                             });
                     info.baseImageNames = data;
-                    capacitySetting.imageNameValue = data[0];
-                    scope.imageNameChange(data[0]);
+                    capacitySetting.imageNameValue = value;
+                    scope.imageNameChange(value);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
