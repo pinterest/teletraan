@@ -769,7 +769,7 @@ def get_aws_config_name_list_by_image(image_name):
         config_map['ebs_volume_type'] = 'gp3'
         config_map['root_volume_type'] = 'gp3'
         config_map['root_volume_size'] = 100
-        if image_name == DEFAULT_CMP_IMAGE OR image_name == DEFAULT_CMP_ARM_IMAGE:
+        if image_name == DEFAULT_CMP_IMAGE or image_name == DEFAULT_CMP_ARM_IMAGE:
             config_map['pinfo_role'] = 'cmp_base'
             config_map['pinfo_team'] = 'cloudeng'
         else:
