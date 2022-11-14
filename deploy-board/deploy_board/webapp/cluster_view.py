@@ -700,9 +700,10 @@ def clone_cluster(request, src_name, src_stage):
         if external_id is not None:
             try:
                 environs_helper.delete_nimbus_identifier(request, external_id)
-            except TeletraanException as detail:
-                log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-                messages.add_message(request, messages.ERROR, detail) 
+            except Exception as detail:
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                log.error(message)
+                return HttpResponse(message, status=403, content_type="application/json")
 
         return HttpResponse(e, status=403, content_type="application/json")
     except Exception as e:
@@ -711,9 +712,11 @@ def clone_cluster(request, src_name, src_stage):
         if external_id is not None:
             try:
                 environs_helper.delete_nimbus_identifier(request, external_id)
-            except TeletraanException as detail:
-                log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-                messages.add_message(request, messages.ERROR, detail) 
+            except Exception as detail:
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                log.error(message)
+                return HttpResponse(message, status=500, content_type="application/json")
+                
         return HttpResponse(e, status=500, content_type="application/json")
 
 
