@@ -65,7 +65,8 @@
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
                     <securityzone-help v-show="showSecurityZoneHelp" v-bind:data="securityZoneHelpData"></securityzone-help>
                     <placements-select label="Placements" title="Placements" showsubnettype="true" v-bind:selectoptions="placements" v-bind:assignpublicip="assignPublicIP" v-bind:subnettype="subnetType"
-                    showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip" v-on:subnetfilterclick="changeSubnetType"></placements-select>
+                 showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip" v-on:subnetfilterclick="changeSubnetType"></placements-select>
+                    <remaining-capacity title="The total remaining capacity of selected placements" v-bind:remainingcapacity="remainingCapacity"></remaining-capacity>
                     <form-warning v-show="showSubnetReplacementAlert" v-bind:alert-text="subnetReplacementWarning"></form-warning>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <label-input v-show="inAdvanced" label="Replacement Timeout" title="Time out for cluster replacement in minutes"
@@ -532,6 +533,7 @@
                 subnetType: initialAssignPublicIP ? "public" : "private",
                 showSubnetReplacementAlert: false,
                 subnetReplacementWarning: "Cluster can't have a mix of public and private subnets. Saving this config will remove existing subnets.",
+                remainingCapacity: this.placements != null ? getRemainingCapacity(info.placements, currentPlacements) : Infinity,
             }),
             methods: {
                 addConfig: function(config) {
@@ -952,9 +954,12 @@
                     Vue.nextTick(function(){
                         $(".chosen-select").trigger("chosen:updated")
                     })
+                },
+                selectedPlacements: function() {
+                    this.remainingCapacity = getRemainingCapacity(info.placements, this.selectedPlacements);
+                    
                 }
             }
-
         });
 
         var replaceProgressPanel = new Vue({
@@ -1050,7 +1055,7 @@
                         "width": "100%"
                     })
                     .change(function() {
-                        capacitySetting.selectedPlacements = $('.chosen-select').val()
+                        capacitySetting.selectedPlacements = $('.chosen-select').val();
                     });
 
            if(showReplaceAlert) {

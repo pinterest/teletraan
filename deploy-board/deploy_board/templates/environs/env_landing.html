@@ -128,7 +128,7 @@
         {% endverbatim %}
     </div>
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-database" text="Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
+        <side-button styleclass="fa fa-database" :style="capacityStateStyle" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
     <div v-if="!showCluster" id="groupsDiv">
     </div>
@@ -226,7 +226,18 @@ var capacityPanel = new Vue({
             data:{
                title: renderCapacity ? "Cluster" : "Deploy Groups",
                showCluster: renderCapacity,
-
+               remainingCapacity: {{remaining_capacity | safe}},
+               capacityStateStyle: "",
+            },
+            computed: {
+                capacityText: function() {
+                    if (this.remainingCapacity != null && this.remainingCapacity < 100) {
+                        this.capacityStateStyle = "color: #d32a0e"
+                        return `Capacity (Remaining Capacity: ${this.remainingCapacity})`
+                    } else {
+                        return "Capacity"
+                    }
+                }
             },
             mounted: function(){
                 if (!renderCapacity){

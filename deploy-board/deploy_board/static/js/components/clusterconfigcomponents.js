@@ -372,6 +372,13 @@ Vue.component("placements-select", {
     }
 });
 
+Vue.component('remaining-capacity', {
+    template: '<div class="col-xs-6" style="margin-top:-30px;">\
+        <div class="col-xs-4"></div>\
+        <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Capacity: {{remainingcapacity}}</span>\
+        </div>',
+    props: ['title', 'remainingcapacity']
+});
 
 Vue.component("accessrole-input", {
     template: '<div class="form-group">\

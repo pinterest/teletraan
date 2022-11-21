@@ -15,6 +15,7 @@
 # -*- coding: utf-8 -*-
 """Collection of all env related views
 """
+import functools
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -34,7 +35,7 @@ import common
 import random
 import json
 from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper, placements_helper
 from helpers.exceptions import TeletraanException
 import math
 from dateutil.parser import parse
@@ -353,7 +354,13 @@ class EnvLandingView(View):
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             capacity_info['cluster'] = basic_cluster_info
-
+            placements = None
+            remaining_capacity = None
+            if capacity_info['cluster']:
+                placements = placements_helper.get_simplified_by_ids(
+                        request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
+                remaining_capacity = functools.reduce(lambda s, e: s + e['capacity'], placements, 0)
+          
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
@@ -385,6 +392,7 @@ class EnvLandingView(View):
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
                 "project_name_is_default": project_name_is_default,
                 "project_info": project_info,
+                "remaining_capacity": json.dumps(remaining_capacity),
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -422,6 +430,7 @@ class EnvLandingView(View):
                 "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
                 "project_name_is_default": project_name_is_default,
                 "project_info": project_info,
+                "remaining_capacity": json.dumps(remaining_capacity),
             }
             sortByTag = request.GET.get('sortByTag', None)
             if sortByTag:
