@@ -89,9 +89,10 @@ Host info APIs
 
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Path**|**hostId**  <br>*required*|string|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**hostId**  <br>*required*||string|
+|**Query**|**replaceHost**  <br>*optional*|Replace the host or not|boolean|
 
 
 ##### Responses
