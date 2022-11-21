@@ -231,7 +231,7 @@ var capacityPanel = new Vue({
             },
             computed: {
                 capacityText: function() {
-                    if (this.remainingCapacity < 100 && this.remainingCapacity != null) {
+                    if (this.remainingCapacity != null && this.remainingCapacity < 100) {
                         this.capacityStateStyle = "color: #d32a0e"
                         return `Capacity (Remaining Capacity: ${this.remainingCapacity})`
                     } else {
