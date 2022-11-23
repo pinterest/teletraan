@@ -208,7 +208,7 @@ class ClusterConfigurationView(View):
         capacity_creation_info = {
             'environment': env,
             'cells': cells,
-            'hostTypes': host_types,
+            'hostTypes': [],
             'securityZones': security_zones,
             'placements': placements,
             'baseImages': base_images,
