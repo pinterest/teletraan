@@ -39,6 +39,7 @@
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
+                    <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="archValue"></arch-select>
                     <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
                         v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" inadvanced="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
@@ -91,6 +92,8 @@ var capacityView = new Vue({
 
 var info = {{capacity_creation_info|safe}}
 var environment = info.environment;
+console.log(info.arches);
+console.log(info.cells);
 var accepted = info.baseImages.filter(function (e) {
         return e.acceptance == 'ACCEPTED';
     });
@@ -135,6 +138,7 @@ var capacitySetting = new Vue({
         confirmDialogId: "createHostGroup",
         currentProvider: info.defaultProvider,
         currentCell: info.defaultCell,
+        currentArch: info.defaultArch,
         hostTypeHelpData:[],
         hostTypeOptions: info.hostTypes.map(
             function (item, idx) {
@@ -144,6 +148,8 @@ var capacitySetting = new Vue({
                     isSelected: item.abstract_name === info.defaultHostType
                 }
             }),
+        cellValue: info.defaultCell,
+        archValue: info.defaultArch,
         imageNameValue: info.defaultBaseImage,
         imagenames: info.baseImageNames.map(
             function (o) {
@@ -168,6 +174,14 @@ var capacitySetting = new Vue({
                     value: item.name,
                     text: item.name,
                     isSelected: item.name == info.defaultCell
+                }
+            }),
+        arches: info.arches.map(
+            function (item) {
+                return {
+                    value: item.name,
+                    text: item.name,
+                    isSelected: item.name == info.defaultArch
                 }
             }),
         replacementTimeout: 45,
@@ -266,13 +280,18 @@ var capacitySetting = new Vue({
         },
         cellChange: function(value) {
             capacitySetting.currentCell = value;
+            capacitySetting.cellValue = value;
+            capacitySetting.currentCell = value;
             // grab all the image names for this cell
             var scope = this;
             var provider = capacitySetting.currentProvider;
+            var arch = capacitySetting.currentArch;
             var cell = value;
+            console.log(cell);
+            console.log(arch);
             $.ajax({
                 type: 'GET',
-                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell,
+                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
                 dataType: "json",
                 beforeSend: function (xhr) {
                     var csrftoken = getCookie('csrftoken');
@@ -337,6 +356,75 @@ var capacitySetting = new Vue({
                 }
             });
         },
+        archChange: function(value) {
+            capacitySetting.archValue = value;
+            capacitySetting.currentArch = value;
+            // grab all the image names
+            var scope = this;
+            var provider = capacitySetting.currentProvider;
+            var cell = capacitySetting.currentCell;
+            var arch = value;
+            value = '{{ default_cmp_image }}';
+            /*
+            if (capacitySetting.currentArch == 'ARM') {
+                value = '{{ default_cmp_arm_image }}';
+            }
+            */
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
+                dataType: "json",
+                beforeSend: function (xhr) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    capacitySetting.imagenames = data.map(
+                            function (o) {
+                                return {
+                                    value: o,
+                                    text: o, isSelected: o === value
+                                }
+                            });
+                    info.baseImageNames = data;
+                    capacitySetting.imageNameValue = value;
+                    scope.imageNameChange(value);
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            });
+            // grab all the host types
+            /*
+            value = '{{ default_host_type }}';
+            if (capacitySetting.currentArch == 'ARM') {
+                value = '{{ default_arm_host_type }}';
+            }
+            */
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/clouds/get_host_types/' + arch,
+                dataType: "json",
+                beforeSend: function (xhr) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    capacitySetting.hostTypeOptions = data.map(
+                            function (item) {
+                                return {
+                                    value: item.id,
+                                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
+                                    isSelected: item.id === data[0].id
+                                }
+                            });
+                    capacitySetting.selectedHostTypeValue = data[0].id;
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            });
+        },
         imageNameChange: function (value) {
             var cell = capacitySetting.currentCell;
             capacitySetting.imageNameValue = value;
@@ -368,6 +456,7 @@ var capacitySetting = new Vue({
             const selectedHostTypeObject = capacityCreationInfo.hostTypes.find(hostType => hostType.id === this.selectedHostTypeValue);
             if (selectedHostTypeObject.abstract_name.startsWith('EbsCompute')) {
                 capacitySetting.imageNameValue = value;
+
                 capacitySetting.imagenames = info.baseImageNames.map(
                     function (o) {
                         return {
@@ -518,6 +607,7 @@ var capacitySetting = new Vue({
             var clusterInfo = {};
             clusterInfo['provider'] = this.currentProvider;
             clusterInfo['cellName'] = this.currentCell;
+            clusterInfo['archName'] = this.currentArch;
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
