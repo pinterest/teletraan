@@ -43,22 +43,20 @@
     </div>
     <div class="panel-body table-responsive">
         {% include "clusters/host_types.tmpl" %}
-        {% if configs|length >= 2 %}
-            <ul class="pager">
-                <li>
-                    <a href='/clouds/hosttypes/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
-                       class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
-                        <span class="glyphicon glyphicon-chevron-left"></span> Previous
-                    </a>
-                </li>
-                <li>
-                    <a href='/clouds/hosttypes/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
-                       class="btn btn-default {% if disableNext %}disabled{% endif %}">
-                        Next <span class="glyphicon glyphicon-chevron-right"></span>
-                    </a>
-                </li>
-            </ul>
-        {% endif %}
+        <ul class="pager">
+            <li>
+                <a href='/clouds/hosttypes/?page_index={{ pageIndex|add:"-1" }}&page_size={{ pageSize }}'
+                    class="btn btn-default {% if disablePrevious %}disabled{% endif %}">
+                    <span class="glyphicon glyphicon-chevron-left"></span> Previous
+                </a>
+            </li>
+            <li>
+                <a href='/clouds/hosttypes/?page_index={{ pageIndex|add:"1" }}&page_size={{ pageSize }}'
+                    class="btn btn-default {% if disableNext %}disabled{% endif %}">
+                    Next <span class="glyphicon glyphicon-chevron-right"></span>
+                </a>
+            </li>
+        </ul>
     </div>
 </div>
 

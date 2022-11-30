@@ -17,6 +17,12 @@
     .ct-chart table td {
         text-align: center;
     }
+    .chosen-container-single .chosen-single div b {
+        background: url("chosen-sprite.png") no-repeat 7px 7px;
+    }
+    .chosen-container-single .chosen-single {
+        padding: 0 0 0 16px;
+    }
 </style>
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2016.12.19.150000"></script>
@@ -58,7 +64,7 @@
                     v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
-                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"
+                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
                         showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
@@ -1046,12 +1052,16 @@
         });
 
         $(document).ready(function() {
-                $(".chosen-select").chosen({
-                        "width": "100%"
-                    })
-                    .change(function() {
-                        capacitySetting.selectedPlacements = $('.chosen-select').val()
-                    });
+            $('.single-select-search').chosen({
+                "width": "100%"
+            });
+            
+            $(".chosen-select").chosen({
+                    "width": "100%"
+                })
+                .change(function() {
+                    capacitySetting.selectedPlacements = $('.chosen-select').val()
+                });
 
            if(showReplaceAlert) {
                 // include this tmpl, meaning a cluster replace is going-on, need to check its progress
