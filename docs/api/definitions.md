@@ -256,16 +256,17 @@
 <a name="hostbean"></a>
 ### HostBean
 
-|Name|Schema|
-|---|---|
-|**canRetire**  <br>*optional*|integer (int32)|
-|**createDate**  <br>*optional*|integer (int64)|
-|**groupName**  <br>*optional*|string|
-|**hostId**  <br>*optional*|string|
-|**hostName**  <br>*optional*|string|
-|**ip**  <br>*optional*|string|
-|**lastUpdateDate**  <br>*optional*|integer (int64)|
-|**state**  <br>*optional*|enum (PROVISIONED, ACTIVE, PENDING_TERMINATE, TERMINATING, TERMINATED)|
+|Name|Description|Schema|
+|---|---|---|
+|**canRetire**  <br>*optional*||integer (int32)|
+|**createDate**  <br>*optional*||integer (int64)|
+|**groupName**  <br>*optional*||string|
+|**hostId**  <br>*optional*||string|
+|**hostName**  <br>*optional*||string|
+|**ip**  <br>*optional*||string|
+|**lastUpdateDate**  <br>*optional*||integer (int64)|
+|**pendingTerminate**  <br>*optional*|**Default** : `false`|boolean|
+|**state**  <br>*optional*||enum (PROVISIONED, ACTIVE, PENDING_TERMINATE, TERMINATING, TERMINATED, PENDING_TERMINATE_NO_REPLACE)|
 
 
 <a name="hosttaginfo"></a>
@@ -424,11 +425,11 @@
 
   You may obtain a copy of the License at
 
-   
+ 
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+ 
 
   Unless required by applicable law or agreed to in writing, software
 

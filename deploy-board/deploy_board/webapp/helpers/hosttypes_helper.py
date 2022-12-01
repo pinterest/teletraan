@@ -32,5 +32,9 @@ def get_by_provider(request, provider):
     return rodimus_client.get("/host_types/provider/%s" % provider, request.teletraan_user_id.token)
 
 
+def get_by_arch(request, arch, index, size):
+    return rodimus_client.get("/host_types/arch/%s" % arch, request.teletraan_user_id.token)
+
+
 def get_by_id(request, host_type_id):
     return rodimus_client.get("/host_types/%s" % host_type_id, request.teletraan_user_id.token)

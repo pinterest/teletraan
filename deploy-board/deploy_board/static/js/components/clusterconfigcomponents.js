@@ -26,6 +26,22 @@ Vue.component('cell-select', {
     }
 });
 
+Vue.component('arch-select', {
+    template: '<div>\
+  <label-select label="Arch" title="Arch" \
+  v-bind:value="value" v-bind:selectoptions="arches" v-on:input="updateArchValue" v-on:input="updateValue(value)"></label-select></div>',
+    props: ['arches', 'value'],
+    methods: {
+        updateValue: function (value) {
+            this.$emit('input', value);
+        },
+        updateArchValue: function(value) {
+            this.$emit('archchange', value);
+            this.$emit('imagenamechange', value)
+        }
+    }
+});
+
 
 
 Vue.component('baseimage-select', {
@@ -372,6 +388,13 @@ Vue.component("placements-select", {
     }
 });
 
+Vue.component('remaining-capacity', {
+    template: '<div class="col-xs-6" style="margin-top:-30px;">\
+        <div class="col-xs-4"></div>\
+        <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Capacity: {{remainingcapacity}}</span>\
+        </div>',
+    props: ['title', 'remainingcapacity']
+});
 
 Vue.component("accessrole-input", {
     template: '<div class="form-group">\
