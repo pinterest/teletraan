@@ -114,11 +114,12 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void thbcnErrorOk() throws Exception {
+    public void thbcnErrorOkCRLF() throws Exception {
         // terminateHostsByClusterName
         // Token does not work, refresh and retry, second try works
 
-        Mockito.when(this.mockKnox.getPrimaryKey()).thenReturn(this.testKey[0], this.testKey[1]);
+        Mockito.when(this.mockKnox.getPrimaryKey()).
+            thenReturn(this.testKey[0], this.testKey[1], this.testKey[2], this.testKey[3]);
 
         Mockito.when(this.mockHttpClient.delete(
             Mockito.any(String.class),
@@ -128,21 +129,25 @@ public class KnoxKeyTest {
 
         this.mockClasses(this.rodimusManager, this.mockKnox, this.mockHttpClient );
 
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.terminateHostsByClusterName("cluster",Collections.singletonList("i-001"));
-            } 
-        );
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+        for( int i=1; i<=2; i++ ) {
 
-        try{
-            this.rodimusManager.terminateHostsByClusterName("cluster",Collections.singletonList("i-001"));
-        }catch( Exception e ){
-            Assert.assertTrue( "Unexpected exception: " + e, false );
+            Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
+                this.rodimusManager.terminateHostsByClusterName("cluster",Collections.singletonList("i-001"));
+                } 
+            );
+            Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+
+            try{
+                this.rodimusManager.terminateHostsByClusterName("cluster",Collections.singletonList("i-001"));
+            }catch( Exception e ){
+                Assert.assertTrue( "Unexpected exception: " + e, false );
+            }
+
         }
 
 // DEBUG        System.out.println("(no)answerList-> " + Arrays.toString( this.answerList.toArray() ) );
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-            {{ add(Answer.EXCEPTION); add(Answer.NULL); }};        
+            {{ add(Answer.EXCEPTION); add(Answer.NULL); add(Answer.EXCEPTION); add(Answer.NULL); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -175,35 +180,6 @@ public class KnoxKeyTest {
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
-    @Test
-    public void thbcnErrorRefreshUnauthorized() throws Exception {
-        // terminateHostsByClusterName
-        // Token does not work, refresh keep offering unauthorized tokens
-
-        Mockito.when(this.mockKnox.getPrimaryKey()).thenAnswer( invocation -> this.swapInvalidKeys(invocation) );
-
-        Mockito.when(this.mockHttpClient.delete(
-            Mockito.any(String.class),
-            Mockito.any(String.class),
-            Mockito.any(Map.class),
-            Mockito.any(Integer.class))).thenAnswer( invocation -> this.deleteAnswer(invocation) );
-
-        this.mockClasses(this.rodimusManager, this.mockKnox, this.mockHttpClient );
-
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.terminateHostsByClusterName("cluster",Collections.singletonList("i-001"));
-            } 
-        );
-
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
-
-        int retries = this.getRetries(this.rodimusManager);
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-        {{ 
-            for( int i=1; i<=retries; i++ ){ add(Answer.EXCEPTION); };
-        }};
-        Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
-    }
 
 
 
@@ -241,11 +217,12 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void gthErrorOk() throws Exception {
+    public void gthErrorOkCRLF() throws Exception {
         // getTerminatedHosts
         // Token does not work, refresh and retry, second try works
 
-        Mockito.when(this.mockKnox.getPrimaryKey()).thenReturn(this.testKey[0], this.testKey[1]);
+        Mockito.when(this.mockKnox.getPrimaryKey()).
+            thenReturn(this.testKey[0], this.testKey[1], this.testKey[2], this.testKey[3]);
 
         Mockito.when(this.mockHttpClient.post(
             Mockito.any(String.class),
@@ -259,20 +236,24 @@ public class KnoxKeyTest {
 
         Collection<String> res = null;
 
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001","i-002"));
-            } 
-        );
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+        for( int i=1; i<=2; i++ ) {
 
-        try{
-            res = this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001","i-002"));
-        }catch( Exception e ){
-            Assert.assertTrue( "Unexpected exception: " + e, false );
+            Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
+                this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001","i-002"));
+                } 
+            );
+            Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
+
+            try{
+                res = this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001","i-002"));
+            }catch( Exception e ){
+                Assert.assertTrue( "Unexpected exception: " + e, false );
+            }
+
         }
 
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-            {{ add(Answer.EXCEPTION); add(Answer.ARRAY); }};
+            {{ add(Answer.EXCEPTION); add(Answer.ARRAY); add(Answer.EXCEPTION); add(Answer.ARRAY); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -304,38 +285,6 @@ public class KnoxKeyTest {
 
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
             {{ add(Answer.EXCEPTION); add(Answer.EXCEPTION); }};
-        Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
-    }
-
-    @Test
-    public void gthErrorRefreshUnauthorized() throws Exception {
-        // getTerminatedHosts
-        // Token does not work, refresh keep offering unauthorized tokens
-
-        Mockito.when(this.mockKnox.getPrimaryKey()).thenAnswer( invocation -> this.swapInvalidKeys(invocation) );
-
-        Mockito.when(this.mockHttpClient.post(
-            Mockito.any(String.class),
-            Mockito.any(String.class),
-            Mockito.any(Map.class),
-            Mockito.any(Integer.class))).thenAnswer( invocation -> this.postAnswer(invocation) );
-
-        this.mockClasses(this.rodimusManager, this.mockKnox, this.mockHttpClient );
-
-        this.postAnswerReturn = this.postAnswerArray;
-
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001","i-002"));
-            } 
-        );
-
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
-
-        int retries = this.getRetries(this.rodimusManager);
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-        {{ 
-            for( int i=1; i<=retries; i++ ){ add(Answer.EXCEPTION); }; 
-        }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -375,11 +324,12 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void gcilgErrorOk() throws Exception {
+    public void gcilgErrorOkCRLF() throws Exception {
         // getClusterInstanceLaunchGracePeriod
         // Token does not work, refresh and retry, second try works
 
-        Mockito.when(this.mockKnox.getPrimaryKey()).thenReturn(this.testKey[0], this.testKey[1]);
+        Mockito.when(this.mockKnox.getPrimaryKey()).
+            thenReturn(this.testKey[0], this.testKey[1], this.testKey[2], this.testKey[3]);
 
         Mockito.when(this.mockHttpClient.get(
             Mockito.any(String.class),
@@ -394,20 +344,24 @@ public class KnoxKeyTest {
 
         long res = 0;
 
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
-            }
-        );
-        Assert.assertTrue( exception.getMessage().contains("HTTP request failed, status") );
+        for( int i=1; i<=2; i++ ) {
 
-        try{
-            res = this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
-        }catch( Exception e ){
-            Assert.assertTrue( "Unexpected exception: " + e, false );
+            Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
+                this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
+                }
+            );
+            Assert.assertTrue( exception.getMessage().contains("HTTP request failed, status") );
+
+            try{
+                res = this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
+            }catch( Exception e ){
+                Assert.assertTrue( "Unexpected exception: " + e, false );
+            }
+
         }
 
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-            {{ add(Answer.EXCEPTION); add(Answer.LATENCY); }};
+            {{ add(Answer.EXCEPTION); add(Answer.LATENCY); add(Answer.EXCEPTION); add(Answer.LATENCY); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -438,37 +392,6 @@ public class KnoxKeyTest {
 
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
             {{ add(Answer.EXCEPTION); add(Answer.EXCEPTION); }};
-        Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
-    }
-
-    @Test
-    public void gcilgpErrorRefreshUnauthorized() throws Exception {
-        // getClusterInstanceLaunchGracePeriod
-        // Token does not work, refresh keep offering unauthorized tokens
-
-        Mockito.when(this.mockKnox.getPrimaryKey()).thenAnswer( invocation -> this.swapInvalidKeys(invocation) );
-
-        Mockito.when(this.mockHttpClient.get(
-            Mockito.any(String.class),
-            Mockito.any(String.class),
-            Mockito.any(Map.class),
-            Mockito.any(Map.class),
-            Mockito.any(Integer.class))).thenAnswer( invocation -> this.getAnswer(invocation) );
-
-        this.mockClasses(this.rodimusManager, this.mockKnox, this.mockHttpClient);
-
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
-            } 
-        );
-
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );        
-
-        int retries = this.getRetries(this.rodimusManager);
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-        {{ 
-            for( int i=1; i<=retries; i++ ){ add(Answer.EXCEPTION); }; 
-        }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
@@ -511,7 +434,8 @@ public class KnoxKeyTest {
         // getEC2Tags
         // Token does not work, refresh and retry, second try works
 
-        Mockito.when(this.mockKnox.getPrimaryKey()).thenReturn(this.testKey[0], this.testKey[1]);
+        Mockito.when(this.mockKnox.getPrimaryKey()).
+            thenReturn(this.testKey[0], this.testKey[1], this.testKey[2], this.testKey[3]);
 
         Mockito.when(this.mockHttpClient.post(
             Mockito.any(String.class),
@@ -525,20 +449,24 @@ public class KnoxKeyTest {
 
         Map<String, Map<String, String>> res = null;
 
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.getEc2Tags(Arrays.asList("i-001","i-002"));
-            } 
-        );
-        Assert.assertTrue( exception.getMessage().contains("HTTP request failed, status") );
+        for( int i=1; i<=2; i++ ) {
 
-        try{
-            res = this.rodimusManager.getEc2Tags(Arrays.asList("i-001","i-002"));
-        }catch( Exception e ){
-            Assert.assertTrue( "Unexpected exception: " + e, false );
+            Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
+                this.rodimusManager.getEc2Tags(Arrays.asList("i-001","i-002"));
+                } 
+            );
+            Assert.assertTrue( exception.getMessage().contains("HTTP request failed, status") );
+
+            try{
+                res = this.rodimusManager.getEc2Tags(Arrays.asList("i-001","i-002"));
+            }catch( Exception e ){
+                Assert.assertTrue( "Unexpected exception: " + e, false );
+            }
+
         }
 
         final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-            {{ add(Answer.EXCEPTION); add(Answer.ARRAY); }};
+            {{ add(Answer.EXCEPTION); add(Answer.ARRAY); add(Answer.EXCEPTION); add(Answer.ARRAY); }};
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
 
     }
@@ -574,37 +502,6 @@ public class KnoxKeyTest {
         Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
     }
 
-    @Test
-    public void ge2tErrorRefreshUnauthorized() throws Exception {
-        // getEC2Tags
-        // Token does not work, refresh keep offering unauthorized tokens
-
-        Mockito.when(this.mockKnox.getPrimaryKey()).thenAnswer( invocation -> this.swapInvalidKeys(invocation) );
-
-        Mockito.when(this.mockHttpClient.post(
-            Mockito.any(String.class),
-            Mockito.any(String.class),
-            Mockito.any(Map.class),
-            Mockito.any(Integer.class))).thenAnswer( invocation -> this.postAnswer(invocation) );
-
-        this.mockClasses(this.rodimusManager, this.mockKnox, this.mockHttpClient);
-
-        this.postAnswerReturn = this.postAnswerTag;
-
-        Exception exception = Assert.assertThrows( DeployInternalException.class, () -> {
-            this.rodimusManager.getEc2Tags(Arrays.asList("i-001","i-002"));
-            } 
-        );
-
-        Assert.assertTrue( exception.getMessage().contains(msgUnauthException) );
-
-        int retries = this.getRetries(this.rodimusManager);
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() 
-        {{ 
-            for( int i=1; i<=retries; i++ ){ add(Answer.EXCEPTION); }; 
-        }};
-        Assert.assertArrayEquals( this.answerList.toArray(), cmpArray.toArray() );
-    }
 
 
 
