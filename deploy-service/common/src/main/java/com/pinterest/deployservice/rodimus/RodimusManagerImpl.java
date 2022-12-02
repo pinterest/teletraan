@@ -83,13 +83,13 @@ public class RodimusManagerImpl implements RodimusManager {
 
         switch(verb) {
             case GET:
-                res = httpClient.get(url, payload, null, this.headers, this.RETRIES);
+                res = httpClient.get(url, payload, null, this.headers, RETRIES);
                 break;
             case POST:
-                res = httpClient.post(url, payload, this.headers, this.RETRIES);
+                res = httpClient.post(url, payload, this.headers, RETRIES);
                 break;
             case DELETE:
-                res = httpClient.delete(url, payload, this.headers, this.RETRIES);
+                res = httpClient.delete(url, payload, this.headers, RETRIES);
                 break;
         }
 
