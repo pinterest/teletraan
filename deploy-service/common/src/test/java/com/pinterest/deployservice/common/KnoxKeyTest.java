@@ -112,7 +112,7 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void thbcnErrorOkCRLF() throws Exception {
+    public void thbcnErrorOk() throws Exception {
         // terminateHostsByClusterName
         // Token does not work, refresh and retry, second try works
 
@@ -211,7 +211,7 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void gthErrorOkCRLF() throws Exception {
+    public void gthErrorOk() throws Exception {
         // getTerminatedHosts
         // Token does not work, refresh and retry, second try works
 
