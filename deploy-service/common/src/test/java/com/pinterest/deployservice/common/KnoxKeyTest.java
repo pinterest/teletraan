@@ -60,8 +60,8 @@ public class KnoxKeyTest {
         // Load testKeys
         testKey[0] = "aaa".getBytes(); // auth error
         testKey[1] = "bbb".getBytes(); // auth ok
-        testKey[2] = "aaa\n\r\t".getBytes(); // auth error with lf
-        testKey[3] = "bbb\t\r\n".getBytes(); // auth ok with cr
+        testKey[2] = "\na\taa\r".getBytes(); // auth error with lf
+        testKey[3] = "\tbb\rb\n".getBytes(); // auth ok with cr
 
         // Create mock for Knox
         mockKnox = Mockito.mock(Knox.class);

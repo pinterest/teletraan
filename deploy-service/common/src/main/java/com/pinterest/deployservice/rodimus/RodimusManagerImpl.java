@@ -74,7 +74,7 @@ public class RodimusManagerImpl implements RodimusManager {
 
     private void setAuthorization() throws Exception {
         String currKnoxKey = new String(this.fsKnox.getPrimaryKey());
-        String rodimusKey = currKnoxKey.replaceAll("[\n\r\t]*$", "");
+        String rodimusKey = currKnoxKey.replaceAll("[\n\r\t]", "");
         this.headers.put("Authorization", String.format("token %s", rodimusKey));
     }
 
