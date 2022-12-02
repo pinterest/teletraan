@@ -47,7 +47,6 @@ public class RodimusManagerImpl implements RodimusManager {
     private Map<String, String> headers;
     private Gson gson;
     private Knox fsKnox = null;
-    private String cachedKey = null;
 
     public RodimusManagerImpl(String rodimusUrl, String knoxKey) throws Exception {
         this.rodimusUrl = rodimusUrl;
@@ -73,26 +72,9 @@ public class RodimusManagerImpl implements RodimusManager {
         }
     }
 
-    private boolean refreshCachedKey() throws Exception {
-        String prevKnoxKey = this.cachedKey;
-
-        if (this.fsKnox != null) {
-            this.cachedKey = new String(this.fsKnox.getPrimaryKey());
-        }
-
-        if ( prevKnoxKey == null )
-        {
-            return this.cachedKey != null;
-        }else{
-            return ! prevKnoxKey.equals( this.cachedKey );
-        }
-    }
-
     private void setAuthorization() throws Exception {
-        if (this.cachedKey == null) {
-            this.refreshCachedKey();
-        }
-        this.headers.put("Authorization", String.format("token %s", this.cachedKey));
+        String currKnoxKey = new String(this.fsKnox.getPrimaryKey());
+        this.headers.put("Authorization", String.format("token %s", currKnoxKey));
     }
 
     private String switchHttpClient( Verb verb, String url, String payload ) throws Exception {
@@ -117,13 +99,7 @@ public class RodimusManagerImpl implements RodimusManager {
         String res;
 
         setAuthorization();
-        try{
-            res = switchHttpClient( verb, url, payload );
-        }catch (DeployInternalException e) {
-            if ( ! this.refreshCachedKey() ) throw e; // no new token? do not try again
-            setAuthorization();
-            res = switchHttpClient( verb, url, payload );
-        }
+        res = switchHttpClient( verb, url, payload );
 
         return res;
     }
