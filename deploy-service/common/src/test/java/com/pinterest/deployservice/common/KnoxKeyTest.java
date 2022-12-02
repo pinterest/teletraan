@@ -60,8 +60,8 @@ public class KnoxKeyTest {
         // Load testKeys
         testKey[0] = "aaa".getBytes(); // auth error
         testKey[1] = "bbb".getBytes(); // auth ok
-        testKey[2] = "aaa\n".getBytes(); // auth error with lf
-        testKey[3] = "bbb\r".getBytes(); // auth ok with cr
+        testKey[2] = "aaa\n\r".getBytes(); // auth error with lf
+        testKey[3] = "bbb\r\n".getBytes(); // auth ok with cr
 
         // Create mock for Knox
         mockKnox = Mockito.mock(Knox.class);
@@ -545,7 +545,7 @@ public class KnoxKeyTest {
     }
 
     private Object deleteAnswer(InvocationOnMock invocation) throws Exception {
-        // HTTPClient "DELETE" answer method
+        // Mock HTTPClient "DELETE" answer method
         Object[] args = invocation.getArguments();
         Object mock = invocation.getMock();
 
