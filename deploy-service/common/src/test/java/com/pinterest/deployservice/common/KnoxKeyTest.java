@@ -430,7 +430,7 @@ public class KnoxKeyTest {
     }
 
     @Test
-    public void ge2tErrorOk() throws Exception {
+    public void ge2tErrorOkCRLF() throws Exception {
         // getEC2Tags
         // Token does not work, refresh and retry, second try works
 
@@ -511,14 +511,6 @@ public class KnoxKeyTest {
 //                   getTerminatedHosts                  2
 //                   getClusterInstanceLaunchGracePeriod 3
 //                   getEc2Tags                          4
-//          actions: token ok                                        1234
-//                     (everyday operation)
-//                   token error and retry ok                        1234
-//                     (expected behaviour when token changes)
-//                   token error and no new token given              1234
-//                     (do not try more than once with same token)
-//                   token error and new token does not work neither 1234
-//                     (do not try indefinitely)
 
 // =======================================================
 
@@ -540,20 +532,7 @@ public class KnoxKeyTest {
         classHttpClient.set(rodimusMngr, mokHttpClient);
         classHttpClient.setAccessible(false);
     }
-
-    private int getRetries(RodimusManager rodimusMngr) throws Exception {
-        // Get how many retries rodimusManager should do
-/*        
-        int RETRIES;
-        Field retries = rodimusMngr.getClass().getDeclaredField("RETRIES");
-        retries.setAccessible(true);
-        RETRIES = (int)retries.get(rodimusMngr);
-        retries.setAccessible(false);
-*/
-        int RETRIES = 2; // fixed to 2 due to logic change on retry loop
-        return RETRIES;
-    }
-
+    
     private String getToken(Map<String, String> headers) {
         // Get token out of Map of headers
 
@@ -563,14 +542,6 @@ public class KnoxKeyTest {
             if( entry.getKey()=="Authorization" ) return entry.getValue();
         }
         return null;
-    }
-
-    private Object swapInvalidKeys(InvocationOnMock invocation) {
-        // Keep returning invalid keys, but never twice the same
-
-        this.swapKey = !this.swapKey;
-        if( this.swapKey ) return this.testKey[0];
-        else return this.testKey[2];
     }
 
     private Object deleteAnswer(InvocationOnMock invocation) throws Exception {
