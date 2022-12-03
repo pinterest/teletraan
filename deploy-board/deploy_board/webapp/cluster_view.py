@@ -83,6 +83,7 @@ class EnvCapacityBasicCreateView(View):
         try:
             cluster_name = '{}-{}'.format(name, stage)
             cluster_info = json.loads(request.body)
+            arc_cluster_info['useLaunchTemplate'] = True
 
             log.info("Create Capacity in the provider")
             if 'configs' in cluster_info:
@@ -172,6 +173,7 @@ class EnvCapacityAdvCreateView(View):
         try:
             cluster_name = '{}-{}'.format(name, stage)
             cluster_info = json.loads(request.body)
+            cluster_info['useLaunchTemplate'] = True
 
             log.info("Update cluster_name to environment")
             # Update environment
@@ -742,6 +744,7 @@ def clone_cluster(request, src_name, src_stage):
         ##7. rodimus service post create cluster
         src_cluster_info['clusterName'] = dest_cluster_name
         src_cluster_info['capacity'] = 0
+        src_cluster_info['useLaunchTemplate'] = True
         log.info('clone_cluster, request clone cluster info %s' % src_cluster_info)
         dest_cluster_info = clusters_helper.create_cluster_with_env(request, dest_cluster_name, dest_name, dest_stage, src_cluster_info)
         log.info('clone_cluster, cloned cluster info %s' % dest_cluster_info)
