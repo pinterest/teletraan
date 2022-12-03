@@ -83,7 +83,7 @@ class EnvCapacityBasicCreateView(View):
         try:
             cluster_name = '{}-{}'.format(name, stage)
             cluster_info = json.loads(request.body)
-            arc_cluster_info['useLaunchTemplate'] = True
+            cluster_info['useLaunchTemplate'] = True
 
             log.info("Create Capacity in the provider")
             if 'configs' in cluster_info:
