@@ -703,7 +703,6 @@ def clone_cluster(request, src_name, src_stage):
             except Exception as detail:
                 message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
                 log.error(message)
-                return HttpResponse(message, status=403, content_type="application/json")
 
         return HttpResponse(e, status=403, content_type="application/json")
     except Exception as e:
@@ -715,7 +714,6 @@ def clone_cluster(request, src_name, src_stage):
             except Exception as detail:
                 message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
                 log.error(message)
-                return HttpResponse(message, status=500, content_type="application/json")
                 
         return HttpResponse(e, status=500, content_type="application/json")
 

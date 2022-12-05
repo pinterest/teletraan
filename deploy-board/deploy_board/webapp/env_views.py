@@ -795,7 +795,7 @@ def post_create_env(request):
             external_id = environs_helper.create_identifier_for_new_stage(request, env_name, stage_name)
             common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
                                         clone_stage_name, description, external_id)
-        except TeletraanException as detail:
+        except Exception as detail:
             if external_id:
                 try:
                     environs_helper.delete_nimbus_identifier(request, external_id)
@@ -805,7 +805,7 @@ def post_create_env(request):
             else:
                 message = 'Failed to create identifier for {}/{}: {}'.format(env_name, stage_name, detail)
                 messages.add_message(request, messages.ERROR, message)
-                raise detail
+        raise detail
     else:
         data = {}
         data['envName'] = env_name
@@ -864,7 +864,7 @@ def post_add_stage(request, name):
             else:
                 message = 'Failed to create identifier for {}/{}: {}'.format(name, stage, detail)
                 messages.add_message(request, messages.ERROR, message)
-                raise detail   
+            raise detail 
     else:
         external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
         common.create_simple_stage(request,name, stage, description, external_id)
