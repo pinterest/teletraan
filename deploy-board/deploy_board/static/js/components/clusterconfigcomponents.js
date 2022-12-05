@@ -361,12 +361,13 @@ Vue.component("placements-select", {
         <input type="radio" id="private-subnet" value="private" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
         <label for="private">Private subnets</label>\
         <br>\
+        <span class="col-xs-12" v-bind:title="title" v-show="inadvanced">Remaining Capacity: {{remainingcapacity}}</span>\
     </div>\
     <div class="col-xs-2">\
         <input type="checkbox" id="checkbox" v-bind:checked="assignpublicip" v-on:click="assignipchange($event.target.checked)">\
         <label for="checkbox">Assign Public IP</label>\
     </div></div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype', 'showsubnettype'],
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype', 'showsubnettype', 'remainingcapacity', 'inadvanced'],
     data: function () {
         return {
             groupStyle: this.showhelp ? 'input-group' : ''
@@ -389,11 +390,11 @@ Vue.component("placements-select", {
 });
 
 Vue.component('remaining-capacity', {
-    template: '<div class="col-xs-6" style="margin-top:-30px;">\
+    template: '<div class="col-xs-6" style="margin-top:-30px;" v-show="inadvanced">\
         <div class="col-xs-4"></div>\
         <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Capacity: {{remainingcapacity}}</span>\
         </div>',
-    props: ['title', 'remainingcapacity']
+    props: ['title', 'remainingcapacity', 'inadvanced']
 });
 
 Vue.component("accessrole-input", {
