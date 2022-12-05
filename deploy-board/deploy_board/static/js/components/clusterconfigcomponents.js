@@ -361,13 +361,12 @@ Vue.component("placements-select", {
         <input type="radio" id="private-subnet" value="private" v-model="subnettype" v-on:click="filterclick($event.target.value)">\
         <label for="private">Private subnets</label>\
         <br>\
-        <span class="col-xs-12" v-bind:title="title" v-show="inadvanced">Remaining Capacity: {{remainingcapacity}}</span>\
     </div>\
     <div class="col-xs-2">\
         <input type="checkbox" id="checkbox" v-bind:checked="assignpublicip" v-on:click="assignipchange($event.target.checked)">\
         <label for="checkbox">Assign Public IP</label>\
     </div></div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype', 'showsubnettype', 'remainingcapacity', 'inadvanced'],
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'assignpublicip', 'subnettype', 'showsubnettype'],
     data: function () {
         return {
             groupStyle: this.showhelp ? 'input-group' : ''
