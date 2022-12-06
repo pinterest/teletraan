@@ -389,19 +389,11 @@ Vue.component("placements-select", {
 });
 
 Vue.component('remaining-capacity', {
-    template: '<div class="form-group">\
-    <div class="col-xs-2"></div>\
-    <div class="col-xs-6" v-bind:style="marginStyle">\
+    template: '<div class="col-xs-6" style="margin-top:-30px;">\
+        <div class="col-xs-4"></div>\
         <span class="col-xs-6" style="padding:0;" v-bind:title="title">Remaining Capacity: {{remainingcapacity}}</span>\
-    </div>\
-    </div>',
-    props: ['title', 'remainingcapacity', 'inadvanced'],
-    computed: {
-        marginStyle:function() {
-            return this.inadvanced ? 'margin-top:-15px;' : 'margin-top:-30px;'
-            
-        }
-    }
+        </div>',
+    props: ['title', 'remainingcapacity']
 });
 
 Vue.component("accessrole-input", {
