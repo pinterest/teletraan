@@ -814,7 +814,7 @@ def post_create_env(request):
             else:
                 message = 'Failed to create identifier for {}/{}: {}'.format(env_name, stage_name, detail)
                 messages.add_message(request, messages.ERROR, message)
-        raise detail
+            raise detail
     else:
         data = {}
         data['envName'] = env_name
