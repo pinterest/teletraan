@@ -64,6 +64,7 @@ class EnvCapacityBasicCreateView(View):
             'baseImages': default_base_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
+            'defaultArch': DEFAULT_ARCH,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
