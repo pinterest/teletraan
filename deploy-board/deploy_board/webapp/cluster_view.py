@@ -42,6 +42,8 @@ DEFAULT_PAGE_SIZE = 200
 
 class EnvCapacityBasicCreateView(View):
     def get(self, request, name, stage):
+        index = int(request.GET.get('page_index', '1'))
+        size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
         host_types = hosttypes_helper.get_by_arch(
             request, DEFAULT_ARCH, index, size)
         for host_type in host_types:
