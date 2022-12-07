@@ -937,7 +937,6 @@
                             globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                         }
                     });
-                    console.log(clusterInfo);
                 },
                 securityZoneHelpClick:function(){
                     if (this.showSecurityZoneHelp){
@@ -983,6 +982,7 @@
                     var clusterInfo = {};
                     clusterInfo['provider'] = this.currentProvider;
                     clusterInfo['cellName'] = this.currentCell;
+                    clusterInfo['archName'] = this.currentArch;
                     clusterInfo['baseImageId'] = this.baseImageValue;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
