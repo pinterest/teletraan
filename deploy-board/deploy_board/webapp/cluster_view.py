@@ -42,8 +42,10 @@ DEFAULT_PAGE_SIZE = 200
 
 class EnvCapacityBasicCreateView(View):
     def get(self, request, name, stage):
-        host_types = hosttypes_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+        index = int(request.GET.get('page_index', '1'))
+        size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+        host_types = hosttypes_helper.get_by_arch(
+            request, DEFAULT_ARCH, index, size)
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
@@ -62,6 +64,7 @@ class EnvCapacityBasicCreateView(View):
             'baseImages': default_base_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
+            'defaultArch': DEFAULT_ARCH,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,

@@ -651,8 +651,7 @@
                     var cell = value;
                     $.ajax({
                         type: 'GET',
-                        //url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
-                        url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell,
+                        url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
                         dataType: "json",
                         beforeSend: function (xhr) {
                             var csrftoken = getCookie('csrftoken');
@@ -920,6 +919,7 @@
                     return true
                 },
                 sendRequest: function(clusterInfo) {
+                    console.log('newCluster:', clusterInfo);
                     $.ajax({
                         type: 'POST',
                         url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
@@ -982,6 +982,7 @@
                     var clusterInfo = {};
                     clusterInfo['provider'] = this.currentProvider;
                     clusterInfo['cellName'] = this.currentCell;
+                    clusterInfo['archName'] = this.currentArch;
                     clusterInfo['baseImageId'] = this.baseImageValue;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
