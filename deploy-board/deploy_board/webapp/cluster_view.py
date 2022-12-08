@@ -109,9 +109,13 @@ class EnvCapacityBasicCreateView(View):
 
             return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
+            environs_helper.remove_env_capacity(
+                request, name, stage, capacity_type="GROUP", data=cluster_name)
             log.error("Have an NotAuthorizedException error {}".format(e))
             return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
+            environs_helper.remove_env_capacity(
+                request, name, stage, capacity_type="GROUP", data=cluster_name)
             log.error("Have an error {}".format(e))
             return HttpResponse(e, status=500, content_type="application/json")
 
@@ -191,9 +195,13 @@ class EnvCapacityAdvCreateView(View):
 
             return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
+            environs_helper.remove_env_capacity(
+                request, name, stage, capacity_type="GROUP", data=cluster_name)
             log.error("Have an NotAuthorizedException error {}".format(e))
             return HttpResponse(e, status=403, content_type="application/json")
         except Exception as e:
+            environs_helper.remove_env_capacity(
+                request, name, stage, capacity_type="GROUP", data=cluster_name)
             log.error("Have an error {}", e)
             return HttpResponse(e, status=500, content_type="application/json")
 
