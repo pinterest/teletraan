@@ -82,6 +82,7 @@ class EnvCapacityBasicCreateView(View):
             'capacity_creation_info': json.dumps(capacity_creation_info)})
 
     def post(self, request, name, stage):
+        ret = 200
         log.info("Post to capacity with data {0}".format(request.body))
         try:
             cluster_name = '{}-{}'.format(name, stage)
@@ -106,14 +107,19 @@ class EnvCapacityBasicCreateView(View):
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
-
-            return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
-            return HttpResponse(e, status=403, content_type="application/json")
+            ret = 403
         except Exception as e:
             log.error("Have an error {}".format(e))
-            return HttpResponse(e, status=500, content_type="application/json")
+            ret = 500
+        finally:
+            if ret == 200:
+                return HttpResponse("{}", content_type="application/json")
+            else:
+                environs_helper.remove_env_capacity(
+                    request, name, stage, capacity_type="GROUP", data=cluster_name)
+                return HttpResponse(e, status=ret, content_type="application/json")
 
 
 class EnvCapacityAdvCreateView(View):
@@ -171,6 +177,7 @@ class EnvCapacityAdvCreateView(View):
             'is_pinterest': IS_PINTEREST})
 
     def post(self, request, name, stage):
+        ret = 200
         log.info("Post to capacity with data {0}".format(request.body))
         try:
             cluster_name = '{}-{}'.format(name, stage)
@@ -188,14 +195,19 @@ class EnvCapacityAdvCreateView(View):
 
             log.info("Create Capacity in the provider")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
-
-            return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
-            return HttpResponse(e, status=403, content_type="application/json")
+            ret = 403
         except Exception as e:
             log.error("Have an error {}", e)
-            return HttpResponse(e, status=500, content_type="application/json")
+            ret = 500
+        finally:
+            if ret == 200:
+                return HttpResponse("{}", content_type="application/json")
+            else:
+                environs_helper.remove_env_capacity(
+                    request, name, stage, capacity_type="GROUP", data=cluster_name)
+                return HttpResponse(e, status=ret, content_type="application/json")
 
 
 class ClusterConfigurationView(View):
