@@ -56,14 +56,14 @@ function getUrlParameter(sParam) {
     }
 }
 
-function getRemainingCapacity(capacityInfo, placementList) { 
-    if (!capacityInfo || !placementList) {
-        return Infinity;
-    }
-    let filteredPlacements = capacityInfo.filter(placement => placementList.includes(placement.id));
-    let totalCapacity = filteredPlacements.reduce((s, e) => s + e.capacity, 0);
-    return totalCapacity;
-}
+// function getRemainingCapacity(capacityInfo, placementList) { 
+//     if (!capacityInfo || !placementList) {
+//         return Infinity;
+//     }
+//     let filteredPlacements = capacityInfo.filter(placement => placementList.includes(placement.id));
+//     let totalCapacity = filteredPlacements.reduce((s, e) => s + e.capacity, 0);
+//     return totalCapacity;
+// }
 
 function getDefaultPlacement(capacityCreationInfo) {
     this.capacityCreationInfo = capacityCreationInfo
