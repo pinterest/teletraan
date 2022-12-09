@@ -92,8 +92,6 @@ var capacityView = new Vue({
 
 var info = {{capacity_creation_info|safe}}
 var environment = info.environment;
-console.log(info.arches);
-console.log(info.cells);
 var accepted = info.baseImages.filter(function (e) {
         return e.acceptance == 'ACCEPTED';
     });
@@ -287,8 +285,6 @@ var capacitySetting = new Vue({
             var provider = capacitySetting.currentProvider;
             var arch = capacitySetting.currentArch;
             var cell = value;
-            console.log(cell);
-            console.log(arch);
             $.ajax({
                 type: 'GET',
                 url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
@@ -364,12 +360,6 @@ var capacitySetting = new Vue({
             var provider = capacitySetting.currentProvider;
             var cell = capacitySetting.currentCell;
             var arch = value;
-            value = '{{ default_cmp_image }}';
-            /*
-            if (capacitySetting.currentArch == 'ARM') {
-                value = '{{ default_cmp_arm_image }}';
-            }
-            */
             $.ajax({
                 type: 'GET',
                 url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
@@ -379,28 +369,23 @@ var capacitySetting = new Vue({
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 success: function (data) {
+                    let imageName = data[0];
                     capacitySetting.imagenames = data.map(
                             function (o) {
                                 return {
                                     value: o,
-                                    text: o, isSelected: o === value
+                                    text: o, isSelected: o === imageName
                                 }
                             });
                     info.baseImageNames = data;
-                    capacitySetting.imageNameValue = value;
-                    scope.imageNameChange(value);
+                    capacitySetting.imageNameValue = imageName;
+                    scope.imageNameChange(imageName);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
                 }
             });
             // grab all the host types
-            /*
-            value = '{{ default_host_type }}';
-            if (capacitySetting.currentArch == 'ARM') {
-                value = '{{ default_arm_host_type }}';
-            }
-            */
             $.ajax({
                 type: 'GET',
                 url: location.protocol + '//' + location.host + '/clouds/get_host_types/' + arch,

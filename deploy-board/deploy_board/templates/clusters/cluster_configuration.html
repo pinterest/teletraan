@@ -725,12 +725,6 @@
                     var provider = capacitySetting.currentProvider;
                     var cell = capacitySetting.currentCell;
                     var arch = value;
-                    value = '{{ default_cmp_image }}';
-                    /*
-                    if (capacitySetting.currentArch == 'ARM') {
-                        value = '{{ default_cmp_arm_image }}';
-                    }
-                    */
                     $.ajax({
                         type: 'GET',
                         url: location.protocol + '//' + location.host + '/clouds/image_names/' + provider + '/' + cell + '/' + arch,
@@ -740,28 +734,23 @@
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         },
                         success: function (data) {
+                            let imageName = data[0];
                             capacitySetting.imagenames = data.map(
                                     function (o) {
                                         return {
                                             value: o,
-                                            text: o, isSelected: o === value
+                                            text: o, isSelected: o === imageName
                                         }
                                     });
                             info.baseImageNames = data;
-                            capacitySetting.imageNameValue = value;
-                            scope.imageNameChange(value);
+                            capacitySetting.imageNameValue = imageName;
+                            scope.imageNameChange(imageName);
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data
                         }
                     });
                     // grab all the host types
-                    //value = '{{ default_host_type }}';
-                    /*
-                    if (capacitySetting.currentArch == 'ARM') {
-                        value = '{{ default_arm_host_type }}';
-                    }
-                    */
                     $.ajax({
                         type: 'GET',
                         url: location.protocol + '//' + location.host + '/clouds/get_host_types/' + arch,

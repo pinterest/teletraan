@@ -42,10 +42,8 @@ DEFAULT_PAGE_SIZE = 200
 
 class EnvCapacityBasicCreateView(View):
     def get(self, request, name, stage):
-        index = int(request.GET.get('page_index', '1'))
-        size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
         host_types = hosttypes_helper.get_by_arch(
-            request, DEFAULT_ARCH, index, size)
+            request, DEFAULT_ARCH)
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
@@ -124,10 +122,8 @@ class EnvCapacityBasicCreateView(View):
 
 class EnvCapacityAdvCreateView(View):
     def get(self, request, name, stage):
-        index = int(request.GET.get('page_index', '1'))
-        size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
         host_types = hosttypes_helper.get_by_arch(
-            request, DEFAULT_ARCH, index, size)
+            request, DEFAULT_ARCH)
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
@@ -215,10 +211,8 @@ class ClusterConfigurationView(View):
 
         cluster_name = '{}-{}'.format(name, stage)
         current_cluster = clusters_helper.get_cluster(request, cluster_name)
-        index = int(request.GET.get('page_index', '1'))
-        size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
         host_types = hosttypes_helper.get_by_arch(
-            request, current_cluster['archName'], index, size)
+            request, current_cluster['archName'])
         current_image = baseimages_helper.get_by_id(
             request, current_cluster['baseImageId'])
         # TODO: remove baseImageName and access the prop from baseImage directly.
@@ -508,9 +502,7 @@ def get_host_types_by_provider(request):
 
 
 def get_host_types_by_arch(request, arch):
-    index = int(request.GET.get('page_index', '1'))
-    size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
-    host_types = hosttypes_helper.get_by_arch(request, arch, index, size)
+    host_types = hosttypes_helper.get_by_arch(request, arch)
     for host_type in host_types:
         host_type['mem'] = float(host_type['mem']) / 1024
 
