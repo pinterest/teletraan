@@ -725,7 +725,7 @@
                     var provider = capacitySetting.currentProvider;
                     var cell = capacitySetting.currentCell;
                     var arch = value;
-                    value = '{{ default_cmp_image }}';
+                    //value = '{{ default_cmp_image }}';
                     /*
                     if (capacitySetting.currentArch == 'ARM') {
                         value = '{{ default_cmp_arm_image }}';
@@ -744,12 +744,12 @@
                                     function (o) {
                                         return {
                                             value: o,
-                                            text: o, isSelected: o === value
+                                            text: o, isSelected: o === data[0]
                                         }
                                     });
                             info.baseImageNames = data;
-                            capacitySetting.imageNameValue = value;
-                            scope.imageNameChange(value);
+                            capacitySetting.imageNameValue = data[0];
+                            scope.imageNameChange(data[0]);
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data
@@ -789,6 +789,7 @@
                 imageNameChange: function(value) {
                     var cell = capacitySetting.currentCell;
                     capacitySetting.imageNameValue = value;
+                    console.log("image name:", value);
                     //Grab all images for this image name
                     $.ajax({
                         type: 'GET',
