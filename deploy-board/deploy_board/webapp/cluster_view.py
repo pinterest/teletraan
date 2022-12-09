@@ -42,8 +42,10 @@ DEFAULT_PAGE_SIZE = 200
 
 class EnvCapacityBasicCreateView(View):
     def get(self, request, name, stage):
-        host_types = hosttypes_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+        index = int(request.GET.get('page_index', '1'))
+        size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
+        host_types = hosttypes_helper.get_by_arch(
+            request, DEFAULT_ARCH, index, size)
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
@@ -62,6 +64,7 @@ class EnvCapacityBasicCreateView(View):
             'baseImages': default_base_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
+            'defaultArch': DEFAULT_ARCH,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
@@ -79,6 +82,7 @@ class EnvCapacityBasicCreateView(View):
             'capacity_creation_info': json.dumps(capacity_creation_info)})
 
     def post(self, request, name, stage):
+        ret = 200
         log.info("Post to capacity with data {0}".format(request.body))
         try:
             cluster_name = '{}-{}'.format(name, stage)
@@ -103,14 +107,19 @@ class EnvCapacityBasicCreateView(View):
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
-
-            return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
-            return HttpResponse(e, status=403, content_type="application/json")
+            ret = 403
         except Exception as e:
             log.error("Have an error {}".format(e))
-            return HttpResponse(e, status=500, content_type="application/json")
+            ret = 500
+        finally:
+            if ret == 200:
+                return HttpResponse("{}", content_type="application/json")
+            else:
+                environs_helper.remove_env_capacity(
+                    request, name, stage, capacity_type="GROUP", data=cluster_name)
+                return HttpResponse(e, status=ret, content_type="application/json")
 
 
 class EnvCapacityAdvCreateView(View):
@@ -168,6 +177,7 @@ class EnvCapacityAdvCreateView(View):
             'is_pinterest': IS_PINTEREST})
 
     def post(self, request, name, stage):
+        ret = 200
         log.info("Post to capacity with data {0}".format(request.body))
         try:
             cluster_name = '{}-{}'.format(name, stage)
@@ -185,14 +195,19 @@ class EnvCapacityAdvCreateView(View):
 
             log.info("Create Capacity in the provider")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
-
-            return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
-            return HttpResponse(e, status=403, content_type="application/json")
+            ret = 403
         except Exception as e:
             log.error("Have an error {}", e)
-            return HttpResponse(e, status=500, content_type="application/json")
+            ret = 500
+        finally:
+            if ret == 200:
+                return HttpResponse("{}", content_type="application/json")
+            else:
+                environs_helper.remove_env_capacity(
+                    request, name, stage, capacity_type="GROUP", data=cluster_name)
+                return HttpResponse(e, status=ret, content_type="application/json")
 
 
 class ClusterConfigurationView(View):
@@ -750,14 +765,23 @@ def clone_cluster(request, src_name, src_stage):
     except NotAuthorizedException as e:
         log.error("Have an NotAuthorizedException error {}".format(e))
         if external_id is not None:
-            environs_helper.delete_nimbus_identifier(request, external_id)
+            try:
+                environs_helper.delete_nimbus_identifier(request, external_id)
+            except Exception as detail:
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                log.error(message)
 
         return HttpResponse(e, status=403, content_type="application/json")
     except Exception as e:
         log.error("Failed to clone cluster env_name: %s, stage_name: %s" % (src_name, src_stage))
         log.error(traceback.format_exc())
         if external_id is not None:
-            environs_helper.delete_nimbus_identifier(request, external_id)
+            try:
+                environs_helper.delete_nimbus_identifier(request, external_id)
+            except Exception as detail:
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                log.error(message)
+                
         return HttpResponse(e, status=500, content_type="application/json")
 
 
