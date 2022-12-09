@@ -740,16 +740,17 @@
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         },
                         success: function (data) {
+                            let imageName = data[0];
                             capacitySetting.imagenames = data.map(
                                     function (o) {
                                         return {
                                             value: o,
-                                            text: o, isSelected: o === data[0]
+                                            text: o, isSelected: o === imageName
                                         }
                                     });
                             info.baseImageNames = data;
-                            capacitySetting.imageNameValue = data[0];
-                            scope.imageNameChange(data[0]);
+                            capacitySetting.imageNameValue = imageName;
+                            scope.imageNameChange(imageName);
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data
