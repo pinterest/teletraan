@@ -337,7 +337,7 @@ if IS_PINTEREST:
 
 
     DEFAULT_CELL = 'aws-us-east-1'
-    DEFAULT_ARCH = 'X86'
+    DEFAULT_ARCH = 'x86_64'
     DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
 
     #Pinterest Default Puppet Environment
