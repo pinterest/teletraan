@@ -481,7 +481,7 @@
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
                         value: item.id,
-                        text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
+                        text: item.provider_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.abstract_name + ")",
                         isSelected: item.id === currentCluster.hostType
                     }
                 }),
@@ -764,7 +764,7 @@
                                     function (item) {
                                         return {
                                             value: item.id,
-                                            text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
+                                            text: item.provider_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.abstract_name + ")",
                                             isSelected: item.id === data[0].id
                                         }
                                     });
