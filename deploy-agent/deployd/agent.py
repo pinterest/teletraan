@@ -101,8 +101,8 @@ class DeployAgent(object):
 
     def _send_deploy_status_stats(self, deploy_report):
         if not self._response.deployGoal or not deploy_report:
-            return 
-        
+            return
+
         tags = {'first_run': self.first_run}
         if self._response.deployGoal.deployStage:
             tags['deploy_stage'] = self._response.deployGoal.deployStage
@@ -112,15 +112,15 @@ class DeployAgent(object):
             tags['stage_name'] = self._response.deployGoal.stageName
         if deploy_report.status_code:
             tags['status_code'] = deploy_report.status_code
-        if deploy_report.output_msg: 
+        if deploy_report.output_msg:
             if check_telefig_unavailable_error(deploy_report.output_msg):
                 tags['error_source'] = DeployErrorSource.TELEFIG
                 tags['error'] = DeployError.TELEFIG_UNAVAILABLE
             elif deploy_report.output_msg.find("teletraan_config_manager") != -1:
                 tags['error_source'] = DeployErrorSource.TELEFIG
-            
+
         create_sc_increment('deployd.stats.deploy.status', tags=tags)
-        
+
     def serve_build(self):
         """This is the main function of the ``DeployAgent``.
         """
@@ -168,7 +168,7 @@ class DeployAgent(object):
 
             if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
                 return
-                
+
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
                                              AgentStatus.TOO_MANY_RETRY,
                                              AgentStatus.SCRIPT_TIMEOUT]:
@@ -379,7 +379,7 @@ class DeployAgent(object):
             working_dir = os.path.join(env_dir, "{}_SCRIPT_CONFIG".format(env_name))
             with open(working_dir, "w+") as f:
                 for key, value in deploy_goal.scriptVariables.items():
-                    f.write("{}={}\n".format(key, value))
+                    f.write("{}={}\n".format(key, value.strip('\n').replace('\n', '\\n')))
 
         # timing stats - deploy stage start
         if deploy_goal != self.deploy_goal_previous:

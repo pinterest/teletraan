@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,7 +48,8 @@ class TransformTest(unittest.TestCase):
 
         lines = ['foo = \"bar\"\n',
                  'Wh-O =   \'test2\'\n',
-                 'TEST = test3\n']
+                 'TEST = test3\n',
+                 'NEW_LINE = arg1 \\n arg2\\n']
         with open(os.path.join(self.base_dir, '123_SCRIPT_CONFIG'), 'w') as f:
             f.writelines(lines)
 
