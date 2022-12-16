@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,6 @@
 package com.pinterest.deployservice.common;
 
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,21 +34,15 @@ public class CommonUtilsTest {
         data.put("simple", "How are you!");
         data.put("complicate", script);
 
-        data = CommonUtils.encodeScript(data);
-
-        String encodedScript1 = data.get("complicate");
-
         String encoded = CommonUtils.encodeData(data);
         Map<String, String> decoded = CommonUtils.decodeData(encoded);
+        assertEquals(data.get("simple"), decoded.get("simple"));
+        assertEquals(data.get("complicate"), decoded.get("complicate"));
 
-        String encodedScript2 = decoded.get("complicate");
-
-        decoded = CommonUtils.decodeScript(decoded);
-
-        String decodedScript3 = decoded.get("complicate");
-
-        assertEquals(decoded.get("simple"), "How are you!");
-        assertEquals(decoded.get("complicate"), script);
+        Map<String, String> encodedScript = CommonUtils.encodeScript(data);
+        decoded = CommonUtils.decodeScript(encodedScript);
+        assertEquals(data.get("simple"), decoded.get("simple"));
+        assertEquals(data.get("complicate"), decoded.get("complicate"));
     }
 
     @Test
