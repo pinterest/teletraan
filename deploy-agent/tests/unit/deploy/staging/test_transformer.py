@@ -49,7 +49,7 @@ class TransformTest(unittest.TestCase):
         lines = ['foo = \"bar\"\n',
                  'Wh-O =   \'test2\'\n',
                  'TEST = test3\n',
-                 'NEW_LINE = arg1 \\n arg2\\n']
+                 'NEW_LINE = arg1 \\n arg2\\narg3\n']
         with open(os.path.join(self.base_dir, '123_SCRIPT_CONFIG'), 'w') as f:
             f.writelines(lines)
 
@@ -61,6 +61,7 @@ class TransformTest(unittest.TestCase):
         self.assertEqual(transformer._dictionary.get('foo'), 'bar')
         self.assertEqual(transformer._dictionary.get('Wh-O'), 'test2')
         self.assertEqual(transformer._dictionary.get('TEST'), 'test3')
+        self.assertEqual(transformer._dictionary.get('NEW_LINE'), 'arg1 \n arg2\narg3')
 
     def test_translate1(self):
         transformer = Transformer(agent_dir=self.base_dir, env_name="123")
