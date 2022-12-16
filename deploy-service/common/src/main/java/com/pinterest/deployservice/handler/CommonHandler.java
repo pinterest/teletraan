@@ -157,7 +157,8 @@ public class CommonHandler {
             envBean.getEnv_name(),
             envBean.getStage_name());
         ObjectMapper mapper = new ObjectMapper();
-        TagBean tagBean = tagDAO.getByMetaInfo(mapper.writeValueAsString(buildBean));
+        BuildTagsManager manager = new BuildTagsManagerImpl(tagDAO);
+        TagBean tagBean = manager.getEffectiveBuildTag(buildBean);
 
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
