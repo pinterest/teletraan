@@ -39,6 +39,8 @@ import java.util.concurrent.TimeUnit;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class CommonHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CommonHandler.class);
     // metrics
@@ -47,6 +49,7 @@ public class CommonHandler {
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
     private AgentDAO agentDAO;
+    private TagDAO tagDAO;
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
     private ChatManager chatManager;
@@ -123,6 +126,7 @@ public class CommonHandler {
         buildDAO = serviceContext.getBuildDAO();
         agentDAO = serviceContext.getAgentDAO();
         utilDAO = serviceContext.getUtilDAO();
+        tagDAO = serviceContext.getTagDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
         sender = serviceContext.getEventSender();
         chatManager = serviceContext.getChatManager();
@@ -155,7 +159,11 @@ public class CommonHandler {
         String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s/deploy/",
             envBean.getEnv_name(),
             envBean.getStage_name());
-        TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
+
+        ObjectMapper mapper = new ObjectMapper();
+        TagBean tagBean = tagDAO.getByMetaInfo(mapper.writeValueAsString(buildBean));
+        
+        //TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
 
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
