@@ -162,7 +162,7 @@ public class CommonHandler {
             // TODO this is Slack specific, screw hipchat for now
             String rashmimessage = tagBean != null? tagBean.getValue().name() : "null tag bean";
             if (tagBean != null && tagBean.getValue() == TagValue.BAD_BUILD) {
-                return String.format("WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s> %s",
+                return String.format("WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s> rashmi %s",
                 envBean.getEnv_name(),
                 envBean.getStage_name(),
                 action,
@@ -171,7 +171,7 @@ public class CommonHandler {
                 webLink,
                 rashmimessage);
             } else {
-                return String.format("%s/%s: %s %s/%s completed successfully. See details <%s> %s",
+                return String.format("%s/%s: %s %s/%s completed successfully. See details <%s> rashmi %s",
                 envBean.getEnv_name(),
                 envBean.getStage_name(),
                 action,
