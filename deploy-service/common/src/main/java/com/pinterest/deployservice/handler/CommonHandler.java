@@ -18,7 +18,6 @@ package com.pinterest.deployservice.handler;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
-import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.common.WebhookDataFactory;
@@ -47,12 +46,12 @@ public class CommonHandler {
     private DeployDAO deployDAO;
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
-    private TagDAO tagDAO;
     private AgentDAO agentDAO;
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
     private ChatManager chatManager;
     private EventSender sender;
+    private BuildTagsManager buildTagsManager;
     private MailManager mailManager;
     private ExecutorService jobPool;
     private DataHandler dataHandler;
@@ -122,12 +121,12 @@ public class CommonHandler {
         deployDAO = serviceContext.getDeployDAO();
         environDAO = serviceContext.getEnvironDAO();
         buildDAO = serviceContext.getBuildDAO();
-        tagDAO = serviceContext.getTagDAO();
         agentDAO = serviceContext.getAgentDAO();
         utilDAO = serviceContext.getUtilDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
         sender = serviceContext.getEventSender();
         chatManager = serviceContext.getChatManager();
+        buildTagsManager = serviceContext.getBuildTagsManager();
         mailManager = serviceContext.getMailManager();
         jobPool = serviceContext.getJobPool();
         dataHandler = new DataHandler(serviceContext);
@@ -156,8 +155,7 @@ public class CommonHandler {
         String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s/deploy/",
             envBean.getEnv_name(),
             envBean.getStage_name());
-        BuildTagsManager manager = new BuildTagsManagerImpl(tagDAO);
-        TagBean tagBean = manager.getEffectiveBuildTag(buildBean);
+        TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
 
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
