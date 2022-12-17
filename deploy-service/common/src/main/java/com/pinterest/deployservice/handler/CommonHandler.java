@@ -160,22 +160,25 @@ public class CommonHandler {
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
             // TODO this is Slack specific, screw hipchat for now
+            String rashmimessage = tagBean != null? tagBean.getValue().name() : "null tag bean";
             if (tagBean != null && tagBean.getValue() == TagValue.BAD_BUILD) {
-                return String.format("WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s>",
+                return String.format("WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s> %s",
                 envBean.getEnv_name(),
                 envBean.getStage_name(),
                 action,
                 buildBean.getScm_branch(),
                 buildBean.getScm_commit_7(),
-                webLink);
+                webLink,
+                rashmimessage);
             } else {
-                return String.format("%s/%s: %s %s/%s completed successfully. See details <%s>",
+                return String.format("%s/%s: %s %s/%s completed successfully. See details <%s> %s",
                 envBean.getEnv_name(),
                 envBean.getStage_name(),
                 action,
                 buildBean.getScm_branch(),
                 buildBean.getScm_commit_7(),
-                webLink);
+                webLink,
+                rashmimessage);
             }
         } else {
             // TODO this is Slack specific, screw hipchat for now
