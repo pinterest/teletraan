@@ -288,8 +288,10 @@ Vue.component('hostype-help', {
             { name: 'Cores', headerClass: 'col-sm-1' },
             { name: 'Memory(GB)', headerClass: 'col-sm-1' },
             { name: 'Storage', headerClass: 'col-sm-2' },
+            { name: 'Network (Gbps)', headerClass: 'col-sm-1' },
+            { name: 'Retired', headerClass: 'col-sm-1' },
             { name: 'Description', headerClass: 'col-sm-5' }],
-            keys: ['abstract_name', 'provider_name', 'core', 'mem', 'storage', 'description']
+            keys: ['abstract_name', 'provider_name', 'core', 'mem', 'storage', 'network', 'retired', 'description']
         }
     },
 })
@@ -385,6 +387,41 @@ Vue.component("placements-select", {
         filterclick: function(value) {
             this.$emit('subnetfilterclick', value)
         }
+    }
+});
+
+Vue.component("hosttype-select", {
+    template: '<div v-bind:class="formStyle">\
+    <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">{{label}}</label>\
+    <div v-bind:class="width"><div v-bind:class="groupStyle">\
+    <select v-bind:class="selectClass" v-on:change="updateValue($event.target.value)" required="true">\
+    <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected" v-bind:disabled="option.isDisabled">{{option.text}}</option></select>\
+    <span v-if="showhelp" class="input-group-btn">\
+      <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" title="click to see more information" v-on:click="helpClick">\
+          <span class="glyphicon glyphicon-question-sign"></span>\
+      </button>\
+    </span></div>\
+    </div>\
+    </div>',
+    props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired'],
+    data: function () {
+        return {
+            width: this.small ? 'col-xs-4' : 'col-xs-10',
+            formStyle: this.small ? '' : 'form-group',
+            groupStyle: this.showhelp ? 'input-group' : '',
+            selectClass: this.selectsearch ? 'form-control single-select-search' : 'form-control'
+        }
+    },
+    methods: {
+        updateValue: function (value) {
+            this.$emit('input', value)
+        },
+        helpClick: function () {
+            this.$emit('helpclick')
+        },
+        retiredChange: function (value) {
+            this.$emit('retiredclick', value)
+        },
     }
 });
 

@@ -452,6 +452,7 @@ def create_host_type(request):
     params = request.POST
     host_type_info = {}
     host_type_info['arch_name'] = params['archName']
+    host_type_info['network'] = params['network']
     host_type_info['abstract_name'] = params['abstractName']
     host_type_info['provider_name'] = params['providerName']
     host_type_info['provider'] = params['provider']
@@ -459,6 +460,7 @@ def create_host_type(request):
     host_type_info['mem'] = float(params['mem']) * 1024
     host_type_info['core'] = int(params['core'])
     host_type_info['storage'] = params['storage']
+    host_type_info['retired'] = params['retired']
     hosttypes_helper.create_host_type(request, host_type_info)
     return redirect('/clouds/hosttypes/')
 

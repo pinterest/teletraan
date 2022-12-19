@@ -52,7 +52,8 @@
                     <label>This is for CMP docker only hosts. For other type, click the Advanced Settings on the left</label>
                 </div>
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
-                <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"></label-select>
+                <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
+                    ></hosttype-select>               
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
@@ -122,8 +123,9 @@ var capacitySetting = new Vue({
         hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){
             return {
                 value: item.id,
-                text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.storage+")",
-                isSelected: item.abstract_name === capacityCreationInfo.defaultHostType
+                text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.network+", " +item.storage+")",
+                isSelected: item.abstract_name === capacityCreationInfo.defaultHostType,
+                isDisabled: item.retired
             }}),
         placements: placements.getSimpleList(false, null),
         securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){
@@ -254,6 +256,10 @@ var capacitySetting = new Vue({
 )
 
 $(document).ready(function() {
+    $('.single-select-search').chosen({
+        "width": "100%"
+    });
+    
     $(".chosen-select").chosen({
             width: "100%",
         })

@@ -65,8 +65,8 @@
                     v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
-                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
-                        showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
+                    <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
+                    showhelp="true" v-on:helpclick="hostTypeHelpClick"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
@@ -487,8 +487,9 @@
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
                         value: item.id,
-                        text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
-                        isSelected: item.id === currentCluster.hostType
+                        text: item.provider_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.abstract_name + ")",
+                        isSelected: item.id === currentCluster.hostType,
+                        isDisabled: item.retired
                     }
                 }),
                 imageNameValue: currentCluster.baseImageName,
@@ -770,11 +771,15 @@
                                     function (item) {
                                         return {
                                             value: item.id,
-                                            text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
-                                            isSelected: item.id === data[0].id
+                                            text: item.provider_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.abstract_name + ")",
+                                            isSelected: item.id === data[0],
+                                            isDisabled: item.retired
                                         }
                                     });
                             capacitySetting.selectedHostTypeValue = data[0].id;
+                            setTimeout(function() {
+                                $(".single-select-search").trigger("chosen:updated");
+                            }, 50);
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data

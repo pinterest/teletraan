@@ -44,8 +44,8 @@
                         v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" inadvanced="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
-                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"
-                        v-on:input="updateImageNameForEbsHost" showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
+                    <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
+                    showhelp="true" v-on:helpclick="hostTypeHelpClick"></hosttype-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" showhelp="true" v-model="selectedSecurityZoneValue"
                         v-bind:selectoptions="securityZones" v-on:helpclick="securityZoneHelpClick"></label-select>
@@ -142,8 +142,9 @@ var capacitySetting = new Vue({
             function (item, idx) {
                 return {
                     value: item.id,
-                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
-                    isSelected: item.abstract_name === info.defaultHostType
+                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.provider_name + ", " + item.network + ")",
+                    isSelected: item.abstract_name === info.defaultHostType,
+                    isDisabled: item.retired
                 }
             }),
         cellValue: info.defaultCell,
@@ -399,11 +400,15 @@ var capacitySetting = new Vue({
                             function (item) {
                                 return {
                                     value: item.id,
-                                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.provider_name + ")",
-                                    isSelected: item.id === data[0].id
+                                    text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.provider_name + ", " + item.network + ")",
+                                    isSelected: item.id === data[0].id,
+                                    isDisabled: item.retired
                                 }
                             });
                     capacitySetting.selectedHostTypeValue = data[0].id;
+                    setTimeout(function() {
+                        $(".single-select-search").trigger("chosen:updated");
+                    }, 50);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
@@ -649,6 +654,10 @@ var capacitySetting = new Vue({
 
 
 $(document).ready(function () {
+    $('.single-select-search').chosen({
+        "width": "100%"
+    });
+    
     $(".chosen-select").chosen({ "width": "100%" })
         .change(function () {
             capacitySetting.selectedPlacements = $('.chosen-select').val()
