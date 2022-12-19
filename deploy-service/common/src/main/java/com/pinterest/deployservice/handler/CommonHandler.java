@@ -82,6 +82,7 @@ public class CommonHandler {
             String message;
             try {
                 message = generateMessage(buildId, envBean, state, deployBean);
+                LOG.info("Rashmi deploy message {}", message);
             } catch (Exception e) {
                 LOG.error("Failed to genereate message", e);
                 return;
