@@ -162,9 +162,9 @@ public class CommonHandler {
             envBean.getStage_name());
 
         ObjectMapper mapper = new ObjectMapper();
-        TagBean tagBean = tagDAO.getByMetaInfo(mapper.writeValueAsString(buildBean));
+        //TagBean tagBean = tagDAO.getByMetaInfo(mapper.writeValueAsString(buildBean));
         
-        //TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
+        TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
 
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
