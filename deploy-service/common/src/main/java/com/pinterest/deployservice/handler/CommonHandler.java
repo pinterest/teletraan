@@ -53,7 +53,6 @@ public class CommonHandler {
     private ScheduleDAO scheduleDAO;
     private ChatManager chatManager;
     private EventSender sender;
-    private BuildTagsManager buildTagsManager;
     private MailManager mailManager;
     private ExecutorService jobPool;
     private DataHandler dataHandler;
@@ -129,7 +128,6 @@ public class CommonHandler {
         scheduleDAO = serviceContext.getScheduleDAO();
         sender = serviceContext.getEventSender();
         chatManager = serviceContext.getChatManager();
-        buildTagsManager = serviceContext.getBuildTagsManager();
         mailManager = serviceContext.getMailManager();
         jobPool = serviceContext.getJobPool();
         dataHandler = new DataHandler(serviceContext);
