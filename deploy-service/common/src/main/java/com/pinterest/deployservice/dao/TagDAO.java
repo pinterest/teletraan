@@ -41,6 +41,4 @@ public interface TagDAO {
     List<TagBean> getByValue(TagValue value) throws Exception;
 
     TagBean getLatestByTargetId(String targetId) throws Exception;
-
-    TagBean getByMetaInfo(String meta_info) throws Exception;
 }

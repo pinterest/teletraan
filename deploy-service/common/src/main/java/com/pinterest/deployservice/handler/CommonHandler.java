@@ -18,6 +18,7 @@ package com.pinterest.deployservice.handler;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
+import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.common.WebhookDataFactory;
@@ -38,8 +39,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.MetricRegistry;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CommonHandler {
     private static final Logger LOG = LoggerFactory.getLogger(CommonHandler.class);
@@ -160,11 +159,9 @@ public class CommonHandler {
         String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s/deploy/",
             envBean.getEnv_name(),
             envBean.getStage_name());
-
-        ObjectMapper mapper = new ObjectMapper();
-        TagBean tagBean = tagDAO.getByMetaInfo(mapper.writeValueAsString(buildBean));
         
-        //TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
+        BuildTagsManager buildTagsManager = new BuildTagsManagerImpl(this.tagDAO);
+        TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
 
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {

@@ -40,8 +40,6 @@ public class DBTagDAOImpl implements TagDAO {
 
     private static final String GET_TAG_BY_ID_TEMPLATE = "SELECT * FROM tags WHERE id =?";
 
-    private static final String GET_TAG_BY_META_INFO_TEMPLATE = "SELECT * FROM tags WHERE meta_info =?";
-
     private static final String GET_TAG_BY_TARGET_ID_TEMPLATE =
         "SELECT * FROM tags WHERE target_id=? ORDER BY created_date DESC";
 
@@ -117,11 +115,5 @@ public class DBTagDAOImpl implements TagDAO {
     public TagBean getLatestByTargetId(String targetId) throws Exception {
         return new QueryRunner(basicDataSource).query(GET_LATEST_TAG_BY_TARGET_ID,
             new BeanHandler<>(TagBean.class), targetId);
-    }
-
-    @Override
-    public TagBean getByMetaInfo(String metaInfo) throws Exception {
-        return new QueryRunner(basicDataSource).query(GET_TAG_BY_META_INFO_TEMPLATE,
-            new BeanHandler<>(TagBean.class), metaInfo);
     }
 }
