@@ -18,7 +18,6 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
-import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
@@ -39,7 +38,7 @@ import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import javax.validation.Valid;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -114,16 +113,20 @@ public class EnvStages {
             // Request has no intention to change stage type, so set it to the current value
             // to avoid the default value being used.
             environBean.setStage_type(origBean.getStage_type());
-        } else if (origBean.getStage_type() != Constants.DEFAULT_STAGE_TYPE) {
+        } else if (origBean.getStage_type() != Constants.DEFAULT_STAGE_TYPE
+                && origBean.getStage_type() != environBean.getStage_type()) {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                     "Modification of non-default stage type is not allowed!");
         }
 
         environBean.setEnv_name(origBean.getEnv_name());
         environBean.setStage_name(origBean.getStage_name());
+        if (environBean.getExternal_id() == null) {
+            environBean.setExternal_id(origBean.getExternal_id());
+        }
         environHandler.updateStage(environBean, operator);
         configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, environBean, operator);
-        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator, environBean.getExternal_id());
         LOG.info("Successfully updated env {}/{} with {} by {}.",
             envName, stageName, environBean, operator);
     }

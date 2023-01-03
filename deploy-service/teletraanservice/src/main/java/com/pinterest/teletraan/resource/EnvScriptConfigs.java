@@ -87,7 +87,7 @@ public class EnvScriptConfigs {
         String operator = sc.getUserPrincipal().getName();
         environHandler.updateScriptConfigs(envBean, configs, operator);
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_SCRIPT, configs, operator);
-        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_SCRIPT, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, envBean.getEnv_id(), Constants.TYPE_ENV_SCRIPT, operator, envBean.getExternal_id());
         LOG.info("Successfully updated script config {} for env {}/{} by {}.",
             configs, envName, stageName, operator);
     }

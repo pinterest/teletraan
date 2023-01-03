@@ -45,7 +45,7 @@ import java.util.concurrent.ExecutorService;
 public class ConfigHistoryHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigHistoryHandler.class);
     private static final String CHANGEFEED_TEMPLATE = "{\"type\":\"%s\",\"environment\":\"%s\",\"description\":\"%s\",\"author\":\"%s\","
-            + "\"automation\":\"%s\",\"source\":\"Teletraan\",\"optional-1\":\"%s\",\"optional-2\":\"\"}";
+            + "\"automation\":\"%s\",\"source\":\"Teletraan\",\"optional-1\":\"%s\",\"optional-2\":\"%s\"}";
     private final ConfigHistoryDAO configHistoryDAO;
     private final EnvironDAO environDAO;
     private final String changeFeedUrl;
@@ -103,7 +103,7 @@ public class ConfigHistoryHandler {
         }
     }
 
-    public void updateChangeFeed(String configType, String configId, String type, String operator) {
+    public void updateChangeFeed(String configType, String configId, String type, String operator, String nimbusUUID) {
         try {
             Gson gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
             List<ConfigHistoryBean> configHistoryBeans = configHistoryDAO.getLatestChangesByType(configId, type);
@@ -117,7 +117,7 @@ public class ConfigHistoryHandler {
                 LOG.info(String.format("Push env %s config change for %s", type, envStageName));
                 String configHistoryUrl = String.format("https://deploy.pinadmin.com/env/%s/%s/config_history/",
                                   environBean.getEnv_name(), environBean.getStage_name());
-                String feedPayload = String.format(CHANGEFEED_TEMPLATE, configType, envStageName, configHistoryUrl, operator, "False", type);
+                String feedPayload = String.format(CHANGEFEED_TEMPLATE, configType, envStageName, configHistoryUrl, operator, "False", type, nimbusUUID);
                 if (type.equals(Constants.TYPE_ENV_GENERAL)) {
                     EnvironBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), EnvironBean.class);
                     newBean.setLast_update(null);

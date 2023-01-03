@@ -83,6 +83,7 @@ PHOBOS_URL = os.getenv("PHOBOS_URL")
 # Serviceframework add-on vars
 SERVICE_RATELIMIT_CONFIG_URL = os.getenv("SERVICE_RATELIMIT_CONFIG_URL")
 STATSBOARD_API_FORMAT = os.getenv("STATSBOARD_API_FORMAT", "OFF")
+STATSBOARD_API_PREFIX = os.getenv("STATSBOARD_API_PREFIX", "https://")
 STATSBOARD_HOST_TYPE_API_FORMAT = os.getenv("STATSBOARD_HOST_TYPE_API_FORMAT", "OFF")
 STATSBOARD_HUB_URL_ENDPOINT_FORMAT = os.getenv("STATSBOARD_HUB_URL_ENDPOINT_FORMAT", "OFF")
 RATELIMIT_ENABLED_METRIC_FORMAT = os.getenv("RATELIMIT_ENABLED_METRIC_FORMAT", "OFF")
@@ -326,13 +327,17 @@ if IS_PINTEREST:
 
     #Pinterest Default AMI image name
     DEFAULT_CMP_IMAGE = 'cmp_base-ebs-18.04'
+    DEFAULT_CMP_ARM_IMAGE = 'cmp_base_arm64'
 
     #Pinterest Default Host Type
     # TODO: This is a description of the host type but is nonunique. However, it cannot be replaced by host_type ID since it is unique per service database.
     # TODO: The model for host type should be rebuilt based on a unique abstract factor such as ec2 instance type, for now we should keep expected behavior.
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
+    DEFAULT_CMP_ARM_HOST_TYPE = 'EbsComputeXLoArm'
+
 
     DEFAULT_CELL = 'aws-us-east-1'
+    DEFAULT_ARCH = 'x86_64'
     DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
 
     #Pinterest Default Puppet Environment

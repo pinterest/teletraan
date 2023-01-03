@@ -73,6 +73,18 @@
                 <div class="modal-body" id="createHostTypeModal">
                     <div class="form-group">
                         <label class="deployToolTip control-label text-center col-xs-6">
+                            Arch
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="archName" required id="archName">
+                                {% for arch in arches_list %}
+                                    <option value="{{ arch.name }}" >{{ arch.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
                             Abstract Name
                         </label>
                         <div class="col-md-6">

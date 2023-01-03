@@ -21,14 +21,15 @@ from django.views.generic import View
 
 from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
-    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, \
-        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, \
+    from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
+        DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST
+
 import json
 import logging
 
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
-    autoscaling_groups_helper, groups_helper, cells_helper
+    autoscaling_groups_helper, groups_helper, cells_helper, arches_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
 from helpers.exceptions import NotAuthorizedException, TeletraanException
 import common
@@ -41,8 +42,8 @@ DEFAULT_PAGE_SIZE = 200
 
 class EnvCapacityBasicCreateView(View):
     def get(self, request, name, stage):
-        host_types = hosttypes_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+        host_types = hosttypes_helper.get_by_arch(
+            request, DEFAULT_ARCH)
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
@@ -61,16 +62,25 @@ class EnvCapacityBasicCreateView(View):
             'baseImages': default_base_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
+            'defaultArch': DEFAULT_ARCH,
+            'defaultBaseImage': DEFAULT_CMP_IMAGE,
+            'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'access_role_list': ACCESS_ROLE_LIST,
         }
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
             'env': env,
+            'default_cmp_image': DEFAULT_CMP_IMAGE,
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_host_type': DEFAULT_CMP_HOST_TYPE,
+            'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'capacity_creation_info': json.dumps(capacity_creation_info)})
 
     def post(self, request, name, stage):
+        ret = 200
         log.info("Post to capacity with data {0}".format(request.body))
         try:
             cluster_name = '{}-{}'.format(name, stage)
@@ -95,20 +105,25 @@ class EnvCapacityBasicCreateView(View):
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
-
-            return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
-            return HttpResponse(e, status=403, content_type="application/json")
+            ret = 403
         except Exception as e:
             log.error("Have an error {}".format(e))
-            return HttpResponse(e, status=500, content_type="application/json")
+            ret = 500
+        finally:
+            if ret == 200:
+                return HttpResponse("{}", content_type="application/json")
+            else:
+                environs_helper.remove_env_capacity(
+                    request, name, stage, capacity_type="GROUP", data=cluster_name)
+                return HttpResponse(e, status=ret, content_type="application/json")
 
 
 class EnvCapacityAdvCreateView(View):
     def get(self, request, name, stage):
-        host_types = hosttypes_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+        host_types = hosttypes_helper.get_by_arch(
+            request, DEFAULT_ARCH)
         for host_type in host_types:
             host_type['mem'] = float(host_type['mem']) / 1024
 
@@ -117,9 +132,10 @@ class EnvCapacityAdvCreateView(View):
         placements = placements_helper.get_by_provider_and_cell_name(
             request, DEFAULT_PROVIDER, DEFAULT_CELL)
         cells = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+        arches = arches_helper.get_all(request)
         base_images = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
-        base_images_names = baseimages_helper.get_image_names(
-            request, DEFAULT_PROVIDER, DEFAULT_CELL)
+        base_images_names = baseimages_helper.get_image_names_by_arch(
+            request, DEFAULT_PROVIDER, DEFAULT_CELL, DEFAULT_ARCH)
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -130,13 +146,17 @@ class EnvCapacityAdvCreateView(View):
             'securityZones': security_zones,
             'placements': placements,
             'cells': cells,
+            'arches': arches,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
+            'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
+            'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultCell': DEFAULT_CELL,
-            'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultArch': DEFAULT_ARCH,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
@@ -146,10 +166,14 @@ class EnvCapacityAdvCreateView(View):
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
             'default_cmp_image': DEFAULT_CMP_IMAGE,
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE,
+            'default_host_type': DEFAULT_CMP_HOST_TYPE,
+            'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'is_pinterest': IS_PINTEREST})
 
     def post(self, request, name, stage):
+        ret = 200
         log.info("Post to capacity with data {0}".format(request.body))
         try:
             cluster_name = '{}-{}'.format(name, stage)
@@ -167,14 +191,19 @@ class EnvCapacityAdvCreateView(View):
 
             log.info("Create Capacity in the provider")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
-
-            return HttpResponse("{}", content_type="application/json")
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
-            return HttpResponse(e, status=403, content_type="application/json")
+            ret = 403
         except Exception as e:
             log.error("Have an error {}", e)
-            return HttpResponse(e, status=500, content_type="application/json")
+            ret = 500
+        finally:
+            if ret == 200:
+                return HttpResponse("{}", content_type="application/json")
+            else:
+                environs_helper.remove_env_capacity(
+                    request, name, stage, capacity_type="GROUP", data=cluster_name)
+                return HttpResponse(e, status=ret, content_type="application/json")
 
 
 class ClusterConfigurationView(View):
@@ -182,8 +211,8 @@ class ClusterConfigurationView(View):
 
         cluster_name = '{}-{}'.format(name, stage)
         current_cluster = clusters_helper.get_cluster(request, cluster_name)
-        host_types = hosttypes_helper.get_by_provider(
-            request, DEFAULT_PROVIDER)
+        host_types = hosttypes_helper.get_by_arch(
+            request, current_cluster['archName'])
         current_image = baseimages_helper.get_by_id(
             request, current_cluster['baseImageId'])
         # TODO: remove baseImageName and access the prop from baseImage directly.
@@ -193,14 +222,15 @@ class ClusterConfigurationView(View):
             host_type['mem'] = float(host_type['mem']) / 1024
 
         cells = cells_helper.get_by_provider(request, current_cluster['provider'])
+        arches = arches_helper.get_all(request)
         security_zones = securityzones_helper.get_by_provider_and_cell_name(
             request, current_cluster['provider'], current_cluster['cellName'])
         placements = placements_helper.get_by_provider_and_cell_name(
             request, current_cluster['provider'], current_cluster['cellName'])
         base_images = get_base_image_info_by_name(
             request, current_image['abstract_name'], current_cluster['cellName'])
-        base_images_names = baseimages_helper.get_image_names(
-            request, current_cluster['provider'], current_cluster['cellName'])
+        base_images_names = baseimages_helper.get_image_names_by_arch(
+            request, current_cluster['provider'], current_cluster['cellName'], current_cluster['archName'])
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -208,12 +238,16 @@ class ClusterConfigurationView(View):
         capacity_creation_info = {
             'environment': env,
             'cells': cells,
+            'arches': arches,
             'hostTypes': host_types,
             'securityZones': security_zones,
             'placements': placements,
             'baseImages': base_images,
             'baseImageNames': base_images_names,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
+            'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
+            'defaultHostType': DEFAULT_CMP_HOST_TYPE,
+            'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'providerList': provider_list,
@@ -226,6 +260,9 @@ class ClusterConfigurationView(View):
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
             'default_cmp_image': DEFAULT_CMP_IMAGE,
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_host_type': DEFAULT_CMP_HOST_TYPE,
+            'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'is_pinterest': IS_PINTEREST})
 
@@ -290,6 +327,7 @@ def create_base_image(request):
     base_image_info['provider'] = params['provider']
     base_image_info['description'] = params['description']
     base_image_info['cell_name'] = params['cellName']
+    base_image_info['arch_name'] = params['archName']
     baseimages_helper.create_base_image(request, base_image_info)
     return redirect('/clouds/baseimages/')
 
@@ -301,11 +339,13 @@ def get_base_images(request):
         request, index, size)
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+    arches_list = arches_helper.get_all(request)
 
     return render(request, 'clusters/base_images.html', {
         'base_images': base_images,
         'provider_list': provider_list,
         'cells_list': cells_list,
+        'arches_list': arches_list,
         'pageIndex': index,
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
@@ -315,6 +355,11 @@ def get_base_images(request):
 
 def get_image_names_by_provider_and_cell(request, provider, cell):
     image_names = baseimages_helper.get_image_names(request, provider, cell)
+    return HttpResponse(json.dumps(image_names), content_type="application/json")
+
+
+def get_image_names_by_provider_and_cell_and_arch(request, provider, cell, arch):
+    image_names = baseimages_helper.get_image_names_by_arch(request, provider, cell, arch)
     return HttpResponse(json.dumps(image_names), content_type="application/json")
 
 
@@ -406,6 +451,7 @@ def get_base_images_by_name_json(request, name):
 def create_host_type(request):
     params = request.POST
     host_type_info = {}
+    host_type_info['arch_name'] = params['archName']
     host_type_info['abstract_name'] = params['abstractName']
     host_type_info['provider_name'] = params['providerName']
     host_type_info['provider'] = params['provider']
@@ -424,8 +470,10 @@ def get_host_types(request):
     for host_type in host_types:
         host_type['mem'] = float(host_type['mem']) / 1024
     provider_list = baseimages_helper.get_all_providers(request)
+    arches_list = arches_helper.get_all(request)
 
     return render(request, 'clusters/host_types.html', {
+        'arches_list': arches_list,
         'host_types': host_types,
         'provider_list': provider_list,
         'pageIndex': index,
@@ -451,6 +499,14 @@ def get_host_types_by_provider(request):
         'curr_host_type': curr_host_type,
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
+
+
+def get_host_types_by_arch(request, arch):
+    host_types = hosttypes_helper.get_by_arch(request, arch)
+    for host_type in host_types:
+        host_type['mem'] = float(host_type['mem']) / 1024
+
+    return HttpResponse(json.dumps(host_types), content_type="application/json")
 
 
 def get_host_type_info(request):
@@ -701,14 +757,23 @@ def clone_cluster(request, src_name, src_stage):
     except NotAuthorizedException as e:
         log.error("Have an NotAuthorizedException error {}".format(e))
         if external_id is not None:
-            environs_helper.delete_nimbus_identifier(request, external_id)
+            try:
+                environs_helper.delete_nimbus_identifier(request, external_id)
+            except Exception as detail:
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                log.error(message)
 
         return HttpResponse(e, status=403, content_type="application/json")
     except Exception as e:
         log.error("Failed to clone cluster env_name: %s, stage_name: %s" % (src_name, src_stage))
         log.error(traceback.format_exc())
         if external_id is not None:
-            environs_helper.delete_nimbus_identifier(request, external_id)
+            try:
+                environs_helper.delete_nimbus_identifier(request, external_id)
+            except Exception as detail:
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                log.error(message)
+                
         return HttpResponse(e, status=500, content_type="application/json")
 
 
@@ -728,7 +793,7 @@ def get_aws_config_name_list_by_image(image_name):
         config_map['ebs_volume_type'] = 'gp3'
         config_map['root_volume_type'] = 'gp3'
         config_map['root_volume_size'] = 100
-        if image_name == DEFAULT_CMP_IMAGE:
+        if image_name == DEFAULT_CMP_IMAGE or image_name == DEFAULT_CMP_ARM_IMAGE:
             config_map['pinfo_role'] = 'cmp_base'
             config_map['pinfo_team'] = 'cloudeng'
         else:

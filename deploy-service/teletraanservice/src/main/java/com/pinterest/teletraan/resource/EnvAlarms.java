@@ -77,7 +77,7 @@ public class EnvAlarms {
         String userName = sc.getUserPrincipal().getName();
         environHandler.updateAlarms(environBean, alarmBeans, userName);
         configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_ALARM, alarmBeans, userName);
-        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_ALARM, userName);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, environBean.getEnv_id(), Constants.TYPE_ENV_ALARM, userName, environBean.getExternal_id());
         LOG.info("Successfully updated alarms {} for env {}/{} by {}.",
             alarmBeans, envName, stageName, userName);
     }

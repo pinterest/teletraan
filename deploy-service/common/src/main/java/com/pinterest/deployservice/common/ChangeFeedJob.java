@@ -179,4 +179,8 @@ public final class ChangeFeedJob implements Callable<Void> {
         }
         return null;
     }
+
+    public String getPayload() {
+        return payload;
+    }
 }

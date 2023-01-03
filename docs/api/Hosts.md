@@ -41,11 +41,12 @@ Returns a Collections of hosts given an environment and stage
 
 ##### Parameters
 
-|Type|Name|Schema|
-|---|---|---|
-|**Path**|**envName**  <br>*required*|string|
-|**Path**|**stageName**  <br>*required*|string|
-|**Body**|**body**  <br>*optional*|< string > array|
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**envName**  <br>*required*||string|
+|**Path**|**stageName**  <br>*required*||string|
+|**Query**|**replaceHost**  <br>*optional*|Replace the host or not|boolean|
+|**Body**|**body**  <br>*optional*||< string > array|
 
 
 ##### Responses

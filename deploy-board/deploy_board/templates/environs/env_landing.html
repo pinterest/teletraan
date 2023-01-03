@@ -128,7 +128,7 @@
         {% endverbatim %}
     </div>
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-database" text="Capacity" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
+        <side-button styleclass="fa fa-database" :style="capacityStateStyle" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
     <div v-if="!showCluster" id="groupsDiv">
     </div>
@@ -226,7 +226,18 @@ var capacityPanel = new Vue({
             data:{
                title: renderCapacity ? "Cluster" : "Deploy Groups",
                showCluster: renderCapacity,
-
+               remainingCapacity: {{remaining_capacity | safe}},
+               capacityStateStyle: "",
+            },
+            computed: {
+                capacityText: function() {
+                    if (this.remainingCapacity != null && this.remainingCapacity < 100) {
+                        this.capacityStateStyle = "color: #d32a0e"
+                        return `Capacity (Remaining Capacity: ${this.remainingCapacity})`
+                    } else {
+                        return "Capacity"
+                    }
+                }
             },
             mounted: function(){
                 if (!renderCapacity){
@@ -300,22 +311,7 @@ $('#privateBldUploadBtnId button').click(function () {
 
 {% endif %}
 
-{% if messages %}
-    {% for message in messages %}
-        {% if message.level == 40 %}
-            <div class="alert alert-danger" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <strong>Warning!</strong> {{ message | safe}}
-            </div>
-        {% else %}
-            <div class="alert alert-success" role="alert">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <strong>Launch Succeeded!</strong> {{ message | safe}}
-            </div>
-        {% endif %}
-    {% endfor %}
-{% endif %}
-
+{% include "message_banner.tmpl" %}
 {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
 {% include "environs/site_health.tmpl" with metricsKind="service" %}
 
