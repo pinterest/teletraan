@@ -81,7 +81,6 @@ public class CommonHandler {
             String message;
             try {
                 message = generateMessage(buildId, envBean, state, deployBean);
-                LOG.info("Rashmi deploy message {}", message);
             } catch (Exception e) {
                 LOG.error("Failed to genereate message", e);
                 return;
@@ -96,7 +95,6 @@ public class CommonHandler {
             sendWatcherMessage(operator, envBean.getWatch_recipients(), message, color);
             sendChatMessage(operator, envBean.getChatroom(), message, color);
 
-            state = DeployState.FAILING;
             if (state == DeployState.FAILING) {
                 String recipients = envBean.getEmail_recipients();
                 if (envBean.getNotify_authors() && !StringUtils.isEmpty(recipients)) {
@@ -167,25 +165,23 @@ public class CommonHandler {
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
             // TODO this is Slack specific, screw hipchat for now
-            String rashmimessage = tagBean != null? tagBean.getValue().name() : "null tag bean";
+
             if (tagBean != null && tagBean.getValue() == TagValue.BAD_BUILD) {
-                return String.format("WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s> rashmi %s",
+                return String.format("WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s>",
                 envBean.getEnv_name(),
                 envBean.getStage_name(),
                 action,
                 buildBean.getScm_branch(),
                 buildBean.getScm_commit_7(),
-                webLink,
-                rashmimessage);
+                webLink);
             } else {
-                return String.format("%s/%s: %s %s/%s completed successfully. See details <%s> rashmi %s",
+                return String.format("%s/%s: %s %s/%s completed successfully. See details <%s>",
                 envBean.getEnv_name(),
                 envBean.getStage_name(),
                 action,
                 buildBean.getScm_branch(),
                 buildBean.getScm_commit_7(),
-                webLink,
-                rashmimessage);
+                webLink);
             }
         } else {
             // TODO this is Slack specific, screw hipchat for now
