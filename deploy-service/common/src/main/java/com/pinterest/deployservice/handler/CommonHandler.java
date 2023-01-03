@@ -96,6 +96,7 @@ public class CommonHandler {
             sendWatcherMessage(operator, envBean.getWatch_recipients(), message, color);
             sendChatMessage(operator, envBean.getChatroom(), message, color);
 
+            state = DeployState.FAILING;
             if (state == DeployState.FAILING) {
                 String recipients = envBean.getEmail_recipients();
                 if (envBean.getNotify_authors() && !StringUtils.isEmpty(recipients)) {
