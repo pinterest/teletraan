@@ -18,7 +18,6 @@ package com.pinterest.deployservice.handler;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
-import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.common.WebhookDataFactory;
@@ -59,6 +58,7 @@ public class CommonHandler {
     private String deployBoardUrlPrefix;
     private Counter successCounter;
     private Counter failureCounter;
+    private BuildTagsManager buildTagsManager;
 
     private final class FinishNotifyJob implements Callable<Void> {
         private EnvironBean envBean;
@@ -129,6 +129,7 @@ public class CommonHandler {
         sender = serviceContext.getEventSender();
         chatManager = serviceContext.getChatManager();
         mailManager = serviceContext.getMailManager();
+        buildTagsManager = serviceContext.getBuildTagsManager();
         jobPool = serviceContext.getJobPool();
         dataHandler = new DataHandler(serviceContext);
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
@@ -157,7 +158,6 @@ public class CommonHandler {
             envBean.getEnv_name(),
             envBean.getStage_name());
         
-        BuildTagsManager buildTagsManager = new BuildTagsManagerImpl(this.tagDAO);
         TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
 
         String action = getDeployAction(deployType);
