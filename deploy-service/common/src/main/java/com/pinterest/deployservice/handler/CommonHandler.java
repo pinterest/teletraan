@@ -17,6 +17,7 @@ package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
+import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.common.WebhookDataFactory;
@@ -56,6 +57,7 @@ public class CommonHandler {
     private String deployBoardUrlPrefix;
     private Counter successCounter;
     private Counter failureCounter;
+    private BuildTagsManager buildTagsManager;
 
     private final class FinishNotifyJob implements Callable<Void> {
         private EnvironBean envBean;
@@ -125,6 +127,7 @@ public class CommonHandler {
         sender = serviceContext.getEventSender();
         chatManager = serviceContext.getChatManager();
         mailManager = serviceContext.getMailManager();
+        buildTagsManager = serviceContext.getBuildTagsManager();
         jobPool = serviceContext.getJobPool();
         dataHandler = new DataHandler(serviceContext);
         deployBoardUrlPrefix = serviceContext.getDeployBoardUrlPrefix();
@@ -152,11 +155,18 @@ public class CommonHandler {
         String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s/deploy/",
             envBean.getEnv_name(),
             envBean.getStage_name());
+        
+        TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
 
         String action = getDeployAction(deployType);
         if (state == DeployState.SUCCEEDING) {
             // TODO this is Slack specific, screw hipchat for now
-            return String.format("%s/%s: %s %s/%s completed successfully. See details <%s>",
+
+            String template = (tagBean != null && tagBean.getValue() == TagValue.BAD_BUILD) ?
+                "WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s>" :
+                "%s/%s: %s %s/%s completed successfully. See details <%s>";
+
+            return String.format(template,
                 envBean.getEnv_name(),
                 envBean.getStage_name(),
                 action,
@@ -165,20 +175,23 @@ public class CommonHandler {
                 webLink);
         } else {
             // TODO this is Slack specific, screw hipchat for now
+            String tagMessage = (tagBean == null) ? "NOT SET" : tagBean.getValue().toString();
             if (deployBean.getSuc_date() != null && deployBean.getSuc_date() != 0L) {
                 // This is failure after previous success
-                return String.format("%s/%s: can not deploy to all the newly provisioned hosts. See details <%s>",
+                return String.format("%s/%s: can not deploy to all the newly provisioned hosts. See details <%s>. This build is currently marked as %s.",
                     envBean.getEnv_name(),
                     envBean.getStage_name(),
-                    webLink);
+                    webLink,
+                    tagMessage);
             } else {
-                return String.format("%s/%s: %s %s/%s failed. See details <%s>",
+                return String.format("%s/%s: %s %s/%s failed. See details <%s>. This build is currently marked as %s.",
                     envBean.getEnv_name(),
                     envBean.getStage_name(),
                     action,
                     buildBean.getScm_branch(),
                     buildBean.getScm_commit_7(),
-                    webLink);
+                    webLink,
+                    tagMessage);
             }
         }
     }

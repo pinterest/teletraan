@@ -46,6 +46,7 @@ import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
 import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
+import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
@@ -135,6 +136,7 @@ public class ConfigHelper {
         context.setChatManager(configuration.getChatFactory().create());
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());
+        context.setBuildTagsManager(new BuildTagsManagerImpl(context.getTagDAO()));
 
         String defaultScmTypeName = configuration.getDefaultScmTypeName();
         List<SourceControlFactory> sourceControlConfigs = configuration.getSourceControlConfigs();
