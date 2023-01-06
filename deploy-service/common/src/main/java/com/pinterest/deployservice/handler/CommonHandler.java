@@ -164,23 +164,17 @@ public class CommonHandler {
         if (state == DeployState.SUCCEEDING) {
             // TODO this is Slack specific, screw hipchat for now
 
-            if (tagBean != null && tagBean.getValue() == TagValue.BAD_BUILD) {
-                return String.format("WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s>",
+            String template = (tagBean != null && tagBean.getValue() == TagValue.BAD_BUILD) ?
+                "WARNING: %s/%s: %s %s/%s completed successfully, but running on bad build. See details <%s>" :
+                "%s/%s: %s %s/%s completed successfully. See details <%s>";
+
+            return String.format(template,
                 envBean.getEnv_name(),
                 envBean.getStage_name(),
                 action,
                 buildBean.getScm_branch(),
                 buildBean.getScm_commit_7(),
                 webLink);
-            } else {
-                return String.format("%s/%s: %s %s/%s completed successfully. See details <%s>",
-                envBean.getEnv_name(),
-                envBean.getStage_name(),
-                action,
-                buildBean.getScm_branch(),
-                buildBean.getScm_commit_7(),
-                webLink);
-            }
         } else {
             // TODO this is Slack specific, screw hipchat for now
             String tagMessage = (tagBean == null) ? "NOT SET" : tagBean.getValue().toString();
