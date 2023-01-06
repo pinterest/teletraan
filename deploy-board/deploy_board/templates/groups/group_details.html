@@ -136,7 +136,22 @@
 </div>
 
 <!--- launch instances button dialog-->
-{% include "message_banner.tmpl" %}
+{% if messages %}
+    {% for message in messages %}
+        {% if message.level == 40 %}
+            <div class="alert alert-danger" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>Warning!</strong> {{ message | safe}}
+            </div>
+        {% else %}
+            <div class="alert alert-success" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>Launch Succeeded!</strong> {{ message | safe}}
+            </div>
+        {% endif %}
+
+    {% endfor %}
+{% endif %}
 
 <!---- Group Details Panel --->
 {% if not scaling_down_event_enabled and asg_status == "ENABLED" %}
