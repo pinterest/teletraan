@@ -47,7 +47,6 @@ public class CommonHandler {
     private EnvironDAO environDAO;
     private BuildDAO buildDAO;
     private AgentDAO agentDAO;
-    private TagDAO tagDAO;
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
     private ChatManager chatManager;
@@ -124,7 +123,6 @@ public class CommonHandler {
         buildDAO = serviceContext.getBuildDAO();
         agentDAO = serviceContext.getAgentDAO();
         utilDAO = serviceContext.getUtilDAO();
-        tagDAO = serviceContext.getTagDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
         sender = serviceContext.getEventSender();
         chatManager = serviceContext.getChatManager();
