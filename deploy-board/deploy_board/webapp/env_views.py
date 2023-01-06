@@ -342,7 +342,6 @@ class EnvLandingView(View):
                 project_name_is_default = True if existing_stage_identifier is not None and existing_stage_identifier['projectName'] == "default" else False
             except TeletraanException as detail:
                 log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-                messages.add_message(request, messages.ERROR, detail)
 
         project_info = None
         if existing_stage_identifier:
@@ -350,11 +349,7 @@ class EnvLandingView(View):
             if project_name:
                 project_info = {}
                 project_info['project_name'] = project_name
-            try:    
                 project_info['project_url'] = environs_helper.get_nimbus_project_console_url(project_name)
-            except TeletraanException as detail:
-                log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-                messages.add_message(request, messages.ERROR, detail)    
 
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
@@ -798,23 +793,9 @@ def post_create_env(request):
     clone_env_name = data.get("clone_env_name")
     clone_stage_name = data.get("clone_stage_name")
     description = data.get('description')
-    
     if clone_env_name and clone_stage_name:
-        try:
-            external_id = environs_helper.create_identifier_for_new_stage(request, env_name, stage_name)
-            common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
-                                        clone_stage_name, description, external_id)
-        except Exception as detail:
-            if external_id:
-                try:
-                    environs_helper.delete_nimbus_identifier(request, external_id)
-                except:
-                    message = 'Also failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
-                    log.error(message)
-            else:
-                message = 'Failed to create identifier for {}/{}: {}'.format(env_name, stage_name, detail)
-                messages.add_message(request, messages.ERROR, message)
-        raise detail
+        common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
+                                     clone_stage_name, description)
     else:
         data = {}
         data['envName'] = env_name
@@ -859,30 +840,16 @@ def post_add_stage(request, name):
     if from_stage and from_stage not in stages:
         raise Exception("Can not clone from non-existing stage!")
 
-    if from_stage:
-        try:
-            external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
+    external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
+
+    try:
+        if from_stage:
             common.clone_from_stage_name(request, name, stage, name, from_stage, description, external_id)
-        except Exception as detail:
-            if external_id:
-                try:
-                    environs_helper.delete_nimbus_identifier(request, external_id)
-                except:
-                    message = 'Also failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
-                    log.error(message)
-            else:
-                message = 'Failed to create identifier for {}/{}: {}'.format(name, stage, detail)
-                messages.add_message(request, messages.ERROR, message)
-            raise detail 
-    else:
-        external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
-        common.create_simple_stage(request,name, stage, description, external_id)
-        try:
-            environs_helper.delete_nimbus_identifier(request, external_id)
-        except Exception as detail:
-            message = 'Failed to delete Nimbus identifier {}, Error Message: {}'.format(external_id, detail)
-            log.error(message)
-            messages.add_message(request, messages.ERROR, message)
+        else:
+            common.create_simple_stage(request,name, stage, description, external_id)
+    except:
+        environs_helper.delete_nimbus_identifier(request, external_id)
+        raise
 
     return redirect('/env/' + name + '/' + stage + '/config/')
 
@@ -896,12 +863,7 @@ def remove_stage(request, name, stage):
             break
 
     if current_env_stage_with_external_id is not None and current_env_stage_with_external_id['externalId'] is not None:
-        try:
-            environs_helper.delete_nimbus_identifier(request, current_env_stage_with_external_id['externalId'])
-        except TeletraanException as detail:
-            message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(current_env_stage_with_external_id['externalId'], detail)
-            log.error(message)
-            messages.add_message(request, messages.ERROR, message)
+        environs_helper.delete_nimbus_identifier(request, current_env_stage_with_external_id['externalId'])
 
     environs_helper.delete_env(request, name, stage)
     envs = environs_helper.get_all_env_stages(request, name)
