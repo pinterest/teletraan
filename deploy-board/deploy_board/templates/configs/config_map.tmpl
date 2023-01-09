@@ -11,6 +11,7 @@
                         <textarea class="form-control" name="TELETRAAN_{{ key }}"
                         rows="1" style="resize: none;"
                         >{{ value|default_if_none:'' }}</textarea>
+                        <p class="lineTooLong" {% if value|length < 256 %}hidden{% endif %}>Value too long > 256, we sugguest breaking it into multiple key-value paris.</p>
                     </div>
                     <div class="col-xs-3">
                         <button type="button" class="delete_button btn btn-default">Delete</button>
@@ -107,9 +108,16 @@
         $('#mapConfigFormId,#newEntryFormId').on('input', 'textarea', function() {
             const currentVal = $(this).val();
             if (currentVal.match(/[\r\n\v]+/g)) {
-                $(this).val(currentVal.replace(/[\r\n\v]+/g, ''));
+                $(this).val(currentVal.replace(/[\r\n\v]+/g, ' '));
                 globalNotificationBanner.warning =
-                    "New line (\\r\\n) is not allowed in script configs and removed. Also note that line wraping is enabled.";
+                    "Multi-line (\\r\\n) is not allowed in script config and thus replaced by SPACE. Also note that line wraping is enabled.";
+            }
+
+            const lineTooLong = $(this).siblings(".lineTooLong");
+            if ($(this).val().length > 256) {
+                lineTooLong.show();
+            } else {
+                lineTooLong.hide();
             }
         });
 
@@ -130,7 +138,9 @@
                     '<div class="form-group">' +
                     '<label for="properties" class="control-label col-xs-3">' + name + '</label>' +
                     '<div class="col-xs-6"><textarea class="form-control" name="TELETRAAN_' +
-                    name + '" type="text" rows="1" style="resize: none;">' + value + '</textarea></div>' +
+                    name + '" type="text" rows="1" style="resize: none;">' + value + '</textarea>' +
+                    '<p class="lineTooLong" ' + (value.length > 256 ? '' : 'hidden') +
+                    '>Value too long > 256, we sugguest breaking it into multiple key-value paris.</p></div>' +
                     '<div class="col-xs-3 {{ flavor }}_remover">' +
                     '<button type="button" class="delete_button btn btn-default">Delete</button></div>' +
                     '</div>');
