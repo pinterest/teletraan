@@ -104,6 +104,15 @@
             $('#resetConfigMapBtnId').removeAttr('disabled');
         });
 
+        $('#mapConfigFormId,#newEntryFormId').on('input', 'textarea', function() {
+            const currentVal = $(this).val();
+            if (currentVal.match(/[\r\n\v]+/g)) {
+                $(this).val(currentVal.replace(/[\r\n\v]+/g, ''));
+                globalNotificationBanner.warning =
+                    "New line (\\r\\n) is not allowed in script configs and removed. Also note that line wraping is enabled.";
+            }
+        });
+
         $('#addConfigMapBtnId').click(function () {
             $('#newEntryModalId').modal()
             $('#saveConfigMapBtnId').removeAttr('disabled');
