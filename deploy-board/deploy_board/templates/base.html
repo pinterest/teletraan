@@ -113,6 +113,9 @@
         <div id="vuePageErrorBanner" style="display:none; text-align:center" class="alert alert-danger alert-dismissible" v-show="error" role="alert">{{error}}
             <button type="button" class="close" v-on:click="error=''" ><span aria-hidden="true">&times;</span></button>
         </div>
+        <div id="vuePageWarningBanner" style="display:none; text-align:center" class="alert alert-warning alert-dismissible" v-show="warning" role="alert">{{warning}}
+            <button type="button" class="close" v-on:click="warning=''" ><span aria-hidden="true">&times;</span></button>
+        </div>
     </div>
     <script type="text/javascript">
         globalNotificationBanner = new Vue({
@@ -120,6 +123,7 @@
             data:{
                 error:"",
                 info:"",
+                warning: "",
             }
         });
     </script>
