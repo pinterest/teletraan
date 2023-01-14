@@ -43,6 +43,12 @@ def get_all_with_acceptance(request, index, size):
                     'provider_name']] = img_info.get('acceptance') or 'UNKNOWN'
         img['acceptance'] = name_acceptance_map.get(img['provider_name'],
                                                     'N/A')
+
+        id = img['id']
+        base_image_info = get_golden_tag_by_id(request, id)
+        if base_image_info.get('tag'):
+            img['tag'] = base_image_info.get('tag')
+
     return base_images
 
 
@@ -72,6 +78,8 @@ def get_acceptance_by_name(request, name, cell_name):
     params = [('cellName', cell_name)]
     return rodimus_client.get("/base_images/acceptances/%s" % name, request.teletraan_user_id.token, params=params)
 
+def get_golden_tag_by_id(request, image_id):
+    return rodimus_client.get("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
 
 def get_by_provider_name(request, name):
     return rodimus_client.get("/base_images/provider_names/%s" % name, request.teletraan_user_id.token)

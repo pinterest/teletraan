@@ -10,10 +10,11 @@
             <th class="col-lg-2">Abstract Name</th>
             <th class="col-lg-2">Provider Name</th>
             <th class="col-lg-1">Cloud Provider</th>
-            <th class="col-lg-1">Qualified</th>
             <th class="col-lg-2">Publish Date</th>
             <th class="col-lg-2">Description</th>
             <th class="col-lg-2">Acceptance</th>
+            <th class="col-lg-2">Golden</th>
+            <th class="col-lg-2">Operation</th>
         </tr>
         {% for base_image in base_images %}
         <tr>
@@ -23,7 +24,6 @@
             <td> {{ base_image.abstract_name }} </td>
             <td> {{ base_image.provider_name }}  </td>
             <td> {{ base_image.provider }}  </td>
-            <td><span class="deployToolTip pointer-cursor {{ base_image.qualified | qualifiedIcon }}"></span></td>
             <td> {{ base_image.publish_date | convertTimestamp }} </td>
             <td> {{ base_image.description }} </td>
             {% if base_image.acceptance %}
@@ -31,7 +31,54 @@
             {% else %}
             <td> </td>
             {% endif %}
+            {% if base_image.tag %}
+            <td> YES </td>
+            {% else %}
+            <td> NO </td>
+            {% endif %}
+            {% if base_image.tag %}
+            <td> <button id="goldenDemoteBtnId" type="button">Demote</button> </td>
+            {% else %}
+            <td> <button id="goldenPromoteBtnId" type="button">Promote</button> </td>
+            {% endif %}
         </tr>
         {% endfor %}
     </table>
 </form>
+
+<script>
+    $("#goldenDemoteBtnId").click(function () {
+        btn = $(this)
+        $.ajax({
+            type: 'DELETE',
+            url: '/{{ base_image.id }}/golden',
+            beforeSend: function () {
+                $(btn).button('requesting');
+            },
+            success: function (data) {
+                $(btn).button('Promote');
+            },
+            error: function(xhr) { // if error occured
+                $(btn).button('Demote');
+                alert(xhr.statusText + xhr.responseText);
+            },
+        });
+    });
+    $("#goldenPromoteBtnId").click(function () {
+        btn = $(this)
+        $.ajax({
+            type: 'PUT',
+            url: '/{{ base_image.id }}/golden',
+            beforeSend: function () {
+                $(btn).button('requesting');
+            },
+            success: function (data) {
+                $(btn).button('Demote');
+            },
+            error: function(xhr) { // if error occured
+                $(btn).button('Promote');
+                alert(xhr.statusText + xhr.responseText);
+            },
+        });
+    });
+</script>
