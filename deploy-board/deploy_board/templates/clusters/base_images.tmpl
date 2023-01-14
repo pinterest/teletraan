@@ -56,7 +56,7 @@
                 $(btn).button('requesting');
             },
             success: function (data) {
-                $(btn).button('Promote');
+                window.location.href=window.location.href;
             },
             error: function(xhr) { // if error occured
                 $(btn).button('Demote');
@@ -73,7 +73,7 @@
                 $(btn).button('requesting');
             },
             success: function (data) {
-                $(btn).button('Demote');
+                window.location.href=window.location.href;
             },
             error: function(xhr) { // if error occured
                 $(btn).button('Promote');
