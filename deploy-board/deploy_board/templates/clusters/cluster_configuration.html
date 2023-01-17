@@ -976,7 +976,7 @@
                     clusterInfo['baseImageId'] = this.baseImageValue;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
-                    clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
+                    clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate != null ? this.useLaunchTemplate : false;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
                     clusterInfo['replacementTimeout'] = this.replacementTimeout;
                     clusterInfo['configs'] = this.allUserData.reduce(function(map, obj) {
