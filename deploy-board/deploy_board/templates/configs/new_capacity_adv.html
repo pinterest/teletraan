@@ -137,6 +137,7 @@ var capacitySetting = new Vue({
         currentProvider: info.defaultProvider,
         currentCell: info.defaultCell,
         currentArch: info.defaultArch,
+        useLaunchTemplate: info.useLaunchTemplate != null ? info.useLaunchTemplate : false,
         hostTypeHelpData:[],
         hostTypeOptions: info.hostTypes.map(
             function (item, idx) {
@@ -595,6 +596,7 @@ var capacitySetting = new Vue({
             clusterInfo['archName'] = this.currentArch;
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['baseImageId'] = this.baseImageValue;
+            clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             clusterInfo['replacementTimeout'] = this.replacementTimeout;

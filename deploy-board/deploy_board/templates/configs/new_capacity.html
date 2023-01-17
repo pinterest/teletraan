@@ -114,6 +114,7 @@ var capacitySetting = new Vue({
                 }
             }),
         baseImageValue: getDefaultBaseImage(),
+        useLaunchTemplate: capacityCreationInfo.useLaunchTemplate != null ? capacityCreationInfo.useLaunchTemplate : false,
         confirmDialogTitle:"Confirm New Capacity Creation",
         confirmDialogId:"createHostGroup",
         imageNameValue: 'cmp_base',
@@ -188,6 +189,7 @@ var capacitySetting = new Vue({
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['archName'] = capacityCreationInfo['defaultArch'];
             clusterInfo['baseImageId'] = this.baseImageValue;
+            clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             if (this.selectedPlacements != null){
