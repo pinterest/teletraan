@@ -137,7 +137,7 @@ var capacitySetting = new Vue({
         currentProvider: info.defaultProvider,
         currentCell: info.defaultCell,
         currentArch: info.defaultArch,
-        useLaunchTemplate: false,
+        useLaunchTemplate: info.useLaunchTemplate,
         hostTypeHelpData:[],
         hostTypeOptions: info.hostTypes.map(
             function (item, idx) {
