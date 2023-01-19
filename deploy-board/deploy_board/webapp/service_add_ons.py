@@ -172,7 +172,7 @@ class DashboardAddOn(ServiceAddOn):
                               tagHoverInfo=tagHoverInfo,
                               tagInfo=tagInfo,
                               state=state,
-                              promoText='New')
+                              promoText=None)
         self.dashboardStateReport = dashboardStateReport
         if dashboardStateReport is not None:
             self.state = dashboardStateReport.state
