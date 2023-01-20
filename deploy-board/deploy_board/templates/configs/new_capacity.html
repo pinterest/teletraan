@@ -65,7 +65,7 @@
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
-                <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole" 
+                <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole"
                     showhelp="true" v-on:helpclick="accessRoleHelpClick"></accessrole-input>
                 <accessrole-help v-show="showAccessRoleHelp" v-bind:data="accessRoleHelpText" v-bind:accessrolelist="accessRoleList"></accessrole-help>
             </form>
@@ -112,6 +112,7 @@ var capacitySetting = new Vue({
     el:"#capacityPanel",
     data:{
         assignPublicIP: false,
+        canAutoUpdateBaseImage: capacityCreationInfo.canAutoUpdateBaseImage,
         iamRole: "base",
         baseimages: capacityCreationInfo.baseImages.map(
             function (o) {
@@ -125,7 +126,7 @@ var capacitySetting = new Vue({
         baseImageValue: getDefaultBaseImage(),
         confirmDialogTitle:"Confirm New Capacity Creation",
         confirmDialogId:"createHostGroup",
-        imageNameValue: 'cmp_base',
+        imageNameValue: capacityCreationInfo.defaultBaseImage,
         imagenames: ['cmp_base'],
         instanceCount:"",
         hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){
@@ -220,6 +221,15 @@ var capacitySetting = new Vue({
                 clusterInfo.configs['assign_public_ip'] = false
             }
             clusterInfo.configs['access_role'] = this.accessRole;
+
+            if (this.canAutoUpdateBaseImage) {
+                clusterInfo['autoUpdateBaseImage'] = true;
+                clusterInfo['baseImageName'] = this.imageNameValue;
+            } else {
+                clusterInfo['autoUpdateBaseImage'] = false;
+                clusterInfo['baseImageId'] = this.baseImageValue;
+            }
+
             if (this.validateInput(clusterInfo)){
                 //Send request
                 this.sendRequest(clusterInfo);

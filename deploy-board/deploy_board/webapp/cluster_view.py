@@ -53,6 +53,9 @@ class EnvCapacityBasicCreateView(View):
             request, DEFAULT_PROVIDER, DEFAULT_CELL)
         default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         env = environs_helper.get_env_by_stage(request, name, stage)
+        golden_image = baseimages_helper.get_current_golden_image(
+            request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
+        can_auto_update_base_image = False if golden_image is None else True
 
         capacity_creation_info = {
             'environment': env,
@@ -60,6 +63,7 @@ class EnvCapacityBasicCreateView(View):
             'securityZones': security_zones,
             'placements': placements,
             'baseImages': default_base_image,
+            'canAutoUpdateBaseImage': can_auto_update_base_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultArch': DEFAULT_ARCH,
@@ -75,7 +79,7 @@ class EnvCapacityBasicCreateView(View):
         return render(request, 'configs/new_capacity.html', {
             'env': env,
             'default_cmp_image': DEFAULT_CMP_IMAGE,
-            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE,
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'capacity_creation_info': json.dumps(capacity_creation_info)})
@@ -262,7 +266,7 @@ class ClusterConfigurationView(View):
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
             'default_cmp_image': DEFAULT_CMP_IMAGE,
-            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE,
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
