@@ -419,9 +419,6 @@ Vue.component("hosttype-select", {
         helpClick: function () {
             this.$emit('helpclick')
         },
-        retiredChange: function (value) {
-            this.$emit('retiredclick', value)
-        },
     }
 });
 
