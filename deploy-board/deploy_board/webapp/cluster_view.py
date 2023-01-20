@@ -55,7 +55,6 @@ class EnvCapacityBasicCreateView(View):
         env = environs_helper.get_env_by_stage(request, name, stage)
         golden_image = baseimages_helper.get_current_golden_image(
             request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
-        can_auto_update_base_image = False if golden_image is None else True
 
         capacity_creation_info = {
             'environment': env,
@@ -63,7 +62,7 @@ class EnvCapacityBasicCreateView(View):
             'securityZones': security_zones,
             'placements': placements,
             'baseImages': default_base_image,
-            'canAutoUpdateBaseImage': can_auto_update_base_image,
+            'goldenImage': golden_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultArch': DEFAULT_ARCH,

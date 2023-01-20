@@ -61,7 +61,7 @@
                 </div>
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                 <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
-                    ></hosttype-select>               
+                    ></hosttype-select>
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
@@ -112,7 +112,6 @@ var capacitySetting = new Vue({
     el:"#capacityPanel",
     data:{
         assignPublicIP: false,
-        canAutoUpdateBaseImage: capacityCreationInfo.canAutoUpdateBaseImage,
         iamRole: "base",
         baseimages: capacityCreationInfo.baseImages.map(
             function (o) {
@@ -126,8 +125,7 @@ var capacitySetting = new Vue({
         baseImageValue: getDefaultBaseImage(),
         confirmDialogTitle:"Confirm New Capacity Creation",
         confirmDialogId:"createHostGroup",
-        imageNameValue: capacityCreationInfo.defaultBaseImage,
-        imagenames: ['cmp_base'],
+        goldenImage: capacityCreationInfo.goldenImage,
         instanceCount:"",
         hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){
             return {
@@ -198,7 +196,6 @@ var capacitySetting = new Vue({
             clusterInfo['provider'] = capacityCreationInfo['defaultProvider'];
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['archName'] = capacityCreationInfo['defaultArch'];
-            clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['useLaunchTemplate'] = capacityCreationInfo['defaultUseLaunchTemplate'];
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
@@ -222,9 +219,10 @@ var capacitySetting = new Vue({
             }
             clusterInfo.configs['access_role'] = this.accessRole;
 
-            if (this.canAutoUpdateBaseImage) {
+            if (this.goldenImage != null) {
                 clusterInfo['autoUpdateBaseImage'] = true;
-                clusterInfo['baseImageName'] = this.imageNameValue;
+                clusterInfo['baseImageName'] = this.goldenImage.abstract_name;
+                clusterInfo['baseImageId'] = this.goldenImage.id;
             } else {
                 clusterInfo['autoUpdateBaseImage'] = false;
                 clusterInfo['baseImageId'] = this.baseImageValue;
@@ -278,7 +276,7 @@ $(document).ready(function() {
     $('.single-select-search').chosen({
         "width": "100%"
     });
-    
+
     $(".chosen-select").chosen({
             width: "100%",
         })
