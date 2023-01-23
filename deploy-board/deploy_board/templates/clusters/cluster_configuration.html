@@ -777,6 +777,7 @@
                                         }
                                     });
                             capacitySetting.selectedHostTypeValue = data[0].id;
+                            // Delay for 50 ms to allow hostTypeOptions to fully update before triggering selected value update
                             setTimeout(function() {
                                 $(".single-select-search").trigger("chosen:updated");
                             }, 50);
