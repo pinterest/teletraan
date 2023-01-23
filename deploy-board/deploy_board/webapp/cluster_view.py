@@ -63,6 +63,7 @@ class EnvCapacityBasicCreateView(View):
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultArch': DEFAULT_ARCH,
+            'defaultUseLaunchTemplate': DEFAULT_USE_LAUNCH_TEMPLATE,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
@@ -157,6 +158,7 @@ class EnvCapacityAdvCreateView(View):
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultCell': DEFAULT_CELL,
             'defaultArch': DEFAULT_ARCH,
+            'defaultUseLaunchTemplate': DEFAULT_USE_LAUNCH_TEMPLATE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
