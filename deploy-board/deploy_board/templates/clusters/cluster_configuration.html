@@ -777,7 +777,8 @@
                                         }
                                     });
                             capacitySetting.selectedHostTypeValue = data[0].id;
-                            // Delay for 50 ms to allow hostTypeOptions to fully update before triggering selected value update
+                            //Schedule this to nextTick that calls after next DOM refresh
+                            //as JQuery chosen call must happen after DOM updates finished
                             Vue.nextTick(function(){
                                 $(".single-select-search").trigger("chosen:updated")
                             })
