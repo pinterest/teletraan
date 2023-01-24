@@ -31,9 +31,12 @@ def get_all(request, index, size):
 def get_all_with_acceptance(request, index, size):
     base_images = get_all(request, index, size)
     fetched_names = set()
+    fetched_names_cells = set()
+    golden = dict()
     name_acceptance_map = {}
     for img in base_images:
         name = img['abstract_name']
+        cell = img['cell_name']
         if name not in fetched_names and name.startswith('cmp_base'):
             fetched_names.add(name)
             base_image_infos = get_acceptance_by_name(request, name,
@@ -44,11 +47,14 @@ def get_all_with_acceptance(request, index, size):
         img['acceptance'] = name_acceptance_map.get(img['provider_name'],
                                                     'N/A')
 
-        id = img['id']
-        base_image_info = get_golden_tag_by_id(request, id)
-        if base_image_info.get('tag'):
-            img['tag'] = base_image_info.get('tag')
-
+        if name.startswith('cmp_base'):
+            if (name, cell) not in fetched_names_cells:
+                fetched_names_cells.add((name, cell))
+                base_image_info = get_golden_tag_by_name_and_cell(request, name, cell)
+                golden[(name, cell)] = base_image_info['id']
+            if img['id'] == golden[(name, cell)]:
+                img['tag'] = 'yes'
+        
     return base_images
 
 
@@ -78,8 +84,8 @@ def get_acceptance_by_name(request, name, cell_name):
     params = [('cellName', cell_name)]
     return rodimus_client.get("/base_images/acceptances/%s" % name, request.teletraan_user_id.token, params=params)
 
-def get_golden_tag_by_id(request, image_id):
-    return rodimus_client.get("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
+def get_golden_tag_by_name_and_cell(request, name, cell):
+    return rodimus_client.get("/base_images/names/%s/cell/%s/golden" % name, cell, request.teletraan_user_id.token)
 
 def get_by_provider_name(request, name):
     return rodimus_client.get("/base_images/provider_names/%s" % name, request.teletraan_user_id.token)
