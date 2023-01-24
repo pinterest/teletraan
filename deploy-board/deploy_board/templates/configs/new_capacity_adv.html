@@ -414,9 +414,11 @@ var capacitySetting = new Vue({
                                 }
                             });
                     capacitySetting.selectedHostTypeValue = data[0].id;
-                    setTimeout(function() {
-                        $(".single-select-search").trigger("chosen:updated");
-                    }, 50);
+                    //Schedule this to nextTick that calls after next DOM refresh
+                    //as JQuery chosen call must happen after DOM updates finished
+                    Vue.nextTick(function(){
+                        $(".single-select-search").trigger("chosen:updated")
+                    })
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
