@@ -15,9 +15,6 @@
 # -*- coding: utf-8 -*-
 
 from deploy_board.webapp.helpers.rodimus_client import RodimusClient
-import logging
-
-logger = logging.getLogger(__name__)
 
 rodimus_client = RodimusClient()
 
@@ -53,14 +50,12 @@ def get_all_with_acceptance(request, index, size):
         if name.startswith('cmp_base'):
             if (name, cell) not in fetched_names_cells:
                 fetched_names_cells.add((name, cell))
-                base_image_info = get_golden_tag_by_name_and_cell(request, name, cell)
+                base_image_info = get_current_golden_image(request, name, cell)
                 if base_image_info:
-                    logger.info(base_image_info)
                     golden[(name, cell)] = base_image_info['provider_name']
-                    if img['provider_name'] == golden[(name, cell)]:
-                        img['tag'] = 'current'
-                        
-        
+            if (name, cell) in golden and img['provider_name'] == golden[(name, cell)]:
+                img['tag'] = 'current'
+
     return base_images
 
 
@@ -90,7 +85,7 @@ def get_acceptance_by_name(request, name, cell_name):
     params = [('cellName', cell_name)]
     return rodimus_client.get("/base_images/acceptances/%s" % name, request.teletraan_user_id.token, params=params)
 
-def get_golden_tag_by_name_and_cell(request, name, cell):
+def get_current_golden_image(request, name, cell):
     return rodimus_client.get("/base_images/names/%s/cells/%s/golden" % (name, cell), request.teletraan_user_id.token)
 
 def get_by_provider_name(request, name):
