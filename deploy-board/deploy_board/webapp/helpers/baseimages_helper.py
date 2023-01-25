@@ -31,7 +31,6 @@ def get_all(request, index, size):
 def get_all_with_acceptance(request, index, size):
     base_images = get_all(request, index, size)
     fetched_names = set()
-    fetched_names_cells = set()
     golden = dict()
     name_acceptance_map = {}
     for img in base_images:
@@ -48,13 +47,12 @@ def get_all_with_acceptance(request, index, size):
                                                     'N/A')
 
         if name.startswith('cmp_base'):
-            if (name, cell) not in fetched_names_cells:
-                fetched_names_cells.add((name, cell))
-                base_image_info = get_current_golden_image(request, name, cell)
-                if base_image_info:
-                    golden[(name, cell)] = base_image_info['provider_name']
-            if (name, cell) in golden and img['provider_name'] == golden[(name, cell)]:
-                img['tag'] = 'current'
+            key = (name, cell) 
+            if key not in golden:
+                golden_image = get_current_golden_image(request, name, cell)
+                golden[key] = golden_image['provider_name'] if golden_image else None
+            if img['provider_name'] == golden[key]:
+                img['tag'] = 'current_golden'
 
     return base_images
 
