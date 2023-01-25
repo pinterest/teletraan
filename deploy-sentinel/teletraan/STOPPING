@@ -1,3 +1,5 @@
 #!/bin/bash
 
+sleep 10m
+
 echo Running STOPPING script.
