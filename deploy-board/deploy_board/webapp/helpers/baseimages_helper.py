@@ -26,7 +26,7 @@ def demote_image(request, image_id):
     return rodimus_client.delete("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
 
 def get_image_tag_by_id(request, image_id):
-    return rodimus_client.get("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
+    return rodimus_client.get("/base_images/%s/tags" % image_id, request.teletraan_user_id.token)
 
 def create_base_image(request, base_image_info):
     return rodimus_client.post("/base_images", request.teletraan_user_id.token, data=base_image_info)
