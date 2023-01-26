@@ -1,9 +1,7 @@
 // Utils for base image selection UI components
 
 function goldenImageFinder(image) {
-    if (image.golden) {
-        return image;
-    }
+    return image.golden;
 }
 
 function baseImageSorter(item1, item2) {
@@ -21,6 +19,7 @@ function mapBaseImagesToOptions(baseImagesSorted) {
         return {
             value: o.id,
             text: o.provider_name + suffix,
+            publishDate: o.publish_date,
         }
     });
 }

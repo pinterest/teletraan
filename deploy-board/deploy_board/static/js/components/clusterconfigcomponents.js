@@ -41,28 +41,65 @@ Vue.component('arch-select', {
 });
 
 Vue.component('baseimage-select', {
-    template: `<div class="form-group">
-        <label-select2 col-class="col-xs-3" show-help="true" label="Image Name" title="Abstract Name"
-            :options="imageNames" :selected="selectedImageName"
-            @input="$emit('image-name-change', $event)" @help-clicked="helpClick">
-        </label-select2>
-        <label-select2 col-class="col-xs-3" show-help="true" label="Image" title="Provider Name"
-            :disabled="!pinImage" :options="baseImages" :selected="selectedBaseImage"
-            @input="$emit('base-image-change', $event)" @help-clicked="helpClick">
-        </label-select2>
-        <div class="col-xs-2">
-            <base-checkbox :checked="pinImage" @input="$emit('input', $event)"></base-checkbox>
-            <label for='pinImageCB'>Pin Image</label>
+    template: `
+    <div>
+        <div class="form-group">
+            <label-select2 col-class="col-xs-3" show-help="true" label="Image Name" title="Abstract Name"
+                :options="imageNames" :selected="selectedImageName"
+                @input="$emit('image-name-change', $event)" @help-clicked="helpClick">
+            </label-select2>
+            <label-select2 col-class="col-xs-3" show-help="true" label="Image" title="Provider Name"
+                :disabled="!pinImage" :options="baseImages" :selected="selectedBaseImage"
+                @input="$emit('base-image-change', $event)" @help-clicked="helpClick">
+            </label-select2>
+            <div class="col-xs-2">
+                <base-checkbox :checked="pinImage" @input="pinImageClick"></base-checkbox>
+                <label for='pinImageCB'>Pin Image</label>
+            </div>
         </div>
-
+        <form-warning v-show="showWarning" :alert-text="warningText"></form-warning>
     </div>`,
     model: {
         prop: 'pinImage',
     },
+    data: function() {
+        return {
+            showWarning: false,
+            warningText: '',
+        }
+    },
     props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage'],
     methods: {
-        helpClick: function (value) {
+        helpClick: function () {
             this.$emit('help-clicked')
+        },
+        tryShowWarning: function (baseImageId, pinImage) {
+            if (!pinImage) {
+                this.showWarning = false;
+            } else {
+                const ONE_DAY = 1000 * 60 * 60 * 24;
+                let baseImage = this.baseImages.find(i => i.value == baseImageId);
+                let age = Math.round((Date.now() - new Date(baseImage.publishDate)) / ONE_DAY);
+                if (age > 180) {
+                    this.warningText = `The base image configured is over 180 days old (${age} days). Please consider update or opt-in Auto Update (Unpin image).`;
+                    this.showWarning = true;
+                } else {
+                    this.showWarning = false;
+                }
+            }
+        },
+        pinImageClick: function(pin) {
+            this.$emit('input', pin);
+            if (pin) {
+                this.tryShowWarning(this.selectedBaseImage, pin);
+            } else {
+                this.showWarning = false;
+            }
+        }
+    },
+    watch: {
+        selectedBaseImage: function(baseImageId) {
+            this.tryShowWarning(baseImageId, this.pinImage);
         }
     }
 });
