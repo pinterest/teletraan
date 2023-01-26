@@ -167,6 +167,8 @@ _TERMINATING_STATES = {"PENDING_TERMINATE", "TERMINATING", "PENDING_TERMINATE_NO
 # convert epoch (in milliseconds) to time
 @register.filter("convertTimestamp")
 def convertTimestamp(timestamp):
+    if not timestamp:
+        return "None"
     # return datetime.fromtimestamp(timestamp / 1000).strftime('%Y-%m-%d
     # %H:%M:%S')
     temp_time = datetime.fromtimestamp(
