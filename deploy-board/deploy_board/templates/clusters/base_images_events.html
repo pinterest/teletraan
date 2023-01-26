@@ -22,7 +22,7 @@
         </a>
     </div>
     <div class="row">
-    {% if goldens %}
+    {% if tags %}
     <button class="deployToolTip btn btn-default btn-block" id="demoteBtnId">   
     <span class="glyphicon glyphicon-circle-arrow-down"></span> Demote
     </button>
@@ -39,7 +39,7 @@
         btn = $(this)
         $.ajax({
             type: 'DELETE',
-            url: location.protocol + '//' + location.host + '/clouds/demote_image/' + image_id,
+            url: `${location.protocol}//${location.host}/clouds/demote_image/${image_id}`,
             dataType: "json",
             beforeSend: function (xhr, settings) {
                 var csrftoken = getCookie('csrftoken')
@@ -47,9 +47,10 @@
             },
             success: function (data) {
                 window.location.href=window.location.href;
+                globalNotificationBanner.info = "Request sent successfully";
             },
-            error: function(xhr) { // if error occured
-                alert(xhr.statusText + xhr.responseText);
+            error: function(data) { // if error occured
+                globalNotificationBanner.error = data;
             },
         });
     });
@@ -58,7 +59,7 @@
         btn = $(this)
         $.ajax({
             type: 'PUT',
-            url: location.protocol + '//' + location.host + '/clouds/promote_image/' + image_id,
+            url: `${location.protocol}//${location.host}/clouds/promote_image/${image_id}`,
             dataType: "json",
             beforeSend: function (xhr, settings) {
                 var csrftoken = getCookie('csrftoken')
@@ -66,9 +67,10 @@
             },
             success: function (data) {
                 window.location.href=window.location.href;
+                globalNotificationBanner.info = "Request sent successfully";
             },
-            error: function(xhr) { // if error occured
-                alert(xhr.statusText + xhr.responseText);
+            error: function(data) { // if error occured
+                globalNotificationBanner.error = data;
             },
         });
     });
