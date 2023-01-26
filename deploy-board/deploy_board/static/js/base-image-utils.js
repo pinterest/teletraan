@@ -1,4 +1,4 @@
-// utils for base image selection components
+// Utils for base image selection UI components
 
 function goldenImageFinder(image) {
     if (image.golden) {
@@ -32,4 +32,10 @@ function mapImageNameToOptions(imageNames) {
             text: o,
         };
     });
+}
+
+function ensureCurrentImageIsIncluded(baseImages, currentBaseImage) {
+    if (!baseImages.some(image => image.id === currentBaseImage.id)) {
+        baseImages.push(currentBaseImage);
+    }
 }
