@@ -53,8 +53,6 @@ class EnvCapacityBasicCreateView(View):
             request, DEFAULT_PROVIDER, DEFAULT_CELL)
         default_base_image = get_base_image_info_by_name(request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
         env = environs_helper.get_env_by_stage(request, name, stage)
-        golden_image = baseimages_helper.get_current_golden_image(
-            request, DEFAULT_CMP_IMAGE, DEFAULT_CELL)
 
         capacity_creation_info = {
             'environment': env,
@@ -62,7 +60,6 @@ class EnvCapacityBasicCreateView(View):
             'securityZones': security_zones,
             'placements': placements,
             'baseImages': default_base_image,
-            'goldenImage': golden_image,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultArch': DEFAULT_ARCH,
@@ -463,6 +460,10 @@ def get_base_image_info_by_name(request, name, cell):
     if name.startswith('cmp_base'):
         base_images = baseimages_helper.get_acceptance_by_name(request, name, cell)
         with_acceptance_rs = []
+        golden_image = baseimages_helper.get_current_golden_image(request, name, cell)
+        if golden_image:
+            golden_image['golden'] = True
+            with_acceptance_rs.append(golden_image)
         if base_images:
             for image in base_images:
                 r = image.get('baseImage')

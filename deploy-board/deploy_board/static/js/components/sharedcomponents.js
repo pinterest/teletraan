@@ -187,6 +187,63 @@ Vue.component('label-select', {
 
 
 /**
+ * An improved version for label-select
+ */
+Vue.component('label-select2', {
+  template:
+  `<div>
+    <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" :title="title">{{label}}</label>
+    <div :class="colClass">
+      <div :class="groupStyle">
+        <select class="form-control" required="true"
+            :value="selected" @change="$emit('input', $event.target.value)"
+            :disabled="disabled">
+          <option v-for="option in options" :value="option.value" selected="option.value == selected">{{option.text}}</option>
+        </select>
+        <span v-if="showHelp" class="input-group-btn">
+          <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" title="click to see more information" @click="helpClick">
+            <span class="glyphicon glyphicon-question-sign"></span>
+          </button>
+        </span>
+      </div>
+    </div>
+  </div>`,
+  props: ['label', 'title', 'showHelp', 'colClass', 'disabled', 'options', 'selected'],
+  data: function () {
+    return {
+      groupStyle: this.showHelp ? 'input-group' : ''
+    }
+  },
+  methods: {
+    helpClick: function () {
+      this.$emit('help-clicked')
+    }
+  }
+});
+
+
+/**
+ * A basic checkbox that allows to bind with boolean v-model
+ */
+Vue.component('base-checkbox', {
+    model: {
+      prop: 'checked',
+      event: 'change'
+    },
+    props: {
+      checked: Boolean
+    },
+    template: `
+      <input
+        type="checkbox"
+        v-bind:checked="checked"
+        v-on:change="$emit('input', $event.target.checked)"
+      >
+    `
+  })
+
+
+/**
  * A modal dialog box. The input event contains a the parameter where true means the user confirms
  */
 Vue.component('modal', {
@@ -256,9 +313,9 @@ Vue.component("panel-heading", {
  */
 Vue.component("help-table", {
   template:'<div class="form-group"><div class="col-xs-2"></div><div class="col-xs-10"><table class="table table-condensed table-striped table-hover">\
-    <tbody><tr><th v-for="header in headers" v-bind:class="header.headerClass"><p><i>{{header.name}}</p></i></th></tr>\
+    <tbody><tr><th v-for="header in headers" v-bind:class="header.headerClass"><p><i>{{header.name}}</i></p></th></tr>\
     <tr v-for="row in data">\
-      <td v-for="key in keys"><p><i>{{ row[key] }}</p></i></td>\
+      <td v-for="key in keys"><p><i>{{ row[key] }}</i></p></td>\
     </tr></tbody></table></div></div>',
   props: ['headers', 'data', 'keys']
 })

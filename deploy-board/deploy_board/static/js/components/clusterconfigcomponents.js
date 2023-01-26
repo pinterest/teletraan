@@ -42,25 +42,28 @@ Vue.component('arch-select', {
     }
 });
 
-
-
 Vue.component('baseimage-select', {
-    template: '<div class="form-group">\
-<label-select small="true" showhelp="true" label="Image Name" title="Image Name" v-bind:value="imagenamevalue" v-bind:selectoptions="imagenames"  \
- v-bind:selected="imagenamevalue" v-on:input="updateImageName" v-show="inadvanced" v-on:helpclick="helpClick"> </label-select>\
-<label-select small="true"  showhelp="true" label="Image" title="Base Image" v-bind:value="baseimagevalue"\
-    v-bind:selectoptions="baseimages" v-on:input="updateBaseImage" v-bind:selected="baseimagevalue" v-on:helpclick="helpClick"></label-select>\
-</div>',
-    props: ['imagenames', 'baseimages', 'imagenamevalue', 'baseimagevalue', 'inadvanced'],
+    template: `<div class="form-group">
+        <label-select2 col-class="col-xs-3" show-help="true" label="Image Name" title="Abstract Name"
+            :options="imageNames" :selected="selectedImageName"
+            @input="$emit('image-name-change', $event)" @help-clicked="helpClick">
+        </label-select2>
+        <label-select2 col-class="col-xs-3" show-help="true" label="Image" title="Provider Name"
+            :disabled="!pinImage" :options="baseImages" :selected="selectedBaseImage"
+            @input="$emit('base-image-change', $event)" @help-clicked="helpClick">
+        </label-select2>
+        <div class="col-xs-2">
+            <base-checkbox :checked="pinImage" @input="$emit('input', $event)"></base-checkbox>
+            <label for='pinImageCB'>Pin Image</label>
+        </div>
+    </div>`,
+    model: {
+        prop: 'pinImage',
+    },
+    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'inadvanced', 'pinImage'],
     methods: {
-        updateBaseImage: function (value) {
-            this.$emit('baseimagechange', value)
-        },
-        updateImageName: function (value) {
-            this.$emit('imagenamechange', value)
-        },
         helpClick: function (value) {
-            this.$emit('helpclick')
+            this.$emit('help-clicked')
         }
     }
 });
@@ -72,7 +75,7 @@ Vue.component('base-image-help', {
         return {
             baseImageHelpHeaders: [{ name: 'Publish Date', headerClass: 'col-sm-2' },
             { name: 'Name', headerClass: 'col-sm-1' },
-            { name: 'Id', headerClass: 'col-sm-1' },
+            { name: 'Image', headerClass: 'col-sm-1' },
             { name: 'Qualified', headerClass: 'col-sm-1' },
             { name: 'Description', headerClass: 'col-sm-4' },
             { name: 'Acceptance', headerClass: 'col-sm-4' }],
@@ -433,7 +436,6 @@ Vue.component('remaining-capacity', {
     computed: {
         marginStyle:function() {
             return this.inadvanced ? 'margin-top:-15px;' : 'margin-top:-30px;'
-            
         }
     }
 });

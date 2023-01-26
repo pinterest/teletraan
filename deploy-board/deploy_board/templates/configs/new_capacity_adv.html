@@ -35,7 +35,7 @@
 {% block main%}
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2017.07.05.180000"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2022.12.21.150000"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.01.17.153000"></script>
 
 <div id="mainPanel" class="panel panel-default">
 
@@ -48,8 +48,10 @@
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="archValue"></arch-select>
-                    <baseimage-select v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
-                        v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" inadvanced="true" v-on:helpclick="baseImageHelpClick">
+                    <baseimage-select v-model="pinImage" inadvanced="true"
+                        :image-names="imagenames" :base-images="baseImages"
+                        :selected-image-name="imageNameValue" :selected-base-image="baseImageValue"
+                        @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
                     <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
@@ -100,13 +102,26 @@ var capacityView = new Vue({
 
 var info = {{capacity_creation_info|safe}}
 var environment = info.environment;
-var accepted = info.baseImages.filter(function (e) {
-        return e.acceptance == 'ACCEPTED';
-    });
-var sorted = accepted.sort(function(item1,item2){
-        return item2.publish_date - item1.publish_date;
+
+var sorted = info.baseImages.sort(function(item1,item2) {
+    return item2.publish_date - item1.publish_date;
 });
+var accepted = sorted.filter(function (e) {
+    return e.acceptance == 'ACCEPTED';
+});
+
 var placements = getDefaultPlacement(info);
+
+function goldenImageFinder(image) {
+    if (image.golden) {
+        return image;
+    }
+}
+
+let goldenImage = info.baseImages.find(goldenImageFinder);
+let pinImage = goldenImage == null;
+let defaultImageId = goldenImage ? goldenImage.id : accepted[0].id;
+
 var capacitySetting = new Vue({
     el: "#mainPanel",
     data: {
@@ -122,16 +137,17 @@ var capacitySetting = new Vue({
             }).filter(function(item){return item.name!='cmp_group'}),
         assignPublicIP: false,
         baseImageHelpData: [],
-        baseimages: info.baseImages.map(
+        baseImages: sorted.map(
             function (o) {
                 var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
                 return {
                     value: o.id,
                     text: o.provider_name + acceptance,
-                    isSelected: o.id === sorted[0].id
+                    isSelected: o.id == defaultImageId
                 }
             }),
-        baseImageValue: sorted[0].id,
+        baseImageValue: defaultImageId,
+        pinImage: pinImage,
         configOptions: Object.keys(info.configList).map(
             function (key) {
                 return {
@@ -439,9 +455,12 @@ var capacitySetting = new Vue({
 
                 },
                 success: function (data) {
-                    sorted = data.sort(function (item1, item2) { return item2.publish_date - item1.publish_date; })
-                    capacitySetting.baseimages = sorted.map(function (o) { return { value: o.id, text: o.provider_name } })
-                    capacitySetting.baseImageValue = sorted[0].id
+                    sorted = data.sort(function (item1, item2) { return item2.publish_date - item1.publish_date; });
+                    let goldenImage = data.find(goldenImageFinder);
+                    let defaultImageId = goldenImage ? goldenImage.id : sorted[0].id;
+                    capacitySetting.baseImages = sorted.map(function (o) { return { value: o.id, text: o.provider_name, isSelected: o.id == defaultImageId } });
+                    capacitySetting.baseImageValue = defaultImageId;
+                    capacitySetting.pinImage = !goldenImage;
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data
@@ -464,28 +483,8 @@ var capacitySetting = new Vue({
                             text: o,
                             isSelected: o === value
                         }
-                    }),
-                    scope.imageNameChange(value);
-
-                //Grab all images for this image name
-                $.ajax({
-                    type: 'GET',
-                    url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?cell=' + cell,
-                    dataType: "json",
-                    beforeSend: function (xhr, settings) {
-                        var csrftoken = getCookie('csrftoken')
-                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
-
-                    },
-                    success: function (data) {
-                        sorted = data.sort(function (item1, item2) { return item2.publish_date - item1.publish_date; })
-                        capacitySetting.baseimages = sorted.map(function (o) { return { value: o.id, text: o.provider_name } })
-                        capacitySetting.baseImageValue = sorted[0].id
-                    },
-                    error: function (data) {
-                        globalNotificationBanner.error = data
-                    }
-                });
+                    });
+                scope.imageNameChange(value);
             }
         },
         placementsHelpClick: function(){
@@ -609,7 +608,6 @@ var capacitySetting = new Vue({
             clusterInfo['cellName'] = this.currentCell;
             clusterInfo['archName'] = this.currentArch;
             clusterInfo['capacity'] = Number(this.instanceCount);
-            clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['useLaunchTemplate'] =  info.defaultUseLaunchTemplate;
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
@@ -635,6 +633,15 @@ var capacitySetting = new Vue({
             else {
                 clusterInfo.configs['assign_public_ip'] = false
             }
+
+            if (!this.pinImage) {
+                clusterInfo['autoUpdateBaseImage'] = true;
+                clusterInfo['baseImageName'] = this.imageNameValue;
+            } else {
+                clusterInfo['autoUpdateBaseImage'] = false;
+                clusterInfo['baseImageId'] = this.baseImageValue;
+            }
+
             let accessRoleObj = this.allUserData.find(({name}) => name === "access_role");
             clusterInfo.configs['access_role'] = accessRoleObj.value;
             if (this.validateInput(clusterInfo)) {
@@ -668,7 +675,7 @@ $(document).ready(function () {
     $('.single-select-search').chosen({
         "width": "100%"
     });
-    
+
     $(".chosen-select").chosen({ "width": "100%" })
         .change(function () {
             capacitySetting.selectedPlacements = $('.chosen-select').val()
