@@ -925,7 +925,6 @@
                     clusterInfo['provider'] = this.currentProvider;
                     clusterInfo['cellName'] = this.currentCell;
                     clusterInfo['archName'] = this.currentArch;
-                    clusterInfo['baseImageId'] = this.baseImageValue;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
                     clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
@@ -947,6 +946,14 @@
                     }
                     if (!this.inAdvanced){
                         clusterInfo.configs['aws_role'] = this.awsRole
+                    }
+
+                    if (!this.pinImage) {
+                        clusterInfo['autoUpdateBaseImage'] = true;
+                        clusterInfo['baseImageName'] = this.imageNameValue;
+                    } else {
+                        clusterInfo['autoUpdateBaseImage'] = false;
+                        clusterInfo['baseImageId'] = this.baseImageValue;
                     }
 
                     if (this.imageNameValue.startsWith('cmp_base')){
@@ -983,7 +990,6 @@
                 },
                 selectedPlacements: function() {
                     this.remainingCapacity = getRemainingCapacity(info.placements, this.selectedPlacements);
-
                 }
             }
         });

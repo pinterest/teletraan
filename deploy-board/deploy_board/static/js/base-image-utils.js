@@ -17,10 +17,10 @@ function getDefaultBaseImageId(baseImagesSorted) {
 
 function mapBaseImagesToOptions(baseImagesSorted) {
     return baseImagesSorted.map(o => {
-        var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
+        let suffix = (o.acceptance ? `[${o.acceptance}]` : '') + `${o.golden ? '[GOLDEN]' : ''}`;
         return {
             value: o.id,
-            text: o.provider_name + acceptance,
+            text: o.provider_name + suffix,
         }
     });
 }

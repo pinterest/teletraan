@@ -461,14 +461,13 @@ def get_base_image_info_by_name(request, name, cell):
         base_images = baseimages_helper.get_acceptance_by_name(request, name, cell)
         with_acceptance_rs = []
         golden_image = baseimages_helper.get_current_golden_image(request, name, cell)
-        if golden_image:
-            golden_image['golden'] = True
-            with_acceptance_rs.append(golden_image)
         if base_images:
             for image in base_images:
                 r = image.get('baseImage')
                 if r:
                     r['acceptance'] = image.get('acceptance', 'UNKNOWN')
+                    if golden_image and golden_image['id'] == r['id']:
+                        r['golden'] = True
                     with_acceptance_rs.append(r)
         return with_acceptance_rs
     return baseimages_helper.get_by_name(request, name, cell)
