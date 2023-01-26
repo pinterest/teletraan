@@ -17,7 +17,11 @@
         </tr>
         {% for base_image in base_images %}
         <tr>
-            <td> {{ base_image.id }} </td>
+            <td> 
+            <a id="listGroupsBtnId" href="/clouds/baseimages/events/{{base_image.id}}" title="Click to see image update events">
+            {{ base_image.id }} 
+            </a>
+            </td>
             {% if base_image.tag %}
             <td> <span class="glyphicon glyphicon-ok"></span>Current Golden</td>
             {% else %}

@@ -1,0 +1,95 @@
+{% extends 'environs/env_base.html' %}
+{% load utils %}
+{% load static %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/">Clouds</a></li>
+    <li><a href="/clouds/baseimages/">Base Images</a></li>
+    <li><a href="#">Base Images Events</a></li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Base Images Events</h4>
+    </div>
+    <div class="row">
+        <a id="listGroupsBtnId" href="/clouds/baseimages/" class="deployToolTip btn btn-default btn-block">
+            <span class="glyphicon glyphicon-wrench"></span> Back to Base Images List
+        </a>
+    </div>
+    <div class="row">
+    {% if goldens %}
+    <button class="deployToolTip btn btn-default btn-block" id="demoteBtnId">   
+    <span class="glyphicon glyphicon-circle-arrow-down"></span> Demote
+    </button>
+    {% else %}
+    <button class="deployToolTip btn btn-default btn-block" id="promoteBtnId">
+    <span class="glyphicon glyphicon-circle-arrow-up"></span> Promote
+    </button>
+    {% endif %}
+    </div>
+</div>
+<script>
+    $("#demoteBtnId").click(function () {
+        var image_id = '{{ image_id }}/';
+        btn = $(this)
+        $.ajax({
+            type: 'DELETE',
+            url: location.protocol + '//' + location.host + '/clouds/demote_image/' + image_id,
+            dataType: "json",
+            beforeSend: function (xhr, settings) {
+                var csrftoken = getCookie('csrftoken')
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            },
+            success: function (data) {
+                window.location.href=window.location.href;
+            },
+            error: function(xhr) { // if error occured
+                alert(xhr.statusText + xhr.responseText);
+            },
+        });
+    });
+    $("#promoteBtnId").click(function (image_id) {
+        var image_id = '{{ image_id }}/';
+        btn = $(this)
+        $.ajax({
+            type: 'PUT',
+            url: location.protocol + '//' + location.host + '/clouds/promote_image/' + image_id,
+            dataType: "json",
+            beforeSend: function (xhr, settings) {
+                var csrftoken = getCookie('csrftoken')
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            },
+            success: function (data) {
+                window.location.href=window.location.href;
+            },
+            error: function(xhr) { // if error occured
+                alert(xhr.statusText + xhr.responseText);
+            },
+        });
+    });
+</script>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Base Images Events</h4>
+    </div>
+    <div class="panel-body table-responsive">
+        {% include "clusters/base_images_events.tmpl" %}
+    </div>
+</div>
+
+{% endblock %}
+

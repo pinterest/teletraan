@@ -19,9 +19,17 @@ from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 rodimus_client = RodimusClient()
 
 
+def promote_image(request, image_id):
+    return rodimus_client.put("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
+
+def demote_image(request, image_id):
+    return rodimus_client.delete("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
+
+def get_image_tag_by_id(request, image_id):
+    return rodimus_client.get("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
+
 def create_base_image(request, base_image_info):
     return rodimus_client.post("/base_images", request.teletraan_user_id.token, data=base_image_info)
-
 
 def get_all(request, index, size):
     params = [('pageIndex', index), ('pageSize', size)]
@@ -96,3 +104,25 @@ def get_by_id(request, image_id):
 
 def get_all_providers(request):
     return rodimus_client.get("/base_images/provider", request.teletraan_user_id.token)
+
+def get_image_events_by_newId_with_result(request, image_id):
+    events = get_image_events_by_newId(request, image_id)
+
+    for event in events:
+        if event['state'] =='INIT':
+            if event['start_time']:
+                event['result'] = 'UPDATING'
+            else:
+                event['result'] = 'INIT'
+        elif event['state']== 'COMPLETED':
+            if event['error_message']:
+                event['result'] = 'FAILED'
+            else:
+                event['result'] = 'SUCCEEDED'
+        else:
+            event['result'] = event['state']
+    
+    return events
+
+def get_image_events_by_newId(request, image_id):
+    return rodimus_client.get("/base_images/updates/%s" % image_id, request.teletraan_user_id.token)
