@@ -27,7 +27,8 @@
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2016.12.19.150000"></script>
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2017.07.05.180000"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2022.12.21.150000"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2022.12.06.150000"></script>
+<script type="text/javascript" src="{% static "js/base-image-utils.js"%}"></script>
 
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
@@ -466,7 +467,7 @@
                 assignPublicIP: initialAssignPublicIP,
                 awsRole: currentCluster.configs.aws_role,
                 useLaunchTemplate: currentCluster.useLaunchTemplate != null ? currentCluster.useLaunchTemplate : false,
-                baseImages: mapBaseImagesToOptions(baseImageSorted)
+                baseImages: mapBaseImagesToOptions(baseImageSorted),
                 baseImageValue: currentCluster.baseImageId,
                 pinImage: !currentCluster.autoUpdateBaseImage,
                 confirmDialogTitle: "Update Cluster Settings",
@@ -776,7 +777,14 @@
                         success: function(baseImages) {
                             let baseImageSorted = baseImages.sort(baseImageSorter);
                             let goldenImage = baseImages.find(goldenImageFinder);
-                            let defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImageSorted);
+
+                            var defaultImageId;
+                            if (currentCluster.baseImageName == value && currentCluster.cellName == cell) {
+                                defaultImageId = currentCluster.baseImageId;
+                            } else{
+                                defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImageSorted);
+                            }
+
                             capacitySetting.baseImages = mapBaseImagesToOptions(baseImageSorted);
                             capacitySetting.baseImageValue = defaultImageId;
                             capacitySetting.pinImage = !goldenImage;

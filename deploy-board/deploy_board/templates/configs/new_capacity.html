@@ -106,7 +106,7 @@ var capacitySetting = new Vue({
     data:{
         assignPublicIP: false,
         iamRole: "base",
-        baseImageValue: getDefaultBaseImageId(capacityCreationInfo.baseImages),
+        baseImageValue: getDefaultBaseImageId(capacityCreationInfo.baseImages.sort(baseImageSorter)),
         confirmDialogTitle:"Confirm New Capacity Creation",
         confirmDialogId:"createHostGroup",
         instanceCount:"",

@@ -13,7 +13,7 @@ Vue.component('cloudprovider-select', {
 Vue.component('cell-select', {
     template: '<div>\
   <label-select label="Cell" title="Cell" \
-  v-bind:value="value" v-bind:selectoptions="cells" v-on:input="updateCellValue" v-on:input="updateValue(value)"></label-select></div>',
+  v-bind:value="value" v-bind:selectoptions="cells" v-on:input="updateCellValue"></label-select></div>',
     props: ['cells', 'value'],
     methods: {
         updateValue: function (value) {
@@ -21,7 +21,6 @@ Vue.component('cell-select', {
         },
         updateCellValue: function(value) {
             this.$emit('cellchange', value);
-            this.$emit('imagenamechange', value)
         }
     }
 });
@@ -29,7 +28,7 @@ Vue.component('cell-select', {
 Vue.component('arch-select', {
     template: '<div>\
   <label-select label="Arch" title="Arch" \
-  v-bind:value="value" v-bind:selectoptions="arches" v-on:input="updateArchValue" v-on:input="updateValue(value)"></label-select></div>',
+  v-bind:value="value" v-bind:selectoptions="arches" v-on:input="updateArchValue"></label-select></div>',
     props: ['arches', 'value'],
     methods: {
         updateValue: function (value) {
@@ -37,7 +36,6 @@ Vue.component('arch-select', {
         },
         updateArchValue: function(value) {
             this.$emit('archchange', value);
-            this.$emit('imagenamechange', value)
         }
     }
 });
@@ -56,6 +54,7 @@ Vue.component('baseimage-select', {
             <base-checkbox :checked="pinImage" @input="$emit('input', $event)"></base-checkbox>
             <label for='pinImageCB'>Pin Image</label>
         </div>
+
     </div>`,
     model: {
         prop: 'pinImage',
