@@ -60,7 +60,7 @@ Vue.component('baseimage-select', {
     model: {
         prop: 'pinImage',
     },
-    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'inadvanced', 'pinImage'],
+    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage'],
     methods: {
         helpClick: function (value) {
             this.$emit('help-clicked')

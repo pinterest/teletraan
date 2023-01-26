@@ -198,7 +198,7 @@ Vue.component('label-select2', {
         <select class="form-control" required="true"
             :value="selected" @change="$emit('input', $event.target.value)"
             :disabled="disabled">
-          <option v-for="option in options" :value="option.value" selected="option.value == selected">{{option.text}}</option>
+          <option v-for="option in options" :value="option.value" :selected="option.value == selected">{{option.text}}</option>
         </select>
         <span v-if="showHelp" class="input-group-btn">
           <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" title="click to see more information" @click="helpClick">

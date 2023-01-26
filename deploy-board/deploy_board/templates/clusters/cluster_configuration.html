@@ -61,8 +61,9 @@
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="currentArch"></arch-select>
-                    <baseimage-select v-show="inAdvanced" v-bind:imagenames="imagenames" v-bind:baseimages="baseimages" v-bind:imagenamevalue="imageNameValue" v-bind:baseImageValue="baseImageValue"
-                    v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
+                    <baseimage-select v-model="pinImage" :image-names="imageNames" :base-images="baseImages"
+                        :selected-image-name="imageNameValue" :selected-base-image="baseImageValue"
+                        @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
                     <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
@@ -437,20 +438,14 @@
         });
         const initialAssignPublicIP = currentCluster.configs.assign_public_ip === "true" ;
         const initialCell = currentCluster.cellName;
-        var baseImageAccepted = info.baseImages.filter(function (o) {
-            return o.acceptance == 'ACCEPTED';
-        });
+        var baseImageSorted = info.baseImages.sort(baseImageSorter);
 
         if (currentCluster.baseImage != null) {
             // Make sure in the base image dropdown the current base image exists.
-            if (!baseImageAccepted.some(image => image.id === currentCluster.baseImage.id)) {
-                baseImageAccepted.push(currentCluster.baseImage);
+            if (!baseImageSorted.some(image => image.id === currentCluster.baseImage.id)) {
+                baseImageSorted.push(currentCluster.baseImage);
             }
         }
-
-        var baseImageSorted = baseImageAccepted.sort(function(item1, item2) {
-            return item2.publish_date - item1.publish_date;
-        });
 
         var readonlyValues = info.readonlyFields.reduce((obj, field) => {
             obj[field] = field in currentCluster.configs ? currentCluster.configs[field] : null
@@ -470,16 +465,10 @@
                         }).filter(function(item){return item.name!='assign_public_ip'}),
                 assignPublicIP: initialAssignPublicIP,
                 awsRole: currentCluster.configs.aws_role,
-                baseimages: baseImageSorted.map(function(o) {
-                    var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
-                    return {
-                        value: o.id,
-                        text: o.provider_name + acceptance,
-                        isSelected: o.id === currentCluster.baseImageId
-                    }
-                }),
                 useLaunchTemplate: currentCluster.useLaunchTemplate != null ? currentCluster.useLaunchTemplate : false,
+                baseImages: mapBaseImagesToOptions(baseImageSorted)
                 baseImageValue: currentCluster.baseImageId,
+                pinImage: !currentCluster.autoUpdateBaseImage,
                 confirmDialogTitle: "Update Cluster Settings",
                 confirmDialogId: "updateClusterSettings",
                 currentProvider: currentCluster.provider,
@@ -494,13 +483,7 @@
                     }
                 }),
                 imageNameValue: currentCluster.baseImageName,
-                imagenames: info.baseImageNames.map(function(o) {
-                    return {
-                        value: o,
-                        text: o,
-                        isSelected: o === currentCluster.baseImageName
-                    }
-                }),
+                imageNames: mapImageNameToOptions(info.baseImageNames),
                 inAdvanced: false,
                 initialCell: this.currentCell,
                 placements: this.inAdvanced ?
@@ -666,13 +649,7 @@
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         },
                         success: function (data) {
-                            capacitySetting.imagenames = data.map(
-                                    function (o) {
-                                        return {
-                                            value: o,
-                                            text: o, isSelected: o === data[0]
-                                        }
-                                    });
+                            capacitySetting.imageNames = mapImageNameToOptions(data);
                             capacitySetting.imageNameValue = data[0];
                             scope.imageNameChange(data[0]);
                         },
@@ -743,13 +720,7 @@
                         },
                         success: function (data) {
                             let imageName = data[0];
-                            capacitySetting.imagenames = data.map(
-                                    function (o) {
-                                        return {
-                                            value: o,
-                                            text: o, isSelected: o === imageName
-                                        }
-                                    });
+                            capacitySetting.imageNames = mapImageNameToOptions(data);
                             info.baseImageNames = data;
                             capacitySetting.imageNameValue = imageName;
                             scope.imageNameChange(imageName);
@@ -802,18 +773,13 @@
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
 
                         },
-                        success: function(data) {
-                            sorted = data.sort(function(item1, item2) {
-                                return item2.publish_date - item1.publish_date;
-                            })
-                            capacitySetting.baseimages = sorted.map(function(o) {
-                                var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
-                                return {
-                                    value: o.id,
-                                    text: o.provider_name + acceptance
-                                }
-                            })
-                            capacitySetting.baseImageValue = sorted[0].id
+                        success: function(baseImages) {
+                            let baseImageSorted = baseImages.sort(baseImageSorter);
+                            let goldenImage = baseImages.find(goldenImageFinder);
+                            let defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImageSorted);
+                            capacitySetting.baseImages = mapBaseImagesToOptions(baseImageSorted);
+                            capacitySetting.baseImageValue = defaultImageId;
+                            capacitySetting.pinImage = !goldenImage;
                         },
                         error: function(data) {
                             globalNotificationBanner.error = data
@@ -828,35 +794,8 @@
                     const selectedHostTypeObject = capacityCreationInfo.hostTypes.find(hostType => hostType.id === this.selectedHostTypeValue);
                     if (selectedHostTypeObject.abstract_name.startsWith('EbsCompute')) {
                         capacitySetting.imageNameValue = value;
-                        capacitySetting.imagenames = info.baseImageNames.map(
-                            function (o) {
-                                return {
-                                    value: o,
-                                    text: o,
-                                    isSelected: o === value
-                                }
-                            }),
-                            scope.imageNameChange(value);
-
-                        //Grab all images for this image name
-                        $.ajax({
-                            type: 'GET',
-                            url: location.protocol + '//' + location.host + '/clouds/get_base_images/' + value + '?cell=' + cell,
-                            dataType: "json",
-                            beforeSend: function (xhr, settings) {
-                                var csrftoken = getCookie('csrftoken')
-                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-
-                            },
-                            success: function (data) {
-                                sorted = data.sort(function (item1, item2) { return item2.publish_date - item1.publish_date; })
-                                capacitySetting.baseimages = sorted.map(function (o) { return { value: o.id, text: o.provider_name } })
-                                capacitySetting.baseImageValue = sorted[0].id
-                            },
-                            error: function (data) {
-                                globalNotificationBanner.error = data
-                            }
-                        });
+                        capacitySetting.imageNames = mapImageNameToOptions(info.baseImageNames);
+                        scope.imageNameChange(value);
                     }
                 },
                 placementsHelpClick: function(){
@@ -1044,7 +983,7 @@
                 },
                 selectedPlacements: function() {
                     this.remainingCapacity = getRemainingCapacity(info.placements, this.selectedPlacements);
-                    
+
                 }
             }
         });
@@ -1141,7 +1080,7 @@
             $('.single-select-search').chosen({
                 "width": "100%"
             });
-            
+
             $(".chosen-select").chosen({
                     "width": "100%"
                 })

@@ -49,6 +49,7 @@
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2017.07.05.180000"></script>
 <script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2022.12.21.150000"></script>
+<script type="text/javascript" src="{% static "js/base-image-utils.js"%}"></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left pointer-cursor">Basic Settings</h4>
@@ -96,17 +97,7 @@ var capacityCreationInfo = {{capacity_creation_info|safe}};
 var environment = capacityCreationInfo.environment;
 var accessRoleList = capacityCreationInfo.access_role_list;
 
-let goldenImage = capacityCreationInfo.baseImages.find(o => { if (o.golden) return o; })
-
-function getDefaultBaseImage() {
-    var accepted = capacityCreationInfo.baseImages.filter(function (e) {
-        return e.acceptance == 'ACCEPTED';
-    });
-    var sorted = accepted.sort(function(item1,item2){
-        return item2.publish_date - item1.publish_date;});
-
-    return sorted[0].id;
-};
+let goldenImage = capacityCreationInfo.baseImages.find(goldenImageFinder);
 
 var placements = getDefaultPlacement(capacityCreationInfo);
 
@@ -115,7 +106,7 @@ var capacitySetting = new Vue({
     data:{
         assignPublicIP: false,
         iamRole: "base",
-        baseImageValue: getDefaultBaseImage(),
+        baseImageValue: getDefaultBaseImageId(capacityCreationInfo.baseImages),
         confirmDialogTitle:"Confirm New Capacity Creation",
         confirmDialogId:"createHostGroup",
         instanceCount:"",
