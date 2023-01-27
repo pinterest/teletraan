@@ -321,6 +321,22 @@ class ClusterCapacityUpdateView(View):
         return HttpResponse(json.dumps(settings), content_type="application/json")
 
 
+def promote_image(request, image_id):
+    try:
+        baseimages_helper.promote_image(request, image_id)
+    except Exception as e:
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse("{}", content_type="application/json")
+
+
+def demote_image(request, image_id):
+    try:
+        baseimages_helper.demote_image(request, image_id)
+    except Exception as e:
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse("{}", content_type="application/json")
+
+
 def create_base_image(request):
     params = request.POST
     base_image_info = {}
@@ -352,6 +368,19 @@ def get_base_images(request):
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
         'disableNext': len(base_images) < DEFAULT_PAGE_SIZE,
+    })
+
+
+def get_base_image_events(request, image_id):
+    base_images_events = baseimages_helper.get_image_events_by_newId_with_result(
+        request, image_id)
+
+    tags = baseimages_helper.get_image_tag_by_id(request, image_id)
+
+    return render(request, 'clusters/base_images_events.html', {
+        'base_images_events': base_images_events,
+        'image_id': image_id,
+        'tags': tags,
     })
 
 
