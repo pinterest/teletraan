@@ -32,11 +32,15 @@
     </button>
     {% endif %}
     </div>
+    <div class="row">
+    <button class="deployToolTip btn btn-default btn-block" id="cancelBtnId">   
+    <span class="glyphicon glyphicon-remove-circle"></span> Cancel
+    </button>
+    </div>
 </div>
 <script>
     $("#demoteBtnId").click(function () {
         var image_id = '{{ image_id }}/';
-        btn = $(this)
         $.ajax({
             type: 'DELETE',
             url: `${location.protocol}//${location.host}/clouds/demote_image/${image_id}`,
@@ -54,12 +58,30 @@
             },
         });
     });
-    $("#promoteBtnId").click(function (image_id) {
+    $("#promoteBtnId").click(function () {
         var image_id = '{{ image_id }}/';
-        btn = $(this)
         $.ajax({
             type: 'PUT',
             url: `${location.protocol}//${location.host}/clouds/promote_image/${image_id}`,
+            dataType: "json",
+            beforeSend: function (xhr, settings) {
+                var csrftoken = getCookie('csrftoken')
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            },
+            success: function (data) {
+                window.location.href=window.location.href;
+                globalNotificationBanner.info = "Request sent successfully";
+            },
+            error: function(data) { // if error occured
+                globalNotificationBanner.error = data;
+            },
+        });
+    });
+    $("#cancelBtnId").click(function () {
+        var image_id = '{{ image_id }}/';
+        $.ajax({
+            type: 'PUT',
+            url: `${location.protocol}//${location.host}/clouds/cancel_image_update/${image_id}`,
             dataType: "json",
             beforeSend: function (xhr, settings) {
                 var csrftoken = getCookie('csrftoken')

@@ -337,6 +337,14 @@ def demote_image(request, image_id):
     return HttpResponse("{}", content_type="application/json")
 
 
+def cancel_image_update(request, image_id):
+    try:
+        baseimages_helper.cancel_image_update(request, image_id)
+    except Exception as e:
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse("{}", content_type="application/json")
+
+
 def create_base_image(request):
     params = request.POST
     base_image_info = {}
