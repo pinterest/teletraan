@@ -78,10 +78,9 @@
         });
     });
     $("#cancelBtnId").click(function () {
-        var image_id = '{{ image_id }}/';
         $.ajax({
             type: 'PUT',
-            url: `${location.protocol}//${location.host}/clouds/cancel_image_update/${image_id}`,
+            url: `${location.protocol}//${location.host}/clouds/cancel_image_update/{{ image_id }}/`,
             dataType: "json",
             beforeSend: function (xhr, settings) {
                 var csrftoken = getCookie('csrftoken')

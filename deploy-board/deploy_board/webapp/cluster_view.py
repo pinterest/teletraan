@@ -324,6 +324,8 @@ class ClusterCapacityUpdateView(View):
 def promote_image(request, image_id):
     try:
         baseimages_helper.promote_image(request, image_id)
+    except IllegalArgumentException as e:
+        return HttpResponse(e, status=400, content_type="application/json")
     except Exception as e:
         return HttpResponse(e, status=500, content_type="application/json")
     return HttpResponse("{}", content_type="application/json")
@@ -332,6 +334,8 @@ def promote_image(request, image_id):
 def demote_image(request, image_id):
     try:
         baseimages_helper.demote_image(request, image_id)
+    except IllegalArgumentException as e:
+        return HttpResponse(e, status=400, content_type="application/json")
     except Exception as e:
         return HttpResponse(e, status=500, content_type="application/json")
     return HttpResponse("{}", content_type="application/json")
@@ -340,6 +344,8 @@ def demote_image(request, image_id):
 def cancel_image_update(request, image_id):
     try:
         baseimages_helper.cancel_image_update(request, image_id)
+    except IllegalArgumentException as e:
+        return HttpResponse(e, status=400, content_type="application/json")
     except Exception as e:
         return HttpResponse(e, status=500, content_type="application/json")
     return HttpResponse("{}", content_type="application/json")
