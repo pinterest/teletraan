@@ -82,4 +82,8 @@ urlpatterns = [
         cluster_view.EnvCapacityAdvCreateView.as_view()),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/cluster/config/$',
         cluster_view.ClusterConfigurationView.as_view()),
+
+    # Base image history
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/base_images/$',
+        cluster_view.ClusterBaseImageHistoryView.as_view()),
 ]

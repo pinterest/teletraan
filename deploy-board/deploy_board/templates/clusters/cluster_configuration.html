@@ -43,6 +43,11 @@
     <div v-if="!noCluster" class="row">
         <side-button styleclass="glyphicon glyphicon-time" text="Replacement History" href="/env/{{ env.envName }}/{{ env.stageName }}/replacement" title="Replacement History"></side-button>
     </div>
+    <div v-if="!noCluster" class="row">
+        <side-button styleclass="glyphicon glyphicon-time" text="Base Image History" title="Base Image History"
+            href="/env/{{ env.envName }}/{{ env.stageName }}/base_images">
+        </side-button>
+    </div>
     <replace-cluster v-bind:clusterstate="clusterState" v-on:input="clusterAction"></replace-cluster>
 </div>
 {% endblock %} {% block new-builds-panel %} {% endblock %} {% block new-pred-deploys-panel %} {% endblock %} {% block main %}
