@@ -385,10 +385,17 @@ def get_base_image_events(request, image_id):
 
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
 
+    cancel = "no"
+    for event in base_images_events:
+        if event['state'] == "INIT":
+            cancel = "yes"
+            break
+
     return render(request, 'clusters/base_images_events.html', {
         'base_images_events': base_images_events,
         'image_id': image_id,
         'tags': tags,
+        'cancel': cancel,
     })
 
 
