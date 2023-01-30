@@ -105,10 +105,9 @@ var environment = info.environment;
 
 var placements = getDefaultPlacement(info);
 
-let goldenImage = info.baseImages.find(goldenImageFinder);
-let pinImage = goldenImage == null;
-let baseImagesSorted = info.baseImages.sort(baseImageSorter);
-let defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImagesSorted);
+const goldenImage = info.baseImages.find(goldenImageFinder);
+const baseImagesSorted = info.baseImages.sort(baseImageSorter);
+const defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImagesSorted);
 
 var capacitySetting = new Vue({
     el: "#mainPanel",
@@ -127,7 +126,7 @@ var capacitySetting = new Vue({
         baseImageHelpData: [],
         baseImages: mapBaseImagesToOptions(baseImagesSorted),
         baseImageValue: defaultImageId,
-        pinImage: pinImage,
+        pinImage: goldenImage == null,
         pinImageEnabled: isPinImageEnabled(info.defaultBaseImage),
         configOptions: Object.keys(info.configList).map(
             function (key) {
@@ -414,9 +413,9 @@ var capacitySetting = new Vue({
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 },
                 success: function (baseImages) {
-                    let baseImageSorted = baseImages.sort(baseImageSorter);
-                    let goldenImage = baseImages.find(goldenImageFinder);
-                    let defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImageSorted);
+                    const baseImageSorted = baseImages.sort(baseImageSorter);
+                    const goldenImage = baseImages.find(goldenImageFinder);
+                    const defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImageSorted);
                     capacitySetting.baseImages = mapBaseImagesToOptions(baseImageSorted);
                     capacitySetting.baseImageValue = defaultImageId;
                     capacitySetting.pinImage = !goldenImage;

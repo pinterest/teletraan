@@ -779,8 +779,8 @@
 
                         },
                         success: function(baseImages) {
-                            let baseImagesSorted = baseImages.sort(baseImageSorter);
-                            let goldenImage = baseImages.find(goldenImageFinder);
+                            const baseImagesSorted = baseImages.sort(baseImageSorter);
+                            const goldenImage = baseImages.find(goldenImageFinder);
 
                             var defaultImageId;
                             if (currentCluster.baseImageName == value && currentCluster.cellName == cell && capacitySetting.pinImage) {

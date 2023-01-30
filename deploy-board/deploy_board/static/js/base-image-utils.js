@@ -15,7 +15,7 @@ function getDefaultBaseImageId(baseImagesSorted) {
 
 function mapBaseImagesToOptions(baseImagesSorted) {
     return baseImagesSorted.map(o => {
-        let suffix = (o.acceptance ? `[${o.acceptance}]` : '') + `${o.golden ? '[GOLDEN]' : ''}`;
+        const suffix = (o.acceptance ? `[${o.acceptance}]` : '') + `${o.golden ? '[GOLDEN]' : ''}`;
         return {
             value: o.id,
             text: o.provider_name + suffix,

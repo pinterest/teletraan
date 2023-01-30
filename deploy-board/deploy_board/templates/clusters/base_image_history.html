@@ -37,15 +37,11 @@
         </div>
     </div>
 {% endblock side-panel-actions %}
-
 {% block new-builds-panel %}
 {% endblock new-builds-panel %}
-
 {% block new-pred-deploys-panel %}
 {% endblock new-pred-deploys-panel %}
-
 {% block main %}
-
     <div class="panel panel-default">
         <div class="panel-heading clearfix">
             <h4 class="panel-title pull-left">Base Images Information</h4>
@@ -79,27 +75,46 @@
                 </tr>
                 <tr>
                     <td>Arch Name</td>
-                    <td>{{ current_image.arch_name }}</td>
-                    <td>{{ golden_image.arch_name }}</td>
+                    <td>
+                        {{ current_image.arch_name }}
+                    </td>
+                    <td>
+                        {{ golden_image.arch_name }}
+                    </td>
                 </tr>
                 <tr>
-                    <td>Cell Name</td>
-                    <td>{{ current_image.cell_name }}</td>
-                    <td>{{ golden_image.cell_name }}</td>
+                    <td>
+                        Cell Name
+                    </td>
+                    <td>
+                        {{ current_image.cell_name }}
+                    </td>
+                    <td>
+                        {{ golden_image.cell_name }}
+                    </td>
                 </tr>
                 <tr>
-                    <td>Provider Name</td>
-                    <td>{{ current_image.provider_name }}</td>
-                    <td>{{ golden_image.provider_name }}</td>
+                    <td>
+                        Provider Name
+                    </td>
+                    <td>
+                        {{ current_image.provider_name }}
+                    </td>
+                    <td>
+                        {{ golden_image.provider_name }}
+                    </td>
                 </tr>
             </table>
         </div>
     </div>
-
     <div class="panel panel-default">
         <div class="panel-heading clearfix">
-            <h4 class="panel-title pull-left">Base Images Auto Update History</h4>
+            <h4 class="panel-title pull-left">
+                Base Images Auto Update History
+            </h4>
         </div>
-        <div class="panel-body table-responsive">{% include "clusters/base_images_events.tmpl" %}</div>
+        <div class="panel-body table-responsive">
+            {% include "clusters/base_images_events.tmpl" %}
+        </div>
     </div>
 {% endblock main %}
