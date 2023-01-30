@@ -38,3 +38,7 @@ function ensureCurrentImageIsIncluded(baseImages, currentBaseImage) {
         baseImages.push(currentBaseImage);
     }
 }
+
+function isPinImageEnabled(imageName) {
+    return imageName.toLowerCase().startsWith('cmp_');
+}

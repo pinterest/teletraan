@@ -226,20 +226,19 @@ Vue.component('label-select2', {
  * A basic checkbox that allows to bind with boolean v-model
  */
 Vue.component('base-checkbox', {
+    template: `
+    <input type="checkbox"
+      :checked="checked" :disabled="!enabled"
+      @change="$emit('input', $event.target.checked)"
+    >`,
     model: {
       prop: 'checked',
       event: 'change'
     },
     props: {
-      checked: Boolean
-    },
-    template: `
-      <input
-        type="checkbox"
-        v-bind:checked="checked"
-        v-on:change="$emit('input', $event.target.checked)"
-      >
-    `
+      checked: Boolean,
+      enabled: Boolean
+    }
   })
 
 
