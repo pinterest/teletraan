@@ -1097,7 +1097,6 @@ class ClusterBaseImageHistoryView(View):
 
         data = {
             "env": env,
-            "cluster": False,
             "current_image": current_image,
             "golden_image": golden_image,
             "base_images_events": base_images_update_events,
