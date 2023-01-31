@@ -23,7 +23,7 @@ from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
-        DEFAULT_PLACEMENT, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST
+        DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST
 
 import json
 import logging
@@ -31,7 +31,7 @@ import logging
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper, arches_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
-from helpers.exceptions import NotAuthorizedException, TeletraanException
+from helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
 import common
 import traceback
 
@@ -63,6 +63,7 @@ class EnvCapacityBasicCreateView(View):
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultArch': DEFAULT_ARCH,
+            'defaultUseLaunchTemplate': DEFAULT_USE_LAUNCH_TEMPLATE,
             'defaultBaseImage': DEFAULT_CMP_IMAGE,
             'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
@@ -157,6 +158,7 @@ class EnvCapacityAdvCreateView(View):
             'defaultProvider': DEFAULT_PROVIDER,
             'defaultCell': DEFAULT_CELL,
             'defaultArch': DEFAULT_ARCH,
+            'defaultUseLaunchTemplate': DEFAULT_USE_LAUNCH_TEMPLATE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
@@ -319,6 +321,36 @@ class ClusterCapacityUpdateView(View):
         return HttpResponse(json.dumps(settings), content_type="application/json")
 
 
+def promote_image(request, image_id):
+    try:
+        baseimages_helper.promote_image(request, image_id)
+    except IllegalArgumentException as e:
+        return HttpResponse(e, status=400, content_type="application/json")
+    except Exception as e:
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse("{}", content_type="application/json")
+
+
+def demote_image(request, image_id):
+    try:
+        baseimages_helper.demote_image(request, image_id)
+    except IllegalArgumentException as e:
+        return HttpResponse(e, status=400, content_type="application/json")
+    except Exception as e:
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse("{}", content_type="application/json")
+
+
+def cancel_image_update(request, image_id):
+    try:
+        baseimages_helper.cancel_image_update(request, image_id)
+    except IllegalArgumentException as e:
+        return HttpResponse(e, status=400, content_type="application/json")
+    except Exception as e:
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse("{}", content_type="application/json")
+
+
 def create_base_image(request):
     params = request.POST
     base_image_info = {}
@@ -350,6 +382,26 @@ def get_base_images(request):
         'pageSize': DEFAULT_PAGE_SIZE,
         'disablePrevious': index <= 1,
         'disableNext': len(base_images) < DEFAULT_PAGE_SIZE,
+    })
+
+
+def get_base_image_events(request, image_id):
+    base_images_events = baseimages_helper.get_image_events_by_newId_with_result(
+        request, image_id)
+
+    tags = baseimages_helper.get_image_tag_by_id(request, image_id)
+
+    cancel = False
+    for event in base_images_events:
+        if event['state'] == "INIT":
+            cancel = True
+            break
+
+    return render(request, 'clusters/base_images_events.html', {
+        'base_images_events': base_images_events,
+        'image_id': image_id,
+        'tags': tags,
+        'cancellable': cancel,
     })
 
 
@@ -758,23 +810,14 @@ def clone_cluster(request, src_name, src_stage):
     except NotAuthorizedException as e:
         log.error("Have an NotAuthorizedException error {}".format(e))
         if external_id is not None:
-            try:
-                environs_helper.delete_nimbus_identifier(request, external_id)
-            except Exception as detail:
-                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
-                log.error(message)
+            environs_helper.delete_nimbus_identifier(request, external_id)
 
         return HttpResponse(e, status=403, content_type="application/json")
     except Exception as e:
         log.error("Failed to clone cluster env_name: %s, stage_name: %s" % (src_name, src_stage))
         log.error(traceback.format_exc())
         if external_id is not None:
-            try:
-                environs_helper.delete_nimbus_identifier(request, external_id)
-            except Exception as detail:
-                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
-                log.error(message)
-                
+            environs_helper.delete_nimbus_identifier(request, external_id)
         return HttpResponse(e, status=500, content_type="application/json")
 
 

@@ -15,7 +15,7 @@ import logging
 import requests
 from decorators import retry
 
-from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException
+from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
 requests.packages.urllib3.disable_warnings()
 
 DEFAULT_TIMEOUT = 30
@@ -56,7 +56,11 @@ class BaseClient(object):
                 raise NotAuthorizedException(
                     "Oops! You do not have the required permissions for this action. Contact an environment ADMIN for "
                     "assistance. " + response.content)
-
+                       
+            if response.status_code == 400:
+                raise IllegalArgumentException(
+                    "Oops! It seems like Teletraan sent an illegal request. " + response.content)
+            
             if response.status_code == 404:
                 log.info("Resource %s Not found" % path)
                 return None

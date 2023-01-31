@@ -144,7 +144,7 @@ var capacitySetting = new Vue({
             }
         }),
         // TODO: The default host type comes from settings and should probably not be an abstract_name since they are not guaranteed to be unique.
-        selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType).id,
+        selectedHostTypeValue: capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType) != undefined ? capacityCreationInfo.hostTypes.find(hostType => hostType.abstract_name === capacityCreationInfo.defaultHostType).id : "",
         selectedSecurityZoneValue: capacityCreationInfo.defaultSeurityZone,
         selectedPlacements: null,
         accessRole: localStorage.getItem("accessRole") ? localStorage.getItem("accessRole") : capacityCreationInfo.defaultCMPConfigs['access_role'],
@@ -198,6 +198,7 @@ var capacitySetting = new Vue({
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['archName'] = capacityCreationInfo['defaultArch'];
             clusterInfo['baseImageId'] = this.baseImageValue;
+            clusterInfo['useLaunchTemplate'] = capacityCreationInfo['defaultUseLaunchTemplate'];
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             if (this.selectedPlacements != null){

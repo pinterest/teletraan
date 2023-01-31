@@ -20,6 +20,7 @@ import capacity_views
 urlpatterns = [
     url(r'^clouds/create_base_image/$', cluster_view.create_base_image),
     url(r'^clouds/baseimages/$', cluster_view.get_base_images),
+    url(r'^clouds/baseimages/events/(?P<image_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_image_events),
     url(r'^clouds/get_image_names/$', cluster_view.get_image_names),
     url(r'^clouds/image_names/(?P<provider>[a-zA-Z0-9\-_\.]+)/(?P<cell>[a-zA-Z0-9\-_\.]+)/$',
         cluster_view.get_image_names_by_provider_and_cell),
@@ -34,6 +35,9 @@ urlpatterns = [
     url(r'^clouds/get_base_images/$', cluster_view.get_base_images_by_name),
     url(r'^clouds/get_base_images/(?P<name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_images_by_name_json),
     url(r'^clouds/get_base_image_info/(?P<name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_images_by_name_json),
+    url(r'^clouds/demote_image/(?P<image_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.demote_image),
+    url(r'^clouds/promote_image/(?P<image_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.promote_image),
+    url(r'^clouds/cancel_image_update/(?P<image_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.cancel_image_update),
 
     url(r'^clouds/create_host_type/$', cluster_view.create_host_type),
     url(r'^clouds/hosttypes/$', cluster_view.get_host_types),

@@ -1,0 +1,29 @@
+{% load utils %}
+{% load static %}
+
+<form name="baseImageEvents">
+    <table id="baseImageEventsTableId" class="table table-condensed table-striped table-hover">
+        <tr>
+            <th class="col-lg-2">Cluster Name</th>
+            <th class="col-lg-2">Old Image</th>
+            <th class="col-lg-1">Status</th>
+            <th class="col-lg-2">Create Time</th>
+            <th class="col-lg-2">Start Time</th>
+            <th class="col-lg-2">Finish Time</th>
+            <th class="col-lg-1">Result</th>
+            <th class="col-lg-2">Error Message</th>
+        </tr>
+        {% for base_images_event in base_images_events %}
+        <tr>
+            <td> {{ base_images_event.cluster_name }} </td>
+            <td> {{ base_images_event.old_image_id }} </td>
+            <td> {{ base_images_event.state }} </td>
+            <td> {{ base_images_event.create_time|convertTimestamp }} </td>
+            <td> {{ base_images_event.start_time|convertTimestamp }}  </td>
+            <td> {{ base_images_event.finish_time|convertTimestamp }} </td>
+            <td> {{ base_images_event.result }} </td>
+            <td> {{ base_images_event.error_message }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+</form>

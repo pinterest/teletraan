@@ -478,6 +478,7 @@
                         isSelected: o.id === currentCluster.baseImageId
                     }
                 }),
+                useLaunchTemplate: currentCluster.useLaunchTemplate != null ? currentCluster.useLaunchTemplate : false,
                 baseImageValue: currentCluster.baseImageId,
                 confirmDialogTitle: "Update Cluster Settings",
                 confirmDialogId: "updateClusterSettings",
@@ -988,6 +989,7 @@
                     clusterInfo['baseImageId'] = this.baseImageValue;
                     clusterInfo['hostType'] = this.selectedHostTypeValue;
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
+                    clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
                     clusterInfo['replacementTimeout'] = this.replacementTimeout;
                     clusterInfo['configs'] = this.allUserData.reduce(function(map, obj) {
