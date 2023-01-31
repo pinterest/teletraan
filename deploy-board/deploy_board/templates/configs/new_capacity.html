@@ -39,8 +39,9 @@
 {% endif %}
 
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
-<script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2017.07.05.180000"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2018.05.17.153000"></script>
+<script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2023.01.30"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.01.30"></script>
+<script type="text/javascript" src="{% static "js/base-image-utils.js"%}?changedate=2023.01.30"></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left pointer-cursor">Basic Settings</h4>
@@ -52,11 +53,12 @@
                     <label>This is for CMP docker only hosts. For other type, click the Advanced Settings on the left</label>
                 </div>
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
-                <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"></label-select>
+                <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
+                    ></hosttype-select>
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
-                <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole" 
+                <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole"
                     showhelp="true" v-on:helpclick="accessRoleHelpClick"></accessrole-input>
                 <accessrole-help v-show="showAccessRoleHelp" v-bind:data="accessRoleHelpText" v-bind:accessrolelist="accessRoleList"></accessrole-help>
             </form>
@@ -87,15 +89,7 @@ var capacityCreationInfo = {{capacity_creation_info|safe}};
 var environment = capacityCreationInfo.environment;
 var accessRoleList = capacityCreationInfo.access_role_list;
 
-getDefaultBaseImage = function(){
-    var accepted = capacityCreationInfo.baseImages.filter(function (e) {
-        return e.acceptance == 'ACCEPTED';
-    });
-    var sorted = accepted.sort(function(item1,item2){
-        return item2.publish_date - item1.publish_date;});
-
-    return sorted[0].id;
-};
+let goldenImage = capacityCreationInfo.baseImages.find(goldenImageFinder);
 
 var placements = getDefaultPlacement(capacityCreationInfo);
 
@@ -104,20 +98,9 @@ var capacitySetting = new Vue({
     data:{
         assignPublicIP: false,
         iamRole: "base",
-        baseimages: capacityCreationInfo.baseImages.map(
-            function (o) {
-                var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
-                return {
-                    value: o.id,
-                    text: o.provider_name + acceptance,
-                    isSelected: o.id === getDefaultBaseImage()
-                }
-            }),
-        baseImageValue: getDefaultBaseImage(),
+        baseImageValue: getDefaultBaseImageId(capacityCreationInfo.baseImages.sort(baseImageSorter)),
         confirmDialogTitle:"Confirm New Capacity Creation",
         confirmDialogId:"createHostGroup",
-        imageNameValue: 'cmp_base',
-        imagenames: ['cmp_base'],
         instanceCount:"",
         hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){
             return {
@@ -187,7 +170,6 @@ var capacitySetting = new Vue({
             clusterInfo['provider'] = capacityCreationInfo['defaultProvider'];
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['archName'] = capacityCreationInfo['defaultArch'];
-            clusterInfo['baseImageId'] = this.baseImageValue;
             clusterInfo['useLaunchTemplate'] = capacityCreationInfo['defaultUseLaunchTemplate'];
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
@@ -210,6 +192,15 @@ var capacitySetting = new Vue({
                 clusterInfo.configs['assign_public_ip'] = false
             }
             clusterInfo.configs['access_role'] = this.accessRole;
+
+            if (goldenImage) {
+                clusterInfo['autoUpdateBaseImage'] = true;
+                clusterInfo['baseImageName'] = goldenImage.abstract_name;
+            } else {
+                clusterInfo['autoUpdateBaseImage'] = false;
+                clusterInfo['baseImageId'] = this.baseImageValue;
+            }
+
             if (this.validateInput(clusterInfo)){
                 //Send request
                 this.sendRequest(clusterInfo);
@@ -255,6 +246,10 @@ var capacitySetting = new Vue({
 )
 
 $(document).ready(function() {
+    $('.single-select-search').chosen({
+        "width": "100%"
+    });
+
     $(".chosen-select").chosen({
             width: "100%",
         })

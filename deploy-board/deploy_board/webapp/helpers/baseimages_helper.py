@@ -58,7 +58,7 @@ def get_all_with_acceptance(request, index, size):
                                                     'N/A')
 
         if name.startswith('cmp_base'):
-            key = (name, cell) 
+            key = (name, cell)
             if key not in golden:
                 golden_image = get_current_golden_image(request, name, cell)
                 golden[key] = golden_image['provider_name'] if golden_image else None
@@ -94,8 +94,10 @@ def get_acceptance_by_name(request, name, cell_name):
     params = [('cellName', cell_name)]
     return rodimus_client.get("/base_images/acceptances/%s" % name, request.teletraan_user_id.token, params=params)
 
+
 def get_current_golden_image(request, name, cell):
     return rodimus_client.get("/base_images/names/%s/cells/%s/golden" % (name, cell), request.teletraan_user_id.token)
+
 
 def get_by_provider_name(request, name):
     return rodimus_client.get("/base_images/provider_names/%s" % name, request.teletraan_user_id.token)
@@ -108,24 +110,32 @@ def get_by_id(request, image_id):
 def get_all_providers(request):
     return rodimus_client.get("/base_images/provider", request.teletraan_user_id.token)
 
-def get_image_events_by_newId_with_result(request, image_id):
-    events = get_image_events_by_newId(request, image_id)
+
+def get_image_update_events_by_new_id(request, image_id):
+    events = rodimus_client.get("/base_images/updates/%s" % image_id, request.teletraan_user_id.token)
 
     for event in events:
-        if event['state'] =='INIT':
-            if event['start_time']:
-                event['result'] = 'UPDATING'
-            else:
-                event['result'] = 'INIT'
-        elif event['state']== 'COMPLETED':
-            if event['error_message']:
-                event['result'] = 'FAILED'
-            else:
-                event['result'] = 'SUCCEEDED'
-        else:
-            event['result'] = event['state']
-    
+        event['status'] = generate_image_update_event_status(event)
+
     return events
 
-def get_image_events_by_newId(request, image_id):
-    return rodimus_client.get("/base_images/updates/%s" % image_id, request.teletraan_user_id.token)
+
+def get_image_update_events_by_cluster(request, cluster_name):
+    events = rodimus_client.get("/base_images/updates/cluster/%s" % cluster_name, request.teletraan_user_id.token)
+    for event in events:
+        event['status'] = generate_image_update_event_status(event)
+    return events
+
+
+def generate_image_update_event_status(event):
+    if event['state'] == 'INIT':
+        if event['start_time']:
+            return 'UPDATING'
+        else:
+            return 'INIT'
+    elif event['state'] == 'COMPLETED':
+        if event['error_message']:
+            return 'FAILED'
+        else:
+            return 'SUCCEEDED'
+    return event['state']
