@@ -17,6 +17,10 @@
 """
 
 
+class IllegalArgumentException(Exception):
+    pass
+
+
 class FailedAuthenticationException(Exception):
     pass
 

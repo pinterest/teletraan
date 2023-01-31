@@ -25,6 +25,9 @@ def promote_image(request, image_id):
 def demote_image(request, image_id):
     return rodimus_client.delete("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
 
+def cancel_image_update(request, image_id):
+    return rodimus_client.put("/base_images/%s/golden/cancel" % image_id, request.teletraan_user_id.token)
+
 def get_image_tag_by_id(request, image_id):
     return rodimus_client.get("/base_images/%s/tags" % image_id, request.teletraan_user_id.token)
 

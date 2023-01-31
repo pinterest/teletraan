@@ -31,7 +31,7 @@ import logging
 from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper, arches_helper
 from helpers import clusters_helper, environs_helper, environ_hosts_helper
-from helpers.exceptions import NotAuthorizedException, TeletraanException
+from helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
 import common
 import traceback
 
@@ -324,6 +324,8 @@ class ClusterCapacityUpdateView(View):
 def promote_image(request, image_id):
     try:
         baseimages_helper.promote_image(request, image_id)
+    except IllegalArgumentException as e:
+        return HttpResponse(e, status=400, content_type="application/json")
     except Exception as e:
         return HttpResponse(e, status=500, content_type="application/json")
     return HttpResponse("{}", content_type="application/json")
@@ -332,6 +334,18 @@ def promote_image(request, image_id):
 def demote_image(request, image_id):
     try:
         baseimages_helper.demote_image(request, image_id)
+    except IllegalArgumentException as e:
+        return HttpResponse(e, status=400, content_type="application/json")
+    except Exception as e:
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse("{}", content_type="application/json")
+
+
+def cancel_image_update(request, image_id):
+    try:
+        baseimages_helper.cancel_image_update(request, image_id)
+    except IllegalArgumentException as e:
+        return HttpResponse(e, status=400, content_type="application/json")
     except Exception as e:
         return HttpResponse(e, status=500, content_type="application/json")
     return HttpResponse("{}", content_type="application/json")
@@ -377,10 +391,17 @@ def get_base_image_events(request, image_id):
 
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
 
+    cancel = False
+    for event in base_images_events:
+        if event['state'] == "INIT":
+            cancel = True
+            break
+
     return render(request, 'clusters/base_images_events.html', {
         'base_images_events': base_images_events,
         'image_id': image_id,
         'tags': tags,
+        'cancellable': cancel,
     })
 
 
