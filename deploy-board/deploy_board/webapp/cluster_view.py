@@ -75,7 +75,7 @@ class EnvCapacityBasicCreateView(View):
         return render(request, 'configs/new_capacity.html', {
             'env': env,
             'default_cmp_image': DEFAULT_CMP_IMAGE,
-            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE,
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'capacity_creation_info': json.dumps(capacity_creation_info)})
@@ -262,7 +262,7 @@ class ClusterConfigurationView(View):
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
             'default_cmp_image': DEFAULT_CMP_IMAGE,
-            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE,
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
@@ -386,7 +386,7 @@ def get_base_images(request):
 
 
 def get_base_image_events(request, image_id):
-    base_images_events = baseimages_helper.get_image_events_by_newId_with_result(
+    base_images_events = baseimages_helper.get_image_update_events_by_new_id(
         request, image_id)
 
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
@@ -479,8 +479,12 @@ def get_base_images_by_name(request):
 
 def get_base_image_info_by_name(request, name, cell):
     if name.startswith('cmp_base'):
-        base_images = baseimages_helper.get_acceptance_by_name(request, name, cell)
         with_acceptance_rs = []
+        base_images = baseimages_helper.get_acceptance_by_name(request, name, cell)
+        golden_image = baseimages_helper.get_current_golden_image(request, name, cell)
+        if golden_image:
+            golden_image['golden'] = True
+            base_images.append({'baseImage': golden_image})
         if base_images:
             for image in base_images:
                 r = image.get('baseImage')
@@ -1106,3 +1110,26 @@ class ClusterHistoriesView(View):
             "replace_summaries": replace_summaries
         }
         return render(request, 'clusters/replace_histories.html', data)
+
+
+class ClusterBaseImageHistoryView(View):
+
+    def get(self, request, name, stage):
+        env = environs_helper.get_env_by_stage(request, name, stage)
+        cluster_name = '{}-{}'.format(name, stage)
+        current_cluster = clusters_helper.get_cluster(request, cluster_name)
+        current_image = baseimages_helper.get_by_id(request, current_cluster['baseImageId'])
+        golden_image = baseimages_helper.get_current_golden_image(
+            request, current_image['abstract_name'], current_cluster['cellName'])
+
+        base_images_update_events = baseimages_helper.get_image_update_events_by_cluster(
+            request, cluster_name)
+
+        data = {
+            "env": env,
+            "current_image": current_image,
+            "golden_image": golden_image,
+            "base_images_events": base_images_update_events,
+        }
+
+        return render(request, 'clusters/base_image_history.html', data)
