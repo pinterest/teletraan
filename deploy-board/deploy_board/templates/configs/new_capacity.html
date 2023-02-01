@@ -13,14 +13,6 @@
 {% load static %}
 
 {% block side-panel-actions %}
-<style>
-    .chosen-container-single .chosen-single div b {
-        background: url("chosen-sprite.png") no-repeat 7px 7px;
-    }
-    .chosen-container-single .chosen-single {
-        padding: 0 0 0 16px;
-    }
-</style>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2016.12.19.150000"></script>
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
@@ -48,7 +40,7 @@
 
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2017.07.05.180000"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2022.12.21.150000"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2018.05.17.153000"></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left pointer-cursor">Basic Settings</h4>
@@ -60,8 +52,7 @@
                     <label>This is for CMP docker only hosts. For other type, click the Advanced Settings on the left</label>
                 </div>
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
-                <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
-                    ></hosttype-select>               
+                <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"></label-select>
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
@@ -131,9 +122,8 @@ var capacitySetting = new Vue({
         hostTypeOptions: capacityCreationInfo.hostTypes.map(function(item,idx){
             return {
                 value: item.id,
-                text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.network+", " +item.storage+")",
-                isSelected: item.abstract_name === capacityCreationInfo.defaultHostType,
-                isDisabled: item.retired
+                text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.storage+")",
+                isSelected: item.abstract_name === capacityCreationInfo.defaultHostType
             }}),
         placements: placements.getSimpleList(false, null),
         securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){
@@ -265,10 +255,6 @@ var capacitySetting = new Vue({
 )
 
 $(document).ready(function() {
-    $('.single-select-search').chosen({
-        "width": "100%"
-    });
-    
     $(".chosen-select").chosen({
             width: "100%",
         })
