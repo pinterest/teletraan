@@ -464,7 +464,7 @@
                         }).filter(function(item){return item.name!='assign_public_ip'}),
                 assignPublicIP: initialAssignPublicIP,
                 awsRole: currentCluster.configs.aws_role,
-                baseimages: baseImageSorted.map(function(o) {
+                baseimages: info.baseImages.map(function(o) {
                     var acceptance = o.acceptance ? ' [' + o.acceptance + ']' : '';
                     return {
                         value: o.id,
