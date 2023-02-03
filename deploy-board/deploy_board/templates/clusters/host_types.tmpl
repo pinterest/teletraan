@@ -11,8 +11,6 @@
             <th class="col-lg-1">Core</th>
             <th class="col-lg-1">Memory (GB)</th>
             <th class="col-lg-2">Storage</th>
-            <th class="col-lg-2">Network</th>
-            <th class="col-lg-2">Retired</th>
             <th class="col-lg-4">Description</th>
         </tr>
         {% for host_type in host_types %}
@@ -24,8 +22,6 @@
             <td> {{ host_type.core }}  </td>
             <td> {{ host_type.mem }} </td>
             <td> {{ host_type.storage }} </td>
-            <td> {{ host_type.network }} </td>
-            <td> {{ host_type.retired }} </td>
             <td> {{ host_type.description }} </td>
         </tr>
         {% endfor %}

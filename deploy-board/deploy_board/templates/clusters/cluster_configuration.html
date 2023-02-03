@@ -17,17 +17,11 @@
     .ct-chart table td {
         text-align: center;
     }
-    .chosen-container-single .chosen-single div b {
-        background: url("chosen-sprite.png") no-repeat 7px 7px;
-    }
-    .chosen-container-single .chosen-single {
-        padding: 0 0 0 16px;
-    }
 </style>
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2016.12.19.150000"></script>
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2017.07.05.180000"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2022.12.21.150000"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2022.12.06.150000"></script>
 
 <div class="panel panel-default" id="side-panel">
     <div class="panel-heading clearfix">
@@ -65,8 +59,8 @@
                     v-on:baseimagechange="baseImageChange" v-on:imagenamechange="imageNameChange" v-bind:inadvanced="inAdvanced" showhelp="true" v-on:helpclick="baseImageHelpClick">
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
-                    <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"
-                    showhelp="true" v-on:helpclick="hostTypeHelpClick"></hosttype-select>
+                    <label-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions"
+                        showhelp="true" v-on:helpclick="hostTypeHelpClick"></label-select>
                     <hostype-help v-show="showHostTypeHelp" v-bind:data="hostTypeHelpData"></hostype-help>
                     <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZones"
                     showhelp="true" v-on:helpclick="securityZoneHelpClick"></label-select>
@@ -488,9 +482,8 @@
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
                         value: item.id,
-                        text: item.provider_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.abstract_name + ")",
-                        isSelected: item.id === currentCluster.hostType,
-                        isDisabled: item.retired
+                        text: item.provider_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.abstract_name + ")",
+                        isSelected: item.id === currentCluster.hostType
                     }
                 }),
                 imageNameValue: currentCluster.baseImageName,
@@ -644,7 +637,7 @@
                         this.showHostTypeHelp = false;
                     }
                     else{
-                        this.getHelpInfo('get_host_type_info', function(data){
+                        this.getHelpInfo('get_host_types/' + capacitySetting.currentArch, function(data){
                                 capacitySetting.hostTypeHelpData = data
                                 capacitySetting.showHostTypeHelp = true
                             }, {cell: capacitySetting.currentCell})
@@ -772,17 +765,11 @@
                                     function (item) {
                                         return {
                                             value: item.id,
-                                            text: item.provider_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.abstract_name + ")",
-                                            isSelected: item.id === data[0],
-                                            isDisabled: item.retired
+                                            text: item.provider_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.provider + ": " + item.abstract_name + ")",
+                                            isSelected: item.id === data[0].id
                                         }
                                     });
                             capacitySetting.selectedHostTypeValue = data[0].id;
-                            //Schedule this to nextTick that calls after next DOM refresh
-                            //as JQuery chosen call must happen after DOM updates finished
-                            Vue.nextTick(function(){
-                                $(".single-select-search").trigger("chosen:updated")
-                            })
                         },
                         error: function (data) {
                             globalNotificationBanner.error = data
@@ -1138,16 +1125,12 @@
         });
 
         $(document).ready(function() {
-            $('.single-select-search').chosen({
-                "width": "100%"
-            });
-            
-            $(".chosen-select").chosen({
-                    "width": "100%"
-                })
-                .change(function() {
-                    capacitySetting.selectedPlacements = $('.chosen-select').val()
-                });
+                $(".chosen-select").chosen({
+                        "width": "100%"
+                    })
+                    .change(function() {
+                        capacitySetting.selectedPlacements = $('.chosen-select').val();
+                    });
 
            if(showReplaceAlert) {
                 // include this tmpl, meaning a cluster replace is going-on, need to check its progress

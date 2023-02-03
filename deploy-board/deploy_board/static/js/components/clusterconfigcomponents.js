@@ -176,8 +176,8 @@ Vue.component("aws-config-modal", {
                             <div class="col-md-10">\
                                 <input type="text" class="form-control"placeholder="name..." v-on:keyup="checkReadOnlyValue" v-model="customizedName">\
                                 <div input type="text" for="errorMessage" class="text" style="text-align:left; color:red" id="errorDisplay" v-bind:readonly="false"\
-                                v-model="shouldShowError" v-model="errorMessage" v-show="shouldShowError">{{errorMessage}}</label></div>\
-                                </div>\
+                                    v-show="shouldShowError">{{errorMessage}}</label></div>\
+                            </div>\
                         </div>\
                     </div>\
                     <div class="form-group">\
@@ -191,7 +191,7 @@ Vue.component("aws-config-modal", {
                     <button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="addConfig" id="disableConfigButton">Add</button>\
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\
                 </div>\
-            </form></div></div>',
+            </form></div></div></div>',
     props: ["options", "id"],
     data: function() {
         return {
@@ -288,10 +288,8 @@ Vue.component('hostype-help', {
             { name: 'Cores', headerClass: 'col-sm-1' },
             { name: 'Memory(GB)', headerClass: 'col-sm-1' },
             { name: 'Storage', headerClass: 'col-sm-2' },
-            { name: 'Network', headerClass: 'col-sm-1' },
-            { name: 'Retired', headerClass: 'col-sm-1' },
             { name: 'Description', headerClass: 'col-sm-5' }],
-            keys: ['abstract_name', 'provider_name', 'core', 'mem', 'storage', 'network', 'retired', 'description']
+            keys: ['abstract_name', 'provider_name', 'core', 'mem', 'storage', 'description']
         }
     },
 })
@@ -390,38 +388,6 @@ Vue.component("placements-select", {
     }
 });
 
-Vue.component("hosttype-select", {
-    template: '<div v-bind:class="formStyle">\
-    <label class="deployToolTip control-label col-xs-2" data-toggle="tooltip" v-bind:title="title">{{label}}</label>\
-    <div v-bind:class="width"><div v-bind:class="groupStyle">\
-    <select v-bind:class="selectClass" v-on:change="updateValue($event.target.value)" required="true">\
-    <option v-for="option in selectoptions" v-bind:value="option.value" v-bind:selected="option.isSelected" v-bind:disabled="option.isDisabled">{{option.text}}</option></select>\
-    <span v-if="showhelp" class="input-group-btn">\
-      <button class="deployToolTip btn btn-default" type="button" data-toggle="tooltip" title="click to see more information" v-on:click="helpClick">\
-          <span class="glyphicon glyphicon-question-sign"></span>\
-      </button>\
-    </span></div>\
-    </div>\
-    </div>',
-    props: ['label', 'title', 'selectoptions', 'showhelp', 'small', 'selectsearch', 'retired'],
-    data: function () {
-        return {
-            width: this.small ? 'col-xs-4' : 'col-xs-10',
-            formStyle: this.small ? '' : 'form-group',
-            groupStyle: this.showhelp ? 'input-group' : '',
-            selectClass: this.selectsearch ? 'form-control single-select-search' : 'form-control'
-        }
-    },
-    methods: {
-        updateValue: function (value) {
-            this.$emit('input', value)
-        },
-        helpClick: function () {
-            this.$emit('helpclick')
-        },
-    }
-});
-
 Vue.component('remaining-capacity', {
     template: '<div class="form-group">\
     <div class="col-xs-2"></div>\
@@ -433,7 +399,7 @@ Vue.component('remaining-capacity', {
     computed: {
         marginStyle:function() {
             return this.inadvanced ? 'margin-top:-15px;' : 'margin-top:-30px;'
-            
+
         }
     }
 });
