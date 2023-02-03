@@ -637,7 +637,7 @@
                         this.showHostTypeHelp = false;
                     }
                     else{
-                        this.getHelpInfo('get_host_type_info', function(data){
+                        this.getHelpInfo('get_host_types/' + capacitySetting.currentArch, function(data){
                                 capacitySetting.hostTypeHelpData = data
                                 capacitySetting.showHostTypeHelp = true
                             }, {cell: capacitySetting.currentCell})
