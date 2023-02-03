@@ -56,7 +56,7 @@
                 <label-select label="Security Zone" title="Security zone to control inbound/outboud traffic" v-model="selectedSecurityZoneValue" v-bind:selectoptions="securityZoneOptions"></label-select>
                 <placements-select label="Placements" title="Placements" v-bind:assignpublicip="assignPublicIP"
                 v-bind:selectoptions="placements" v-on:assignpublicipclick="selectpublicip"></placements-select>
-                <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole" 
+                <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole"
                     showhelp="true" v-on:helpclick="accessRoleHelpClick"></accessrole-input>
                 <accessrole-help v-show="showAccessRoleHelp" v-bind:data="accessRoleHelpText" v-bind:accessrolelist="accessRoleList"></accessrole-help>
             </form>
@@ -139,7 +139,8 @@ var capacitySetting = new Vue({
         selectedPlacements: null,
         accessRole: localStorage.getItem("accessRole") ? localStorage.getItem("accessRole") : capacityCreationInfo.defaultCMPConfigs['access_role'],
         showAccessRoleHelp: false,
-        accessRoleHelpText: "",
+        accessRoleList: accessRoleList,
+        accessRoleHelpText: "Please enter a valid access role",
     },
     methods:{
         validateInput: function(clusterInfo){
@@ -231,12 +232,7 @@ var capacitySetting = new Vue({
             this.selectedSecurityZoneValue = value
         },
         accessRoleHelpClick: function(){
-            if (this.showAccessRoleHelp){
-                this.showAccessRoleHelp = false
-            } else {
-                this.accessRoleHelpText = "Please enter a valid access role"
-                capacitySetting.showAccessRoleHelp = true
-            }
+            this.showAccessRoleHelp = !this.showAccessRoleHelp;
         },
     },
     watch: {
