@@ -176,8 +176,8 @@ Vue.component("aws-config-modal", {
                             <div class="col-md-10">\
                                 <input type="text" class="form-control"placeholder="name..." v-on:keyup="checkReadOnlyValue" v-model="customizedName">\
                                 <div input type="text" for="errorMessage" class="text" style="text-align:left; color:red" id="errorDisplay" v-bind:readonly="false"\
-                                v-model="shouldShowError" v-model="errorMessage" v-show="shouldShowError">{{errorMessage}}</label></div>\
-                                </div>\
+                                    v-show="shouldShowError">{{errorMessage}}</label></div>\
+                            </div>\
                         </div>\
                     </div>\
                     <div class="form-group">\
@@ -191,7 +191,7 @@ Vue.component("aws-config-modal", {
                     <button type="button" class="btn btn-primary" data-dismiss="modal" v-on:click="addConfig" id="disableConfigButton">Add</button>\
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\
                 </div>\
-            </form></div></div>',
+            </form></div></div></div>',
     props: ["options", "id"],
     data: function() {
         return {
@@ -399,7 +399,7 @@ Vue.component('remaining-capacity', {
     computed: {
         marginStyle:function() {
             return this.inadvanced ? 'margin-top:-15px;' : 'margin-top:-30px;'
-            
+
         }
     }
 });
