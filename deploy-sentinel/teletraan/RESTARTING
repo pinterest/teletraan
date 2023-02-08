@@ -4,5 +4,5 @@ set -e
 
 echo Running RESTARTING script.
 
-# Start service
-python ../mysite/manage.py runserver 0.0.0.0:8000 &
+telefig-version=1.5.62
+apt-get install telefig-pex=$telefig-version

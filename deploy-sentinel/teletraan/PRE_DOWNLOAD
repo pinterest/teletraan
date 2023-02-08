@@ -11,8 +11,4 @@ else
   rm -r $FILE
 fi
 
-# Delete running processes on port 8000
-PORT_NUMBER=8000
-lsof -i tcp:${PORT_NUMBER} | awk 'NR!=1 {print $2}' | xargs kill
-
 exit 0

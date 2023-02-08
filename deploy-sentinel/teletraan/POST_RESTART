@@ -18,3 +18,5 @@ echo $BUILD_REPO
 echo $BUILD_BRANCH
 echo $BUILD_ID
 echo $BUILD_URL
+
+dpkg -l | fgrep telefig
