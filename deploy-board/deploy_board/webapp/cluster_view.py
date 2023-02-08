@@ -504,6 +504,7 @@ def create_host_type(request):
     params = request.POST
     host_type_info = {}
     host_type_info['arch_name'] = params['archName']
+    host_type_info['network'] = params['network']
     host_type_info['abstract_name'] = params['abstractName']
     host_type_info['provider_name'] = params['providerName']
     host_type_info['provider'] = params['provider']
