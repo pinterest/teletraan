@@ -330,7 +330,7 @@ if IS_PINTEREST:
     DEFAULT_CMP_ARM_IMAGE = 'cmp_base_arm64'
 
     #Pinterest Default setting whether to use launch template or not
-    DEFAULT_USE_LAUNCH_TEMPLATE = False
+    DEFAULT_USE_LAUNCH_TEMPLATE = True
 
     #Pinterest Default Host Type
     # TODO: This is a description of the host type but is nonunique. However, it cannot be replaced by host_type ID since it is unique per service database.
