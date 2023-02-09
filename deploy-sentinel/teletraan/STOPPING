@@ -1,5 +1,5 @@
 #!/bin/bash
 
-sleep 5m
+sleep 15m
 
 echo Running STOPPING script.
