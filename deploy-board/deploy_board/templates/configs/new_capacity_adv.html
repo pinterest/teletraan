@@ -626,6 +626,8 @@ var capacitySetting = new Vue({
 $(document).ready(function () {
     $('.single-select-search').chosen({
         "width": "100%"
+    }).change(function() {
+        capacitySetting.selectedHostTypeValue = $('.single-select-search').val()
     });
 
     $(".chosen-select").chosen({ "width": "100%" })
