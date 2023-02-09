@@ -61,8 +61,8 @@ def get_all_with_acceptance(request, index, size):
             key = (name, cell) 
             if key not in golden:
                 golden_image = get_current_golden_image(request, name, cell)
-                golden[key] = golden_image['provider_name'] if golden_image else None
-            if img['provider_name'] == golden[key]:
+                golden[key] = golden_image['id'] if golden_image else None
+            if img['id'] == golden[key]:
                 img['tag'] = 'current_golden'
 
     return base_images
