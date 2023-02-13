@@ -810,14 +810,23 @@ def clone_cluster(request, src_name, src_stage):
     except NotAuthorizedException as e:
         log.error("Have an NotAuthorizedException error {}".format(e))
         if external_id is not None:
-            environs_helper.delete_nimbus_identifier(request, external_id)
+            try:
+                environs_helper.delete_nimbus_identifier(request, external_id)
+            except TeletraanException as detail:
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                log.error(message)
 
         return HttpResponse(e, status=403, content_type="application/json")
     except Exception as e:
         log.error("Failed to clone cluster env_name: %s, stage_name: %s" % (src_name, src_stage))
         log.error(traceback.format_exc())
         if external_id is not None:
-            environs_helper.delete_nimbus_identifier(request, external_id)
+            try:
+                environs_helper.delete_nimbus_identifier(request, external_id)
+            except TeletraanException as detail:
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                log.error(message)
+                
         return HttpResponse(e, status=500, content_type="application/json")
 
 
