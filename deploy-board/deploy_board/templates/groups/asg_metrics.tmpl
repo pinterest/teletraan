@@ -9,16 +9,16 @@
             </a>
         </h4>
         <div>
-            <button id="deleteItem_{{alarm.alarmId}}" type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
+            <button id="deleteItem_{{ alarm.alarmId }}" type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
         </div>
     </div>
     <div class="container-fluid">
         <form id="asMetricsIdFormId" class="form-horizontal" role="form">
             <fieldset id="envConfigFieldSetId">
                 <div class="form-group">
-                    <input type="hidden" name="TELETRAAN_{{ alarm.alarmId }}" value="TELETRAAN_{{alarm.alarmId }}">
-                    <input type="hidden" name="actionType_{{ alarm.alarmId }}" value="{{alarm.actionType}}">
-                    <input type="hidden" name="fromAwsMetric_{{ alarm.alarmId }}" value="{{ alarm.fromAwsMetric }}">
+                    <input type="hidden" name="TELETRAAN_{{ alarm.alarmId }}" value="TELETRAAN_{{ alarm.alarmId }}"/>
+                    <input type="hidden" name="actionType_{{ alarm.alarmId }}" value="{{ alarm.actionType }}"/>
+                    <input type="hidden" name="fromAwsMetric_{{ alarm.alarmId }}" value="{{ alarm.fromAwsMetric }}"/>
                     <label for="scaleUpSize" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="">
@@ -44,16 +44,16 @@
                     <select class="form-control" name="comparator_{{ alarm.alarmId }}">
                         {% for item in comparators %}
                             {% if alarm.comparator == item %}
-                               <option value="{{item}}" selected="selected">{{item|itemToComparator}}</option>
+                               <option value="{{ item }}" selected="selected">{{ item|itemToComparator }}</option>
                             {% else %}
-                               <option value="{{item}}">{{item|itemToComparator}}</option>
+                               <option value="{{ item }}">{{ item|itemToComparator }}</option>
                             {% endif %}
                         {% endfor %}
                         </select>
                     </div>
                     <div class="col-xs-3">
                     <input class="form-control" name="threshold_{{ alarm.alarmId }}" required="true"
-                               type="text" value="{{alarm.threshold }}"/>
+                               type="text" value="{{ alarm.threshold }}"/>
                     </div>
                     <label class="deployToolTip control-label col-xs-1">
                      for
@@ -61,7 +61,7 @@
                     <div class="col-xs-2">
                     <div class="input-group">
                         <input class="form-control" name="evaluateTime_{{ alarm.alarmId }}" required="true"
-                               type="text" value="{{alarm.evaluationTime }}"/>
+                               type="text" value="{{ alarm.evaluationTime }}"/>
 
                         <span class="input-group-addon">minutes</span>
                     </div>
@@ -197,7 +197,7 @@ $(function() {
      aria-labelledby="newEntryModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form id="{{ 'newEntryFormId' }}" class="form-horizontal" method="post" role="form"  action="/groups/{{group_name}}/autoscaling/add_metrics/">
+            <form id="{{ 'newEntryFormId' }}" class="form-horizontal" method="post" role="form"  action="/groups/{{ group_name }}/autoscaling/add_metrics/">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span
                             aria-hidden="true">&times;</span><span class="sr-only">Close</span>
@@ -210,7 +210,7 @@ $(function() {
                         <label for="asgActionType" class="deployToolTip control-label col-xs-2">
                             Action:
                         </label>
-                        <div class ="col-md-4">
+                        <div class="col-md-4">
                             <select class="form-control" name="asgActionType">
                                 <option value="grow">Scale Up</option>
                                 <option value="shrink">Scale Down</option>
@@ -242,8 +242,8 @@ $(function() {
                             title="You can provide a custom metric from OpenTSDB, e.g. avg:stats.gauges.deployagenttest.metric">
                             Custom Metric:
                         </label>
-                        <div class ="col-md-8">
-                            <input type="checkbox" class="checkToCustomize" name="customUrlCheckbox"> Check to create custom metric URL
+                        <div class="col-md-8">
+                            <input type="checkbox" class="checkToCustomize" name="customUrlCheckbox" /> Check to create custom metric URL
                             <div class="createUrl">
                                 <div class="input-group">
                                     <input class="form-control" name="metricUrl" size="66" type="text" value=""/>
@@ -259,7 +259,7 @@ $(function() {
                         <div class="col-xs-2">
                             <select class="form-control" name="comparators">
                             {% for item in comparators %}
-                                   <option value={{item}}>{{item|itemToComparator}}</option>
+                                   <option value={{ item }}>{{ item|itemToComparator }}</option>
                             {% endfor %}
                             </select>
                         </div>
