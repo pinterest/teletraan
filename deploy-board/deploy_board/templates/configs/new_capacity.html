@@ -199,7 +199,6 @@ var capacitySetting = new Vue({
             clusterInfo['capacity'] = Number(this.instanceCount);
             clusterInfo['archName'] = capacityCreationInfo['defaultArch'];
             clusterInfo['baseImageId'] = this.baseImageValue;
-            clusterInfo['useLaunchTemplate'] = capacityCreationInfo['defaultUseLaunchTemplate'];
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             if (this.selectedPlacements != null){
