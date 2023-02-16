@@ -516,7 +516,7 @@ def _parse_metrics_configs(query_data, group_name):
 
 
 def get_alarms(request, group_name):
-    operators = autoscaling_groups_helper.Comparator
+    comparators = autoscaling_groups_helper.Comparator
     alarms = autoscaling_groups_helper.get_alarms(request, group_name)
     aws_metric_names = autoscaling_groups_helper.get_system_metrics(request, group_name)
     content = render_to_string("groups/asg_metrics.tmpl", {
@@ -524,9 +524,9 @@ def get_alarms(request, group_name):
         "alarms": alarms,
         "aws_metric_names": aws_metric_names,
         "csrf_token": get_token(request),
-        "comparators": operators,
+        "comparators": json.dumps(comparators),
     })
-    return HttpResponse(json.dumps(content), content_type="application/json")
+    return HttpResponse(content)
 
 
 def update_alarms(request, group_name):
@@ -534,9 +534,9 @@ def update_alarms(request, group_name):
         configs = _parse_metrics_configs(request.POST, group_name)
         autoscaling_groups_helper.update_alarms(request, group_name, configs)
         return get_alarms(request, group_name)
-    except:
-        log.error(traceback.format_exc())
-        return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
+    except Exception as ex:
+        log.exception(ex)
+        return HttpResponse(json.dumps({'success': False, 'error': str(ex)}), content_type="application/json")
 
 
 def delete_alarms(request, group_name):
