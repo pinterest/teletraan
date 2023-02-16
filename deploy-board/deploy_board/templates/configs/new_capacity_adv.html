@@ -42,7 +42,7 @@
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="archValue"></arch-select>
                     <baseimage-select v-model="pinImage" :image-names="imageNames" :base-images="baseImages"
-                        :selected-image-name="imageNameValue" :selected-base-image="baseImageValue" :pin-image-enabled="pinImageEnabled"
+                        :selected-image-name="imageNameValue" :selected-base-image="baseImageValue" :pin-image-enabled="pinImageEnabled" :show-pin-image="showPinImage"
                         @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
@@ -92,7 +92,8 @@ var capacityView = new Vue({
  }
 )
 
-var info = {{capacity_creation_info|safe}}
+var info = {{capacity_creation_info|safe}};
+var enable_ami_auto_update = info.enable_ami_auto_update;
 var environment = info.environment;
 
 var placements = getDefaultPlacement(info);
@@ -118,7 +119,8 @@ var capacitySetting = new Vue({
         baseImageHelpData: [],
         baseImages: mapBaseImagesToOptions(baseImagesSorted),
         baseImageValue: defaultImageId,
-        pinImage: goldenImage == null,
+        showPinImage: enable_ami_auto_update,
+        pinImage: enable_ami_auto_update ? goldenImage == null : true,
         pinImageEnabled: isPinImageEnabled(info.defaultBaseImage),
         configOptions: Object.keys(info.configList).map(
             function (key) {
