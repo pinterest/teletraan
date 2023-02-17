@@ -3,7 +3,7 @@
 <div id="asMetricsId" class="collapse in panel-body">
 <script>
 var ALARM_WARNING_THRESHOLD = 70;
-var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD} is not recommended. Please carefully evaluate this configuration.`;
+var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recommended only for applications that are less latency sensitive. Load testing to determine an appropriate threshold is strongly encouraged.`;
 </script>
 {% for alarm in alarms %}
     <div class="panel-heading clearfix">
