@@ -11,7 +11,7 @@
                         <textarea class="form-control" name="TELETRAAN_{{ key }}"
                         rows="1" style="resize: none;"
                         >{{ value|default_if_none:'' }}</textarea>
-                        <p class="lineTooLong" {% if value|length < 256 %}hidden{% endif %}>Value too long > 256, we sugguest breaking it into multiple key-value paris.</p>
+                        <p class="lineTooLong" {% if value|length < 256 %}hidden{% endif %}>Value too long > 256, we sugguest breaking it into multiple key-value pairs.</p>
                     </div>
                     <div class="col-xs-3">
                         <button type="button" class="delete_button btn btn-default">Delete</button>
