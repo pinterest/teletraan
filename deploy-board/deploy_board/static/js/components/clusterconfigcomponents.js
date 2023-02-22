@@ -13,7 +13,7 @@ Vue.component('cloudprovider-select', {
 Vue.component('cell-select', {
     template: '<div>\
   <label-select label="Cell" title="Cell" \
-  v-bind:value="value" v-bind:selectoptions="cells" v-on:input="updateCellValue" v-on:input="updateValue(value)"></label-select></div>',
+  v-bind:value="value" v-bind:selectoptions="cells" v-on:input="updateCellValue"></label-select></div>',
     props: ['cells', 'value'],
     methods: {
         updateValue: function (value) {
@@ -21,7 +21,6 @@ Vue.component('cell-select', {
         },
         updateCellValue: function(value) {
             this.$emit('cellchange', value);
-            this.$emit('imagenamechange', value)
         }
     }
 });
@@ -29,7 +28,7 @@ Vue.component('cell-select', {
 Vue.component('arch-select', {
     template: '<div>\
   <label-select label="Arch" title="Arch" \
-  v-bind:value="value" v-bind:selectoptions="arches" v-on:input="updateArchValue" v-on:input="updateValue(value)"></label-select></div>',
+  v-bind:value="value" v-bind:selectoptions="arches" v-on:input="updateArchValue"></label-select></div>',
     props: ['arches', 'value'],
     methods: {
         updateValue: function (value) {
@@ -37,30 +36,71 @@ Vue.component('arch-select', {
         },
         updateArchValue: function(value) {
             this.$emit('archchange', value);
-            this.$emit('imagenamechange', value)
         }
     }
 });
 
-
-
 Vue.component('baseimage-select', {
-    template: '<div class="form-group">\
-<label-select small="true" showhelp="true" label="Image Name" title="Image Name" v-bind:value="imagenamevalue" v-bind:selectoptions="imagenames"  \
- v-bind:selected="imagenamevalue" v-on:input="updateImageName" v-show="inadvanced" v-on:helpclick="helpClick"> </label-select>\
-<label-select small="true"  showhelp="true" label="Image" title="Base Image" v-bind:value="baseimagevalue"\
-    v-bind:selectoptions="baseimages" v-on:input="updateBaseImage" v-bind:selected="baseimagevalue" v-on:helpclick="helpClick"></label-select>\
-</div>',
-    props: ['imagenames', 'baseimages', 'imagenamevalue', 'baseimagevalue', 'inadvanced'],
+    template: `
+    <div>
+        <div class="form-group">
+            <label-select2 col-class="col-xs-3" show-help="true" label="Image Name" title="Abstract Name"
+                :options="imageNames" :selected="selectedImageName"
+                @input="$emit('image-name-change', $event)" @help-clicked="helpClick">
+            </label-select2>
+            <label-select2 col-class="col-xs-3" show-help="true" label="Image" title="Provider Name"
+                :disabled="!pinImage" :options="baseImages" :selected="selectedBaseImage"
+                @input="$emit('base-image-change', $event)" @help-clicked="helpClick">
+            </label-select2>
+            <div v-show="showPinImage" class="col-xs-2">
+                <base-checkbox :checked="pinImage" :enabled="pinImageEnabled"
+                    @input="pinImageClick"></base-checkbox>
+                <label for='pinImageCB'>Pin Image</label>
+            </div>
+        </div>
+        <form-warning v-show="showWarning" :alert-text="warningText"></form-warning>
+    </div>`,
+    model: {
+        prop: 'pinImage',
+    },
+    data: function() {
+        return {
+            showWarning: false,
+            warningText: '',
+        }
+    },
+    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled', 'showPinImage'],
     methods: {
-        updateBaseImage: function (value) {
-            this.$emit('baseimagechange', value)
+        helpClick: function () {
+            this.$emit('help-clicked')
         },
-        updateImageName: function (value) {
-            this.$emit('imagenamechange', value)
+        tryShowWarning: function (baseImageId, pinImage) {
+            if (!pinImage) {
+                this.showWarning = false;
+            } else {
+                const ONE_DAY = 1000 * 60 * 60 * 24;
+                let baseImage = this.baseImages.find(i => i.value == baseImageId);
+                let age = Math.round((Date.now() - new Date(baseImage.publishDate)) / ONE_DAY);
+                if (age > 180) {
+                    this.warningText = `The base image configured is over 180 days old (${age} days). Please consider update or opt-in Auto Update (Unpin image).`;
+                    this.showWarning = true;
+                } else {
+                    this.showWarning = false;
+                }
+            }
         },
-        helpClick: function (value) {
-            this.$emit('helpclick')
+        pinImageClick: function(pin) {
+            this.$emit('input', pin);
+            if (pin) {
+                this.tryShowWarning(this.selectedBaseImage, pin);
+            } else {
+                this.showWarning = false;
+            }
+        }
+    },
+    watch: {
+        selectedBaseImage: function(baseImageId) {
+            this.tryShowWarning(baseImageId, this.pinImage);
         }
     }
 });
@@ -72,7 +112,7 @@ Vue.component('base-image-help', {
         return {
             baseImageHelpHeaders: [{ name: 'Publish Date', headerClass: 'col-sm-2' },
             { name: 'Name', headerClass: 'col-sm-1' },
-            { name: 'Id', headerClass: 'col-sm-1' },
+            { name: 'Image', headerClass: 'col-sm-1' },
             { name: 'Qualified', headerClass: 'col-sm-1' },
             { name: 'Description', headerClass: 'col-sm-4' },
             { name: 'Acceptance', headerClass: 'col-sm-4' }],
@@ -433,7 +473,6 @@ Vue.component('remaining-capacity', {
     computed: {
         marginStyle:function() {
             return this.inadvanced ? 'margin-top:-15px;' : 'margin-top:-30px;'
-
         }
     }
 });

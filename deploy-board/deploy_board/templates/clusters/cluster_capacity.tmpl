@@ -7,10 +7,10 @@
                     <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
                     <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
                     <static-capacity-config v-if="!autoscalingEnabled"
-                        :original-capacity="cluster.capacity" @change="desiredCapacity = $event"
+                        :original-capacity="originalCapacity" @change="desiredCapacity = $event"
                         :remaining-capacity="remainingCapacity" :placements="placements">
                     </static-capacity-config>
-                    <asg-capacity-config v-if="autoscalingEnabled" :current-size="cluster.capacity"
+                    <asg-capacity-config v-if="autoscalingEnabled" :current-size="originalCapacity"
                         :original-min-size="asg_launch_info.minSize" @min-change="minsize = $event"
                         :original-max-size="asg_launch_info.maxSize" @max-change="maxsize = $event"
                         :remaining-capacity="remainingCapacity" :placements="placements">
@@ -68,6 +68,7 @@
                 sizeWarning: "",
                 remainingCapacity: info.placements != null ?  info.placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
                 placements: info.placements,
+                originalCapacity: cluster.capacity,
             },
             methods:{
                 clickDialog: function(value){

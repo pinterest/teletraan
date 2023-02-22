@@ -23,7 +23,8 @@ from deploy_board.settings import IS_PINTEREST
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
-        DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST
+        DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST, \
+        ENABLE_AMI_AUTO_UPDATE
 
 import json
 import logging
@@ -70,12 +71,13 @@ class EnvCapacityBasicCreateView(View):
             'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'access_role_list': ACCESS_ROLE_LIST,
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
         }
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
             'env': env,
             'default_cmp_image': DEFAULT_CMP_IMAGE,
-            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE,
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'capacity_creation_info': json.dumps(capacity_creation_info)})
@@ -161,7 +163,8 @@ class EnvCapacityAdvCreateView(View):
             'defaultUseLaunchTemplate': DEFAULT_USE_LAUNCH_TEMPLATE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
-            'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE)
+            'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
         }
         # cluster manager
         return render(request, 'configs/new_capacity_adv.html', {
@@ -255,14 +258,15 @@ class ClusterConfigurationView(View):
             'providerList': provider_list,
             'readonlyFields': TELETRAAN_CLUSTER_READONLY_FIELDS,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
-            'currentCluster': current_cluster
+            'currentCluster': current_cluster,
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
         }
 
         return render(request, 'clusters/cluster_configuration.html', {
             'env': env,
             'capacity_creation_info': json.dumps(capacity_creation_info),
             'default_cmp_image': DEFAULT_CMP_IMAGE,
-            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE, 
+            'default_cmp_arm_image': DEFAULT_CMP_ARM_IMAGE,
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
@@ -374,6 +378,7 @@ def get_base_images(request):
     arches_list = arches_helper.get_all(request)
 
     return render(request, 'clusters/base_images.html', {
+        'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
         'base_images': base_images,
         'provider_list': provider_list,
         'cells_list': cells_list,
@@ -386,7 +391,7 @@ def get_base_images(request):
 
 
 def get_base_image_events(request, image_id):
-    base_images_events = baseimages_helper.get_image_events_by_newId_with_result(
+    base_images_events = baseimages_helper.get_image_update_events_by_new_id(
         request, image_id)
 
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
@@ -479,8 +484,12 @@ def get_base_images_by_name(request):
 
 def get_base_image_info_by_name(request, name, cell):
     if name.startswith('cmp_base'):
-        base_images = baseimages_helper.get_acceptance_by_name(request, name, cell)
         with_acceptance_rs = []
+        base_images = baseimages_helper.get_acceptance_by_name(request, name, cell)
+        golden_image = baseimages_helper.get_current_golden_image(request, name, cell)
+        if golden_image:
+            golden_image['golden'] = True
+            base_images.append({'baseImage': golden_image})
         if base_images:
             for image in base_images:
                 r = image.get('baseImage')
@@ -1106,3 +1115,26 @@ class ClusterHistoriesView(View):
             "replace_summaries": replace_summaries
         }
         return render(request, 'clusters/replace_histories.html', data)
+
+
+class ClusterBaseImageHistoryView(View):
+
+    def get(self, request, name, stage):
+        env = environs_helper.get_env_by_stage(request, name, stage)
+        cluster_name = '{}-{}'.format(name, stage)
+        current_cluster = clusters_helper.get_cluster(request, cluster_name)
+        current_image = baseimages_helper.get_by_id(request, current_cluster['baseImageId'])
+        golden_image = baseimages_helper.get_current_golden_image(
+            request, current_image['abstract_name'], current_cluster['cellName'])
+
+        base_images_update_events = baseimages_helper.get_image_update_events_by_cluster(
+            request, cluster_name)
+
+        data = {
+            "env": env,
+            "current_image": current_image,
+            "golden_image": golden_image,
+            "base_images_events": base_images_update_events,
+        }
+
+        return render(request, 'clusters/base_image_history.html', data)
