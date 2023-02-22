@@ -522,7 +522,7 @@ def get_alarms(request, group_name):
     content = render_to_string("groups/asg_metrics.tmpl", {
         "group_name": group_name,
         "alarms": alarms,
-        "aws_metric_names": aws_metric_names,
+        "aws_metric_names": json.dumps(aws_metric_names),
         "csrf_token": get_token(request),
         "comparators": json.dumps(comparators),
     })
