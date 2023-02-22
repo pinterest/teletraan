@@ -30,7 +30,6 @@
 
 {% if not is_cmp %}
 <div id="launchConfigPid" class="panel panel-default">
-{% include "groups/launch_config.tmpl" with config=asg_vm_config  %}
 </div>
 {% endif %}
 
@@ -42,19 +41,17 @@
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}"></script>
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}"></script>
 <div id="asgConfigPid" class="panel panel-default">
-{% include "groups/asg_config.tmpl" %}
 </div>
 {% endif %}
 <script>
-$(function() {
-    $.get('/groups/{{ group_name }}/autoscaling/get_launch_config/', function(response){
-        $('#launchConfigPid').html(response);
-    });
+    $(function() {
+        $.get('/groups/{{ group_name }}/autoscaling/get_launch_config/', function(response){
+            $('#launchConfigPid').html(response);
+        });
 
-    $.get('/groups/{{ group_name }}/autoscaling/get_asg_config/', function(response) {
-        $('#asgConfigPid').html(response);
+        $.get('/groups/{{ group_name }}/autoscaling/get_asg_config/', function(response) {
+            $('#asgConfigPid').html(response);
+        });
     });
-});
-
 </script>
 {% endblock %}
