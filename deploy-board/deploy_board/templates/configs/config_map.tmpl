@@ -110,7 +110,7 @@
             if (currentVal.match(/[\r\n\v]+/g)) {
                 $(this).val(currentVal.replace(/[\r\n\v]+/g, ' '));
                 globalNotificationBanner.warning =
-                    "Multi-line (\\r\\n) is not allowed in script config and thus replaced by SPACE. Also note that line warping is enabled.";
+                    "Multi-line (\\r\\n) is not allowed in script config and thus replaced by SPACE. Also note that line wrapping is enabled.";
             }
 
             const lineTooLong = $(this).siblings(".lineTooLong");
