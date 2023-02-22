@@ -430,6 +430,7 @@
 </script>
 <script>
     var info = {{capacity_creation_info | safe}};
+    var enable_ami_auto_update = info.enable_ami_auto_update;
     var env = info.environment;
     var currentCluster = info.currentCluster;
     console.log('currentCluster:', currentCluster);
