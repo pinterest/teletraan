@@ -1,6 +1,10 @@
 {% load utils %}
 {% include "panel_heading.tmpl" with panel_title="Scaling Alarms" panel_body_id="asMetricsId" direction="down" %}
 <div id="asMetricsId" class="collapse in panel-body">
+<script>
+var ALARM_WARNING_THRESHOLD = 70;
+var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recommended only for applications that are less latency sensitive. Load testing to determine an appropriate threshold is strongly encouraged.`;
+</script>
 {% for alarm in alarms %}
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left pointer-cursor">
@@ -9,16 +13,16 @@
             </a>
         </h4>
         <div>
-            <button id="deleteItem_{{alarm.alarmId}}" type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
+            <button id="deleteItem_{{ alarm.alarmId }}" type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
         </div>
     </div>
-    <div class="container-fluid">
+    <div class="container-fluid" id="alarm_{{ alarm.alarmId }}" >
         <form id="asMetricsIdFormId" class="form-horizontal" role="form">
             <fieldset id="envConfigFieldSetId">
                 <div class="form-group">
-                    <input type="hidden" name="TELETRAAN_{{ alarm.alarmId }}" value="TELETRAAN_{{alarm.alarmId }}">
-                    <input type="hidden" name="actionType_{{ alarm.alarmId }}" value="{{alarm.actionType}}">
-                    <input type="hidden" name="fromAwsMetric_{{ alarm.alarmId }}" value="{{ alarm.fromAwsMetric }}">
+                    <input type="hidden" name="TELETRAAN_{{ alarm.alarmId }}" value="TELETRAAN_{{ alarm.alarmId }}"/>
+                    <input type="hidden" name="actionType_{{ alarm.alarmId }}" value="{{ alarm.actionType }}"/>
+                    <input type="hidden" name="fromAwsMetric_{{ alarm.alarmId }}" value="{{ alarm.fromAwsMetric }}"/>
                     <label for="scaleUpSize" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="">
@@ -30,7 +34,7 @@
                     </label>
                     <div class="col-xs-10">
                     <input class="form-control" name="metricsUrl_{{ alarm.alarmId }}" required="true"
-                               type="text" value="{{ alarm.metricSource }}"/>
+                               type="text" v-model="metrics"/>
 
                     </div>
                 </div>
@@ -41,19 +45,13 @@
                     </label>
 
                     <div class="col-xs-1">
-                    <select class="form-control" name="comparator_{{ alarm.alarmId }}">
-                        {% for item in comparators %}
-                            {% if alarm.comparator == item %}
-                               <option value="{{item}}" selected="selected">{{item|itemToComparator}}</option>
-                            {% else %}
-                               <option value="{{item}}">{{item|itemToComparator}}</option>
-                            {% endif %}
-                        {% endfor %}
+                        <select class="form-control" name="comparator_{{ alarm.alarmId }}" v-model="comparator" @change="showWarningIfNeeded">
+                            <option v-for="cmp in comparators" :value="cmp.value">[[ cmp.symbol ]]</option>
                         </select>
                     </div>
                     <div class="col-xs-3">
-                    <input class="form-control" name="threshold_{{ alarm.alarmId }}" required="true"
-                               type="text" value="{{alarm.threshold }}"/>
+                    <input class="form-control" name="threshold_{{ alarm.alarmId }}" required="true" @change="showWarningIfNeeded"
+                               type="text" v-model="threshold"/>
                     </div>
                     <label class="deployToolTip control-label col-xs-1">
                      for
@@ -61,7 +59,7 @@
                     <div class="col-xs-2">
                     <div class="input-group">
                         <input class="form-control" name="evaluateTime_{{ alarm.alarmId }}" required="true"
-                               type="text" value="{{alarm.evaluationTime }}"/>
+                               type="text" value="{{ alarm.evaluationTime }}"/>
 
                         <span class="input-group-addon">minutes</span>
                     </div>
@@ -70,6 +68,7 @@
                      Then {{ alarm.actionType | actionTypeTitle }} the group
                     </label>
                 </div>
+                <form-warning v-show="showWarning" :alert-text="warning"></form-warning>
             </fieldset>
             {% csrf_token %}
         </form>
@@ -94,6 +93,30 @@ $(function() {
                 });
     });
 });
+
+let alarmVue = new Vue({
+    el: "#alarm_{{ alarm.alarmId }}",
+    delimiters: ['[[', ']]'],
+    data: {
+        comparators: {{ comparators|safe }},
+        comparator: "{{ alarm.comparator }}",
+        metrics: "{{ alarm.metricSource }}",
+        showWarning: false,
+        warning: ALARM_WARNING_TEXT,
+        threshold: {{ alarm.threshold }},
+    },
+    methods: {
+        showWarningIfNeeded: function() {
+            if (this.metrics == "CPUUtilization"  && this.threshold > ALARM_WARNING_THRESHOLD
+                && (this.comparator == "GreaterThanOrEqualToThreshold" || this.comparator == "GreaterThanThreshold")) {
+                this.showWarning = true;
+            } else {
+                this.showWarning = false;
+            }
+        },
+    },
+});
+
 </script>
 {% endfor %}
 </div>
@@ -148,7 +171,6 @@ $(function() {
                 type: 'POST',
                 url: '/groups/{{ group_name }}/autoscaling/update_metrics/',
                 data: $(':input').serializeArray(),
-                dataType: 'json',
                 beforeSend: function () {
                     btn.button('loading');
                 },
@@ -187,30 +209,50 @@ $(function() {
 </script>
 
 <script>
-   $('input.checkToCustomize').change(function(){
-        if ($(this).is(':checked')) $(this).next('div.createUrl').show();
-        else $('div.createUrl').hide();
-    }).change();
-</script>
+    const comparatorsOptions = {{ comparators|safe }};
 
-<div class="modal fade" id="newEntryModalId" tabindex="-1" role="dialog"
-     aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    let newMetricsVue = new Vue({
+        el: "#newEntryModalId",
+        delimiters: ['[[', ']]'],
+        data: {
+            comparators: comparatorsOptions,
+            comparator: comparatorsOptions[0].value,
+            awsMetricNames: {{ aws_metric_names|safe }},
+            metrics: "",
+            showWarning: false,
+            warning: ALARM_WARNING_TEXT,
+            threshold: "",
+            useCustomMetric: false,
+        },
+        methods: {
+            showWarningIfNeeded: function() {
+                if (this.metrics == "CPUUtilization"  && this.threshold > ALARM_WARNING_THRESHOLD && !this.useCustomMetric
+                    && (this.comparator == "GreaterThanOrEqualToThreshold" || this.comparator == "GreaterThanThreshold")) {
+                    this.showWarning = true;
+                } else {
+                    this.showWarning = false;
+                }
+            },
+        },
+    });
+ </script>
+
+<div class="modal fade" id="newEntryModalId" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form id="{{ 'newEntryFormId' }}" class="form-horizontal" method="post" role="form"  action="/groups/{{group_name}}/autoscaling/add_metrics/">
+            <form id="newEntryFormId" class="form-horizontal" method="post" role="form" action="/groups/{{ group_name }}/autoscaling/add_metrics/">
                 <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal"><span
-                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span>
                     </button>
                     <h4 class="modal-title" id="newEnvModalLabel">Add new autoscaling alarm</h4>
                 </div>
                 <div class="modal-body" id="newMetricModal">
-
                     <div class="form-group">
                         <label for="asgActionType" class="deployToolTip control-label col-xs-2">
                             Action:
                         </label>
-                        <div class ="col-md-4">
+                        <div class="col-md-4">
                             <select class="form-control" name="asgActionType">
                                 <option value="grow">Scale Up</option>
                                 <option value="shrink">Scale Down</option>
@@ -219,20 +261,14 @@ $(function() {
                     </div>
 
                     <div class="form-group">
-                        <label for="awsMetrics" class="deployToolTip control-label col-xs-2"
-                            data-toggle="tooltip"
+                        <label for="awsMetrics" class="deployToolTip control-label col-xs-2" data-toggle="tooltip"
                             title="Select an Amazon CloudWatch metric">
                             AWS Metric:
                         </label>
                         <div class="col-md-7">
-                            <select class="form-control" name="awsMetrics">
-                                <option disabled selected>Select an AWS CloudWatch Metric</option>
-                                {% if aws_metric_names == "" %}
-                                <option value="" selected="selected"></option>
-                                {% endif %}
-                                {% for metric_name in aws_metric_names %}
-                                    <option value={{ metric_name }}>{{ metric_name }}</option>
-                                {% endfor %}
+                            <select class="form-control" name="awsMetrics" v-model="metrics" @change="showWarningIfNeeded">
+                                <option disabled value="">Select an AWS CloudWatch Metric</option>
+                                <option v-for="option in awsMetricNames" :value="option">[[ option ]]</option>
                             </select>
                         </div>
                     </div>
@@ -242,42 +278,39 @@ $(function() {
                             title="You can provide a custom metric from OpenTSDB, e.g. avg:stats.gauges.deployagenttest.metric">
                             Custom Metric:
                         </label>
-                        <div class ="col-md-8">
-                            <input type="checkbox" class="checkToCustomize" name="customUrlCheckbox"> Check to create custom metric URL
-                            <div class="createUrl">
+                        <div class="col-md-8">
+                            <input type="checkbox" name="customUrlCheckbox" v-model="useCustomMetric" />
+                            Check to create custom metric URL
+                            <div v-show="useCustomMetric">
                                 <div class="input-group">
-                                    <input class="form-control" name="metricUrl" size="66" type="text" value=""/>
+                                    <input class="form-control" name="metricUrl" size="66" type="text" value="" />
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="form-group">
                         <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
-                        When the metric:
+                            When the metric:
                         </label>
 
                         <div class="col-xs-2">
-                            <select class="form-control" name="comparators">
-                            {% for item in comparators %}
-                                   <option value={{item}}>{{item|itemToComparator}}</option>
-                            {% endfor %}
+                            <select class="form-control" name="comparators" v-model="comparator" @change="showWarningIfNeeded">
+                                <option v-for="cmp in comparators" :value="cmp.value">[[ cmp.symbol ]]</option>
                             </select>
                         </div>
                         <div class="col-xs-2">
-                            <input class="form-control" name="threshold" required="true"
-                                   type="text" value=""/>
+                            <input class="form-control" v-model="threshold" @change="showWarningIfNeeded" name="threshold" required="true" type="text" />
+                        </div>
+                        <label class="deployToolTip control-label text-center col-xs-1">for</label>
+                        <div class="col-xs-2">
+                            <input class="form-control" name="evaluate_time" required="true" type="text" value="" />
                         </div>
                         <label class="deployToolTip control-label text-center col-xs-1">
-                         for
-                        </label>
-                        <div class="col-xs-2">
-                        <input class="form-control" name="evaluate_time" required="true"
-                                   type="text" value=""/>
-                        </div>
-                          <label class="deployToolTip control-label text-center col-xs-1">
-                                minutes.
+                            minutes.
                         </label>
                     </div>
+                    <form-warning v-show="showWarning" :alert-text="warning"></form-warning>
                 </div>
                 <div class="modal-footer">
                     <button id="addMetricBtnId" type="submit" class="btn btn-primary">Add</button>
