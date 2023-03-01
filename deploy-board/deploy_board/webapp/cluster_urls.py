@@ -22,7 +22,7 @@ urlpatterns = [
     url(r'^clouds/baseimages/$', cluster_view.get_base_images),
     url(r'^clouds/baseimages/(?P<abstract_name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_images_by_abstract_name),
     url(r'^clouds/baseimages/events/(?P<image_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_image_events),
-    url(r'^clouds/baseimages/events/(?P<ami_name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_image_events_by_ami_name),
+    url(r'^clouds/baseimages/events/(?P<provider_name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_image_events_by_provider_name),
     url(r'^clouds/get_image_names/$', cluster_view.get_image_names),
     url(r'^clouds/image_names/(?P<provider>[a-zA-Z0-9\-_\.]+)/(?P<cell>[a-zA-Z0-9\-_\.]+)/$',
         cluster_view.get_image_names_by_provider_and_cell),

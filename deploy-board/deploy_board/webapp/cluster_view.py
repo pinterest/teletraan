@@ -439,8 +439,8 @@ def get_base_image_events(request, image_id):
     })
 
 
-def get_base_image_events_by_ami_name(request, ami_name):
-    base_image = baseimages_helper.get_by_provider_name(request, ami_name)
+def get_base_image_events_by_provider_name(request, provider_name):
+    base_image = baseimages_helper.get_by_provider_name(request, provider_name)
     return get_base_image_events(request, base_image["id"])
 
 
