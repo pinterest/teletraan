@@ -286,7 +286,8 @@ class ClusterConfigurationView(View):
                 for field in TELETRAAN_CLUSTER_READONLY_FIELDS:
                     if field in current_cluster['configs'] and field in cluster_info['configs']:
                         if current_cluster['configs'][field] != cluster_info['configs'][field]:
-                            log.error("Teletraan does not support user to update %s %s" % (field, cluster_info['spiffe_id']))
+                            log.error("Teletraan does not support user to update %s %s" %
+                                      (field, cluster_info['spiffe_id']))
                             raise TeletraanException("Teletraan does not support user to update %s" % field)
 
                     if field in current_cluster['configs'] and field not in cluster_info['configs']:
@@ -390,6 +391,34 @@ def get_base_images(request):
     })
 
 
+def get_base_images_by_abstract_name(request, abstract_name):
+    base_images = baseimages_helper.get_by_name(request, abstract_name, None)
+    provider_list = baseimages_helper.get_all_providers(request)
+    cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
+    arches_list = arches_helper.get_all(request)
+    golden_images = {}
+    for cell in cells_list:
+        cell_name = cell['name']
+        golden_images[cell_name] = baseimages_helper.get_current_golden_image(request, abstract_name, cell_name)
+
+    # add golden tag to images 
+    for image in base_images:
+        if image['id'] == golden_images[image['cell_name']]['id']:
+            image['tag'] = 'current_golden'
+
+    return render(request, 'clusters/base_images.html', {
+        'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+        'base_images': base_images,
+        'provider_list': provider_list,
+        'cells_list': cells_list,
+        'arches_list': arches_list,
+        'pageIndex': 1,
+        'pageSize': len(base_images),
+        'disablePrevious': True,
+        'disableNext': True,
+    })
+
+
 def get_base_image_events(request, image_id):
     base_images_events = baseimages_helper.get_image_update_events_by_new_id(
         request, image_id)
@@ -408,6 +437,11 @@ def get_base_image_events(request, image_id):
         'tags': tags,
         'cancellable': cancel,
     })
+
+
+def get_base_image_events_by_ami_name(request, ami_name):
+    base_image = baseimages_helper.get_by_provider_name(request, ami_name)
+    return get_base_image_events(request, base_image["id"])
 
 
 def get_image_names_by_provider_and_cell(request, provider, cell):
@@ -752,12 +786,12 @@ def clone_cluster(request, src_name, src_stage):
         src_cluster_name = '{}-{}'.format(src_name, src_stage)
         dest_cluster_name = '{}-{}'.format(dest_name, dest_stage)
 
-        ##0. teletraan service get src env buildName
+        # 0. teletraan service get src env buildName
         src_env = environs_helper.get_env_by_stage(request, src_name, src_stage)
         build_name = src_env.get('buildName', None)
         external_id = environs_helper.create_identifier_for_new_stage(request, dest_name, dest_stage)
 
-        ##1. teletraan service create a new env
+        # 1. teletraan service create a new env
         dest_env = environs_helper.create_env(request, {
             'envName': dest_name,
             'stageName': dest_stage,
@@ -766,22 +800,22 @@ def clone_cluster(request, src_name, src_stage):
         })
         log.info('clone_cluster, created a new env %s' % dest_env)
 
-        ##2. teletraan service update_env_basic_config
+        # 2. teletraan service update_env_basic_config
         environs_helper.update_env_basic_config(request, dest_name, dest_stage,
                                                 data={"clusterName": dest_cluster_name}
                                                 )
-        ##3. teletraan service set up env and group relationship
+        # 3. teletraan service set up env and group relationship
         environs_helper.update_env_capacity(request, dest_name, dest_stage, capacity_type="GROUP",
                                             data=[dest_cluster_name])
 
-        ##4. get src script_config
+        # 4. get src script_config
         src_script_configs = environs_helper.get_env_script_config(request, src_name, src_stage)
         src_agent_configs = environs_helper.get_env_agent_config(request, src_name, src_stage)
         src_alarms_configs = environs_helper.get_env_alarms_config(request, src_name, src_stage)
         src_metrics_configs = environs_helper.get_env_metrics_config(request, src_name, src_stage)
         src_webhooks_configs = environs_helper.get_env_hooks_config(request, src_name, src_stage)
 
-        ##5. clone all the extra configs
+        # 5. clone all the extra configs
         if src_agent_configs:
             environs_helper.update_env_agent_config(request, dest_name, dest_stage, src_agent_configs)
         if src_script_configs:
@@ -793,7 +827,7 @@ def clone_cluster(request, src_name, src_stage):
         if src_webhooks_configs:
             environs_helper.update_env_hooks_config(request, dest_name, dest_stage, src_webhooks_configs)
 
-        ##6. rodimus service get src_cluster config
+        # 6. rodimus service get src_cluster config
         src_cluster_info = clusters_helper.get_cluster(request, src_cluster_name)
         log.info('clone_cluster, src cluster info %s' % src_cluster_info)
         configs = src_cluster_info.get('configs')
@@ -808,11 +842,12 @@ def clone_cluster(request, src_name, src_stage):
                 configs['cmp_group'] = ','.join(['CMP'] + list(cmp_groups_set))
                 src_cluster_info['configs'] = configs
 
-        ##7. rodimus service post create cluster
+        # 7. rodimus service post create cluster
         src_cluster_info['clusterName'] = dest_cluster_name
         src_cluster_info['capacity'] = 0
         log.info('clone_cluster, request clone cluster info %s' % src_cluster_info)
-        dest_cluster_info = clusters_helper.create_cluster_with_env(request, dest_cluster_name, dest_name, dest_stage, src_cluster_info)
+        dest_cluster_info = clusters_helper.create_cluster_with_env(
+            request, dest_cluster_name, dest_name, dest_stage, src_cluster_info)
         log.info('clone_cluster, cloned cluster info %s' % dest_cluster_info)
 
         return HttpResponse(json.dumps(src_cluster_info), content_type="application/json")
@@ -822,7 +857,8 @@ def clone_cluster(request, src_name, src_stage):
             try:
                 environs_helper.delete_nimbus_identifier(request, external_id)
             except TeletraanException as detail:
-                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(
+                    external_id, detail)
                 log.error(message)
 
         return HttpResponse(e, status=403, content_type="application/json")
@@ -833,9 +869,10 @@ def clone_cluster(request, src_name, src_stage):
             try:
                 environs_helper.delete_nimbus_identifier(request, external_id)
             except TeletraanException as detail:
-                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
+                message = 'Failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(
+                    external_id, detail)
                 log.error(message)
-                
+
         return HttpResponse(e, status=500, content_type="application/json")
 
 

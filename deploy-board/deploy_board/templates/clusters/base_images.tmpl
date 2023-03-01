@@ -19,15 +19,15 @@
         <tr>
             <td> 
             {% if enable_ami_auto_update %}
-            <a id="listGroupsBtnId" href="/clouds/baseimages/events/{{base_image.id}}" title="Click to see image update events">
-            {{ base_image.id }} 
-            </a>
+                <a id="listGroupsBtnId" href="/clouds/baseimages/events/{{base_image.id}}" title="Click to see image update events">
+                    {{ base_image.id }} 
+                </a>
             {% else %}
-             {{ base_image.id }}
+                {{ base_image.id }}
             {% endif %}
             </td>
             {% if base_image.tag %}
-            <td> <span class="glyphicon glyphicon-ok"></span>Current Golden</td>
+                <td> <span class="glyphicon glyphicon-ok"></span>Current Golden</td>
             {% else %}
             <td></td>
             {% endif %}
