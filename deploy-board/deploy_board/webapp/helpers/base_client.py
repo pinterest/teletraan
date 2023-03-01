@@ -24,9 +24,14 @@ log = logging.getLogger(__name__)
 
 
 class BaseClient(object):
-    def __init__(self, url_prefix, version):
+    def __init__(self, url_prefix, version, proxy_http=None, proxy_https=None):
         self.url_prefix = url_prefix
         self.url_version = version
+        self.proxies = dict()
+        if proxy_http:
+            self.proxies['http'] = proxy_http
+        if proxy_https:
+            self.proxies['https'] = proxy_https
 
     def __call(self, method):
         @retry(requests.RequestException, tries=1, delay=1, backoff=1)
@@ -36,7 +41,7 @@ class BaseClient(object):
             if token:
                 headers['Authorization'] = 'token %s' % token
 
-            response = getattr(requests, method)(url, headers=headers, params=params, json=data,
+            response = getattr(requests, method)(url, proxies=self.proxies, headers=headers, params=params, json=data,
                                                  timeout=DEFAULT_TIMEOUT, verify=False)
 
             if response.status_code >= 400 and response.status_code < 600:
