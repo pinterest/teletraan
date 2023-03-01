@@ -70,7 +70,7 @@ public class KnoxKeyTest {
 
         // Create RodimusManagerImpl to test, if not already created
         if ( rodimusManager == null ) {
-                rodimusManager = new RodimusManagerImpl( "http://localhost", "teletraan:test" );
+                rodimusManager = new RodimusManagerImpl( "http://localhost", "teletraan:test", false, null, null);
         }
 
         // Allocate answerList
