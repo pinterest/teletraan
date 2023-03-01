@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Map;
@@ -31,6 +33,34 @@ public class HTTPClient {
     private static final int TIMEOUT = 15*1000;  // http timeout in 15 seconds
     private static final Logger LOG = LoggerFactory.getLogger(HTTPClient.class);
     public static String secretMask = "xxxxxxxxx";
+    private boolean useProxy = false;
+    private String httpProxyAddr;
+    private int httpProxyPort;
+
+    public HTTPClient() {
+        // HTTPClient useProxy default is false
+    }
+
+    public HTTPClient(boolean useProxy, String httpProxyAddr, int httpProxyPort) {
+        if (Boolean.TRUE.equals(useProxy)) {
+            if (httpProxyAddr == null) {
+                throw new IllegalArgumentException("useProxy was configured but missing required httpProxyAddr");
+            }
+            this.useProxy = useProxy;
+            this.httpProxyAddr = httpProxyAddr;
+            this.httpProxyPort = httpProxyPort;
+        }
+    }
+    public boolean getUseProxy() {
+        // HTTPClient useProxy default is false
+        return useProxy;
+    }
+    public String getHttpProxyAddr() {
+        return httpProxyAddr;
+    }
+    public int getHttpProxyPort() {
+        return httpProxyPort;
+    }
 
     private String generateUrlAndQuery(String url, Map<String, String> params, boolean scrubUrl) throws Exception {
         if (params == null || params.isEmpty()) {
@@ -88,7 +118,12 @@ public class HTTPClient {
         for (int i = 0; i < retries; i++) {
             try {
                 URL urlObj = new URL(url);
-                conn = (HttpURLConnection) urlObj.openConnection();
+                if (useProxy) {
+                    Proxy httpProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(httpProxyAddr, httpProxyPort));
+                    conn = (HttpURLConnection) urlObj.openConnection(httpProxy);
+                } else {
+                    conn = (HttpURLConnection) urlObj.openConnection();
+                }
                 conn.setRequestMethod(method);
                 conn.setRequestProperty("Accept-Charset", "UTF-8");
                 conn.setConnectTimeout(TIMEOUT);
@@ -118,8 +153,12 @@ public class HTTPClient {
                 return ret;
             } catch (Exception e) {
                 lastException = e;
-                LOG.error("Failed to send HTTP Request to {}, with payload {}, with headers {}",
-                    scrubbedUrl, payload, headers, e);
+                String proxyMsg = "";
+                if (useProxy) {
+                    proxyMsg = String.format(" via proxy %s:%s,",httpProxyAddr, httpProxyPort);
+                }
+                LOG.error("Failed to send HTTP Request to {},{} with method {} with payload {}, with headers {}",
+                    scrubbedUrl, proxyMsg, method, payload, headers, e);
             } finally {
                 if (conn != null) {
                     conn.disconnect();
