@@ -17,7 +17,7 @@
 """
 import logging
 from decorators import singleton
-from deploy_board.settings import TELETRAAN_SERVICE_URL, TELETRAAN_SERVICE_VERSION
+from deploy_board.settings import TELETRAAN_SERVICE_URL, TELETRAAN_SERVICE_VERSION, TELETRAAN_SERVICE_PROXY_HTTP, TELETRAAN_SERVICE_PROXY_HTTPS
 from base_client import BaseClient
 
 
@@ -27,4 +27,4 @@ log = logging.getLogger(__name__)
 @singleton
 class DeployClient(BaseClient):
     def __init__(self):
-        BaseClient.__init__(self, url_prefix=TELETRAAN_SERVICE_URL, version=TELETRAAN_SERVICE_VERSION)
+        BaseClient.__init__(self, url_prefix=TELETRAAN_SERVICE_URL, version=TELETRAAN_SERVICE_VERSION, proxy_http=TELETRAAN_SERVICE_PROXY_HTTP, proxy_https=TELETRAAN_SERVICE_PROXY_HTTPS)
