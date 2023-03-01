@@ -7,7 +7,7 @@
     <li><a href="/">Home</a></li>
     <li><a href="/">Clouds</a></li>
     <li><a href="/clouds/baseimages/">Base Images</a></li>
-    <li><a href="#">Base Images Events</a></li>
+    <li><a href="#">Base Images Update Events</a></li>
 </ul>
 {% endblock %}
 
@@ -23,21 +23,21 @@
     </div>
     <div class="row">
         {% if tags %}
-            <button class="deployToolTip btn btn-default btn-block" id="demoteBtnId">   
-                <span class="glyphicon glyphicon-circle-arrow-down"></span> Demote
-            </button>
+        <button class="deployToolTip btn btn-default btn-block" id="demoteBtnId">
+            <span class="glyphicon glyphicon-circle-arrow-down"></span> Demote
+        </button>
         {% else %}
-            <button class="deployToolTip btn btn-default btn-block" id="promoteBtnId">
-                <span class="glyphicon glyphicon-circle-arrow-up"></span> Promote
-            </button>
+        <button class="deployToolTip btn btn-default btn-block" id="promoteBtnId">
+            <span class="glyphicon glyphicon-circle-arrow-up"></span> Promote
+        </button>
         {% endif %}
     </div>
     {% if cancellable %}
-        <div class="row">
-            <button class="deployToolTip btn btn-default btn-block" id="cancelBtnId">   
-                <span class="glyphicon glyphicon-remove-circle"></span> Cancel
-            </button>
-        </div>
+    <div class="row">
+        <button class="deployToolTip btn btn-default btn-block" id="cancelBtnId">
+            <span class="glyphicon glyphicon-remove-circle"></span> Cancel
+        </button>
+    </div>
     {% endif %}
 </div>
 <script>
@@ -51,10 +51,10 @@
                 xhr.setRequestHeader("X-CSRFToken", csrftoken);
             },
             success: function (data) {
-                window.location.href=window.location.href;
+                window.location.href = window.location.href;
                 globalNotificationBanner.info = "Request sent successfully";
             },
-            error: function(data) { // if error occured
+            error: function (data) { // if error occured
                 globalNotificationBanner.error = data;
             },
         });
@@ -69,10 +69,10 @@
                 xhr.setRequestHeader("X-CSRFToken", csrftoken);
             },
             success: function (data) {
-                window.location.href=window.location.href;
+                window.location.href = window.location.href;
                 globalNotificationBanner.info = "Request sent successfully";
             },
-            error: function(data) { // if error occured
+            error: function (data) { // if error occured
                 globalNotificationBanner.error = data;
             },
         });
@@ -87,10 +87,10 @@
                 xhr.setRequestHeader("X-CSRFToken", csrftoken);
             },
             success: function (data) {
-                window.location.href=window.location.href;
+                window.location.href = window.location.href;
                 globalNotificationBanner.info = "Request sent successfully";
             },
-            error: function(data) { // if error occured
+            error: function (data) { // if error occured
                 globalNotificationBanner.error = data;
             },
         });
@@ -106,13 +106,59 @@
 {% block main %}
 
 <div class="panel panel-default">
+    <div class="panel panel-default">
+        <div class="panel-heading clearfix">
+            <h4 class="panel-title pull-left">Base Images Information</h4>
+        </div>
+        <div class="panel-body table-responsive">
+            <table class="table table-striped table-bordered table-condensed table-hover">
+                <tr>
+                    <td>Base Image ID</td>
+                    <td>{{ current_image.id }}</td>
+                </tr>
+                <tr>
+                    <td>Provider Name</td>
+                    <td>
+                        {{ current_image.provider_name }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Publish Date</td>
+                    <td>{{ current_image.publish_date|convertTimestamp }}</td>
+                </tr>
+                <tr>
+                    <td>Abstract Name</td>
+                    <td>{{ current_image.abstract_name }}</td>
+                </tr>
+                <tr>
+                    <td>Arch</td>
+                    <td>
+                        {{ current_image.arch_name }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Cell</td>
+                    <td>
+                        {{ current_image.cell_name }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Description</td>
+                    <td>{{ current_image.description }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
     <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left">Base Images Events</h4>
+        <h4 class="panel-title pull-left">Base Images Update Events</h4>
     </div>
-    <div class="panel-body table-responsive">
-        {% include "clusters/base_images_events.tmpl" %}
-    </div>
+        <div class="panel-body table-responsive">
+            {% if base_images_events|length > 0 %}
+                {% include "clusters/base_images_events.tmpl" %}
+            {% else %}
+                There is no base image update events
+            {% endif %}
+        </div>
 </div>
 
 {% endblock %}
-
