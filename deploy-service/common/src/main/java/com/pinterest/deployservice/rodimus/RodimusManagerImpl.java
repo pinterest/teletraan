@@ -49,12 +49,27 @@ public class RodimusManagerImpl implements RodimusManager {
     private Knox fsKnox = null;
     private String cachedKey = null;
 
-    public RodimusManagerImpl(String rodimusUrl, String knoxKey) throws Exception {
+    public RodimusManagerImpl(String rodimusUrl, String knoxKey, boolean useProxy, String httpProxyAddr, String httpProxyPort) throws Exception {
         this.rodimusUrl = rodimusUrl;
         this.httpClient = new HTTPClient();
         this.headers = new HashMap<>();
         this.headers.put("Content-Type", "application/json");
         this.headers.put("Accept", "*/*");
+        int httpProxyPortInt;
+
+        if (Boolean.TRUE.equals(useProxy)) {
+            try {
+                httpProxyPortInt = Integer.parseInt(httpProxyPort);
+            }
+            catch (NumberFormatException exception) {
+                LOG.error(httpProxyPort, exception);
+                throw exception;
+            }
+            this.httpClient = new HTTPClient(useProxy, httpProxyAddr, httpProxyPortInt);
+        } else {
+            this.httpClient = new HTTPClient();
+        }
+
         if (knoxKey != null) {
             this.fsKnox = new FileSystemKnox(knoxKey);
         }
