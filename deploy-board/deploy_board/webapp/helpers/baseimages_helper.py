@@ -18,21 +18,28 @@ from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
 rodimus_client = RodimusClient()
 
+MAX_BASE_IMAGE_UPDATE_EVENTS = 1e4
+
 
 def promote_image(request, image_id):
     return rodimus_client.put("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
 
+
 def demote_image(request, image_id):
     return rodimus_client.delete("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
+
 
 def cancel_image_update(request, image_id):
     return rodimus_client.put("/base_images/%s/golden/cancel" % image_id, request.teletraan_user_id.token)
 
+
 def get_image_tag_by_id(request, image_id):
     return rodimus_client.get("/base_images/%s/tags" % image_id, request.teletraan_user_id.token)
 
+
 def create_base_image(request, base_image_info):
     return rodimus_client.post("/base_images", request.teletraan_user_id.token, data=base_image_info)
+
 
 def get_all(request, index, size):
     params = [('pageIndex', index), ('pageSize', size)]
@@ -119,26 +126,24 @@ def get_image_update_events_by_new_id(request, image_id):
 
     return events
 
+
 # Heuristic way to get the latest update events batch
-# TODO: create new rodimus API
+# TODO: update rodimus for better update events batching
 def get_latest_image_update_events(events):
     if not events:
         return events
-    
-    sorted_events =  sorted(events, key=lambda event: event['create_time'], reverse=True)
-    
-    # Group update events batch by create_time. 
+
+    sorted_events = sorted(events, key=lambda event: event['create_time'], reverse=True)
+
+    # Group update events batch by create_time.
     # create_time is milisecond timestamp and gets increased by 1 per cluster.
-    # The total number of clusters should not be 10K. 
+    # The total number of clusters should not be 10K.
     lastest_timestamp = sorted_events[0]['create_time']
-    latest_events = []
-    for i in range(len(sorted_events)):
-        if abs(sorted_events[i]['create_time'] - lastest_timestamp) < 1e4: 
-            latest_events.append(sorted_events[i])
-        else:
-            break
+    latest_events = [event for event in sorted_events if abs(
+        event['create_time'] - lastest_timestamp) < MAX_BASE_IMAGE_UPDATE_EVENTS]
 
     return latest_events
+
 
 def get_image_update_events_by_cluster(request, cluster_name):
     events = rodimus_client.get("/base_images/updates/cluster/%s" % cluster_name, request.teletraan_user_id.token)
@@ -160,25 +165,25 @@ def generate_image_update_event_status(event):
             return 'SUCCEEDED'
     return event['state']
 
+
 def get_base_image_update_progress(events):
-    if not events: 
+    if not events:
         return None
-     
+
     total = len(events)
-    failed = len([event for event in events if event['state'] == 'FAILED'])
     succeeded = len([event for event in events if event['state'] == 'SUCCEEDED'])
-    progress_rate = (succeeded + failed) * 100 / total
+    state = 'COMPLETED' if all(event["state"] in ["SUCCEEDED", "FAILED"] for event in events) else 'IN PROGRESS'
     create_time = events[0]['create_time']
-    progress_tip = 'Among total {} clusters, {} successfully updated, {} failed and {} are pending.'.format(
-                    total, succeeded, failed, total - failed - succeeded),
+    progress_tip = 'Among total {} clusters, {} successfully updated, {} failed or are pending.'.format(
+        total, succeeded, total - succeeded),
     success_rate = succeeded * 100 / total
 
     return {
-        'createTime' : create_time,
+        'createTime': create_time,
+        'state': state,
         'total': total,
-        'failed': failed,
         'succeeded': succeeded,
-        'progressRate': progress_rate,
         'progressTip': progress_tip,
-        'successRate': success_rate
+        'successRatePercentage': success_rate,
+        'successRate': '{}% ({}/{})'.format(success_rate, succeeded, total),
     }

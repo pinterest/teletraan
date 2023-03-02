@@ -395,6 +395,7 @@ def get_base_image_events(request, image_id):
         request, image_id)
 
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
+    current_image = baseimages_helper.get_by_id(request, image_id)
 
     cancel = any(event['state'] == 'INIT' for event in update_events)
     latest_update_events = baseimages_helper.get_latest_image_update_events(update_events)
@@ -402,6 +403,7 @@ def get_base_image_events(request, image_id):
 
     return render(request, 'clusters/base_images_events.html', {
         'base_images_events': update_events,
+        'current_image': current_image,
         'image_id': image_id,
         'tags': tags,
         'cancellable': cancel,

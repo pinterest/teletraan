@@ -1,0 +1,60 @@
+{% load utils %}
+{% load static %}
+
+
+<div class="panel-body table-responsive">
+    <table class="table table-striped table-bordered table-condensed table-hover">
+        <tr>
+            <td>Base Image ID</td>
+            <td>{{ current_image.id }}</td>
+        </tr>
+        <tr>
+            <td>Provider Name</td>
+            <td>
+                {{ current_image.provider_name }}
+            </td>
+        </tr>
+        <tr>
+            <td>Publish Date</td>
+            <td>{{ current_image.publish_date|convertTimestamp }}</td>
+        </tr>
+        <tr>
+            <td>Abstract Name</td>
+            <td>{{ current_image.abstract_name }}</td>
+        </tr>
+        <tr>
+            <td>Arch</td>
+            <td>
+                {{ current_image.arch_name }}
+            </td>
+        </tr>
+        <tr>
+            <td>Cell</td>
+            <td>
+                {{ current_image.cell_name }}
+            </td>
+        </tr>
+        {% if progress is not None %}
+        <tr>
+            <td>Update State</td>
+            <td>
+                <span class="pointer-cursor {{ progress.state }}" data-toggle="tooltip" title="{{ progress.state }}">
+                </span>
+                {{ progress.state }}
+            </td>
+        </tr>
+        <tr>
+            <td>Update Progress</td>
+            <td>
+                <div class="progress deployToolTip" data-toggle="tooltip">
+                    <div class="deployToolTip progress-bar success" data-toggle="tooltip"
+                        title="{{progress.progressTip}}" role="progressbar" aria-valuenow="{{ progress.successRate }}"
+                        aria-valuemin="0" aria-valuemax="100" style="width: {{ progress.successRatePercentage }}%;">
+                        <span class="show">{{ progress.successRate }}</span>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
