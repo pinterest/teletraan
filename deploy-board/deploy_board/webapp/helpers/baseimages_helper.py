@@ -119,6 +119,26 @@ def get_image_update_events_by_new_id(request, image_id):
 
     return events
 
+# Heuristic way to get the latest update events batch
+# TODO: create new rodimus API
+def get_latest_image_update_events(events):
+    if not events:
+        return events
+    
+    sorted_events =  sorted(events, key=lambda event: event['create_time'], reverse=True)
+    
+    # Group update events batch by create_time. 
+    # create_time is milisecond timestamp and gets increased by 1 per cluster.
+    # The total number of clusters should not be 10K. 
+    lastest_timestamp = sorted_events[0]['create_time']
+    latest_events = []
+    for i in range(len(sorted_events)):
+        if abs(sorted_events[i]['create_time'] - lastest_timestamp) < 1e4: 
+            latest_events.append(sorted_events[i])
+        else:
+            break
+
+    return latest_events
 
 def get_image_update_events_by_cluster(request, cluster_name):
     events = rodimus_client.get("/base_images/updates/cluster/%s" % cluster_name, request.teletraan_user_id.token)
@@ -139,3 +159,26 @@ def generate_image_update_event_status(event):
         else:
             return 'SUCCEEDED'
     return event['state']
+
+def get_base_image_update_progress(events):
+    if not events: 
+        return None
+     
+    total = len(events)
+    failed = len([event for event in events if event['state'] == 'FAILED'])
+    succeeded = len([event for event in events if event['state'] == 'SUCCEEDED'])
+    progress_rate = (succeeded + failed) * 100 / total
+    create_time = events[0]['create_time']
+    progress_tip = 'Among total {} clusters, {} successfully updated, {} failed and {} are pending.'.format(
+                    total, succeeded, failed, total - failed - succeeded),
+    success_rate = succeeded * 100 / total
+
+    return {
+        'createTime' : create_time,
+        'total': total,
+        'failed': failed,
+        'succeeded': succeeded,
+        'progressRate': progress_rate,
+        'progressTip': progress_tip,
+        'successRate': success_rate
+    }
