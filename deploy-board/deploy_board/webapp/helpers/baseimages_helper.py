@@ -45,7 +45,6 @@ def get_all(request, index, size):
     params = [('pageIndex', index), ('pageSize', size)]
     return rodimus_client.get("/base_images", request.teletraan_user_id.token, params=params)
 
-
 def get_all_with_acceptance(request, index, size):
     base_images = get_all(request, index, size)
     fetched_names = set()
@@ -96,7 +95,6 @@ def get_by_name(request, name, cell_name):
     params = [('cellName', cell_name)]
     return rodimus_client.get("/base_images/names/%s" % name, request.teletraan_user_id.token, params=params)
 
-
 def get_acceptance_by_name(request, name, cell_name):
     params = [('cellName', cell_name)]
     return rodimus_client.get("/base_images/acceptances/%s" % name, request.teletraan_user_id.token, params=params)
@@ -133,13 +131,12 @@ def get_latest_image_update_events(events):
     if not events:
         return events
 
-    sorted_events = sorted(events, key=lambda event: event['create_time'], reverse=True)
-
     # Group update events batch by create_time.
+    # Events are sorted by create_time 
     # create_time is milisecond timestamp and gets increased by 1 per cluster.
     # The total number of clusters should not be 10K.
-    lastest_timestamp = sorted_events[0]['create_time']
-    latest_events = [event for event in sorted_events if abs(
+    lastest_timestamp = events[0]['create_time']
+    latest_events = [event for event in events if abs(
         event['create_time'] - lastest_timestamp) < MAX_BASE_IMAGE_UPDATE_EVENTS]
 
     return latest_events
@@ -171,19 +168,16 @@ def get_base_image_update_progress(events):
         return None
 
     total = len(events)
-    succeeded = len([event for event in events if event['state'] == 'SUCCEEDED'])
-    state = 'COMPLETED' if all(event["state"] in ["SUCCEEDED", "FAILED"] for event in events) else 'IN PROGRESS'
-    create_time = events[0]['create_time']
-    progress_tip = 'Among total {} clusters, {} successfully updated, {} failed or are pending.'.format(
-        total, succeeded, total - succeeded),
+    succeeded = len([event for event in events if event['status'] == 'SUCCEEDED'])
+    state = 'COMPLETED' if all(event["state"] == 'COMPLETED' for event in events) else 'IN PROGRESS'
     success_rate = succeeded * 100 / total
 
     return {
-        'createTime': create_time,
         'state': state,
         'total': total,
         'succeeded': succeeded,
-        'progressTip': progress_tip,
+        'progressTip': 'Among total {} clusters, {} successfully updated, {} failed or are pending.'.format(
+            total, succeeded, total - succeeded),
         'successRatePercentage': success_rate,
         'successRate': '{}% ({}/{})'.format(success_rate, succeeded, total),
     }
