@@ -38,7 +38,6 @@ def get_all(request, index, size):
     params = [('pageIndex', index), ('pageSize', size)]
     return rodimus_client.get("/base_images", request.teletraan_user_id.token, params=params)
 
-
 def get_all_with_acceptance(request, index, size):
     base_images = get_all(request, index, size)
     fetched_names = set()
@@ -88,7 +87,6 @@ def get_all_by(request, provider, cell_name):
 def get_by_name(request, name, cell_name):
     params = [('cellName', cell_name)]
     return rodimus_client.get("/base_images/names/%s" % name, request.teletraan_user_id.token, params=params)
-
 
 def get_acceptance_by_name(request, name, cell_name):
     params = [('cellName', cell_name)]
