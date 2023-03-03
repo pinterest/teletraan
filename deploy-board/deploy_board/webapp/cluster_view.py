@@ -420,24 +420,23 @@ def get_base_images_by_abstract_name(request, abstract_name):
 
 
 def get_base_image_events(request, image_id):
-    base_images_events = baseimages_helper.get_image_update_events_by_new_id(
+    update_events = baseimages_helper.get_image_update_events_by_new_id(
         request, image_id)
-
+    update_events = sorted(update_events, key=lambda event: event['create_time'], reverse=True)
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
     current_image = baseimages_helper.get_by_id(request, image_id)
 
-    cancel = False
-    for event in base_images_events:
-        if event['state'] == "INIT":
-            cancel = True
-            break
-
+    cancel = any(event['state'] == 'INIT' for event in update_events)
+    latest_update_events = baseimages_helper.get_latest_image_update_events(update_events)
+    progress_info = baseimages_helper.get_base_image_update_progress(latest_update_events)
+    
     return render(request, 'clusters/base_images_events.html', {
-        'base_images_events': base_images_events,
+        'base_images_events': update_events,
         'current_image': current_image,
         'image_id': image_id,
         'tags': tags,
         'cancellable': cancel,
+        'progress': progress_info,
     })
 
 
