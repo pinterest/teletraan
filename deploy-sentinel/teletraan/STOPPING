@@ -1,5 +1,7 @@
 #!/bin/bash
 
-sleep 15m
-
 echo Running STOPPING script.
+
+echo Going to sleep
+sleep 15m
+echo Woke up
