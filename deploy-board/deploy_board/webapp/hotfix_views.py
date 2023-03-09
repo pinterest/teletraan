@@ -20,8 +20,8 @@ from django.template.loader import render_to_string
 from django.views.generic import View
 from django.http import HttpResponse
 from deploy_board.settings import BUILD_URL
-from helpers import environs_helper, deploys_helper, hotfixs_helper, builds_helper, systems_helper
-import common
+from .helpers import environs_helper, deploys_helper, hotfixs_helper, builds_helper, systems_helper
+from . import common
 
 DEFAULT_PAGE_SIZE = 30
 

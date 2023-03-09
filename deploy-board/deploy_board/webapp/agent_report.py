@@ -15,12 +15,12 @@
 # -*- coding: utf-8 -*-
 """Helper functions to help generate agents views
 """
-from common import is_agent_failed
-from helpers import builds_helper, deploys_helper, environs_helper, clusters_helper, groups_helper
+from .common import is_agent_failed
+from .helpers import builds_helper, deploys_helper, environs_helper, clusters_helper, groups_helper
 from deploy_board.settings import IS_PINTEREST
 import time
-import service_add_ons
 from collections import OrderedDict
+from functools import cmp_to_key
 
 # Constants used to distinguish the action to generate the host report
 TOTAL_ALIVE_HOST_REPORT = "TOTAL_ALIVE_HOST_REPORT"
@@ -154,9 +154,9 @@ def gen_report(request, env, progress, sortByStatus="false"):
             agentStats.append(addToEnvReport(request, deployStats, agent, env))
 
     if sortByStatus == "true":
-        agentStats.sort(cmp=lambda x, y: _compare_agent_status(x, y))
+        agentStats.sort(key=cmp_to_key(lambda x, y: _compare_agent_status(x, y)))
 
-    for key, value in deployStats.iteritems():
+    for key, value in deployStats.items():
         if key != env['deployId']:
             deprecatedDeployStats.append(value)
 

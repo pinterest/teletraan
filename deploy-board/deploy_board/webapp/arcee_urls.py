@@ -14,8 +14,8 @@
 
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
-import group_view, host_views
-import util_views
+from . import group_view, host_views
+from . import util_views
 
 urlpatterns = [
     # auto scaling alarms endpoint

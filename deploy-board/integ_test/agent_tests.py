@@ -72,15 +72,15 @@ class TestPings(unittest.TestCase):
             pingRequest['hostName'] = host
             pingRequest['hostIp'] = ip
             pingRequest['groups'] = groups
-            pingRequest['reports'] = reports.values()
+            pingRequest['reports'] = list(reports.values())
 
             pingResponse = systems_helper.ping(commons.REQUEST, pingRequest)
             if pingResponse['opCode'] == "NOOP":
                 continue
             else:
-                print "%s :-> %s:%s" % (host,
+                print("%s :-> %s:%s" % (host,
                                         pingResponse['opCode'],
-                                        pingResponse['deployGoal']['deployStage'])
+                                        pingResponse['deployGoal']['deployStage']))
             goal = pingResponse['deployGoal']
             report = {}
             report['envId'] = goal['envId']
@@ -91,10 +91,10 @@ class TestPings(unittest.TestCase):
 
             # verifications
             if goal['deployStage'] == 'DOWNLOADING':
-                self.assertEquals(goal['build']['commit'], commit)
+                self.assertEqual(goal['build']['commit'], commit)
             if goal['deployStage'] == 'PRE_DOWNLOAD':
-                self.assertEquals(goal['scriptVariables']['s-c-n'], 's-c-v')
-            self.assertEquals(goal['agentConfigs']['a-c-n'], 'a-c-v')
+                self.assertEqual(goal['scriptVariables']['s-c-n'], 's-c-v')
+            self.assertEqual(goal['agentConfigs']['a-c-n'], 'a-c-v')
 
             if goal['deployStage'] == 'SERVING_BUILD':
                 return
@@ -103,20 +103,20 @@ class TestPings(unittest.TestCase):
         env = environs_helper.get_env_by_stage(commons.REQUEST, envName, stageName)
         deploy = deploys_helper.get(commons.REQUEST, env["deployId"])
         if deploy['state'] == 'SUCCEEDING':
-            print "Deploy has compelted successfully!"
+            print("Deploy has compelted successfully!")
             return True
-        print "Deploy has not compelted yet, success rate is %d/%d" % (deploy['successTotal'],
-                                                                       deploy['total'])
+        print("Deploy has not compelted yet, success rate is %d/%d" % (deploy['successTotal'],
+                                                                       deploy['total']))
         return False
 
     def test_pings(self):
         n = 10
         groups = [group]
-        for x in xrange(n):
+        for x in range(n):
             self._empty_ping(str(x), groups)
 
         threads = []
-        for x in xrange(n):
+        for x in range(n):
             t = threading.Thread(target=self._ping, args=(str(x), groups))
             threads.append(t)
 

@@ -29,14 +29,14 @@ from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import GUINEA_PIG_ENVS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
 from django.conf import settings
-import agent_report
-import service_add_ons
-import common
+from . import agent_report
+from . import service_add_ons
+from . import common
 import random
 import json
-from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
+from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
     systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper, placements_helper
-from helpers.exceptions import TeletraanException
+from .helpers.exceptions import TeletraanException
 import math
 from dateutil.parser import parse
 import calendar
@@ -50,7 +50,7 @@ import datetime
 import time
 
 if IS_PINTEREST:
-    from helpers import autoscaling_groups_helper
+    from .helpers import autoscaling_groups_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
@@ -454,7 +454,7 @@ class EnvLandingView(View):
 def _compute_range(totalItems, thisPageIndex, totalItemsPerPage, totalPagesToShow):
     totalPages = int(math.ceil(float(totalItems) / totalItemsPerPage))
     if totalItems <= 0:
-        return range(0), 0, 0
+        return list(range(0)), 0, 0
 
     halfPagesToShow = totalPagesToShow / 2
     startPageIndex = thisPageIndex - halfPagesToShow
@@ -468,7 +468,7 @@ def _compute_range(totalItems, thisPageIndex, totalItemsPerPage, totalPagesToSho
     nextPageIndex = thisPageIndex + 1
     if nextPageIndex > totalPages:
         nextPageIndex = 0
-    return range(startPageIndex, endPageIndex), prevPageIndex, nextPageIndex
+    return list(range(startPageIndex, endPageIndex)), prevPageIndex, nextPageIndex
 
 
 def _convert_time(date_str, time_str):
@@ -633,7 +633,7 @@ def get_all_deploys(request):
             "branch": branch,
             "reverse_date": reverse_date,
             "operator": operator,
-            'pageRange': range(0),
+            'pageRange': list(range(0)),
             "prevPageIndex": 0,
             "nextPageIndex": 0,
             "query_string": query_string,
@@ -717,7 +717,7 @@ def get_env_deploys(request, name, stage):
             "branch": branch,
             "reverse_date": reverse_date,
             "operator": operator,
-            'pageRange': range(0),
+            'pageRange': list(range(0)),
             "prevPageIndex": 0,
             "nextPageIndex": 0,
             "query_string": query_string,
@@ -1475,7 +1475,7 @@ def get_env_config_history(request, name, stage):
 
 def _parse_config_comparison(query_dict):
     configs = {}
-    for key, value in query_dict.iteritems():
+    for key, value in query_dict.items():
         if key.startswith('chkbox_'):
             id = key[len('chkbox_'):]
             split_data = value.split('_')
@@ -1487,7 +1487,7 @@ def _parse_config_comparison(query_dict):
 def get_config_comparison(request, name, stage):
     configs = _parse_config_comparison(request.POST)
     if len(configs) > 1:
-        ids = configs.keys()
+        ids = list(configs.keys())
         change1 = configs[ids[0]]
         change2 = configs[ids[1]]
         return HttpResponse(json.dumps({'change1': change1, 'change2': change2}),
@@ -1643,11 +1643,11 @@ def compare_deploys(request, name, stage):
 def compare_deploys_2(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     configs = {}
-    for key, value in request.GET.iteritems():
+    for key, value in request.GET.items():
         if key.startswith('chkbox_'):
             index = key[len('chkbox_'):]
             configs[index] = value
-    indexes = configs.keys()
+    indexes = list(configs.keys())
     start_build_id = configs[indexes[0]]
     end_build_id = configs[indexes[1]]
     if int(indexes[0]) > int(indexes[1]):

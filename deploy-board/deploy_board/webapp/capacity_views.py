@@ -21,9 +21,9 @@ from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.views.generic import View
-import common
-from helpers import environs_helper, clusters_helper, autoscaling_groups_helper, placements_helper
-from helpers import baseimages_helper
+from .common import get_env_groups, get_all_stages
+from .helpers import environs_helper, clusters_helper, autoscaling_groups_helper, placements_helper
+from .helpers import baseimages_helper
 from deploy_board.settings import IS_PINTEREST
 
 
@@ -47,7 +47,9 @@ class EnvCapacityConfigView(View):
             if basic_cluster_info:
                 base_image_id = basic_cluster_info.get('baseImageId')
                 base_image = baseimages_helper.get_by_id(request, base_image_id)
-                asg_cluster = autoscaling_groups_helper.get_group_info(request, cluster_name)
+                
+                # asg_cluster = autoscaling_groups_helper.get_group_info(request, cluster_name) NO COMMIT
+                asg_cluster = {}
                 basic_cluster_info['asg_info'] = asg_cluster
                 basic_cluster_info['base_image_info'] = base_image
                 try:
@@ -65,7 +67,7 @@ class EnvCapacityConfigView(View):
         if request.is_ajax():
             # return data for ajax calls
             hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
-            groups = common.get_env_groups(request, name, stage)
+            groups = get_env_groups(request, name, stage)
             if cluster_name in groups:
                 groups.remove(cluster_name)
             info = {
@@ -84,9 +86,9 @@ class EnvCapacityConfigView(View):
 
         # otherwise, return a page
         envs = environs_helper.get_all_env_stages(request, name)
-        stages, env = common.get_all_stages(envs, stage)
+        stages, env = get_all_stages(envs, stage)
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
-        groups = common.get_env_groups(request, name, stage)
+        groups = get_env_groups(request, name, stage)
         if cluster_name in groups:
             groups.remove(cluster_name)
         data = {

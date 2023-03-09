@@ -77,14 +77,14 @@ class TestPings(unittest.TestCase):
 
     def test_ping_empty_group(self):
         response = self.ping(self.host)
-        self.assertEquals(response['opCode'], "NOOP")
+        self.assertEqual(response['opCode'], "NOOP")
         self.assertTrue(response.get('deployGoal') is None)
 
     def test_deploy_onhold(self):
         deploys_helper.pause(commons.REQUEST, self.envName, stageName)
         response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                              "RESTARTING", "SUCCEEDED")
-        self.assertEquals(response['opCode'], "NOOP")
+        self.assertEqual(response['opCode'], "NOOP")
         self.assertTrue(response.get('deployGoal') is None)
 
     def test_agent_onhold(self):
@@ -93,17 +93,17 @@ class TestPings(unittest.TestCase):
         agents_helper.pause_deploy(commons.REQUEST, self.envName, stageName, self.host)
         response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                              "RESTARTING", "SUCCEEDED")
-        self.assertEquals(response['opCode'], "NOOP")
+        self.assertEqual(response['opCode'], "NOOP")
         self.assertTrue(response.get('deployGoal') is None)
         response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                              "RESTARTING", "SUCCEEDED")
-        self.assertEquals(response['opCode'], "NOOP")
+        self.assertEqual(response['opCode'], "NOOP")
         self.assertTrue(response.get('deployGoal') is None)
 
         # verify agent state still on hold
         agents = agents_helper.get_agents_by_host(commons.REQUEST, self.host)
-        self.assertEquals(len(agents), 1)
-        self.assertEquals(agents[0].get('state'), "PAUSED_BY_USER")
+        self.assertEqual(len(agents), 1)
+        self.assertEqual(agents[0].get('state'), "PAUSED_BY_USER")
 
     def test_agent_reset(self):
         self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
@@ -112,29 +112,29 @@ class TestPings(unittest.TestCase):
         # ping will start from beginning
         response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                              "RESTARTING", "SUCCEEDED")
-        self.assertEquals(response['opCode'], "DEPLOY")
+        self.assertEqual(response['opCode'], "DEPLOY")
         goal = response['deployGoal']
-        self.assertEquals(goal['deployStage'], "PRE_DOWNLOAD")
+        self.assertEqual(goal['deployStage'], "PRE_DOWNLOAD")
         # and next ping will not reset anymore
         response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                              "PRE_DOWNLOAD", "SUCCEEDED")
-        self.assertEquals(response['opCode'], "DEPLOY")
+        self.assertEqual(response['opCode'], "DEPLOY")
         goal = response['deployGoal']
-        self.assertEquals(goal['deployStage'], "DOWNLOADING")
+        self.assertEqual(goal['deployStage'], "DOWNLOADING")
 
         # verify agent state not RESET anymore
         agents = agents_helper.get_agents_by_host(commons.REQUEST, self.host)
-        self.assertEquals(len(agents), 1)
-        self.assertEquals(agents[0].get('state'), "NORMAL")
+        self.assertEqual(len(agents), 1)
+        self.assertEqual(agents[0].get('state'), "NORMAL")
 
     def test_agents_reset(self):
         self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                   "PRE_RESTART", "TOO_MANY_RETRY", error_code=1, error_message="FOO")
         agents = agents_helper.get_agents_by_host(commons.REQUEST, self.host)
-        self.assertEquals(len(agents), 1)
-        self.assertEquals(agents[0].get('state'), "PAUSED_BY_SYSTEM")
-        self.assertEquals(agents[0].get('lastErrno'), 1)
-        self.assertEquals(
+        self.assertEqual(len(agents), 1)
+        self.assertEqual(agents[0].get('state'), "PAUSED_BY_SYSTEM")
+        self.assertEqual(agents[0].get('lastErrno'), 1)
+        self.assertEqual(
             agents_helper.get_agent_error(commons.REQUEST, self.envName, stageName, self.host),
             "FOO")
 
@@ -143,42 +143,42 @@ class TestPings(unittest.TestCase):
         # ping will start from beginning
         response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                              "RESTARTING", "SUCCEEDED")
-        self.assertEquals(response['opCode'], "DEPLOY")
+        self.assertEqual(response['opCode'], "DEPLOY")
         goal = response['deployGoal']
-        self.assertEquals(goal['deployStage'], "PRE_DOWNLOAD")
+        self.assertEqual(goal['deployStage'], "PRE_DOWNLOAD")
         # and next ping will not reset anymore
         response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                              "PRE_DOWNLOAD", "SUCCEEDED")
-        self.assertEquals(response['opCode'], "DEPLOY")
+        self.assertEqual(response['opCode'], "DEPLOY")
         goal = response['deployGoal']
-        self.assertEquals(goal['deployStage'], "DOWNLOADING")
+        self.assertEqual(goal['deployStage'], "DOWNLOADING")
 
     def test_ping_serving_build(self):
         response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                              "SERVING_BUILD", "SUCCEEDED")
-        self.assertEquals(response['opCode'], "NOOP")
+        self.assertEqual(response['opCode'], "NOOP")
         self.assertTrue(response.get('deployGoal') is None)
 
     def test_ping_empty(self):
         response = self.ping(self.host, self.groups)
-        self.assertEquals(response['opCode'], "DEPLOY")
+        self.assertEqual(response['opCode'], "DEPLOY")
         goal = response['deployGoal']
-        self.assertEquals(goal['envId'], self.env['id'])
-        self.assertEquals(goal['deployId'], self.deploy['id'])
-        self.assertEquals(goal['deployStage'], "PRE_DOWNLOAD")
-        self.assertEquals(goal['scriptVariables']['s-c-n'], 's-c-v')
-        self.assertEquals(goal['agentConfigs']['a-c-n'], 'a-c-v')
+        self.assertEqual(goal['envId'], self.env['id'])
+        self.assertEqual(goal['deployId'], self.deploy['id'])
+        self.assertEqual(goal['deployStage'], "PRE_DOWNLOAD")
+        self.assertEqual(goal['scriptVariables']['s-c-n'], 's-c-v')
+        self.assertEqual(goal['agentConfigs']['a-c-n'], 'a-c-v')
 
     def test_ping_next(self):
         response = self.ping(self.host, self.groups, self.env['id'], self.deploy['id'],
                              "PRE_DOWNLOAD", "SUCCEEDED")
-        self.assertEquals(response['opCode'], "DEPLOY")
+        self.assertEqual(response['opCode'], "DEPLOY")
         goal = response['deployGoal']
-        self.assertEquals(goal['envId'], self.env['id'])
-        self.assertEquals(goal['deployId'], self.deploy['id'])
-        self.assertEquals(goal['deployStage'], "DOWNLOADING")
-        self.assertEquals(goal['build']['commit'], self.commit)
-        self.assertEquals(goal['agentConfigs']['a-c-n'], 'a-c-v')
+        self.assertEqual(goal['envId'], self.env['id'])
+        self.assertEqual(goal['deployId'], self.deploy['id'])
+        self.assertEqual(goal['deployStage'], "DOWNLOADING")
+        self.assertEqual(goal['build']['commit'], self.commit)
+        self.assertEqual(goal['agentConfigs']['a-c-n'], 'a-c-v')
 
 
 if __name__ == '__main__':

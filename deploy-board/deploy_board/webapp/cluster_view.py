@@ -29,11 +29,11 @@ if IS_PINTEREST:
 import json
 import logging
 
-from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
+from .helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper, arches_helper
-from helpers import clusters_helper, environs_helper, environ_hosts_helper
-from helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
-import common
+from .helpers import clusters_helper, environs_helper, environ_hosts_helper
+from .helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
+from . import common
 import traceback
 
 log = logging.getLogger(__name__)
@@ -724,7 +724,7 @@ def get_placement_infos(request):
 
 def parse_configs(query_dict):
     configs = {}
-    for key, value in query_dict.iteritems():
+    for key, value in query_dict.items():
         if not value:
             continue
         if key.startswith('TELETRAAN_'):
