@@ -14,9 +14,9 @@
 
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
-import feedback_views
-import hotfix_views
-import util_views
+from . import feedback_views
+from . import hotfix_views
+from . import util_views
 
 urlpatterns = [
 

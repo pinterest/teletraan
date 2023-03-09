@@ -179,7 +179,7 @@ class OAuth(object):
             url, http_method=method, body=data
         )
         resp, content = self.http_request(
-            uri, data=unicode(body) if body else None, method=method, headers=headers
+            uri, data=str(body) if body else None, method=method, headers=headers
         )
 
         resp_data = json.loads(content)
@@ -205,7 +205,7 @@ class OAuth(object):
         body = client.prepare_request_body(**args)
         resp, content = self.http_request(
             self.access_token_url,
-            data=unicode(body) if body else None,
+            data=str(body) if body else None,
             method='POST',
         )
 
@@ -230,7 +230,7 @@ class OAuth(object):
 
     def get_authorization_url(self, data=None, **kwargs):
         client = self.get_client()
-        scope = unicode(self.scope)
+        scope = str(self.scope)
 
         # generate and set state
         state = self.oauth_handler.state_generator(**kwargs)

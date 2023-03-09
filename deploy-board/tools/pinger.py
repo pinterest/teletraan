@@ -71,17 +71,17 @@ def main():
 
     pingRequest['reports'] = [report]
 
-    print "----------------REQUEST-------------------"
-    print json.dumps(pingRequest, indent=2)
+    print("----------------REQUEST-------------------")
+    print(json.dumps(pingRequest, indent=2))
 
     pingResponse = systems_helper.ping(commons.REQUEST, pingRequest)
 
-    print "----------------RESPONSE----------------------"
-    print json.dumps(pingResponse, indent=2)
+    print("----------------RESPONSE----------------------")
+    print(json.dumps(pingResponse, indent=2))
 
 
 if __name__ == '__main__':
     try:
         main()
     except Exception as e:
-        print 'Exception error is: %s' % e.message
+        print('Exception error is: %s' % e.message)

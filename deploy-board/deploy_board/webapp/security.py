@@ -15,12 +15,12 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 
-from auth import OAuth
-from auth import OAuthException, OAuthExpiredTokenException
+from .auth import OAuth
+from .auth import OAuthException, OAuthExpiredTokenException
 from deploy_board import settings
 import traceback
 import logging
-from common import UserIdentity
+from .common import UserIdentity
 
 logger = logging.getLogger(__name__)
 
