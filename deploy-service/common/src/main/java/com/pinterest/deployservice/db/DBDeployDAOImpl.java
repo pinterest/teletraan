@@ -47,7 +47,7 @@ public class DBDeployDAOImpl implements DeployDAO {
     private static final String DELETE_DEPLOYMENT =
         "DELETE FROM deploys WHERE deploy_id=?";
     private static final String GET_ALL_DEPLOYMENTS_TEMPLATE =
-        "SELECT COUNT(*) FROM deploys %s";
+        "SELECT SQL_CALC_FOUND_ROWS * FROM deploys %s";
     private static final String GET_ALL_DEPLOYMENTS_WITH_COMMIT_TEMPLATE =
         "SELECT SQL_CALC_FOUND_ROWS deploys.* FROM deploys " +
             "INNER JOIN builds ON deploys.build_id=builds.build_id " +
