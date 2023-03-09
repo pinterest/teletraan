@@ -47,12 +47,12 @@ public class DBDeployDAOImpl implements DeployDAO {
     private static final String DELETE_DEPLOYMENT =
         "DELETE FROM deploys WHERE deploy_id=?";
     private static final String GET_ALL_DEPLOYMENTS_TEMPLATE =
-        "SELECT SQL_CALC_FOUND_ROWS * FROM deploys %s";
+        "SELECT COUNT(*) FROM deploys %s";
     private static final String GET_ALL_DEPLOYMENTS_WITH_COMMIT_TEMPLATE =
-        "SELECT SQL_CALC_FOUND_ROWS deploys.* FROM deploys " +
+        "SELECT COUNT(*) FROM deploys " +
             "INNER JOIN builds ON deploys.build_id=builds.build_id " +
             "%s";
-    private static final String FOUND_ROWS = "SELECT FOUND_ROWS()";
+    private static final String FOUND_ROWS = "SELECT COUNT(*)";
     private static final String GET_ACCEPTED_DEPLOYS_TEMPLATE =
         "SELECT * FROM deploys WHERE env_id='%s' AND deploy_type IN (%s) " +
             "AND acc_status='ACCEPTED' AND start_date>%d AND start_date<%d ORDER BY start_date DESC"
