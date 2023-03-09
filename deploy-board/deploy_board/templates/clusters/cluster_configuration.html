@@ -474,7 +474,7 @@
                 baseImages: mapBaseImagesToOptions(baseImagesSorted),
                 baseImageValue: currentCluster.baseImageId,
                 showPinImage: enable_ami_auto_update,
-                pinImage: enable_ami_auto_update ? !currentCluster.autoUpdateBaseImage: true,
+                pinImage: enable_ami_auto_update ? !currentCluster.autoUpdateBaseImage : true,
                 pinImageEnabled: isPinImageEnabled(currentCluster.baseImageName),
                 confirmDialogTitle: "Update Cluster Settings",
                 confirmDialogId: "updateClusterSettings",
@@ -796,11 +796,10 @@
                             capacitySetting.baseImageValue = defaultImageId;
                             if (!goldenImage) {
                                 capacitySetting.pinImage = true;
-                                capacitySetting.pinImageEnabled = false;
                             } else {
                                 capacitySetting.pinImage = !currentCluster.autoUpdateBaseImage;
-                                capacitySetting.pinImageEnabled = isPinImageEnabled(capacitySetting.imageNameValue);
                             }
+                            capacitySetting.pinImageEnabled = isPinImageEnabled(capacitySetting.imageNameValue);
                         },
                         error: function(data) {
                             globalNotificationBanner.error = data
