@@ -49,7 +49,7 @@ public class DBDeployDAOImpl implements DeployDAO {
     private static final String GET_ALL_DEPLOYMENTS_TEMPLATE =
         "SELECT COUNT(*) FROM deploys %s";
     private static final String GET_ALL_DEPLOYMENTS_WITH_COMMIT_TEMPLATE =
-        "SELECT COUNT(deploys.*) FROM deploys " +
+        "SELECT SQL_CALC_FOUND_ROWS deploys.* FROM deploys " +
             "INNER JOIN builds ON deploys.build_id=builds.build_id " +
             "%s";
     private static final String FOUND_ROWS = "SELECT COUNT(*)";
