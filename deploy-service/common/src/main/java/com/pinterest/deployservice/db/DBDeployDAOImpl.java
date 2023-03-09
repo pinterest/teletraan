@@ -52,7 +52,7 @@ public class DBDeployDAOImpl implements DeployDAO {
         "SELECT SQL_CALC_FOUND_ROWS deploys.* FROM deploys " +
             "INNER JOIN builds ON deploys.build_id=builds.build_id " +
             "%s";
-    private static final String FOUND_ROWS = "SELECT COUNT(*)";
+    private static final String FOUND_ROWS = "SELECT FOUND_ROWS()";
     private static final String GET_ACCEPTED_DEPLOYS_TEMPLATE =
         "SELECT * FROM deploys WHERE env_id='%s' AND deploy_type IN (%s) " +
             "AND acc_status='ACCEPTED' AND start_date>%d AND start_date<%d ORDER BY start_date DESC"
