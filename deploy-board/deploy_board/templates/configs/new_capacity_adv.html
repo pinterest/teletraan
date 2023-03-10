@@ -50,7 +50,7 @@
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="archValue"></arch-select>
                     <baseimage-select v-model="pinImage" :image-names="imageNames" :base-images="baseImages"
-                        :selected-image-name="imageNameValue" :selected-base-image="baseImageValue" :pin-image-enabled="pinImageEnabled" :show-pin-image="showPinImage"
+                        :selected-image-name="imageNameValue" :selected-base-image="baseImageValue" :show-pin-image="showPinImage"
                         @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
@@ -101,7 +101,7 @@ var capacityView = new Vue({
 )
 
 var info = {{capacity_creation_info|safe}};
-var enable_ami_auto_update = info.enable_ami_auto_update;
+var enableAMIAutoUpdate = info.enable_ami_auto_update;
 var environment = info.environment;
 
 var placements = getDefaultPlacement(info);
@@ -127,9 +127,8 @@ var capacitySetting = new Vue({
         baseImageHelpData: [],
         baseImages: mapBaseImagesToOptions(baseImagesSorted),
         baseImageValue: defaultImageId,
-        showPinImage: enable_ami_auto_update,
-        pinImage: enable_ami_auto_update ? goldenImage == null : true,
-        pinImageEnabled: isPinImageEnabled(info.defaultBaseImage),
+        pinImage: enableAMIAutoUpdate ? !goldenImage : true,
+        showPinImage: showPinImage(enableAMIAutoUpdate, goldenImage, info.defaultBaseImage),
         configOptions: Object.keys(info.configList).map(
             function (key) {
                 return {
@@ -421,7 +420,7 @@ var capacitySetting = new Vue({
                     capacitySetting.baseImages = mapBaseImagesToOptions(baseImageSorted);
                     capacitySetting.baseImageValue = defaultImageId;
                     capacitySetting.pinImage = !goldenImage;
-                    capacitySetting.pinImageEnabled = isPinImageEnabled(capacitySetting.imageNameValue);
+                    capacitySetting.showPinImage = showPinImage(enableAMIAutoUpdate, goldenImage, capacitySetting.imageNameValue);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data

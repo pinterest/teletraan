@@ -67,7 +67,7 @@
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider" v-show="inAdvanced"></cloudprovider-select>
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="currentArch"></arch-select>
-                    <baseimage-select v-show="inAdvanced" v-model="pinImage" :pin-image-enabled="pinImageEnabled" :show-pin-image="showPinImage"
+                    <baseimage-select v-show="inAdvanced" v-model="pinImage" :show-pin-image="showPinImage"
                         :image-names="imageNames" :base-images="baseImages"
                         :selected-image-name="imageNameValue" :selected-base-image="baseImageValue"
                         @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
@@ -430,10 +430,11 @@
 </script>
 <script>
     var info = {{capacity_creation_info | safe}};
-    var enable_ami_auto_update = info.enable_ami_auto_update;
+    const goldenImage = info.baseImages.find(goldenImageFinder);
+    const enableAMIAutoUpdate = info.enable_ami_auto_update;
     var env = info.environment;
     var currentCluster = info.currentCluster;
-    console.log('currentCluster:', currentCluster);
+    
     if (currentCluster!=null){
         var currentPlacements = currentCluster.placement.split(',');
         var placements = getDefaultPlacement(info);
@@ -456,7 +457,7 @@
             obj[field] = field in currentCluster.configs ? currentCluster.configs[field] : null
             return obj;
         }, {});
-
+        
         var capacitySetting = new Vue({
             el: "#mainPanel",
             data: Object.assign(readonlyValues, {
@@ -473,9 +474,8 @@
                 useLaunchTemplate: currentCluster.useLaunchTemplate != null ? currentCluster.useLaunchTemplate : false,
                 baseImages: mapBaseImagesToOptions(baseImagesSorted),
                 baseImageValue: currentCluster.baseImageId,
-                showPinImage: enable_ami_auto_update,
-                pinImage: enable_ami_auto_update ? !currentCluster.autoUpdateBaseImage : true,
-                pinImageEnabled: isPinImageEnabled(currentCluster.baseImageName),
+                showPinImage: showPinImage(enableAMIAutoUpdate, goldenImage, currentCluster.baseImageName),
+                pinImage: enableAMIAutoUpdate ? !currentCluster.autoUpdateBaseImage : true,
                 confirmDialogTitle: "Update Cluster Settings",
                 confirmDialogId: "updateClusterSettings",
                 currentProvider: currentCluster.provider,
@@ -796,10 +796,11 @@
                             capacitySetting.baseImageValue = defaultImageId;
                             if (!goldenImage) {
                                 capacitySetting.pinImage = true;
+                                capacitySetting.showPinImage = false;
                             } else {
                                 capacitySetting.pinImage = !currentCluster.autoUpdateBaseImage;
+                                capacitySetting.showPinImage = showPinImage(enableAMIAutoUpdate, goldenImage, capacitySetting.imageNameValue);
                             }
-                            capacitySetting.pinImageEnabled = isPinImageEnabled(capacitySetting.imageNameValue);
                         },
                         error: function(data) {
                             globalNotificationBanner.error = data

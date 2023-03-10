@@ -39,6 +39,6 @@ function ensureCurrentImageIsIncluded(baseImages, currentBaseImage) {
     }
 }
 
-function isPinImageEnabled(imageName) {
-    return imageName.toLowerCase().startsWith('cmp_');
+function showPinImage(enableAMIUpdate, goldenAMI, imageName) {
+    return enableAMIUpdate && !!goldenAMI && imageName.toLowerCase().startsWith('cmp_');
 }
