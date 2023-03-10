@@ -52,7 +52,7 @@ Vue.component('baseimage-select', {
                 :disabled="!pinImage" :options="baseImages" :selected="selectedBaseImage"
                 @input="$emit('base-image-change', $event)" @help-clicked="helpClick">
             </label-select2>
-            <div v-show="showPinImage" class="col-xs-2">
+            <div class="col-xs-2">
                 <base-checkbox :checked="pinImage" :enabled="pinImageEnabled"
                     @input="pinImageClick"></base-checkbox>
                 <label for='pinImageCB'>Pin Image</label>
@@ -69,7 +69,7 @@ Vue.component('baseimage-select', {
             warningText: '',
         }
     },
-    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled', 'showPinImage'],
+    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled'],
     methods: {
         helpClick: function () {
             this.$emit('help-clicked')

@@ -39,6 +39,14 @@ function ensureCurrentImageIsIncluded(baseImages, currentBaseImage) {
     }
 }
 
-function isPinImageEnabled(imageName) {
-    return imageName.toLowerCase().startsWith('cmp_');
+function isPinImageEnabled(goldenImage) {
+    // If there is golden - enable Pin Image checkbox 
+    // If there is no golden - disable Pin Image checkbox 
+    return !!goldenImage;
+}
+
+function getPinImageValue(goldenImage, clusterAutoUpdateBaseImage) {
+    // If there is golden: getPinImageValue = !clusterAutoUpdateBaseImage
+    // if there is no golden: getPinImageValue = true. Always pin
+    return !!goldenImage ? !clusterAutoUpdateBaseImage : true; 
 }
