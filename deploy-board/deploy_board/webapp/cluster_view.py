@@ -294,7 +294,6 @@ class ClusterConfigurationView(View):
                         log.error("Teletraan does not support user to remove %s %s" % (field, cluster_info[field]))
                         raise TeletraanException("Teletraan does not support user to remove %s" % field)
 
-            image = baseimages_helper.get_by_id(request, cluster_info['baseImageId'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -401,10 +400,10 @@ def get_base_images_by_abstract_name(request, abstract_name):
         cell_name = cell['name']
         golden_images[cell_name] = baseimages_helper.get_current_golden_image(request, abstract_name, cell_name)
 
-    # add golden tag to images 
+    # add golden tag to images
     for image in base_images:
         if golden_images[image['cell_name']] and image['id'] == golden_images[image['cell_name']]['id']:
-            image['tag'] = 'current_golden' 
+            image['tag'] = 'current_golden'
 
     return render(request, 'clusters/base_images.html', {
         'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
@@ -429,7 +428,7 @@ def get_base_image_events(request, image_id):
     cancel = any(event['state'] == 'INIT' for event in update_events)
     latest_update_events = baseimages_helper.get_latest_image_update_events(update_events)
     progress_info = baseimages_helper.get_base_image_update_progress(latest_update_events)
-    
+
     return render(request, 'clusters/base_images_events.html', {
         'base_images_events': update_events,
         'current_image': current_image,
