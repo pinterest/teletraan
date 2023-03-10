@@ -124,7 +124,9 @@ var capacitySetting = new Vue({
         baseImageHelpData: [],
         baseImages: mapBaseImagesToOptions(baseImagesSorted),
         baseImageValue: defaultImageId,
-        pinImage: getPinImageValue(goldenImage, true ), // Default auto update if there is a golden image 
+        // Default to Pin image if there is a golden image before GA
+        // After GA, default to Auto Update.
+        pinImage: getPinImageValue(goldenImage, false),
         pinImageEnabled: isPinImageEnabled(goldenImage),
         configOptions: Object.keys(info.configList).map(
             function (key) {
@@ -416,8 +418,9 @@ var capacitySetting = new Vue({
                     const defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImageSorted);
                     capacitySetting.baseImages = mapBaseImagesToOptions(baseImageSorted);
                     capacitySetting.baseImageValue = defaultImageId;
-                    // Default auto update if there is a golden image
-                    capacitySetting.pinImage = getPinImageValue(goldenImage, true);
+                    // Default not auto update if there is a golden image before GA
+                    // Default auto update if there is a golden image after GA
+                    capacitySetting.pinImage = getPinImageValue(goldenImage, false);
                     capacitySetting.pinImageEnabled = isPinImageEnabled(goldenImage);
                 },
                 error: function (data) {
