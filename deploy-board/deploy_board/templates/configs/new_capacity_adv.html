@@ -101,11 +101,8 @@ var capacityView = new Vue({
 )
 
 var info = {{capacity_creation_info|safe}};
-var enable_ami_auto_update = info.enable_ami_auto_update;
 var environment = info.environment;
-
 var placements = getDefaultPlacement(info);
-
 const goldenImage = info.baseImages.find(goldenImageFinder);
 const baseImagesSorted = info.baseImages.sort(baseImageSorter);
 const defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImagesSorted);
@@ -127,9 +124,10 @@ var capacitySetting = new Vue({
         baseImageHelpData: [],
         baseImages: mapBaseImagesToOptions(baseImagesSorted),
         baseImageValue: defaultImageId,
-        showPinImage: enable_ami_auto_update,
-        pinImage: enable_ami_auto_update ? goldenImage == null : true,
-        pinImageEnabled: isPinImageEnabled(info.defaultBaseImage),
+        // Default to Pin image if there is a golden image before GA
+        // After GA, default to Auto Update.
+        pinImage: getPinImageValue(goldenImage, false),
+        pinImageEnabled: isPinImageEnabled(goldenImage),
         configOptions: Object.keys(info.configList).map(
             function (key) {
                 return {
@@ -420,8 +418,10 @@ var capacitySetting = new Vue({
                     const defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImageSorted);
                     capacitySetting.baseImages = mapBaseImagesToOptions(baseImageSorted);
                     capacitySetting.baseImageValue = defaultImageId;
-                    capacitySetting.pinImage = !goldenImage;
-                    capacitySetting.pinImageEnabled = isPinImageEnabled(capacitySetting.imageNameValue);
+                    // Default not auto update if there is a golden image before GA
+                    // Default auto update if there is a golden image after GA
+                    capacitySetting.pinImage = getPinImageValue(goldenImage, false);
+                    capacitySetting.pinImageEnabled = isPinImageEnabled(goldenImage);
                 },
                 error: function (data) {
                     globalNotificationBanner.error = data

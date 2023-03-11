@@ -19,7 +19,7 @@ Vue.component('cell-select', {
         updateValue: function (value) {
             this.$emit('input', value);
         },
-        updateCellValue: function(value) {
+        updateCellValue: function (value) {
             this.$emit('cellchange', value);
         }
     }
@@ -34,7 +34,7 @@ Vue.component('arch-select', {
         updateValue: function (value) {
             this.$emit('input', value);
         },
-        updateArchValue: function(value) {
+        updateArchValue: function (value) {
             this.$emit('archchange', value);
         }
     }
@@ -52,7 +52,7 @@ Vue.component('baseimage-select', {
                 :disabled="!pinImage" :options="baseImages" :selected="selectedBaseImage"
                 @input="$emit('base-image-change', $event)" @help-clicked="helpClick">
             </label-select2>
-            <div v-show="showPinImage" class="col-xs-2">
+            <div class="col-xs-2">
                 <base-checkbox :checked="pinImage" :enabled="pinImageEnabled"
                     @input="pinImageClick"></base-checkbox>
                 <label for='pinImageCB'>Pin Image</label>
@@ -63,13 +63,13 @@ Vue.component('baseimage-select', {
     model: {
         prop: 'pinImage',
     },
-    data: function() {
+    data: function () {
         return {
             showWarning: false,
             warningText: '',
         }
     },
-    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled', 'showPinImage'],
+    props: ['imageNames', 'baseImages', 'selectedImageName', 'selectedBaseImage', 'pinImage', 'pinImageEnabled'],
     methods: {
         helpClick: function () {
             this.$emit('help-clicked')
@@ -89,7 +89,7 @@ Vue.component('baseimage-select', {
                 }
             }
         },
-        pinImageClick: function(pin) {
+        pinImageClick: function (pin) {
             this.$emit('input', pin);
             if (pin) {
                 this.tryShowWarning(this.selectedBaseImage, pin);
@@ -99,7 +99,7 @@ Vue.component('baseimage-select', {
         }
     },
     watch: {
-        selectedBaseImage: function(baseImageId) {
+        selectedBaseImage: function (baseImageId) {
             this.tryShowWarning(baseImageId, this.pinImage);
         }
     }
@@ -233,7 +233,7 @@ Vue.component("aws-config-modal", {
                 </div>\
             </form></div></div></div>',
     props: ["options", "id"],
-    data: function() {
+    data: function () {
         return {
             useCustomizedName: false,
             shouldShowError: false,
@@ -245,18 +245,18 @@ Vue.component("aws-config-modal", {
         };
     },
     methods: {
-        updateValue: function(value) {
+        updateValue: function (value) {
             this.selectedValue = value;
             if (value === "") {
                 this.selectedOptionValue = "";
             } else {
-                this.selectedOption = this.options.filter(function(item) {
+                this.selectedOption = this.options.filter(function (item) {
                     return item.name === value;
                 })[0];
                 this.selectedOptionValue = this.selectedOption.default;
             }
         },
-        addConfig: function() {
+        addConfig: function () {
             if (this.useCustomizedName) {
                 if (
                     this.customizedName != "spiffe_id" &&
@@ -304,7 +304,7 @@ Vue.component("aws-config-modal", {
                 }
             }
         },
-        toggleCustomizedName: function(checked) {
+        toggleCustomizedName: function (checked) {
             if (checked) {
                 this.selectedOption = null;
                 this.selectedValue = "";
@@ -424,7 +424,7 @@ Vue.component("placements-select", {
         assignipchange: function (value) {
             this.$emit('assignpublicipclick', value)
         },
-        filterclick: function(value) {
+        filterclick: function (value) {
             this.$emit('subnetfilterclick', value)
         }
     }
@@ -471,7 +471,7 @@ Vue.component('remaining-capacity', {
     </div>',
     props: ['title', 'remainingcapacity', 'inadvanced'],
     computed: {
-        marginStyle:function() {
+        marginStyle: function () {
             return this.inadvanced ? 'margin-top:-15px;' : 'margin-top:-30px;'
         }
     }
@@ -506,7 +506,7 @@ Vue.component("accessrole-input", {
     },
     methods: {
         updateValue: function (value) {
-        this.$emit('input', value)
+            this.$emit('input', value)
         },
         helpClick: function () {
             this.$emit('helpclick')
