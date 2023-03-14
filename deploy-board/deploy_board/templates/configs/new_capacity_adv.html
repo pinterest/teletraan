@@ -50,7 +50,7 @@
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="archValue"></arch-select>
                     <baseimage-select v-model="pinImage" :image-names="imageNames" :base-images="baseImages"
-                        :selected-image-name="imageNameValue" :selected-base-image="baseImageValue" :pin-image-enabled="pinImageEnabled" :show-pin-image="showPinImage"
+                        :selected-image-name="imageNameValue" :selected-base-image="baseImageValue" :pin-image-enabled="pinImageEnabled"
                         @base-image-change="baseImageChange" @image-name-change="imageNameChange" @help-clicked="baseImageHelpClick" >
                     </baseimage-select>
                     <base-image-help v-show="showBaseImageHelp" v-bind:data="baseImageHelpData"></base-image-help>
