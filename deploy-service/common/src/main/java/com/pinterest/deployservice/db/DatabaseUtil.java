@@ -43,7 +43,7 @@ public class DatabaseUtil {
     // TODO: queryTimeoutKillsConnection to true, "?queryTimeoutKillsConnection=true"
     String url = String.format(
         "jdbc:mysql://%s:%d/deploy?connectTimeout=5000&socketTimeout=3000&characterEncoding=UTF-8"
-            + "&connectionCollation=utf8mb4_0900_ai_ci",
+            + "&connectionCollation=utf8mb4_general_ci",
         host, port);
     LOG.info("mtls is disabled --- host:{}, port:{}, user:{}", host, port, user);
     return createDataSource(MYSQL_JDBC_DRIVER, url, user, passwd, poolSize,
@@ -57,7 +57,7 @@ public class DatabaseUtil {
     // TODO: queryTimeoutKillsConnection to true, "?queryTimeoutKillsConnection=true"
     String url = String.format(
         "jdbc:mysql://%s:%d/deploy?connectTimeout=5000&socketTimeout=3000&characterEncoding=UTF-8"
-            + "&connectionCollation=utf8mb4_0900_ai_ci",
+            + "&connectionCollation=utf8mb4_general_ci",
         host, port);
     LOG.info("mtls is enabled --- host:{}, port:{}, user:{}", host, port, user);
     return createDataSource(MYSQL_JDBC_DRIVER, url, user, passwd, poolSize,
