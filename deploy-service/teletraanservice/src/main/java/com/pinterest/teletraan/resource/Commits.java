@@ -49,7 +49,7 @@ public class Commits {
     @GET
     @Timed
     @ExceptionMetered
-    @Path("{scm : [a-zA-Z0-9\\-_]+}/{repo : [a-zA-Z0-9\\-_]+}/{sha : [a-zA-Z0-9\\-_]+}")
+    @Path("{scm : [a-zA-Z0-9\\-_]+}/{repo : [a-zA-Z0-9\\-_/%]+}/{sha : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get commit infos",
             notes = "Returns a commit object given a repo and commit sha",
@@ -58,6 +58,7 @@ public class Commits {
             @ApiParam(value = "Commit's scm type, either github or phabricator", required = false)@PathParam("scm") String scm,
             @ApiParam(value = "Commit's repo", required = true)@PathParam("repo") String repo,
             @ApiParam(value = "Commit SHA", required = true)@PathParam("sha") String sha) throws Exception {
+        repo = repo.replace("%2F", "/");
         return sourceControlManagerProxy.getCommit(scm, repo, sha);
     }
 
