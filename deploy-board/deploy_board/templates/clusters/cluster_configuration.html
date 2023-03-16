@@ -776,7 +776,6 @@
                         beforeSend: function(xhr, settings) {
                             var csrftoken = getCookie('csrftoken')
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
-
                         },
                         success: function(baseImages) {
                             const baseImagesSorted = baseImages.sort(baseImageSorter);

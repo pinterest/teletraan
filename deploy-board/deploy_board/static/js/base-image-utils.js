@@ -15,17 +15,19 @@ function getDefaultBaseImageId(baseImagesSorted) {
 
 function mapBaseImagesToOptions(baseImagesSorted) {
     return baseImagesSorted.map(o => {
-        const suffix = (o.acceptance ? `[${o.acceptance}]` : '') + `${o.golden ? '[GOLDEN]' : ''}`;
+        const status = o.golden ? '[GOLDEN]' : (o.acceptance ? `[${o.acceptance}]` : ''); 
+        const date = new Date(o.publish_date);
+
         return {
             value: o.id,
-            text: o.provider_name + suffix,
+            text: `${o.provider_name} ${status} ${date.toLocaleDateString('en-US')}`,
             publishDate: o.publish_date,
         }
     });
 }
 
 function mapImageNameToOptions(imageNames) {
-    return imageNames.map(o => {
+    return imageNames.sort().map(o => {
         return {
             value: o,
             text: o,
