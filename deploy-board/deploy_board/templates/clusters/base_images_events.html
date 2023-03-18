@@ -21,6 +21,7 @@
             <span class="glyphicon glyphicon-wrench"></span> Back to Base Images List
         </a>
     </div>
+    {% if show_promote_ui %}
     <div class="row">
         {% if tags %}
         <button class="deployToolTip btn btn-default btn-block" id="demoteBtnId">
@@ -38,6 +39,7 @@
             <span class="glyphicon glyphicon-remove-circle"></span> Cancel
         </button>
     </div>
+    {% endif %}
     {% endif %}
 </div>
 <script>

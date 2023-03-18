@@ -6,10 +6,10 @@
         <tr>
             <th class="col-lg-2">ID</th>
             <th class="col-lg-2">Golden</th>
+            <th class="col-lg-2">Provider Name</th>
+            <th class="col-lg-2">Abstract Name</th>
             <th class="col-lg-2">Cell</th>
             <th class="col-lg-2">Arch</th>
-            <th class="col-lg-2">Abstract Name</th>
-            <th class="col-lg-2">Provider Name</th>
             <th class="col-lg-1">Cloud Provider</th>
             <th class="col-lg-2">Publish Date</th>
             <th class="col-lg-2">Description</th>
@@ -17,25 +17,31 @@
         </tr>
         {% for base_image in base_images %}
         <tr>
-            <td> 
-            {% if enable_ami_auto_update %}
-                <a id="listGroupsBtnId" href="/clouds/baseimages/events/{{base_image.id}}" title="Click to see image update events">
-                    {{ base_image.id }} 
+            <td>
+                {% if enable_ami_auto_update %}
+                <a id="listGroupsBtnId" href="/clouds/baseimages/events/{{base_image.id}}"
+                    title="Click to see image update events">
+                    {{ base_image.id }}
                 </a>
-            {% else %}
+                {% else %}
                 {{ base_image.id }}
-            {% endif %}
+                {% endif %}
             </td>
             {% if base_image.tag %}
-                <td> <span class="glyphicon glyphicon-ok"></span>Current Golden</td>
+            <td> <span class="glyphicon glyphicon-ok-sign"></span>Current Golden</td>
             {% else %}
             <td></td>
             {% endif %}
+            <td> {{ base_image.provider_name }} </td>
+            <td>
+                <a id="listGroupsBtnId" href="/clouds/baseimages/{{ base_image.abstract_name }}"
+                    title="Click to see image update events">
+                    {{ base_image.abstract_name }}
+                </a>
+            </td>
             <td> {{ base_image.cell_name }} </td>
             <td> {{ base_image.arch_name }} </td>
-            <td> {{ base_image.abstract_name }} </td>
-            <td> {{ base_image.provider_name }}  </td>
-            <td> {{ base_image.provider }}  </td>
+            <td> {{ base_image.provider }} </td>
             <td> {{ base_image.publish_date | convertTimestamp }} </td>
             <td> {{ base_image.description }} </td>
             {% if base_image.acceptance %}
