@@ -15,7 +15,7 @@
 """
 import logging
 from decorators import singleton
-from deploy_board.settings import RODIMUS_SERVICE_URL, RODIMUS_SERVICE_VERSION
+from deploy_board.settings import RODIMUS_SERVICE_URL, RODIMUS_SERVICE_VERSION, RODIMUS_SERVICE_PROXY_HTTP, RODIMUS_SERVICE_PROXY_HTTPS
 from base_client import BaseClient
 
 
@@ -25,4 +25,4 @@ log = logging.getLogger(__name__)
 @singleton
 class RodimusClient(BaseClient):
     def __init__(self):
-        BaseClient.__init__(self, url_prefix=RODIMUS_SERVICE_URL, version=RODIMUS_SERVICE_VERSION)
+        BaseClient.__init__(self, url_prefix=RODIMUS_SERVICE_URL, version=RODIMUS_SERVICE_VERSION, proxy_http=RODIMUS_SERVICE_PROXY_HTTP, proxy_https=RODIMUS_SERVICE_PROXY_HTTPS)
