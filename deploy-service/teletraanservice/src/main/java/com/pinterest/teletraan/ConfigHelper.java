@@ -157,7 +157,13 @@ public class ConfigHelper {
 
         RodimusFactory rodimusFactory = configuration.getRodimusFactory();
         if (rodimusFactory != null) {
-            context.setRodimusManager(new RodimusManagerImpl(rodimusFactory.getRodimusUrl(), rodimusFactory.getKnoxKey()));
+            context.setRodimusManager(
+                new RodimusManagerImpl(
+                    rodimusFactory.getRodimusUrl(),
+                    rodimusFactory.getKnoxKey(),
+                    rodimusFactory.getUseProxy(),
+                    rodimusFactory.getHttpProxyAddr(),
+                    rodimusFactory.getHttpProxyPort()));
         } else {
             context.setRodimusManager(new DefaultRodimusManager());
         }
