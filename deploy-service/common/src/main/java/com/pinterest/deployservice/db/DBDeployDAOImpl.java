@@ -149,7 +149,6 @@ public class DBDeployDAOImpl implements DeployDAO {
             }
             long
                 total = run.query(connection, queryCountStr, SingleResultSetHandlerFactory.newObjectHandler(), newArr);
-                //run.query(connection, FOUND_ROWS, SingleResultSetHandlerFactory.newObjectHandler());
             long
                 maxToReturn =
                 filterBean.getFilter().getPageIndex() * filterBean.getFilter().getPageSize();
