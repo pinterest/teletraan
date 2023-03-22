@@ -33,6 +33,7 @@ import org.joda.time.Interval;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.Arrays;
 
 public class DBDeployDAOImpl implements DeployDAO {
 
@@ -47,12 +48,17 @@ public class DBDeployDAOImpl implements DeployDAO {
     private static final String DELETE_DEPLOYMENT =
         "DELETE FROM deploys WHERE deploy_id=?";
     private static final String GET_ALL_DEPLOYMENTS_TEMPLATE =
-        "SELECT SQL_CALC_FOUND_ROWS * FROM deploys %s";
+        "SELECT * FROM deploys %s";
     private static final String GET_ALL_DEPLOYMENTS_WITH_COMMIT_TEMPLATE =
-        "SELECT SQL_CALC_FOUND_ROWS deploys.* FROM deploys " +
+        "SELECT deploys.* FROM deploys " +
             "INNER JOIN builds ON deploys.build_id=builds.build_id " +
             "%s";
-    private static final String FOUND_ROWS = "SELECT FOUND_ROWS()";
+    private static final String GET_COUNT_FOR_ALL_DEPLOYMENTS_TEMPLATE =
+        "SELECT COUNT(*) FROM deploys %s";
+    private static final String GET_COUNT_FOR_ALL_DEPLOYMENTS_WITH_COMMIT_TEMPLATE =
+        "SELECT COUNT(*) FROM deploys " +
+            "INNER JOIN builds ON deploys.build_id=builds.build_id " +
+            "%s";
     private static final String GET_ACCEPTED_DEPLOYS_TEMPLATE =
         "SELECT * FROM deploys WHERE env_id='%s' AND deploy_type IN (%s) " +
             "AND acc_status='ACCEPTED' AND start_date>%d AND start_date<%d ORDER BY start_date DESC"
@@ -92,7 +98,7 @@ public class DBDeployDAOImpl implements DeployDAO {
         QueryRunner run = new QueryRunner(dataSource);
         ResultSetHandler<List<DeployBean>> h = new BeanListHandler<>(DeployBean.class);
 
-        String queryStr;
+        String queryStr, queryCountStr;
         if (StringUtils.isNotEmpty(filterBean.getFilter().getCommit())) {
             // TODO pretty hacky
             // It is very important to delete the commit from the filter, since we
@@ -102,9 +108,29 @@ public class DBDeployDAOImpl implements DeployDAO {
             queryStr =
                 String
                     .format(GET_ALL_DEPLOYMENTS_WITH_COMMIT_TEMPLATE, filterBean.getWhereClause());
+            if (filterBean.getWhereClause().contains("LIMIT")) {
+                String[] separateByLimit = filterBean.getWhereClause().split("LIMIT");
+                queryCountStr =
+                    String
+                        .format(GET_COUNT_FOR_ALL_DEPLOYMENTS_WITH_COMMIT_TEMPLATE, separateByLimit[0]);
+            } else {
+                queryCountStr =
+                    String
+                        .format(GET_COUNT_FOR_ALL_DEPLOYMENTS_WITH_COMMIT_TEMPLATE, filterBean.getWhereClause());
+            }      
         } else {
             filterBean.generateClauseAndValues();
             queryStr = String.format(GET_ALL_DEPLOYMENTS_TEMPLATE, filterBean.getWhereClause());
+            if (filterBean.getWhereClause().contains("LIMIT")) {
+                String[] separateByLimit = filterBean.getWhereClause().split("LIMIT");
+                queryCountStr =
+                    String
+                        .format(GET_COUNT_FOR_ALL_DEPLOYMENTS_TEMPLATE, separateByLimit[0]);
+            } else {
+                queryCountStr =
+                    String
+                        .format(GET_COUNT_FOR_ALL_DEPLOYMENTS_TEMPLATE, filterBean.getWhereClause());
+            }      
         }
 
         Connection connection = dataSource.getConnection();
@@ -112,9 +138,17 @@ public class DBDeployDAOImpl implements DeployDAO {
             List<DeployBean>
                 deployBeans =
                 run.query(connection, queryStr, h, filterBean.getValueArray());
+            int len = filterBean.getValueArray().length;
+            Object[] newArr;
+            if (filterBean.getWhereClause().contains("LIMIT")) {
+                newArr = new Object[len - 2];
+                newArr = Arrays.copyOf(filterBean.getValueArray(), len - 2);
+            } else {
+                newArr = new Object[len];
+                newArr = Arrays.copyOf(filterBean.getValueArray(), len);
+            }
             long
-                total =
-                run.query(connection, FOUND_ROWS, SingleResultSetHandlerFactory.newObjectHandler());
+                total = run.query(connection, queryCountStr, SingleResultSetHandlerFactory.newObjectHandler(), newArr);
             long
                 maxToReturn =
                 filterBean.getFilter().getPageIndex() * filterBean.getFilter().getPageSize();
