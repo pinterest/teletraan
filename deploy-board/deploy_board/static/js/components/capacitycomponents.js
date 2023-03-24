@@ -286,16 +286,21 @@ Vue.component("static-capacity-config", {
         },
         validateSize: function () {
             const sizeIncrease = this.capacity - this.originalCapacity;
+            console.log(sizeIncrease);
+            console.log(this.originalCapacity);
             if (sizeIncrease >= this.remainingCapacity) {
                 this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
                 this.showSizeError = true;
             } else {
                 this.showSizeError = false;
-                if (sizeIncrease > this.originalCapacity) {
+                if (sizeIncrease > this.originalCapacity && this.originalCapacity > 0) {
+                    console.log("111111");
                     if (this.originalCapacity > 100) {
+                        console.log("222222");
                         this.showDoubleDanger = true;
                         this.doubleDanger = getCapacityDoubleAlertMessage(false);
                     } else {
+                        console.log("3333333");
                         this.showDoubleWarning = true;
                         this.doubleWarning = getCapacityDoubleAlertMessage(true);
                     }
@@ -410,7 +415,7 @@ Vue.component("asg-capacity-config", {
                 this.showSizeWarning = true;
             } else {
                 this.showSizeWarning = false;
-                if (maxIncrease > this.originalMaxSize) {
+                if (maxIncrease > this.originalMaxSize  && this.originalMinSize > 0) {
                     if (this.originalMaxSize > 100) {
                         this.showDoubleDanger = true;
                         this.doubleDanger = getCapacityDoubleAlertMessage(false);
