@@ -206,7 +206,7 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
 }
 
 function getCapacityDoubleAlertMessage(isFixed) {
-    const errorMessage = `You are increasing the capacity by more than 100%,`;
+    var errorMessage = `You are increasing the capacity by more than 100%,`;
     if (!isFixed) {
         errorMessage = `You are increasing the minSize or maxSize by more than 100%,`;
     }
