@@ -206,10 +206,7 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
 }
 
 function getCapacityDoubleAlertMessage(isFixed) {
-    var errorMessage = `You are increasing the capacity by more than 100%,`;
-    if (!isFixed) {
-        errorMessage = `You are increasing the minSize or maxSize by more than 100%,`;
-    }
+    const errorMessage = isFixed ? `You are increasing the capacity by more than 100%,` : `You are increasing the minSize or maxSize by more than 100%,`;
     const instruction = ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
                             `We strongly suggest launch small numbers of hosts then more and more until the desired capacity is reached.\n`;
     const context = `More context: During load balancing, Envoy will generally only consider available (healthy or degraded) hosts in an upstream cluster.\n` +
@@ -219,14 +216,8 @@ function getCapacityDoubleAlertMessage(isFixed) {
 }
 
 function getCapacityScaleDownAlertMessage(isFixed, isWarning) {
-    var errorMessage = `You are scaling down the capacity by more than `;
-    if (!isFixed) {
-        errorMessage = `You are scaling down the minSize or maxSize by more than `;
-    }
-    var percentage = `50%,`;
-    if (isWarning) {
-        percentage = `33%,`;
-    }
+    const errorMessage = isFixed ? `You are scaling down the capacity by more than ` : `You are scaling down the minSize or maxSize by more than `;
+    const percentage = isWarning ? `33%,` : `50%,`;
     const instruction = ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
                             `We strongly suggest scale down small numbers of hosts then more and more until the desired capacity is reached.\n`;
     const context = `More context: During load balancing, Envoy will generally only consider available (healthy or degraded) hosts in an upstream cluster.\n` +
