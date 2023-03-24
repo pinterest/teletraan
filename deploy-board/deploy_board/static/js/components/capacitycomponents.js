@@ -295,6 +295,8 @@ Vue.component("static-capacity-config", {
     methods: {
         onCapacityChange: function (value) {
             this.capacity = Number(value);
+            this.showSizeError = false;
+            this.showSizeWarning = false;
             this.validateSize();
             this.$emit('change', this.capacity );
         },
@@ -396,6 +398,8 @@ Vue.component("asg-capacity-config", {
             if (this.maxSize < this.minSize) {
                 this.maxSize = this.minSize;
             }
+            this.showSizeError = false;
+            this.showSizeWarning = false;
             this.validateSize();
             this.$emit('min-change', this.minSize);
         },
@@ -404,6 +408,8 @@ Vue.component("asg-capacity-config", {
             if (this.maxSize < this.minSize) {
                 this.minSize = this.maxSize;
             }
+            this.showSizeError = false;
+            this.showSizeWarning = false;
             this.validateSize();
             this.$emit('max-change', this.maxSize);
         },
