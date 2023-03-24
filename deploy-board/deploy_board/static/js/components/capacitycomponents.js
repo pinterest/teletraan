@@ -205,6 +205,19 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
     }
 }
 
+function getCapacityDoubleAlertMessage(isWarning) {
+    const errorMessage = `You are increasing the capacity by more than 100%,` +
+                            ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
+                            ` We strongly suggest launch small numbers of hosts then more and more until the desired capacity is reached.\n`;
+
+    if (isWarning) {
+        return `Warning!` + errorMessage;
+    } else {
+        // error
+        return `Danger!` + errorMessage;
+    }
+}
+
 function calculateImbalanceThreshold(totalIncrease, numPlacements) {
     // average increase per placement
     return (totalIncrease / numPlacements).toFixed()
@@ -242,6 +255,8 @@ Vue.component("static-capacity-config", {
             </div>\
         </div>
     </div>
+    <double-danger v-show="showDoubleDanger" :alert-text="doubleDanger"></double-danger>
+    <double-warning v-show="showDoubleWarning" :alert-text="doubleWarning"></double-warning>
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
     </div>`,
@@ -257,6 +272,10 @@ Vue.component("static-capacity-config", {
             showImbalanceWarning: false,
             sizeError: '',
             imbalanceWarning: '',
+            showDoubleDanger: false,
+            showDoubleWarning: false,
+            doubleDanger: '',
+            doubleWarning: '',
         }
     },
     methods: {
@@ -272,6 +291,15 @@ Vue.component("static-capacity-config", {
                 this.showSizeError = true;
             } else {
                 this.showSizeError = false;
+                if (sizeIncrease > this.originalCapacity) {
+                    if (this.originalCapacity > 100) {
+                        this.showDoubleDanger = true;
+                        this.doubleDanger = getCapacityDoubleAlertMessage(false);
+                    } else {
+                        this.showDoubleWarning = true;
+                        this.doubleWarning = getCapacityDoubleAlertMessage(true);
+                    }
+                }
             }
             this.imbalanceWarning = checkImbalance(this.placements, calculateImbalanceThreshold(sizeIncrease, this.placements.length));
             this.showImbalanceWarning = this.imbalanceWarning != '';
@@ -304,6 +332,8 @@ Vue.component("asg-capacity-config", {
             </div>
         </div>
     </div>
+    <double-danger v-show="showDoubleDanger" :alert-text="doubleDanger"></double-danger>
+    <double-warning v-show="showDoubleWarning" :alert-text="doubleWarning"></double-warning>
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
@@ -341,6 +371,10 @@ Vue.component("asg-capacity-config", {
             sizeError: '',
             sizeWarning: '',
             imbalanceWarning: '',
+            showDoubleDanger: false,
+            showDoubleWarning: false,
+            doubleDanger: '',
+            doubleWarning: '',
         }
     },
     methods: {
@@ -376,6 +410,15 @@ Vue.component("asg-capacity-config", {
                 this.showSizeWarning = true;
             } else {
                 this.showSizeWarning = false;
+                if (maxIncrease > this.originalMaxSize) {
+                    if (this.originalMaxSize > 100) {
+                        this.showDoubleDanger = true;
+                        this.doubleDanger = getCapacityDoubleAlertMessage(false);
+                    } else {
+                        this.showDoubleWarning = true;
+                        this.doubleWarning = getCapacityDoubleAlertMessage(true);
+                    }
+                }
             }
 
             const avgSizeIncreasePerPlacement = calculateImbalanceThreshold(this.maxSize - this.currentSize, this.placements.length);
