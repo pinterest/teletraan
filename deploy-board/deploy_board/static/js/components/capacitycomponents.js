@@ -309,8 +309,8 @@ Vue.component("static-capacity-config", {
                         this.showSizeError = true;
                         this.sizeError = getCapacityDoubleAlertMessage(true);
                     } else {
-                        this.showDoubleWarning = true;
-                        this.doubleWarning = getCapacityDoubleAlertMessage(true);
+                        this.showSizeWarning = true;
+                        this.sizeWarning = getCapacityDoubleAlertMessage(true);
                     }
                 } else if (-sizeIncrease > this.capacity) {
                     this.showSizeError = true;
