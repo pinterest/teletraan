@@ -15,7 +15,6 @@
                         :original-max-size="asg_launch_info.maxSize" @max-change="maxsize = $event"
                         :remaining-capacity="remainingCapacity" :placements="placements">
                     </asg-capacity-config>
-                    <form-warning v-show="showSizeWarning" v-bind:alert-text="sizeWarning"></form-warning>
                 </fieldset>
             </form>
         </div>
@@ -64,8 +63,6 @@
                 maxsize: asg_launch_info.maxSize,
                 autoscalingEnabled:autoscalingEnabled,
                 canSaveCapacity: cluster.state === "NORMAL",
-                showSizeWarning: false,
-                sizeWarning: "",
                 remainingCapacity: info.placements != null ?  info.placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
                 placements: info.placements,
                 originalCapacity: cluster.capacity,
