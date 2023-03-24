@@ -94,7 +94,9 @@
 
                         },
                         success: function (data) {
-                            globalNotificationBanner.info = "Capacity updated successfully"
+                            globalNotificationBanner.info = "Capacity updated successfully";
+                            //Reload page
+                            window.location.href=window.location.href
                         },
                         error: function (data) {
                             var optionalInstruction = '';
