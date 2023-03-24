@@ -211,8 +211,28 @@ function getCapacityDoubleAlertMessage(isFixed) {
         errorMessage = `You are increasing the minSize or maxSize by more than 100%,`;
     }
     const instruction = ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
-                            ` We strongly suggest launch small numbers of hosts then more and more until the desired capacity is reached.\n`;
-    return errorMessage + instruction;
+                            `We strongly suggest launch small numbers of hosts then more and more until the desired capacity is reached.\n`;
+    const context = `More context: During load balancing, Envoy will generally only consider available (healthy or degraded) hosts in an upstream cluster.\n` +
+                        `However, if the percentage of available hosts in the cluster becomes too low, Envoy will disregard health status and balance either amongst all hosts or no hosts.\n` +
+                        `This is known as the panic threshold. The default panic threshold is 50%.\n`;
+    return errorMessage + instruction + context;
+}
+
+function getCapacityScaleDownAlertMessage(isFixed, isWarning) {
+    var errorMessage = `You are scaling down the capacity by more than `;
+    if (!isFixed) {
+        errorMessage = `You are scaling down the minSize or maxSize by more than `;
+    }
+    var percentage = `50%,`;
+    if (isWarning) {
+        percentage = `33%,`;
+    }
+    const instruction = ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
+                            `We strongly suggest scale down small numbers of hosts then more and more until the desired capacity is reached.\n`;
+    const context = `More context: During load balancing, Envoy will generally only consider available (healthy or degraded) hosts in an upstream cluster.\n` +
+                        `However, if the percentage of available hosts in the cluster becomes too low, Envoy will disregard health status and balance either amongst all hosts or no hosts.\n` +
+                        `This is known as the panic threshold. The default panic threshold is 50%.\n`;
+    return errorMessage + percentage + instruction + context;
 }
 
 function calculateImbalanceThreshold(totalIncrease, numPlacements) {
@@ -252,9 +272,8 @@ Vue.component("static-capacity-config", {
             </div>\
         </div>
     </div>
-    <form-danger v-show="showDoubleDanger" :alert-text="doubleDanger"></form-danger>
-    <form-warning v-show="showDoubleWarning" :alert-text="doubleWarning"></form-warning>
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
+    <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
     </div>`,
     props: {
@@ -269,10 +288,8 @@ Vue.component("static-capacity-config", {
             showImbalanceWarning: false,
             sizeError: '',
             imbalanceWarning: '',
-            showDoubleDanger: false,
-            showDoubleWarning: false,
-            doubleDanger: '',
-            doubleWarning: '',
+            showSizeWarning: false,
+            sizeWarning: '',
         }
     },
     methods: {
@@ -287,15 +304,20 @@ Vue.component("static-capacity-config", {
                 this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
                 this.showSizeError = true;
             } else {
-                this.showSizeError = false;
                 if (sizeIncrease > this.originalCapacity && this.originalCapacity > 0) {
                     if (this.originalCapacity > 100) {
-                        this.showDoubleDanger = true;
-                        this.doubleDanger = getCapacityDoubleAlertMessage(true);
+                        this.showSizeError = true;
+                        this.sizeError = getCapacityDoubleAlertMessage(true);
                     } else {
                         this.showDoubleWarning = true;
                         this.doubleWarning = getCapacityDoubleAlertMessage(true);
                     }
+                } else if (-sizeIncrease > this.capacity) {
+                    this.showSizeError = true;
+                    this.sizeError = getCapacityScaleDownAlertMessage(true, false);
+                } else if (-sizeIncrease * 2 > this.capacity) {
+                    this.showSizeWarning = true;
+                    this.sizeWarning = getCapacityScaleDownAlertMessage(true, true);
                 }
             }
             this.imbalanceWarning = checkImbalance(this.placements, calculateImbalanceThreshold(sizeIncrease, this.placements.length));
@@ -329,8 +351,6 @@ Vue.component("asg-capacity-config", {
             </div>
         </div>
     </div>
-    <form-danger v-show="showDoubleDanger" :alert-text="doubleDanger"></form-danger>
-    <form-warning v-show="showDoubleWarning" :alert-text="doubleWarning"></form-warning>
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
@@ -368,10 +388,6 @@ Vue.component("asg-capacity-config", {
             sizeError: '',
             sizeWarning: '',
             imbalanceWarning: '',
-            showDoubleDanger: false,
-            showDoubleWarning: false,
-            doubleDanger: '',
-            doubleWarning: '',
         }
     },
     methods: {
@@ -406,15 +422,20 @@ Vue.component("asg-capacity-config", {
                 this.sizeWarning = getCapacityAlertMessage(true, this.remainingCapacity, this.placements, maxIncrease);
                 this.showSizeWarning = true;
             } else {
-                this.showSizeWarning = false;
                 if (maxIncrease > this.originalMaxSize && this.originalMaxSize > 0 || minIncrease > this.originalMinSize && this.originalMinSize > 0) {
                     if (this.originalMaxSize > 100) {
-                        this.showDoubleDanger = true;
-                        this.doubleDanger = getCapacityDoubleAlertMessage(false);
+                        this.showSizeError = true;
+                        this.sizeError = getCapacityDoubleAlertMessage(false);
                     } else {
-                        this.showDoubleWarning = true;
-                        this.doubleWarning = getCapacityDoubleAlertMessage(false);
+                        this.showSizeWarning = true;
+                        this.sizeWarning = getCapacityDoubleAlertMessage(false);
                     }
+                } else if (-minIncrease > this.minSize || -maxIncrease > this.maxSize) {
+                    this.showSizeError = true;
+                    this.sizeError = getCapacityScaleDownAlertMessage(false, false);
+                } else if (-minIncrease * 2 > this.minSize || -maxIncrease * 2 > this.maxSize) {
+                    this.showSizeWarning = true;
+                    this.sizeWarning = getCapacityScaleDownAlertMessage(false, true);
                 }
             }
 
