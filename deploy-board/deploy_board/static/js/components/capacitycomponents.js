@@ -205,17 +205,11 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
     }
 }
 
-function getCapacityDoubleAlertMessage(isWarning) {
+function getCapacityDoubleAlertMessage() {
     const errorMessage = `You are increasing the capacity by more than 100%,` +
                             ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
                             ` We strongly suggest launch small numbers of hosts then more and more until the desired capacity is reached.\n`;
-
-    if (isWarning) {
-        return `Warning!` + errorMessage;
-    } else {
-        // error
-        return `Danger!` + errorMessage;
-    }
+    return errorMessage;
 }
 
 function calculateImbalanceThreshold(totalIncrease, numPlacements) {
@@ -255,8 +249,8 @@ Vue.component("static-capacity-config", {
             </div>\
         </div>
     </div>
-    <double-danger v-show="showDoubleDanger" :alert-text="doubleDanger"></double-danger>
-    <double-warning v-show="showDoubleWarning" :alert-text="doubleWarning"></double-warning>
+    <form-danger v-show="showDoubleDanger" :alert-text="doubleDanger"></form-danger>
+    <form-warning v-show="showDoubleWarning" :alert-text="doubleWarning"></form-warning>
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
     </div>`,
@@ -337,8 +331,8 @@ Vue.component("asg-capacity-config", {
             </div>
         </div>
     </div>
-    <double-danger v-show="showDoubleDanger" :alert-text="doubleDanger"></double-danger>
-    <double-warning v-show="showDoubleWarning" :alert-text="doubleWarning"></double-warning>
+    <form-danger v-show="showDoubleDanger" :alert-text="doubleDanger"></form-danger>
+    <form-warning v-show="showDoubleWarning" :alert-text="doubleWarning"></form-warning>
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
