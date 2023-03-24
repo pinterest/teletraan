@@ -207,7 +207,7 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
 
 function getCapacityDoubleAlertMessage(isFixed) {
     const errorMessage = `You are increasing the capacity by more than 100%,`;
-    if (isFixed === false) {
+    if (!isFixed) {
         errorMessage = `You are increasing the minSize or maxSize by more than 100%,`;
     }
     const instruction = ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
