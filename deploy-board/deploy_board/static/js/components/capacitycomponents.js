@@ -205,11 +205,14 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
     }
 }
 
-function getCapacityDoubleAlertMessage() {
-    const errorMessage = `You are increasing the capacity by more than 100%,` +
-                            ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
+function getCapacityDoubleAlertMessage(isFixed) {
+    const errorMessage = `You are increasing the capacity by more than 100%,`;
+    if (isFixed == false) {
+        errorMessage = `You are increasing the minSize or maxSize by more than 100%,`;
+    }
+    const instruction = ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
                             ` We strongly suggest launch small numbers of hosts then more and more until the desired capacity is reached.\n`;
-    return errorMessage;
+    return errorMessage + instruction;
 }
 
 function calculateImbalanceThreshold(totalIncrease, numPlacements) {
@@ -288,7 +291,7 @@ Vue.component("static-capacity-config", {
                 if (sizeIncrease > this.originalCapacity && this.originalCapacity > 0) {
                     if (this.originalCapacity > 100) {
                         this.showDoubleDanger = true;
-                        this.doubleDanger = getCapacityDoubleAlertMessage(false);
+                        this.doubleDanger = getCapacityDoubleAlertMessage(true);
                     } else {
                         this.showDoubleWarning = true;
                         this.doubleWarning = getCapacityDoubleAlertMessage(true);
@@ -404,13 +407,13 @@ Vue.component("asg-capacity-config", {
                 this.showSizeWarning = true;
             } else {
                 this.showSizeWarning = false;
-                if (maxIncrease > this.originalMaxSize  && this.originalMinSize > 0) {
+                if (maxIncrease > this.originalMaxSize && this.originalMaxSize > 0 || minIncrease > this.originalMinSize && this.originalMinSize > 0) {
                     if (this.originalMaxSize > 100) {
                         this.showDoubleDanger = true;
                         this.doubleDanger = getCapacityDoubleAlertMessage(false);
                     } else {
                         this.showDoubleWarning = true;
-                        this.doubleWarning = getCapacityDoubleAlertMessage(true);
+                        this.doubleWarning = getCapacityDoubleAlertMessage(false);
                     }
                 }
             }
