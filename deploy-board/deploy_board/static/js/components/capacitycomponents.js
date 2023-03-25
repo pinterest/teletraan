@@ -305,10 +305,10 @@ Vue.component("static-capacity-config", {
                         this.showSizeWarning = true;
                         this.sizeWarning = getCapacityDoubleAlertMessage(true);
                     }
-                } else if (-sizeIncrease > this.capacity) {
+                } else if (-sizeIncrease > this.capacity && this.capacity > 0) {
                     this.showSizeError = true;
                     this.sizeError = getCapacityScaleDownAlertMessage(true, false);
-                } else if (-sizeIncrease * 2 > this.capacity) {
+                } else if (-sizeIncrease * 2 > this.capacity && this.capacity > 0) {
                     this.showSizeWarning = true;
                     this.sizeWarning = getCapacityScaleDownAlertMessage(true, true);
                 }
@@ -427,10 +427,10 @@ Vue.component("asg-capacity-config", {
                         this.showSizeWarning = true;
                         this.sizeWarning = getCapacityDoubleAlertMessage(false);
                     }
-                } else if (-minIncrease > this.minSize || -maxIncrease > this.maxSize) {
+                } else if (-minIncrease > this.minSize && this.minSize > 0 || -maxIncrease > this.maxSize && this.maxSize > 0) {
                     this.showSizeError = true;
                     this.sizeError = getCapacityScaleDownAlertMessage(false, false);
-                } else if (-minIncrease * 2 > this.minSize || -maxIncrease * 2 > this.maxSize) {
+                } else if (-minIncrease * 2 > this.minSize && this.minSize > 0 || -maxIncrease * 2 > this.maxSize && this.maxSize > 0) {
                     this.showSizeWarning = true;
                     this.sizeWarning = getCapacityScaleDownAlertMessage(false, true);
                 }
