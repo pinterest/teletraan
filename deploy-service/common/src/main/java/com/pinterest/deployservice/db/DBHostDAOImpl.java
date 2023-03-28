@@ -49,7 +49,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_ALL_HOSTS_BY_GROUP = "SELECT * FROM hosts WHERE group_name=? AND state!='TERMINATING'";
     private static final String GET_HOST_BY_NAME = "SELECT * FROM hosts WHERE host_name=?";
     private static final String GET_HOST_BY_HOSTID = "SELECT * FROM hosts WHERE host_id=?";
-    private static final String GET_HOSTS_BY_STATES = "SELECT * FROM hosts WHERE state in (?, ?, ?) GROUP BY host_id";
+    private static final String GET_HOSTS_BY_STATES = "SELECT * FROM hosts WHERE state in (?, ?, ?) GROUP BY host_id ORDER BY last_update";
     private static final String GET_GROUP_NAMES_BY_HOST = "SELECT group_name FROM hosts WHERE host_name=?";
     private static final String GET_STALE_ENV_HOST = "SELECT DISTINCT hosts.* FROM hosts INNER JOIN hosts_and_envs ON hosts.host_name=hosts_and_envs.host_name WHERE hosts.last_update<?";
     private static final String GET_STALE_HOST = "SELECT DISTINCT hosts.* FROM hosts WHERE hosts.last_update<?";
@@ -67,7 +67,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_NEW_AND_SERVING_BUILD_HOSTIDS_BY_GROUP =
             "SELECT host_id FROM agents x WHERE x.state = ? AND x.deploy_stage = ? " +
             "AND x.host_id IN (SELECT DISTINCT h.host_id AS host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire=0 AND h.group_name=? AND h.state not in (?,?,?)) " +
-            "GROUP BY x.host_id HAVING count(*) = (SELECT count(*) FROM agents y WHERE y.host_id = x.host_id)";
+            "GROUP BY x.host_id HAVING count(*) = (SELECT count(*) FROM agents y WHERE y.host_id = x.host_id) ORDER BY host_id";
     private static final String GET_NEW_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE can_retire=0 AND group_name=? AND state not in (?,?,?)";
 
     private BasicDataSource dataSource;
