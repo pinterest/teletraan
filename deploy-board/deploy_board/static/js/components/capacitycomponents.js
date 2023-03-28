@@ -205,6 +205,27 @@ function getCapacityAlertMessage(isWarning, remainingCapacity, placements, incre
     }
 }
 
+function getCapacityDoubleAlertMessage(isFixed) {
+    const errorMessage = isFixed ? `You are increasing the capacity by more than 100%,` : `You are increasing the minSize or maxSize by more than 100%,`;
+    const instruction = ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
+                            `We strongly suggest launch small numbers of hosts then more and more until the desired capacity is reached.\n`;
+    const context = `More context: During load balancing, Envoy will generally only consider available (healthy or degraded) hosts in an upstream cluster.\n` +
+                        `However, if the percentage of available hosts in the cluster becomes too low, Envoy will disregard health status and balance either amongst all hosts or no hosts.\n` +
+                        `This is known as the panic threshold. The default panic threshold is 50%.\n`;
+    return errorMessage + instruction + context;
+}
+
+function getCapacityScaleDownAlertMessage(isFixed, isWarning) {
+    const errorMessage = isFixed ? `You are scaling down the capacity by more than ` : `You are scaling down the minSize or maxSize by more than `;
+    const percentage = isWarning ? `33%,` : `50%,`;
+    const instruction = ` traffic would start routing requests to all hosts and could lead to SR drop.\n` +
+                            `We strongly suggest scale down small numbers of hosts then more and more until the desired capacity is reached.\n`;
+    const context = `More context: During load balancing, Envoy will generally only consider available (healthy or degraded) hosts in an upstream cluster.\n` +
+                        `However, if the percentage of available hosts in the cluster becomes too low, Envoy will disregard health status and balance either amongst all hosts or no hosts.\n` +
+                        `This is known as the panic threshold. The default panic threshold is 50%.\n`;
+    return errorMessage + percentage + instruction + context;
+}
+
 function calculateImbalanceThreshold(totalIncrease, numPlacements) {
     // average increase per placement
     return (totalIncrease / numPlacements).toFixed()
@@ -243,6 +264,7 @@ Vue.component("static-capacity-config", {
         </div>
     </div>
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
+    <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
     </div>`,
     props: {
@@ -257,11 +279,15 @@ Vue.component("static-capacity-config", {
             showImbalanceWarning: false,
             sizeError: '',
             imbalanceWarning: '',
+            showSizeWarning: false,
+            sizeWarning: '',
         }
     },
     methods: {
         onCapacityChange: function (value) {
             this.capacity = Number(value);
+            this.showSizeError = false;
+            this.showSizeWarning = false;
             this.validateSize();
             this.$emit('change', this.capacity );
         },
@@ -271,7 +297,21 @@ Vue.component("static-capacity-config", {
                 this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
                 this.showSizeError = true;
             } else {
-                this.showSizeError = false;
+                if (sizeIncrease > this.originalCapacity && this.originalCapacity > 0) {
+                    if (this.originalCapacity > 100) {
+                        this.showSizeError = true;
+                        this.sizeError = getCapacityDoubleAlertMessage(true);
+                    } else {
+                        this.showSizeWarning = true;
+                        this.sizeWarning = getCapacityDoubleAlertMessage(true);
+                    }
+                } else if (-sizeIncrease > this.capacity && this.capacity > 0) {
+                    this.showSizeError = true;
+                    this.sizeError = getCapacityScaleDownAlertMessage(true, false);
+                } else if (-sizeIncrease * 2 > this.capacity && this.capacity > 0) {
+                    this.showSizeWarning = true;
+                    this.sizeWarning = getCapacityScaleDownAlertMessage(true, true);
+                }
             }
             this.imbalanceWarning = checkImbalance(this.placements, calculateImbalanceThreshold(sizeIncrease, this.placements.length));
             this.showImbalanceWarning = this.imbalanceWarning != '';
@@ -349,6 +389,8 @@ Vue.component("asg-capacity-config", {
             if (this.maxSize < this.minSize) {
                 this.maxSize = this.minSize;
             }
+            this.showSizeError = false;
+            this.showSizeWarning = false;
             this.validateSize();
             this.$emit('min-change', this.minSize);
         },
@@ -357,6 +399,8 @@ Vue.component("asg-capacity-config", {
             if (this.maxSize < this.minSize) {
                 this.minSize = this.maxSize;
             }
+            this.showSizeError = false;
+            this.showSizeWarning = false;
             this.validateSize();
             this.$emit('max-change', this.maxSize);
         },
@@ -375,7 +419,21 @@ Vue.component("asg-capacity-config", {
                 this.sizeWarning = getCapacityAlertMessage(true, this.remainingCapacity, this.placements, maxIncrease);
                 this.showSizeWarning = true;
             } else {
-                this.showSizeWarning = false;
+                if (maxIncrease > this.originalMaxSize && this.originalMaxSize > 0 || minIncrease > this.originalMinSize && this.originalMinSize > 0) {
+                    if (this.originalMaxSize > 100) {
+                        this.showSizeError = true;
+                        this.sizeError = getCapacityDoubleAlertMessage(false);
+                    } else {
+                        this.showSizeWarning = true;
+                        this.sizeWarning = getCapacityDoubleAlertMessage(false);
+                    }
+                } else if (-minIncrease > this.minSize && this.minSize > 0 || -maxIncrease > this.maxSize && this.maxSize > 0) {
+                    this.showSizeError = true;
+                    this.sizeError = getCapacityScaleDownAlertMessage(false, false);
+                } else if (-minIncrease * 2 > this.minSize && this.minSize > 0 || -maxIncrease * 2 > this.maxSize && this.maxSize > 0) {
+                    this.showSizeWarning = true;
+                    this.sizeWarning = getCapacityScaleDownAlertMessage(false, true);
+                }
             }
 
             const avgSizeIncreasePerPlacement = calculateImbalanceThreshold(this.maxSize - this.currentSize, this.placements.length);
