@@ -1,7 +1,6 @@
 {% load utils %}
 {% load static %}
 
-
 <div class="panel-body table-responsive">
     <table class="table table-striped table-bordered table-condensed table-hover">
         <tr>
@@ -57,4 +56,22 @@
         </tr>
         {% endif %}
     </table>
+    <div class="panel-body table-responsive">
+        {% for cluster in cluster_statuses %}
+            {% if cluster.status == "FAILED" %}
+                <a href="/groups/{{cluster.cluster_name}}" type="button" class="deployToolTip btn btn-xs btn-danger host-btn">
+            {% else %}
+                <a href="/groups/{{cluster.cluster_name}}" type="button" class="deployToolTip btn btn-xs btn-default host-btn">
+            {% endif %}
+            <small> {{cluster.cluster_name}}</small>
+            {% if cluster.status == "FAILED" %}
+            <i class="fa fa-fw fa-exclamation-triangle"></i>
+            {% elif cluster.status == "SUCCEEDED" %}
+            <i class="fa fa-fw fa-check"></i>
+            {% else %}
+            <i class="fa fa-fw fa-spinner fa-spin"></i>
+            {% endif %}
+            </a>
+        {% endfor %}
+    </div>
 </div>

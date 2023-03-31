@@ -14,7 +14,12 @@
         </tr>
         {% for base_images_event in base_images_events %}
         <tr>
-            <td> {{ base_images_event.cluster_name }} </td>
+            <td>
+                <a id="listGroupsBtnId" href="/groups/{{ base_images_event.cluster_name }}"
+                    title="Click to see image update events">
+                    {{ base_images_event.cluster_name }}
+                </a>
+            </td>
             <td> {{ base_images_event.old_image_id }} </td>
             <td> {{ base_images_event.new_image_id }} </td>
             <td> {{ base_images_event.status }} </td>
