@@ -47,12 +47,12 @@ public class DBBuildDAOImpl implements BuildDAO {
         "SELECT * FROM builds WHERE build_name=? ORDER BY publish_date DESC LIMIT 1";
     private static final String
         GET_LATEST_BUILD_BY_NAME_2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? ORDER BY publish_date DESC "
+        "SELECT * FROM builds WHERE build_name=? AND (scm_branch=? OR scm_branch=?) ORDER BY publish_date DESC "
             + "LIMIT 1";
     private static final String GET_BUILDS_BY_NAME =
         "SELECT * FROM builds WHERE build_name=? " + "ORDER BY publish_date DESC LIMIT ?,?";
     private static final String GET_BUILDS_BY_NAME_2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? "
+        "SELECT * FROM builds WHERE build_name=? AND (scm_branch=? OR scm_branch=?) "
             + "ORDER BY publish_date DESC LIMIT ?,?";
     private static final String
         GET_BUILD_NAMES =
@@ -66,7 +66,7 @@ public class DBBuildDAOImpl implements BuildDAO {
         "SELECT * FROM builds WHERE build_name=? AND "
             + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
     private static final String GET_BUILDS_BY_NAME_X_2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND "
+        "SELECT * FROM builds WHERE build_name=? AND (scm_branch=? OR scm_branch=?) AND "
             + "publish_date<=? AND publish_date>? ORDER BY publish_date DESC LIMIT 5000";
     private static final String
         GET_ACCEPTED_BUILDS_TEMPLATE =
@@ -74,7 +74,7 @@ public class DBBuildDAOImpl implements BuildDAO {
             + "LIMIT ?";
     private static final String
         GET_ACCEPTED_BUILDS_TEMPLATE2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? ORDER "
+        "SELECT * FROM builds WHERE build_name=? AND (scm_branch=? OR scm_branch=?) AND publish_date>? ORDER "
             + "BY publish_date DESC LIMIT ?";
     private static final String
         GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE =
@@ -82,7 +82,7 @@ public class DBBuildDAOImpl implements BuildDAO {
             + "BY publish_date DESC LIMIT ?";
     private static final String
         GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2 =
-        "SELECT * FROM builds WHERE build_name=? AND scm_branch=? AND publish_date>? AND "
+        "SELECT * FROM builds WHERE build_name=? AND (scm_branch=? OR scm_branch=?) AND publish_date>? AND "
             + "publish_date<?  ORDER BY publish_date DESC LIMIT ?";
 
     private static final String GET_ALL_BUILD_NAMES = "SELECT DISTINCT build_name FROM builds";
@@ -148,7 +148,7 @@ public class DBBuildDAOImpl implements BuildDAO {
         QueryRunner run = new QueryRunner(this.dataSource);
         ResultSetHandler<BuildBean> h = new BeanHandler<>(BuildBean.class);
         if (StringUtils.isNotEmpty(branch)) {
-            return run.query(GET_LATEST_BUILD_BY_NAME_2, h, buildName, branch);
+            return run.query(GET_LATEST_BUILD_BY_NAME_2, h, buildName, branch, "origin/" + branch);
         } else {
             return run.query(GET_LATEST_BUILD_BY_NAME, h, buildName);
         }
@@ -177,7 +177,7 @@ public class DBBuildDAOImpl implements BuildDAO {
         QueryRunner run = new QueryRunner(this.dataSource);
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         if (StringUtils.isNotEmpty(branch)) {
-            return run.query(GET_BUILDS_BY_NAME_X_2, h, buildName, branch, before, after);
+            return run.query(GET_BUILDS_BY_NAME_X_2, h, buildName, branch, "origin/" + branch, before, after);
         } else {
             return run.query(GET_BUILDS_BY_NAME_X, h, buildName, before, after);
         }
@@ -190,7 +190,7 @@ public class DBBuildDAOImpl implements BuildDAO {
         long start = (pageIndex - 1) * pageSize;
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         if (StringUtils.isNotEmpty(branch)) {
-            return run.query(GET_BUILDS_BY_NAME_2, h, buildName, branch, start, pageSize);
+            return run.query(GET_BUILDS_BY_NAME_2, h, buildName, branch, "origin/" + branch, start, pageSize);
         } else {
             return run.query(GET_BUILDS_BY_NAME, h, buildName, start, pageSize);
         }
@@ -209,7 +209,7 @@ public class DBBuildDAOImpl implements BuildDAO {
                                              int limit) throws Exception {
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         if (StringUtils.isNotEmpty(branch)) {
-            return new QueryRunner(dataSource).query(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2, h, buildName, branch,
+            return new QueryRunner(dataSource).query(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE2, h, buildName, branch, "origin/" + branch,
                     interval.getStartMillis(), interval.getEndMillis(), limit);
         } else {
             return new QueryRunner(dataSource).query(GET_ACCEPTED_BUILDS_BETWEEN_TEMPLATE, h, buildName,
