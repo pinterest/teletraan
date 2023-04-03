@@ -26,14 +26,27 @@ log = logging.getLogger(__name__)
 
 @singleton
 class RestfulClient(object):
-    def __init__(self, config):
+    def __init__(self, config, userdata):
         self.config = config
-        self.url_prefix = config.get_restful_service_url()
+        self.userdata = userdata
+        self.url_prefix = self.__get_service_url()
         self.url_version = config.get_restful_service_version()
-        self.token = config.get_restful_service_token()
+        self.token = self.__get_service_token()
         self.verify = (config.get_verify_https_certificate() == 'True')
         self.default_timeout = 30
 
+    def __get_service_url(self): 
+        if self.userdata.get('agent_service_url', None):
+            return self.userdata.get('service_url', None)
+        else:
+            return self.config.get_restful_service_url()
+    
+    def __get_service_token(self):
+        if self.userdata.get('agent_service_token', None):
+            return self.userdata.get('agent_service_token', None)
+        else: 
+            return self.config.get_restful_service_token()
+        
     @staticmethod
     def sc_fail(reason):
         """ send RestfulClient failure metrics """
