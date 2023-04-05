@@ -176,15 +176,30 @@
         });
 
         $('#saveEntryBtnId').click(function () {
-            $('#newEntryModalId').modal('hide');
+            $('#saveEntryModalId').modal('hide');
+            var btn = $('#saveConfigMapBtnId');
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/map/',
                 data: $('#mapConfigFormId').serialize(),
                 dataType: 'json',
-                success: function (data) {
-                    window.location.href=window.location.href
+                beforeSend: function () {
+                    btn.button('loading');
                 },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $('#panelBodyId').parent().html(data.html);
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('reset');
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
             });
         });
 
