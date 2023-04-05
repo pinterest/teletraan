@@ -3,5 +3,5 @@
 echo Running STOPPING script.
 
 echo Going to sleep
-sleep 15m
+sleep 200m
 echo Woke up
