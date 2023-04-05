@@ -35,7 +35,7 @@
             <span class="glyphicon glyphicon-plus"></span> Add
         </button>
         <button id="saveConfigMapBtnId" class="btn btn-primary"
-                type="button" data-loading-text="Saving..." :data-target="`#${confirmDialogId}`">
+                type="button" data-loading-text="Saving..." data-toggle="modal" :data-target="`#${confirmDialogId}`">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
         {% endif %}
@@ -138,8 +138,8 @@
             {% endif %}
             var value = $('#newEntryFormId').find('textarea[name="newEntryValue"]').val();
             $('#mapConfigFieldSetId').append(
-                    '<div class="form-group" bgColor = "pink">' +
-                    '<label for="properties" class="control-label col-xs-3">' + name + '</label>' +
+                    '<div class="form-group">' +
+                    '<label for="properties" class="control-label col-xs-3" style="color:pink">' + name + '</label>' +
                     '<div class="col-xs-6"><textarea class="form-control" name="TELETRAAN_' +
                     name + '" type="text" rows="1" style="resize: none;">' + value + '</textarea>' +
                     '<p class="lineTooLong" ' + (value.length > 256 ? '' : 'hidden') +
