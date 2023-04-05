@@ -182,6 +182,9 @@
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/map/',
                 data: $('#mapConfigFormId').serialize(),
                 dataType: 'json',
+                success: function (data) {
+                    window.location.href=window.location.href
+                },
             });
         });
 
