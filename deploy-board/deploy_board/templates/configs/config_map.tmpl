@@ -177,6 +177,7 @@
 
         $('#saveEntryBtnId').click(function () {
             var btn = $(this);
+            $('#newEntryModalId').modal('hide');
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/map/',
