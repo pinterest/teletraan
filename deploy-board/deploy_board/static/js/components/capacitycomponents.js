@@ -215,6 +215,10 @@ function getCapacityDoubleAlertMessage(isFixed) {
     return errorMessage + instruction + context;
 }
 
+function getTerminationLimitAlertMessage() {
+    return "The size you manually scaled down is more than the specified termination limit."
+}
+
 function getCapacityScaleDownAlertMessage(isFixed, isWarning) {
     const errorMessage = isFixed ? `You are scaling down the capacity by more than ` : `You are scaling down the minSize or maxSize by more than `;
     const percentage = isWarning ? `33%,` : `50%,`;
@@ -271,10 +275,12 @@ Vue.component("static-capacity-config", {
         originalCapacity: Number,
         remainingCapacity: Number,
         placements: Object,
+        terminationLimit: Number,
     },
     data: function() {
         return {
             capacity: this.originalCapacity,
+            terminationLimit: this.terminationLimit,
             showSizeError: false,
             showImbalanceWarning: false,
             sizeError: '',
@@ -297,7 +303,10 @@ Vue.component("static-capacity-config", {
                 this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
                 this.showSizeError = true;
             } else {
-                if (sizeIncrease > this.originalCapacity && this.originalCapacity > 0) {
+                if (-sizeIncrease > this.terminationLimit) {
+                    this.showSizeError = true;
+                    this.sizeError = getTerminationLimitAlertMessage();
+                } else if (sizeIncrease > this.originalCapacity && this.originalCapacity > 0) {
                     if (this.originalCapacity > 100) {
                         this.showSizeError = true;
                         this.sizeError = getCapacityDoubleAlertMessage(true);

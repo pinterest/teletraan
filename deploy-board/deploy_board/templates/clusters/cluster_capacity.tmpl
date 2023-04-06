@@ -8,7 +8,7 @@
                     <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
                     <static-capacity-config v-if="!autoscalingEnabled"
                         :original-capacity="originalCapacity" @change="desiredCapacity = $event"
-                        :remaining-capacity="remainingCapacity" :placements="placements">
+                        :remaining-capacity="remainingCapacity" :placements="placements" :termination-limit="terminationLimit">
                     </static-capacity-config>
                     <asg-capacity-config v-if="autoscalingEnabled" :current-size="originalCapacity"
                         :original-min-size="asg_launch_info.minSize" @min-change="minsize = $event"
@@ -66,6 +66,7 @@
                 remainingCapacity: info.placements != null ?  info.placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
                 placements: info.placements,
                 originalCapacity: cluster.capacity,
+                terminationLimit: cluster.terminationLimit,
             },
             methods:{
                 clickDialog: function(value){
