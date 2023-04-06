@@ -19,6 +19,7 @@ import os
 from random import randrange
 import time
 import traceback
+import cProfile
 
 from deployd.client.client import Client
 from deployd.client.serverless_client import ServerlessClient
