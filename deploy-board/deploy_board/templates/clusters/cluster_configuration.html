@@ -86,6 +86,8 @@
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <label-input v-show="inAdvanced" label="Replacement Timeout" title="Time out for cluster replacement in minutes"
                         v-model="replacementTimeout"></label-input>
+                    <label-input v-show="inAdvanced" label="Termination Limit" title="Max number user can manually scale down, 0 means no limitation"
+                        v-model="terminationLimit"></label-input>    
                     <div v-if="inAdvanced">
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -517,6 +519,7 @@
                         }
                     }),
                 replacementTimeout: currentCluster.replacementTimeout,
+                terminateLimit: currentCluster.terminateLimit,
                 securityZones: info.securityZones.map(function(item) {
                     return {
                         value: item.abstract_name,
@@ -871,6 +874,12 @@
                         return false
                     }
 
+                    const terminationLimit = clusterInfo['terminationLimit']
+                    if (terminationLimit == null || isNaN(terminationLimit) || terminationLimit < 0) {
+                        globalNotificationBanner.error = "Termination Limit must be a number equal or bigger than 0"
+                        return false
+                    }
+
                     return true
                 },
                 sendRequest: function(clusterInfo) {
@@ -943,6 +952,7 @@
                     clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
                     clusterInfo['replacementTimeout'] = this.replacementTimeout;
+                    clusterInfo['terminationLimit'] = this.terminationLimit;
                     clusterInfo['configs'] = this.allUserData.reduce(function(map, obj) {
                         map[obj.name] = obj.value;
                         return map
