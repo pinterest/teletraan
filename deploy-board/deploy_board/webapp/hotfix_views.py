@@ -98,6 +98,7 @@ def patch(request, name, stage):
         "start_sha": new_start_sha,
         "end_sha": build['commit'],
         "repo": build['repo'],
+        "scm": build['type'],
         "truncated": truncated,
     })
 
