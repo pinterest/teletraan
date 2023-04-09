@@ -350,11 +350,11 @@ class EnvLandingView(View):
             if project_name:
                 project_info = {}
                 project_info['project_name'] = project_name
-            try:    
+            try:
                 project_info['project_url'] = environs_helper.get_nimbus_project_console_url(project_name)
             except TeletraanException as detail:
                 log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
-                messages.add_message(request, messages.ERROR, detail)    
+                messages.add_message(request, messages.ERROR, detail)
 
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
@@ -365,7 +365,7 @@ class EnvLandingView(View):
                 placements = placements_helper.get_simplified_by_ids(
                         request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 remaining_capacity = functools.reduce(lambda s, e: s + e['capacity'], placements, 0)
-          
+
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
@@ -798,9 +798,11 @@ def post_create_env(request):
     clone_env_name = data.get("clone_env_name")
     clone_stage_name = data.get("clone_stage_name")
     description = data.get('description')
-    
+    external_id = None
+
     if clone_env_name and clone_stage_name:
         try:
+            raise TeletraanException("test") #test
             external_id = environs_helper.create_identifier_for_new_stage(request, env_name, stage_name)
             common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
                                         clone_stage_name, description, external_id)
@@ -813,6 +815,7 @@ def post_create_env(request):
                     log.error(message)
             else:
                 message = 'Failed to create identifier for {}/{}: {}'.format(env_name, stage_name, detail)
+                log.error(message)
                 messages.add_message(request, messages.ERROR, message)
             raise detail
     else:
@@ -859,8 +862,10 @@ def post_add_stage(request, name):
     if from_stage and from_stage not in stages:
         raise Exception("Can not clone from non-existing stage!")
 
+    external_id = None
     if from_stage:
         try:
+            raise TeletraanException("test") #test
             external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
             common.clone_from_stage_name(request, name, stage, name, from_stage, description, external_id)
         except TeletraanException as detail:
@@ -873,19 +878,23 @@ def post_add_stage(request, name):
                     raise detail
             else:
                 message = 'Failed to create identifier for {}/{}: {}'.format(name, stage, detail)
-                messages.add_message(request, messages.ERROR, message) 
+                log.error(message)
+                messages.add_message(request, messages.ERROR, message)
     else:
         try:
+            raise TeletraanException("test") #test
             external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
             common.create_simple_stage(request,name, stage, description, external_id)
         except TeletraanException as detail:
-            try:
-                message = 'Failed to create stage {}, Error Message: {}'.format(external_id, detail)
-                log.error(message)
-                messages.add_message(request, messages.ERROR, message)
-                environs_helper.delete_nimbus_identifier(request, external_id)
-            except TeletraanException as detail:
-                message = 'Failed to delete Nimbus identifier {}, Error Message: {}'.format(external_id, detail)
+            if external_id:
+                try:
+                    environs_helper.delete_nimbus_identifier(request, external_id)
+                except TeletraanException as detail:
+                    message = 'Failed to delete Nimbus identifier {}, Error Message: {}'.format(external_id, detail)
+                    log.error(message)
+                    messages.add_message(request, messages.ERROR, message)
+            else:
+                message = 'Failed to create stage {}, Error Message: {}'.format(stage, detail)
                 log.error(message)
                 messages.add_message(request, messages.ERROR, message)
 
