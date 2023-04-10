@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -44,8 +44,9 @@ import java.util.concurrent.ExecutorService;
 
 public class ConfigHistoryHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigHistoryHandler.class);
-    private static final String CHANGEFEED_TEMPLATE = "{\"type\":\"%s\",\"environment\":\"%s\",\"description\":\"%s\",\"author\":\"%s\","
-            + "\"automation\":\"%s\",\"source\":\"Teletraan\",\"optional-1\":\"%s\",\"optional-2\":\"%s\"}";
+    private static final String CHANGEFEED_TEMPLATE =
+        "{\"type\":\"%s\",\"environment\":\"%s\",\"url\":\"%s\",\"description\":\"%s %s\",\"author\":\"%s\","
+            + "\"automation\":\"%s\",\"source\":\"Teletraan\",\"nimbus_uuid\":\"%s\"}";
     private final ConfigHistoryDAO configHistoryDAO;
     private final EnvironDAO environDAO;
     private final String changeFeedUrl;
@@ -117,7 +118,8 @@ public class ConfigHistoryHandler {
                 LOG.info(String.format("Push env %s config change for %s", type, envStageName));
                 String configHistoryUrl = String.format("https://deploy.pinadmin.com/env/%s/%s/config_history/",
                                   environBean.getEnv_name(), environBean.getStage_name());
-                String feedPayload = String.format(CHANGEFEED_TEMPLATE, configType, envStageName, configHistoryUrl, operator, "False", type, nimbusUUID);
+                String feedPayload = String.format(CHANGEFEED_TEMPLATE, configType, envStageName, configHistoryUrl,
+                    configType, type, operator, "False", nimbusUUID);
                 if (type.equals(Constants.TYPE_ENV_GENERAL)) {
                     EnvironBean newBean = gson.fromJson(configHistoryBeans.get(0).getConfig_change(), EnvironBean.class);
                     newBean.setLast_update(null);

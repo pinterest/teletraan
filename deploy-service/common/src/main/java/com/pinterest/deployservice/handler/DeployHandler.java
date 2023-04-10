@@ -78,8 +78,13 @@ import java.util.concurrent.ExecutorService;
 
 public class DeployHandler implements DeployHandlerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(DeployHandler.class);
-    private static final String FEED_TEMPLATE = "{\"type\":\"Deploy\",\"environment\":\"%s (%s)\",\"description\":\"http://deploy.pinadmin.com/deploy/%s\","
-        + "\"author\":\"%s\",\"automation\":\"%s\",\"source\":\"Teletraan\",\"optional-1\":\"%s\",\"optional-2\":\"%s\"}";
+    private static final String FEED_TEMPLATE = "{\"type\":\"Deploy\",\"environment\":\"%s (%s)\","
+        + "\"url\":\"http://deploy.pinadmin.com/deploy/%s\","
+        + "\"description\":\"Deploy %s\","
+        + "\"author\":\"%s\","
+        + "\"automation\":\"%s\","
+        + "\"source\":\"Teletraan\","
+        + "\"nimbus_uuid\":\"%s\"}";
     private static final String COMPARE_DEPLOY_URL = "https://deploy.pinadmin.com/env/%s/%s/compare_deploys_2/?chkbox_1=%s&chkbox_2=%s";
 
     private DeployDAO deployDAO;
@@ -100,7 +105,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private Allowlist buildAllowlist;
 
 
-    private final class NotifyJob implements Callable<Void> {
+    public final class NotifyJob implements Callable<Void> {
         private EnvironBean envBean;
         private DeployBean newDeployBean;
         private DeployBean oldDeployBean;
@@ -122,13 +127,14 @@ public class DeployHandler implements DeployHandlerInterface{
             this.changeFeedUrl = changeFeedUrl;
         }
 
-        private void updateChangeFeed() {
+        public void updateChangeFeed() {
             try {
                 String autoPromote = "False";
                 if (newDeployBean.getOperator().equals(Constants.AUTO_PROMOTER_NAME))
                     autoPromote = "True";
-                String feedPayload = String.format(FEED_TEMPLATE, envBean.getEnv_name(), envBean.getStage_name(), newDeployBean.getDeploy_id(),
-                    newDeployBean.getOperator(), autoPromote, newDeployBean.getDeploy_type(), envBean.getExternal_id());
+                String feedPayload = String.format(FEED_TEMPLATE, envBean.getEnv_name(), envBean.getStage_name(),
+                    newDeployBean.getDeploy_id(), newDeployBean.getDeploy_type(),
+                    newDeployBean.getOperator(), autoPromote, envBean.getExternal_id());
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Content-Type", "application/json");
                 httpClient.post(changeFeedUrl, feedPayload, headers, RETRIES);
