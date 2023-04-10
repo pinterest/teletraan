@@ -52,9 +52,10 @@ public class ConfigHistoryHandlerTest {
   public void updateChangeFeed_withUUIDinPayload() throws Exception {
     String payload =
         "{\"type\":\"Deploy Env Config Change\",\"environment\":\"foo (foo)\","
-            + "\"description\":\"https://deploy.pinadmin.com/env/foo/foo/config_history/\","
+            + "\"url\":\"https://deploy.pinadmin.com/env/foo/foo/config_history/\","
+            + "\"description\":\"Deploy Env Config Change Env Advanced Config\","
             + "\"author\":\"test\",\"automation\":\"False\",\"source\":\"Teletraan\","
-            + "\"optional-1\":\"Env Advanced Config\",\"optional-2\":\"0000-0000\"}";
+            + "\"nimbus_uuid\":\"0000-0000\"}";
 
     when(mockEnvironDAO.getById(testConfigId)).thenReturn(genDefaultEnvBean());
     when(mockConfigHistoryDAO.getLatestChangesByType(testConfigId,
