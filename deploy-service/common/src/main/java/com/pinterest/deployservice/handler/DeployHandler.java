@@ -78,7 +78,8 @@ import java.util.concurrent.ExecutorService;
 
 public class DeployHandler implements DeployHandlerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(DeployHandler.class);
-    private static final String FEED_TEMPLATE = "{\"type\":\"Deploy\",\"environment\":\"%s (%s)\","
+    private static final String FEED_TEMPLATE = "{\"type\":\"Deploy\","
+        + "\"environment\":\"%s (%s)\","
         + "\"url\":\"http://deploy.pinadmin.com/deploy/%s\","
         + "\"description\":\"Deploy %s\","
         + "\"author\":\"%s\","
@@ -105,7 +106,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private Allowlist buildAllowlist;
 
 
-    public final class NotifyJob implements Callable<Void> {
+    private final class NotifyJob implements Callable<Void> {
         private EnvironBean envBean;
         private DeployBean newDeployBean;
         private DeployBean oldDeployBean;
@@ -115,7 +116,7 @@ public class DeployHandler implements DeployHandlerInterface{
         private String changeFeedUrl;
         private final int RETRIES = 3;
 
-        public NotifyJob(EnvironBean envBean, DeployBean newDeployBean,
+        private NotifyJob(EnvironBean envBean, DeployBean newDeployBean,
             DeployBean oldDeployBean, CommonHandler commonHandler,
             String deployBoardUrlPrefix, String changeFeedUrl) {
             this.envBean = envBean;
@@ -127,7 +128,7 @@ public class DeployHandler implements DeployHandlerInterface{
             this.changeFeedUrl = changeFeedUrl;
         }
 
-        public void updateChangeFeed() {
+        private void updateChangeFeed() {
             try {
                 String autoPromote = "False";
                 if (newDeployBean.getOperator().equals(Constants.AUTO_PROMOTER_NAME))
