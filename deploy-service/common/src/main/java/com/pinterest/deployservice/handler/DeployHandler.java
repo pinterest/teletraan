@@ -105,7 +105,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private Allowlist buildAllowlist;
 
 
-    public final class NotifyJob implements Callable<Void> {
+    private final class NotifyJob implements Callable<Void> {
         private EnvironBean envBean;
         private DeployBean newDeployBean;
         private DeployBean oldDeployBean;
@@ -127,7 +127,7 @@ public class DeployHandler implements DeployHandlerInterface{
             this.changeFeedUrl = changeFeedUrl;
         }
 
-        public void updateChangeFeed() {
+        private void updateChangeFeed() {
             try {
                 String autoPromote = "False";
                 if (newDeployBean.getOperator().equals(Constants.AUTO_PROMOTER_NAME))
