@@ -106,7 +106,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private Allowlist buildAllowlist;
 
 
-    private final class NotifyJob implements Callable<Void> {
+    public final class NotifyJob implements Callable<Void> {
         private EnvironBean envBean;
         private DeployBean newDeployBean;
         private DeployBean oldDeployBean;
