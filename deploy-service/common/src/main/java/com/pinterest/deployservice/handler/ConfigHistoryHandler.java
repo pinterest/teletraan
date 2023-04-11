@@ -45,8 +45,14 @@ import java.util.concurrent.ExecutorService;
 public class ConfigHistoryHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigHistoryHandler.class);
     private static final String CHANGEFEED_TEMPLATE =
-        "{\"type\":\"%s\",\"environment\":\"%s\",\"url\":\"%s\",\"description\":\"%s %s\",\"author\":\"%s\","
-            + "\"automation\":\"%s\",\"source\":\"Teletraan\",\"nimbus_uuid\":\"%s\"}";
+        "{\"type\":\"%s\","
+            + "\"environment\":\"%s\","
+            + "\"url\":\"%s\","
+            + "\"description\":\"%s %s\","
+            + "\"author\":\"%s\","
+            + "\"automation\":\"%s\","
+            + "\"source\":\"Teletraan\","
+            + "\"nimbus_uuid\":\"%s\"}";
     private final ConfigHistoryDAO configHistoryDAO;
     private final EnvironDAO environDAO;
     private final String changeFeedUrl;
