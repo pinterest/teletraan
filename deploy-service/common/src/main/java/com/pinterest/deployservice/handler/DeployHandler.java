@@ -116,7 +116,7 @@ public class DeployHandler implements DeployHandlerInterface{
         private String changeFeedUrl;
         private final int RETRIES = 3;
 
-        private NotifyJob(EnvironBean envBean, DeployBean newDeployBean,
+        public NotifyJob(EnvironBean envBean, DeployBean newDeployBean,
             DeployBean oldDeployBean, CommonHandler commonHandler,
             String deployBoardUrlPrefix, String changeFeedUrl) {
             this.envBean = envBean;
