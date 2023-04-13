@@ -806,16 +806,15 @@ def post_create_env(request):
             common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
                                         clone_stage_name, description, external_id)
         except TeletraanException as detail:
+            message = 'Failed to create identifier for {}/{}: {}'.format(env_name, stage_name, detail)
+            log.error(message)
+            messages.add_message(request, messages.ERROR, message)
             if external_id:
                 try:
                     environs_helper.delete_nimbus_identifier(request, external_id)
                 except:
                     message = 'Also failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
                     log.error(message)
-            else:
-                message = 'Failed to create identifier for {}/{}: {}'.format(env_name, stage_name, detail)
-                log.error(message)
-                messages.add_message(request, messages.ERROR, message)
             raise detail
     else:
         data = {}
