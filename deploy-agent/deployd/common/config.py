@@ -26,6 +26,7 @@ from deployd.types.opcode import OperationCode
 
 from configparser import ConfigParser
 
+
 log = logging.getLogger(__name__)
 
 
@@ -33,12 +34,10 @@ class Config(object):
     _DEFAULT_CONFIG_SECTION = 'default_config'
     _configs = {}
 
-    def __init__(self, filenames=None, config_reader=None, ec2_userdata=None):
+    def __init__(self, filenames=None, config_reader=None):
         self._configs = {}
         self._filenames = None
         self._environ = {}
-        
- 
         if config_reader:
             self._config_reader = config_reader
             return
@@ -280,9 +279,3 @@ class Config(object):
 
     def get_stage_type_key(self):
         return self.get_var('stage_type_key', None)
-
-    def get_ec2_userdata_key(self):
-        return self.get_var('ec2_userdata_key', "ec2_userdata")
-
-    def get_environment_key(self):
-        return self.get_var('environment_key', "pinfo_environment")

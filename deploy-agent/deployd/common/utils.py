@@ -152,11 +152,3 @@ def check_telefig_unavailable_error(msg):
         return False
     telefig_unavailable_error = "{}: No such file or directory".format(TELEFIG_BINARY)
     return msg.find(telefig_unavailable_error) != -1
-
-def get_service_info(userdata): 
-    if userdata.get('pinfo_environment') != 'dev': 
-        return None 
-    return {
-        'url': userdata.get('service_url'),
-        'token': userdata.get('service_token')
-    }

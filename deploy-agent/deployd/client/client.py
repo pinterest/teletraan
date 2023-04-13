@@ -17,7 +17,6 @@ import logging
 import os
 import socket
 import traceback
-from strictyaml import load as yaml_load
 
 from deployd.client.base_client import BaseClient
 from deployd.client.restfulclient import RestfulClient
@@ -45,8 +44,6 @@ class Client(BaseClient):
         self._autoscaling_group = None
         self._availability_zone = None
         self._stage_type = None
-        self._userdata = None
-
         # stage_type doesn't always exist, and if it doesn't we don't want to
         # keep trying to fetch it from facter every time
         self._stage_type_fetched = False
@@ -147,7 +144,6 @@ class Client(BaseClient):
             asg_tag_key = self._config.get_facter_asg_tag_key()
             ec2_tags_key = self._config.get_facter_ec2_tags_key()
             stage_type_key = self._config.get_stage_type_key()
-            user_data_key = self._config.get_user_data_key()
             keys_to_fetch = set()
             if not self._availability_zone and az_key:
                 keys_to_fetch.add(az_key)
@@ -157,8 +153,6 @@ class Client(BaseClient):
 
             if not self._stage_type and not self._stage_type_fetched:
                 keys_to_fetch.add(stage_type_key)
-
-            keys_to_fetch.add(user_data_key)
 
             if keys_to_fetch:
                 facter_data = utils.get_info_from_facter(keys_to_fetch)
@@ -175,9 +169,6 @@ class Client(BaseClient):
             if not self._stage_type and not self._stage_type_fetched:
                 self._stage_type = facter_data.get(stage_type_key, None)
                 self._stage_type_fetched = True
-            
-            if not self._userdata: 
-                self._userdata = yaml_load(facter_data.get(user_data_key, None))
 
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
@@ -223,6 +214,6 @@ class Client(BaseClient):
 
     @retry(ExceptionToCheck=Exception, delay=1, tries=3)
     def send_reports_internal(self, request):
-        ping_service = RestfulClient(self._config, self._userdata)
+        ping_service = RestfulClient(self._config)
         response = ping_service.ping(request)
         return response
