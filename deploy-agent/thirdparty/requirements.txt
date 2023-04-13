@@ -6,3 +6,4 @@ setuptools==44.1.1; python_version < '3'
 setuptools==54.2.0; python_version >= '3'
 pinstatsd==1.4.6
 strictyaml==1.6.1
+pinlogger==0.53.0

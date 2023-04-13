@@ -38,5 +38,6 @@ py_library(
     requirement("setuptools"),
     requirement("pinstatsd"),
     requirement("strictyaml"),
+    requirement("pinlogger"),
   ],
 )
