@@ -802,7 +802,6 @@ def post_create_env(request):
 
     if clone_env_name and clone_stage_name:
         try:
-            raise TeletraanException("test") #test
             external_id = environs_helper.create_identifier_for_new_stage(request, env_name, stage_name)
             common.clone_from_stage_name(request, env_name, stage_name, clone_env_name,
                                         clone_stage_name, description, external_id)
