@@ -119,7 +119,7 @@ public class Environs {
 
     @GET
     @Path("/terminatingHosts")
-    public Long getterminatingHosts(@QueryParam("groupName") String groupName) throws Exception {
+    public Integer getterminatingHosts(@QueryParam("groupName") String groupName) throws Exception {
         return hostDAO.getTerminatingSizeByGroup(groupName);
     }
 
