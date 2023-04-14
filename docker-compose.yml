@@ -18,7 +18,7 @@ services:
     build: ./deploy-service/teletraanservice
     ports:
       - "8080:8080"
-      - "8081:8081"
+      - "8082:8082"
     command: "/opt/deploy-service/teletraanservice/bin/run.sh -c /opt/deploy-service/teletraanservice/bin/server.yaml"
     environment:
       - TELETRAAN_DB_HOST=mysql
@@ -37,6 +37,6 @@ services:
       - "/tmp/.data/deploydb:/var/lib/mysql"
       - "./deploy-service/common/src/main/resources/sql:/var/teletraan/sql"
       - "./tools/mysql:/var/teletraan/tools"
+      - "./tools/mysql/docker-init:/docker-entrypoint-initdb.d"
     environment:
-      MYSQL_ROOT_PASSWORD: ""
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
