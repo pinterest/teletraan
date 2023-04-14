@@ -215,8 +215,10 @@ function getCapacityDoubleAlertMessage(isFixed) {
     return errorMessage + instruction + context;
 }
 
-function getTerminationLimitAlertMessage() {
-    return "The size you manually scaled down is more than the specified termination limit."
+function getTerminationLimitAlertMessage(isWarning) {
+    message = isWarning ? `The size you manually scaled down plus the number of hosts in terminating status exceed the specified termination limit.` 
+    : `The size you manually scaled down is more than the specified termination limit.`
+    return message;
 }
 
 function getCapacityScaleDownAlertMessage(isFixed, isWarning) {
@@ -270,23 +272,31 @@ Vue.component("static-capacity-config", {
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
+    <form-danger v-show="showTerminationError" :alert-text="terminationError"></form-danger>
+    <form-warning v-show="showTerminationWarning" :alert-text="terminationWarning"></form-warning>
     </div>`,
     props: {
         originalCapacity: Number,
         remainingCapacity: Number,
         placements: Object,
         terminationLimit: Number,
+        terminating: Number,
     },
     data: function() {
         return {
             capacity: this.originalCapacity,
             terminationLimit: this.terminationLimit,
+            terminating: this.terminating,
             showSizeError: false,
             showImbalanceWarning: false,
             sizeError: '',
             imbalanceWarning: '',
             showSizeWarning: false,
             sizeWarning: '',
+            showTerminateWarning: false,
+            tereminateWarning: '',
+            showTerminateError: false,
+            tereminateError: '',
         }
     },
     methods: {
@@ -294,6 +304,8 @@ Vue.component("static-capacity-config", {
             this.capacity = Number(value);
             this.showSizeError = false;
             this.showSizeWarning = false;
+            this.showTerminateError = false;
+            this.showTerminateWarning = false;
             this.validateSize();
             this.$emit('change', this.capacity );
         },
@@ -303,10 +315,7 @@ Vue.component("static-capacity-config", {
                 this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
                 this.showSizeError = true;
             } else {
-                if (-sizeIncrease > this.terminationLimit) {
-                    this.showSizeError = true;
-                    this.sizeError = getTerminationLimitAlertMessage();
-                } else if (sizeIncrease > this.originalCapacity && this.originalCapacity > 0) {
+                if (sizeIncrease > this.originalCapacity && this.originalCapacity > 0) {
                     if (this.originalCapacity > 100) {
                         this.showSizeError = true;
                         this.sizeError = getCapacityDoubleAlertMessage(true);
@@ -322,8 +331,17 @@ Vue.component("static-capacity-config", {
                     this.sizeWarning = getCapacityScaleDownAlertMessage(true, true);
                 }
             }
+
             this.imbalanceWarning = checkImbalance(this.placements, calculateImbalanceThreshold(sizeIncrease, this.placements.length));
             this.showImbalanceWarning = this.imbalanceWarning != '';
+
+            if ((!(this.terminationLimit === null)) && (-sizeIncrease > this.terminationLimit)) {
+                this.showTerminationError = true;
+                this.terminationError = getTerminationLimitAlertMessage(false);
+            } else if ((!(this.terminationLimit === null)) && (-sizeIncrease > this.terminationLimit - terminating)) {
+                this.showTerminationWarning = true;
+                this.terminationWarning = getTerminationLimitAlertMessage(true);
+            }
         }
     }
 });

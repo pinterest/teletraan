@@ -64,7 +64,6 @@
                         showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <label-input label="Replacement Timeout" placeholder="45" v-model="replacementTimeout" title="Time out for cluster replacement in minutes"></label-input>
-                    <label-input label="Termination Limit" placeholder="0" v-model="terminationLimit" title="Max number user can manually scale down, 0 means no limitation"></label-input>    
                     <div>
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -182,7 +181,6 @@ var capacitySetting = new Vue({
                 }
             }),
         replacementTimeout: 45,
-        terminationLimit: 0,
         securityZoneHelpData: [],
         securityZones: info.securityZones.map(
             function (item) {
@@ -528,12 +526,6 @@ var capacitySetting = new Vue({
                 return false
             }
 
-            const terminationLimit = clusterInfo['terminationLimit']
-            if (terminationLimit == null || isNaN(terminationLimit) || terminationLimit < 0) {
-                globalNotificationBanner.error = "Termination Limit must be a number equal or bigger than 0"
-                return false
-            }
-
             var access_role = clusterInfo.configs['access_role'].trim();
             if (!access_role) {
                 globalNotificationBanner.error = "Access Role must be specified";
@@ -573,7 +565,6 @@ var capacitySetting = new Vue({
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             clusterInfo['replacementTimeout'] = this.replacementTimeout;
-            clusterInfo['terminationLimit'] = this.terminationLimit;
             if (this.selectedPlacements != null && this.selectedPlacements.length>0){
                 clusterInfo['placement'] = this.selectedPlacements.join(',');
             }

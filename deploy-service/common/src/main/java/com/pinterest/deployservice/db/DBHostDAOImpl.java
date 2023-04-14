@@ -69,6 +69,7 @@ public class DBHostDAOImpl implements HostDAO {
             "AND x.host_id IN (SELECT DISTINCT h.host_id AS host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire=0 AND h.group_name=? AND h.state not in (?,?,?)) " +
             "GROUP BY x.host_id HAVING count(*) = (SELECT count(*) FROM agents y WHERE y.host_id = x.host_id) ORDER BY host_id";
     private static final String GET_NEW_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE can_retire=0 AND group_name=? AND state not in (?,?,?)";
+    private static final String GET_TERMINATING_SIZE_BY_GROUP = "SELECT COUNT(*) FROM hosts WHERE state in (?, ?, ?) AND group_name=?";
 
     private BasicDataSource dataSource;
 
@@ -270,5 +271,13 @@ public class DBHostDAOImpl implements HostDAO {
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
                 HostState.PENDING_TERMINATE_NO_REPLACE.toString(),
                 AgentStatus.UNKNOWN.toString(), AgentStatus.SUCCEEDED.toString());
+    }
+
+    @Override
+    public Long getTerminatingSizeByGroup(String groupName) throws Exception {
+        Long n = new QueryRunner(dataSource).query(GET_TERMINATING_SIZE_BY_GROUP,
+                SingleResultSetHandlerFactory.<Long>newObjectHandler(), HostState.PENDING_TERMINATE.toString(),
+                HostState.TERMINATING.toString(), HostState.PENDING_TERMINATE_NO_REPLACE.toString(), groupName);
+        return n == null ? 0 : n;
     }
 }
