@@ -169,7 +169,9 @@ class Client(BaseClient):
             if not self._stage_type and not self._stage_type_fetched:
                 self._stage_type = facter_data.get(stage_type_key, None)
                 self._stage_type_fetched = True
-
+        
+        self._hostgroup.append(self._autoscaling_group)
+        
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
                  "availability_zone: {}, stage_type: {}, group: {}".format(self._hostname, self._ip, self._id, 
