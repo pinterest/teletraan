@@ -294,9 +294,9 @@ Vue.component("static-capacity-config", {
             showSizeWarning: false,
             sizeWarning: '',
             showTerminateWarning: false,
-            tereminateWarning: '',
+            terminateWarning: '',
             showTerminateError: false,
-            tereminateError: '',
+            terminateError: '',
         }
     },
     methods: {
