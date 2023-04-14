@@ -272,31 +272,28 @@ Vue.component("static-capacity-config", {
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
-    <form-danger v-show="showTerminateError" :alert-text="terminateError"></form-danger>
-    <form-warning v-show="showTerminateWarning" :alert-text="terminateWarning"></form-warning>
+    <form-danger v-show="showTerminationError" :alert-text="terminationError"></form-danger>
     </div>`,
     props: {
         originalCapacity: Number,
         remainingCapacity: Number,
         placements: Object,
         terminationLimit: Number,
-        terminating: Number,
+        terminatingHostCount: Number,
     },
     data: function() {
         return {
             capacity: this.originalCapacity,
             terminationLimit: this.terminationLimit,
-            terminating: this.terminating,
+            terminatingHostCount: this.terminatingHostCount,
             showSizeError: false,
             showImbalanceWarning: false,
             sizeError: '',
             imbalanceWarning: '',
             showSizeWarning: false,
             sizeWarning: '',
-            showTerminateWarning: false,
-            terminateWarning: '',
-            showTerminateError: false,
-            terminateError: '',
+            showTerminationError: false,
+            terminationError: '',
         }
     },
     methods: {
@@ -304,14 +301,11 @@ Vue.component("static-capacity-config", {
             this.capacity = Number(value);
             this.showSizeError = false;
             this.showSizeWarning = false;
-            this.showTerminateError = false;
-            this.showTerminateWarning = false;
+            this.showTerminationError = false;
             this.validateSize();
             this.$emit('change', this.capacity );
         },
         validateSize: function () {
-            console.log(this.terminationLimit);
-            console.log(this.terminating);
             const sizeIncrease = this.capacity - this.originalCapacity;
             if (sizeIncrease >= this.remainingCapacity) {
                 this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
@@ -338,11 +332,11 @@ Vue.component("static-capacity-config", {
             this.showImbalanceWarning = this.imbalanceWarning != '';
 
             if ((!(this.terminationLimit === null)) && (-sizeIncrease > this.terminationLimit)) {
-                this.showTerminateError = true;
-                this.terminateError = getTerminationLimitAlertMessage(false);
-            } else if ((!(this.terminationLimit === null)) && (-sizeIncrease > this.terminationLimit - terminating)) {
-                this.showTerminateWarning = true;
-                this.terminateWarning = getTerminationLimitAlertMessage(true);
+                this.showTerminationError = true;
+                this.terminationError = getTerminationLimitAlertMessage(false);
+            } else if ((!(this.terminationLimit === null)) && (-sizeIncrease > this.terminationLimit - this.terminatingHostCount)) {
+                this.showTerminationError = true;
+                this.terminationError = getTerminationLimitAlertMessage(true);
             }
         }
     }
