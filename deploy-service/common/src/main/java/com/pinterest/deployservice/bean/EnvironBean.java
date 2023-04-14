@@ -199,6 +199,7 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("isSOX")
     private Boolean is_sox;
 
+    @Range(min = 1, max = 100000)
     @JsonProperty("terminationLimit")
     private Integer termination_limit;
 
