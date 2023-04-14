@@ -71,5 +71,5 @@ public interface HostDAO {
 
     Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception;
 
-    Integer getTerminatingSizeByGroup(String groupName) throws Exception;
+    Collection<String> getTerminatingSizeByGroup(String groupName) throws Exception;
 }

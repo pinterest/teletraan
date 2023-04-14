@@ -24,7 +24,6 @@ import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
@@ -68,7 +67,6 @@ public class Environs {
     private final static int DEFAULT_INDEX = 1;
     private final static int DEFAULT_SIZE = 30;
     private EnvironDAO environDAO;
-    private HostDAO hostDAO;
     private EnvironHandler environHandler;
     private TagHandler tagHandler;
     private UserRolesDAO userRolesDAO;
@@ -79,7 +77,6 @@ public class Environs {
 
     public Environs(TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
-        hostDAO = context.getHostDAO();
         environHandler = new EnvironHandler(context);
         tagHandler = new EnvTagHandler(context);
         userRolesDAO = context.getUserRolesDAO();
@@ -115,12 +112,6 @@ public class Environs {
     @Path("/ids")
     public Collection<String> getIds() throws Exception {
         return environDAO.getAllEnvIds();
-    }
-
-    @GET
-    @Path("/terminatingHosts")
-    public Integer getterminatingHosts(@QueryParam("groupName") String groupName) throws Exception {
-        return hostDAO.getTerminatingSizeByGroup(groupName);
     }
 
     @GET

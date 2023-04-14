@@ -274,10 +274,9 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public Integer getTerminatingSizeByGroup(String groupName) throws Exception {
-        Integer n = new QueryRunner(dataSource).query(GET_TERMINATING_SIZE_BY_GROUP,
-                SingleResultSetHandlerFactory.<Integer>newObjectHandler(), HostState.PENDING_TERMINATE.toString(),
+    public Collection<String> getTerminatingSizeByGroup(String groupName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_TERMINATING_SIZE_BY_GROUP,
+        SingleResultSetHandlerFactory.<String>newListObjectHandler(), HostState.PENDING_TERMINATE.toString(),
                 HostState.TERMINATING.toString(), HostState.PENDING_TERMINATE_NO_REPLACE.toString(), groupName);
-        return n == null ? 0 : n;
     }
 }
