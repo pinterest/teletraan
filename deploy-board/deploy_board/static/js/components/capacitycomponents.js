@@ -272,8 +272,8 @@ Vue.component("static-capacity-config", {
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
-    <form-danger v-show="showTerminationError" :alert-text="terminationError"></form-danger>
-    <form-warning v-show="showTerminationWarning" :alert-text="terminationWarning"></form-warning>
+    <form-danger v-show="showTerminateError" :alert-text="tereminateError"></form-danger>
+    <form-warning v-show="showTerminateWarning" :alert-text="tereminateWarning"></form-warning>
     </div>`,
     props: {
         originalCapacity: Number,
