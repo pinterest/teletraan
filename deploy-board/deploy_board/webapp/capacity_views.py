@@ -41,7 +41,7 @@ class EnvCapacityConfigView(View):
         env = environs_helper.get_env_by_stage(request, name, stage)
         cluster_name = env.get('clusterName')
         termination_limit = env.get('terminationLimit')
-        terminatingHostCount = environs_helper.get_terminating_by_group(request, cluster_name)
+        terminatingHostCount = len(environs_helper.get_terminating_by_group(request, cluster_name))
         placements = None
         if IS_PINTEREST:
             provider_list = baseimages_helper.get_all_providers(request)
