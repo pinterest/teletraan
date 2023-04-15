@@ -32,8 +32,10 @@ import javax.ws.rs.core.Response;
 
 import java.util.Collection;
 import java.util.List;
+import io.swagger.annotations.*;
 
 @Path("/v1/groups")
+@Api(tags = "Hosts and Systems")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Groups {
