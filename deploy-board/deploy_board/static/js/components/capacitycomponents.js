@@ -216,7 +216,7 @@ function getCapacityDoubleAlertMessage(isFixed) {
 }
 
 function getTerminationLimitAlertMessage(isWarning) {
-    message = isWarning ? `The size you manually scaled down plus the number of hosts in terminating status exceed the specified termination limit.` 
+    const message = isWarning ? `The size you manually scaled down plus the number of hosts in terminating status exceed the specified termination limit.` 
     : `The size you manually scaled down is more than the specified termination limit.`
     return message;
 }
