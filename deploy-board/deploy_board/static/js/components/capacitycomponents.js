@@ -279,13 +279,11 @@ Vue.component("static-capacity-config", {
         remainingCapacity: Number,
         placements: Object,
         terminationLimit: Number,
-        terminatingHostCount: Number,
     },
     data: function() {
         return {
             capacity: this.originalCapacity,
             terminationLimit: this.terminationLimit,
-            terminatingHostCount: this.terminatingHostCount,
             showSizeError: false,
             showImbalanceWarning: false,
             sizeError: '',
@@ -309,7 +307,6 @@ Vue.component("static-capacity-config", {
             $.ajax({
                 type: 'GET',
                 url: '/groups/helloworlddummyservice-server-dev1-yaqin-test/hosts',
-                data: JSON.stringify({actionType: TERMINATING}),
                 dataType: "json",
                 beforeSend: function(xhr, settings) {
                     var csrftoken = getCookie('csrftoken');
@@ -351,10 +348,10 @@ Vue.component("static-capacity-config", {
                 if (-sizeIncrease > this.terminationLimit) {
                     this.showTerminationError = true;
                     this.terminationError = getTerminationLimitAlertMessage(false);
-                } else if (-sizeIncrease > this.terminationLimit - this.terminatingHostCount) {
+                } /*else if (-sizeIncrease > this.terminationLimit - this.terminatingHostCount) {
                     this.showTerminationError = true;
                     this.terminationError = getTerminationLimitAlertMessage(true);
-                }
+                }*/
             } 
         }
     }
