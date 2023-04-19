@@ -32,6 +32,7 @@ import docs_views
 import cluster_view
 import schedule_views
 import host_tags_views
+from helpers import environs_helper
 
 urlpatterns = [
     # deploy related
