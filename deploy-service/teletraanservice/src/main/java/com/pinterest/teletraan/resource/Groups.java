@@ -89,7 +89,7 @@ public class Groups {
                 hostIds = hostDAO.getNewHostIdsByGroup(groupName);
                 break;
             case TERMINATING:
-                hostIds = hostDAO.getTerminatingSizeByGroup(groupName);
+                hostIds = hostDAO.getTerminatingHostIdsByGroup(groupName);
                 break;
             default:
                 throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "No action found.");

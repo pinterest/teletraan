@@ -331,10 +331,10 @@ Vue.component("static-capacity-config", {
             this.imbalanceWarning = checkImbalance(this.placements, calculateImbalanceThreshold(sizeIncrease, this.placements.length));
             this.showImbalanceWarning = this.imbalanceWarning != '';
 
-            if ((!(this.terminationLimit === null)) && (-sizeIncrease > this.terminationLimit)) {
+            if (this.terminationLimit !== null && -sizeIncrease > this.terminationLimit) {
                 this.showTerminationError = true;
                 this.terminationError = getTerminationLimitAlertMessage(false);
-            } else if ((!(this.terminationLimit === null)) && (-sizeIncrease > this.terminationLimit - this.terminatingHostCount)) {
+            } else if (this.terminationLimit !== null && -sizeIncrease > this.terminationLimit - this.terminatingHostCount) {
                 this.showTerminationError = true;
                 this.terminationError = getTerminationLimitAlertMessage(true);
             }
