@@ -265,13 +265,13 @@
                 <div class="form-group">
                     <label for="terminationLimit" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
-                        title="Max number user can manually scale down in one time, blank means no limitation">
+                        title="Max number user can manually scale down in one time">
                         Termination Limit
                     </label>
 
                     <div class="col-xs-4">
                         <input class="form-control" name="terminationLimit" required="false"
-                               type="text" value="{{ env.terminationLimit }}"/>
+                               type="number" min="1" value="{{ env.terminationLimit }}"/>
                     </div>
                 </div>
                 <div class="form-group">
