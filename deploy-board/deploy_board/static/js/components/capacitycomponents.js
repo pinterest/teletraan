@@ -306,14 +306,22 @@ Vue.component("static-capacity-config", {
             this.$emit('change', this.capacity );
         },
         validateSize: function () {
-            fetch('https://teletraan-dev1.pinadmin.com/v1/groups/helloworlddummyservice-server-dev1-yaqin-test/hosts?' + new URLSearchParams({
-                "actionType": "TERMINATING"
-            }), {
-                headers: {Authentication: 'Bearer {request.teletraan_user_id.token}'}
-            })
-                .then(response => {
-                    console.log(response.json());
-                })
+            $.ajax({
+                type: 'GET',
+                url: '/groups/helloworlddummyservice-server-dev1-yaqin-test/hosts/',
+                data: JSON.stringify({"actionType": "TERMINATING"}),
+                dataType: "json",
+                beforeSend: function(xhr, settings) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    console.log(data);
+                },
+                error: function (data) {
+                    alert(data);
+                }
+            });
             const sizeIncrease = this.capacity - this.originalCapacity;
             if (sizeIncrease >= this.remainingCapacity) {
                 this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);

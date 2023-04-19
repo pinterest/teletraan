@@ -226,4 +226,6 @@ urlpatterns = [
     url(r'^loggedout/$', util_views.loggedout),
     url(r'^api-docs/$', docs_views.SwaggerUIView.as_view()),
     url(r'^$', deploy_views.get_landing_page),
+
+    url(r'^groups/(?P<group_name>[a-zA-Z0-9\-_]+)/hosts/$', environs_helper.get_terminating_by_group)
 ]
