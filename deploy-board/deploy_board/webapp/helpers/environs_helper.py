@@ -18,6 +18,8 @@
 import logging
 from deploy_board.webapp.helpers.deployclient import DeployClient
 from deploy_board.settings import IS_PINTEREST
+from django.http import HttpResponse
+import json
 
 log = logging.getLogger(__name__)
 
