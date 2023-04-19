@@ -309,7 +309,7 @@ Vue.component("static-capacity-config", {
             $.ajax({
                 type: 'GET',
                 url: '/groups/helloworlddummyservice-server-dev1-yaqin-test/hosts',
-                data: JSON.stringify({"actionType": "TERMINATING"}),
+                data: JSON.stringify({actionType: TERMINATING}),
                 dataType: "json",
                 beforeSend: function(xhr, settings) {
                     var csrftoken = getCookie('csrftoken');
