@@ -279,11 +279,13 @@ Vue.component("static-capacity-config", {
         remainingCapacity: Number,
         placements: Object,
         terminationLimit: Number,
+        groupName: String,
     },
     data: function() {
         return {
             capacity: this.originalCapacity,
             terminationLimit: this.terminationLimit,
+            groupName: this.groupName,
             showSizeError: false,
             showImbalanceWarning: false,
             sizeError: '',
@@ -304,9 +306,10 @@ Vue.component("static-capacity-config", {
             this.$emit('change', this.capacity );
         },
         validateSize: function () {
+            let terminatingHostCount = 0;
             $.ajax({
                 type: 'GET',
-                url: '/groups/helloworlddummyservice-server-dev1-yaqin-test/hosts',
+                url: `/groups/${groupName}/hosts`,
                 dataType: "json",
                 beforeSend: function(xhr, settings) {
                     var csrftoken = getCookie('csrftoken');
@@ -314,9 +317,12 @@ Vue.component("static-capacity-config", {
                 },
                 success: function (data) {
                     console.log(data);
+                    terminatingHostCount = data.length;
+                    console.log(terminatingHostCount);
                 },
                 error: function (data) {
                     console.log(data);
+                    terminatingHostCount = 0;
                 }
             });
             const sizeIncrease = this.capacity - this.originalCapacity;
@@ -348,10 +354,10 @@ Vue.component("static-capacity-config", {
                 if (-sizeIncrease > this.terminationLimit) {
                     this.showTerminationError = true;
                     this.terminationError = getTerminationLimitAlertMessage(false);
-                } /*else if (-sizeIncrease > this.terminationLimit - this.terminatingHostCount) {
+                } else if (-sizeIncrease > this.terminationLimit - terminatingHostCount) {
                     this.showTerminationError = true;
                     this.terminationError = getTerminationLimitAlertMessage(true);
-                }*/
+                }
             } 
         }
     }
