@@ -298,9 +298,11 @@ Vue.component("static-capacity-config", {
     },
     methods: {
         onCapacityChange: function (value) {
+            console.log("capacity change triggered");
             this.capacity = Number(value);
             this.showSizeError = false;
             this.showSizeWarning = false;
+            console.log("debug");
             this.showTerminationError = false;
             this.terminatingHostCount = 0;
             console.log("debug-before");
