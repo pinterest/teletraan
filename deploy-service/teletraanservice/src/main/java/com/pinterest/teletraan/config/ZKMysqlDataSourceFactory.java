@@ -124,7 +124,7 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
             String password = this.defaultMtlsPasswd;
             Map<String, String> proxyConnectionProps = ImmutableMap.<String, String>builder()
                 // ssl properties
-                .put("sslMode", "VERIFY_CA" )
+                .put("sslMode", "PREFERRED" )
                 .put("trustCertificateKeyStoreUrl", this.trustUrl )
                 .put("trustCertificateKeyStoreType", this.trustType )
                 .put("trustCertificateKeyStorePassword", this.trustPasswd )
