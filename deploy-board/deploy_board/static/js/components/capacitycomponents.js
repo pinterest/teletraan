@@ -309,7 +309,7 @@ Vue.component("static-capacity-config", {
             let terminatingHostCount = 0;
             $.ajax({
                 type: 'GET',
-                url: `/groups/${groupName}/hosts`,
+                url: `/groups/${this.groupName}/hosts`,
                 dataType: "json",
                 beforeSend: function(xhr, settings) {
                     var csrftoken = getCookie('csrftoken');
