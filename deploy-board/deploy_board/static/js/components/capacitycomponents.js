@@ -263,7 +263,7 @@ Vue.component("static-capacity-config", {
         </label>
         <div class="col-xs-2" >
             <input name="capacity" class="form-control" type="number" min="0" required
-                :value="capacity" v-on:change="onCapacityChange($event.target.value)" @keydown.enter.prevent="">
+                :value="capacity" v-on:change="onCapacityChange($event.target.value)">
             <div v-model="remainingCapacity">\
                 Remaining Capacity: {{remainingCapacity}}\
             </div>\
