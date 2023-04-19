@@ -319,7 +319,7 @@ Vue.component("static-capacity-config", {
                     console.log(data);
                 },
                 error: function (data) {
-                    alert(data);
+                    console.log(data);
                 }
             });
             const sizeIncrease = this.capacity - this.originalCapacity;
