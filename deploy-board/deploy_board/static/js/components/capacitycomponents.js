@@ -308,7 +308,7 @@ Vue.component("static-capacity-config", {
         validateSize: function () {
             $.ajax({
                 type: 'GET',
-                url: '/groups/helloworlddummyservice-server-dev1-yaqin-test/hosts/',
+                url: '/groups/helloworlddummyservice-server-dev1-yaqin-test/hosts',
                 data: JSON.stringify({"actionType": "TERMINATING"}),
                 dataType: "json",
                 beforeSend: function(xhr, settings) {
