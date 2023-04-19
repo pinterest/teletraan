@@ -310,8 +310,11 @@ Vue.component("static-capacity-config", {
                 prefetch: {
                     url: '/groups/helloworlddummyservice-server-dev1-yaqin-test/hosts',
                     data: JSON.stringify({"actionType": "TERMINATING"}),
-                    success: function (result) {
-                        return result;
+                    filter: function (list) {
+                        console.log(list);
+                        return $.map(list, function (host) {
+                            return { h: host };
+                        });
                     }
                 }
             }
