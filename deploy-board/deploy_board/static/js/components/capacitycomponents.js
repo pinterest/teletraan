@@ -302,11 +302,8 @@ Vue.component("static-capacity-config", {
             this.showSizeError = false;
             this.showSizeWarning = false;
             this.showTerminationError = false;
-            this.validateSize();
-            this.$emit('change', this.capacity );
-        },
-        validateSize: function () {
-            let terminatingHostCount = 0;
+            this.terminatingHostCount = 0;
+            console.log("debug-before");
             $.ajax({
                 type: 'GET',
                 url: `/groups/${this.groupName}/hosts`,
@@ -317,14 +314,20 @@ Vue.component("static-capacity-config", {
                 },
                 success: function (data) {
                     console.log(data);
-                    terminatingHostCount = data.length;
-                    console.log(terminatingHostCount);
+                    this.terminatingHostCount = data.length;
+                    console.log(this.terminatingHostCount);
                 },
                 error: function (data) {
                     console.log(data);
-                    terminatingHostCount = 0;
+                    this.terminatingHostCount = 0;
                 }
             });
+            console.log("debug-mid");
+            this.validateSize();
+            console.log("debug-after");
+            this.$emit('change', this.capacity );
+        },
+        validateSize: function () {
             const sizeIncrease = this.capacity - this.originalCapacity;
             if (sizeIncrease >= this.remainingCapacity) {
                 this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
@@ -354,7 +357,7 @@ Vue.component("static-capacity-config", {
                 if (-sizeIncrease > this.terminationLimit) {
                     this.showTerminationError = true;
                     this.terminationError = getTerminationLimitAlertMessage(false);
-                } else if (-sizeIncrease > this.terminationLimit - terminatingHostCount) {
+                } else if (-sizeIncrease > this.terminationLimit - this.terminatingHostCount) {
                     this.showTerminationError = true;
                     this.terminationError = getTerminationLimitAlertMessage(true);
                 }
