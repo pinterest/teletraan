@@ -306,6 +306,22 @@ Vue.component("static-capacity-config", {
             this.$emit('change', this.capacity );
         },
         validateSize: function () {
+            $.ajax({
+                type: 'GET',
+                url: location.protocol + '//' + location.host + '/groups/helloworlddummyservice-server-dev1-yaqin-test/hosts',
+                data: JSON.stringify({"actionType": "TERMINATING"}),
+                dataType: "json",
+                beforeSend: function (xhr) {
+                    var csrftoken = getCookie('csrftoken');
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (data) {
+                    console.log(data);
+                },
+                error: function (data) {
+                    globalNotificationBanner.error = data
+                }
+            });
             const sizeIncrease = this.capacity - this.originalCapacity;
             if (sizeIncrease >= this.remainingCapacity) {
                 this.sizeError = getCapacityAlertMessage(false, this.remainingCapacity, this.placements, sizeIncrease);
