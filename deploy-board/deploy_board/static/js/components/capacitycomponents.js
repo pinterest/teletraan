@@ -343,8 +343,6 @@ Vue.component("static-capacity-config", {
                     },
                     success: function (data) {
                         terminatingHostCount = data.length;
-                        console.log(data);
-                        console.log(terminatingHostCount);
                     },
                     error: function () {
                         terminatingHostCount = 0;
