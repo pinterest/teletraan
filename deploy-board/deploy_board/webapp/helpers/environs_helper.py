@@ -152,11 +152,6 @@ def get_all_envs_by_group(request, group_name):
 def get_all_sidecar_envs(request):
     return deployclient.get("/envs/sidecars", request.teletraan_user_id.token)
 
-def get_terminating_by_group(request, group_name):
-    params = {"actionType": "TERMINATING"}
-    data = deployclient.get("/groups/%s/hosts" % group_name, request.teletraan_user_id.token, params=params)
-    return HttpResponse(json.dumps(data), content_type="application/json")
-
 def get(request, id):
     return deployclient.get("/envs/%s" % id, request.teletraan_user_id.token)
 

@@ -28,3 +28,9 @@ def get_group_hosts(request, group_name):
 def get_replaced_and_good_hosts(request, cluster_name):
     params = {"actionType": "NEW_AND_SERVING_BUILD"}
     return deployclient.get("/groups/%s/hosts" % cluster_name, request.teletraan_user_id.token, params=params)
+
+
+def get_terminating_by_group(request, group_name):
+    params = {"actionType": "TERMINATING"}
+    return deployclient.get("/groups/%s/hosts" % group_name, request.teletraan_user_id.token, params=params)
+    

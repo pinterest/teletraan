@@ -263,7 +263,7 @@ Vue.component("static-capacity-config", {
         </label>
         <div class="col-xs-2" >
             <input name="capacity" class="form-control" type="number" min="0" required
-                :value="capacity" v-on:change="onCapacityChange($event.target.value)">
+                :value="capacity" v-on:change="onCapacityChange($event.target.value)" @keydown.enter.prevent="">
             <div v-model="remainingCapacity">\
                 Remaining Capacity: {{remainingCapacity}}\
             </div>\
@@ -298,35 +298,11 @@ Vue.component("static-capacity-config", {
     },
     methods: {
         onCapacityChange: function (value) {
-            console.log("capacity change triggered");
             this.capacity = Number(value);
             this.showSizeError = false;
-            this.showSizeWarning = false;
-            console.log("debug");
+            this.showSizeWarning = false
             this.showTerminationError = false;
-            this.terminatingHostCount = 0;
-            console.log("debug-before");
-            $.ajax({
-                type: 'GET',
-                url: `/groups/${this.groupName}/hosts`,
-                dataType: "json",
-                beforeSend: function(xhr, settings) {
-                    var csrftoken = getCookie('csrftoken');
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                },
-                success: function (data) {
-                    console.log(data);
-                    this.terminatingHostCount = data.length;
-                    console.log(this.terminatingHostCount);
-                },
-                error: function (data) {
-                    console.log(data);
-                    this.terminatingHostCount = 0;
-                }
-            });
-            console.log("debug-mid");
             this.validateSize();
-            console.log("debug-after");
             this.$emit('change', this.capacity );
         },
         validateSize: function () {
@@ -356,10 +332,28 @@ Vue.component("static-capacity-config", {
             this.showImbalanceWarning = this.imbalanceWarning != '';
 
             if (this.terminationLimit !== null) {
+                let terminatingHostCount = 0;
+                $.ajax({
+                    type: 'GET',
+                    url: `/groups/${this.groupName}/hosts`,
+                    dataType: "json",
+                    beforeSend: function(xhr, settings) {
+                        var csrftoken = getCookie('csrftoken');
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    },
+                    success: function (data) {
+                        terminatingHostCount = data.length;
+                        console.log(data);
+                        console.log(terminatingHostCount);
+                    },
+                    error: function () {
+                        terminatingHostCount = 0;
+                    }
+                });
                 if (-sizeIncrease > this.terminationLimit) {
                     this.showTerminationError = true;
                     this.terminationError = getTerminationLimitAlertMessage(false);
-                } else if (-sizeIncrease > this.terminationLimit - this.terminatingHostCount) {
+                } else if (-sizeIncrease > this.terminationLimit - terminatingHostCount) {
                     this.showTerminationError = true;
                     this.terminationError = getTerminationLimitAlertMessage(true);
                 }
