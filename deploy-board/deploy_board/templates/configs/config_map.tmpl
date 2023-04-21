@@ -195,6 +195,7 @@
                         $('#errorBannerId').empty().hide();
                     }
                     btn.button('reset');
+                    window.location.href=window.location.href;
                 },
                 error: function (data) {
                     $('#errorBannerId').append(data.responseText);
