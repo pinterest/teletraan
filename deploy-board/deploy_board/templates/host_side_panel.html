@@ -49,18 +49,16 @@
 <script>
     $("#terminateBtn").click(function () {
         // Clean up first
-        $("#terminationWarning").empty();
+        $("#terminationWarning").setAttribute("hidden", "hidden");
         // Call to get value
         let terminatingHostCount = 0;
-        console.log(terminatingHostCount);
-        console.log(`{{env_name}}`);
-        /*
         async function doAjax(args) {
             let result;
             try {
+                console.log(`/groups/{{env_name}}-{{stage_name}}/hosts`);
                 result = await $.ajax({
                     type: 'GET',
-                    url: `/groups/${this.groupName}/hosts`,
+                    url: `/groups/{{env_name}}-{{stage_name}}/hosts`,
                     dataType: "json",
                     beforeSend: function(xhr, settings) {
                         var csrftoken = getCookie('csrftoken');
@@ -75,9 +73,11 @@
             }
         };
         doAjax().then( (data) => terminatingHostCount = data );
-        console.log(terminatingHostCount);*/
+        console.log(terminatingHostCount);
         //if (terminatingHostCount >= terminationLimit) {
         if (terminatingHostCount === 0) {
+            console.log("debug");
+            $("#terminationWarning").removeAttribute("hidden");
             $('#terminationWarning').val('<strong>Warning!</strong> The termination limit is exceeded. This host cannot be gracefully shut down.');
         }
     });
