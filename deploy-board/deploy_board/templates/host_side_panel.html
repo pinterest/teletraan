@@ -6,7 +6,7 @@
 {% if pinterest %}
 {% if show_terminate %}
 <div class="row">
-    <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
+    <button id="terminateBtn" class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
             data-toggle="modal" title="Gracefully shutdown the service and terminate the host.">
         <span class="glyphicon glyphicon-off"></span> Terminate Host
     </button>
@@ -27,6 +27,9 @@
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                             <strong>Warning!</strong> This host is unreachable. It cannot be gracefully shut down.
                         </div>
+                    {% else %}
+                        <div id="terminationWarning" class="alert alert-warning" role="alert">
+                        </div>
                     {% endif %}
 
                     <input type="checkbox" id="replace_host" name="replaceHost" checked> Check to replace host (Uncheck to to decrement desired capacity)
@@ -42,6 +45,45 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<script>
+    $("#terminateBtn").click(function () {
+        // Clean up first
+        $("#terminationWarning").empty();
+        // Call to get value
+        let terminatingHostCount = 0;
+        console.log(terminatingHostCount);
+        console.log(this.env_name);
+        console.log(`${this.env_name}`);
+        /*
+        async function doAjax(args) {
+            let result;
+            try {
+                result = await $.ajax({
+                    type: 'GET',
+                    url: `/groups/${this.groupName}/hosts`,
+                    dataType: "json",
+                    beforeSend: function(xhr, settings) {
+                        var csrftoken = getCookie('csrftoken');
+                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    },
+                });
+                console.log(result);
+                return result.length;
+            } catch (error) {
+                console.error(error);
+                return 0;
+            }
+        };
+        doAjax().then( (data) => terminatingHostCount = data );
+        console.log(terminatingHostCount);*/
+        //if (terminatingHostCount >= terminationLimit) {
+        if (terminatingHostCount === 0) {
+            $('#terminationWarning').load('<strong>Warning!</strong> The termination limit is exceeded. This host cannot be gracefully shut down.');
+        }
+    });
+</script>
+
 {% endif %}
 
 {% if hosts and show_force_terminate  %}
