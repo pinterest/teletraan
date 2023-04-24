@@ -333,21 +333,28 @@ Vue.component("static-capacity-config", {
 
             if (this.terminationLimit !== null) {
                 let terminatingHostCount = 0;
-                $.ajax({
-                    type: 'GET',
-                    url: `/groups/${this.groupName}/hosts`,
-                    dataType: "json",
-                    beforeSend: function(xhr, settings) {
-                        var csrftoken = getCookie('csrftoken');
-                        xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                    },
-                    success: function (data) {
-                        terminatingHostCount = data.length;
-                    },
-                    error: function () {
-                        terminatingHostCount = 0;
+                async function doAjax(args) {
+                    let result;
+                    try {
+                        result = await $.ajax({
+                            type: 'GET',
+                            url: `/groups/${this.groupName}/hosts`,
+                            dataType: "json",
+                            beforeSend: function(xhr, settings) {
+                                var csrftoken = getCookie('csrftoken');
+                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                            },
+                        });
+                        console.log(result);
+                        return result.length;
+                    } catch (error) {
+                        console.error(error);
+                        return 0;
                     }
-                });
+                };
+                terminatingHostCount = doAjax();
+                console.log(terminatingHostCount);
+
                 if (-sizeIncrease > this.terminationLimit) {
                     this.showTerminationError = true;
                     this.terminationError = getTerminationLimitAlertMessage(false);

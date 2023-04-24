@@ -1332,6 +1332,6 @@ def update_scheduled_actions(request, group_name):
         return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
         
         
-def get_terminating_hosts__by_group(request, group_name):
+def get_terminating_hosts_by_group(request, group_name):
     data = groups_helper.get_terminating_by_group(request, group_name)
     return HttpResponse(json.dumps(data), content_type="application/json")
