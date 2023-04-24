@@ -168,6 +168,8 @@ class HostDetailView(View):
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         host_details = get_host_details(host_id)
 
+        termination_limit = environs_helper.get_env_by_stage(request, name, stage).get('terminationLimit')
+
         return render(request, 'hosts/host_details.html', {
             'env_name': name,
             'stage_name': stage,
@@ -185,6 +187,7 @@ class HostDetailView(View):
             'instance_protected': is_protected,
             'host_details': host_details,
             'duplicate_stage': duplicate_stage,
+            'termination_limit': termination_limit,
         })
 
 
