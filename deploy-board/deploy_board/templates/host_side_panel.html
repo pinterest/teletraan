@@ -53,8 +53,7 @@
         // Call to get value
         let terminatingHostCount = 0;
         console.log(terminatingHostCount);
-        console.log(this.env_name);
-        console.log(`${this.env_name}`);
+        console.log(`{{env_name}}`);
         /*
         async function doAjax(args) {
             let result;
@@ -79,7 +78,7 @@
         console.log(terminatingHostCount);*/
         //if (terminatingHostCount >= terminationLimit) {
         if (terminatingHostCount === 0) {
-            $('#terminationWarning').load('<strong>Warning!</strong> The termination limit is exceeded. This host cannot be gracefully shut down.');
+            $('#terminationWarning').val('<strong>Warning!</strong> The termination limit is exceeded. This host cannot be gracefully shut down.');
         }
     });
 </script>
