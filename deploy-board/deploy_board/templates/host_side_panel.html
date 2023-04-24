@@ -48,8 +48,9 @@
 
 <script>
     $("#terminateBtn").click(function () {
+        let element = document.getElementById("terminationWarning");
         // Clean up first
-        $("#terminationWarning").setAttribute("hidden", "hidden");
+        element.setAttribute("hidden", "hidden");
         // Call to get value
         let terminatingHostCount = 0;
         async function doAjax(args) {
@@ -77,7 +78,7 @@
         //if (terminatingHostCount >= terminationLimit) {
         if (terminatingHostCount === 0) {
             console.log("debug");
-            $("#terminationWarning").removeAttribute("hidden");
+            element.removeAttribute("hidden");
             $('#terminationWarning').val('<strong>Warning!</strong> The termination limit is exceeded. This host cannot be gracefully shut down.');
         }
     });
