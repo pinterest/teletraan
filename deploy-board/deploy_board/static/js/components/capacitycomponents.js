@@ -345,7 +345,7 @@ Vue.component("static-capacity-config", {
                                 xhr.setRequestHeader("X-CSRFToken", csrftoken);
                             },
                         });
-                        console.log(result);
+                        //console.log(result);
                         return result.length;
                     } catch (error) {
                         console.error(error);
@@ -353,7 +353,7 @@ Vue.component("static-capacity-config", {
                     }
                 };
                 doAjax().then( (data) => terminatingHostCount = data );
-                console.log(terminatingHostCount);
+                //console.log(terminatingHostCount);
 
                 if (-sizeIncrease > this.terminationLimit) {
                     this.showTerminationError = true;
