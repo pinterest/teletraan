@@ -70,8 +70,6 @@
         doAjax().then( (data) => {
             terminatingHostCount = data;
             let element = document.getElementById("terminationWarning");
-            console.log(terminatingHostCount);
-            console.log(`{{termination_limit}}`);
             if (`{{termination_limit}}` !== null && terminatingHostCount >= `{{termination_limit}}`) {
                 element.removeAttribute("hidden");
             } else {
