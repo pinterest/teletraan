@@ -109,6 +109,7 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
         // otherwise utilize replicaSet
         String host;
         int port;
+        String replicaSetNumber = "001";
         if (this.useProxy) {
             host = this.proxyHost;
             port = this.proxyPort;
@@ -120,7 +121,6 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
         }
 
         if (this.useMTLS) {
-            String userName = getUserNameFromSpiffeId(this.spiffePrefix);
             String password = this.defaultMtlsPasswd;
             Map<String, String> proxyConnectionProps = ImmutableMap.<String, String>builder()
                 // ssl properties
@@ -136,12 +136,13 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
             // we don't need the replica number in the host; 
             // if in the configuration we input the number in the replica, we have to remove it.
             if (host.length() > 3) {
-                String replicaSetNumber = replicaSet.substring(replicaSet.length() - 3);
+                replicaSetNumber = replicaSet.substring(replicaSet.length() - 3);
                 if (StringUtils.isNumeric(replicaSetNumber)) {
                     host = replicaSet.substring(0, replicaSet.length() - 3);
                 } 
             }
             host += this.domainSuffix; 
+            String userName = getUserNameFromSpiffeId(replicaSetNumber);
             return DatabaseUtil.createMysqlDataSource(host, port, userName, password, pool, proxyConnectionProps);
         } else {
             KnoxDBKeyReader.init((role));
@@ -152,13 +153,12 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
     }
 
     /**
-     * For mysql 8 and mtls migration we are generating usernames from spiffe's md5 hash
+     * For mysql 8 and mtls migration we are generating usernames from spiffe's md5 hash and replica number
      *
      */
-    public static String getUserNameFromSpiffeId(String spiffePrefix) {
-        int spiffeHashLength = 28;
-        String md5Hex = DigestUtils.md5Hex(spiffePrefix + System.getenv("ENV_NAME") + "/" + System.getenv("STAGE_NAME")); 
-        String spiffeHash = md5Hex.substring(0, spiffeHashLength);
-        return spiffeHash + "_rw";
+    public String getUserNameFromSpiffeId(String databaseReplicaNumber) {
+        String md5Hex = DigestUtils.md5Hex(this.spiffePrefix + System.getenv("ENV_NAME") + "/" + System.getenv("STAGE_NAME"));
+        String spiffeHash = md5Hex.substring(0, 25);
+        return spiffeHash + databaseReplicaNumber + "_rw";
     }
 }
