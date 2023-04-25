@@ -49,11 +49,6 @@
 
 <script>
     $("#terminateBtn").click(function () {
-        let element = document.getElementById("terminationWarning");
-        // Clean up first
-        element.setAttribute("hidden", "hidden");
-        // Call to get value
-        let terminatingHostCount = 0;
         async function doAjax(args) {
             let result;
             try {
@@ -66,7 +61,6 @@
                         xhr.setRequestHeader("X-CSRFToken", csrftoken);
                     },
                 });
-                //console.log(result);
                 return result.length;
             } catch (error) {
                 console.error(error);
@@ -75,10 +69,13 @@
         };
         doAjax().then( (data) => {
             terminatingHostCount = data;
-            //console.log(terminatingHostCount);
-            //console.log(`{{termination_limit}}`);
+            let element = document.getElementById("terminationWarning");
+            console.log(terminatingHostCount);
+            console.log(`{{termination_limit}}`);
             if (`{{termination_limit}}` !== null && terminatingHostCount >= `{{termination_limit}}`) {
                 element.removeAttribute("hidden");
+            } else {
+                element.setAttribute("hidden", "hidden");
             }
         });
     });
