@@ -70,8 +70,10 @@
             };
             doAjax().then( (data) => {
                 terminatingHostCount = data;
+                console.log(terminatingHostCount);
+                console.log(`{{termination_limit}}`);
                 if (terminatingHostCount >= `{{termination_limit}}`) {
-                    document.getElementById("terminationWarning").show();
+                    $('#terminationWarning').show();
                 } 
             });
         }
