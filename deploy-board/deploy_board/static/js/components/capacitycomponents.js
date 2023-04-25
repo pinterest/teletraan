@@ -332,7 +332,6 @@ Vue.component("static-capacity-config", {
             this.showImbalanceWarning = this.imbalanceWarning != '';
 
             if (this.terminationLimit !== null) {
-                let terminatingHostCount = 0;
                 async function doAjax(args) {
                     let result;
                     try {
@@ -345,23 +344,23 @@ Vue.component("static-capacity-config", {
                                 xhr.setRequestHeader("X-CSRFToken", csrftoken);
                             },
                         });
-                        //console.log(result);
                         return result.length;
                     } catch (error) {
                         console.error(error);
                         return 0;
                     }
                 };
-                doAjax().then( (data) => terminatingHostCount = data );
-                //console.log(terminatingHostCount);
-
-                if (-sizeIncrease > this.terminationLimit) {
-                    this.showTerminationError = true;
-                    this.terminationError = getTerminationLimitAlertMessage(false);
-                } else if (-sizeIncrease > this.terminationLimit - terminatingHostCount) {
-                    this.showTerminationError = true;
-                    this.terminationError = getTerminationLimitAlertMessage(true);
+                doAjax().then( (data) => {
+                    terminatingHostCount = data;
+                    if (-sizeIncrease > this.terminationLimit) {
+                        this.showTerminationError = true;
+                        this.terminationError = getTerminationLimitAlertMessage(false);
+                    } else if (-sizeIncrease > this.terminationLimit - terminatingHostCount) {
+                        this.showTerminationError = true;
+                        this.terminationError = getTerminationLimitAlertMessage(true);
+                    }
                 }
+                );
             } 
         }
     }
