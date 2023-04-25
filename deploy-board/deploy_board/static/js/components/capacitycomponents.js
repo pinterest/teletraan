@@ -319,10 +319,10 @@ Vue.component("static-capacity-config", {
                         this.showSizeWarning = true;
                         this.sizeWarning = getCapacityDoubleAlertMessage(true);
                     }
-                } else if (-sizeIncrease > this.capacity && this.capacity > 0) {
+                } else if (-sizeIncrease > this.capacity) {
                     this.showSizeError = true;
                     this.sizeError = getCapacityScaleDownAlertMessage(true, false);
-                } else if (-sizeIncrease * 2 > this.capacity && this.capacity > 0) {
+                } else if (-sizeIncrease * 2 > this.capacity) {
                     this.showSizeWarning = true;
                     this.sizeWarning = getCapacityScaleDownAlertMessage(true, true);
                 }
