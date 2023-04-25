@@ -71,7 +71,7 @@
             doAjax().then( (data) => {
                 terminatingHostCount = data;
                 if (terminatingHostCount >= `{{termination_limit}}`) {
-                    document.getElementById("terminationWarning").removeAttribute("hidden");
+                    document.getElementById("terminationWarning").show();
                 } 
             });
         }
