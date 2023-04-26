@@ -1037,9 +1037,12 @@ def get_instance_type_settings(request):
     # hardcode the arch to be "x86_64" since this feature is only for very old clusters with cpu arch x86_64
     # thus, abandon this API https://github.com/pinternal/rodimus/pull/148/files which gets the host type list according to the current provider_name
     instance_types = hosttypes_helper.get_by_arch(request, "x86_64")
+    host_types = []
+    for instance_type in instance_types:
+            host_types.append(instance_type['provider_name'])
     curr_instance_type = request.GET.get("curr_instance_type", "")
     contents = render_to_string("groups/get_hosttype.tmpl",
-                                {"instance_types": instance_types,
+                                {"instance_types": host_types,
                                  "curr_instance_type": curr_instance_type})
     return HttpResponse(json.dumps(contents), content_type="application/json")
 
