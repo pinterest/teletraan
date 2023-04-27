@@ -140,6 +140,8 @@ public class ZKMysqlDataSourceFactory implements DataSourceFactory {
                 if (StringUtils.isNumeric(replicaSetNumber)) {
                     host = replicaSet.substring(0, replicaSet.length() - 3);
                 } 
+            }  else {
+                throw new Exception(String.format("ReplicaSet is: %s which is not correct. It should be the replicaset name and replicaset number.", host));
             }
             host += this.domainSuffix; 
             String userName = getUserNameFromSpiffeId(replicaSetNumber);
