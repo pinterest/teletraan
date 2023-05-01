@@ -40,6 +40,7 @@ class EnvCapacityConfigView(View):
         adv = False
         env = environs_helper.get_env_by_stage(request, name, stage)
         cluster_name = env.get('clusterName')
+        termination_limit = env.get('terminationLimit')
         placements = None
         if IS_PINTEREST:
             provider_list = baseimages_helper.get_all_providers(request)
@@ -101,6 +102,8 @@ class EnvCapacityConfigView(View):
             'adv': adv,
             'create_new': create_new,
             'placements': placements,
+            'termination_limit': termination_limit,
+            'cluster_name': cluster_name,
         }
         data['info'] = json.dumps(data)
         return render(request, 'configs/capacity.html', data)

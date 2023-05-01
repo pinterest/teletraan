@@ -199,6 +199,10 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("isSOX")
     private Boolean is_sox;
 
+    @Range(min = 1, max = 100000)
+    @JsonProperty("terminationLimit")
+    private Integer termination_limit;
+
     public void validate() throws Exception {
         // A bunch of these fields will always be alphanumeric (with _ and -)
         String envRegEx = "^[A-Za-z0-9_\\-]*$";
@@ -552,6 +556,14 @@ public class EnvironBean implements Updatable, Serializable {
         this.is_sox = is_sox;
     }
 
+    public Integer getTermination_limit() {
+        return termination_limit;
+    }
+
+    public void setTermination_limit(Integer termination_limit) {
+        this.termination_limit = termination_limit;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -596,6 +608,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("ensure_trusted_build", ensure_trusted_build);
         clause.addColumn("stage_type", stage_type);
         clause.addColumn("is_sox", is_sox);
+        clause.addColumn("termination_limit", termination_limit);
         return clause;
     }
 

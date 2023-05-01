@@ -215,6 +215,12 @@ function getCapacityDoubleAlertMessage(isFixed) {
     return errorMessage + instruction + context;
 }
 
+function getTerminationLimitAlertMessage(isWarning) {
+    const message = isWarning ? `The size you manually scaled down plus the number of hosts in terminating status exceed the specified termination limit.` 
+    : `The size you manually scaled down is more than the specified termination limit.`
+    return message;
+}
+
 function getCapacityScaleDownAlertMessage(isFixed, isWarning) {
     const errorMessage = isFixed ? `You are scaling down the capacity by more than ` : `You are scaling down the minSize or maxSize by more than `;
     const percentage = isWarning ? `33%,` : `50%,`;
@@ -266,28 +272,36 @@ Vue.component("static-capacity-config", {
     <form-danger v-show="showSizeError" :alert-text="sizeError"></form-danger>
     <form-warning v-show="showSizeWarning" :alert-text="sizeWarning"></form-warning>
     <form-warning v-show="showImbalanceWarning" :alert-text="imbalanceWarning"></form-warning>
+    <form-danger v-show="showTerminationError" :alert-text="terminationError"></form-danger>
     </div>`,
     props: {
         originalCapacity: Number,
         remainingCapacity: Number,
         placements: Object,
+        terminationLimit: Number,
+        groupName: String,
     },
     data: function() {
         return {
             capacity: this.originalCapacity,
+            terminationLimit: this.terminationLimit,
+            groupName: this.groupName,
             showSizeError: false,
             showImbalanceWarning: false,
             sizeError: '',
             imbalanceWarning: '',
             showSizeWarning: false,
             sizeWarning: '',
+            showTerminationError: false,
+            terminationError: '',
         }
     },
     methods: {
         onCapacityChange: function (value) {
             this.capacity = Number(value);
             this.showSizeError = false;
-            this.showSizeWarning = false;
+            this.showSizeWarning = false
+            this.showTerminationError = false;
             this.validateSize();
             this.$emit('change', this.capacity );
         },
@@ -305,16 +319,49 @@ Vue.component("static-capacity-config", {
                         this.showSizeWarning = true;
                         this.sizeWarning = getCapacityDoubleAlertMessage(true);
                     }
-                } else if (-sizeIncrease > this.capacity && this.capacity > 0) {
+                } else if (-sizeIncrease > this.capacity) {
                     this.showSizeError = true;
                     this.sizeError = getCapacityScaleDownAlertMessage(true, false);
-                } else if (-sizeIncrease * 2 > this.capacity && this.capacity > 0) {
+                } else if (-sizeIncrease * 2 > this.capacity) {
                     this.showSizeWarning = true;
                     this.sizeWarning = getCapacityScaleDownAlertMessage(true, true);
                 }
             }
+
             this.imbalanceWarning = checkImbalance(this.placements, calculateImbalanceThreshold(sizeIncrease, this.placements.length));
             this.showImbalanceWarning = this.imbalanceWarning != '';
+
+            if (this.terminationLimit !== null) {
+                async function doAjax(args) {
+                    let result;
+                    try {
+                        result = await $.ajax({
+                            type: 'GET',
+                            url: `/groups/${this.groupName}/hosts`,
+                            dataType: "json",
+                            beforeSend: function(xhr, settings) {
+                                var csrftoken = getCookie('csrftoken');
+                                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                            },
+                        });
+                        return result.length;
+                    } catch (error) {
+                        console.error(error);
+                        return 0;
+                    }
+                };
+                doAjax().then( (data) => {
+                    terminatingHostCount = data;
+                    if (-sizeIncrease > this.terminationLimit) {
+                        this.showTerminationError = true;
+                        this.terminationError = getTerminationLimitAlertMessage(false);
+                    } else if (-sizeIncrease > this.terminationLimit - terminatingHostCount) {
+                        this.showTerminationError = true;
+                        this.terminationError = getTerminationLimitAlertMessage(true);
+                    }
+                }
+                );
+            } 
         }
     }
 });
