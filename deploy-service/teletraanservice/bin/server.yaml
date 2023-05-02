@@ -39,7 +39,7 @@ logging:
       threshold: ALL
       timeZone: UTC
       target: stdout
-      
+
 
 #
 # Mysql connection config. By default, we use the real mysql as the backend.
