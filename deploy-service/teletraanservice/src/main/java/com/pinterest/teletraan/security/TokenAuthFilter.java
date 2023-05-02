@@ -54,11 +54,7 @@ public class TokenAuthFilter implements ContainerRequestFilter {
             SecurityContext securityContext;
             try {
                 securityContext = authenticate(context);
-                LOG.info("request method: " + context.getMethod());
-                LOG.info("request uri: " + context.getUriInfo().getRequestUri());
-                LOG.info("request path parameters: " + context.getUriInfo().getPathParameters());
-                LOG.info("request query parameters: " + context.getUriInfo().getQueryParameters());
-                LOG.info("user principal name: " + securityContext.getUserPrincipal().getName());
+                LOG.info("request method: " + context.getMethod() + "; request uri: " + context.getUriInfo().getRequestUri() + "; user name: " + securityContext.getUserPrincipal().getName());
             } catch (Exception e) {
                 LOG.info("Authentication failed. Reason: " + e.getMessage());
                 throw new TeletaanInternalException(Response.Status.UNAUTHORIZED,
