@@ -144,14 +144,6 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'json',
         },
-        'django.audit': {
-            'level': LOG_LEVEL,
-            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
-            'filename': '%s/audit.log' % LOG_DIR,
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
-            'backupCount': 5,
-            'formatter': 'json',
-        },
         'django.template': {
             'level': LOG_LEVEL,
             'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
@@ -184,11 +176,6 @@ LOGGING = {
         },
         'django.server': {
             'handlers': ['django.server'],
-            'level': LOG_LEVEL,
-            'propagate': False
-        },
-        'django.audit': {
-            'handlers': ['django.audit'],
             'level': LOG_LEVEL,
             'propagate': False
         },

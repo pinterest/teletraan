@@ -39,15 +39,7 @@ logging:
       threshold: ALL
       timeZone: UTC
       target: stdout
-  level: INFO
-  loggers:
-    "com.pinterest.teletraan.security": DEBUG
-  appenders:
-    - type: file
-      timeZone: UTC
-      threshold: DEBUG
-      archive: false
-      currentLogFilename: /tmp/teletraan/audit.log
+      
 
 #
 # Mysql connection config. By default, we use the real mysql as the backend.
