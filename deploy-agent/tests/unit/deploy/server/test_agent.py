@@ -14,8 +14,8 @@
 
 import os
 import unittest
-import mock
-import tests
+from unittest import mock
+from tests import TestCase
 
 from deployd.agent import DeployAgent
 from deployd.common.utils import ensure_dirs
@@ -25,7 +25,7 @@ from deployd.types.ping_report import PingReport
 from deployd.types.ping_response import PingResponse
 
 
-class TestDeployAgent(tests.TestCase):
+class TestDeployAgent(TestCase):
 
     @classmethod
     def setUpClass(cls):
@@ -571,5 +571,7 @@ class TestDeployAgent(tests.TestCase):
                                             'first_run': False, 'deploy_stage': 'PRE_DOWNLOAD', 'env_name': 'abc', 'stage_name': 'beta', 'status_code': 'UNKNOWN', 'error_source': 'TELEFIG', 'error':'TELEFIG_UNAVAILABLE'})
         self.assertEqual(agent._curr_report.report.deployStage, DeployStage.PRE_DOWNLOAD)
         self.assertEqual(agent._curr_report.report.status, AgentStatus.UNKNOWN)
+
+
 if __name__ == '__main__':
     unittest.main()

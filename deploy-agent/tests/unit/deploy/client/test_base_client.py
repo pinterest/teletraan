@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import tests
+import unittest
+from tests import TestCase
 
 from deployd.client.base_client import BaseClient
 
 
-class TestBaseClient(tests.TestCase):
+class TestBaseClient(TestCase):
 
     def test_missing_abstract_method_impl_cause_error(self):
 
@@ -26,3 +27,7 @@ class TestBaseClient(tests.TestCase):
 
         with self.assertRaises(TypeError):
             myclient = MyClient()
+
+
+if __name__ == '__main__':
+    unittest.main()

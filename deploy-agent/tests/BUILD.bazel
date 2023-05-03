@@ -1,0 +1,28 @@
+load("@rules_python//python:defs.bzl", "py_library")
+
+py_test(
+    name = "test_base_client", 
+    srcs = ['unit/deploy/client/test_base_client.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_serverless_client", 
+    srcs = ['unit/deploy/client/test_serverless_client.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_test(
+    name = "test_agent", 
+    srcs = ['unit/deploy/server/test_agent.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
+py_library(
+    name = "test_lib",
+    srcs = ["__init__.py"],
+    deps = ["//deployd:lib"],
+)

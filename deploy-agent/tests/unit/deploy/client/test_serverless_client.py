@@ -13,14 +13,14 @@
 # limitations under the License.
 
 import unittest
-import tests
+from tests import TestCase
 
 from deployd.client.serverless_client import ServerlessClient
 from deployd.common.types import DeployStatus, AgentStatus
 from deployd.types.ping_report import PingReport
 
 
-class TestServerlessClient(tests.TestCase):
+class TestServerlessClient(TestCase):
 
     def setUp(self):
         self.env_name = "test"
