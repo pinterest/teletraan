@@ -19,26 +19,17 @@ py_binary(
     ],
 )
 
-py_binary(
-    name = "deploy-downloader",
-    srcs = ["download/downloader.py"],
-    main = "download/downloader.py",
-    deps = [
-       ":lib",
-    ],
-)
-
 py_library(
   name = "third_party",
   deps = [
     requirement("PyYAML"),
-    requirement("zipp"),
     requirement("configparser"),
     requirement("python-daemon"),
     requirement("pinstatsd"),
     requirement("pinlogger"),
     requirement("setuptools"),
     requirement("strictyaml"),
-    requirement("requests")
+    requirement("requests"),
+    requirement("zipp"),
   ],
 )
