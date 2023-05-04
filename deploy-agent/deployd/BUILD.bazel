@@ -31,5 +31,6 @@ py_library(
     requirement("strictyaml"),
     requirement("requests"),
     requirement("zipp"),
+    requirement("lockfile"),
   ],
 )

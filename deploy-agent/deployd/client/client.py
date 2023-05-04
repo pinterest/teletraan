@@ -174,6 +174,13 @@ class Client(BaseClient):
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
                  "availability_zone: {}, stage_type: {}, group: {}".format(self._hostname, self._ip, self._id, 
                  self._agent_version, self._autoscaling_group, self._availability_zone, self._stage_type, self._hostgroup))
+
+        if not self._availability_zone:
+            create_sc_increment(name='deploy.failed.agent.hostinfocollection',
+                                tags={'host': self._hostname, 'info': 'availability_zone'})
+            log.info("Availability Zone host info is missing.")
+            return False
+
         return True
 
     def send_reports(self, env_reports=None):

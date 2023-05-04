@@ -4,7 +4,7 @@ pinlogger==0.53.0
 pinstatsd==1.4.6
 python-daemon==2.0.6
 requests==2.20.0
-setuptools==44.1.1; python_version < '3'
-setuptools==54.2.0; python_version >= '3'
+setuptools==59.5.0
 strictyaml==1.6.1
+lockfile==0.10.2
 zipp==1.2.0
