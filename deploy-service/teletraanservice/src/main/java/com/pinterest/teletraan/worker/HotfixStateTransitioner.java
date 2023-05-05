@@ -76,6 +76,8 @@ public class HotfixStateTransitioner implements Runnable {
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed, also long error in DB
                 LOG.error("HotfixStateTransitioner failed to process {} " + hotfixId, t);
+                hotBean.setError_message("Get Exception: " + t);
+                hotfixDAO.update(hotfixId, hotBean);
             }
         }
     }
