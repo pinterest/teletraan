@@ -54,6 +54,10 @@ public class TokenAuthFilter implements ContainerRequestFilter {
             SecurityContext securityContext;
             try {
                 securityContext = authenticate(context);
+                if (securityContext == null ){
+                    throw new TeletaanInternalException(
+                        Response.Status.UNAUTHORIZED, "Unrecognized user credential");
+                }
                 LOG.info("{\"request method\": \"" + context.getMethod() + "\", \"request uri\": \"" + context.getUriInfo().getRequestUri() + "\", \"user name\": \"" + securityContext.getUserPrincipal().getName() + "\"}");
             } catch (Exception e) {
                 LOG.info("Authentication failed. Reason: " + e.getMessage());
