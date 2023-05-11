@@ -124,6 +124,7 @@ public class HotfixStateTransitioner implements Runnable {
                     // Start job and set start time
                     String ret = jenkins.startBuild(hotBean.getJob_name(), buildParams);
                     hotBean.setError_message("Get Response from Jenkins: " + ret);
+                    hotfixDAO.update(hotBean.getId(), hotBean);
                     LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
 
                     transition(hotBean);
@@ -150,6 +151,7 @@ public class HotfixStateTransitioner implements Runnable {
                             hotBean.setJob_name(hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
                             String ret = jenkins.startBuild(hotBean.getJob_name(), buildParams);
                             hotBean.setError_message("Get Response from Jenkins: " + ret);
+                            hotfixDAO.update(hotfixId, hotBean);
                             LOG.info("Starting new Jenkins Job (private-build) for hotfix id {}", hotfixId);
 
                             transition(hotBean);
