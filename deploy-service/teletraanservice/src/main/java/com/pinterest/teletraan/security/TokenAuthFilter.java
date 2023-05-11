@@ -52,9 +52,11 @@ public class TokenAuthFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext context) throws IOException {
         if(!context.getMethod().equals("OPTIONS")) {
             SecurityContext securityContext;
-
             try {
                 securityContext = authenticate(context);
+                if ( securityContext != null ) {
+                    LOG.info(String.format("{\"requestMethod\": \"%s\", \"requestUri\": \"%s\", \"userName\": \"%s\"}", context.getMethod(), context.getUriInfo().getRequestUri(), securityContext.getUserPrincipal().getName()));
+                }
             } catch (Exception e) {
                 LOG.info("Authentication failed. Reason: " + e.getMessage());
                 throw new TeletaanInternalException(Response.Status.UNAUTHORIZED,
