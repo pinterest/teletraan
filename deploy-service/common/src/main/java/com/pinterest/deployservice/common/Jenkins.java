@@ -99,7 +99,7 @@ public class Jenkins {
         httpClient.post(url, null, headers, RETRIES);
     }
 
-    public void startBuild(String jobName, String buildParams) throws Exception {
+    public String startBuild(String jobName, String buildParams) throws Exception {
         String tokenString = "";
         if (this.jenkinsRemoteToken != null)
             tokenString = String.format("token=%s&", this.jenkinsRemoteToken);
@@ -107,8 +107,9 @@ public class Jenkins {
         String url = String.format("%s/job/%s/buildWithParameters?%s%s", this.jenkinsUrl, jobName, tokenString, buildParams);
         // startBuild(url);
         // Use GET instead, which is the same as POST but no need for token
-        httpClient.get(url, null, null, null, RETRIES);
+        String ret = httpClient.get(url, null, null, null, RETRIES);
         LOG.info("Successfully post to jenkins for job " + jobName);
+        return ret;
     }
 
     public Build getBuild(String jobName, String jobNum) throws Exception {

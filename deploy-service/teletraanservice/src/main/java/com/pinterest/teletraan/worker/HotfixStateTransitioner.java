@@ -122,7 +122,8 @@ public class HotfixStateTransitioner implements Runnable {
                         "&SUFFIX=" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
                         "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
                     // Start job and set start time
-                    jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                    String ret = jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                    hotBean.setError_message("Get Response from Jenkins: " + ret);
                     LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
 
                     transition(hotBean);
@@ -147,7 +148,8 @@ public class HotfixStateTransitioner implements Runnable {
                             String buildParams = "BRANCH=" + "hotfix_" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
                                 "&BUILD_NAME=" + buildName + "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
                             hotBean.setJob_name(hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
-                            jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                            String ret = jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                            hotBean.setError_message("Get Response from Jenkins: " + ret);
                             LOG.info("Starting new Jenkins Job (private-build) for hotfix id {}", hotfixId);
 
                             transition(hotBean);
