@@ -43,6 +43,7 @@ def get_jenkins_url(hotfix):
     jenkins_url = "%s/%s" % (BUILD_URL, hotfix['jobName'])
     if hotfix['jobNum']:
         jenkins_url = "%s/%s/%s" % (BUILD_URL, hotfix['jobName'], hotfix['jobNum'])
+    return jenkins_url
 
 
 def get_hotfix(request, name, stage, id):
