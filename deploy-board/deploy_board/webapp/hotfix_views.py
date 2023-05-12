@@ -39,6 +39,13 @@ def _create_commits(commits, urlPattern, hotfix):
         commits.append(commit)
 
 
+def get_jenkins_url(hotfix):
+    jenkins_url = "%s/%s" % (BUILD_URL, hotfix['jobName'])
+    if hotfix['jobNum']:
+        jenkins_url = "%s/%s/%s" % (BUILD_URL, hotfix['jobName'], hotfix['jobNum'])
+    return jenkins_url
+
+
 def get_hotfix(request, name, stage, id):
     env = environs_helper.get_env_by_stage(request, name, stage)
     hotfix = hotfixs_helper.get(request, id)
@@ -47,8 +54,7 @@ def get_hotfix(request, name, stage, id):
     urlPattern = systems_helper.get_url_pattern(request, build.get('type'))
     commits = []
     _create_commits(commits, urlPattern['template'], hotfix)
-    jenkins_url = "%s/%s/%s" % (BUILD_URL, hotfix['jobName'],
-                                hotfix['jobNum']) if hotfix['jobName'] and hotfix['jobNum'] else ''
+    jenkins_url = get_jenkins_url(hotfix)
     return render(request, 'hotfixs/hotfix_detail.html', {
         "env": env,
         "hotfix": hotfix,
@@ -66,8 +72,7 @@ def get_hotfix_detail(request, id):
     urlPattern = systems_helper.get_url_pattern(request, build.get('type'))
     commits = []
     _create_commits(commits, urlPattern['template'], hotfix)
-    jenkins_url = "%s/%s/%s" % (BUILD_URL, hotfix['jobName'],
-                                hotfix['jobNum']) if hotfix['jobName'] and hotfix['jobNum'] else ''
+    jenkins_url = get_jenkins_url(hotfix)
     html = render_to_string('hotfixs/hotfix_detail.tmpl', {
         "hotfix": hotfix,
         "commits": commits,
