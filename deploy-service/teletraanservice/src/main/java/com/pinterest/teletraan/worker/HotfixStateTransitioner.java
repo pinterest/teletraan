@@ -122,7 +122,9 @@ public class HotfixStateTransitioner implements Runnable {
                         "&SUFFIX=" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
                         "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
                     // Start job and set start time
+                    LOG.info("yaqin debug bofore jenkins call");
                     String ret = jenkins.startBuild(hotBean.getJob_name(), buildParams);
+                    LOG.info("yaqin debug after jenkins call");
                     hotBean.setError_message("Get Response from Jenkins: " + ret);
                     hotfixDAO.update(hotBean.getId(), hotBean);
                     LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
