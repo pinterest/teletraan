@@ -159,7 +159,7 @@ public class HotfixStateTransitioner implements Runnable {
                         // Jenkins job has returned a failure status
                         if (status.equals("FAILURE")) {
                             hotBean.setState(HotfixState.FAILED);
-                            hotBean.setError_message("Failed to create hotfix, see " + jenkinsUrl +
+                            hotBean.setError_message("Failed to create hotfix, see " + jenkinsUrl + "/" + 
                                 hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state PUSHING for hotfix id " + hotfixId);
