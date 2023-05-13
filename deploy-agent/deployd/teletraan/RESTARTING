@@ -1,7 +1,4 @@
 #!/bin/bash
-set -ex
+set -exv
 
-cp deploy-agent /usr/local/bin/deploy-agent
-chmod 0755 /usr/local/bin/deploy-agent
-
-deploy-agent -h
+install -m 755 deploy-agent /usr/local/bin/
