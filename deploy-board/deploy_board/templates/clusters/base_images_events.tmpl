@@ -3,6 +3,7 @@
 <div class="panel-body table-responsive">
     <table id="baseImageEventsTableId" class="table table-condensed table-striped table-hover">
         <tr>
+            <th></th>
             <th class="col-lg-2">Cluster Name</th>
             <th class="col-lg-2">From Image</th>
             <th class="col-lg-2">To Image</th>
@@ -14,6 +15,13 @@
         </tr>
         {% for base_images_event in base_images_events %}
         <tr>
+            <td>
+                <input type="radio" id="select_{{forloop.counter}}" name="ami_radio">
+                <input class="id" type="hidden"
+                    value="{{ base_images_event.old_image_id }}"/>
+                <input class="configInfo" type="hidden"
+                    value="{{ current_cluster }}"/>
+            </td>
             <td>
                 <a id="listGroupsBtnId" href="/groups/{{ base_images_event.cluster_name }}"
                     title="Click to see image update events">
@@ -30,4 +38,17 @@
         </tr>
         {% endfor %}
     </table>
+    <div class="panel-footer clearfix">
+        <div class="pull-left">
+            <a id="rollbackItButton" class="deployToolTip btn btn-primary"
+               data-toggle="tooltip" title="Rollback to the picked deployment">
+                <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback to It
+            </a>
+            <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
+               title="Cancel and return to previous page"
+               type="button" class="deployToolTip btn btn-default">
+                <span class="glyphicon glyphicon-remove"></span> Cancel
+            </a>
+        </div>
+    </div>
 </div>

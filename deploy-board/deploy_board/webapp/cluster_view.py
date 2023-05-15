@@ -1177,6 +1177,7 @@ class ClusterBaseImageHistoryView(View):
             "current_image": current_image,
             "golden_image": golden_image,
             "base_images_events": base_images_update_events,
+            "current_cluster": current_cluster,
         }
 
         return render(request, 'clusters/base_image_history.html', data)
