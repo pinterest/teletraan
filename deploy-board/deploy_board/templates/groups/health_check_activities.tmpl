@@ -42,8 +42,10 @@
                     <span class="deployToolTip pointer-cursor {{ health_check.status | healthCheckStatusIcon }}"></span>
                     {% if health_check.status == "SUCCEEDED" %}
                         STATE SUCCEEDED
+                    {% elif health_check.status == "QUALIFIED" %}
+                        QUALIFIED (PENDING_TERMINATION)
                     {% elif health_check.status == "TELETRAAN_STOP_REQUESTED" %}
-                        QUALIFIED (TELETRAAN_STOP_REQUESTED)
+                        QUALIFIED (TERMINATED)
                     {% else %}
                         {{ health_check.status }}
                     {% endif %}
