@@ -108,9 +108,11 @@
                     {% if health_check.status == "SUCCEEDED" %}
                         STATE SUCCEEDED
                     {% elif health_check.status == "QUALIFIED" %}
-                        QUALIFIED (PENDING_TERMINATION)
+                        QUALIFIED (pending termination)
+                    {% elif health_check.status == "TELETRAAN_STOP_REQUESTED" and health_check.state == "COMPLETED" %}
+                        QUALIFIED (terminated)
                     {% elif health_check.status == "TELETRAAN_STOP_REQUESTED" %}
-                        QUALIFIED (TERMINATED)
+                        QUALIFIED (terminating)
                     {% else %}
                         {{ health_check.status }}
                     {% endif %}
