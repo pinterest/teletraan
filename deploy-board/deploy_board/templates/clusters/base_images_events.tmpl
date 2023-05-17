@@ -76,7 +76,10 @@
 
         $('#rollbackTrigger').click(function () {
             $('#rollbackConfirm').modal('hide');
-            
+            var trid = $(“#baseImageEventsTableId input[name=ami_radio]:checked”).closest(‘tr’);
+            console.log(trid);
+            var id = trid.find(“.id”).val();
+            console.log(id);
             
             
         });
