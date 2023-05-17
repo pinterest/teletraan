@@ -77,19 +77,10 @@
         $('#rollbackTrigger').click(function () {
             $('#rollbackConfirm').modal('hide');
             var btn = $('#rollbackItButton');
-            var trid = $("#baseImageEventsTableId input[name=ami_radio]:checked").closest('tr');
-            console.log(trid);
-            var id = trid.find(".id").val();
-            console.log(id);
-            var info = {{ current_cluster }};
-            console.log('info:', info);
-            info.baseImageId = id;
-            info.autoUpdateBaseImage = false;
-            console.log('info:', info);
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
-                data: JSON.stringify(info),
+                data: JSON.stringify({{ current_cluster }}),
                 dataType: 'json',
                 beforeSend: function(xhr, settings) {
                     var csrftoken = getCookie('csrftoken')
