@@ -79,25 +79,7 @@
             var btn = $('#rollbackItButton');
             var info = {{ current_cluster }};
             console.log(info);
-            $.ajax({
-                type: 'POST',
-                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
-                data: JSON.stringify(info),
-                dataType: 'json',
-                beforeSend: function(xhr, settings) {
-                    var csrftoken = getCookie('csrftoken')
-                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                    btn.button('rollback in progress');
-                },
-                success: function(data) {
-                    globalNotificationBanner.info = "Request sent successfully";
-                    btn.button('Rollback to the selected From Image');
-                    window.location.href=window.location.href;
-                },
-                error: function(data) {
-                    globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
-                }
-            });
+            
         });
     });
 </script>
