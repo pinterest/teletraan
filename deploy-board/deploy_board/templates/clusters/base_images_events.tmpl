@@ -69,7 +69,7 @@
 </div>
 
 <script>
-    var info = {{ current_cluster }};
+    var info = {{current_cluster|safe}};
     console.log(info);
     $(function () {
         $('#rollbackItButton').click(function () {
@@ -82,7 +82,7 @@
             console.log(trid);
             var id = trid.find(".id").val();
             console.log(id);
-            console.log('info:', info);
+
             
         });
     });
