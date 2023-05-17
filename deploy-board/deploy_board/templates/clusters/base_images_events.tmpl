@@ -77,10 +77,12 @@
         $('#rollbackTrigger').click(function () {
             $('#rollbackConfirm').modal('hide');
             var btn = $('#rollbackItButton');
+            var info = {{ current_cluster }};
+            console.log(info);
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
-                data: "",
+                data: JSON.stringify(info),
                 dataType: 'json',
                 beforeSend: function(xhr, settings) {
                     var csrftoken = getCookie('csrftoken')
