@@ -83,6 +83,7 @@
             id = trid.find(".id").val();
             info = trid.find(".configInfo").val();
             info['baseImageId'] = id;
+            info['autoUpdateBaseImage'] = false;
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
