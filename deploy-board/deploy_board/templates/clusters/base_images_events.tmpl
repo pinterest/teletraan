@@ -16,11 +16,13 @@
         {% for base_images_event in base_images_events %}
         <tr>
             <td>
-                <input type="radio" id="select_{{forloop.counter}}" name="ami_radio">
-                <input class="id" type="hidden"
-                    value="{{ base_images_event.old_image_id }}"/>
-                <input class="configInfo" type="hidden"
-                    value="{{ current_cluster }}"/>
+                {% if base_images_event.status == "SUCCEEDED" %}
+                    <input type="radio" id="select_{{forloop.counter}}" name="ami_radio">
+                    <input class="id" type="hidden"
+                        value="{{ base_images_event.old_image_id }}"/>
+                    <input class="configInfo" type="hidden"
+                        value="{{ current_cluster }}"/>
+                {% endif %}
             </td>
             <td>
                 <a id="listGroupsBtnId" href="/groups/{{ base_images_event.cluster_name }}"
@@ -40,15 +42,70 @@
     </table>
     <div class="panel-footer clearfix">
         <div class="pull-left">
-            <a id="rollbackItButton" class="deployToolTip btn btn-primary"
-               data-toggle="tooltip" title="Rollback to the picked deployment">
-                <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback to It
-            </a>
-            <a href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
-               title="Cancel and return to previous page"
-               type="button" class="deployToolTip btn btn-default">
-                <span class="glyphicon glyphicon-remove"></span> Cancel
-            </a>
+            <button id="rollbackItButton" type="button" class="btn btn-primary" title="Rollback to the picked From Image">Rollback to the selected From Image</button>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="rollbackConfirm" tabindex="-1" role="dialog"
+     aria-labelledby="saveEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="saveEntryFormId" class="form-horizontal" method="post" role="form">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="saveEnvModalLabel">Save New {{ panelTitle }}</h4>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to <strong>rollback to the selected From Image</strong> for this cluster?<br>
+                </div>
+                <div class="modal-footer">
+                    <button id="rollbackTrigger" type="button" class="btn btn-primary">Yes</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#rollbackItButton').click(function () {
+            $('#rollbackConfirm').modal()
+        });
+
+        $('#rollbackTrigger').click(function () {
+            $('#rollbackConfirm').modal('hide');
+            var btn = $('#rollbackItButton');
+            trid = $("#baseImageEventsTableId input[name=ami_radio]:checked").closest('tr');
+            id = trid.find(".id").val();
+            info = trid.find(".configInfo").val();
+            info['baseImageId'] = id;
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
+                data: JSON.stringify(info),
+                dataType: 'json',
+                beforeSend: function () {
+                    btn.button('rollback in progress');
+                },
+                success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $('#errorBannerId').empty().hide();
+                    }
+                    btn.button('Rollback to the selected From Image');
+                    window.location.href=window.location.href;
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
+                }
+            });
+        });
+    });
+</script>
