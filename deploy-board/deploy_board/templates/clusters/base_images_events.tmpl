@@ -54,7 +54,7 @@
                     <button type="button" class="close" data-dismiss="modal"><span
                             aria-hidden="true">&times;</span><span class="sr-only">Close</span>
                     </button>
-                    <h4 class="modal-title" id="saveEnvModalLabel">Save New {{ panelTitle }}</h4>
+                    <h4 class="modal-title" id="saveEnvModalLabel">Rollback AMI</h4>
                 </div>
                 <div class="modal-body">
                     Are you sure you want to <strong>rollback to the selected From Image</strong> for this cluster?<br>
@@ -77,12 +77,12 @@
         $('#rollbackTrigger').click(function () {
             $('#rollbackConfirm').modal('hide');
             var btn = $('#rollbackItButton');
-            trid = $("#baseImageEventsTableId input[name=ami_radio]:checked").closest('tr');
+            var trid = $("#baseImageEventsTableId input[name=ami_radio]:checked").closest('tr');
             console.log(trid);
-            id = trid.find(".id").val();
+            var id = trid.find(".id").val();
             console.log(id);
             console.log('current cluster:', {{ current_cluster }});
-            var info = {{ current_cluster }}
+            var info = {{ current_cluster }};
             console.log('info:', info);
             info.baseImageId = id;
             info.autoUpdateBaseImage = false;
