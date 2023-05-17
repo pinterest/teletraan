@@ -84,11 +84,13 @@
             info = trid.find(".configInfo").val();
             info['baseImageId'] = id;
             info['autoUpdateBaseImage'] = false;
-            console.log('info:', JSON.stringify(info).replace(/u'(?=[^:]+')/g, "'"));
+            console.log('info:', info);
+            console.log('info:', info.replace(/u'(?=[^:]+')/g, "'"));
+            console.log('info:', JSON.stringify(info.replace(/u'(?=[^:]+')/g, "'")));
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
-                data: JSON.stringify(info).replace(/u'(?=[^:]+')/g, "'"),
+                data: JSON.stringify(info.replace(/u'(?=[^:]+')/g, "'")),
                 dataType: 'json',
                 beforeSend: function(xhr, settings) {
                     var csrftoken = getCookie('csrftoken')
