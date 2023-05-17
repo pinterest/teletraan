@@ -89,22 +89,18 @@
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
                 data: JSON.stringify(info),
                 dataType: 'json',
-                beforeSend: function () {
+                beforeSend: function(xhr, settings) {
+                    var csrftoken = getCookie('csrftoken')
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
                     btn.button('rollback in progress');
                 },
-                success: function (data) {
-                    if(data != null && data.success == false) {
-                        $('#errorBannerId').append(data.error);
-                        $('#errorBannerId').show();
-                    } else {
-                        $('#errorBannerId').empty().hide();
-                    }
+                success: function(data) {
+                    globalNotificationBanner.info = "Request sent successfully";
                     btn.button('Rollback to the selected From Image');
                     window.location.href=window.location.href;
                 },
-                error: function (data) {
-                    $('#errorBannerId').append(data.responseText);
-                    $('#errorBannerId').show();
+                error: function(data) {
+                    globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
                 }
             });
         });
