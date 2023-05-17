@@ -81,14 +81,11 @@
             console.log(trid);
             var id = trid.find(".id").val();
             console.log(id);
-            console.log('current cluster:', {{ current_cluster }});
             var info = {{ current_cluster }};
             console.log('info:', info);
             info.baseImageId = id;
             info.autoUpdateBaseImage = false;
             console.log('info:', info);
-            //console.log('info:', info.replace(/u'(?=[^:]+')/g, "'"));
-            //console.log('info:', JSON.stringify(info.replace(/u'(?=[^:]+')/g, "'")));
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
