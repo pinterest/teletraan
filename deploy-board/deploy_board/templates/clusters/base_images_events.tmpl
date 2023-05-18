@@ -79,12 +79,30 @@
         $('#rollbackTrigger').click(function () {
             $('#rollbackConfirm').modal('hide');
             var trid = $("#baseImageEventsTableId input[name=ami_radio]:checked").closest('tr');
-            console.log(trid);
             var id = trid.find(".id").val();
-            console.log(id);
             info.baseImageId = id;
             info.autoUpdateBaseImage = false;
             console.log(info);
+            var btn = $('#rollbackItButton');
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
+                data: JSON.stringify(info),
+                dataType: 'json',
+                beforeSend: function(xhr, settings) {
+                    var csrftoken = getCookie('csrftoken')
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    btn.button('rollback in progress');
+                },
+                success: function(data) {
+                    globalNotificationBanner.info = "Request sent successfully";
+                    btn.button('Rollback to the selected From Image');
+                    window.location.href=window.location.href;
+                },
+                error: function(data) {
+                    globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
+                }
+            });
         });
     });
 </script>
