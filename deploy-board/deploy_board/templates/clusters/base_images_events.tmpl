@@ -3,6 +3,7 @@
 <div class="panel-body table-responsive">
     <table id="baseImageEventsTableId" class="table table-condensed table-striped table-hover">
         <tr>
+            <th></th>
             <th class="col-lg-2">Cluster Name</th>
             <th class="col-lg-2">From Image</th>
             <th class="col-lg-2">To Image</th>
@@ -14,6 +15,17 @@
         </tr>
         {% for base_images_event in base_images_events %}
         <tr>
+            <td>
+                {% if base_images_event.status == "SUCCEEDED" %}
+                    <input type="radio" id="select_{{forloop.counter}}" 
+                    {% if base_images_event.old_image_id == current_image.id %}
+                        checked
+                    {% endif %}
+                    name="ami_radio">
+                    <input class="id" type="hidden"
+                        value="{{ base_images_event.old_image_id }}"/>
+                {% endif %}
+            </td>
             <td>
                 <a id="listGroupsBtnId" href="/groups/{{ base_images_event.cluster_name }}"
                     title="Click to see image update events">
@@ -30,4 +42,69 @@
         </tr>
         {% endfor %}
     </table>
+    <div class="panel-footer clearfix">
+        <div class="pull-left">
+            <button id="rollbackItButton" type="button" class="btn btn-primary" title="Rollback to From Image of the selected event">Rollback to From Image of the selected event</button>
+        </div>
+    </div>
 </div>
+
+<div class="modal fade" id="rollbackConfirm" tabindex="-1" role="dialog"
+     aria-labelledby="saveEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="saveEntryFormId" class="form-horizontal" method="post" role="form">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                    </button>
+                    <h4 class="modal-title" id="saveEnvModalLabel">Rollback AMI</h4>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to <strong>rollback to the selected From Image</strong> for this cluster?<br>
+                </div>
+                <div class="modal-footer">
+                    <button id="rollbackTrigger" type="button" class="btn btn-primary">Yes</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var current_cluster_info = {{current_cluster|safe}};
+    $(function () {
+        $('#rollbackItButton').click(function () {
+            $('#rollbackConfirm').modal()
+        });
+
+        $('#rollbackTrigger').click(function () {
+            $('#rollbackConfirm').modal('hide');
+            var trid = $("#baseImageEventsTableId input[name=ami_radio]:checked").closest('tr');
+            var id = trid.find(".id").val();
+            current_cluster_info.baseImageId = id;
+            current_cluster_info.autoUpdateBaseImage = false;
+            var btn = $('#rollbackItButton');
+            $.ajax({
+                type: 'POST',
+                url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
+                data: JSON.stringify(current_cluster_info),
+                dataType: 'json',
+                beforeSend: function(xhr, settings) {
+                    var csrftoken = getCookie('csrftoken')
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                    btn.button('rollback in progress');
+                },
+                success: function(data) {
+                    globalNotificationBanner.info = "Request sent successfully";
+                    btn.button('Rollback to the selected From Image');
+                    window.location.href=window.location.href;
+                },
+                error: function(data) {
+                    globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
+                }
+            });
+        });
+    });
+</script>
