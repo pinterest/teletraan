@@ -22,8 +22,7 @@
                         checked
                     {% endif %}
                     <script>
-                    console.log({{base_images_event.old_image_id}});
-                    console.log({{current_cluster.baseImageId}});
+                    console.log({{current_cluster|safe}});
                     </script>
                     name="ami_radio">
                     <input class="id" type="hidden"
@@ -90,7 +89,6 @@
             var id = trid.find(".id").val();
             info.baseImageId = id;
             info.autoUpdateBaseImage = false;
-            console.log(info);
             var btn = $('#rollbackItButton');
             $.ajax({
                 type: 'POST',
