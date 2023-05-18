@@ -18,9 +18,12 @@
             <td>
                 {% if base_images_event.status == "SUCCEEDED" %}
                     <input type="radio" id="select_{{forloop.counter}}" 
-                    {% if base_images_event.old_image_id == {{current_cluster|safe}}.baseImageId %}
+                    {% if base_images_event.old_image_id == current_image.id %}
                         checked
                     {% endif %}
+                    <script>
+                    console.log({{current_image.id}});
+                    </script>
                     name="ami_radio">
                     <input class="id" type="hidden"
                         value="{{ base_images_event.old_image_id }}"/>
