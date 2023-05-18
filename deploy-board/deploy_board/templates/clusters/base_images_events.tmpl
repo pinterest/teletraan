@@ -21,6 +21,10 @@
                     {% if base_images_event.old_image_id == current_cluster.baseImageId %}
                         checked
                     {% endif %}
+                    <script>
+                    console.log({{base_images_event.old_image_id}});
+                    console.log({{current_cluster.baseImageId}});
+                    </script>
                     name="ami_radio">
                     <input class="id" type="hidden"
                         value="{{ base_images_event.old_image_id }}"/>
