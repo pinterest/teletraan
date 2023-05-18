@@ -21,9 +21,6 @@
                     {% if base_images_event.old_image_id == current_image.id %}
                         checked
                     {% endif %}
-                    <script>
-                    console.log({{current_image.id}});
-                    </script>
                     name="ami_radio">
                     <input class="id" type="hidden"
                         value="{{ base_images_event.old_image_id }}"/>
