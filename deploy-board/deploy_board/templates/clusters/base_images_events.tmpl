@@ -44,7 +44,7 @@
     </table>
     <div class="panel-footer clearfix">
         <div class="pull-left">
-            <button id="rollbackItButton" type="button" class="btn btn-primary" title="Rollback to the picked From Image">Rollback to the selected From Image</button>
+            <button id="rollbackItButton" type="button" class="btn btn-primary" title="Rollback to From Image of the selected event">Rollback to From Image of the selected event</button>
         </div>
     </div>
 </div>
@@ -73,8 +73,7 @@
 </div>
 
 <script>
-    var info = {{current_cluster|safe}};
-    console.log(info);
+    var current_cluster_info = {{current_cluster|safe}};
     $(function () {
         $('#rollbackItButton').click(function () {
             $('#rollbackConfirm').modal()
@@ -84,13 +83,13 @@
             $('#rollbackConfirm').modal('hide');
             var trid = $("#baseImageEventsTableId input[name=ami_radio]:checked").closest('tr');
             var id = trid.find(".id").val();
-            info.baseImageId = id;
-            info.autoUpdateBaseImage = false;
+            current_cluster_info.baseImageId = id;
+            current_cluster_info.autoUpdateBaseImage = false;
             var btn = $('#rollbackItButton');
             $.ajax({
                 type: 'POST',
                 url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/',
-                data: JSON.stringify(info),
+                data: JSON.stringify(current_cluster_info),
                 dataType: 'json',
                 beforeSend: function(xhr, settings) {
                     var csrftoken = getCookie('csrftoken')
