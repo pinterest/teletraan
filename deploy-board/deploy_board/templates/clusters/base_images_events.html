@@ -23,16 +23,13 @@
     </div>
     {% if show_promote_ui %}
     <div class="row">
-        {% if tags %}
         <button class="deployToolTip btn btn-default btn-block" id="demoteBtnId">
             <span class="glyphicon glyphicon-circle-arrow-down"></span> Demote
         </button>
-        {% else %}
         <button class="deployToolTip btn btn-default btn-block" id="promoteBtnId"
             data-toggle="modal" data-target="#promoteImageModalId" title="Promote Image">
             <span class="glyphicon glyphicon-circle-arrow-up"></span> Promote
         </button>
-        {% endif %}
     </div>
     {% if cancellable %}
     <div class="row">
@@ -121,13 +118,13 @@
                 <div class="modal-body" id="promoteImageModal">
                     <div class="form-group">
                         <label class="deployToolTip control-label text-center col-xs-6">
-                            Tag
+                            Golden Tag
                         </label>
                         <div class="col-md-6">
                             <select class="form-control" name="tag" required id="tag">
-                                <option value="GOLDEN_LATEST">GOLDEN_LATEST</option>
-                                <option value="GOLDEN_CANARY">GOLDEN_CANARY</option>
-                                <option value="GOLDEN_PRODUCTION">GOLDEN_PRODUCTION</option>
+                                <option value="GOLDEN_LATEST">LATEST</option>
+                                <option value="GOLDEN_CANARY">CANARY</option>
+                                <option value="GOLDEN_PRODUCTION">PROD</option>
                             </select>
                         </div>
                     </div>
