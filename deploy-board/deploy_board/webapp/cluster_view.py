@@ -325,9 +325,9 @@ class ClusterCapacityUpdateView(View):
         return HttpResponse(json.dumps(settings), content_type="application/json")
 
 
-def promote_image(request, image_id):
+def promote_image(request, image_id, tag):
     try:
-        baseimages_helper.promote_image(request, image_id)
+        baseimages_helper.promote_image(request, image_id, tag)
     except IllegalArgumentException as e:
         return HttpResponse(e, status=400, content_type="application/json")
     except Exception as e:

@@ -28,7 +28,8 @@
             <span class="glyphicon glyphicon-circle-arrow-down"></span> Demote
         </button>
         {% else %}
-        <button class="deployToolTip btn btn-default btn-block" id="promoteBtnId">
+        <button class="deployToolTip btn btn-default btn-block" id="promoteBtnId"
+            data-toggle="modal" data-target="#promoteImageModalId" title="Promote Image">
             <span class="glyphicon glyphicon-circle-arrow-up"></span> Promote
         </button>
         {% endif %}
@@ -61,23 +62,10 @@
             },
         });
     });
-    $("#promoteBtnId").click(function () {
-        $.ajax({
-            type: 'PUT',
-            url: `${location.protocol}//${location.host}/clouds/promote_image/{{ image_id }}/`,
-            dataType: "json",
-            beforeSend: function (xhr, settings) {
-                var csrftoken = getCookie('csrftoken')
-                xhr.setRequestHeader("X-CSRFToken", csrftoken);
-            },
-            success: function (data) {
-                window.location.href = window.location.href;
-                globalNotificationBanner.info = "Request sent successfully";
-            },
-            error: function (data) { // if error occured
-                globalNotificationBanner.error = data;
-            },
-        });
+    $("#modalConfirmBtnId").click(function () {
+        var e = document.getElementById("tag");
+        var value = e.value;
+        console.log(value);
     });
     $("#cancelBtnId").click(function () {
         $.ajax({
@@ -122,6 +110,39 @@
         There is no base image update events
     </div>
     {% endif %}
+</div>
+
+<div class="modal fade" id="promoteImageModalId" tabindex="-1" role="dialog"
+    aria-labelledby="promoteImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form id="promoteImageFormId" class="form-horizontal" role="form" method="post">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span
+                            aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Promote Image Confirm</h4>
+                </div>
+                <div class="modal-body" id="promoteImageModal">
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Tag
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="tag" required id="tag">
+                                <option value="GOLDEN_LATEST">GOLDEN_LATEST</option>
+                                <option value="GOLDEN_CANARY">GOLDEN_CANARY</option>
+                                <option value="GOLDEN_PRODUCTION">GOLDEN_PRODUCTION</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="modalConfirmBtnId" type="button" class="btn btn-primary" data-dismiss="modal">Promote</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

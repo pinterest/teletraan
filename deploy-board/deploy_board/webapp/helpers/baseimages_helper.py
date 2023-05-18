@@ -21,8 +21,9 @@ rodimus_client = RodimusClient()
 MAX_BASE_IMAGE_UPDATE_EVENTS = 1e4
 
 
-def promote_image(request, image_id):
-    return rodimus_client.put("/base_images/%s/golden" % image_id, request.teletraan_user_id.token)
+def promote_image(request, image_id, tag):
+    params = [('stage', tag)]
+    return rodimus_client.put("/base_images/%s/golden" % image_id, request.teletraan_user_id.token, params=params)
 
 
 def demote_image(request, image_id):
