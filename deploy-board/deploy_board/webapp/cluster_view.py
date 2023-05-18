@@ -325,14 +325,15 @@ class ClusterCapacityUpdateView(View):
         return HttpResponse(json.dumps(settings), content_type="application/json")
 
 
-def promote_image(request, image_id, tag):
+def promote_image(request, image_id):
+    params = request.POST
     try:
-        baseimages_helper.promote_image(request, image_id, tag)
+        baseimages_helper.promote_image(request, image_id, params['tag'])
     except IllegalArgumentException as e:
         return HttpResponse(e, status=400, content_type="application/json")
     except Exception as e:
         return HttpResponse(e, status=500, content_type="application/json")
-    return HttpResponse("{}", content_type="application/json")
+    return redirect('/clouds/baseimages/events/' + image_id + '/')
 
 
 def demote_image(request, image_id):
