@@ -424,7 +424,6 @@ def get_base_image_events(request, image_id):
         request, image_id)
     update_events = sorted(update_events, key=lambda event: event['create_time'], reverse=True)
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
-    tags = [i["tag"] for i in json.dumps(tags)]
     current_image = baseimages_helper.get_by_id(request, image_id)
 
     cancel = any(event['state'] == 'INIT' for event in update_events)
@@ -439,7 +438,7 @@ def get_base_image_events(request, image_id):
         'cluster_statuses': cluster_statuses,
         'current_image': current_image,
         'image_id': image_id,
-        'tags': tags,
+        'tags': json.dumps(tags),
         'cancellable': cancel,
         'progress': progress_info,
         'show_promote_ui': show_promote_ui, 
