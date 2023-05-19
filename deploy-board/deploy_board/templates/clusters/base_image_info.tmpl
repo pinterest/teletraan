@@ -36,9 +36,15 @@
         <tr>
             <td>Golden Tags</td>
             <td>
-                <script>
-                console.log({{ tags }})
-                </script>
+                {%if golden_latest %}
+                    <span class="label label-primary">GOLDEN_LATEST</span>
+                {% endif %}
+                {%if golden_canary %}
+                    <span class="label label-success">GOLDEN_CANARY</span>
+                {% endif %}
+                {%if golden_prod %}
+                    <span class="label label-warning">GOLDEN</span>
+                {% endif %}
             </td>
         </tr>
         {% if progress is not None %}
