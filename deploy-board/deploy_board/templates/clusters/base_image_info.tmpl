@@ -36,7 +36,15 @@
         <tr>
             <td>Golden Tags</td>
             <td>
-                {{ tags }}
+                {%if tags.includes('GOLDEN_LATEST') %}
+                    <span class="label label-primary">GOLDEN_LATEST</span>
+                {% endif %}
+                {%if tags.includes('GOLDEN_CANARY') %}
+                    <span class="label label-success">GOLDEN_CANARY</span>
+                {% endif %}
+                {%if tags.includes('GOLDEN') %}
+                    <span class="label label-warning">GOLDEN</span>
+                {% endif %}
             </td>
         </tr>
         {% if progress is not None %}
