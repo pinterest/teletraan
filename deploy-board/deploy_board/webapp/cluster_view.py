@@ -326,13 +326,9 @@ class ClusterCapacityUpdateView(View):
 
 
 def promote_image(request, image_id):
-    try:
-        baseimages_helper.promote_image(request, image_id)
-    except IllegalArgumentException as e:
-        return HttpResponse(e, status=400, content_type="application/json")
-    except Exception as e:
-        return HttpResponse(e, status=500, content_type="application/json")
-    return HttpResponse("{}", content_type="application/json")
+    params = request.POST
+    baseimages_helper.promote_image(request, image_id, params['tag'])
+    return redirect('/clouds/baseimages/events/' + image_id + '/')
 
 
 def demote_image(request, image_id):
@@ -423,8 +419,11 @@ def get_base_image_events(request, image_id):
         request, image_id)
     update_events = sorted(update_events, key=lambda event: event['create_time'], reverse=True)
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
+    golden_tags = [ e['tag'] for e in tags ]
+    golden_latest = True if 'GOLDEN_LATEST' in golden_tags else False
+    golden_canary = True if 'GOLDEN_CANARY' in golden_tags else False
+    golden_prod = True if 'GOLDEN' in golden_tags else False
     current_image = baseimages_helper.get_by_id(request, image_id)
-
     cancel = any(event['state'] == 'INIT' for event in update_events)
     latest_update_events = baseimages_helper.get_latest_image_update_events(update_events)
     progress_info = baseimages_helper.get_base_image_update_progress(latest_update_events)
@@ -437,7 +436,9 @@ def get_base_image_events(request, image_id):
         'cluster_statuses': cluster_statuses,
         'current_image': current_image,
         'image_id': image_id,
-        'tags': tags,
+        'golden_latest': golden_latest,
+        'golden_canary': golden_canary,
+        'golden_prod': golden_prod,
         'cancellable': cancel,
         'progress': progress_info,
         'show_promote_ui': show_promote_ui, 
