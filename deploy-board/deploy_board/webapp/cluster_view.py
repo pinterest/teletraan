@@ -253,6 +253,7 @@ class ClusterConfigurationView(View):
             'defaultARMBaseImage': DEFAULT_CMP_ARM_IMAGE,
             'defaultHostType': DEFAULT_CMP_HOST_TYPE,
             'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
+            'defaultUseLaunchTemplate': DEFAULT_USE_LAUNCH_TEMPLATE,
             'defaultCMPConfigs': get_default_cmp_configs(name, stage),
             'defaultProvider': DEFAULT_PROVIDER,
             'providerList': provider_list,
@@ -428,10 +429,10 @@ def get_base_image_events(request, image_id):
     cancel = any(event['state'] == 'INIT' for event in update_events)
     latest_update_events = baseimages_helper.get_latest_image_update_events(update_events)
     progress_info = baseimages_helper.get_base_image_update_progress(latest_update_events)
-    show_promote_ui = current_image['abstract_name'].startswith('cmp') 
+    show_promote_ui = current_image['abstract_name'].startswith('cmp')
     cluster_statuses = [{'cluster_name': event['cluster_name'], 'status': event['status']} for event in latest_update_events]
     cluster_statuses = sorted(cluster_statuses, key=lambda event: event['status'], reverse=True)
-    
+
     return render(request, 'clusters/base_images_events.html', {
         'base_images_events': update_events,
         'cluster_statuses': cluster_statuses,
@@ -440,7 +441,7 @@ def get_base_image_events(request, image_id):
         'tags': tags,
         'cancellable': cancel,
         'progress': progress_info,
-        'show_promote_ui': show_promote_ui, 
+        'show_promote_ui': show_promote_ui,
     })
 
 
