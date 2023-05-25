@@ -4,7 +4,7 @@ configparser==4.0.2
 pinlogger==0.53.0
 pinstatsd==1.4.6
 python-daemon==2.3.2
-requests==2.20.0
+requests==2.31.0
 setuptools==54.2.0
 strictyaml==1.6.1
 zipp==1.2.0
