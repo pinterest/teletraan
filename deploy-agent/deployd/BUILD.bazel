@@ -23,7 +23,9 @@ py_library(
   name = "third_party",
   deps = [
     requirement("PyYAML"),
+    requirement("argparse"),
     requirement("configparser"),
+    requirement("lockfile"),
     requirement("python-daemon"),
     requirement("pinstatsd"),
     requirement("pinlogger"),
