@@ -191,6 +191,7 @@ public class GithubManager extends BaseManager {
         // TODO: Do not RETRY since it will timeout the thrift caller, need to revisit
         Map<String, String> params = new HashMap<String, String>();
         params.put("sha", startSha);
+        params.put("path", path);
 
         setHeaders();
         String jsonPayload = httpClient.get(url, null, params, headers, 1);
