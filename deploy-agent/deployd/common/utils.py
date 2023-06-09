@@ -4,9 +4,9 @@ from __future__ import print_function
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,14 +23,18 @@ import sys
 import traceback
 import subprocess
 import yaml
+import shutil
+
+
 import json
-from deployd import IS_PINTEREST, TELEFIG_BINARY
-from deployd.common.stats import TimeElapsed, create_sc_increment, create_sc_timing
+from deployd import IS_PINTEREST, PUPPET_SUCCESS_EXIT_CODES
+from deployd.common.stats import TimeElapsed, create_sc_increment, create_sc_timing, send_statsboard_metric
 
 log = logging.getLogger(__name__)
 
-
 # noinspection PyProtectedMember
+
+
 def exit_abruptly(status=0):
     """Exit method that just quits abruptly.
 
@@ -92,6 +96,7 @@ def mkdir_p(path):
         else:
             raise
 
+
 def uptime():
     """ return int: seconds of uptime in int, default 0 """
     sec = 0
@@ -101,6 +106,7 @@ def uptime():
             sec = int(float(line[0]))
     return sec
 
+
 def ensure_dirs(config):
     # make sure deployd directories exist
     mkdir_p(config.get_builds_directory())
@@ -108,18 +114,89 @@ def ensure_dirs(config):
     mkdir_p(config.get_log_directory())
 
 
-def run_prereqs(config):
-    # check if the puppet has finished or not
+def is_first_run(config):
+    env_status_file = config.get_env_status_fn()
+    return not os.path.exists(env_status_file)
+
+
+def check_prereqs(config):
+    """
+    Check prerequisites before deploy agent can run
+
+    :return: True all conditions meet else False
+    """
     if IS_PINTEREST:
         respect_puppet = config.respect_puppet()
-        puppet_file_path = config.get_puppet_file_path()
-        if respect_puppet and \
-           puppet_file_path is not None and \
-           not os.path.exists(puppet_file_path):
-            print("Waiting for first puppet run.")
-            sys.exit(0)
+        # check if the puppet has finished successfully or not
+        if respect_puppet:
+            puppet_state_file_path = config.get_puppet_state_file_path()
+            if puppet_state_file_path and (not os.path.exists(puppet_state_file_path)):
+                log.error("Waiting for first puppet run.")
+                return False
+            if not check_first_puppet_run_success(config):
+                log.error("First puppet run failed.")
+                return False
 
     ensure_dirs(config)
+    return True
+
+
+def get_puppet_exit_code(config):
+    """
+    Get puppet exit code from the corresponding file
+
+    :return: puppet exit code or 999 if file doesn't exist
+    """
+    puppet_exit_code_file = config.get_puppet_exit_code_file_path()
+    try:
+        with open(puppet_exit_code_file, "rt") as f:
+            exit_code = f.readline().strip()
+    except Exception as e:
+        log.warning(f"Could not read {puppet_exit_code_file} file: {e}")
+        exit_code = 999
+
+    return exit_code
+
+
+def load_puppet_summary(config):
+    """
+    Load last_run_summary yaml file, parse results
+
+    :return: returns a dict constructed from for the puppet summary file
+    """
+    summary_file = config.get_puppet_summary_file_path()
+    summary = {}
+    if not os.path.exists(summary_file):
+        log.warning(f"{summary_file} does not exist. This could be the first puppet run")
+        return summary
+
+    with open(summary_file) as f:
+        summary = yaml.safe_load(f)
+    return summary
+
+
+def check_first_puppet_run_success(config):
+    """
+    Check first puppet run success from exit code and last run summary
+
+    :return: returns True if success else False
+    """
+    if not is_first_run(config):
+        return True
+
+    puppet_exit_code = get_puppet_exit_code(config)
+    if puppet_exit_code in PUPPET_SUCCESS_EXIT_CODES:
+        return True
+
+    # If failed, double check with puppet last summary
+    puppet_summary = load_puppet_summary(config)
+    puppet_failures = puppet_summary.get('events', {}).get(
+        'failure', None) if puppet_summary else None
+    log.info(f"Puppet failures: {puppet_failures}")
+    if puppet_failures != 0:
+        send_statsboard_metric(name='deployd.first_puppet_failed', value=1,
+                               tags={"puppet_exit_code": puppet_exit_code})
+    return puppet_failures == 0
 
 
 def get_info_from_facter(keys):
@@ -127,10 +204,10 @@ def get_info_from_facter(keys):
         time_facter = TimeElapsed()
         # increment stats - facter calls
         create_sc_increment('deployd.stats.internal.facter_calls_sum', 1)
-        log.info("Fetching {} keys from facter".format(keys))
-        cmd = ['facter', '-p', '-j']
+        log.info(f"Fetching {keys} keys from facter")
+        cmd = ['facter', '-jp']
         cmd.extend(keys)
-        output = subprocess.check_output(cmd)
+        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         # timing stats - facter run time
         create_sc_timing('deployd.stats.internal.time_elapsed_facter_calls_sec',
                          time_facter.get())
@@ -142,13 +219,8 @@ def get_info_from_facter(keys):
         log.error("Failed to get info from facter by keys {}".format(keys))
         return None
 
+
 def check_not_none(arg, msg=None):
     if arg is None:
         raise ValueError(msg)
     return arg
-
-def check_telefig_unavailable_error(msg):
-    if not TELEFIG_BINARY:
-        return False
-    telefig_unavailable_error = "{}: No such file or directory".format(TELEFIG_BINARY)
-    return msg.find(telefig_unavailable_error) != -1
