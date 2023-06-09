@@ -36,7 +36,7 @@
                 {% endif %}
                 {% if base_image.tag %}
                     <span class="label label-warning">CURRENT_GOLDEN</span>
-                {% elif golden_prod %}
+                {% elif base_image.golden_prod %}
                     <span class="label label-warning">GOLDEN</span>
                 {% endif %}
             </td>
