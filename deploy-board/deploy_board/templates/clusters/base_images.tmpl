@@ -34,7 +34,7 @@
                 {% if base_image.golden_canary %}
                     <span class="label label-success">GOLDEN_CANARY</span>
                 {% endif %}
-                {% if base_image.tag %}
+                {% if base_image.current_golden %}
                     <span class="label label-warning">CURRENT_GOLDEN</span>
                 {% elif base_image.golden_prod %}
                     <span class="label label-warning">GOLDEN</span>

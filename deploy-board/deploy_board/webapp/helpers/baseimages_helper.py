@@ -70,7 +70,7 @@ def get_all_with_acceptance(request, index, size):
                 golden_image = get_current_golden_image(request, name, cell)
                 golden[key] = golden_image['id'] if golden_image else None
             if img['id'] == golden[key]:
-                img['tag'] = 'current_golden'
+                img['current_golden'] = True
 
     return base_images
 
