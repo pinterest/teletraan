@@ -27,11 +27,19 @@
                 {{ base_image.id }}
                 {% endif %}
             </td>
-            {% if base_image.tag %}
-            <td> <span class="glyphicon glyphicon-ok-sign"></span>Current Golden</td>
-            {% else %}
-            <td></td>
-            {% endif %}
+            <td>
+                {% if base_image.golden_latest %}
+                    <span class="label label-primary">GOLDEN_LATEST</span>
+                {% endif %}
+                {% if base_image.golden_canary %}
+                    <span class="label label-success">GOLDEN_CANARY</span>
+                {% endif %}
+                {% if base_image.tag %}
+                    <span class="label label-warning">CURRENT_GOLDEN</span>
+                {% elif golden_prod %}
+                    <span class="label label-warning">GOLDEN</span>
+                {% endif %}
+            </td>
             <td> {{ base_image.provider_name }} </td>
             <td>
                 <a id="listGroupsBtnId" href="/clouds/baseimages/{{ base_image.abstract_name }}"

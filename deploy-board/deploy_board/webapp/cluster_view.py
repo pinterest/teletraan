@@ -373,6 +373,12 @@ def get_base_images(request):
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
     arches_list = arches_helper.get_all(request)
+    for image in base_images:
+        tags = baseimages_helper.get_image_tag_by_id(request, image['id'])
+        golden_tags = [ e['tag'] for e in tags ]
+        image['golden_latest'] = True if 'GOLDEN_LATEST' in golden_tags else False
+        image['golden_canary'] = True if 'GOLDEN_CANARY' in golden_tags else False
+        image['golden_prod'] = True if 'GOLDEN' in golden_tags else False
 
     return render(request, 'clusters/base_images.html', {
         'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
