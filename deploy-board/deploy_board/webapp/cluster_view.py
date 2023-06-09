@@ -376,9 +376,9 @@ def get_base_images(request):
     for image in base_images:
         tags = baseimages_helper.get_image_tag_by_id(request, image['id'])
         golden_tags = [ e['tag'] for e in tags ]
-        image['golden_latest'] = True if 'GOLDEN_LATEST' in golden_tags else False
-        image['golden_canary'] = True if 'GOLDEN_CANARY' in golden_tags else False
-        image['golden_prod'] = True if 'GOLDEN' in golden_tags else False
+        image['golden_latest'] = 'GOLDEN_LATEST' in golden_tags
+        image['golden_canary'] = 'GOLDEN_CANARY' in golden_tags
+        image['golden_prod'] = 'GOLDEN' in golden_tags
 
     return render(request, 'clusters/base_images.html', {
         'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
@@ -427,9 +427,9 @@ def get_base_image_events(request, image_id):
     update_events = sorted(update_events, key=lambda event: event['create_time'], reverse=True)
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
     golden_tags = [ e['tag'] for e in tags ]
-    golden_latest = True if 'GOLDEN_LATEST' in golden_tags else False
-    golden_canary = True if 'GOLDEN_CANARY' in golden_tags else False
-    golden_prod = True if 'GOLDEN' in golden_tags else False
+    golden_latest = 'GOLDEN_LATEST' in golden_tags
+    golden_canary = 'GOLDEN_CANARY' in golden_tags
+    golden_prod = 'GOLDEN' in golden_tags
     current_image = baseimages_helper.get_by_id(request, image_id)
     cancel = any(event['state'] == 'INIT' for event in update_events)
     latest_update_events = baseimages_helper.get_latest_image_update_events(update_events)
