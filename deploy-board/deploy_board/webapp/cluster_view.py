@@ -406,7 +406,7 @@ def get_base_images_by_abstract_name(request, abstract_name):
     # add golden tag to images
     for image in base_images:
         if golden_images[image['cell_name']] and image['id'] == golden_images[image['cell_name']]['id']:
-            image['tag'] = 'current_golden'
+            image['current_golden'] = True
 
     return render(request, 'clusters/base_images.html', {
         'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
