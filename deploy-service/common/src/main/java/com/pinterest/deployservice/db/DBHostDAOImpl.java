@@ -59,7 +59,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_HOST_BY_ENVID_AND_HOSTID = "SELECT DISTINCT e.* FROM hosts e INNER JOIN groups_and_envs ge ON ge.group_name = e.group_name WHERE ge.env_id=? AND e.host_id=?";
     private static final String GET_HOST_BY_ENVID_AND_HOSTNAME1 = "SELECT hs.* FROM hosts hs INNER JOIN groups_and_envs ge ON ge.group_name = hs.group_name WHERE ge.env_id=? AND hs.host_name=?";
     private static final String GET_HOST_BY_ENVID_AND_HOSTNAME2 = "SELECT hs.* FROM hosts hs INNER JOIN hosts_and_envs he ON he.host_name = hs.host_name WHERE he.env_id=? AND he.host_name=?";
-    private static final String GET_RETIRED_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE (can_retire=1 or can_retire=3) AND group_name=? AND state not in (?,?,?) ORDER BY can_retire";
+    private static final String GET_RETIRED_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE (can_retire=1 OR can_retire=3) AND group_name=? AND state not in (?,?,?) ORDER BY can_retire";
     private static final String GET_RETIRED_AND_FAILED_HOSTIDS_BY_GROUP =
             "SELECT DISTINCT h.host_id FROM hosts h INNER JOIN agents a ON a.host_id=h.host_id WHERE h.can_retire=1 AND h.group_name=? AND h.state not in (?,?,?) and a.status not in (?,?)";
     private static final String GET_FAILED_HOSTIDS_BY_GROUP =
