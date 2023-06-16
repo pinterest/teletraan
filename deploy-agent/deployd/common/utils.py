@@ -23,7 +23,6 @@ import sys
 import traceback
 import subprocess
 import yaml
-import shutil
 
 
 import json
@@ -193,6 +192,7 @@ def check_first_puppet_run_success(config):
     puppet_failures = puppet_summary.get('events', {}).get(
         'failure', None) if puppet_summary else None
     log.info(f"Puppet failures: {puppet_failures}")
+
     if puppet_failures != 0:
         send_statsboard_metric(name='deployd.first_puppet_failed', value=1,
                                tags={"puppet_exit_code": puppet_exit_code})
