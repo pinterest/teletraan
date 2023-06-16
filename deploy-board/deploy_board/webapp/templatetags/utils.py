@@ -905,13 +905,11 @@ def genImageInfo(value):
 
 
 @register.filter("healthCheckStatusClass")
-def healthCheckStatusClass(status):
-    if status == "FAILED":
+def healthCheckStatusClass(error_message):
+    if error_message:
         return "danger"
-    elif status == "TELETRAAN_STOP_REQUESTED":
+    else
         return "success"
-    else:
-        return ""
 
 
 @register.filter("healthCheckStatusIcon")
