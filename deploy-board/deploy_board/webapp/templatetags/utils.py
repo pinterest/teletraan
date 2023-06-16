@@ -908,7 +908,7 @@ def genImageInfo(value):
 def healthCheckStatusClass(error_message):
     if error_message:
         return "danger"
-    else
+    else:
         return "success"
 
 
