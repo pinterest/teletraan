@@ -165,7 +165,7 @@ class Client(BaseClient):
             # so need to read ec2_tags from facter and parse Autoscaling tag to cover this case
             if not self._autoscaling_group:
                 ec2_tags = facter_data.get(ec2_tags_key)
-                self._autoscaling_group = ec2_tags.get(asg_tag_key, None) if ec2_tags else None
+                self._autoscaling_group = ec2_tags.get(asg_tag_key) if ec2_tags else None
 
             if not self._stage_type and not self._stage_type_fetched:
                 self._stage_type = facter_data.get(stage_type_key, None)
