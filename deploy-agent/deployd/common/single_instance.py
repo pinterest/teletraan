@@ -48,7 +48,7 @@ class SingleInstance(object):
         try:
             fcntl.lockf(lockfile_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
-            print(('Error: {0} may already be running. Only one instance of it '
+            log.error(('Error: {0} may already be running. Only one instance of it '
                    'can run at a time.').format(appname))
             # noinspection PyTypeChecker
             os.close(lockfile_fd)

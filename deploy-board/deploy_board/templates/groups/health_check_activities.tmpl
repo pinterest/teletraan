@@ -14,7 +14,7 @@
             <th class="col-lg-1">Details</th>
         </tr>
         {% for health_check in health_checks %}
-            <tr class="{{ health_check.status | healthCheckStatusClass }}">
+            <tr class="{{ health_check.error_message | healthCheckStatusClass }}">
                 <td>{{ health_check.start_time | convertTimestamp }}</td>
                 <td><span class="deployToolTip label label-default" data-toggle="tooltip"
                           title="Health Check was updated on {{ health_check.last_worked_on | convertTimestamp }}">
@@ -44,7 +44,13 @@
                         STATE SUCCEEDED
                     {% elif health_check.status == "QUALIFIED" %}
                         QUALIFIED (pending termination)
-                    {% elif health_check.status == "TELETRAAN_STOP_REQUESTED" and health_check.state == "COMPLETED" %}
+                    {% elif health_check.error_message and health_check.host_terminated == 1 %}
+                        FAILED (terminated)
+                    {% elif health_check.error_message and health_check.status == "TELETRAAN_STOP_REQUESTED" %}
+                        FAILED (terminating)
+                    {% elif health_check.error_message %}
+                        FAILED (pending termination)
+                    {% elif health_check.status == "TELETRAAN_STOP_REQUESTED" and health_check.host_terminated == 1 %}
                         QUALIFIED (terminated)
                     {% elif health_check.status == "TELETRAAN_STOP_REQUESTED" %}
                         QUALIFIED (terminating)

@@ -13,11 +13,12 @@
 # limitations under the License.
 
 import logging
-from deployd import __version__, IS_PINTEREST, METRIC_PORT_HEALTH, METRIC_CACHE_PATH
+from deployd import __version__, IS_PINTEREST, METRIC_PORT_HEALTH, METRIC_CACHE_PATH, STATSBOARD_URL
 import timeit
 import socket
 import json
 import os
+import requests 
 
 if IS_PINTEREST:
     from pinstatsd.statsd import sc, sc_v2
@@ -106,7 +107,20 @@ def create_sc_gauge(name, value, sample_rate=1.0, tags=None):
     else:
         return
 
+def send_statsboard_metric(name, value, tags=None): 
+    tags['host'] = socket.gethostname()
+    tags_params = [f"{tag}={tags[tag]}" for tag in tags] 
+    tags_str = ",".join(tags_params)
+    url = (
+        f"{STATSBOARD_URL}put/"
+        f"{name}?value={value}"
+        f"&tags={tags_str}"
+    )
 
+    resp = requests.put(url)
+    if resp.status_code == 200:
+        log.info("Successfully send the metric to statsboard")
+    
 class MetricCacheConfigurationError(ValueError):
     """ Raised when MetricCache has missing configuration """
     def __init__(self, name, value):

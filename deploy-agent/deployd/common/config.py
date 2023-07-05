@@ -233,8 +233,14 @@ class Config(object):
     def respect_puppet(self):
         return self.get_intvar("respect_puppet", 0)
 
-    def get_puppet_file_path(self):
+    def get_puppet_state_file_path(self):
         return self.get_var("puppet_file_path", None)
+
+    def get_puppet_summary_file_path(self):
+        return self.get_var("puppet_summary_file_path", "/var/cache/puppet/state/last_run_summary.yaml")
+
+    def get_puppet_exit_code_file_path(self):
+        return self.get_var("puppet_exit_code_file_path", "/var/log/puppet/puppet_exit_code")
 
     def get_daemon_sleep_time(self):
         return self.get_intvar("daemon_sleep_time", 30)

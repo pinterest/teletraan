@@ -21,6 +21,13 @@ py_test(
     python_version = "PY3",
 )
 
+py_test(
+    name = "test_utils",
+    srcs = ['unit/deploy/common/test_utils.py'],
+    deps = ["test_lib"],
+    python_version = "PY3",
+)
+
 py_library(
     name = "test_lib",
     srcs = ["__init__.py"],

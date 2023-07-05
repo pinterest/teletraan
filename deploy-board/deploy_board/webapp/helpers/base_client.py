@@ -24,10 +24,11 @@ log = logging.getLogger(__name__)
 
 
 class BaseClient(object):
-    def __init__(self, url_prefix, version, proxy_http=None, proxy_https=None):
+    def __init__(self, url_prefix, version, proxy_http=None, proxy_https=None, bearer=False):
         self.url_prefix = url_prefix
         self.url_version = version
         self.proxies = dict()
+        self.bearer = bearer
         if proxy_http:
             self.proxies['http'] = proxy_http
         if proxy_https:
@@ -38,8 +39,9 @@ class BaseClient(object):
         def api(path, token=None, params=None, data=None):
             url = '%s/%s%s' % (self.url_prefix, self.url_version, path)
             headers = {'Content-type': 'application/json'}
+
             if token:
-                headers['Authorization'] = 'token %s' % token
+                headers['Authorization'] = 'bearer %s' % token if self.bearer else 'token %s' % token
 
             response = getattr(requests, method)(url, proxies=self.proxies, headers=headers, params=params, json=data,
                                                  timeout=DEFAULT_TIMEOUT, verify=False)
@@ -61,11 +63,11 @@ class BaseClient(object):
                 raise NotAuthorizedException(
                     "Oops! You do not have the required permissions for this action. Contact an environment ADMIN for "
                     "assistance. " + response.content)
-                       
+
             if response.status_code == 400:
                 raise IllegalArgumentException(
                     "Oops! It seems like Teletraan sent an illegal request. " + response.content)
-            
+
             if response.status_code == 404:
                 log.info("Resource %s Not found" % path)
                 return None
