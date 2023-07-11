@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,7 +47,7 @@ public class HotfixStateTransitioner implements Runnable {
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
     // TODO make this configurable
-    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 60;
+    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 180;
 
     public HotfixStateTransitioner(ServiceContext serviceContext) {
         hotfixDAO = serviceContext.getHotfixDAO();
@@ -155,7 +155,7 @@ public class HotfixStateTransitioner implements Runnable {
                         // Jenkins job has returned a failure status
                         if (status.equals("FAILURE")) {
                             hotBean.setState(HotfixState.FAILED);
-                            hotBean.setError_message("Failed to create hotfix, see " + jenkinsUrl + "/" + 
+                            hotBean.setError_message("Failed to create hotfix, see " + jenkinsUrl + "/" +
                                 hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state PUSHING for hotfix id " + hotfixId);
