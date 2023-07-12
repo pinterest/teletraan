@@ -15,25 +15,29 @@
  */
 package com.pinterest.teletraan.worker;
 
-
-import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.bean.HostAgentBean;
-import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.group.HostGroupManager;
-import com.pinterest.deployservice.rodimus.RodimusManager;
-import com.pinterest.deployservice.handler.HostHandler;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.HostAgentBean;
+import com.pinterest.deployservice.bean.HostBean;
+import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.group.HostGroupManager;
+import com.pinterest.deployservice.rodimus.RodimusManager;
 
 /**
  * Housekeeping on stuck and dead agents
  * <p>
  * if an agent has not ping server for certain time, we will cross check with
- * authoritative source to confirm if the host is terminated, and handle the agent
+ * authoritative source to confirm if the host is terminated, and handle the
+ * agent
  * status accordingly
  */
 public class AgentJanitor extends SimpleAgentJanitor {
@@ -43,7 +47,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private long maxLaunchLatencyThreshold;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
-        int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
+            int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
         super(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
         hostGroupDAO = serviceContext.getHostGroupDAO();
         rodimusManager = serviceContext.getRodimusManager();
@@ -62,13 +66,14 @@ public class AgentJanitor extends SimpleAgentJanitor {
     }
 
     private Long getInstanceLaunchGracePeriod(String clusterName) throws Exception {
-        Long launchGracePeriod = (clusterName != null) ? rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName) : null;
+        Long launchGracePeriod = (clusterName != null) ? rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName)
+                : null;
         return launchGracePeriod == null ? maxLaunchLatencyThreshold : launchGracePeriod * 1000;
     }
 
     /**
      * Process stale hosts which have not pinged since
-     *   current_time - minStaleHostThreshold
+     * current_time - minStaleHostThreshold
      * Either mark them as UNREACHABLE, or remove if confirmed with source of truth
      *
      * @throws Exception
@@ -78,7 +83,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         long minThreshold = current_time - minStaleHostThreshold;
         List<HostAgentBean> minStaleHosts = hostAgentDAO.getStaleHosts(minThreshold);
         Set<String> minStaleHostIds = new HashSet<>();
-        for (HostAgentBean hostAgentBean: minStaleHosts) {
+        for (HostAgentBean hostAgentBean : minStaleHosts) {
             minStaleHostIds.add(hostAgentBean.getHost_id());
         }
 
@@ -99,7 +104,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
         HostBean hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
         long current_time = System.currentTimeMillis();
         Long launchGracePeriod = getInstanceLaunchGracePeriod(hostAgentBean.getAuto_scaling_group());
-        if ((hostBean.getState() == HostState.PROVISIONED) && (current_time - hostAgentBean.getLast_update() >= launchGracePeriod)) {
+        if ((hostBean.getState() == HostState.PROVISIONED)
+                && (current_time - hostAgentBean.getLast_update() >= launchGracePeriod)) {
             return true;
         }
         if (hostBean.getState() != HostState.TERMINATING && !hostBean.isPendingTerminate() &&
@@ -111,7 +117,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
     /**
      * Process stale hosts which have not pinged since
-     *   current_time - min(maxStaleHostThreshold, maxLaunchLatencyThreshold)
+     * current_time - min(maxStaleHostThreshold, maxLaunchLatencyThreshold)
      * Removes stale hosts once confirmed with source.
      *
      * @throws Exception
@@ -128,7 +134,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             }
         }
         Collection<String> terminatedHosts = getTerminatedHostsFromSource(staleHostIds);
-        for (String removedId: terminatedHosts) {
+        for (String removedId : terminatedHosts) {
             removeStaleHost(removedId);
         }
     }
