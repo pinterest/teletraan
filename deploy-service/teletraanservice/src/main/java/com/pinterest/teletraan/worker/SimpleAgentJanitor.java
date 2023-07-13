@@ -59,7 +59,7 @@ public class SimpleAgentJanitor implements Runnable {
     }
 
     // remove the stale host from db
-    void removeStaleHost(String id) throws Exception {
+    void removeStaleHost(String id) {
         LOG.info(String.format("Delete records of stale host {}", id));
         try {
             hostHandler.removeHost(id);
@@ -68,7 +68,7 @@ public class SimpleAgentJanitor implements Runnable {
         }
     }
 
-    void markUnreachableHost(String id) throws Exception {
+    void markUnreachableHost(String id) {
         try {
             // mark the agent as unreachable
             AgentBean updateBean = new AgentBean();

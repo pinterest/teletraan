@@ -15,11 +15,12 @@
  */
 package com.pinterest.teletraan.worker;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -29,7 +30,6 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 
 /**
@@ -42,67 +42,83 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
  */
 public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
-    private HostGroupManager hostGroupDAO;
     private final RodimusManager rodimusManager;
     private long maxLaunchLatencyThreshold;
+    private long absoluteThreshold = 2 * 7 * 24 * 3600 * 1000; // 2 weeks
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
             int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
         super(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
-        hostGroupDAO = serviceContext.getHostGroupDAO();
         rodimusManager = serviceContext.getRodimusManager();
         this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
     }
 
-    private Collection<String> getTerminatedHostsFromSource(Collection<String> staleHostIds) throws Exception {
-        Collection<String> terminatedHosts = new ArrayList<>(staleHostIds);
-        for (String hostId : staleHostIds) {
-            Collection<String> resultIds = rodimusManager.getTerminatedHosts(Collections.singletonList(hostId));
-            if (resultIds.isEmpty()) {
-                terminatedHosts.remove(hostId);
+    private Set<String> getTerminatedHostsFromSource(List<String> staleHostIds) {
+        int batchSize = 10;
+        Set<String> terminatedHosts = new HashSet<>();
+        for (int i = 0; i < staleHostIds.size(); i += batchSize) {
+            try {
+                terminatedHosts.addAll(rodimusManager
+                        .getTerminatedHosts(staleHostIds.subList(i, Math.min(i + batchSize, staleHostIds.size()))));
+            } catch (Exception ex) {
+                LOG.error("Failed to get terminated hosts", ex);
             }
         }
         return terminatedHosts;
     }
 
-    private Long getInstanceLaunchGracePeriod(String clusterName) throws Exception {
-        Long launchGracePeriod = (clusterName != null) ? rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName)
-                : null;
+    private Long getInstanceLaunchGracePeriod(String clusterName) {
+        Long launchGracePeriod = null;
+        if (clusterName != null) {
+            try {
+                launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
+            } catch (Exception ex) {
+                LOG.error("failed to get launch grace period for cluster {}, exception: {}", clusterName, ex);
+            }
+        }
         return launchGracePeriod == null ? maxLaunchLatencyThreshold : launchGracePeriod * 1000;
     }
 
     /**
      * Process stale hosts which have not pinged since
      * current_time - minStaleHostThreshold
-     * Either mark them as UNREACHABLE, or remove if confirmed with source of truth
+     * They will be candidates for stale hosts which will be removed in future
+     * executions.
+     * Either mark them as UNREACHABLE, or remove if confirmed with source of truth.
      *
      * @throws Exception
      */
-    private void processLowWatermarkHosts() throws Exception {
+    private void determineStaleHostCandidates() throws Exception {
         long current_time = System.currentTimeMillis();
         long minThreshold = current_time - minStaleHostThreshold;
-        List<HostAgentBean> minStaleHosts = hostAgentDAO.getStaleHosts(minThreshold);
-        Set<String> minStaleHostIds = new HashSet<>();
-        for (HostAgentBean hostAgentBean : minStaleHosts) {
-            minStaleHostIds.add(hostAgentBean.getHost_id());
-        }
+        List<HostAgentBean> potentialUnreachableHosts = hostAgentDAO.getStaleHosts(minThreshold);
+        ArrayList<String> potentialUnreachableHostIds = new ArrayList<>();
+        potentialUnreachableHosts.stream().map(hostAgent -> potentialUnreachableHostIds.add(hostAgent.getHost_id()));
 
-        Collection<String> terminatedHosts = getTerminatedHostsFromSource(minStaleHostIds);
-        for (String staleId : minStaleHostIds) {
-            if (terminatedHosts.contains(staleId)) {
-                removeStaleHost(staleId);
+        Set<String> terminatedHosts = getTerminatedHostsFromSource(potentialUnreachableHostIds);
+        for (String unreachableId : potentialUnreachableHostIds) {
+            if (terminatedHosts.contains(unreachableId)) {
+                removeStaleHost(unreachableId);
             } else {
-                markUnreachableHost(staleId);
+                markUnreachableHost(unreachableId);
             }
         }
     }
 
-    private boolean isHostStale(HostAgentBean hostAgentBean) throws Exception {
+    private boolean isHostStale(HostAgentBean hostAgentBean) {
         if (hostAgentBean == null || hostAgentBean.getLast_update() == null) {
             return false;
         }
-        HostBean hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
+
         long current_time = System.currentTimeMillis();
+        HostBean hostBean;
+        try {
+            hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
+        } catch (Exception ex) {
+            LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
+            return false;
+        }
+
         Long launchGracePeriod = getInstanceLaunchGracePeriod(hostAgentBean.getAuto_scaling_group());
         if ((hostBean.getState() == HostState.PROVISIONED)
                 && (current_time - hostAgentBean.getLast_update() >= launchGracePeriod)) {
@@ -112,36 +128,56 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 (current_time - hostAgentBean.getLast_update() >= maxStaleHostThreshold)) {
             return true;
         }
+
+        if (current_time - hostAgentBean.getLast_update() >= absoluteThreshold) {
+            return true;
+        }
         return false;
     }
 
     /**
      * Process stale hosts which have not pinged since
-     * current_time - min(maxStaleHostThreshold, maxLaunchLatencyThreshold)
-     * Removes stale hosts once confirmed with source.
+     * current_time - maxStaleHostThreshold
+     * They are confirmed stale hosts, should be removed from Teletraan
      *
      * @throws Exception
      */
-    private void processHighWatermarkHosts() throws Exception {
+    private void processStaleHosts() throws Exception {
         long current_time = System.currentTimeMillis();
-        long maxThreshold = current_time - Math.min(maxStaleHostThreshold, maxLaunchLatencyThreshold);
-        List<HostAgentBean> maxStaleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
-        Set<String> staleHostIds = new HashSet<>();
+        long maxThreshold = current_time - maxStaleHostThreshold;
+        List<HostAgentBean> potentialStaleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
+        Map<String, HostAgentBean> potentialStaleHostMap = new HashMap<>();
+        potentialStaleHosts.stream().map(hostAgent -> potentialStaleHostMap.put(hostAgent.getHost_id(), hostAgent));
 
-        for (HostAgentBean hostAgentBean : maxStaleHosts) {
-            if (isHostStale(hostAgentBean)) {
-                staleHostIds.add(hostAgentBean.getHost_id());
+        Set<String> terminatedHosts = getTerminatedHostsFromSource(new ArrayList<>(potentialStaleHostMap.keySet()));
+        for (String staleId : potentialStaleHostMap.keySet()) {
+            if (terminatedHosts.contains(staleId)) {
+                removeStaleHost(staleId);
+            } else {
+                HostAgentBean hostAgent = potentialStaleHostMap.get(staleId);
+                if (isHostStale(hostAgent)) {
+                    LOG.warn("Agent ({}) is stale (not Pinning Teletraan), but the host is not terminated.", hostAgent);
+                }
             }
-        }
-        Collection<String> terminatedHosts = getTerminatedHostsFromSource(staleHostIds);
-        for (String removedId : terminatedHosts) {
-            removeStaleHost(removedId);
         }
     }
 
     @Override
     void processAllHosts() throws Exception {
-        processLowWatermarkHosts();
-        processHighWatermarkHosts();
+        processStaleHosts();
+        determineStaleHostCandidates();
+        cleanUpAgentlessHosts();
+    }
+
+    private void cleanUpAgentlessHosts() {
+        try {
+            List<String> agentlessHosts = hostDAO.getAgentlessHostIds(100);
+            Set<String> terminatedHosts = getTerminatedHostsFromSource(agentlessHosts);
+            for (String terminatedId : terminatedHosts) {
+                removeStaleHost(terminatedId);
+            }
+        } catch (SQLException ex) {
+
+        }
     }
 }
