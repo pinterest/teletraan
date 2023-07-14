@@ -43,7 +43,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
     private final RodimusManager rodimusManager;
     private long maxLaunchLatencyThreshold;
-    private long absoluteThreshold = 24 * 3600 * 1000; // 1 day
+    private long absoluteThreshold = 7 * 24 * 3600 * 1000; // 7 days
     private int agentlessHostBatchSize = 300;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
@@ -85,6 +85,10 @@ public class AgentJanitor extends SimpleAgentJanitor {
         }
 
         long current_time = System.currentTimeMillis();
+        if (current_time - hostAgentBean.getLast_update() >= absoluteThreshold) {
+            return true;
+        }
+
         HostBean hostBean;
         try {
             hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
@@ -100,10 +104,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
         }
         if (hostBean.getState() != HostState.TERMINATING && !hostBean.isPendingTerminate() &&
                 (current_time - hostAgentBean.getLast_update() >= maxStaleHostThreshold)) {
-            return true;
-        }
-
-        if (current_time - hostAgentBean.getLast_update() >= absoluteThreshold) {
             return true;
         }
         return false;
@@ -185,7 +185,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
      */
     private void cleanUpAgentlessHosts() {
         long current_time = System.currentTimeMillis();
-        long noUpdateSince = current_time - absoluteThreshold;
+        long noUpdateSince = current_time - maxLaunchLatencyThreshold;
         List<String> agentlessHosts;
         try {
             agentlessHosts = hostDAO.getStaleAgentlessHostIds(noUpdateSince, agentlessHostBatchSize);
