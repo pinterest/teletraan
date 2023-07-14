@@ -43,7 +43,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
     private final RodimusManager rodimusManager;
     private long maxLaunchLatencyThreshold;
-    private long absoluteThreshold = 2 * 7 * 24 * 3600 * 1000; // 2 weeks
+    private long absoluteThreshold = 24 * 3600 * 1000; // 1 day
     private int agentlessHostBatchSize = 300;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
@@ -184,9 +184,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
      * Hosts may stuck in this state so we should clean up here.
      */
     private void cleanUpAgentlessHosts() {
+        long current_time = System.currentTimeMillis();
+        long noUpdateSince = current_time - absoluteThreshold;
         List<String> agentlessHosts;
         try {
-            agentlessHosts = hostDAO.getAgentlessHostIds(agentlessHostBatchSize);
+            agentlessHosts = hostDAO.getStaleAgentlessHostIds(noUpdateSince, agentlessHostBatchSize);
         } catch (SQLException ex) {
             LOG.error("failed to get agentless hosts", ex);
             return;

@@ -52,7 +52,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_HOST_BY_HOSTID = "SELECT * FROM hosts WHERE host_id=?";
     private static final String GET_HOSTS_BY_STATES = "SELECT * FROM hosts WHERE state in (?, ?, ?) GROUP BY host_id ORDER BY last_update";
     private static final String GET_GROUP_NAMES_BY_HOST = "SELECT group_name FROM hosts WHERE host_name=?";
-    private static final String GET_AGENTLESS_HOST_IDS = "SELECT DISTINCT hosts.host_id FROM hosts LEFT JOIN hosts_and_agents ON hosts.host_id = hosts_and_agents.host_id WHERE hosts_and_agents.host_id IS NULL ORDER BY hosts.last_update LIMIT ?";
+    private static final String GET_STALE_AGENTLESS_HOST_IDS = "SELECT DISTINCT hosts.host_id FROM hosts LEFT JOIN hosts_and_agents ON hosts.host_id = hosts_and_agents.host_id WHERE last_update < ? AND hosts_and_agents.host_id IS NULL ORDER BY hosts.last_update DESC LIMIT ?";
     private static final String GET_HOST_NAMES_BY_GROUP = "SELECT host_name FROM hosts WHERE group_name=?";
     private static final String GET_HOST_IDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE group_name=?";
     private static final String GET_HOSTS_BY_ENVID = "SELECT h.* FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=? UNION DISTINCT SELECT hs.* FROM hosts hs INNER JOIN hosts_and_envs he ON he.host_name = hs.host_name WHERE he.env_id=?";
@@ -195,9 +195,9 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public List<String> getAgentlessHostIds(int limit) throws SQLException {
+    public List<String> getStaleAgentlessHostIds(long noUpdateSince, int limit) throws SQLException {
         ResultSetHandler<List<String>> h = new BeanListHandler<>(String.class);
-        return new QueryRunner(dataSource).query(GET_AGENTLESS_HOST_IDS, h, limit);
+        return new QueryRunner(dataSource).query(GET_STALE_AGENTLESS_HOST_IDS, h, noUpdateSince, limit);
     }
 
     @Override
