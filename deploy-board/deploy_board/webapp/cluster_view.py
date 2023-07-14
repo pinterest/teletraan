@@ -24,7 +24,7 @@ if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST, \
-        ENABLE_AMI_AUTO_UPDATE
+        ENABLE_AMI_AUTO_UPDATE, DEFAULT_STATEFUL_STATUS, STATEFUL_STATUS_OPTIONS
 
 import json
 import logging
@@ -71,7 +71,9 @@ class EnvCapacityBasicCreateView(View):
             'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'access_role_list': ACCESS_ROLE_LIST,
-            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+            'stateful_status': DEFAULT_STATEFUL_STATUS,
+            'stateful_options': STATEFUL_STATUS_OPTIONS
         }
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
@@ -164,7 +166,9 @@ class EnvCapacityAdvCreateView(View):
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
-            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+            'stateful_status': DEFAULT_STATEFUL_STATUS,
+            'stateful_options': STATEFUL_STATUS_OPTIONS
         }
         # cluster manager
         return render(request, 'configs/new_capacity_adv.html', {
@@ -260,7 +264,8 @@ class ClusterConfigurationView(View):
             'readonlyFields': TELETRAAN_CLUSTER_READONLY_FIELDS,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'currentCluster': current_cluster,
-            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+            'stateful_options': STATEFUL_STATUS_OPTIONS
         }
 
         return render(request, 'clusters/cluster_configuration.html', {

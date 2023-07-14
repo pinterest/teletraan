@@ -369,3 +369,11 @@ if IS_PINTEREST:
 
     #Auto AMI Update
     ENABLE_AMI_AUTO_UPDATE = 1
+
+    # Stateful Status
+    DEFAULT_STATEFUL_STATUS = None
+    STATEFUL_STATUS_OPTIONS = {
+        "Unknown": None,
+        "Stateful": True,
+        "Stateless": False
+    }
