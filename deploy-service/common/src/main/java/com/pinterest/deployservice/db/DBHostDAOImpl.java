@@ -196,8 +196,8 @@ public class DBHostDAOImpl implements HostDAO {
 
     @Override
     public List<String> getStaleAgentlessHostIds(long noUpdateSince, int limit) throws SQLException {
-        ResultSetHandler<List<String>> h = new BeanListHandler<>(String.class);
-        return new QueryRunner(dataSource).query(GET_STALE_AGENTLESS_HOST_IDS, h, noUpdateSince, limit);
+        return new QueryRunner(dataSource).query(GET_STALE_AGENTLESS_HOST_IDS,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), noUpdateSince, limit);
     }
 
     @Override
