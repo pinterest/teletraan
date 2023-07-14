@@ -169,7 +169,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             } else {
                 HostAgentBean hostAgent = staleHostMap.get(staleId);
                 if (isHostStale(hostAgent)) {
-                    LOG.warn("Agent ({}) is stale (not Pinning Teletraan), but the host termination state is unknown.",
+                    LOG.warn("Agent ({}) is stale (not Pinning Teletraan), but might be running.",
                             hostAgent);
                 }
             }
@@ -199,7 +199,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             if (terminatedHosts.contains(hostId)) {
                 removeStaleHost(hostId);
             } else {
-                LOG.warn("Agentless host {} termination state is unknown", hostId);
+                LOG.warn("Agentless host {} is stale but might be running", hostId);
             }
         }
     }
