@@ -48,7 +48,11 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
                 PrintWriter pw = new PrintWriter(sw);
                 t.printStackTrace(pw);
                 sb.append("\n").append(sw.toString());
-                return Response.serverError().entity(sb.toString()).build();
+                if (t.getMessage().contains("HTTP 4")) {
+                    return Response.status(Response.Status.BAD_REQUEST).entity(sb.toString()).build();
+                } else {
+                    return Response.serverError().entity(sb.toString()).build();
+                }
             }
         } else if (t instanceof ConstraintViolationException) {
             StringBuilder sb = new StringBuilder();
