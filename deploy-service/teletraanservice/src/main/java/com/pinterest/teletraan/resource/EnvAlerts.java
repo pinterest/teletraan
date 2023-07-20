@@ -62,7 +62,7 @@ import javax.ws.rs.core.UriInfo;
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/alerts")
 @Api("ExternalAlerts")
 @Produces(MediaType.APPLICATION_JSON)
-@Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+@Consumes(MediaType.APPLICATION_JSON)
 public class EnvAlerts {
 
   private static final Logger LOG = LoggerFactory.getLogger(EnvWebHooks.class);
