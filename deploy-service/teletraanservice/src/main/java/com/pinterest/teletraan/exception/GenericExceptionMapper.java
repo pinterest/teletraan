@@ -48,7 +48,9 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
                 PrintWriter pw = new PrintWriter(sw);
                 t.printStackTrace(pw);
                 sb.append("\n").append(sw.toString());
-                if (t.getMessage().contains("HTTP 4")) {
+                final Response response = ((WebApplicationException) t).getResponse();
+                Response.Status.Family family = response.getStatusInfo().getFamily();
+                if (family.equals(Response.Status.Family.CLIENT_ERROR)) {
                     return Response.status(Response.Status.BAD_REQUEST).entity(sb.toString()).build();
                 } else {
                     return Response.serverError().entity(sb.toString()).build();
