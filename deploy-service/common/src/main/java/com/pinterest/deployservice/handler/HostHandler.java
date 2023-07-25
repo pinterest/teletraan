@@ -25,14 +25,35 @@ public class HostHandler {
     }
 
     public void removeHost(String hostId) {
+        boolean hasException = false;
         try {
             hostDAO.deleteAllById(hostId);
-            agentDAO.deleteAllById(hostId);
-            hostTagDAO.deleteByHostId(hostId);
-            hostAgentDAO.delete(hostId);
-            LOG.info("Removed all records for the host {}", hostId);
         } catch (Exception e) {
-            LOG.error("Failed to remove all records for the host {}, exception: {}", hostId, e);
+            hasException = true;
+            LOG.error("Failed to remote host record " + hostId, e);
+        }
+        try {
+            agentDAO.deleteAllById(hostId);
+        } catch (Exception e) {
+            hasException = true;
+            LOG.error("Failed to remote host record " + hostId, e);
+        }
+        try {
+            hostTagDAO.deleteByHostId(hostId);
+        } catch (Exception e) {
+            hasException = true;
+            LOG.error("Failed to remote host record " + hostId, e);
+        }
+        try {
+            hostAgentDAO.delete(hostId);
+        } catch (Exception e) {
+            hasException = true;
+            LOG.error("Failed to remote host record " + hostId, e);
+        }
+
+        if (!hasException) {
+            LOG.info("Removed all records for host {}", hostId);
         }
     }
+
 }

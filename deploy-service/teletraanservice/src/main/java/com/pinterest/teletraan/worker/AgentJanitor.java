@@ -33,11 +33,14 @@ import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 
 /**
- * Housekeeping on stuck and dead agents
- * <p>
- * if an agent has not ping server for certain time, we will cross check with
+ * Housekeeping on stuck and dead agents and hosts
+ *
+ * If an agent has not ping server for certain time, we will cross check with
  * authoritative source to confirm if the host is terminated, and handle the
- * agent status accordingly
+ * agent status accordingly.
+ *
+ * If a host doesn't have any agent for a while, we will handle the host
+ * accordingly.
  */
 public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
@@ -115,8 +118,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
      * They will be candidates for stale hosts which will be removed in future
      * executions.
      * Either mark them as UNREACHABLE, or remove if confirmed with source of truth.
-     *
-     * @throws Exception
      */
     private void determineStaleHostCandidates() {
         long current_time = System.currentTimeMillis();
@@ -125,7 +126,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         try {
             unreachableHosts = hostAgentDAO.getStaleHosts(minThreshold);
         } catch (Exception ex) {
-            LOG.error("failed to get potential unreachable hosts", ex);
+            LOG.error("failed to get unreachable hosts", ex);
             return;
         }
         ArrayList<String> unreachableHostIds = new ArrayList<>();
@@ -145,8 +146,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
      * Process stale hosts which have not pinged since
      * current_time - maxStaleHostThreshold
      * They are confirmed stale hosts, should be removed from Teletraan
-     *
-     * @throws Exception
      */
     private void processStaleHosts() {
         long current_time = System.currentTimeMillis();
@@ -155,7 +154,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         try {
             staleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
         } catch (Exception ex) {
-            LOG.error("failed to get potential stale hosts", ex);
+            LOG.error("failed to get stale hosts", ex);
             return;
         }
 
