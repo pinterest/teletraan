@@ -60,7 +60,7 @@ public class SimpleAgentJanitor implements Runnable {
 
     // remove the stale host from db
     void removeStaleHost(String id) {
-        LOG.info(String.format("Delete records of stale host {}", id));
+        LOG.info("Delete records of stale host {}", id);
         hostHandler.removeHost(id);
     }
 
