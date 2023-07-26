@@ -91,7 +91,7 @@ public class ConfigHelper {
     private static final int DEFAULT_PERIOD = 30;
     private static final int DEFAULT_MAX_STALE_HOST_THRESHOLD = 600; // 10 mins
     private static final int DEFAULT_MIN_STALE_HOST_THRESHOLD = 150;
-    private static final int DEFAULT_LAUNCH_LATENCY_THRESHOLD = 2 * 3600; // 2 hours
+    private static final int DEFAULT_LAUNCH_LATENCY_THRESHOLD = 600;
     private static final String DEFAULT_DEPLOY_JANITOR_SCHEDULE = "0 30 3 * * ?";
     private static final String DEFAULT_BUILD_JANITOR_SCHEDULE = "0 40 3 * * ?";
     private static final int DEFAULT_MAX_DAYS_TO_KEEP = 180;
