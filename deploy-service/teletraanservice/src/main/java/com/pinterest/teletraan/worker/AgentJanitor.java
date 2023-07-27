@@ -46,9 +46,10 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
     private final RodimusManager rodimusManager;
-    private long maxLaunchLatencyThreshold;
-    private long absoluteThreshold = TimeUnit.DAYS.toMillis(7);
-    private int agentlessHostBatchSize = 300;
+    private final long maxLaunchLatencyThreshold;
+    private final long absoluteThreshold = TimeUnit.DAYS.toMillis(7);
+    private final int agentlessHostBatchSize = 300;
+    private long janitorStartTime;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThresholdSeconds,
             int maxStaleHostThresholdSeconds, int maxLaunchLatencyThresholdSeconds) {
@@ -88,8 +89,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             return false;
         }
 
-        long current_time = System.currentTimeMillis();
-        if (current_time - hostAgentBean.getLast_update() >= absoluteThreshold) {
+        if (janitorStartTime - hostAgentBean.getLast_update() >= absoluteThreshold) {
             return true;
         }
 
@@ -103,11 +103,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
         Long launchGracePeriod = getInstanceLaunchGracePeriod(hostAgentBean.getAuto_scaling_group());
         if ((hostBean.getState() == HostState.PROVISIONED)
-                && (current_time - hostAgentBean.getLast_update() >= launchGracePeriod)) {
+                && (janitorStartTime - hostAgentBean.getLast_update() >= launchGracePeriod)) {
             return true;
         }
         if (hostBean.getState() != HostState.TERMINATING && !hostBean.isPendingTerminate() &&
-                (current_time - hostAgentBean.getLast_update() >= maxStaleHostThreshold)) {
+                (janitorStartTime - hostAgentBean.getLast_update() >= maxStaleHostThreshold)) {
             return true;
         }
         return false;
@@ -115,17 +115,17 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
     /**
      * Process stale hosts which have not pinged since
-     * current_time - minStaleHostThreshold
+     * janitorStartTime - minStaleHostThreshold
      * They will be candidates for stale hosts which will be removed in future
      * executions.
      * Either mark them as UNREACHABLE, or remove if confirmed with source of truth.
      */
     private void determineStaleHostCandidates() {
-        long current_time = System.currentTimeMillis();
-        long minThreshold = current_time - minStaleHostThreshold;
+        long minThreshold = janitorStartTime - minStaleHostThreshold;
+        long maxThreshold = janitorStartTime - maxLaunchLatencyThreshold;
         List<HostAgentBean> unreachableHosts;
         try {
-            unreachableHosts = hostAgentDAO.getStaleHosts(minThreshold);
+            unreachableHosts = hostAgentDAO.getStaleHosts(maxThreshold, minThreshold);
         } catch (Exception ex) {
             LOG.error("failed to get unreachable hosts", ex);
             return;
@@ -145,12 +145,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
     /**
      * Process stale hosts which have not pinged since
-     * current_time - maxStaleHostThreshold
+     * janitorStartTime - maxStaleHostThreshold
      * They are confirmed stale hosts, should be removed from Teletraan
      */
     private void processStaleHosts() {
-        long current_time = System.currentTimeMillis();
-        long maxThreshold = current_time - maxStaleHostThreshold;
+        long maxThreshold = janitorStartTime - maxStaleHostThreshold;
         List<HostAgentBean> staleHosts;
         try {
             staleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
@@ -184,8 +183,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
      * here. We wait 10x maxLaunchLatencyThreshold before doing cleanup.
      */
     private void cleanUpAgentlessHosts() {
-        long current_time = System.currentTimeMillis();
-        long noUpdateSince = current_time - 10 * maxLaunchLatencyThreshold;
+        long noUpdateSince = janitorStartTime - 10 * maxLaunchLatencyThreshold;
         List<String> agentlessHosts;
         try {
             agentlessHosts = hostDAO.getStaleAgentlessHostIds(noUpdateSince, agentlessHostBatchSize);
@@ -206,6 +204,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
     @Override
     void processAllHosts() {
+        janitorStartTime = System.currentTimeMillis();
         processStaleHosts();
         determineStaleHostCandidates();
         cleanUpAgentlessHosts();

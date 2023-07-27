@@ -195,9 +195,9 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public List<String> getStaleAgentlessHostIds(long noUpdateSince, int limit) throws SQLException {
+    public List<String> getStaleAgentlessHostIds(long lastUpdateBefore, int limit) throws SQLException {
         return new QueryRunner(dataSource).query(GET_STALE_AGENTLESS_HOST_IDS,
-                SingleResultSetHandlerFactory.<String>newListObjectHandler(), noUpdateSince, limit);
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), lastUpdateBefore, limit);
     }
 
     @Override

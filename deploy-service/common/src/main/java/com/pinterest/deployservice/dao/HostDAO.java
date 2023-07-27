@@ -56,7 +56,7 @@ public interface HostDAO {
 
     List<HostBean> getTerminatingHosts() throws Exception;
 
-    List<String> getStaleAgentlessHostIds(long noUpdateSince, int limit) throws SQLException;
+    List<String> getStaleAgentlessHostIds(long lastUpdateBefore, int limit) throws SQLException;
 
     Collection<HostBean> getHostsByEnvId(String envId) throws Exception;
 
