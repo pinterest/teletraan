@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,14 +47,14 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private static final Logger LOG = LoggerFactory.getLogger(AgentJanitor.class);
     private final RodimusManager rodimusManager;
     private long maxLaunchLatencyThreshold;
-    private long absoluteThreshold = 7 * 24 * 3600 * 1000; // 7 days
+    private long absoluteThreshold = TimeUnit.DAYS.toMillis(7);
     private int agentlessHostBatchSize = 300;
 
-    public AgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
-            int maxStaleHostThreshold, int maxLaunchLatencyThreshold) {
-        super(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
+    public AgentJanitor(ServiceContext serviceContext, int minStaleHostThresholdSeconds,
+            int maxStaleHostThresholdSeconds, int maxLaunchLatencyThresholdSeconds) {
+        super(serviceContext, minStaleHostThresholdSeconds, maxStaleHostThresholdSeconds);
         rodimusManager = serviceContext.getRodimusManager();
-        this.maxLaunchLatencyThreshold = maxLaunchLatencyThreshold * 1000;
+        maxLaunchLatencyThreshold = TimeUnit.SECONDS.toMillis(maxLaunchLatencyThresholdSeconds);
     }
 
     private Set<String> getTerminatedHostsFromSource(List<String> staleHostIds) {
@@ -79,7 +80,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 LOG.error("failed to get launch grace period for cluster {}, exception: {}", clusterName, ex);
             }
         }
-        return launchGracePeriod == null ? maxLaunchLatencyThreshold : launchGracePeriod * 1000;
+        return launchGracePeriod == null ? maxLaunchLatencyThreshold : TimeUnit.SECONDS.toMillis(launchGracePeriod);
     }
 
     private boolean isHostStale(HostAgentBean hostAgentBean) {
@@ -179,12 +180,12 @@ public class AgentJanitor extends SimpleAgentJanitor {
      * Clean up hosts without any agents
      *
      * If a host is directly added to Teletraan, there will be no agent associated
-     * with it immediately.
-     * Hosts may stuck in this state so we should clean up here.
+     * with it immediately. Hosts may stuck in this state so we should clean up
+     * here. We wait 10x maxLaunchLatencyThreshold before doing cleanup.
      */
     private void cleanUpAgentlessHosts() {
         long current_time = System.currentTimeMillis();
-        long noUpdateSince = current_time - maxLaunchLatencyThreshold;
+        long noUpdateSince = current_time - 10 * maxLaunchLatencyThreshold;
         List<String> agentlessHosts;
         try {
             agentlessHosts = hostDAO.getStaleAgentlessHostIds(noUpdateSince, agentlessHostBatchSize);
