@@ -168,7 +168,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             } else {
                 HostAgentBean hostAgent = staleHostMap.get(staleId);
                 if (isHostStale(hostAgent)) {
-                    LOG.warn("Agent ({}) is stale (not Pinning Teletraan), but might be running.",
+                    LOG.warn("Agent ({}) is stale (not Pinging Teletraan), but might be running.",
                             hostAgent);
                 }
             }

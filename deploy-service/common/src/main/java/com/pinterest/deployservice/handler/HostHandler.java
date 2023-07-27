@@ -27,12 +27,6 @@ public class HostHandler {
     public void removeHost(String hostId) {
         boolean hasException = false;
         try {
-            hostDAO.deleteAllById(hostId);
-        } catch (Exception e) {
-            hasException = true;
-            LOG.error("Failed to remove host record from host - " + hostId, e);
-        }
-        try {
             agentDAO.deleteAllById(hostId);
         } catch (Exception e) {
             hasException = true;
@@ -49,6 +43,12 @@ public class HostHandler {
         } catch (Exception e) {
             hasException = true;
             LOG.error("Failed to remove host record from hostAgent - " + hostId, e);
+        }
+        try {
+            hostDAO.deleteAllById(hostId);
+        } catch (Exception e) {
+            hasException = true;
+            LOG.error("Failed to remove host record from host - " + hostId, e);
         }
 
         if (!hasException) {
