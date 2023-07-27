@@ -89,9 +89,9 @@ import java.util.concurrent.TimeUnit;
 public class ConfigHelper {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigHelper.class);
     private static final int DEFAULT_PERIOD = 30;
-    private static final int DEFAULT_MAX_STALE_HOST_THRESHOLD = 600; // 10 mins
-    private static final int DEFAULT_MIN_STALE_HOST_THRESHOLD = 150;
-    private static final int DEFAULT_LAUNCH_LATENCY_THRESHOLD = 600;
+    private static final int DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS = 600; // 10 min
+    private static final int DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS = 150; // 2.5 min
+    private static final int DEFAULT_LAUNCH_LATENCY_THRESHOLD_SECONDS = 600;
     private static final String DEFAULT_DEPLOY_JANITOR_SCHEDULE = "0 30 3 * * ?";
     private static final String DEFAULT_BUILD_JANITOR_SCHEDULE = "0 40 3 * * ?";
     private static final int DEFAULT_MAX_DAYS_TO_KEEP = 180;
@@ -255,8 +255,10 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(SimpleAgentJanitor.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold", DEFAULT_MIN_STALE_HOST_THRESHOLD);
-                int maxStaleHostThreshold = MapUtils.getIntValue(properties, "maxStaleHostThreshold", DEFAULT_MAX_STALE_HOST_THRESHOLD);
+                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold",
+                        DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS);
+                int maxStaleHostThreshold = MapUtils.getIntValue(properties,
+                        "maxStaleHostThreshold", DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS);
                 Runnable worker = new SimpleAgentJanitor(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled SimpleAgentJanitor.");
@@ -264,9 +266,12 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(AgentJanitor.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold", DEFAULT_MIN_STALE_HOST_THRESHOLD);
-                int maxStaleHostThreshold = MapUtils.getIntValue(properties, "maxStaleHostThreshold", DEFAULT_MAX_STALE_HOST_THRESHOLD);
-                int maxLaunchLatencyThreshold = MapUtils.getIntValue(properties, "maxLaunchLaencyThreshold", DEFAULT_LAUNCH_LATENCY_THRESHOLD);
+                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold",
+                        DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS);
+                int maxStaleHostThreshold = MapUtils.getIntValue(properties, "maxStaleHostThreshold",
+                        DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS);
+                int maxLaunchLatencyThreshold = MapUtils.getIntValue(properties, "maxLaunchLatencyThreshold",
+                        DEFAULT_LAUNCH_LATENCY_THRESHOLD_SECONDS);
                 Runnable worker = new AgentJanitor(serviceContext, minStaleHostThreshold, maxStaleHostThreshold, maxLaunchLatencyThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled AgentJanitor.");
