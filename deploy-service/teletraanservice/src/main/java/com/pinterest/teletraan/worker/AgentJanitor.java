@@ -122,7 +122,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
      */
     private void determineStaleHostCandidates() {
         long minThreshold = janitorStartTime - minStaleHostThreshold;
-        long maxThreshold = janitorStartTime - maxLaunchLatencyThreshold;
+        long maxThreshold = janitorStartTime - maxStaleHostThreshold;
         List<HostAgentBean> unreachableHosts;
         try {
             unreachableHosts = hostAgentDAO.getStaleHosts(maxThreshold, minThreshold);
@@ -132,6 +132,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         }
         ArrayList<String> unreachableHostIds = new ArrayList<>();
         unreachableHosts.stream().map(hostAgent -> unreachableHostIds.add(hostAgent.getHost_id()));
+        LOG.debug("unreachable host ids {}", unreachableHostIds);
 
         Set<String> terminatedHosts = getTerminatedHostsFromSource(unreachableHostIds);
         for (String unreachableId : unreachableHostIds) {
@@ -160,6 +161,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
         Map<String, HostAgentBean> staleHostMap = new HashMap<>();
         staleHosts.stream().map(hostAgent -> staleHostMap.put(hostAgent.getHost_id(), hostAgent));
+        LOG.debug("stale host ids {}", staleHostMap.keySet());
 
         Set<String> terminatedHosts = getTerminatedHostsFromSource(new ArrayList<>(staleHostMap.keySet()));
         for (String staleId : staleHostMap.keySet()) {
@@ -170,6 +172,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 if (isHostStale(hostAgent)) {
                     LOG.warn("Agent ({}) is stale (not Pinging Teletraan), but might be running.",
                             hostAgent);
+                } else {
+                    LOG.debug("host {} is not stale", staleId);
                 }
             }
         }
