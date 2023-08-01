@@ -101,12 +101,15 @@ _STATE_TO_ICONS = {
 }
 
 _REPLACE_STATUS_TO_ICONS = {
-    "UNKNOWN": "fa fa-spinner fa-spin",
-    "FAILED": "fa fa-circle fa-blink color-red",
-    "SUCCEEDING": "fa fa-circle color-green",
-    "SUCCEEDED": "fa fa-check-circle color-green",
-    "ABORT": "fa fa-minus-circle",
-    "TIMEOUT": "fa fa-minus-circle",
+    "Pending": "fa fa-spinner fa-spin",
+    "Failed": "fa fa-circle color-red",
+    "InProgress": "fa fa-refresh color-green",
+    "Successful": "fa fa-check-circle color-green",
+    "Cancelled": "fa fa-minus-circle",
+    "Cancelling": "fa fa-refresh color-green",
+    "RollbackInProgress": "fa fa-refresh color-green",
+    "RollbackSuccessful": "fa fa-check-circle color-green",
+    "RollbackFailed": "fa fa-circle color-red",
 }
 
 _REPLACE_STATUS_TO_TIPS = {
@@ -117,7 +120,6 @@ _REPLACE_STATUS_TO_TIPS = {
     "ABORT": "Replacement was canceled",
     "TIMEOUT": "Replacement was timed-out due to no activity within a certain time (default 30 mins)",
 }
-
 
 _JENKINS_TO_ICONS = {
     "RUNNING": "fa fa-spinner fa-spin",
