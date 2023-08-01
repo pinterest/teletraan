@@ -19,7 +19,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from django.views.generic import View
 
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import IS_PINTEREST, RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
@@ -980,7 +980,8 @@ def gen_cluster_replacement_view(request, name, stage):
         "env_stage": stage,
         "cluster_name": cluster_name,
         "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
-        "csrf_token": get_token(request)
+        "csrf_token": get_token(request),
+        "cluster_replacement_wiki_url": RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
     })
     return HttpResponse(content)
 

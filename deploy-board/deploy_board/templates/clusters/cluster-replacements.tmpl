@@ -57,24 +57,24 @@
         </h4>
     </div>
     <div id="clusterReplacementConfigId" class="collapse in panel-body">
-        <a href="https://w.pinadmin.com/x/eIE-G" target="_blank"> What do these configurations mean? Hover on the configuration to see tips or click on me to read more in details.</a>
+        <a href="{{ cluster_replacement_wiki_url }}" target="_blank"> Hover on the configuration to see tips or click on me to read more in details.</a>
         <div class="container-fluid">
             <form id="clusterReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env_name }}/{{ env_stage }}/start_replacement/">
                 <div>
                     <label for="minHealthyPercentage" data-toggle="tooltip"
                         title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
-                        Minimum healthy percentage:
+                        <span class="fa fa-check"></span> Minimum healthy percentage:
                     </label>
                     <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value="90">
 
                     <label for="checkpointPercentages" data-toggle="tooltip"
                         title="Replacement will pause when replacement progress reaches the defined checkpoint percentages before continuing. E.g with 25, 100, the replacement will pause when completion reaches 25% and 100%. Note that the replacement will stop at the last checkpoint. If the last checkpoint is not 100, then it will be a partial replacement.">
-                        Checkpoint percentages:
+                        <span class="fa fa-bell"></span> Checkpoint percentages:
                     </label>
                     <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" placeholder="e.g. 25, 50, 100">
                     
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
-                        Checkpoint delay:
+                        <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
                     <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" max="3600" value="3600">
                 </div>
@@ -177,7 +177,7 @@
                         <th>ID</th>
                         <th>Start</th>
                         <th>Finish</th>
-                        <th>Completion Percentage</th>
+                        <th>Completion</th>
                         <th>Remaining</th>
                         <th>Status</th>
                         <th>Reason</th>
