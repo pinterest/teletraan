@@ -1,0 +1,124 @@
+<div id="clusterPanelId" v-if="hasCluster" class="panel panel-default">
+    <panel-heading title="Cluster Replacement" target="#clusterConfigId" initcollapse="false"></panel-heading>
+    <div id="clusterConfigId" class="collapse in panel-body">
+        <div class="container-fluid">
+            <form id="clusterConfigFormId" class="form-horizontal" role="form">
+                <fieldset id="clusterConfigFieldSetId">
+                    <label-info title="Cluster State" name="Cluster State" v-bind:text="clusterstate" v-bind:styleclass="clusterStateStyle"></label-info>
+                    <label-info title="Cell" name="Cell" v-bind:text="cell"></label-info>
+                    <static-capacity-config v-if="!autoscalingEnabled"
+                        :original-capacity="originalCapacity" @change="desiredCapacity = $event"
+                        :remaining-capacity="remainingCapacity" :placements="placements" 
+                        :termination-limit="terminationLimit" :groupName="groupName">
+                    </static-capacity-config>
+                    <asg-capacity-config v-if="autoscalingEnabled" :current-size="originalCapacity"
+                        :original-min-size="asg_launch_info.minSize" @min-change="minsize = $event"
+                        :original-max-size="asg_launch_info.maxSize" @max-change="maxsize = $event"
+                        :remaining-capacity="remainingCapacity" :placements="placements">
+                    </asg-capacity-config>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button type="button" id="saveClusterConfigBtnId" class="btn btn-primary" v-bind:disabled="!canSaveCapacity"
+                    data-toggle="modal"
+                    :data-target="`#${confirmDialogId}`"
+                    title="Save cluster capacity configuration">
+                <span class="glyphicon glyphicon-floppy-save"></span>
+                Save
+            </button>
+        </div>
+    </div>
+    <modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">
+        <div slot="body"> Are you sure you want to <strong>change capacity</strong> for this cluster?</div>
+    </modal>
+</div>
+
+<script>
+    var cluster = info.basic_cluster_info;
+    const terminationLimit = info.termination_limit;
+    const groupName = info.cluster_name;
+    if (cluster!=null){
+        var asg_launch_info = cluster.asg_info.launchInfo;
+        //Decide if we show one capacity box or min/max size
+        var autoscalingEnabled = asg_launch_info.asgStatus ==="ENABLED" && asg_launch_info.minSize<asg_launch_info.maxSize;
+        if (asg_launch_info != null && !autoscalingEnabled){
+            //ASG size is the source of truth. If it has been set outside cluster, we should use the value of asg launchInfo
+            if (cluster.capacity!= asg_launch_info.minSize){
+                cluster.capacity = asg_launch_info.minSize
+            }
+        }
+
+        var clusterVue = new Vue({
+            el:"#clusterPanelId",
+            data:{
+                hasCluster: !getUrlParameter("addexisting"),
+                cell: cluster.cellName,
+                clusterstate: cluster.state,
+                clusterStateStyle: cluster.state === "NORMAL" ? "text-success" : "text-danger",
+                confirmDialogTitle:"Change Cluster Capacity Confirmation",
+                confirmDialogId:"confirmClusterCapacityDialog",
+                desiredCapacity: cluster.capacity,
+                instancetype: cluster.hostType,
+                minsize: asg_launch_info.minSize,
+                maxsize: asg_launch_info.maxSize,
+                autoscalingEnabled:autoscalingEnabled,
+                canSaveCapacity: cluster.state === "NORMAL",
+                remainingCapacity: info.placements != null ?  info.placements.reduce((s, e) => s + e.capacity, 0) : Infinity,
+                placements: info.placements,
+                originalCapacity: cluster.capacity,
+                terminationLimit: terminationLimit,
+                groupName: groupName,
+            },
+            methods:{
+                clickDialog: function(value){
+                    if (value){
+                        this.save();
+                    }
+                },
+                save:function(){
+                    if (!this.autoscalingEnabled){
+                        //Set min and max size directly to group. Right now, cluster itself has no autoscaling info
+                        this.minsize = this.desiredCapacity
+                        this.maxsize = this.desiredCapacity
+                    }
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/capacity/',
+                        data: JSON.stringify({minsize:this.minsize, maxsize:this.maxsize}),
+                        dataType: "json",
+                        beforeSend: function(xhr, settings) {
+                            var csrftoken = getCookie('csrftoken')
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+
+                        },
+                        success: function (data) {
+                            globalNotificationBanner.info = "Capacity updated successfully";
+                            //Reload page
+                            window.location.href=window.location.href
+                        },
+                        error: function (data) {
+                            var optionalInstruction = '';
+                            if (window.info.is_pinterest && data.responseText.includes('capacity')) {
+                                optionalInstruction = 'If you encounter a capacity issue, please follow this guide: http://pinch/teletraan_subnets';
+                            }
+                            globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText, optionalInstruction].join(' ');
+                        }
+                    });
+                }
+            }
+          }
+        )
+    }
+    else{
+        new Vue({
+            el:"#clusterPanelId",
+            data:{
+                hasCluster: false
+            }
+        })
+    }
+</script>

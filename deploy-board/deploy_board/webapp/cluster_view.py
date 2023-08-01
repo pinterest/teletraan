@@ -966,6 +966,76 @@ def enable_cluster_replacement(request, name, stage):
     clusters_helper.enable_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
+def gen_cluster_replacement_view(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+    get_cluster_replacement_body = {
+        "clusterName" : cluster_name
+    }
+    replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
+
+    content = render_to_string("clusters/cluster-replacements.tmpl", {
+        "env": env,
+        "env_name": name,
+        "env_stage": stage,
+        "cluster_name": cluster_name,
+        "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
+        "csrf_token": get_token(request)
+    })
+    return HttpResponse(content)
+
+def start_cluster_replacement(request, name, stage):
+    params = request.POST
+    cluster_name = common.get_cluster_name(request, name, stage)
+    skipMatching = False
+    scaleInProtectedInstances = 'Ignore'
+    
+    checkpointPercentages = []
+    if (params['checkpointPercentages']):
+        checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
+
+    if "skipMatching" in params:
+        skipMatching = True
+
+    if "replaceProtectedInstances" in params:
+        scaleInProtectedInstances = 'Refresh'
+
+    rollingUpdateConfig = {}
+    rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+    rollingUpdateConfig["skipMatching"] = skipMatching
+    rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
+    rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
+    rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
+    
+    start_cluster_replacement = {}
+    start_cluster_replacement["clusterName"] = cluster_name
+    start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
+
+    log.info("Starting to replace cluster {0}".format(cluster_name))
+
+    try:
+        clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
+    except TeletraanException as ex:
+        if '409' in str(ex):
+            pass
+        else:
+            raise ex
+
+    return redirect('/env/{}/{}/cluster-replacements'.format(name, stage))
+
+def perform_cluster_replacement_action(request, name, stage, action):
+    cluster_name = common.get_cluster_name(request, name, stage)
+    log.info("Starting to {0} cluster replacement for cluster {1}".format(action, cluster_name))
+
+    try:
+        clusters_helper.perform_cluster_replacement_action(request, cluster_name, action)
+    except TeletraanException as ex:
+        if '409' in str(ex):
+            pass
+        else:
+            raise ex
+
+    return redirect('/env/{}/{}/cluster-replacements'.format(name, stage))
 
 def pause_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -1165,7 +1235,6 @@ class ClusterHistoriesView(View):
             "replace_summaries": replace_summaries
         }
         return render(request, 'clusters/replace_histories.html', data)
-
 
 class ClusterBaseImageHistoryView(View):
 

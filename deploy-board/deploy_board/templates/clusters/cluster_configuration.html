@@ -48,6 +48,11 @@
             href="/env/{{ env.envName }}/{{ env.stageName }}/base_images">
         </side-button>
     </div>
+    <div v-if="!noCluster" class="row">
+        <side-button styleclass="glyphicon glyphicon-refresh" text="Cluster Replacement" title="Cluster Replacement"
+            href="/env/{{ env.envName }}/{{ env.stageName }}/cluster-replacements">
+        </side-button>
+    </div>
     <replace-cluster v-bind:clusterstate="clusterState" v-on:input="clusterAction"></replace-cluster>
 </div>
 {% endblock %} {% block new-builds-panel %} {% endblock %} {% block new-pred-deploys-panel %} {% endblock %} {% block main %}

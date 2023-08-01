@@ -1,0 +1,197 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li class="active">Cluster Replacement</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Action</h4>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/pause/"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-pause"></span> Pause
+        </a>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/resume/"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-refresh"></span> Resume
+        </a>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/cancel/"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-remove"></span> Cancel
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+<!-- class="glyphicon glyphicon-question-sign" -->
+<a href="https://w.pinadmin.com/x/eIE-G">Configuration help?</a>
+
+<div id="clusterReplacementPanelId"class="panel panel-default">
+    <panel-heading title="Cluster Replacement" target="#clusterConfigId" initcollapse="false"></panel-heading>
+    <div id="clusterConfigId" class="collapse in panel-body">
+        <div class="container-fluid">
+            <form id="clusterReplacementFormId" title="Replacement Configuration" class="form-horizontal" role="form" method="post" action="/env/{{ env_name }}/{{ env_stage }}/start_replacement/">
+                <label for="minHealthyPercentage">Minimum healthy percentage (put 100% to replace 1 instance at a time):</label>
+                <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value="90">
+                
+                <label class="switch">
+                    Skip matching
+                    <input type="checkbox" id="skipMatching" name="skipMatching" checked>
+                    <div class="slider round"></div>
+                </label>
+
+                <label class="switch">
+                    Replace protected instances
+                    <input type="checkbox" id="replaceProtectedInstances" name="replaceProtectedInstances">
+                    <div class="slider round"></div>
+                </label>
+
+                <label for="checkpointPercentages">Checkpoint percentages:</label>
+                <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" placeholder="e.g. 25, 50, 100">
+                
+                <label for="checkpointDelay">Checkpoint delay:</label>
+                <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" max="3600" value="0">
+
+                <div class="pull-right">
+                    <button type="submit" id="startReplacementBtnId" class="btn btn-primary btn-block"
+                            data-toggle="modal"
+                            title="Start cluster replacement">
+                            <span class="glyphicon glyphicon-play"></span> Start
+                    </button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function isValidPercentage(percentage) {
+        return percentage > 0 && percentage <= 100;
+    }
+
+    function validateCheckpointPercentages() {
+        const checkpointPercentagesElement = document.getElementById("checkpointPercentages");
+        const checkpointPercentagesRaw = checkpointPercentagesElement.value;
+
+        if (checkpointPercentagesRaw.trim().length === 0 ) {
+            checkpointPercentagesElement.setCustomValidity('');
+            return;
+        }
+
+        console.log (checkpointPercentagesRaw)
+        const constraint = new RegExp("^(\\s)*[0-9]{1,3}((\\s)*,(\\s)*[0-9]{1,3}(\\s)*)*$");
+        
+        // console.log (constraint.test(checkpointPercentagesRaw))
+
+        if (!constraint.test(checkpointPercentagesRaw)) {
+            checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be numbers from 1 to 100 and separated by ,');
+            return;
+        }
+        else {
+            checkpointPercentagesElement.setCustomValidity('');
+        }
+        
+        const checkpointPercentages = checkpointPercentagesElement.value.split(',').reduce( (acc, p) => acc.concat(+p), []);
+        console.log (checkpointPercentages)
+
+        for (let i = 0; i < checkpointPercentages.length - 1; i++) {
+            if (!isValidPercentage(checkpointPercentages[i])) {
+                checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
+                return;
+            }
+
+            if (checkpointPercentages[i] >= checkpointPercentages[i + 1]) {
+                console.log (checkpointPercentages[i])
+                console.log (checkpointPercentages[i + 1])
+                checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be a strictly increasing sequence');
+                return;
+            }
+        }
+
+        if (checkpointPercentages.length > 0) {
+            if (!isValidPercentage(checkpointPercentages[checkpointPercentages.length - 1])) {
+                checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
+                return;
+            }
+        }
+
+        checkpointPercentagesElement.setCustomValidity('');
+    }
+
+    const startReplacementBtnElement = document.getElementById("startReplacementBtnId");
+    startReplacementBtnElement.addEventListener("click", validateCheckpointPercentages);
+    
+</script>
+
+<div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Replacement History</h4>
+    </div>
+    <div id="replaceHistoryId" class="collapse in panel-body">
+        <div class="container-fluid">
+            <table id="deployHistoryTableId" class="table table-condensed table-striped table-hover">
+                    <tr>
+                        <th>ID</th>
+                        <th>Start</th>
+                        <th>Finish</th>
+                        <th>Completion Percentage</th>
+                        <th>Remaining</th>
+                        <th>Status</th>
+                        <th>Reason</th>
+                        <th>Config</th>
+                    </tr>
+                    {% for replace_summary in replace_summaries %}
+                    <tr>
+                        <td>
+                            {{ replace_summary.id }}
+                        </td>
+                        <td>
+                            {{ replace_summary.startTime|convertTimestamp }}
+                        </td>
+                        <td>
+                            {{ replace_summary.endTime|convertTimestamp }}
+                        </td>
+                        <td>
+                            {{ replace_summary.percentageComplete }} %
+                        </td>
+                        <td>
+                            {{ replace_summary.instancesToUpdate }}
+                        </td>
+                        <td>
+                            {{ replace_summary.status }}
+                        </td>
+                        <td>
+                            {{ replace_summary.statusReason }}
+                        </td>
+                        <td>
+                            <a href="https://w.pinadmin.com/x/eIE-G">Configuration Details</a>
+                        </td>
+                    </tr>
+                    {% endfor%}
+                </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
