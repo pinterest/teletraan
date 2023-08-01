@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -135,7 +134,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         }
         List<String> unreachableHostIds = unreachableHosts.stream().map(HostAgentBean::getHost_id)
                 .collect(Collectors.toList());
-        LOG.debug("unreachable host ids {}", unreachableHostIds);
+        LOG.debug("fetched {} unreachable hosts", unreachableHostIds.size());
 
         Set<String> terminatedHosts = getTerminatedHostsFromSource(unreachableHostIds);
         for (String unreachableId : unreachableHostIds) {
@@ -165,7 +164,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
         Map<String, HostAgentBean> staleHostMap = new HashMap<>();
         staleHosts.stream().forEach(hostAgent -> staleHostMap.put(hostAgent.getHost_id(), hostAgent));
-        LOG.debug("stale host ids {}", staleHostMap.keySet());
+        LOG.debug("fetched {} unreachable hosts", staleHostMap.values().size());
 
         Set<String> terminatedHosts = getTerminatedHostsFromSource(new ArrayList<>(staleHostMap.keySet()));
         for (String staleId : staleHostMap.keySet()) {
