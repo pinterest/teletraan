@@ -125,6 +125,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         long maxThreshold = janitorStartTime - maxStaleHostThreshold;
         List<HostAgentBean> unreachableHosts;
         try {
+            LOG.debug("getting host between {}", maxThreshold, minThreshold);
             unreachableHosts = hostAgentDAO.getStaleHosts(maxThreshold, minThreshold);
         } catch (Exception ex) {
             LOG.error("failed to get unreachable hosts", ex);
@@ -153,6 +154,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         long maxThreshold = janitorStartTime - maxStaleHostThreshold;
         List<HostAgentBean> staleHosts;
         try {
+            LOG.debug("getting host before {}", maxThreshold);
             staleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
         } catch (Exception ex) {
             LOG.error("failed to get stale hosts", ex);
