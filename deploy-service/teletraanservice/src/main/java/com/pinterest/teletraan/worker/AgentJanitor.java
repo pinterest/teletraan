@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,14 +127,14 @@ public class AgentJanitor extends SimpleAgentJanitor {
         long maxThreshold = janitorStartTime - maxStaleHostThreshold;
         List<HostAgentBean> unreachableHosts;
         try {
-            LOG.debug("getting host between {}", maxThreshold, minThreshold);
+            LOG.debug("getting hosts between {}, {}", maxThreshold, minThreshold);
             unreachableHosts = hostAgentDAO.getStaleHosts(maxThreshold, minThreshold);
         } catch (Exception ex) {
             LOG.error("failed to get unreachable hosts", ex);
             return;
         }
-        ArrayList<String> unreachableHostIds = new ArrayList<>();
-        unreachableHosts.stream().map(hostAgent -> unreachableHostIds.add(hostAgent.getHost_id()));
+        List<String> unreachableHostIds = unreachableHosts.stream().map(HostAgentBean::getHost_id)
+                .collect(Collectors.toList());
         LOG.debug("unreachable host ids {}", unreachableHostIds);
 
         Set<String> terminatedHosts = getTerminatedHostsFromSource(unreachableHostIds);
@@ -154,7 +156,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         long maxThreshold = janitorStartTime - maxStaleHostThreshold;
         List<HostAgentBean> staleHosts;
         try {
-            LOG.debug("getting host before {}", maxThreshold);
+            LOG.debug("getting hosts before {}", maxThreshold);
             staleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
         } catch (Exception ex) {
             LOG.error("failed to get stale hosts", ex);
@@ -162,7 +164,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         }
 
         Map<String, HostAgentBean> staleHostMap = new HashMap<>();
-        staleHosts.stream().map(hostAgent -> staleHostMap.put(hostAgent.getHost_id(), hostAgent));
+        staleHosts.stream().forEach(hostAgent -> staleHostMap.put(hostAgent.getHost_id(), hostAgent));
         LOG.debug("stale host ids {}", staleHostMap.keySet());
 
         Set<String> terminatedHosts = getTerminatedHostsFromSource(new ArrayList<>(staleHostMap.keySet()));
