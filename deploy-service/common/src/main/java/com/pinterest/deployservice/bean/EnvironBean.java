@@ -144,6 +144,9 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("watchRecipients")
     private String watch_recipients;
 
+    @JsonProperty("mentionRecipients")
+    private String mention_recipients;
+
     @JsonProperty("metricsConfigId")
     private String metrics_config_id;
 
@@ -418,6 +421,14 @@ public class EnvironBean implements Updatable, Serializable {
 
     public void setWatch_recipients(String watch_recipients) {
         this.watch_recipients = watch_recipients;
+    }
+
+    public String getMention_recipients() {
+        return mention_recipients;
+    }
+
+    public void setMention_recipients(String mention_recipients) {
+        this.mention_recipients = mention_recipients;
     }
 
     public String getMetrics_config_id() {

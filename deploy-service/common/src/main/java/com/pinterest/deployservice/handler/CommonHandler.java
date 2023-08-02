@@ -91,7 +91,7 @@ public class CommonHandler {
             }
 
             sendWatcherMessage(operator, envBean.getWatch_recipients(), message, color);
-            sendChatMessage(operator, envBean.getChatroom(), message, color);
+            sendChatMessage(operator, envBean.getChatroom(), message, color, envBean.getMention_recipients());
 
             if (state == DeployState.FAILING) {
                 String recipients = envBean.getEmail_recipients();
@@ -196,7 +196,7 @@ public class CommonHandler {
         }
     }
 
-    public void sendChatMessage(String from, String rooms, String message, String color) {
+    public void sendChatMessage(String from, String rooms, String message, String color, String recipients) {
         if (StringUtils.isEmpty(rooms)) {
             return;
         }
@@ -204,6 +204,12 @@ public class CommonHandler {
 
         for (String chatroom : chatrooms) {
             try {
+                if (!StringUtils.isEmpty(recipients)) {
+                    List<String> targets = Arrays.asList(recipients.split(","));
+                    for (String target : targets) {
+                        message = "<@" + target + "> " + message;
+                    }
+                }
                 chatManager.send(from, chatroom.trim(), message, color);
             } catch (Exception e) {
                 LOG.error(String.format("Failed to send message '%s' to chatroom %s", message, chatroom), e);

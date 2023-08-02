@@ -91,6 +91,31 @@
                                type="text" value="{{ env.chatroom |default_if_none:'' }}"
                                maxlength="128"/>
                     </div>
+
+                    <label for=mentionRecipients" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Ping slack user or slack user group in the chat rooms (slack channels), such as user1,userGroup2">
+                        Ping User or User Group
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name=mention_recipients" required="false"
+                               type="text" value="{{ env.mentionRecipients |default_if_none:'' }}"/>
+                    </div>                    
+                </div>
+                <div class="form-group">
+                    <label for="chatRecipients" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Chat user handles to send deploy notifies to, such as user1,user2">
+                        Chat Recipients
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="watch_recipients" required="false"
+                               type="text" value="{{ env.watchRecipients |default_if_none:'' }}"/>
+                    </div>
+                </div>
+                <div>
                     <label for="notify" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Whether or not to notify commiters when deploy">
@@ -103,18 +128,6 @@
                     {% else %}
                         <input class="" id="notify_author" name="notify_author" type="checkbox" value="">
                     {% endif %}
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="chatRecipients" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="Chat user handles to send deploy notifies to, such as user1,user2">
-                        Chat Recipients
-                    </label>
-
-                    <div class="col-xs-4">
-                        <input class="form-control" name="watch_recipients" required="false"
-                               type="text" value="{{ env.watchRecipients |default_if_none:'' }}"/>
                     </div>
 
                     <label for="emailRecipients" class="deployToolTip control-label col-xs-2"
