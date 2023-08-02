@@ -601,6 +601,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("email_recipients", email_recipients);
         clause.addColumn("notify_authors", notify_authors);
         clause.addColumn("watch_recipients", watch_recipients);
+        clause.addColumn("mention_recipients", mention_recipients);
         clause.addColumn("metrics_config_id", metrics_config_id);
         clause.addColumn("alarm_config_id", alarm_config_id);
         clause.addColumn("webhooks_config_id", webhooks_config_id);
