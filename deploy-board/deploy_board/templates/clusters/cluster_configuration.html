@@ -50,7 +50,7 @@
     </div>
     <div v-if="!noCluster" class="row">
         <side-button styleclass="glyphicon glyphicon-refresh" text="Cluster Replacement" title="Cluster Replacement"
-            href="/env/{{ env.envName }}/{{ env.stageName }}/cluster-replacements">
+            href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements">
         </side-button>
     </div>
     <replace-cluster v-bind:clusterstate="clusterState" v-on:input="clusterAction"></replace-cluster>

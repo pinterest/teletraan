@@ -985,6 +985,26 @@ def gen_cluster_replacement_view(request, name, stage):
     })
     return HttpResponse(content)
 
+def get_cluster_replacement_details(request, name, stage, replacement_id):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+    get_cluster_replacement_details_body = {
+        "clusterName": cluster_name,
+        "replacementIds": [replacement_id] 
+    }
+    replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_details_body)
+
+    content = render_to_string("clusters/cluster-replacement-details.tmpl", {
+        "env": env,
+        "env_name": name,
+        "env_stage": stage,
+        "cluster_name": cluster_name,
+        "replace_summary": replace_summaries["clusterRollingUpdateStatuses"][0],
+        "csrf_token": get_token(request),
+        "cluster_replacement_wiki_url": RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
+    })
+    return HttpResponse(content)
+
 def start_cluster_replacement(request, name, stage):
     params = request.POST
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -1023,7 +1043,7 @@ def start_cluster_replacement(request, name, stage):
         else:
             raise ex
 
-    return redirect('/env/{}/{}/cluster-replacements'.format(name, stage))
+    return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
 
 def perform_cluster_replacement_action(request, name, stage, action):
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -1037,7 +1057,7 @@ def perform_cluster_replacement_action(request, name, stage, action):
         else:
             raise ex
 
-    return redirect('/env/{}/{}/cluster-replacements'.format(name, stage))
+    return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
 
 def pause_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)

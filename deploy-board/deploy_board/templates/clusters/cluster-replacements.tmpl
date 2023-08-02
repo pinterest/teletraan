@@ -164,7 +164,7 @@
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Replacement Status</h4>
         <div class="pull-right">
-            <a href="/env/{{ env_name }}/{{ env_stage }}/cluster-replacements/"
+            <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/"
                 type="button">
                 <span class="fa fa-refresh"></span> Refresh Status
             </a>
@@ -181,12 +181,11 @@
                         <th>Remaining</th>
                         <th>Status</th>
                         <th>Reason</th>
-                        <th>Config</th>
                     </tr>
                     {% for replace_summary in replace_summaries %}
                     <tr>
                         <td>
-                            {{ replace_summary.id }}
+                            <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ replace_summary.id }}/details/" target="_blank">{{ replace_summary.id }}</a>
                         </td>
                         <td>
                             {{ replace_summary.startTime|convertTimestamp }}
@@ -209,9 +208,6 @@
                             {% if replace_summary.statusReason %}
                                 {{ replace_summary.statusReason }}
                             {% endif %}
-                        </td>
-                        <td>
-                            <a href="https://w.pinadmin.com/x/eIE-G">Configuration Details</a>
                         </td>
                     </tr>
                     {% endfor%}
