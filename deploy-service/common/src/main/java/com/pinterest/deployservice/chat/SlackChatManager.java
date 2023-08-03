@@ -24,6 +24,8 @@ import com.slack.api.methods.response.users.UsersLookupByEmailResponse;
 import com.slack.api.methods.SlackApiException;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class SlackChatManager implements ChatManager {
     private static final Logger LOG = LoggerFactory.getLogger(SlackChatManager.class);
