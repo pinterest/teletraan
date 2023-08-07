@@ -144,8 +144,8 @@ public class EnvironBean implements Updatable, Serializable {
     @JsonProperty("watchRecipients")
     private String watch_recipients;
 
-    @JsonProperty("mentionRecipients")
-    private String mention_recipients;
+    @JsonProperty("groupMentionRecipients")
+    private String group_mention_recipients;
 
     @JsonProperty("metricsConfigId")
     private String metrics_config_id;
@@ -423,12 +423,12 @@ public class EnvironBean implements Updatable, Serializable {
         this.watch_recipients = watch_recipients;
     }
 
-    public String getMention_recipients() {
-        return mention_recipients;
+    public String getGroup_mention_recipients() {
+        return group_mention_recipients;
     }
 
-    public void setMention_recipients(String mention_recipients) {
-        this.mention_recipients = mention_recipients;
+    public void setGroup_mention_recipients(String group_mention_recipients) {
+        this.group_mention_recipients = group_mention_recipients;
     }
 
     public String getMetrics_config_id() {
@@ -601,7 +601,7 @@ public class EnvironBean implements Updatable, Serializable {
         clause.addColumn("email_recipients", email_recipients);
         clause.addColumn("notify_authors", notify_authors);
         clause.addColumn("watch_recipients", watch_recipients);
-        clause.addColumn("mention_recipients", mention_recipients);
+        clause.addColumn("group_mention_recipients", group_mention_recipients);
         clause.addColumn("metrics_config_id", metrics_config_id);
         clause.addColumn("alarm_config_id", alarm_config_id);
         clause.addColumn("webhooks_config_id", webhooks_config_id);

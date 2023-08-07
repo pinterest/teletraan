@@ -91,7 +91,7 @@ public class CommonHandler {
             }
 
             sendWatcherMessage(operator, envBean.getWatch_recipients(), message, color);
-            sendChatMessage(operator, envBean.getChatroom(), message, color, envBean.getMention_recipients());
+            sendChatMessage(operator, envBean.getChatroom(), message, color, envBean.getGroup_mention_recipients());
 
             if (state == DeployState.FAILING) {
                 String recipients = envBean.getEmail_recipients();
@@ -207,7 +207,7 @@ public class CommonHandler {
                 if (!StringUtils.isEmpty(recipients)) {
                     List<String> targets = Arrays.asList(recipients.split(","));
                     for (String target : targets) {
-                        message = "<@" + target + "> " + message;
+                        message = "<!subteam^" + target + "> " + message;
                     }
                 }
                 chatManager.send(from, chatroom.trim(), message, color);

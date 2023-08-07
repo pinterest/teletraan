@@ -164,10 +164,10 @@ public class DeployHandler implements DeployHandlerInterface{
                     buildBean.getScm_commit_7(),
                     WebLink);
 
-                commonHandler.sendChatMessage(operator, envBean.getChatroom(), message, "yellow", envBean.getMention_recipients());
+                commonHandler.sendChatMessage(operator, envBean.getChatroom(), message, "yellow", envBean.getGroup_mention_recipients());
                 if (StringUtils.isNotEmpty(additionalMessage)) {
                     LOG.debug(String.format("Sending additional message: %s to chat", additionalMessage));
-                    commonHandler.sendChatMessage(operator, envBean.getChatroom(), additionalMessage, "yellow", envBean.getMention_recipients());
+                    commonHandler.sendChatMessage(operator, envBean.getChatroom(), additionalMessage, "yellow", envBean.getGroup_mention_recipients());
                 }
             } catch (Exception e) {
                 LOG.error("Failed to send start notification!", e);

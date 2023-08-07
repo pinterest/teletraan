@@ -230,13 +230,13 @@ public class HotfixStateTransitioner implements Runnable {
             // Send chat message
             List<EnvironBean> environBeans = environDAO.getByName(hotBean.getEnv_name());
             Set<String> chatroomSet = new HashSet<String>();
-            Set<String> mentionRecipientSet = new HashSet<String>();
+            Set<String> groupMentionRecipientSet = new HashSet<String>();
             for (EnvironBean environBean : environBeans) {
                 chatroomSet.add(environBean.getChatroom());
-                mentionRecipientSet.add(environBean.getMention_recipients());
+                groupMentionRecipientSet.add(environBean.getGroup_mention_recipients());
             }
             String chatrooms = StringUtils.join(chatroomSet, ",");
-            String mentionRecipients = StringUtils.join(mentionRecipientSet, ",");
+            String groupMentionRecipients = StringUtils.join(groupMentionRecipientSet, ",");
             DeployBean deployBean = deployDAO.getById(hotBean.getBase_deploy());
             BuildBean buildBean = buildDAO.getById(deployBean.getBuild_id());
             String commit = buildBean.getScm_commit();
@@ -244,7 +244,7 @@ public class HotfixStateTransitioner implements Runnable {
             String branch = "hotfix_" + name;
             String message = name + " just created a hotfix in " + branch + " branch, and including commit(s) " +
                 hotBean.getCommits() + " on top of commit " + commit;
-            commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow", mentionRecipients);
+            commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow", groupMentionRecipients);
 
             LOG.info("Hotfix Id {} is finished and now in the SUCCEEDED state.", hotfixId);
         } else {
