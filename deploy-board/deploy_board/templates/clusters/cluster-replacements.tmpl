@@ -1,0 +1,231 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li class="active">Cluster Replacement</li>
+</ul>
+{% endblock %}
+
+{% block side-panel-actions %}
+<div class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Actions</h4>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/pause/"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-pause"></span> Pause
+        </a>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/resume/"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-refresh"></span> Resume
+        </a>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/cancel/"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-remove"></span> Cancel
+        </a>
+    </div>
+    <div class="row">
+        <a href="/groups/{{ env_name }}-{{ env_stage }}/scaling_activities/" target="_blank"
+            type="button" class="btn btn-default btn-block">
+            <span"></span> Show Replacement Activities
+        </a>
+    </div>
+</div>
+
+<div>
+    <h4>Tips</h4>
+    <ul>
+        <li>Make sure your current service deployment (if you have one) can be deployed successfully. Any agent/service deployment failure will result in a failed replacement health check.</li>
+        <li>If you need graceful termination of your service (your Teletraan deployment has a STOP script), then you need to enable termination lifecycle hook in Autoscaling settings.</li>
+        <li>If you disable autoscaling, you need to enable it for replacement to work.</li>
+        <li>Only one replacement task can be in-progress. You must wait for an in-progress one to finish (or be canceled) before you can start a new one.</li>
+        <li>If the goal is to replace instances to match the latest cluster configuration, you should skip replacing (checked by default) matching instances to avoid unnecessary work.</li>
+        <li>If replacement fails, see "Reason" for details. After addressing the root cause, you can replace your cluster again, and only the remaining instances will be replaced (assume Skip Matching is checked).</li>
+    </ul> 
+</div>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+<!-- class="glyphicon glyphicon-question-sign" -->
+<div id="clusterReplacementPanelId"class="panel panel-default">
+    <panel-heading title="Cluster Replacement" target="#clusterReplacementConfigId" initcollapse="false"></panel-heading>
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Replacement Configuration
+        </h4>
+    </div>
+    <div id="clusterReplacementConfigId" class="collapse in panel-body">
+        <a href="{{ cluster_replacement_wiki_url }}" target="_blank"> Hover on each configuration to see usage info or click on me to read more in details.</a>
+        <div class="container-fluid">
+            <form id="clusterReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/start_replacement/">
+                <div>
+                    <label for="minHealthyPercentage" data-toggle="tooltip"
+                        title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
+                        <span class="fa fa-check"></span> Minimum healthy percentage:
+                    </label>
+                    <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value="90">
+
+                    <label for="checkpointPercentages" data-toggle="tooltip"
+                        title="Replacement will pause when replacement progress reaches the defined checkpoint percentages before continuing. E.g with 25, 100, the replacement will pause when completion reaches 25% and 100%. Note that the replacement will stop at the last checkpoint. If the last checkpoint is not 100, then it will be a partial replacement.">
+                        <span class="fa fa-bell"></span> Checkpoint percentages:
+                    </label>
+                    <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" placeholder="e.g. 25, 50, 100">
+                    
+                    <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
+                        <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
+                    </label>
+                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" max="3600" value="3600">
+                </div>
+                
+                <div>
+                    <label class="switch" data-toggle="tooltip" title="Whether to skip replacing instances that are already running with latest launch configurations." >
+                        Skip matching
+                        <input type="checkbox" id="skipMatching" name="skipMatching" checked>
+                        <div class="slider round"></div>
+                    </label>
+                </div>
+                
+                <div>
+                    <label class="switch" data-toggle="tooltip" title="Whether to replace instances that are protected from autoscaling.">
+                        Replace protected instances
+                        <input type="checkbox" id="replaceProtectedInstances" name="replaceProtectedInstances">
+                        <div class="slider round"></div>
+                    </label>
+                </div>
+                
+                <div class="pull-right">
+                    <button type="submit" id="startReplacementBtnId" class="btn"
+                            data-toggle="modal"
+                            title="Start cluster replacement">
+                            <span class="glyphicon glyphicon-play"></span> Start
+                    </button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function isValidPercentage(percentage) {
+        return percentage > 0 && percentage <= 100;
+    }
+
+    function validateCheckpointPercentages() {
+        const checkpointPercentagesElement = document.getElementById("checkpointPercentages");
+        const checkpointPercentagesRaw = checkpointPercentagesElement.value;
+
+        if (checkpointPercentagesRaw.trim().length === 0 ) {
+            checkpointPercentagesElement.setCustomValidity('');
+            return;
+        }
+
+        const constraint = new RegExp("^(\\s)*[0-9]{1,3}((\\s)*,(\\s)*[0-9]{1,3}(\\s)*)*$");
+
+        if (!constraint.test(checkpointPercentagesRaw)) {
+            checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be numbers from 1 to 100 and separated by ,');
+            return;
+        }
+        else {
+            checkpointPercentagesElement.setCustomValidity('');
+        }
+        
+        const checkpointPercentages = checkpointPercentagesElement.value.split(',').reduce( (acc, p) => acc.concat(+p), []);
+
+        for (let i = 0; i < checkpointPercentages.length - 1; i++) {
+            if (!isValidPercentage(checkpointPercentages[i])) {
+                checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
+                return;
+            }
+
+            if (checkpointPercentages[i] >= checkpointPercentages[i + 1]) {
+                checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be a strictly increasing sequence');
+                return;
+            }
+        }
+
+        if (checkpointPercentages.length > 0) {
+            if (!isValidPercentage(checkpointPercentages[checkpointPercentages.length - 1])) {
+                checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
+                return;
+            }
+        }
+
+        checkpointPercentagesElement.setCustomValidity('');
+    }
+
+    const startReplacementBtnElement = document.getElementById("startReplacementBtnId");
+    startReplacementBtnElement.addEventListener("click", validateCheckpointPercentages);
+</script>
+
+<div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Replacement Status</h4>
+        <div class="pull-right">
+            <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/"
+                type="button">
+                <span class="fa fa-refresh"></span> Refresh Status
+            </a>
+        </div>
+    </div>
+    <div id="replaceHistoryId" class="collapse in panel-body">
+        <div class="container-fluid" style="height:500px;overflow:auto;">
+            <table id="deployHistoryTableId" class="table table-condensed table-striped table-hover">
+                    <tr>
+                        <th>ID</th>
+                        <th>Start</th>
+                        <th>Finish</th>
+                        <th>Completion</th>
+                        <th>Remaining</th>
+                        <th>Status</th>
+                        <th>Reason</th>
+                    </tr>
+                    {% for replace_summary in replace_summaries %}
+                    <tr>
+                        <td>
+                            <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ replace_summary.id }}/details/" target="_blank">{{ replace_summary.id }}</a>
+                        </td>
+                        <td>
+                            {{ replace_summary.startTime|convertTimestamp }}
+                        </td>
+                        <td>
+                            {{ replace_summary.endTime|convertTimestamp }}
+                        </td>
+                        <td>
+                            {{ replace_summary.percentageComplete }} %
+                        </td>
+                        <td>
+                            {{ replace_summary.instancesToUpdate }}
+                        </td>
+                        <td>
+                            <span class="replaceToolTip pointer-cursor {{ replace_summary.status|replaceStatusIcon }}">
+                            </span>
+                            <small>{{ replace_summary.status }}</small>
+                        </td>
+                        <td>
+                            {% if replace_summary.statusReason %}
+                                {{ replace_summary.statusReason }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor%}
+                </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
