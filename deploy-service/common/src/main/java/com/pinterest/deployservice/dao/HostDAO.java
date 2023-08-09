@@ -34,7 +34,7 @@ public interface HostDAO {
 
     void insert(HostBean hostBean) throws Exception;
 
-    void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception;
+    void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames, String accountId) throws Exception;
 
     void updateHostById(String hostId, HostBean hostBean) throws Exception;
 

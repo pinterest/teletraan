@@ -143,7 +143,7 @@ public class PingHandler {
     }
 
     // Keep host and group membership in sync
-    void updateHosts(String hostName, String hostIp, String hostId, Set<String> groups) throws Exception {
+    void updateHosts(String hostName, String hostIp, String hostId, Set<String> groups, String accountId) throws Exception {
         Set<String> recordedGroups = new HashSet<String>(hostDAO.getGroupNamesByHost(hostName));
 
         Set<String> groupsToAdd = new HashSet<String>();
@@ -155,7 +155,7 @@ public class PingHandler {
             }
         }
         if (groupsToAdd.size() > 0) {
-            hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups);
+            hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups, accountId);
         }
         
         // Remove if not reported
@@ -595,13 +595,14 @@ public class PingHandler {
         String hostName = pingRequest.getHostName();
         String asg = pingRequest.getAutoscalingGroup();
         Set<String> groups = this.shardGroups(pingRequest);
+        String accountId = pingRequest.getAccountId();
         //update agent version for host
         String agentVersion = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
         this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg);
 
         // update the host <-> groups mapping
-        this.updateHosts(hostName, hostIp, hostId, groups);
+        this.updateHosts(hostName, hostIp, hostId, groups, accountId);
 
         // Convert reports to map, keyed by envId
         Map<String, PingReportBean> reports = convertReports(pingRequest);
