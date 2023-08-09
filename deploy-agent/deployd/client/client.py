@@ -47,6 +47,7 @@ class Client(BaseClient):
         # stage_type doesn't always exist, and if it doesn't we don't want to
         # keep trying to fetch it from facter every time
         self._stage_type_fetched = False
+        self._account_id = None
 
     def _read_host_info(self):
         if self._use_facter:
@@ -154,6 +155,9 @@ class Client(BaseClient):
             if not self._stage_type and not self._stage_type_fetched:
                 keys_to_fetch.add(stage_type_key)
 
+            if not self._account_id:
+                keys_to_fetch.add("ec2_metadata.identity-credentials.ec2.info")
+
             if keys_to_fetch:
                 facter_data = utils.get_info_from_facter(keys_to_fetch)
 
@@ -171,10 +175,16 @@ class Client(BaseClient):
                 self._stage_type = facter_data.get(stage_type_key, None)
                 self._stage_type_fetched = True
 
+            if not self._account_id:
+                ec2_metadata = facter_data.get("ec2_metadata.identity-credentials.ec2.info", None)
+                if ec2_metadata:
+                    info = json.loads(ec2_metadata)
+                    self._account_id = info['AccountId']
+
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
-                 "availability_zone: {}, stage_type: {}, group: {}".format(self._hostname, self._ip, self._id, 
-                 self._agent_version, self._autoscaling_group, self._availability_zone, self._stage_type, self._hostgroup))
+                 "availability_zone: {}, stage_type: {}, group: {}, account id: {}".format(self._hostname, self._ip, self._id, 
+                 self._agent_version, self._autoscaling_group, self._availability_zone, self._stage_type, self._hostgroup, self._account_id))
 
         if not self._availability_zone:
             log.error("Fail to read host info: availablity zone")
@@ -202,7 +212,8 @@ class Client(BaseClient):
                                         agentVersion=self._agent_version,
                                         autoscalingGroup=self._autoscaling_group,
                                         availabilityZone=self._availability_zone,
-                                        stageType=self._stage_type)
+                                        stageType=self._stage_type,
+                                        accountId=self._account_id)
 
                 with create_stats_timer('deploy.agent.request.latency',
                                         tags={'host': self._hostname}):
