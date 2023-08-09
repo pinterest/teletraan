@@ -603,12 +603,12 @@ public class DBDAOTest {
         // Added 2 hosts to group1 and group2
         Set<String> groups = new HashSet<>(Arrays.asList("group1", "group2"));
         hostDAO
-            .insertOrUpdate("host-1", "1.1.1.1", "id-123434", HostState.ACTIVE.toString(), groups);
+            .insertOrUpdate("host-1", "1.1.1.1", "id-123434", HostState.ACTIVE.toString(), groups, "test");
         hostDAO
             .insertOrUpdate("host-2", "1.1.1.2", "id-123435", HostState.TERMINATING.toString(),
-                groups);
+                groups, "test");
         hostDAO
-            .insertOrUpdate("host-2", "1.1.1.2", "id-123435", HostState.ACTIVE.toString(), groups);
+            .insertOrUpdate("host-2", "1.1.1.2", "id-123435", HostState.ACTIVE.toString(), groups, "test");
         List<HostBean> hostBeans = hostDAO.getHostsByHostId("id-123435");
         assertEquals(hostBeans.get(0).getState(), HostState.TERMINATING);
 
@@ -661,10 +661,10 @@ public class DBDAOTest {
     @Test
     public void testHostDAO() throws Exception {
         Set<String> groups = new HashSet<>(Arrays.asList("group1", "group2"));
-        hostDAO.insertOrUpdate("host-1", "1.1.1.1", "id-1", HostState.ACTIVE.toString(), groups);
+        hostDAO.insertOrUpdate("host-1", "1.1.1.1", "id-1", HostState.ACTIVE.toString(), groups, "test");
         groups = new HashSet<>(Arrays.asList("group1"));
-        hostDAO.insertOrUpdate("host-2", "1.1.1.2", "id-2", HostState.ACTIVE.toString(), groups);
-        hostDAO.insertOrUpdate("host-3", "1.1.1.3", "id-3", HostState.ACTIVE.toString(), groups);
+        hostDAO.insertOrUpdate("host-2", "1.1.1.2", "id-2", HostState.ACTIVE.toString(), groups, "test");
+        hostDAO.insertOrUpdate("host-3", "1.1.1.3", "id-3", HostState.ACTIVE.toString(), groups, "test");
         /*
         host-1 : group1, group2
         host-2 : group1
@@ -692,7 +692,7 @@ public class DBDAOTest {
         hostDAO.deleteById("id-2");
 
         // test host transactional delete
-        hostDAO.insertOrUpdate("host-1", "1.1.1.1", "id-1", HostState.ACTIVE.toString(), groups);
+        hostDAO.insertOrUpdate("host-1", "1.1.1.1", "id-1", HostState.ACTIVE.toString(), groups, "test");
         AgentBean agentBean = genDefaultAgentBean(
             "host-1", "id-1", "e-1", "d-1", DeployStage.SERVING_BUILD);
         agentDAO.insertOrUpdate(agentBean);
@@ -717,7 +717,7 @@ public class DBDAOTest {
 
         Set<String> groups2 = new HashSet<>(Arrays.asList("new_group"));
         hostDAO
-            .insertOrUpdate("host-3", "3.3.3.3", "id-3", HostState.TERMINATING.toString(), groups2);
+            .insertOrUpdate("host-3", "3.3.3.3", "id-3", HostState.TERMINATING.toString(), groups2, "test");
         assertEquals(environDAO.getMissingHosts("e-3").size(), 0);
 
         Collection<HostBean> hostBean3 = hostDAO.getByEnvIdAndHostName("e-3", "host-3");
@@ -744,9 +744,9 @@ public class DBDAOTest {
         assertEquals(hostBeans3.get(0).getHost_name(), "i-9");
 
         HashSet<String> groups9 = new HashSet<>(Arrays.asList("test_dup"));
-        hostDAO.insertOrUpdate("h-8", "9.9.9.9", "i-8", HostState.TERMINATING.toString(), groups9);
-        hostDAO.insertOrUpdate("h-9", "9.9.9.9", "i-9", HostState.PENDING_TERMINATE.toString(), groups9);
-        hostDAO.insertOrUpdate("h-10", "9.9.9.9", "i-10", HostState.PENDING_TERMINATE_NO_REPLACE.toString(), groups9);
+        hostDAO.insertOrUpdate("h-8", "9.9.9.9", "i-8", HostState.TERMINATING.toString(), groups9, "test");
+        hostDAO.insertOrUpdate("h-9", "9.9.9.9", "i-9", HostState.PENDING_TERMINATE.toString(), groups9, "test");
+        hostDAO.insertOrUpdate("h-10", "9.9.9.9", "i-10", HostState.PENDING_TERMINATE_NO_REPLACE.toString(), groups9, "test");
 
         List<HostBean> hostBeans4 = hostDAO.getHosts("h-9");
         assertEquals(hostBeans4.size(), 1);
@@ -757,9 +757,9 @@ public class DBDAOTest {
         assertEquals(4, hostBeans5.size());
 
         // If state is PENDING_TERMINATE, PENDING_TERMINATE_NO_REPLACE or TERMINATING, cannot overwrite its state
-        hostDAO.insertOrUpdate("h-8", "9.9.9.8", "i-8", HostState.PROVISIONED.toString(), groups9);
-        hostDAO.insertOrUpdate("h-9", "9.9.9.8", "i-9", HostState.PROVISIONED.toString(), groups9);
-        hostDAO.insertOrUpdate("h-10", "9.9.9.8", "i-10", HostState.PROVISIONED.toString(), groups9);
+        hostDAO.insertOrUpdate("h-8", "9.9.9.8", "i-8", HostState.PROVISIONED.toString(), groups9, "test");
+        hostDAO.insertOrUpdate("h-9", "9.9.9.8", "i-9", HostState.PROVISIONED.toString(), groups9, "test");
+        hostDAO.insertOrUpdate("h-10", "9.9.9.8", "i-10", HostState.PROVISIONED.toString(), groups9, "test");
         hostBeans5 = hostDAO.getTerminatingHosts();
         assertEquals(4, hostBeans5.size());
 
