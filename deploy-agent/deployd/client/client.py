@@ -17,6 +17,7 @@ import logging
 import os
 import socket
 import traceback
+import json
 
 from deployd.client.base_client import BaseClient
 from deployd.client.restfulclient import RestfulClient

@@ -30,7 +30,7 @@ class PingRequest(object):
         self.autoscalingGroup = autoscalingGroup
         self.availabilityZone = availabilityZone
         self.stageType = stageType
-        self.accountid = accountId
+        self.accountId = accountId
 
     def to_json(self):
         ping_requests = {}
@@ -81,4 +81,4 @@ class PingRequest(object):
         return "PingRequest(hostId={}, hostName={}, hostIp={}, agentVersion={}, autoscalingGroup={}, " \
             "availabilityZone={}, stageType={}, groups={}, accountId={}, reports={})".format(self.hostId, self.hostName, 
             self.hostIp, self.agentVersion, self.autoscalingGroup, self.availabilityZone, self.stageType,
-            self.groups, self.accountid, ",".join(str(v) for v in self.reports))
+            self.groups, self.accountId, ",".join(str(v) for v in self.reports))
