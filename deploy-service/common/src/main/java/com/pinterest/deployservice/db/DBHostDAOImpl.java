@@ -135,7 +135,7 @@ public class DBHostDAOImpl implements HostDAO {
             sb.append(now);
             sb.append(",'");
             sb.append(state);
-            sb.append(",'");
+            sb.append("','");
             sb.append(accountId);
 
             if (hostName != null) {

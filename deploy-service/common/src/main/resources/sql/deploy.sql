@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS environs (
     email_recipients VARCHAR(1024),
     notify_authors   TINYINT(1),
     watch_recipients VARCHAR(1024),
+    group_mention_recipients VARCHAR(1024),
     metrics_config_id VARCHAR(22),
     alarm_config_id     VARCHAR(22),
     webhooks_config_id  VARCHAR(22),
@@ -123,6 +124,7 @@ CREATE TABLE IF NOT EXISTS hosts (
     last_update     BIGINT              NOT NULL,
     state           VARCHAR(32)         NOT NULL,
     can_retire      TINYINT(1)          NOT NULL DEFAULT 0,
+    account_id      VARCHAR(64),
     PRIMARY KEY    (host_id, group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX rev_group_host_idx ON hosts (group_name, host_name);
