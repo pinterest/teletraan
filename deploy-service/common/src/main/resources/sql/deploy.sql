@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS environs (
     email_recipients VARCHAR(1024),
     notify_authors   TINYINT(1),
     watch_recipients VARCHAR(1024),
-    group_mention_recipients VARCHAR(1024),
     metrics_config_id VARCHAR(22),
     alarm_config_id     VARCHAR(22),
     webhooks_config_id  VARCHAR(22),
