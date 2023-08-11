@@ -51,6 +51,7 @@ import javax.validation.constraints.Pattern;
  * acc_type      VARCHAR(32)         NOT NULL,
  * email_recipients VARCHAR(1024),
  * watch_recipients VARCHAR(1024),
+ * group_mention_recipients VARCHAR(1024),
  * metrics_config_id VARCHAR(22),
  * alarm_config_id     VARCHAR(22),
  * webhooks_config_id  VARCHAR(22),
