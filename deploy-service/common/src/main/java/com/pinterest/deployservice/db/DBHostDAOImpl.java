@@ -110,11 +110,11 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception {
+    public void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames, String accountId) throws Exception {
         long now = System.currentTimeMillis();
         //TODO need to refactoring this to be more generic to all columns, e.g. use genStringGroupClause() like the other DAOs
         // If state is PENDING_TERMINATE, PENDING_TERMINATE_NO_REPLACE or TERMINATING, do not overwrite its state
-        StringBuilder names = new StringBuilder("(host_id,group_name,create_date,last_update,state");
+        StringBuilder names = new StringBuilder("(host_id,group_name,create_date,last_update,state,account_id");
         if (hostName != null) {
             names.append(",host_name");
         }
@@ -135,6 +135,8 @@ public class DBHostDAOImpl implements HostDAO {
             sb.append(now);
             sb.append(",'");
             sb.append(state);
+            sb.append("','");
+            sb.append(accountId);
 
             if (hostName != null) {
                 sb.append("','");
