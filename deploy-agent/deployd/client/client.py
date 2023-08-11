@@ -146,6 +146,7 @@ class Client(BaseClient):
             asg_tag_key = self._config.get_facter_asg_tag_key()
             ec2_tags_key = self._config.get_facter_ec2_tags_key()
             stage_type_key = self._config.get_stage_type_key()
+            account_id_key = self._config.get_facter_account_id_key()
             keys_to_fetch = set()
             if not self._availability_zone and az_key:
                 keys_to_fetch.add(az_key)
@@ -157,7 +158,7 @@ class Client(BaseClient):
                 keys_to_fetch.add(stage_type_key)
 
             if not self._account_id:
-                keys_to_fetch.add("ec2_metadata.identity-credentials.ec2.info")
+                keys_to_fetch.add(account_id_key)
 
             if keys_to_fetch:
                 facter_data = utils.get_info_from_facter(keys_to_fetch)
@@ -180,7 +181,7 @@ class Client(BaseClient):
                 ec2_metadata = facter_data.get("ec2_metadata.identity-credentials.ec2.info", None)
                 if ec2_metadata:
                     info = json.loads(ec2_metadata)
-                    self._account_id = info['AccountId']
+                    self._account_id = info.get('AccountId', None)
 
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "

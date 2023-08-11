@@ -48,7 +48,7 @@ class PingRequest(object):
         if self.groups:
             ping_requests["groups"] = list(self.groups)
         if self.accountId:
-            ping_requests["accountId"] = list(self.accountId)
+            ping_requests["accountId"] = self.accountId
 
         ping_requests["reports"] = []
         for report in self.reports:
