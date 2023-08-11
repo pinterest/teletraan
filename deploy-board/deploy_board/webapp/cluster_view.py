@@ -17,6 +17,7 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.views.generic import View
 
 from deploy_board.settings import IS_PINTEREST, RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
@@ -974,6 +975,8 @@ def gen_cluster_replacement_view(request, name, stage):
     }
     replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
 
+    storage = get_messages(request)
+
     content = render_to_string("clusters/cluster-replacements.tmpl", {
         "env": env,
         "env_name": name,
@@ -981,8 +984,10 @@ def gen_cluster_replacement_view(request, name, stage):
         "cluster_name": cluster_name,
         "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
         "csrf_token": get_token(request),
+        "storage": storage,
         "cluster_replacement_wiki_url": RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
     })
+
     return HttpResponse(content)
 
 def get_cluster_replacement_details(request, name, stage, replacement_id):
@@ -1035,27 +1040,35 @@ def start_cluster_replacement(request, name, stage):
     log.info("Starting to replace cluster {0}".format(cluster_name))
 
     try:
-        perform_cluster_replacement_action(request, name, stage, 'resume')
+        perform_cluster_replacement_action(request, name, stage, 'resume', includeMessage=False)
         clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
+        messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
     except TeletraanException as ex:
-        if '409' in str(ex):
-            pass
+        if "already in progress" in str(ex) and "409" in str(ex):
+            messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
         else:
-            raise ex
-
+            messages.warning(request, str(ex), "cluster-replacements")
+    
     return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
 
-def perform_cluster_replacement_action(request, name, stage, action):
+def perform_cluster_replacement_action(request, name, stage, action, includeMessage=True):
     cluster_name = common.get_cluster_name(request, name, stage)
     log.info("Starting to {0} cluster replacement for cluster {1}".format(action, cluster_name))
 
     try:
         clusters_helper.perform_cluster_replacement_action(request, cluster_name, action)
+        if includeMessage:
+            if action == 'pause':
+                messages.success(request, "Paused successfully", "cluster-replacements")
+            elif action == 'resume':
+                messages.success(request, "Resumed successfully", "cluster-replacements")
+            else:
+                messages.success(request, "Canceled successfully", "cluster-replacements")
     except TeletraanException as ex:
-        if '409' in str(ex):
-            pass
+        if "active replacement" in str(ex) and "409" in str(ex):
+            messages.warning(request, "There is no active replacement to cancel", "cluster-replacements")
         else:
-            raise ex
+            messages.warning(request, str(ex), "cluster-replacements")
 
     return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
 

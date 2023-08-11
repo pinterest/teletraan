@@ -61,6 +61,26 @@
 {% endblock %}
 
 {% block main %}
+
+{% for message in storage %}
+    {% if message.level == 40 %}
+        <div class="alert alert-danger" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{ message | safe}}
+        </div>
+    {% elif message.level == 30 %}
+        <div class="alert alert-warning" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{ message | safe}}
+        </div>
+    {% else %}
+        <div class="alert alert-success" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            {{ message | safe}}
+        </div>
+    {% endif %}
+{% endfor %}
+
 <!-- class="glyphicon glyphicon-question-sign" -->
 <div id="clusterReplacementPanelId"class="panel panel-default">
     <panel-heading title="Cluster Replacement" target="#clusterReplacementConfigId" initcollapse="false"></panel-heading>
@@ -200,16 +220,24 @@
                             <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ replace_summary.id }}/details/" target="_blank">{{ replace_summary.id }}</a>
                         </td>
                         <td>
-                            {{ replace_summary.startTime|convertTimestamp }}
+                            {% if replace_summary.startTime %}
+                                {{ replace_summary.startTime|convertTimestamp }}
+                            {% endif %}
                         </td>
                         <td>
-                            {{ replace_summary.endTime|convertTimestamp }}
+                            {% if replace_summary.endTime %}
+                                {{ replace_summary.endTime|convertTimestamp }}
+                            {% endif %}
                         </td>
                         <td>
-                            {{ replace_summary.percentageComplete }} %
+                            {% if replace_summary.percentageComplete %}
+                                {{ replace_summary.percentageComplete }}%
+                            {% endif %}
                         </td>
                         <td>
-                            {{ replace_summary.instancesToUpdate }}
+                            {% if replace_summary.instancesToUpdate %}
+                                {{ replace_summary.instancesToUpdate }}
+                            {% endif %}
                         </td>
                         <td>
                             <span class="replaceToolTip pointer-cursor {{ replace_summary.status|replaceStatusIcon }}">
