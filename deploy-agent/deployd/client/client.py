@@ -178,7 +178,7 @@ class Client(BaseClient):
                 self._stage_type_fetched = True
 
             if not self._account_id:
-                ec2_metadata = facter_data.get("ec2_metadata.identity-credentials.ec2.info", None)
+                ec2_metadata = facter_data.get(account_id_key, None)
                 if ec2_metadata:
                     info = json.loads(ec2_metadata)
                     self._account_id = info.get('AccountId', None)
