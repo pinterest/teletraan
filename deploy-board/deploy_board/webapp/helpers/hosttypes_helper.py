@@ -22,6 +22,8 @@ rodimus_client = RodimusClient()
 def create_host_type(request, host_type_info):
     return rodimus_client.post("/host_types", request.teletraan_user_id.token, data=host_type_info)
 
+def modify_host_type(request, host_type_id, host_type_info):
+    return rodimus_client.put("/host_types/%s" % host_type_id, request.teletraan_user_id.token, data=host_type_info)
 
 def get_all(request, index, size):
     params = [('pageIndex', index), ('pageSize', size)]

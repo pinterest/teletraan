@@ -4,16 +4,17 @@
 <form name="hostTypeList">
     <table id="hostTypeTableId" class="table table-condensed table-striped table-hover">
         <tr>
-            <th class="col-lg-2">Arch</th>
+            <th class="col-lg-1">Arch</th>
             <th class="col-lg-2">Abstract Name</th>
             <th class="col-lg-2">Provider Name</th>
             <th class="col-lg-1">Cloud Provider</th>
             <th class="col-lg-1">Core</th>
             <th class="col-lg-1">Memory (GB)</th>
             <th class="col-lg-2">Storage</th>
-            <th class="col-lg-2">Network</th>
+            <th class="col-lg-1">Network</th>
             <th class="col-lg-2">Retired</th>
             <th class="col-lg-4">Description</th>
+            <th class="col-lg-1">Edit</th>
         </tr>
         {% for host_type in host_types %}
         <tr>
@@ -27,7 +28,24 @@
             <td> {{ host_type.network }} </td>
             <td> {{ host_type.retired }} </td>
             <td> {{ host_type.description }} </td>
+            <td>
+                <button href="" id="hostTypeDetailsId" type="button" class="deployToolTip btn btn-default btn-xs"
+                    data-toggle="modal" title="Modify an existing host type" data-value={{ host_type.id }} data-target="#modifyHostTypeModalId">
+                    <span class="glyphicon glyphicon-pencil"></span>
+                </button>
+            </td>
         </tr>
         {% endfor %}
     </table>
 </form>
+<div class="modal fade" id="modifyHostTypeModalId" tabindex="-1" role="dialog" aria-labelledby="modifyHostTypeModalLabel" aria-hidden="true"></div>
+
+<script>
+   $(document).on("click", "#hostTypeDetailsId", function () {
+        var host_type_id = $(this).attr('data-value');
+        $.get(`/clouds/get_host_type/${host_type_id}/`, function(response) {
+            $('#modifyHostTypeModalId').html(response);
+            console.log(response)
+        });
+    });
+</script>

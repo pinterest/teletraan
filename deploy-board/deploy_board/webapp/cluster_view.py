@@ -568,9 +568,39 @@ def create_host_type(request):
     host_type_info['mem'] = float(params['mem']) * 1024
     host_type_info['core'] = int(params['core'])
     host_type_info['storage'] = params['storage']
+    host_type_info['retired'] = params['retired']
     hosttypes_helper.create_host_type(request, host_type_info)
     return redirect('/clouds/hosttypes/')
 
+def modify_host_type(request):
+    try:
+        host_type_info = json.loads(request.body)
+        host_type_id = host_type_info['id']
+
+        log.info("Update Host Type with {}".format(host_type_info))
+        host_type_info['mem'] = float(host_type_info['mem']) * 1024
+        host_type_info['core'] = int(host_type_info['core'])
+        hosttypes_helper.modify_host_type(request, host_type_id, host_type_info)
+    except NotAuthorizedException as e:
+        log.error("Have an NotAuthorizedException error {}".format(e))
+        return HttpResponse(e, status=403, content_type="application/json")
+    except Exception as e:
+        log.error("modifying host type has an error {}".format(e))
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse(json.dumps(host_type_info), content_type="application/json")
+
+def get_host_type_by_id(request, host_type_id):
+    provider_list = baseimages_helper.get_all_providers(request)
+    arches_list = arches_helper.get_all(request)
+    host_type = hosttypes_helper.get_by_id(request, host_type_id)
+    host_type['mem'] = float(host_type['mem']) / 1024
+    contents = render_to_string("clusters/modify_host_type_modal.tmpl", {
+        'arches_list': arches_list,
+        'provider_list': provider_list,
+        'host_type': host_type,
+        "csrf_token": get_token(request)
+    })
+    return HttpResponse(json.dumps(contents), content_type="application/json")
 
 def get_host_types(request):
     index = int(request.GET.get('page_index', '1'))
@@ -990,7 +1020,7 @@ def get_cluster_replacement_details(request, name, stage, replacement_id):
     cluster_name = '{}-{}'.format(name, stage)
     get_cluster_replacement_details_body = {
         "clusterName": cluster_name,
-        "replacementIds": [replacement_id] 
+        "replacementIds": [replacement_id]
     }
     replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_details_body)
 
@@ -1010,7 +1040,7 @@ def start_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     skipMatching = False
     scaleInProtectedInstances = 'Ignore'
-    
+
     checkpointPercentages = []
     if (params['checkpointPercentages']):
         checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
@@ -1027,7 +1057,7 @@ def start_cluster_replacement(request, name, stage):
     rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
     rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
     rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
-    
+
     start_cluster_replacement = {}
     start_cluster_replacement["clusterName"] = cluster_name
     start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig

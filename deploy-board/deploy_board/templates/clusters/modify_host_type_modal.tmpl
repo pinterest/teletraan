@@ -1,0 +1,170 @@
+<div class="modal-dialog modal-md">
+    <div class="modal-content">
+        <form id="modifyHostTypeFormId" class="form-horizontal" role="form" method="post" action="/clouds/modify_host_type/">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Modify Host Type Confirm</h4>
+            </div>
+            <div class="modal-body" id="modifyHostTypeModal">
+                <input class="form-control" name="id" required="true" type="hidden" value= "{{ host_type.id }}"/>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Arch
+                    </label>
+                    <div class="col-md-6">
+                        <select class="form-control" name="arch_name" required id="archName">
+                            {% for arch in arches_list %}
+                                {% if arch.name == host_type.arch_name %}
+                                    <option value="{{ host_type.arch_name }}" selected>{{ host_type.arch_name }}</option>
+                                {% else %}
+                                    <option value="{{ arch.name }}" >{{ arch.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Abstract Name
+                    </label>
+                    <div class="col-md-6">
+                        <input class="form-control" name="abstract_name" required="true" type="text" value="{{ host_type.abstract_name }}" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Cloud specific host type id
+                    </label>
+                    <div class="col-md-6">
+                        <input class="form-control" name="provider_name" required="true" type="text" value="{{ host_type.provider_name }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Cloud Provider
+                    </label>
+                    <div class="col-md-6">
+                        <select class="form-control" name="provider" required id="providerNameId">
+                            {% for provider in provider_list %}
+                                {% if provider == host_type.provider %}
+                                    <option value="{{ host_type.provider }}" selected>{{ host_type.provider }}</option>
+                                {% else %}
+                                    <option value="{{ provider }}" >{{ provider }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Number of cores
+                    </label>
+                    <div class="col-md-6">
+                        <input class="form-control" name="core" required="false" type="text" value="{{ host_type.core }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Size of memory (GB)
+                    </label>
+                    <div class="col-md-6">
+                        <input class="form-control" name="mem" type="text" value="{{ host_type.mem }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6" title="The spec of storge. e.g. 512G SSD, 1T HDD">
+                        Storage
+                    </label>
+                    <div class="col-md-6">
+                        <input class="form-control" name="storage" type="text" value="{{ host_type.storage}}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Network
+                    </label>
+                    <div class="col-md-6">
+                        <input class="form-control" name="network" type="text" value="{{ host_type.network }}"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Retired
+                    </label>
+                    <div class="col-xs-1">
+                        <input class="form-control" id="retiredCheckbox" name="retired" type="checkbox" value=""
+                            {% if host_type.retired == True %}
+                                checked
+                            {% endif %}
+                        />
+                        <input class="form-control" id="retiredCheckboxHidden" name="retired" type="hidden" value=""/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
+                        Description
+                    </label>
+                    <div class="col-md-6">
+                        <input class="form-control" name="description" type="text" value="{{ host_type.description }}"/>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="modalConfirmBtnId" type="submit" class="btn btn-primary">Save</button>
+                <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function convertFormToJSON(form) {
+        const array = $(form).serializeArray(); // Encodes the set of form elements as an array of names and values.
+        const json = {};
+        $.each(array, function () {
+          json[this.name] = this.value || "";
+        });
+        return JSON.stringify(json);
+    }
+
+    function sendRequest(form) {
+        console.log(convertFormToJSON(form));
+        $.ajax({
+            type: 'POST',
+            url: '/clouds/modify_host_type/',
+            data: convertFormToJSON(form),
+            dataType: "json",
+            beforeSend: function(xhr, settings) {
+                var csrftoken = getCookie('csrftoken')
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+            },
+            success: function(data) {
+                $("#modifyHostTypeModalId").hide();
+                window.location.reload()
+                globalNotificationBanner.info = "Request sent successfully"
+            },
+            error: function(data) {
+                globalNotificationBanner.error = ["Request Error: ", data.status, data.statusText, data.responseText].join(' ');
+            }
+        });
+    }
+
+    $('#retiredCheckbox').change(function() {
+        if ( $(this).is(":checked") ) {
+            $('#retiredCheckboxHidden').attr('value', "True")
+            $('#retiredCheckboxHidden').disabled = false;
+        } else if ( $(this).not(":checked") ) {
+            $('#retiredCheckboxHidden').attr('value', "False")
+            $('#retiredCheckboxHidden').disabled = false;
+        }
+    });
+
+    $(function() {
+        var form = "#modifyHostTypeModalId form"
+        $('#modifyHostTypeFormId').submit(function (e) {
+            e.preventDefault();
+            sendRequest(form);
+        });
+    });
+
+</script>
