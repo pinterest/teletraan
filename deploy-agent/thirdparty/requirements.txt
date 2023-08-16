@@ -9,3 +9,4 @@ requests==2.27.1
 setuptools==59.0.1
 strictyaml==1.6.1
 zipp==1.2.0
+cython==0.29.28
