@@ -25,9 +25,7 @@ console_scripts = ['deploy-agent = deployd.agent:main',
 
 install_requires = [
     "requests==2.20.0",
-    "wheel>=0.36.2",
-    "cython==3.0.0a10",
-    "gevent==20.9.0",
+    "gevent==20.12.0",
     "lockfile==0.10.2",
     "boto>=2.39.0",
     "python-daemon==2.0.6",
