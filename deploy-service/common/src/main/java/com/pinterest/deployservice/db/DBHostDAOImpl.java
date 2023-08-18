@@ -70,6 +70,7 @@ public class DBHostDAOImpl implements HostDAO {
             "GROUP BY x.host_id HAVING count(*) = (SELECT count(*) FROM agents y WHERE y.host_id = x.host_id) ORDER BY host_id";
     private static final String GET_NEW_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE can_retire=0 AND group_name=? AND state not in (?,?,?)";
     private static final String GET_TERMINATING_HOST_IDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE state in (?, ?, ?) AND group_name=?";
+    private static final String GET_ACCOUNTID_BY_HOSTNAME = "SELECT DISTINCT account_id FROM hosts WHERE host_name=?";
 
     private BasicDataSource dataSource;
 
@@ -286,5 +287,11 @@ public class DBHostDAOImpl implements HostDAO {
         return new QueryRunner(dataSource).query(GET_TERMINATING_HOST_IDS_BY_GROUP,
         SingleResultSetHandlerFactory.<String>newListObjectHandler(), HostState.PENDING_TERMINATE.toString(),
                 HostState.TERMINATING.toString(), HostState.PENDING_TERMINATE_NO_REPLACE.toString(), groupName);
+    }
+
+    @Override
+    public String getAccountIdByHost(String hostName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_ACCOUNTID_BY_HOSTNAME,
+                SingleResultSetHandlerFactory.<String>newObjectHandler(), hostName);
     }
 }

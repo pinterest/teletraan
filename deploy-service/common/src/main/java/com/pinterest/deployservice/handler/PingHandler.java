@@ -145,6 +145,7 @@ public class PingHandler {
     // Keep host and group membership in sync
     void updateHosts(String hostName, String hostIp, String hostId, Set<String> groups, String accountId) throws Exception {
         Set<String> recordedGroups = new HashSet<String>(hostDAO.getGroupNamesByHost(hostName));
+        String recordedAccountId = new String(hostDAO.getAccountIdByHost(hostName));
 
         Set<String> groupsToAdd = new HashSet<String>();
         // Insert if not recorded
@@ -154,7 +155,7 @@ public class PingHandler {
                 groupsToAdd.add(group);
             }
         }
-        if (groupsToAdd.size() > 0) {
+        if (groupsToAdd.size() > 0 || accountId != null && !accountId.equals(recordedAccountId)) {
             hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups, accountId);
         }
         
