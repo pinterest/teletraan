@@ -160,7 +160,10 @@ public class PingHandler {
             LOG.info("accountId:{}", accountId);
         }
         
-        if (groupsToAdd.size() > 0 || accountId != null && !accountId.equals(recordedAccountId)) {
+        if (groupsToAdd.size() > 0 || (accountId != null && (!accountId.equals(recordedAccountId)))) {
+            if (hostName.equals("engprod-teletraan-service-dev1-0a01dab5")) {
+                LOG.info("yaqin-test");
+            }
             hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups, accountId);
         }
         
