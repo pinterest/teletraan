@@ -155,6 +155,11 @@ public class PingHandler {
                 groupsToAdd.add(group);
             }
         }
+        if (hostName.equals("engprod-teletraan-service-dev1-0a01dab5")) {
+            LOG.info("recordedAccountId:{}", recordedAccountId);
+            LOG.info("accountId:{}", accountId);
+        }
+        
         if (groupsToAdd.size() > 0 || accountId != null && !accountId.equals(recordedAccountId)) {
             hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups, accountId);
         }
