@@ -157,6 +157,8 @@ public class PingHandler {
             }
         }
         
+        // if it is the main account, don't update it to avoid huge updates for existing hosts
+        // only update sub account id for existing hosts
         if (groupsToAdd.size() > 0 || accountId != null && !accountId.equals(PINTEREST_MAIN_AWS_ACCOUNT) && !accountId.equals(recordedAccountId)) {
             hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups, accountId);
         }
