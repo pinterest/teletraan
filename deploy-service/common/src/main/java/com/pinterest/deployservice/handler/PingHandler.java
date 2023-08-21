@@ -142,28 +142,27 @@ public class PingHandler {
         return cache.get(key);
     }
 
-    // Keep host and group membership in sync
-    void updateHosts(String hostName, String hostIp, String hostId, Set<String> groups, String accountId) throws Exception {
-        Set<String> recordedGroups = new HashSet<String>(hostDAO.getGroupNamesByHost(hostName));
-
-        Set<String> groupsToAdd = new HashSet<String>();
-        // Insert if not recorded
-        for (String group : groups) {
-            if (!recordedGroups.contains(group)) {
-                LOG.info("Insert host {} to group {} mapping", hostName, group);
-                groupsToAdd.add(group);
-            }
+    // Keep host and group membership in sync.
+    void updateHosts(String hostName, String hostIp, String hostId, Set<String> groups, String accountId, String asgName) throws Exception {
+        // Ensure a host is always mapped to its autoscaling group.
+        if (StringUtils.isNotBlank(asgName)) {
+            groups.add(asgName);
         }
-        if (groupsToAdd.size() > 0) {
+
+        // Get all groups a given host name is mapped to.
+        Set<String> recordedGroups = new HashSet<>(hostDAO.getGroupNamesByHost(hostName));
+
+        // Map host to new groups.
+        if (!recordedGroups.containsAll(groups)) {
+            LOG.info("Map host {} with hostId {} to groups {}", hostName, hostId, groups);
             hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups, accountId);
         }
         
-        // Remove if not reported
-        for (String recordedGroup : recordedGroups) {
-            if (!groups.contains(recordedGroup)) {
-                LOG.warn("Remove host {} to group {} mapping", hostName, recordedGroup);
-                this.hostDAO.removeHostFromGroup(hostId, recordedGroup);
-            }
+        // Remove an existing mapping if a recorded group is not reported.
+        recordedGroups.removeAll(groups);
+        for (String e : recordedGroups) {
+            LOG.warn("Remove host {} from group {}", hostName, e);
+            this.hostDAO.removeHostFromGroup(hostId, e);
         }
     }
 
@@ -602,7 +601,7 @@ public class PingHandler {
         this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg);
 
         // update the host <-> groups mapping
-        this.updateHosts(hostName, hostIp, hostId, groups, accountId);
+        this.updateHosts(hostName, hostIp, hostId, groups, accountId, asg);
 
         // Convert reports to map, keyed by envId
         Map<String, PingReportBean> reports = convertReports(pingRequest);
