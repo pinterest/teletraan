@@ -65,6 +65,7 @@ public class PingHandler {
     private static final Logger LOG = LoggerFactory.getLogger(PingHandler.class);
     private static final PingResponseBean NOOP;
     private static final Set<String> EMPTY_GROUPS;
+    private static final String PINTEREST_MAIN_AWS_ACCOUNT = "998131032990";
     //private static final long AGENT_COUNT_CACHE_TTL = 5 * 1000;
 
     static {
@@ -156,7 +157,7 @@ public class PingHandler {
             }
         }
         
-        if (groupsToAdd.size() > 0 || accountId != null && !accountId.equals(recordedAccountId)) {
+        if (groupsToAdd.size() > 0 || accountId != null && !accountId.equals(PINTEREST_MAIN_AWS_ACCOUNT) && !accountId.equals(recordedAccountId)) {
             hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups, accountId);
         }
         
