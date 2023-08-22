@@ -16,6 +16,8 @@
 
 from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
+BLESSED_STATUS_VALUES = ['ONBOARDING', 'SUSTAINING', 'DECOMMISSONING']
+
 rodimus_client = RodimusClient()
 
 

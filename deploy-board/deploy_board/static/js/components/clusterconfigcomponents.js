@@ -329,9 +329,10 @@ Vue.component('hostype-help', {
             { name: 'Memory(GB)', headerClass: 'col-sm-1' },
             { name: 'Storage', headerClass: 'col-sm-2' },
             { name: 'Network', headerClass: 'col-sm-1' },
+            { name: 'Blessed Status', headerClass: 'col-sm-1' },
             { name: 'Retired', headerClass: 'col-sm-1' },
             { name: 'Description', headerClass: 'col-sm-5' }],
-            keys: ['abstract_name', 'provider_name', 'core', 'mem', 'storage', 'network', 'retired', 'description']
+            keys: ['abstract_name', 'provider_name', 'core', 'mem', 'storage', 'network', 'blessed_status', 'retired', 'description']
         }
     },
 })

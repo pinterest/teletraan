@@ -102,6 +102,22 @@
                 </div>
                 <div class="form-group">
                     <label class="deployToolTip control-label text-center col-xs-6">
+                        Blessed Status
+                    </label>
+                    <div class="col-md-6">
+                        <select class="form-control" name="blessed_status" required id="blessedStatusId">
+                            {% for blessed_status in blessed_statuses %}
+                                {% if blessed_status == host_type.blessed_status %}
+                                    <option value="{{ host_type.blessed_status }}" selected>{{ host_type.blessed_status }}</option>
+                                {% else %}
+                                    <option value="{{ blessed_status }}" >{{ blessed_status }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="deployToolTip control-label text-center col-xs-6">
                         Description
                     </label>
                     <div class="col-md-6">

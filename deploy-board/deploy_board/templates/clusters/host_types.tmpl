@@ -6,13 +6,14 @@
         <tr>
             <th class="col-lg-1">Arch</th>
             <th class="col-lg-2">Abstract Name</th>
-            <th class="col-lg-2">Provider Name</th>
+            <th class="col-lg-1">Provider Name</th>
             <th class="col-lg-1">Cloud Provider</th>
             <th class="col-lg-1">Core</th>
             <th class="col-lg-1">Memory (GB)</th>
-            <th class="col-lg-2">Storage</th>
+            <th class="col-lg-1">Storage</th>
             <th class="col-lg-1">Network</th>
-            <th class="col-lg-2">Retired</th>
+            <th class="col-lg-1">Blessed Status</th>
+            <th class="col-lg-1">Retired</th>
             <th class="col-lg-4">Description</th>
             <th class="col-lg-1">Edit</th>
         </tr>
@@ -26,6 +27,7 @@
             <td> {{ host_type.mem }} </td>
             <td> {{ host_type.storage }} </td>
             <td> {{ host_type.network }} </td>
+            <td> {{ host_type.blessed_status }} </td>
             <td> {{ host_type.retired }} </td>
             <td> {{ host_type.description }} </td>
             <td>
