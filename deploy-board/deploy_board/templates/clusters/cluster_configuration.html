@@ -1028,11 +1028,10 @@
                 });
 
            var selectedHostTypeObject = info.hostTypes.find(hostType => hostType.id === capacitySetting.selectedHostTypeValue);
-           console.log(selectedHostTypeObject)
            var hostTypeRoadmapLink = "{{ host_type_roadmap_link }}"
 
-            if (selectedHostTypeObject.blessed_status === "DECOMMISSONING") {
-                globalNotificationBanner.error = "This cluster is currently using a decomissioning Instance Type. Please refer to " + hostTypeRoadmapLink + " for the recommended Instance Type.";
+            if (selectedHostTypeObject.blessed_status === "DECOMMISSONING" || selectedHostTypeObject.retired === true) {
+                globalNotificationBanner.error = "This cluster is currently using an unblessed Instance Type. Please refer to " + hostTypeRoadmapLink + " for the recommended Instance Type.";
             }
         });
     }

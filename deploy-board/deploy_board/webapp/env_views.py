@@ -368,7 +368,7 @@ class EnvLandingView(View):
                 host_type = hosttypes_helper.get_by_id(request, basic_cluster_info['hostType'])
                 host_type_blessed_status = host_type['blessed_status']
                 if host_type_blessed_status == "DECOMMISSONING":
-                    messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with a decomissioning Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
+                    messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
