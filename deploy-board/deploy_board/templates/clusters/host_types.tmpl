@@ -47,7 +47,6 @@
         var host_type_id = $(this).attr('data-value');
         $.get(`/clouds/get_host_type/${host_type_id}/`, function(response) {
             $('#modifyHostTypeModalId').html(response);
-            console.log(response)
         });
     });
 </script>
