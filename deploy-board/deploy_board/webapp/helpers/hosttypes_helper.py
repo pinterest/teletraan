@@ -16,7 +16,15 @@
 
 from deploy_board.webapp.helpers.rodimus_client import RodimusClient
 
-BLESSED_STATUS_VALUES = ['ONBOARDING', 'SUSTAINING', 'DECOMMISSONING']
+
+class BlessedStatusValues:
+    ONBOARDING = 'ONBOARDING',
+    SUSTAINING = 'SUSTAINING',
+    DECOMMISSIONING = 'DECOMMISSIONING'
+
+    @classmethod
+    def get_all_statuses(cls):
+        return [item for item in cls.__dict__ if not callable(getattr(cls, item)) and not item.startswith('__')]
 
 rodimus_client = RodimusClient()
 

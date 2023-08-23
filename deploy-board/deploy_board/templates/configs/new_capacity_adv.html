@@ -147,7 +147,7 @@ var capacitySetting = new Vue({
                     value: item.id,
                     text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.provider_name + ", " + item.network + ")",
                     isSelected: item.abstract_name === info.defaultHostType,
-                    isDisabled: item.retired || item.blessed_status === "SUSTAINING" || item.blessed_status === "DECOMMISSONING"
+                    isDisabled: item.retired || item.blessed_status === "SUSTAINING" || item.blessed_status === "DECOMMISSIONING"
                 }
             }),
         cellValue: info.defaultCell,
@@ -384,7 +384,7 @@ var capacitySetting = new Vue({
                                     value: item.id,
                                     text: item.abstract_name + " (" + item.core + " cores, " + item.mem + " GB, " + item.storage + ", " + item.network + ", " + item.provider + ": " + item.provider_name + ", " + item.network + ")",
                                     isSelected: item.id === data[0].id,
-                                    isDisabled: item.retired || item.blessed_status === "SUSTAINING" || item.blessed_status === "DECOMMISSONING"
+                                    isDisabled: item.retired || item.blessed_status === "SUSTAINING" || item.blessed_status === "DECOMMISSIONING"
                                 }
                             });
                     capacitySetting.selectedHostTypeValue = data[0].id;

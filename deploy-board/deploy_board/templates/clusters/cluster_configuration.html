@@ -1030,7 +1030,7 @@
            var selectedHostTypeObject = info.hostTypes.find(hostType => hostType.id === capacitySetting.selectedHostTypeValue);
            var hostTypeRoadmapLink = "{{ host_type_roadmap_link }}"
 
-            if (selectedHostTypeObject.blessed_status === "DECOMMISSONING" || selectedHostTypeObject.retired === true) {
+            if (selectedHostTypeObject.blessed_status === "DECOMMISSIONING" || selectedHostTypeObject.retired === true) {
                 globalNotificationBanner.error = "This cluster is currently using an unblessed Instance Type. Please refer to " + hostTypeRoadmapLink + " for the recommended Instance Type.";
             }
         });
