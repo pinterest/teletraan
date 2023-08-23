@@ -24,4 +24,4 @@ def get_hosts_by_name(request, host_name):
     return deployclient.get("/hosts/%s" % host_name, request.teletraan_user_id.token)
 
 def get_accout_id_by_name(request, host_name):
-    return deployclient.get("/%s/accountId" % host_name, request.teletraan_user_id.token)
+    return deployclient.get("/hosts/%s/accountId" % host_name, request.teletraan_user_id.token)
