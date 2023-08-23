@@ -75,4 +75,6 @@ public interface HostDAO {
     Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception;
 
     Collection<String> getTerminatingHostIdsByGroup(String groupName) throws Exception;
+
+    String getAccountIdByHost(String hostName) throws Exception;
 }

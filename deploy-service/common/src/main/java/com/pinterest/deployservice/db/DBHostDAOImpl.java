@@ -39,7 +39,7 @@ public class DBHostDAOImpl implements HostDAO {
             "LEFT JOIN agent_errors ON agents.host_name=agent_errors.host_name WHERE hosts.host_id=?";
     private static final String UPDATE_HOST_BY_ID = "UPDATE hosts SET %s WHERE host_id=?";
     private static final String INSERT_HOST_TEMPLATE = "INSERT INTO hosts SET %s ON DUPLICATE KEY UPDATE %s";
-    private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, " +
+    private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, account_id=?, " +
             "state=IF(state!='%s' AND state!='%s' AND state!='%s', VALUES(state), state), " +
             "host_name=CASE WHEN host_name IS NULL THEN ? WHEN host_name=host_id THEN ? ELSE host_name END, " +
             "ip=CASE WHEN ip IS NULL THEN ? ELSE ip END";
@@ -70,6 +70,7 @@ public class DBHostDAOImpl implements HostDAO {
             "GROUP BY x.host_id HAVING count(*) = (SELECT count(*) FROM agents y WHERE y.host_id = x.host_id) ORDER BY host_id";
     private static final String GET_NEW_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE can_retire=0 AND group_name=? AND state not in (?,?,?)";
     private static final String GET_TERMINATING_HOST_IDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE state in (?, ?, ?) AND group_name=?";
+    private static final String GET_ACCOUNTID_BY_HOSTNAME = "SELECT DISTINCT account_id FROM hosts WHERE host_name=?";
 
     private BasicDataSource dataSource;
 
@@ -153,7 +154,7 @@ public class DBHostDAOImpl implements HostDAO {
         sb.setLength(sb.length() - 1);
         new QueryRunner(dataSource).update(String.format(INSERT_UPDATE_TEMPLATE, names, sb.toString(),
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                HostState.PENDING_TERMINATE_NO_REPLACE.toString()), ip, now, hostName, hostName, ip);
+                HostState.PENDING_TERMINATE_NO_REPLACE.toString()), ip, now, accountId, hostName, hostName, ip);
     }
 
     @Override
@@ -286,5 +287,11 @@ public class DBHostDAOImpl implements HostDAO {
         return new QueryRunner(dataSource).query(GET_TERMINATING_HOST_IDS_BY_GROUP,
         SingleResultSetHandlerFactory.<String>newListObjectHandler(), HostState.PENDING_TERMINATE.toString(),
                 HostState.TERMINATING.toString(), HostState.PENDING_TERMINATE_NO_REPLACE.toString(), groupName);
+    }
+
+    @Override
+    public String getAccountIdByHost(String hostName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_ACCOUNTID_BY_HOSTNAME,
+                SingleResultSetHandlerFactory.<String>newObjectHandler(), hostName);
     }
 }
