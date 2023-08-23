@@ -569,6 +569,7 @@ def create_host_type(request):
     host_type_info['mem'] = float(params['mem']) * 1024
     host_type_info['core'] = int(params['core'])
     host_type_info['storage'] = params['storage']
+    host_type_info['blessed_status'] = hosttypes_helper.BlessedStatusValues.ONBOARDING
     hosttypes_helper.create_host_type(request, host_type_info)
     return redirect('/clouds/hosttypes/')
 
