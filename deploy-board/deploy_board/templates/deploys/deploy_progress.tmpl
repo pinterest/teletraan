@@ -36,22 +36,16 @@
         {% endfor %}
     {% else %}
         {% for agentStat in report.agentStats %}
-            <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+               {% if report.showMode == "complete" or report.showMode == "compact" or report.showMode == "main" and agentStat.agent.accountId == 998131032990 or report.showMode == "sub" and agentStat.agent.accountId != 998131032990 %}
+               <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                title="{{ agentStat | agentTip }}">
-               {% if report.showMode == "complete" %}
+               {% if report.showMode != "compact" %}
                <small>{{ agentStat.agent.hostName }}</small>
+               {% endif %}
                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-               {% elif report.showMode == "compact" %}
-               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-               {% elif report.showMode == "main" and agentStat.agent.accountId == 998131032990 %}
-               <small>{{ agentStat.agent.hostName }}</small>
-               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-               {% elif report.showMode == "sub" and agentStat.agent.accountId != 998131032990 %}
-               <small>{{ agentStat.agent.hostName }}</small>
-               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+               </a>
                {% endif %}              
-            </a>
         {% endfor %}
     {% endif %}
 
