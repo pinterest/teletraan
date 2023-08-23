@@ -148,6 +148,7 @@ def gen_report(request, env, progress, sortByStatus="false"):
     deployStats[env['deployId']] = currentDeployStat
 
     for agent in progress["agents"]:
+        agent["accountId"] = hosts_helper.get_accout_id_by_name(agent["hostName"])
         if agent["firstDeploy"]:
             firstTimeAgentStats.append(addToEnvReport(request, deployStats, agent, env))
         else:

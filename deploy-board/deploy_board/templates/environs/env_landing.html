@@ -408,6 +408,24 @@ $('#privateBldUploadBtnId button').click(function () {
                         > Complete
                         </label></div>
                     </li>
+                    <li>
+                        <div class="radio"><label>&nbsp;
+                        <input type="radio" name="showMode" value="main"
+                        {% if report.showMode == "main" %}
+                        checked
+                        {% endif %}
+                        > Main Account
+                        </label></div>
+                    </li>
+                    <li>
+                        <div class="radio"><label>&nbsp;
+                        <input type="radio" name="showMode" value="sub"
+                        {% if report.showMode == "sub" %}
+                        checked
+                        {% endif %}
+                        > Sub Account
+                        </label></div>
+                    </li>
                     <li role="presentation" class="divider"></li>
                     <li>
                         <div class="checkbox"><label>&nbsp;

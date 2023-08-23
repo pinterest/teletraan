@@ -18,6 +18,10 @@
                            title="{{ agentStat | agentTip }}">
                            {% if report.showMode == "complete" %}
                            <small>{{ agentStat.agent.hostName }}</small>
+                           {% elif report.showMode == "main" and agentStat.agent.accountId == "998131032990" %}
+                           <small>{{ agentStat.agent.hostName }}</small>
+                           {% elif report.showMode == "sub" and agentStat.agent.accountId != "998131032990" %}
+                           <small>{{ agentStat.agent.hostName }}</small>
                            {% endif %}
                            <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                         </a>
@@ -32,6 +36,10 @@
                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                title="{{ agentStat | agentTip }}">
                {% if report.showMode == "complete" %}
+               <small>{{ agentStat.agent.hostName }}</small>
+               {% elif report.showMode == "main" and agentStat.agent.accountId == "998131032990" %}
+               <small>{{ agentStat.agent.hostName }}</small>
+               {% elif report.showMode == "sub" and agentStat.agent.accountId != "998131032990" %}
                <small>{{ agentStat.agent.hostName }}</small>
                {% endif %}
                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
