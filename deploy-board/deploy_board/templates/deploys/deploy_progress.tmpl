@@ -18,9 +18,9 @@
                            title="{{ agentStat | agentTip }}">
                            {% if report.showMode == "complete" %}
                            <small>{{ agentStat.agent.hostName }}</small>
-                           {% elif report.showMode == "main" and agentStat.agent.accountId == "998131032990" %}
+                           {% elif report.showMode == "main" and agentStat.agent.accountId == 998131032990 %}
                            <small>{{ agentStat.agent.hostName }}</small>
-                           {% elif report.showMode == "sub" and agentStat.agent.accountId != "998131032990" %}
+                           {% elif report.showMode == "sub" and agentStat.agent.accountId != 998131032990 %}
                            <small>{{ agentStat.agent.hostName }}</small>
                            {% endif %}
                            <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
@@ -37,10 +37,10 @@
                title="{{ agentStat | agentTip }}">
                {% if report.showMode == "complete" %}
                <small>{{ agentStat.agent.hostName }}</small>
-               {% elif report.showMode == "main" %}
-               <small>{{ agentStat.agent.accountId }}</small>
-               {% elif report.showMode == "sub" %}
-               <small>{{ agentStat.agent.accountId }}</small>
+               {% elif report.showMode == "main" and agentStat.agent.accountId == 998131032990 %}
+               <small>{{ agentStat.agent.hostName }}</small>
+               {% elif report.showMode == "sub" and agentStat.agent.accountId != 998131032990 %}
+               <small>{{ agentStat.agent.hostName }}</small>
                {% endif %}
                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
             </a>
