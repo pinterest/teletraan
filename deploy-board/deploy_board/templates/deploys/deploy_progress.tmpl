@@ -18,12 +18,16 @@
                            title="{{ agentStat | agentTip }}">
                            {% if report.showMode == "complete" %}
                            <small>{{ agentStat.agent.hostName }}</small>
+                           <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                           {% elif report.showMode == "compact" %}
+                           <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                            {% elif report.showMode == "main" and agentStat.agent.accountId == 998131032990 %}
                            <small>{{ agentStat.agent.hostName }}</small>
+                           <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                            {% elif report.showMode == "sub" and agentStat.agent.accountId != 998131032990 %}
                            <small>{{ agentStat.agent.hostName }}</small>
-                           {% endif %}
                            <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                           {% endif %}              
                         </a>
                     {% endif %}
                 {% endfor %}
@@ -37,12 +41,16 @@
                title="{{ agentStat | agentTip }}">
                {% if report.showMode == "complete" %}
                <small>{{ agentStat.agent.hostName }}</small>
+               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+               {% elif report.showMode == "compact" %}
+               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                {% elif report.showMode == "main" and agentStat.agent.accountId == 998131032990 %}
                <small>{{ agentStat.agent.hostName }}</small>
+               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                {% elif report.showMode == "sub" and agentStat.agent.accountId != 998131032990 %}
                <small>{{ agentStat.agent.hostName }}</small>
-               {% endif %}
                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+               {% endif %}              
             </a>
         {% endfor %}
     {% endif %}
