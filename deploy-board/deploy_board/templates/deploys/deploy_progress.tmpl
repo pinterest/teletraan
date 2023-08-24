@@ -58,7 +58,7 @@
                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                </a>
                {% elif report.showMode == "primaryAcct" %}
-               {% if not accountIds[agentStat.agent.hostId] or accountIds[agentStat.agent.hostId] == '998131032990' %}
+               {% if agentStat.agent.hostId == 'i-0ce811ae17e6c1b78' %}
                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                title="{{ agentStat | agentTip }}">              
@@ -67,7 +67,7 @@
                </a>
                {% endif %}
                {% elif report.showMode == "subAcct" %}
-               {% if accountIds[agentStat.agent.hostId] and accountIds[agentStat.agent.hostId] != '998131032990' %}
+               {% if agentStat.agent.hostId == 'i-0a6485b3eed813298' %}
                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                title="{{ agentStat | agentTip }}">              
