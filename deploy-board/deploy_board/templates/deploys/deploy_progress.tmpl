@@ -67,7 +67,7 @@
                </a>
                {% endif %}
                {% elif report.showMode == "subAcct" %}
-               {% if agentStat.agent.hostId == 'i-0a6485b3eed813298' %}
+               {% if accountIds['i-0a6485b3eed813298'] == 998131032990 %}
                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                title="{{ agentStat | agentTip }}">              
