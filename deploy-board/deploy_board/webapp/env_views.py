@@ -418,6 +418,7 @@ class EnvLandingView(View):
                 "env_promote": env_promote,
                 "stages": stages,
                 "report": report,
+                "yaqinTest": accountIds,
                 "accountIds": json.dumps(accountIds),
                 "has_deploy": True,
                 "metrics": metrics,
