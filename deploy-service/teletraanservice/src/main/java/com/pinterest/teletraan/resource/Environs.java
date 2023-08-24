@@ -215,7 +215,7 @@ public class Environs {
     }
 
     @GET
-    @Path("/{id : [a-zA-Z0-9\\-_]+}/accountIds")
+    @Path("/accountIds/{id : [a-zA-Z0-9\\-_]+}")
     @ApiOperation(
             value = "Get account id for a specific environment object",
             notes = "Returns a mapping object of host id and account id given an environment id",
