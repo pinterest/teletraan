@@ -93,22 +93,21 @@ public class Environs {
     }
 
     @GET
-    @Path("/accountIds/{id : [a-zA-Z0-9\\-_]+}")
+    @Path("/env/{envId : [a-zA-Z0-9\\-_]+}/accountIds")
     @ApiOperation(
             value = "Get account id for a specific environment object",
             notes = "Returns a mapping object of host id and account id given an environment id",
             response = String.class, responseContainer = "Map")
     public Map<String, String> getAccountIds(
-            @ApiParam(value = "Environment id", required = true)@PathParam("id") String id) throws Exception {
+            @ApiParam(value = "Environment id", required = true)@PathParam("envId") String envId) throws Exception {
         Map<String, String> result = new HashMap<String, String>();
-        /*List<AgentBean> agents = agentDAO.getAllByEnv(id);
+        List<AgentBean> agents = agentDAO.getAllByEnv(envId);
         for (int i = 0; i < agents.size(); i++) 
         {
             String hostId = agents.get(i).getHost_id();
             String accountId = hostDAO.getAccountIdByHostId(hostId);
             result.put(hostId, accountId);
-        }*/
-        result.put(id, id);
+        }
         return result;
     }
 

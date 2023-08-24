@@ -17,6 +17,8 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.HostDAO;
+
 import com.pinterest.teletraan.TeletraanServiceContext;
 
 import org.slf4j.Logger;
@@ -32,6 +34,8 @@ import javax.ws.rs.core.SecurityContext;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Path("/v1/agents")
 @Api(tags = "Agents")
@@ -45,9 +49,11 @@ import java.util.List;
 public class Agents {
     private static final Logger LOG = LoggerFactory.getLogger(Agents.class);
     private AgentDAO agentDAO;
+    private HostDAO hostDAO;
 
     public Agents(TeletraanServiceContext context) {
         agentDAO = context.getAgentDAO();
+        hostDAO = context.getHostDAO();
     }
 
     @GET
@@ -88,5 +94,24 @@ public class Agents {
     @Path("/hostcount")
     public long getCountTotalHosts() throws Exception {
         return agentDAO.countDeployedHosts();
+    }
+
+    @GET
+    @Path("/env/{envId : [a-zA-Z0-9\\-_]+}/accountIds")
+    @ApiOperation(
+            value = "Get account id for a specific environment object",
+            notes = "Returns a mapping object of host id and account id given an environment id",
+            response = String.class, responseContainer = "Map")
+    public Map<String, String> getAccountIds(
+            @ApiParam(value = "Environment id", required = true)@PathParam("envId") String envId) throws Exception {
+        Map<String, String> result = new HashMap<String, String>();
+        List<AgentBean> agents = agentDAO.getAllByEnv(envId);
+        for (int i = 0; i < agents.size(); i++) 
+        {
+            String hostId = agents.get(i).getHost_id();
+            String accountId = hostDAO.getAccountIdByHostId(hostId);
+            result.put(hostId, accountId);
+        }
+        return result;
     }
 }
