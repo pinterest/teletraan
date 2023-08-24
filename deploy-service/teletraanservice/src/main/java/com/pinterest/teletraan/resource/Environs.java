@@ -47,8 +47,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
 
 @Path("/v1/envs")
 @Api(tags = "Environments")
