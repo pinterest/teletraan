@@ -109,10 +109,4 @@ public class Hosts {
     public Collection<HostBean> getById(@PathParam("hostId") String hostId) throws Exception {
         return hostDAO.getHostsByHostId(hostId);
     }
-
-    @GET
-    @Path("/{hostName : [a-zA-Z0-9\\-_]+}/accountId")
-    public String getAccountIdByHost(@PathParam("hostName") String hostName) throws Exception {
-        return hostDAO.getAccountIdByHost(hostName);
-    }
 }

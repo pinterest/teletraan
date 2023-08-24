@@ -16,7 +16,7 @@
 """Helper functions to help generate agents views
 """
 from common import is_agent_failed
-from helpers import builds_helper, deploys_helper, environs_helper, clusters_helper, groups_helper, hosts_helper
+from helpers import builds_helper, deploys_helper, environs_helper, clusters_helper, groups_helper
 from deploy_board.settings import IS_PINTEREST
 import time
 import service_add_ons
@@ -148,7 +148,6 @@ def gen_report(request, env, progress, sortByStatus="false"):
     deployStats[env['deployId']] = currentDeployStat
 
     for agent in progress["agents"]:
-        agent["accountId"] = hosts_helper.get_accout_id_by_name(request, agent["hostName"])
         if agent["firstDeploy"]:
             firstTimeAgentStats.append(addToEnvReport(request, deployStats, agent, env))
         else:

@@ -411,12 +411,14 @@ class EnvLandingView(View):
             report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
             report.showMode = showMode
             report.sortByStatus = sortByStatus
+            accountIds = environs_helper.get_env_accountIds(env['id'])
             context = {
                 "envs": envs,
                 "env": env,
                 "env_promote": env_promote,
                 "stages": stages,
                 "report": report,
+                "accountIds": accountIds,
                 "has_deploy": True,
                 "metrics": metrics,
                 "metrics_dashboard_only": metrics_dashboard_only,

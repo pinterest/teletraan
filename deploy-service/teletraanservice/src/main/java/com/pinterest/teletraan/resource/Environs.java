@@ -23,8 +23,11 @@ import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
+import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
@@ -47,6 +50,8 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Path("/v1/envs")
 @Api(tags = "Environments")
@@ -71,6 +76,8 @@ public class Environs {
     private TagHandler tagHandler;
     private UserRolesDAO userRolesDAO;
     private final Authorizer authorizer;
+    private AgentDAO agentDAO;
+    private HostDAO hostDAO;
 
     @Context
     UriInfo uriInfo;
@@ -81,6 +88,8 @@ public class Environs {
         tagHandler = new EnvTagHandler(context);
         userRolesDAO = context.getUserRolesDAO();
         authorizer = context.getAuthorizer();
+        agentDAO = context.getAgentDAO();
+        hostDAO = context.getHostDAO();
     }
 
     @GET
@@ -203,5 +212,24 @@ public class Environs {
         tagBean.setComments(description);
         tagHandler.createTag(tagBean, operator);
         LOG.info(String.format("Successfully updated actions %s for all envs by %s", actionType, operator));
+    }
+
+    @GET
+    @Path("/{id : [a-zA-Z0-9\\-_]+}/accountIds")
+    @ApiOperation(
+            value = "Get account id for a specific environment object",
+            notes = "Returns a mapping object of host id and account id given an environment id",
+            response = EnvironBean.class)
+    public Map<String, String> getAccountIds(
+            @ApiParam(value = "Environment id", required = true)@PathParam("id") String id) throws Exception {
+        Map<String, String> result = new HashMap<String, String>();
+        List<AgentBean> agents = agentDAO.getAllByEnv(id);
+        for (int i = 0; i < agents.size(); i++) 
+        {
+            String hostId = agents.get(i).getHost_id();
+            String accountId = hostDAO.getAccountIdByHostId(hostId);
+            result.put(hostId, accountId);
+        }
+        return result;
     }
 }
