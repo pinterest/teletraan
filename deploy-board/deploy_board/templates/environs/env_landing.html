@@ -479,6 +479,8 @@ $('#privateBldUploadBtnId button').click(function () {
                 query_string += "&sortByStatus=false";
             }
             window.location ="/env/{{ env.envName }}/{{ env.stageName }}/deploy/?" + query_string;
+            console.log(report);
+            console.log(accountIds);
         });
     });
     </script>
