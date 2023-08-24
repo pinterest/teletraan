@@ -461,11 +461,7 @@ $('#privateBldUploadBtnId button').click(function () {
 
 
     <script>
-    var accountIdsInfo = {{accountIds | safe}};
-    var testInfo = {{yaqinTest | safe}};
-    $(function (accountIdsInfo, testInfo) {
-        console.log(testInfo);
-        console.log(accountIdsInfo);
+    $(function () {
         var startTime = new Date().getTime();
         $('#serviceAddOnsId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_service_add_ons/');
 
@@ -476,9 +472,7 @@ $('#privateBldUploadBtnId button').click(function () {
             $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}&sortByTag={{ report.sortByTag }}');
         }, 30000);
 
-        $(".dropdown-menu li").click(function(accountIdsInfo, testInfo) {
-            console.log(testInfo);
-            console.log(accountIdsInfo);
+        $(".dropdown-menu li").click(function()) {
             query_string = $("#updateModeFormId").serialize();
             // we need to explicitly turn off sortByStatus
             if (query_string.indexOf("sortByStatus") == -1) {
