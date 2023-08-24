@@ -418,7 +418,7 @@ class EnvLandingView(View):
                 "env_promote": env_promote,
                 "stages": stages,
                 "report": report,
-                "accountIds": accountIds,
+                "accountIds": json.dumps(accountIds),
                 "has_deploy": True,
                 "metrics": metrics,
                 "metrics_dashboard_only": metrics_dashboard_only,
