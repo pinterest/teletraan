@@ -316,6 +316,3 @@ def reset_hosts(request, env_name, stage_name, host_ids):
     params = [("actionType", "RESET")]
     return deployclient.put("/envs/%s/%s/deploys/hostactions" % (env_name, stage_name), request.teletraan_user_id.token,
                             params=params, data=host_ids)
-
-def get_env_accountIds(request, env_id):
-    return deployclient.get("/envs/%s/accountIds" % (env_id), request.teletraan_user_id.token)

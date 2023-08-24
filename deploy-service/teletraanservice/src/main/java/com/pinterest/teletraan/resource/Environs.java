@@ -23,11 +23,8 @@ import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.bean.UserRolesBean;
-import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
-import com.pinterest.deployservice.dao.AgentDAO;
-import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
@@ -76,8 +73,6 @@ public class Environs {
     private TagHandler tagHandler;
     private UserRolesDAO userRolesDAO;
     private final Authorizer authorizer;
-    private AgentDAO agentDAO;
-    private HostDAO hostDAO;
 
     @Context
     UriInfo uriInfo;
@@ -88,27 +83,6 @@ public class Environs {
         tagHandler = new EnvTagHandler(context);
         userRolesDAO = context.getUserRolesDAO();
         authorizer = context.getAuthorizer();
-        agentDAO = context.getAgentDAO();
-        hostDAO = context.getHostDAO();
-    }
-
-    @GET
-    @Path("/env/{envId : [a-zA-Z0-9\\-_]+}/accountIds")
-    @ApiOperation(
-            value = "Get account id for a specific environment object",
-            notes = "Returns a mapping object of host id and account id given an environment id",
-            response = String.class, responseContainer = "Map")
-    public Map<String, String> getAccountIds(
-            @ApiParam(value = "Environment id", required = true)@PathParam("envId") String envId) throws Exception {
-        Map<String, String> result = new HashMap<String, String>();
-        List<AgentBean> agents = agentDAO.getAllByEnv(envId);
-        for (int i = 0; i < agents.size(); i++) 
-        {
-            String hostId = agents.get(i).getHost_id();
-            String accountId = hostDAO.getAccountIdByHostId(hostId);
-            result.put(hostId, accountId);
-        }
-        return result;
     }
 
     @GET
