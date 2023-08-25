@@ -154,7 +154,7 @@ def gen_report(request, env, progress, sortByStatus="false"):
         accountIdMap[host['hostId']] = host['accountId']
 
     for agent in progress["agents"]:
-        agent['accountId'] = accountIdMap.get(agent['hostId'], "null")
+        agent['accountId'] = accountIdMap.get(agent['hostId'])
         if agent["firstDeploy"]:
             firstTimeAgentStats.append(addToEnvReport(request, deployStats, agent, env))
         else:
