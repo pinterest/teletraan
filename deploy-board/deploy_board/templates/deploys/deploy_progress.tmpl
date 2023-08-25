@@ -23,7 +23,7 @@
                         <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                         </a>
                         {% elif report.showMode == "primaryAcct" %}
-                        {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" %}
+                        {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
                         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                         type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                         title="{{ agentStat | agentTip }}">              
@@ -32,7 +32,7 @@
                         </a>
                         {% endif %}
                         {% elif report.showMode == "subAcct" %}
-                        {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" %}
+                        {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
                         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                         type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                         title="{{ agentStat | agentTip }}">              
