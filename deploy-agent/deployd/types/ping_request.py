@@ -20,7 +20,7 @@ from deployd.types.agent_status import AgentStatus
 class PingRequest(object):
 
     def __init__(self, hostId=None, hostName=None, hostIp=None, groups=None, reports=None,
-                agentVersion=None, autoscalingGroup=None, availabilityZone=None, stageType=None):
+                agentVersion=None, autoscalingGroup=None, availabilityZone=None, stageType=None, accountId=None):
         self.hostId = hostId
         self.hostName = hostName
         self.hostIp = hostIp
@@ -30,6 +30,7 @@ class PingRequest(object):
         self.autoscalingGroup = autoscalingGroup
         self.availabilityZone = availabilityZone
         self.stageType = stageType
+        self.accountId = accountId
 
     def to_json(self):
         ping_requests = {}
@@ -46,6 +47,9 @@ class PingRequest(object):
             ping_requests["stageType"] = self.stageType
         if self.groups:
             ping_requests["groups"] = list(self.groups)
+        if self.accountId:
+            ping_requests["accountId"] = self.accountId
+
         ping_requests["reports"] = []
         for report in self.reports:
             ping_report = {}
@@ -75,6 +79,6 @@ class PingRequest(object):
 
     def __str__(self):
         return "PingRequest(hostId={}, hostName={}, hostIp={}, agentVersion={}, autoscalingGroup={}, " \
-            "availabilityZone={}, stageType={}, groups={}, reports={})".format(self.hostId, self.hostName, 
+            "availabilityZone={}, stageType={}, groups={}, accountId={}, reports={})".format(self.hostId, self.hostName, 
             self.hostIp, self.agentVersion, self.autoscalingGroup, self.availabilityZone, self.stageType,
-            self.groups, ",".join(str(v) for v in self.reports))
+            self.groups, self.accountId, ",".join(str(v) for v in self.reports))

@@ -183,6 +183,7 @@ def clone_from_stage_name(request, env_name, stage_name, from_env_name, from_sta
     new_data['emailRecipients'] = from_stage['emailRecipients']
     new_data['notifyAuthors'] = from_stage['notifyAuthors']
     new_data['watchRecipients'] = from_stage['watchRecipients']
+    new_data['groupMentionRecipients'] = from_stage['groupMentionRecipients']
     new_data['maxDeployNum'] = from_stage['maxDeployNum']
     new_data['maxDeployDay'] = from_stage['maxDeployDay']
     new_data['overridePolicy'] = from_stage['overridePolicy']

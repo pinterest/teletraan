@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -47,7 +47,7 @@ public class HotfixStateTransitioner implements Runnable {
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
     // TODO make this configurable
-    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 60;
+    private static final int HOTFIX_JOB_DURATION_TIMEOUT = 180;
 
     public HotfixStateTransitioner(ServiceContext serviceContext) {
         hotfixDAO = serviceContext.getHotfixDAO();
@@ -155,7 +155,7 @@ public class HotfixStateTransitioner implements Runnable {
                         // Jenkins job has returned a failure status
                         if (status.equals("FAILURE")) {
                             hotBean.setState(HotfixState.FAILED);
-                            hotBean.setError_message("Failed to create hotfix, see " + jenkinsUrl + "/" + 
+                            hotBean.setError_message("Failed to create hotfix, see " + jenkinsUrl + "/" +
                                 hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state PUSHING for hotfix id " + hotfixId);
@@ -230,10 +230,13 @@ public class HotfixStateTransitioner implements Runnable {
             // Send chat message
             List<EnvironBean> environBeans = environDAO.getByName(hotBean.getEnv_name());
             Set<String> chatroomSet = new HashSet<String>();
+            Set<String> groupMentionRecipientSet = new HashSet<String>();
             for (EnvironBean environBean : environBeans) {
                 chatroomSet.add(environBean.getChatroom());
+                groupMentionRecipientSet.add(environBean.getGroup_mention_recipients());
             }
             String chatrooms = StringUtils.join(chatroomSet, ",");
+            String groupMentionRecipients = StringUtils.join(groupMentionRecipientSet, ",");
             DeployBean deployBean = deployDAO.getById(hotBean.getBase_deploy());
             BuildBean buildBean = buildDAO.getById(deployBean.getBuild_id());
             String commit = buildBean.getScm_commit();
@@ -241,7 +244,7 @@ public class HotfixStateTransitioner implements Runnable {
             String branch = "hotfix_" + name;
             String message = name + " just created a hotfix in " + branch + " branch, and including commit(s) " +
                 hotBean.getCommits() + " on top of commit " + commit;
-            commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow");
+            commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow", groupMentionRecipients);
 
             LOG.info("Hotfix Id {} is finished and now in the SUCCEEDED state.", hotfixId);
         } else {

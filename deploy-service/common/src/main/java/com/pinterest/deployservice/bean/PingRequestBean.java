@@ -40,6 +40,8 @@ public class PingRequestBean {
 
     private Set<String> groups;
 
+    private String accountId;
+
     private List<PingReportBean> reports;
 
     public String getHostId() {
@@ -108,6 +110,14 @@ public class PingRequestBean {
 
     public List<PingReportBean> getReports() {
         return reports;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 
     public void setReports(List<PingReportBean> reports) {

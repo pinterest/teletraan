@@ -17,9 +17,10 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
+from django.contrib.messages import get_messages
 from django.views.generic import View
 
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import IS_PINTEREST, RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
@@ -971,6 +972,110 @@ def enable_cluster_replacement(request, name, stage):
     clusters_helper.enable_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
+def gen_cluster_replacement_view(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+    get_cluster_replacement_body = {
+        "clusterName" : cluster_name
+    }
+    replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
+
+    storage = get_messages(request)
+
+    content = render_to_string("clusters/cluster-replacements.tmpl", {
+        "env": env,
+        "env_name": name,
+        "env_stage": stage,
+        "cluster_name": cluster_name,
+        "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
+        "csrf_token": get_token(request),
+        "storage": storage,
+        "cluster_replacement_wiki_url": RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
+    })
+
+    return HttpResponse(content)
+
+def get_cluster_replacement_details(request, name, stage, replacement_id):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+    get_cluster_replacement_details_body = {
+        "clusterName": cluster_name,
+        "replacementIds": [replacement_id] 
+    }
+    replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_details_body)
+
+    content = render_to_string("clusters/cluster-replacement-details.tmpl", {
+        "env": env,
+        "env_name": name,
+        "env_stage": stage,
+        "cluster_name": cluster_name,
+        "replace_summary": replace_summaries["clusterRollingUpdateStatuses"][0],
+        "csrf_token": get_token(request),
+        "cluster_replacement_wiki_url": RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
+    })
+    return HttpResponse(content)
+
+def start_cluster_replacement(request, name, stage):
+    params = request.POST
+    cluster_name = common.get_cluster_name(request, name, stage)
+    skipMatching = False
+    scaleInProtectedInstances = 'Ignore'
+    
+    checkpointPercentages = []
+    if (params['checkpointPercentages']):
+        checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
+
+    if "skipMatching" in params:
+        skipMatching = True
+
+    if "replaceProtectedInstances" in params:
+        scaleInProtectedInstances = 'Refresh'
+
+    rollingUpdateConfig = {}
+    rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+    rollingUpdateConfig["skipMatching"] = skipMatching
+    rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
+    rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
+    rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
+    
+    start_cluster_replacement = {}
+    start_cluster_replacement["clusterName"] = cluster_name
+    start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
+
+    log.info("Starting to replace cluster {0}".format(cluster_name))
+
+    try:
+        perform_cluster_replacement_action(request, name, stage, 'resume', includeMessage=False)
+        clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
+        messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
+    except TeletraanException as ex:
+        if "already in progress" in str(ex) and "409" in str(ex):
+            messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
+        else:
+            messages.warning(request, str(ex), "cluster-replacements")
+    
+    return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
+
+def perform_cluster_replacement_action(request, name, stage, action, includeMessage=True):
+    cluster_name = common.get_cluster_name(request, name, stage)
+    log.info("Starting to {0} cluster replacement for cluster {1}".format(action, cluster_name))
+
+    try:
+        clusters_helper.perform_cluster_replacement_action(request, cluster_name, action)
+        if includeMessage:
+            if action == 'pause':
+                messages.success(request, "Paused successfully", "cluster-replacements")
+            elif action == 'resume':
+                messages.success(request, "Resumed successfully", "cluster-replacements")
+            else:
+                messages.success(request, "Canceled successfully", "cluster-replacements")
+    except TeletraanException as ex:
+        if "active replacement" in str(ex) and "409" in str(ex):
+            messages.warning(request, "There is no active replacement to cancel", "cluster-replacements")
+        else:
+            messages.warning(request, str(ex), "cluster-replacements")
+
+    return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
 
 def pause_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -1059,92 +1164,6 @@ def get_replacement_summary(request, cluster_name, event, current_capacity):
             'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity)
         }
 
-
-def cluster_replacement_progress(request, name, stage):
-    env = environs_helper.get_env_by_stage(request, name, stage)
-
-    cluster_name = '{}-{}'.format(name, stage)
-    replacement_event = clusters_helper.get_latest_cluster_replacement_progress(
-        request, cluster_name)
-    if not replacement_event:
-        log.info("There is no on-going replacement event for cluster %s." %
-                 cluster_name)
-        return HttpResponse("There is no on-going replacement.")
-
-    # basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
-    # capacity = basic_cluster_info.get("capacity")
-    # should not respect the cluster capacity here, when min != max, the capacity is not a right number
-    asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, cluster_name)
-    desired_capacity = None
-    if asg_summary:
-        desired_capacity = asg_summary.get("desiredCapacity")
-    if not desired_capacity:
-        error_msg = "cluster %s has wrong desired_capacity: %s, asg_summary: %s" % \
-                    (cluster_name, desired_capacity, asg_summary)
-        log.error(error_msg)
-        return HttpResponse(error_msg, status=500, content_type="application/json")
-
-    replacement_progress = get_replacement_summary(
-        request, cluster_name, replacement_event, desired_capacity)
-
-    html = render_to_string('clusters/replace_progress.tmpl', {
-        "env": env,
-        "replace_progress_report": replacement_progress
-    })
-    response = HttpResponse(html)
-    return response
-
-
-def cluster_replacement_details(request, name, stage):
-    cluster_name = '{}-{}'.format(name, stage)
-    replacement_event = clusters_helper.get_latest_cluster_replacement_progress(
-        request, cluster_name)
-    if not replacement_event:
-        return HttpResponse("{}", content_type="application/json")
-    return HttpResponse(json.dumps(replacement_event), content_type="application/json")
-
-
-def view_cluster_replacement_details(request, name, stage, replacement_id):
-    env = environs_helper.get_env_by_stage(request, name, stage)
-    cluster_name = '{}-{}'.format(name, stage)
-
-    replacement_event = clusters_helper.get_cluster_replacement_info(
-        request, cluster_name, replacement_id)
-    if not replacement_event:
-        raise Exception("Replacement Id: %s Not Found.")
-
-    basic_cluster_info = clusters_helper.get_cluster(request, cluster_name)
-    capacity = basic_cluster_info.get("capacity")
-    replacement_details = get_replacement_summary(
-        request, cluster_name, replacement_event, capacity)
-    config_histories = clusters_helper.get_cluster_replacement_config_histories(
-        request, cluster_name, replacement_id)
-    return render(request, 'clusters/cluster_replace_details.html', {
-        "replace": replacement_details,
-        "config_histories": config_histories,
-        "env": env
-    })
-
-
-def view_cluster_replacement_scaling_activities(request, name, stage):
-    cluster_name = '{}-{}'.format(name, stage)
-    scaling_activities = autoscaling_groups_helper.get_scaling_activities(
-        request, cluster_name, 20, '')
-    activities = json.dumps(scaling_activities["activities"])
-    return HttpResponse(activities, content_type="application/json")
-
-
-def view_cluster_replacement_schedule(request, name, stage, replacement_id):
-    env = environs_helper.get_env_by_stage(request, name, stage)
-    cluster_name = '{}-{}'.format(name, stage)
-    schedule = clusters_helper.get_cluster_replacement_schedule(
-        request, cluster_name, replacement_id)
-    return render(request, 'clusters/replace_schedule.html', {
-        "env": env,
-        "schedule": schedule
-    })
-
-
 class ClusterHistoriesView(View):
     def get(self, request, name, stage):
         env = environs_helper.get_env_by_stage(request, name, stage)
@@ -1170,7 +1189,6 @@ class ClusterHistoriesView(View):
             "replace_summaries": replace_summaries
         }
         return render(request, 'clusters/replace_histories.html', data)
-
 
 class ClusterBaseImageHistoryView(View):
 

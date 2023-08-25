@@ -73,6 +73,11 @@ def get_host_id(hosts):
         return hosts[0].get('hostId')
     return None
 
+def get_account_id(hosts):
+    if hosts:
+        return hosts[0].get('accountId')
+    return None
+
 
 def _get_cloud(json_obj):
     try:
@@ -123,6 +128,7 @@ class GroupHostDetailView(View):
     def get(self, request, groupname, hostname):
         hosts = hosts_helper.get_hosts_by_name(request, hostname)
         host_id = get_host_id(hosts)
+        account_id = get_account_id(hosts)
         asg = get_asg_name(request, hosts)
 
         show_terminate = get_show_terminate(hosts)
@@ -135,6 +141,7 @@ class GroupHostDetailView(View):
             'hostname': hostname,
             'hosts': hosts,
             'host_id': host_id,
+            'account_id': account_id,
             'agent_wrappers': agent_wrappers,
             'show_warning_message': show_warning_message,
             'asg_group': asg,
@@ -158,6 +165,7 @@ class HostDetailView(View):
 
         hosts = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
         host_id = get_host_id(hosts)
+        account_id = get_account_id(hosts)
         show_terminate = get_show_terminate(hosts)
         show_warning_message = not show_terminate
         asg = get_asg_name(request, hosts)
@@ -176,6 +184,7 @@ class HostDetailView(View):
             'hostname': hostname,
             'hosts': hosts,
             'host_id': host_id,
+            'account_id': account_id,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
             'show_warning_message': show_warning_message,
