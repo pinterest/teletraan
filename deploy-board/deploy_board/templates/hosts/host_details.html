@@ -59,7 +59,9 @@
 <div id="hostDetailId" class="collapse in panel-body table-responsive">
 <table class="table table-striped table-bordered table-condensed table-hover">
     <tr>  
-        <th class="col-lg-1">AWS Acccount Id</th>
+        {% if account_id %}
+        <th class="col-lg-1">Acccount Id</th>
+        {% endif %}
         <th class="col-lg-1">Host Name</th>
         <th class="col-lg-2">Host Id</th>
         <th class="col-lg-2">Host Group</th>
@@ -70,7 +72,9 @@
     </tr>
     {% for host in hosts %}
     <tr class="{{ host.state|hostStateClass}}">
+        {% if account_id %}
         <td>{{ host.accountId }}</td>
+        {% endif %}
         <td>{{ host.hostName }}</td>
         <td>{{ host.hostId }}</td>
         <td>{{ host.groupName }}</td>
