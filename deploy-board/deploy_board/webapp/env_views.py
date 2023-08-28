@@ -1354,6 +1354,38 @@ def get_failed_hosts(request, name, stage):
     })
 
 
+# get all sub account hosts
+def get_sub_account_hosts(request, name, stage):
+    envs = environs_helper.get_all_env_stages(request, name)
+    stages, env = common.get_all_stages(envs, stage)
+    agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
+    if agents:
+        sorted(agents, key=lambda x:x['hostName'])
+    title = "Sub Account Hosts"
+
+    # construct a map between host_id and account_id
+    hosts = environ_hosts_helper.get_hosts(request, env['envName'], env['stageName'])
+    accountIdMap = {}
+    for host in hosts:
+        accountIdMap[host['hostId']] = host['accountId']
+
+    agents_wrapper = {}
+    for agent in agents:
+        if not accountIdMap.get(agent['hostId']) or accountIdMap.get(agent['hostId']) == "null" or accountIdMap.get(agent['hostId']) == "998131032990":
+            continue 
+        if agent['deployId'] not in agents_wrapper:
+            agents_wrapper[agent['deployId']] = []
+        agents_wrapper[agent['deployId']].append(agent)
+
+    return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
+        "env": env,
+        "stages": stages,
+        "agents_wrapper": agents_wrapper,
+        "title": title,
+    })
+
+
 def get_pred_deploys(request, name, stage):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
