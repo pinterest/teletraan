@@ -31,9 +31,8 @@ from deployd.common.env_status import EnvStatus
 from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_increment
 from deployd.common import utils
 from deployd.common.executor import Executor
-from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
-    DeployError, DeployErrorSource, DeployStage, AgentStatus
-from deployd import IS_PINTEREST, MAIN_LOGGER
+from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, DeployStage, AgentStatus
+from deployd import __version__, IS_PINTEREST, MAIN_LOGGER
 
 log = logging.getLogger(MAIN_LOGGER)
 
@@ -470,6 +469,8 @@ def main():
     parser.add_argument('--script-variables', dest='script_variables', default='{}',
                         help="Optional. In 'serverless' mode,  script_variables is needed in "
                              "json format.")
+    parser.add_argument('-v', '--version', action='version',
+                        version=__version__, help='Deploy agent version.')
 
     args = parser.parse_args()
 
