@@ -112,7 +112,7 @@ class DeployAgent(object):
         if deploy_report.status_code:
             tags['status_code'] = deploy_report.status_code
             
-        create_sc_increment('deployd.stats.deploy.status', tags=tags)
+        create_sc_increment('deployd.stats.deploy.status.sum', tags=tags)
         
     def serve_build(self):
         """This is the main function of the ``DeployAgent``.
