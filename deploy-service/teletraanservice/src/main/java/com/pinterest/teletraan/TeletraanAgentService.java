@@ -16,7 +16,6 @@
 package com.pinterest.teletraan;
 
 import com.pinterest.teletraan.health.GenericHealthCheck;
-import com.pinterest.teletraan.health.HealthCheckController;
 import com.pinterest.teletraan.resource.Pings;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
@@ -38,7 +37,13 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
                         new EnvironmentVariableSubstitutor(false)
                 )
         );
-    }
+        bootstrap.addBundle(new HealthCheckBundle<TeletraanServiceConfiguration>() {
+            @Override
+            protected HealthConfiguration getHealthConfiguration(final TeletraanServiceConfiguration configuration) {
+                return configuration.getHealthConfiguration();
+            }
+        });
+        }
 
     @Override
     public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
