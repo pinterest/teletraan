@@ -21,6 +21,8 @@ import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.health.conf.HealthConfiguration;
+import io.dropwizard.health.core.HealthCheckBundle;
 import io.dropwizard.setup.Bootstrap;
 
 public class TeletraanAgentService extends Application<TeletraanServiceConfiguration> {
@@ -54,8 +56,6 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
         environment.jersey().register(pings);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
-
-        environment.jersey().register(new HealthCheckController(environment.healthChecks()));
     }
 
     public static void main(String[] args) throws Exception {
