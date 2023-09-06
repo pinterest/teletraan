@@ -454,7 +454,7 @@
                 currentProvider: currentCluster.provider,
                 currentCell: currentCluster.cellName,
                 currentArch: currentCluster.archName,
-                currentStatefulStatus: getObjectKey(statefulOptions, currentCluster.statefulStatus),
+                currentStatefulStatus: currentCluster.statefulStatus,
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
                         value: item.id,
@@ -476,7 +476,7 @@
                         text: o
                     }
                 }),
-                statefulStatusOptions: Object.keys(statefulOptions).map(function(o) {
+                statefulStatusOptions: statefulOptions.map(function(o) {
                     return {
                         value: o,
                         text: o

@@ -201,8 +201,8 @@ var capacitySetting = new Vue({
         showSecurityZoneHelp: false,
         showPlacementsHelp: false,
         accessRoleHelpText: "Please enter a valid access role",
-        selectedStatefulStatus: getObjectKey(statefulOptions, capacityCreationInfo.stateful_status),
-        statefulStatusOptions: Object.keys(statefulOptions).map(function(o) {
+        selectedStatefulStatus: capacityCreationInfo.stateful_status,
+        statefulStatusOptions: statefulOptions.map(function(o) {
             return {
                 value: o,
                 text: o

@@ -25,7 +25,7 @@ if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST, \
-        ENABLE_AMI_AUTO_UPDATE, DEFAULT_STATEFUL_STATUS, STATEFUL_STATUS_OPTIONS
+        ENABLE_AMI_AUTO_UPDATE
 
 import json
 import logging
@@ -73,8 +73,8 @@ class EnvCapacityBasicCreateView(View):
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'access_role_list': ACCESS_ROLE_LIST,
             'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
-            'stateful_status': DEFAULT_STATEFUL_STATUS,
-            'stateful_options': STATEFUL_STATUS_OPTIONS
+            'stateful_status': clusters_helper.StatefulStatuses.get_status(None),
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
         }
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
@@ -168,8 +168,8 @@ class EnvCapacityAdvCreateView(View):
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
-            'stateful_status': DEFAULT_STATEFUL_STATUS,
-            'stateful_options': STATEFUL_STATUS_OPTIONS
+            'stateful_status': clusters_helper.StatefulStatuses.get_status(None),
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
         }
         # cluster manager
         return render(request, 'configs/new_capacity_adv.html', {
@@ -242,6 +242,8 @@ class ClusterConfigurationView(View):
         base_images_names = baseimages_helper.get_image_names_by_arch(
             request, current_cluster['provider'], current_cluster['cellName'], current_cluster['archName'])
 
+        current_cluster['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(current_cluster['statefulStatus'])
+
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
 
@@ -266,7 +268,7 @@ class ClusterConfigurationView(View):
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'currentCluster': current_cluster,
             'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
-            'stateful_options': STATEFUL_STATUS_OPTIONS
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
         }
 
         return render(request, 'clusters/cluster_configuration.html', {
@@ -1000,7 +1002,7 @@ def get_cluster_replacement_details(request, name, stage, replacement_id):
     cluster_name = '{}-{}'.format(name, stage)
     get_cluster_replacement_details_body = {
         "clusterName": cluster_name,
-        "replacementIds": [replacement_id] 
+        "replacementIds": [replacement_id]
     }
     replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_details_body)
 
@@ -1020,7 +1022,7 @@ def start_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     skipMatching = False
     scaleInProtectedInstances = 'Ignore'
-    
+
     checkpointPercentages = []
     if (params['checkpointPercentages']):
         checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
@@ -1037,7 +1039,7 @@ def start_cluster_replacement(request, name, stage):
     rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
     rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
     rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
-    
+
     start_cluster_replacement = {}
     start_cluster_replacement["clusterName"] = cluster_name
     start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
@@ -1053,7 +1055,7 @@ def start_cluster_replacement(request, name, stage):
             messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
         else:
             messages.warning(request, str(ex), "cluster-replacements")
-    
+
     return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
 
 def perform_cluster_replacement_action(request, name, stage, action, includeMessage=True):

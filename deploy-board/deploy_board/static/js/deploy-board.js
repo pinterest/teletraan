@@ -56,10 +56,6 @@ function getUrlParameter(sParam) {
     }
 }
 
-function getObjectKey(obj, value) {
-    return Object.keys(obj).find(key => obj[key] === value);
-}
-
 function getRemainingCapacity(capacityInfo, placementList) {
     if (!capacityInfo || !placementList) {
         return Infinity;
