@@ -138,7 +138,7 @@
         });
 
         const queryString = `exclude=${filteredOutTypes.join()}`
-        const url = '/groups/{{ envName }}-{{ stageName }}/config_history/?' + queryString
+        const url = '/groups/{{ group_name }}/config_history/?' + queryString
         window.location=url;
     });
 
