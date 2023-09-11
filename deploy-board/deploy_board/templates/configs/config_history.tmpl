@@ -1,17 +1,57 @@
 {% load utils %}
 {% load static %}
 
+
+{% regroup configs2 by type as configsByType %}
+<div class="modal fade" id="filterConfigModalId" tabindex="-1" role="dialog" aria-labelledby="deleteClusterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <form id="filterConfigTypesFormId">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Filter Config Type</h4>
+                </div>
+
+                <div class="modal-body" id="newMetricModal">
+                    <p>Select which config types to display</p>
+
+                    {% for config in configsByType %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="exclude" value="{{ config.grouper }}" id="{{ config.grouper }}"
+                        {% if config.grouper not in excludedTypes %} checked {% else %} '' {% endif %}>
+                        <label class="form-check-label" for="{{ config.grouper }}">
+                                
+                            {{config.grouper}}
+                        </label>
+                    </div>
+                    {% endfor %}
+                    
+                </div>
+
+                <div class="modal-footer">
+                    <button id="addMetricBtnId" type="submit" class="btn btn-primary">Save</button>
+                    <button id="modalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            <form> 
+        </div>
+    </div>
+</div>
+
 <form name="env_config_history_list">
-    <table id="envConfigHistoryTableId" class="table table-condensed table-striped table-hover sortable">
-        <thead>
-        <tr>
+    <table id="envConfigHistoryTableId" class="table table-condensed table-striped table-hover">
+        <tr class="align-middle">
             <th class="col-sm-1"></th>
             <th class="col-lg-2">Time</th>
             <th class="col-lg-1">Operator</th>
-            <th class="col-lg-2">Type</th>
+            <th class="col-lg-2">
+                Type
+                <span class="fa fa-filter btn btn-xs {% if excludedTypes|length > 0 %} bg-info {% else %} btn-default {% endif %}" data-toggle="modal" data-target="#filterConfigModalId" />
+            </th>
             <th class="col-lg-4">Configuration Change</th>
         </tr>
-        </thead>
+        <tbody>
+
         {% for config in configs %}
         <tr>
             <td>
@@ -39,6 +79,8 @@
             </td>
         </tr>
         {% endfor %}
+    </tbody>
+
     </table>
     <button type="button" id="compareConfigsBtn" class="btn btn-default">Compare configs in new tab</button>
 </form>
@@ -48,7 +90,7 @@
 
     jQuery(function(){
         var maxCheckedAllowed = 2;
-        var checkboxes = $('input[type="checkbox"]');
+        var checkboxes = $('env_config_history_list', 'input[type="checkbox"]');
             checkboxes.change(function(){
                 var numChecked = checkboxes.filter(':checked').length;
                 checkboxes.filter(':not(:checked)').prop('disabled', numChecked >= maxCheckedAllowed);
@@ -82,4 +124,23 @@
             }
         });
     });
+
+    $("#filterConfigTypesFormId").submit(function (e) {
+        e.preventDefault()
+        e.stopPropagation() 
+
+        const filteredOutTypes = [];
+        $('input[type="checkbox"]:not(:checked)').each(function(){
+            filteredOutTypes.push($(this).val());
+        });
+        
+        const queryString = `exclude=${filteredOutTypes.join()}`
+        const url = '/env/{{ envName }}/{{ stageName }}/config_history/?' + queryString
+        window.location=url;
+    });
+
+    $("#filterConfigModalId").on('hide.bs.modal', function(){
+        $("#filterConfigTypesFormId").trigger('reset');
+    });
+
 </script>
