@@ -2,7 +2,7 @@
 {% load static %}
 
 
-{% regroup configs by type as configsByType %}
+{% regroup configs|dictsort:'type' by type as configsByType %}
 <div class="modal fade" id="filterConfigModalId" tabindex="-1" role="dialog" aria-labelledby="deleteClusterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
