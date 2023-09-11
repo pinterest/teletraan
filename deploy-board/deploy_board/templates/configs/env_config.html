@@ -179,7 +179,7 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-{% include "environs/new_stage_modal.tmpl" with envName=env.envName %}
+{% include "environs/new_stage_modal.tmpl" with envName=env.envName stages=stages %}
 {% include "environs/remove_stage_modal.tmpl" with envName=env.envName stageName=env.stageName %}
 {% endblock %}
 

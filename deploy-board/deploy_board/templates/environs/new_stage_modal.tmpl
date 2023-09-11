@@ -29,8 +29,14 @@
                         <label for="after" class="control-label col-md-2">Clone from</label>
 
                         <div class="col-md-10">
-                            <input type="text" class="form-control" name="from_stage"
-                                   placeholder="existing stage to clone from.">
+                            <select class="form-control" name="from_stage">
+                                <option selected />
+                                {% for stage in stages %}
+                                <option value={{ stage }}>
+                                    {{stage}}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                     <div class="form-group">
