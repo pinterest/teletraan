@@ -343,6 +343,7 @@ if IS_PINTEREST:
     # TODO: The model for host type should be rebuilt based on a unique abstract factor such as ec2 instance type, for now we should keep expected behavior.
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
     DEFAULT_CMP_ARM_HOST_TYPE = 'EbsComputeXLoArm'
+    HOST_TYPE_ROADMAP_LINK = os.getenv("HOST_TYPE_ROADMAP_LINK")
 
 
     DEFAULT_CELL = 'aws-us-east-1'

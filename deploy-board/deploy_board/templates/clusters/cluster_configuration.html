@@ -27,7 +27,7 @@
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2023.01.30"></script>
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2023.01.30"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.01.30"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.08.22"></script>
 <script type="text/javascript" src="{% static "js/base-image-utils.js"%}?changedate=2023.01.30"></script>
 
 <div class="panel panel-default" id="side-panel">
@@ -1026,6 +1026,13 @@
                 .change(function() {
                     capacitySetting.selectedPlacements = $('.chosen-select').val()
                 });
+
+           var selectedHostTypeObject = info.hostTypes.find(hostType => hostType.id === capacitySetting.selectedHostTypeValue);
+           var hostTypeRoadmapLink = "{{ host_type_roadmap_link }}"
+
+            if (selectedHostTypeObject.blessed_status === "DECOMMISSIONING" || selectedHostTypeObject.retired === true) {
+                globalNotificationBanner.error = "This cluster is currently using an unblessed Instance Type. Please refer to " + hostTypeRoadmapLink + " for the recommended Instance Type.";
+            }
         });
     }
     else{
