@@ -2,7 +2,7 @@
 {% load static %}
 
 
-{% regroup configs2 by type as configsByType %}
+{% regroup configs by type as configsByType %}
 <div class="modal fade" id="filterConfigModalId" tabindex="-1" role="dialog" aria-labelledby="deleteClusterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
@@ -20,7 +20,6 @@
                         <input class="form-check-input" type="checkbox" name="exclude" value="{{ config.grouper }}" id="{{ config.grouper }}"
                         {% if config.grouper not in excludedTypes %} checked {% else %} '' {% endif %}>
                         <label class="form-check-label" for="{{ config.grouper }}">
-                                
                             {{config.grouper}}
                         </label>
                     </div>
@@ -53,6 +52,7 @@
         <tbody>
 
         {% for config in configs %}
+        {% if config.type not in excludedTypes %}
         <tr>
             <td>
                 <input type="checkbox" value="{{ config.type }}_{{ config.replaced_config }}" name="chkbox_{{ config.changeId }}">
@@ -78,6 +78,7 @@
             {% endwith %}
             </td>
         </tr>
+        {% endif %}
         {% endfor %}
     </tbody>
 
@@ -90,7 +91,7 @@
 
     jQuery(function(){
         var maxCheckedAllowed = 2;
-        var checkboxes = $('env_config_history_list', 'input[type="checkbox"]');
+        var checkboxes = $('#envConfigHistoryTableId input[type="checkbox"]');
             checkboxes.change(function(){
                 var numChecked = checkboxes.filter(':checked').length;
                 checkboxes.filter(':not(:checked)').prop('disabled', numChecked >= maxCheckedAllowed);
@@ -130,7 +131,7 @@
         e.stopPropagation() 
 
         const filteredOutTypes = [];
-        $('input[type="checkbox"]:not(:checked)').each(function(){
+        $('#filterConfigTypesFormId input[type="checkbox"]:not(:checked)').each(function(a){
             filteredOutTypes.push($(this).val());
         });
         

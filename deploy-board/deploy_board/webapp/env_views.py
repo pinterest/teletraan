@@ -1495,49 +1495,7 @@ def get_env_config_history(request, name, stage):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
-
-    
-    # CONFIG_TYPES = [
-    #     "Host Action",
-    #     "Cluster Action",
-    #     "Cluster Deletion",
-    #     "Cluster Config",
-    #     "Cluster Clone",
-    #     "Cluster Creation",
-    #     "Host Action",
-    #     "Asg General Config",
-    #     "ASG Config Change",
-    #     "Asg Pas Config",
-    #     "Asg ALARM Action",
-    #     "Asg Scheduled Action",
-    #     "Asg Scaling Alarm",
-    #     "Asg Scaling Policy",
-    #     "Asg Scaling Action",
-    #     "Asg Scaling Group",
-    #     "Asg Launch Config",
-    # ]
-
-    configs2 = [
-        {"type": "Host Action", "name": "Ian1"},
-        {"type": "Cluster Action", "name": "Ian2"},
-        {"type": "Cluster Deletion", "name": "Ian1"},
-        {"type": "Cluster Config", "name": "Ian1"},
-        {"type": "Cluster Clone", "name": "Ian1"},
-        {"type": "Cluster Creation", "name": "Ian1"},
-        {"type": "Host Action", "name": "Ian1"},
-        {"type": "Asg General Config", "name": "Ian1"},
-        {"type": "ASG Config Change", "name": "Ian1"},
-        {"type": "Asg Pas Config", "name": "Ian1"},
-        {"type": "Asg ALARM Action", "name": "Ian1"},
-        {"type": "Asg Scheduled Action", "name": "Ian1"},
-        {"type": "Asg Scaling Alarm", "name": "Ian1"},
-        {"type": "Asg Scaling Policy", "name": "Ian1"},
-        {"type": "Asg Scaling Action", "name": "Ian1"},
-        {"type": "Asg Scaling Group", "name": "Ian1"},
-        {"type": "Asg Launch Config", "name": "Ian1"},
-    ]
-    excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
-    
+        excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'configs/config_history.html', {
         "envName": name,
@@ -1548,7 +1506,6 @@ def get_env_config_history(request, name, stage):
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(configs) < DEFAULT_PAGE_SIZE,
-        "configs2": configs2,
         "excludedTypes": excludedTypes 
     })
 
