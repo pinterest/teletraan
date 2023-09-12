@@ -97,7 +97,6 @@ class EnvConfigView(View):
         data["groupMentionRecipients"] = query_dict["group_mention_recipients"]
         data["maxDeployNum"] = int(query_dict["maxDeployNum"])
         data["maxDeployDay"] = int(query_dict["maxDeployDay"])
-        data["maxParallelRp"] = int(query_dict["maxParallelRp"])
         data["overridePolicy"] = query_dict["overridePolicy"]
         data["stageType"] = query_dict["stageType"]
         data["terminationLimit"] = query_dict["terminationLimit"]
