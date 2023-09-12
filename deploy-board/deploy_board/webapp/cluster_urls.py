@@ -22,7 +22,7 @@ urlpatterns = [
     url(r'^clouds/baseimages/$', cluster_view.get_base_images),
     url(r'^clouds/baseimages/(?P<abstract_name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_images_by_abstract_name),
     url(r'^clouds/baseimages/events/(?P<image_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_image_events),
-    url(r'^clouds/baseimages/events/(?P<provider_name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_image_events_by_provider_name),
+    url(r'^clouds/baseimages/name/(?P<provider_name>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_base_image_events_by_provider_name),
     url(r'^clouds/get_image_names/$', cluster_view.get_image_names),
     url(r'^clouds/image_names/(?P<provider>[a-zA-Z0-9\-_\.]+)/(?P<cell>[a-zA-Z0-9\-_\.]+)/$',
         cluster_view.get_image_names_by_provider_and_cell),
@@ -42,12 +42,10 @@ urlpatterns = [
     url(r'^clouds/cancel_image_update/(?P<image_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.cancel_image_update),
 
     url(r'^clouds/create_host_type/$', cluster_view.create_host_type),
-    url(r'^clouds/modify_host_type/$', cluster_view.modify_host_type),
     url(r'^clouds/hosttypes/$', cluster_view.get_host_types),
     url(r'^clouds/get_host_types/$', cluster_view.get_host_types_by_provider),
     url(r'^clouds/get_host_types/(?P<arch>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_host_types_by_arch),
     url(r'^clouds/get_host_type_info/$', cluster_view.get_host_type_info),
-    url(r'^clouds/get_host_type/(?P<host_type_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_host_type_by_id),
 
     url(r'^clouds/create_security_zone/$', cluster_view.create_security_zone),
     url(r'^clouds/securityzones/$', cluster_view.get_security_zones),
