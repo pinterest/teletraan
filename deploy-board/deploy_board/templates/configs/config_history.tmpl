@@ -3,10 +3,10 @@
 
 
 {% regroup configs|dictsort:'type' by type as configsByType %}
-<div class="modal fade" id="filterConfigModalId" tabindex="-1" role="dialog" aria-labelledby="deleteClusterModalLabel" aria-hidden="true">
+<div class="modal fade" id="envFilterConfigModalId" tabindex="-1" role="dialog" aria-labelledby="deleteClusterModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-md">
         <div class="modal-content">
-            <form id="filterConfigTypesFormId">
+            <form id="envFilterConfigTypesFormId">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Filter Config Type</h4>
@@ -45,7 +45,7 @@
             <th class="col-lg-1">Operator</th>
             <th class="col-lg-2">
                 Type
-                <span class="fa fa-filter btn btn-xs {% if excludedTypes|length > 0 %} bg-info {% else %} btn-default {% endif %}" data-toggle="modal" data-target="#filterConfigModalId" />
+                <span class="fa fa-filter btn btn-xs {% if excludedTypes|length > 0 %} bg-info {% else %} btn-default {% endif %}" data-toggle="modal" data-target="#envFilterConfigModalId" />
             </th>
             <th class="col-lg-4">Configuration Change</th>
         </tr>
@@ -126,12 +126,12 @@
         });
     });
 
-    $("#filterConfigTypesFormId").submit(function (e) {
+    $("#envFilterConfigTypesFormId").submit(function (e) {
         e.preventDefault()
         e.stopPropagation() 
 
         const filteredOutTypes = [];
-        $('#filterConfigTypesFormId input[type="checkbox"]:not(:checked)').each(function(a){
+        $('#envFilterConfigTypesFormId input[type="checkbox"]:not(:checked)').each(function(a){
             filteredOutTypes.push($(this).val());
         });
         
@@ -140,8 +140,8 @@
         window.location=url;
     });
 
-    $("#filterConfigModalId").on('hide.bs.modal', function(){
-        $("#filterConfigTypesFormId").trigger('reset');
+    $("#envFilterConfigModalId").on('hide.bs.modal', function(){
+        $("#envFilterConfigTypesFormId").trigger('reset');
     });
 
 </script>
