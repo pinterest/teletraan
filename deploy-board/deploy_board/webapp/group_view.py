@@ -800,6 +800,7 @@ def get_config_history(request, group_name):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
+    excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'groups/group_config_history.html', {
         "group_name": group_name,
@@ -808,6 +809,7 @@ def get_config_history(request, group_name):
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(configs) < DEFAULT_PAGE_SIZE,
+        "excludedTypes": excludedTypes
     })
 
 
