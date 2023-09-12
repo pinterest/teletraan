@@ -6,7 +6,7 @@
     <li><a href="/">Home</a></li>
     <li><a href="/envs">Environments</a></li>
     <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
-    <li class="active">Config</li>
+    <li class="active">General Config</li>
 </ul>
 {% endblock %}
 
@@ -19,8 +19,8 @@
   <div class="row">
         <a type="button" class="deployToolTip btn btn-default btn-block"
            href="/env/{{ env.envName }}/{{ env.stageName }}/deploy"
-           data-toggle="tooltip" title="Return the current deployment page">
-           <i class="fa fa-flash"></i> Current Deployment
+           data-toggle="tooltip" title="Return to the current deployment page">
+           <i class="fa fa-flash"></i> Back to Current Deploy
         </a>
     </div>
     {% if env|isEnvEnabled %}
@@ -144,9 +144,7 @@
             </div>
             <div class="modal-body">
                 <p>Are you sure to disable new deploy and configuration changes for {{ env.envName }} ({{ env.stageName }})?</p>
-                <textarea type="text" class="form-control" name="description" id="description"
-                          row="2" placeholder="simple description" required>
-                </textarea>
+                <textarea type="text" class="form-control" name="description" id="description" row="2" placeholder="simple description" required></textarea>
             </div>
             <div class="modal-footer">
                 <button id="addMetricBtnId" type="submit" class="btn btn-primary">Disable</button>
@@ -169,9 +167,7 @@
             </div>
             <div class="modal-body">
                 <p>Are you sure to allow all new configuration and deploy changes for {{ env.envName }} ({{ env.stageName }})?</p>
-                <textarea type="text" class="form-control" name="description" id="description"
-                          row="2" placeholder="simple description" required>
-                </textarea>
+                <textarea type="text" class="form-control" name="description" id="description" row="2" placeholder="simple description" required></textarea>
             </div>
             <div class="modal-footer">
                 <button id="addMetricBtnId" type="submit" class="btn btn-primary">Enable</button>
@@ -183,7 +179,7 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-{% include "environs/new_stage_modal.tmpl" with envName=env.envName %}
+{% include "environs/new_stage_modal.tmpl" with envName=env.envName stages=stages %}
 {% include "environs/remove_stage_modal.tmpl" with envName=env.envName stageName=env.stageName %}
 {% endblock %}
 

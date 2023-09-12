@@ -25,7 +25,7 @@ if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST, \
-        ENABLE_AMI_AUTO_UPDATE
+        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK
 
 import json
 import logging
@@ -279,6 +279,7 @@ class ClusterConfigurationView(View):
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
+            'host_type_roadmap_link': HOST_TYPE_ROADMAP_LINK,
             'is_pinterest': IS_PINTEREST})
 
     def post(self, request, name, stage):
@@ -576,9 +577,41 @@ def create_host_type(request):
     host_type_info['mem'] = float(params['mem']) * 1024
     host_type_info['core'] = int(params['core'])
     host_type_info['storage'] = params['storage']
+    host_type_info['blessed_status'] = hosttypes_helper.BlessedStatusValues.ONBOARDING
     hosttypes_helper.create_host_type(request, host_type_info)
     return redirect('/clouds/hosttypes/')
 
+def modify_host_type(request):
+    try:
+        host_type_info = json.loads(request.body)
+        host_type_id = host_type_info['id']
+
+        log.info("Update Host Type with {}".format(host_type_info))
+        host_type_info['mem'] = float(host_type_info['mem']) * 1024
+        host_type_info['core'] = int(host_type_info['core'])
+        hosttypes_helper.modify_host_type(request, host_type_id, host_type_info)
+    except NotAuthorizedException as e:
+        log.error("Have an NotAuthorizedException error {}".format(e))
+        return HttpResponse(e, status=403, content_type="application/json")
+    except Exception as e:
+        log.error("modifying host type has an error {}".format(e))
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse(json.dumps(host_type_info), content_type="application/json")
+
+def get_host_type_by_id(request, host_type_id):
+    provider_list = baseimages_helper.get_all_providers(request)
+    arches_list = arches_helper.get_all(request)
+    host_type = hosttypes_helper.get_by_id(request, host_type_id)
+    host_type['mem'] = float(host_type['mem']) / 1024
+    blessed_statuses = hosttypes_helper.BlessedStatusValues.get_all_statuses()
+    contents = render_to_string("clusters/modify_host_type_modal.tmpl", {
+        'arches_list': arches_list,
+        'provider_list': provider_list,
+        'host_type': host_type,
+        'blessed_statuses': blessed_statuses,
+        "csrf_token": get_token(request)
+    })
+    return HttpResponse(json.dumps(contents), content_type="application/json")
 
 def get_host_types(request):
     index = int(request.GET.get('page_index', '1'))

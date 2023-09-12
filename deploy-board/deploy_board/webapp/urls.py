@@ -179,6 +179,8 @@ urlpatterns = [
         env_views.get_all_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/failed/$',
         env_views.get_failed_hosts),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/hosts/sub_account/$',
+        env_views.get_sub_account_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/'
         r'(?P<deploy_id>[a-zA-Z0-9\-_]+)/hosts/$',
         env_views.get_hosts_by_deploy),

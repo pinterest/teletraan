@@ -23,7 +23,7 @@
                         <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                         </a>
                         {% elif report.showMode == "primaryAcct" %}
-                        {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" %}
+                        {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
                         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                         type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                         title="{{ agentStat | agentTip }}">              
@@ -32,7 +32,7 @@
                         </a>
                         {% endif %}
                         {% elif report.showMode == "subAcct" %}
-                        {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" %}
+                        {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
                         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                         type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                         title="{{ agentStat | agentTip }}">              
@@ -58,7 +58,7 @@
                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                </a>
                {% elif report.showMode == "primaryAcct" %}
-               {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" %}
+               {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                title="{{ agentStat | agentTip }}">              
@@ -67,7 +67,7 @@
                </a>
                {% endif %}
                {% elif report.showMode == "subAcct" %}
-               {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" %}
+               {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
                title="{{ agentStat | agentTip }}">              
@@ -89,6 +89,11 @@
        href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/"
        title="Click to see the details of all the hosts">
        <strong>All Details</strong>
+    </a>
+    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/sub_account/"
+       title="Click to see the details of all sub account hosts">
+       <strong>Sub Account Hosts</strong>
     </a>
 </div>
   </div>

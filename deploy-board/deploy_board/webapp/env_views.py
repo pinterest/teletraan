@@ -24,7 +24,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
-    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL
+    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import GUINEA_PIG_ENVS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
@@ -35,7 +35,7 @@ import common
 import random
 import json
 from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper, placements_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper, placements_helper, hosttypes_helper
 from helpers.exceptions import TeletraanException
 import math
 from dateutil.parser import parse
@@ -365,6 +365,10 @@ class EnvLandingView(View):
                 placements = placements_helper.get_simplified_by_ids(
                         request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 remaining_capacity = functools.reduce(lambda s, e: s + e['capacity'], placements, 0)
+                host_type = hosttypes_helper.get_by_id(request, basic_cluster_info['hostType'])
+                host_type_blessed_status = host_type['blessed_status']
+                if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
+                    messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -1354,6 +1358,38 @@ def get_failed_hosts(request, name, stage):
     })
 
 
+# get all sub account hosts
+def get_sub_account_hosts(request, name, stage):
+    envs = environs_helper.get_all_env_stages(request, name)
+    stages, env = common.get_all_stages(envs, stage)
+    agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
+    if agents:
+        sorted(agents, key=lambda x:x['hostName'])
+    title = "Sub Account Hosts"
+
+    # construct a map between host_id and account_id
+    hosts = environ_hosts_helper.get_hosts(request, env['envName'], env['stageName'])
+    accountIdMap = {}
+    for host in hosts:
+        accountIdMap[host['hostId']] = host['accountId']
+
+    agents_wrapper = {}
+    for agent in agents:
+        if not accountIdMap.get(agent['hostId']) or accountIdMap.get(agent['hostId']) == "null" or accountIdMap.get(agent['hostId']) == "998131032990":
+            continue 
+        if agent['deployId'] not in agents_wrapper:
+            agents_wrapper[agent['deployId']] = []
+        agents_wrapper[agent['deployId']].append(agent)
+
+    return render(request, 'environs/env_hosts.html', {
+        "envs": envs,
+        "env": env,
+        "stages": stages,
+        "agents_wrapper": agents_wrapper,
+        "title": title,
+    })
+
+
 def get_pred_deploys(request, name, stage):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
@@ -1463,6 +1499,8 @@ def get_env_config_history(request, name, stage):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
+    
+    excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'configs/config_history.html', {
         "envName": name,
@@ -1473,6 +1511,7 @@ def get_env_config_history(request, name, stage):
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(configs) < DEFAULT_PAGE_SIZE,
+        "excludedTypes": excludedTypes 
     })
 
 

@@ -48,7 +48,7 @@
 
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2023.01.30"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.01.30"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.08.22"></script>
 <script type="text/javascript" src="{% static "js/base-image-utils.js"%}?changedate=2023.01.30"></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
@@ -117,8 +117,9 @@ var capacitySetting = new Vue({
                 value: item.id,
                 text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.network+", " +item.storage+")",
                 isSelected: item.abstract_name === capacityCreationInfo.defaultHostType,
-                isDisabled: item.retired
-            }}),
+                isDisabled: item.retired || item.blessed_status === "SUSTAINING" || item.blessed_status === "DECOMMISSIONING"
+            }
+        }),
         placements: placements.getSimpleList(false, null),
         securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){
             return {
