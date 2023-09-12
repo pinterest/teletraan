@@ -1495,7 +1495,8 @@ def get_env_config_history(request, name, stage):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
-        excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
+    
+    excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'configs/config_history.html', {
         "envName": name,
