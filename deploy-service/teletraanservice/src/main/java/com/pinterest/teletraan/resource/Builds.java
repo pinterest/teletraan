@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -25,6 +25,7 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.deployservice.events.BuildEventPublisher;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import io.swagger.annotations.*;
@@ -50,21 +51,23 @@ import java.util.List;
 public class Builds {
     private static final Logger LOG = LoggerFactory.getLogger(Builds.class);
     private final static int DEFAULT_SIZE = 100;
-    private BuildDAO buildDAO;
-    private TagDAO tagDAO;
-    private Allowlist buildAllowlist;
-    private SourceControlManagerProxy sourceControlManagerProxy;
+    private final BuildDAO buildDAO;
+    private final TagDAO tagDAO;
+    private final Allowlist buildAllowlist;
+    private final SourceControlManagerProxy sourceControlManagerProxy;
     private final Authorizer authorizer;
+    private final BuildEventPublisher buildEventPublisher;
 
     @Context
     UriInfo uriInfo;
 
-    public Builds(TeletraanServiceContext context) throws Exception {
+    public Builds(TeletraanServiceContext context) {
         buildDAO = context.getBuildDAO();
         tagDAO = context.getTagDAO();
         sourceControlManagerProxy = context.getSourceControlManagerProxy();
         authorizer = context.getAuthorizer();
         buildAllowlist = context.getBuildAllowlist();
+        buildEventPublisher = context.getBuildEventPublisher();
     }
 
     @GET
@@ -224,6 +227,9 @@ public class Builds {
         buildDAO.insert(buildBean);
         LOG.info("Successfully published build {} by {}.", buildId, sc.getUserPrincipal().getName());
 
+        // publish event
+        buildEventPublisher.publish(buildBean, "CREATE");
+
         UriBuilder ub = uriInfo.getAbsolutePathBuilder();
         URI buildUri = ub.path(buildId).build();
         buildBean = buildDAO.getById(buildId);
@@ -246,5 +252,8 @@ public class Builds {
         }
         buildDAO.delete(id);
         LOG.info("{} successfully deleted build {}", sc.getUserPrincipal().getName(), id);
+
+        // publish event
+        buildEventPublisher.publish(buildBean, "DELETE");
     }
 }
