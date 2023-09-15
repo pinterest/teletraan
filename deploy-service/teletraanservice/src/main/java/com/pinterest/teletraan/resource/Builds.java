@@ -228,7 +228,9 @@ public class Builds {
         LOG.info("Successfully published build {} by {}.", buildId, sc.getUserPrincipal().getName());
 
         // publish event
-        buildEventPublisher.publish(buildBean, "CREATE");
+        if (buildEventPublisher != null) {
+            buildEventPublisher.publish(buildBean, "CREATE");
+        }
 
         UriBuilder ub = uriInfo.getAbsolutePathBuilder();
         URI buildUri = ub.path(buildId).build();
@@ -254,6 +256,8 @@ public class Builds {
         LOG.info("{} successfully deleted build {}", sc.getUserPrincipal().getName(), id);
 
         // publish event
-        buildEventPublisher.publish(buildBean, "DELETE");
+        if (buildEventPublisher != null) {
+            buildEventPublisher.publish(buildBean, "DELETE");
+        }
     }
 }
