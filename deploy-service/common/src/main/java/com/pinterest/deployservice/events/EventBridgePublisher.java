@@ -31,8 +31,13 @@ public class EventBridgePublisher implements BuildEventPublisher {
         .detailType(DETAIL_TYPE)
         .build();
 
-    eventBridgeClient.putEvents(PutEventsRequest.builder().entries(entry).build());
-    logger.info("Published build event {}", entry);
+    try {
+      eventBridgeClient.putEvents(PutEventsRequest.builder().entries(entry).build());
+      logger.info("Published build event {}", entry);
+    }
+    catch (Exception e) {
+      logger.error("Failed to publish event to Event Bridge: {}", entry, e);
+    }
   }
 
   private String buildEventDetailJson(BuildBean buildBean, String action) {
