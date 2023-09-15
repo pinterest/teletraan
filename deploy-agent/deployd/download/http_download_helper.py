@@ -51,7 +51,7 @@ class HTTPDownloadHelper(DownloadHelper):
             sha_url = '{}.sha1'.format(self._url)
             sha_r = requests.get(sha_url)
             if sha_r.status_code != 200:
-                log.error('sha1 file does not exist for {}, ignore checksum.'.format(self._url))
+                log.warning('Skip checksum verification. Invalid response from {}'.format(sha_url))
                 return status_code
 
             sha_value = sha_r.content
