@@ -29,32 +29,30 @@ class HTTPDownloadHelper(DownloadHelper):
     def _download_files(self, local_full_fn):
         download_cmd = ['curl', '-o', local_full_fn, '-fksS', self._url]
         log.info('Running command: {}'.format(' '.join(download_cmd)))
-        error_code = Status.SUCCEEDED
-        output, error, status = Caller.call_and_log(download_cmd, cwd=os.getcwd())
+        output, error, process_return_code = Caller.call_and_log(download_cmd, cwd=os.getcwd())
+        status_code = Status.FAILED if process_return_code else Status.SUCCEEDED
         if output:
             log.info(output)
         if error:
             log.error(error)
-        if status:
-            error_code = Status.FAILED
         log.info('Finish downloading: {} to {}'.format(self._url, local_full_fn))
-        return error_code
+        return status_code
 
     def download(self, local_full_fn):
         log.info("Start to download from url {} to {}".format(
             self._url, local_full_fn))
 
-        error = self._download_files(local_full_fn)
-        if error != Status.SUCCEEDED:
+        status_code = self._download_files(local_full_fn)
+        if status_code != Status.SUCCEEDED:
             log.error('Failed to download the tar ball for {}'.format(local_full_fn))
-            return error
+            return status_code
 
         try:
             sha_url = '{}.sha1'.format(self._url)
             sha_r = requests.get(sha_url)
             if sha_r.status_code != 200:
                 log.error('sha1 file does not exist for {}, ignore checksum.'.format(self._url))
-                return error
+                return status_code
 
             sha_value = sha_r.content
             hash_value = self.hash_file(local_full_fn)
