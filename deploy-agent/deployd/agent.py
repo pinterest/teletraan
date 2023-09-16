@@ -120,6 +120,12 @@ class DeployAgent(object):
         if not self._executor:
             self._executor = Executor(callback=PingServer(self), config=self._config)
         # start to ping server to get the latest deploy goal
+        for status in self._envs.values():
+            # for each container, we check the health status
+            cmd = ['docker', 'inspect', status.report.envName]
+            output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
+            result = json.loads(output)
+            status.report.extraInfo = result[0].get("State").get("Health")
         self._response = self._client.send_reports(self._envs)
 
         if self._response:
