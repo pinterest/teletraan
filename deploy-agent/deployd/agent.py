@@ -127,7 +127,10 @@ class DeployAgent(object):
             cmd = ['docker', 'inspect', status.report.envName]
             output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
             result = json.loads(output)
-            status.report.extraInfo = result[0].get("State").get("Health")
+            if result[0].get("State"):
+                status.report.extraInfo = result[0].get("State").get("Health")
+            else:
+                status.report.extraInfo = None
         self._response = self._client.send_reports(self._envs)
 
         if self._response:

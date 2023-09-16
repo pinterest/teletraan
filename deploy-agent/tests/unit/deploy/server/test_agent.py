@@ -60,7 +60,7 @@ class TestDeployAgent(TestCase):
 
         cls.deploy_goal1 = {}
         cls.deploy_goal1['deployId'] = '123'
-        cls.deploy_goal1['envName'] = 'abc'
+        cls.deploy_goal1['envName'] = 'beacon'
         cls.deploy_goal1['envId'] = 'def'
         cls.deploy_goal1['stageName'] = 'beta'
         cls.deploy_goal1['deployStage'] = DeployStage.PRE_DOWNLOAD
@@ -68,7 +68,7 @@ class TestDeployAgent(TestCase):
 
         cls.deploy_goal2 = {}
         cls.deploy_goal2['deployId'] = '123'
-        cls.deploy_goal2['envName'] = 'abc'
+        cls.deploy_goal2['envName'] = 'beacon'
         cls.deploy_goal2['envId'] = 'def'
         cls.deploy_goal2['stageName'] = 'beta'
         cls.deploy_goal2['deployStage'] = DeployStage.DOWNLOADING
@@ -76,21 +76,21 @@ class TestDeployAgent(TestCase):
 
         cls.deploy_goal3 = {}
         cls.deploy_goal3['deployId'] = '123'
-        cls.deploy_goal3['envName'] = 'abc'
+        cls.deploy_goal3['envName'] = 'beacon'
         cls.deploy_goal3['envId'] = 'def'
         cls.deploy_goal3['stageName'] = 'beta'
         cls.deploy_goal3['deployStage'] = DeployStage.STAGING
 
         cls.deploy_goal4 = {}
         cls.deploy_goal4['deployId'] = '123'
-        cls.deploy_goal4['envName'] = 'abc'
+        cls.deploy_goal4['envName'] = 'beacon'
         cls.deploy_goal4['envId'] = 'def'
         cls.deploy_goal4['stageName'] = 'beta'
         cls.deploy_goal4['deployStage'] = DeployStage.PRE_RESTART
 
         cls.deploy_goal5 = {}
         cls.deploy_goal5['deployId'] = '123'
-        cls.deploy_goal5['envName'] = 'abc'
+        cls.deploy_goal5['envName'] = 'beacon'
         cls.deploy_goal5['envId'] = 'def'
         cls.deploy_goal5['stageName'] = 'beta'
         cls.deploy_goal5['deployId'] = '234'
@@ -99,7 +99,7 @@ class TestDeployAgent(TestCase):
 
         cls.deploy_goal6 = {}
         cls.deploy_goal6['deployId'] = '123'
-        cls.deploy_goal6['envName'] = 'abc'
+        cls.deploy_goal6['envName'] = 'beacon'
         cls.deploy_goal6['envId'] = 'def'
         cls.deploy_goal6['stageName'] = 'beta'
         cls.deploy_goal6['deployId'] = '234'
@@ -203,7 +203,7 @@ class TestDeployAgent(TestCase):
 
         deploy_goal5 = {}
         deploy_goal5['deployId'] = '234'
-        deploy_goal5['envName'] = 'bcd'
+        deploy_goal5['envName'] = 'beacon'
         deploy_goal5['envId'] = 'efg'
         deploy_goal5['stageName'] = 'prod'
         deploy_goal5['deployStage'] = DeployStage.PRE_DOWNLOAD
@@ -211,7 +211,7 @@ class TestDeployAgent(TestCase):
 
         deploy_goal6 = {}
         deploy_goal6['deployId'] = '234'
-        deploy_goal6['envName'] = 'bcd'
+        deploy_goal6['envName'] = 'beacon'
         deploy_goal6['envId'] = 'efg'
         deploy_goal6['stageName'] = 'prod'
         deploy_goal6['deployStage'] = DeployStage.DOWNLOADING
@@ -219,28 +219,28 @@ class TestDeployAgent(TestCase):
 
         deploy_goal7 = {}
         deploy_goal7['deployId'] = '234'
-        deploy_goal7['envName'] = 'bcd'
+        deploy_goal7['envName'] = 'beacon'
         deploy_goal7['envId'] = 'efg'
         deploy_goal7['stageName'] = 'prod'
         deploy_goal7['deployStage'] = DeployStage.STAGING
 
         deploy_goal8 = {}
         deploy_goal8['deployId'] = '234'
-        deploy_goal8['envName'] = 'bcd'
+        deploy_goal8['envName'] = 'beacon'
         deploy_goal8['envId'] = 'efg'
         deploy_goal8['stageName'] = 'prod'
         deploy_goal8['deployStage'] = DeployStage.RESTARTING
 
         deploy_goal9 = {}
         deploy_goal9['deployId'] = '234'
-        deploy_goal9['envName'] = 'bcd'
+        deploy_goal9['envName'] = 'beacon'
         deploy_goal9['envId'] = 'efg'
         deploy_goal9['stageName'] = 'prod'
         deploy_goal9['deployStage'] = DeployStage.POST_RESTART
 
         deploy_goal10 = {}
         deploy_goal10['deployId'] = '234'
-        deploy_goal10['envName'] = 'bcd'
+        deploy_goal10['envName'] = 'beacon'
         deploy_goal10['envId'] = 'efg'
         deploy_goal10['stageName'] = 'prod'
         deploy_goal10['deployStage'] = DeployStage.SERVING_BUILD
@@ -300,7 +300,7 @@ class TestDeployAgent(TestCase):
         ping_report = {}
         ping_report['deployId'] = '123'
         ping_report['envId'] = '234'
-        ping_report['envName'] = 'abc'
+        ping_report['envName'] = 'beacon'
         ping_report['stageName'] = 'beta'
         ping_report['deployStage'] = DeployStage.SERVING_BUILD
         ping_report['status'] = AgentStatus.SUCCEEDED
@@ -313,7 +313,7 @@ class TestDeployAgent(TestCase):
         deploy_goal = {}
         deploy_goal['deployId'] = '123'
         deploy_goal['envId'] = '234'
-        deploy_goal['envName'] = 'abc'
+        deploy_goal['envName'] = 'beacon'
         deploy_goal['stageName'] = 'beta'
         ping_response = {'deployGoal': deploy_goal, 'opCode': OpCode.DELETE}
 
@@ -347,7 +347,7 @@ class TestDeployAgent(TestCase):
         ping_report = {}
         ping_report['deployId'] = '123'
         ping_report['envId'] = '234'
-        ping_report['envName'] = 'abc'
+        ping_report['envName'] = 'beacon'
         ping_report['stageName'] = 'beta'
         ping_report['deployStage'] = DeployStage.SERVING_BUILD
         ping_report['status'] = AgentStatus.SUCCEEDED
@@ -377,7 +377,7 @@ class TestDeployAgent(TestCase):
         client = mock.Mock()
         deploy_goal = {}
         deploy_goal['deployId'] = '123'
-        deploy_goal['envName'] = '456'
+        deploy_goal['envName'] = 'beacon'
         deploy_goal['envId'] = '789'
         deploy_goal['stageName'] = 'beta'
         deploy_goal['deployStage'] = DeployStage.PRE_DOWNLOAD
@@ -416,21 +416,21 @@ class TestDeployAgent(TestCase):
 
         deploy_goal5 = {}
         deploy_goal5['deployId'] = '123'
-        deploy_goal5['envName'] = 'abc'
+        deploy_goal5['envName'] = 'beacon'
         deploy_goal5['envId'] = 'def'
         deploy_goal5['stageName'] = 'beta'
         deploy_goal5['deployStage'] = DeployStage.RESTARTING
 
         deploy_goal6 = {}
         deploy_goal6['deployId'] = '123'
-        deploy_goal6['envName'] = 'abc'
+        deploy_goal6['envName'] = 'beacon'
         deploy_goal6['envId'] = 'def'
         deploy_goal6['stageName'] = 'beta'
         deploy_goal6['deployStage'] = DeployStage.POST_RESTART
 
         deploy_goal7 = {}
         deploy_goal7['deployId'] = '123'
-        deploy_goal7['envName'] = 'abc'
+        deploy_goal7['envName'] = 'beacon'
         deploy_goal7['envId'] = 'def'
         deploy_goal7['stageName'] = 'beta'
         deploy_goal7['deployStage'] = DeployStage.SERVING_BUILD
@@ -460,7 +460,7 @@ class TestDeployAgent(TestCase):
         self.executor.execute_command.assert_has_calls(calls)
         self.assertEqual(len(d._envs), 1)
         self.assertEqual(d._curr_report.report.envId, 'def')
-        self.assertEqual(d._curr_report.report.envName, 'abc')
+        self.assertEqual(d._curr_report.report.envName, 'beacon')
         self.assertEqual(d._curr_report.report.deployId, '123')
         self.assertEqual(d._curr_report.report.stageName, 'beta')
         self.assertEqual(d._curr_report.report.deployStage, DeployStage.SERVING_BUILD)
