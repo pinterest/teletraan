@@ -104,7 +104,7 @@ public class ConfigHelper {
         BasicDataSource dataSource = configuration.getDataSourceFactory().build();
         context.setDataSource(dataSource);
 
-        context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient()));
+        context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient(), configuration.getAwsFactory().getEventBridgeEventBusName()));
 
         context.setUserRolesDAO(new DBUserRolesDAOImpl(dataSource));
         context.setGroupRolesDAO(new DBGroupRolesDAOImpl(dataSource));

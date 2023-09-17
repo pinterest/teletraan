@@ -36,19 +36,25 @@ public class EventBridgePublisherTest {
   private static final String SCM_INFO = "scmInfo";
   private static final String SCM_REPO = "scmRepo";
   private static final String ACTION = "action";
+  private static final String EVENT_BUS_NAME = "eventBusName";
 
   private final EventBridgeClient eventBridgeClient = Mockito.mock(EventBridgeClient.class);
-  private final EventBridgePublisher eventBridgePublisher = new EventBridgePublisher(eventBridgeClient);
+  private final EventBridgePublisher
+      eventBridgePublisher =
+      new EventBridgePublisher(eventBridgeClient, EVENT_BUS_NAME);
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
   public void publish() throws JsonProcessingException {
-    ArgumentCaptor<PutEventsRequest> putEventsRequestArgumentCaptor = ArgumentCaptor.forClass(PutEventsRequest.class);
+    ArgumentCaptor<PutEventsRequest>
+        putEventsRequestArgumentCaptor =
+        ArgumentCaptor.forClass(PutEventsRequest.class);
     BuildBean buildBean = generateBuild();
     eventBridgePublisher.publish(buildBean, ACTION);
     Mockito.verify(eventBridgeClient).putEvents(putEventsRequestArgumentCaptor.capture());
 
     PutEventsRequestEntry entry = PutEventsRequestEntry.builder()
+        .eventBusName(EVENT_BUS_NAME)
         .source(TELETRAAN_SOURCE)
         .detail(buildEventDetailJson(buildBean))
         .detailType(DETAIL_TYPE)
