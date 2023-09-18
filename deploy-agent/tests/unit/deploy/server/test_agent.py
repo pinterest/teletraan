@@ -163,9 +163,9 @@ class TestDeployAgent(TestCase):
         d.serve_build()
 
         calls = [mock.call(['deploy-downloader', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-u', 'https://test', '-e', 'abc']),
+                            '123', '-u', 'https://test', '-e', 'beacon']),
                  mock.call(['deploy-stager', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-t', '/tmp/tests', '-e', 'abc'])]
+                            '123', '-t', '/tmp/tests', '-e', 'beacon'])]
         self.executor.run_cmd.assert_has_calls(calls)
         self.assertEqual(len(d._envs), 0)
 
@@ -203,7 +203,7 @@ class TestDeployAgent(TestCase):
 
         deploy_goal5 = {}
         deploy_goal5['deployId'] = '234'
-        deploy_goal5['envName'] = 'beacon'
+        deploy_goal5['envName'] = 'mcrouter'
         deploy_goal5['envId'] = 'efg'
         deploy_goal5['stageName'] = 'prod'
         deploy_goal5['deployStage'] = DeployStage.PRE_DOWNLOAD
@@ -211,7 +211,7 @@ class TestDeployAgent(TestCase):
 
         deploy_goal6 = {}
         deploy_goal6['deployId'] = '234'
-        deploy_goal6['envName'] = 'beacon'
+        deploy_goal6['envName'] = 'mcrouter'
         deploy_goal6['envId'] = 'efg'
         deploy_goal6['stageName'] = 'prod'
         deploy_goal6['deployStage'] = DeployStage.DOWNLOADING
@@ -219,28 +219,28 @@ class TestDeployAgent(TestCase):
 
         deploy_goal7 = {}
         deploy_goal7['deployId'] = '234'
-        deploy_goal7['envName'] = 'beacon'
+        deploy_goal7['envName'] = 'mcrouter'
         deploy_goal7['envId'] = 'efg'
         deploy_goal7['stageName'] = 'prod'
         deploy_goal7['deployStage'] = DeployStage.STAGING
 
         deploy_goal8 = {}
         deploy_goal8['deployId'] = '234'
-        deploy_goal8['envName'] = 'beacon'
+        deploy_goal8['envName'] = 'mcrouter'
         deploy_goal8['envId'] = 'efg'
         deploy_goal8['stageName'] = 'prod'
         deploy_goal8['deployStage'] = DeployStage.RESTARTING
 
         deploy_goal9 = {}
         deploy_goal9['deployId'] = '234'
-        deploy_goal9['envName'] = 'beacon'
+        deploy_goal9['envName'] = 'mcrouter'
         deploy_goal9['envId'] = 'efg'
         deploy_goal9['stageName'] = 'prod'
         deploy_goal9['deployStage'] = DeployStage.POST_RESTART
 
         deploy_goal10 = {}
         deploy_goal10['deployId'] = '234'
-        deploy_goal10['envName'] = 'beacon'
+        deploy_goal10['envName'] = 'mcrouter'
         deploy_goal10['envId'] = 'efg'
         deploy_goal10['stageName'] = 'prod'
         deploy_goal10['deployStage'] = DeployStage.SERVING_BUILD
@@ -272,28 +272,28 @@ class TestDeployAgent(TestCase):
                         executor=self.executor, helper=self.helper)
         d.serve_build()
         calls = [mock.call(['deploy-downloader', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-u', 'https://test', '-e', 'abc']),
+                            '123', '-u', 'https://test', '-e', 'beacon']),
                  mock.call(['deploy-stager', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-t', '/tmp/tests', '-e', 'abc']),
+                            '123', '-t', '/tmp/tests', '-e', 'beacon']),
                  mock.call(['deploy-downloader', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-u', 'https://test2', '-e', 'bcd']),
+                            '123', '-u', 'https://test2', '-e', 'mcrouter']),
                  mock.call(['deploy-stager', '-f', '/etc/deployagent.conf', '-v',
-                            '123', '-t', '/tmp/tests', '-e', 'bcd'])]
+                            '123', '-t', '/tmp/tests', '-e', 'mcrouter'])]
         self.executor.run_cmd.assert_has_calls(calls)
         self.assertEqual(len(d._envs), 2)
-        self.assertEqual(d._envs['abc'].report.deployStage, DeployStage.PRE_RESTART)
-        self.assertEqual(d._envs['abc'].report.deployId, '123')
-        self.assertEqual(d._envs['abc'].report.envId, 'def')
-        self.assertEqual(d._envs['abc'].report.status, AgentStatus.SUCCEEDED)
-        self.assertEqual(d._envs['abc'].build_info.build_commit, 'abcd')
-        self.assertEqual(d._envs['abc'].build_info.build_url, 'https://test')
+        self.assertEqual(d._envs['beacon'].report.deployStage, DeployStage.PRE_RESTART)
+        self.assertEqual(d._envs['beacon'].report.deployId, '123')
+        self.assertEqual(d._envs['beacon'].report.envId, 'def')
+        self.assertEqual(d._envs['beacon'].report.status, AgentStatus.SUCCEEDED)
+        self.assertEqual(d._envs['beacon'].build_info.build_commit, 'abcd')
+        self.assertEqual(d._envs['beacon'].build_info.build_url, 'https://test')
 
-        self.assertEqual(d._envs['bcd'].report.deployStage, DeployStage.SERVING_BUILD)
-        self.assertEqual(d._envs['bcd'].report.deployId, '234')
-        self.assertEqual(d._envs['bcd'].report.envId, 'efg')
-        self.assertEqual(d._envs['bcd'].report.status, AgentStatus.SUCCEEDED)
-        self.assertEqual(d._envs['bcd'].build_info.build_commit, 'abcd')
-        self.assertEqual(d._envs['bcd'].build_info.build_url, 'https://test2')
+        self.assertEqual(d._envs['mcrouter'].report.deployStage, DeployStage.SERVING_BUILD)
+        self.assertEqual(d._envs['mcrouter'].report.deployId, '234')
+        self.assertEqual(d._envs['mcrouter'].report.envId, 'efg')
+        self.assertEqual(d._envs['mcrouter'].report.status, AgentStatus.SUCCEEDED)
+        self.assertEqual(d._envs['mcrouter'].build_info.build_commit, 'abcd')
+        self.assertEqual(d._envs['mcrouter'].build_info.build_url, 'https://test2')
 
     def test_delete_report(self):
         status = DeployStatus()
@@ -306,7 +306,7 @@ class TestDeployAgent(TestCase):
         ping_report['status'] = AgentStatus.SUCCEEDED
         status.report = PingReport(jsonValue=ping_report)
 
-        envs = {'abc': status}
+        envs = {'beacon': status}
         client = mock.Mock()
         estatus = mock.Mock()
         estatus.load_envs = mock.Mock(return_value=envs)
@@ -514,7 +514,7 @@ class TestDeployAgent(TestCase):
                             executor=self.executor, helper=self.helper)
         agent.serve_build()
         mock_create_sc.assert_called_once_with('deployd.stats.deploy.status.sum', tags={
-                                               'first_run': False, 'deploy_stage': 'PRE_DOWNLOAD', 'env_name': 'abc', 'stage_name': 'beta', 'status_code': 'SUCCEEDED'})
+                                               'first_run': False, 'deploy_stage': 'PRE_DOWNLOAD', 'env_name': 'beacon', 'stage_name': 'beta', 'status_code': 'SUCCEEDED'})
         self.assertEqual(agent._curr_report.report.deployStage, DeployStage.PRE_DOWNLOAD)
         self.assertEqual(agent._curr_report.report.status, AgentStatus.SUCCEEDED)
 
