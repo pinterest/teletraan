@@ -71,9 +71,11 @@ class PingRequest(object):
             ping_report["errorMessage"] = report.errorMessage
             ping_report["failCount"] = report.failCount
             ping_report["deployAlias"] = report.deployAlias
+            """
             if report.extraInfo:
                 ping_report["extraInfo"] = \
                     json.dumps(report.extraInfo, ensure_ascii=False).encode('utf8')
+            """
             ping_requests["reports"].append(ping_report)
         return ping_requests
 

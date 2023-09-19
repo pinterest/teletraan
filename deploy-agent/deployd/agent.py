@@ -130,13 +130,14 @@ class DeployAgent(object):
                     output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
                     result = json.loads(output)
                     if result[0].get("State"):
-                        status.report.extraInfo = result[0].get("State").get("Health")
+                        healthStatus = result[0].get("State").get("Health").get("Status")
+                        status.report.extraInfo = {'serviceHealth': healthStatus}
                     else:
                         status.report.extraInfo = None
                     log.info('sidecar name: {}'.format(status.report.envName))
                     log.info('sidecar extraInfo: {}'.format(status.report.extraInfo))
                 except Exception:
-                    log.error('get exception while trying to check container health: {}'.format(traceback.format_exc()))
+                    log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
                     continue
         self._response = self._client.send_reports(self._envs)
 
