@@ -126,17 +126,10 @@ class DeployAgent(object):
             for status in self._envs.values():
                 # for each container, we check the health status
                 try:
-                    cmd = ['docker', 'inspect', status.report.envName]
-                    output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
-                    result = json.loads(output)
-                    if result[0].get("State"):
-                        healthStatus = result[0].get("State").get("Health").get("Status")
-                        status.report.extraInfo = {'serviceHealth': healthStatus}
-                    else:
-                        status.report.extraInfo = None
-                    log.info('sidecar name: {}'.format(status.report.envName))
-                    log.info('sidecar extraInfo: {}'.format(status.report.extraInfo))
+                    healthStatus = utils.get_container_health_info(status.report.envName)
+                    status.report.extraInfo = {'serviceHealth': healthStatus}
                 except Exception:
+                    status.report.extraInfo = None
                     log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
                     continue
         self._response = self._client.send_reports(self._envs)

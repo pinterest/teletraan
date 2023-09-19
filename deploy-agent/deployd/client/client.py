@@ -187,7 +187,7 @@ class Client(BaseClient):
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
                  "availability_zone: {}, stage_type: {}, group: {}, account id: {}".format(self._hostname, self._ip, self._id, 
                  self._agent_version, self._autoscaling_group, self._availability_zone, self._stage_type, self._hostgroup, self._account_id))
-                 
+
         if not self._availability_zone:
             log.error("Fail to read host info: availablity zone")
             create_sc_increment(name='deploy.failed.agent.hostinfocollection',

@@ -220,6 +220,20 @@ def get_info_from_facter(keys):
         return None
 
 
+def get_container_health_info(key):
+    try:
+        log.info(f"Get health info for container {key}")
+        cmd = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', key]
+        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
+        if output:
+            return output.decode().strip()
+        else:
+            return None
+    except:
+        log.error("Failed to get container health info for {}".format(key))
+        return None
+
+
 def check_not_none(arg, msg=None):
     if arg is None:
         raise ValueError(msg)
