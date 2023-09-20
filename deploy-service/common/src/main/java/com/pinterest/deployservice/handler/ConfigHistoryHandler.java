@@ -33,7 +33,10 @@ import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.ConfigHistoryDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.rodimus.event.AppEventPublisher;
+import com.pinterest.rodimus.event.ResourceChangedEvent;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,12 +60,14 @@ public class ConfigHistoryHandler {
     private final EnvironDAO environDAO;
     private final String changeFeedUrl;
     private final ExecutorService jobPool;
+    private final AppEventPublisher<ResourceChangedEvent> eventPublisher;
 
     public ConfigHistoryHandler(ServiceContext serviceContext) {
         configHistoryDAO = serviceContext.getConfigHistoryDAO();
         environDAO = serviceContext.getEnvironDAO();
         changeFeedUrl = serviceContext.getChangeFeedUrl();
         jobPool = serviceContext.getJobPool();
+        eventPublisher = serviceContext.getEventPublisher();
     }
 
     /**
@@ -190,6 +195,11 @@ public class ConfigHistoryHandler {
                     LOG.warn(String.format("Failed to find the type %s to update changefeed", type));
                 }
             }
+            eventPublisher.publishEvent(
+                    new ResourceChangedEvent(
+                            configType + "_" + type, operator, this, System.currentTimeMillis(),
+                            "environment",StringUtils.defaultString(configId),
+                            "nimbus", StringUtils.defaultString(nimbusUUID)));
         } catch (Exception ex) {
             LOG.error("Failed to send notification to change log", ex);
         }

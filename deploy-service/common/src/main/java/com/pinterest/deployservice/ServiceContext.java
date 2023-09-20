@@ -48,6 +48,8 @@ import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
+import com.pinterest.rodimus.event.AppEventPublisher;
+import com.pinterest.rodimus.event.ResourceChangedEvent;
 
 import org.apache.commons.dbcp.BasicDataSource;
 
@@ -103,6 +105,9 @@ public class ServiceContext {
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
     private BuildEventPublisher buildEventPublisher;
+
+    // Publishers & Listeners
+    private AppEventPublisher<ResourceChangedEvent> resourceChangedEventPublisher;
 
     public Allowlist getBuildAllowlist() {
         return buildAllowlist;
@@ -466,5 +471,14 @@ public class ServiceContext {
     public void setBuildEventPublisher(
         BuildEventPublisher buildEventPublisher) {
         this.buildEventPublisher = buildEventPublisher;
+    }
+
+    public void setResourceChangedEventPublisher(
+            AppEventPublisher<ResourceChangedEvent> resourceChangedEventPublisher) {
+        this.resourceChangedEventPublisher = resourceChangedEventPublisher;
+    }
+
+    public AppEventPublisher<ResourceChangedEvent> getEventPublisher() {
+        return resourceChangedEventPublisher;
     }
 }
