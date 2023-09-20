@@ -20,8 +20,6 @@ import sys
 from random import randrange
 import time
 import traceback
-import subprocess
-import json
 
 from deployd.client.client import Client
 from deployd.client.serverless_client import ServerlessClient
