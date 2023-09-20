@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.pinterest.teletraan</groupId>
     <artifactId>teletraan</artifactId>
@@ -15,12 +15,23 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <encoding>UTF-8</encoding>
         <project.build_id.sourceEncoding>UTF-8</project.build_id.sourceEncoding>
+        <micrometer.version>1.11.3</micrometer.version>
     </properties>
 
     <modules>
         <module>common</module>
         <module>teletraanservice</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.micrometer</groupId>
+                <artifactId>micrometer-core</artifactId>
+                <version>${micrometer.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <dependency>
@@ -38,6 +49,16 @@
                     <groupId>org.jacoco</groupId>
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>0.8.9</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.5.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>3.4.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -69,6 +90,46 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>pinterest-dependenies</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+              </activation>
+            <repositories>
+                <repository>
+                    <id>snapshots</id>
+                    <name>maven-snapshots</name>
+                    <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-private-dev-local</url>
+                    <releases>
+                        <enabled>true</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <dependencies>
+                <dependency>
+                    <groupId>com.pinterest.rodimus</groupId>
+                    <artifactId>shared-components</artifactId>
+                    <version>0.1-SNAPSHOT</version>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <!-- If you are outside Pinterest, use this profile instead -->
+            <!-- i.e. mvn clean package -P-pinterest-dependenies,external-dependencies -->
+            <id>external-dependencies</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.pinterest.rodimus</groupId>
+                    <artifactId>shared-components</artifactId>
+                    <version>0.1-SNAPSHOT</version>
+                    <scope>system</scope>
+                    <systemPath>${pom.basedir}/../bin/shared-components.jar</systemPath>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 </project>
