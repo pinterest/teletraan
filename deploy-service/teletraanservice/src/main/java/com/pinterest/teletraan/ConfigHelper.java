@@ -16,8 +16,10 @@
 package com.pinterest.teletraan;
 
 
-import com.pinterest.deployservice.db.DBAgentDAOImpl;
+import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
+import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.db.DBAgentCountDAOImpl;
+import com.pinterest.deployservice.db.DBAgentDAOImpl;
 import com.pinterest.deployservice.db.DBAgentErrorDAOImpl;
 import com.pinterest.deployservice.db.DBBuildDAOImpl;
 import com.pinterest.deployservice.db.DBConfigHistoryDAOImpl;
@@ -27,8 +29,8 @@ import com.pinterest.deployservice.db.DBDeployDAOImpl;
 import com.pinterest.deployservice.db.DBEnvironDAOImpl;
 import com.pinterest.deployservice.db.DBGroupDAOImpl;
 import com.pinterest.deployservice.db.DBGroupRolesDAOImpl;
-import com.pinterest.deployservice.db.DBHostDAOImpl;
 import com.pinterest.deployservice.db.DBHostAgentDAOImpl;
+import com.pinterest.deployservice.db.DBHostDAOImpl;
 import com.pinterest.deployservice.db.DBHostTagDAOImpl;
 import com.pinterest.deployservice.db.DBHotfixDAOImpl;
 import com.pinterest.deployservice.db.DBPromoteDAOImpl;
@@ -45,8 +47,7 @@ import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
-import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
-import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
+import com.pinterest.deployservice.events.EventBridgePublisher;
 import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
@@ -96,13 +97,14 @@ public class ConfigHelper {
     private static final String DEFAULT_BUILD_JANITOR_SCHEDULE = "0 40 3 * * ?";
     private static final int DEFAULT_MAX_DAYS_TO_KEEP = 180;
     private static final int DEFAULT_MAX_BUILDS_TO_KEEP = 1000;
-    private static final int DEFAULT_RESERVED_INSTANCE_COUNT = 100;
 
     public static TeletraanServiceContext setupContext(TeletraanServiceConfiguration configuration) throws Exception {
         TeletraanServiceContext context = new TeletraanServiceContext();
 
         BasicDataSource dataSource = configuration.getDataSourceFactory().build();
         context.setDataSource(dataSource);
+
+        context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient(), configuration.getAwsFactory().getEventBridgeEventBusName()));
 
         context.setUserRolesDAO(new DBUserRolesDAOImpl(dataSource));
         context.setGroupRolesDAO(new DBGroupRolesDAOImpl(dataSource));
@@ -140,7 +142,7 @@ public class ConfigHelper {
 
         String defaultScmTypeName = configuration.getDefaultScmTypeName();
         List<SourceControlFactory> sourceControlConfigs = configuration.getSourceControlConfigs();
-        Map<String, SourceControlManager> managers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);;
+        Map<String, SourceControlManager> managers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for(SourceControlFactory scf : sourceControlConfigs) {
             SourceControlManager scm = scf.create();
             String type = scm.getTypeName();
@@ -172,7 +174,8 @@ public class ConfigHelper {
         if (buildAllowlistFactory != null) {
             context.setBuildAllowlist(new BuildAllowlistImpl(buildAllowlistFactory.getValidBuildURLs(), buildAllowlistFactory.getTrustedBuildURLs(), buildAllowlistFactory.getsoxBuildURLs()));
         } else {
-            context.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>()));
+            context.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<>(), new ArrayList<>(),
+                new ArrayList<>()));
         }
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
@@ -209,7 +212,7 @@ public class ConfigHelper {
          unit - the time unit for the keepAliveTime argument
          workQueue - the queue to use for holding tasks before they are executed. This queue will hold only the Runnable tasks submitted by the execute method.
          */
-        // TODO make the thread configrable
+        // TODO make the thread configurable
         ExecutorService jobPool = new ThreadPoolExecutor(1, 10, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         context.setJobPool(jobPool);
 
