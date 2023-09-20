@@ -319,6 +319,11 @@ public class GoalAnalyst {
         updateBean.setState(proposeNewAgentState(report, agent));
         updateBean.setStage_start_date(System.currentTimeMillis());
         updateBean.setDeploy_stage(report.getDeployStage());
+        if (report.getExtraInfo() == null) {
+            updateBean.setContainer_Health_Status("N/A (Not Applicable)");
+        } else {
+            updateBean.setContainer_Health_Status(report.getExtraInfo().getOrDefault("serviceHealth", "N/A (Not Applicable)"));
+        }
 
         if (agent == null) {
             // if agent is missing in agent table, treat it as not first_deploy.
