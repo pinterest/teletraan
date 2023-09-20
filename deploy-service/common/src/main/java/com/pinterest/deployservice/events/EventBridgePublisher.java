@@ -7,8 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
-import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
+import software.amazon.awssdk.services.eventbridge.EventBridgeAsyncClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
 public class EventBridgePublisher implements BuildEventPublisher {
@@ -17,12 +16,12 @@ public class EventBridgePublisher implements BuildEventPublisher {
   public static final String DETAIL_TYPE = "Teletraan Build Action";
 
   private final ObjectMapper objectMapper = new ObjectMapper();
-  private final EventBridgeClient eventBridgeClient;
+  private final EventBridgeAsyncClient eventBridgeAsyncClient;
   private final String eventBusName;
   private static final Logger logger = LoggerFactory.getLogger(EventBridgePublisher.class);
 
-  public EventBridgePublisher(EventBridgeClient eventBridgeClient, String eventBusName) {
-    this.eventBridgeClient = eventBridgeClient;
+  public EventBridgePublisher(EventBridgeAsyncClient eventBridgeAsyncClient, String eventBusName) {
+    this.eventBridgeAsyncClient = eventBridgeAsyncClient;
     this.eventBusName = eventBusName;
   }
 
@@ -36,7 +35,11 @@ public class EventBridgePublisher implements BuildEventPublisher {
         .build();
 
     try {
-      eventBridgeClient.putEvents(PutEventsRequest.builder().entries(entry).build());
+      eventBridgeAsyncClient.putEvents(e -> e.entries(entry).build()).whenCompleteAsync((response, err) -> {
+        if (err != null) {
+          logger.error("Failed to publish event to Event Bridge: {}", entry, err);
+        }
+      });
       logger.info("Published build event {}", entry);
     } catch (Exception e) {
       logger.error("Failed to publish event to Event Bridge: {}", entry, e);

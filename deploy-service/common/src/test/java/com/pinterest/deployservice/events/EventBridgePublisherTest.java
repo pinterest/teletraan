@@ -2,6 +2,9 @@ package com.pinterest.deployservice.events;
 
 import static com.pinterest.deployservice.events.EventBridgePublisher.DETAIL_TYPE;
 import static com.pinterest.deployservice.events.EventBridgePublisher.TELETRAAN_SOURCE;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.pinterest.deployservice.bean.BuildBean;
 
@@ -13,11 +16,13 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.EventBridgeAsyncClient;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequest;
 import software.amazon.awssdk.services.eventbridge.model.PutEventsRequestEntry;
 
 import java.time.Instant;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public class EventBridgePublisherTest {
 
@@ -38,20 +43,20 @@ public class EventBridgePublisherTest {
   private static final String ACTION = "action";
   private static final String EVENT_BUS_NAME = "eventBusName";
 
-  private final EventBridgeClient eventBridgeClient = Mockito.mock(EventBridgeClient.class);
-  private final EventBridgePublisher
-      eventBridgePublisher =
-      new EventBridgePublisher(eventBridgeClient, EVENT_BUS_NAME);
+  private final EventBridgeAsyncClient eventBridgeAsyncClient = mock(EventBridgeAsyncClient.class);
+  private final EventBridgePublisher eventBridgePublisher = new EventBridgePublisher(eventBridgeAsyncClient, EVENT_BUS_NAME);
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
+  @SuppressWarnings({"rawtypes", "unchecked"})
   public void publish() throws JsonProcessingException {
-    ArgumentCaptor<PutEventsRequest>
-        putEventsRequestArgumentCaptor =
-        ArgumentCaptor.forClass(PutEventsRequest.class);
+    ArgumentCaptor<Consumer> putEventsRequestArgumentCaptor = ArgumentCaptor.forClass(Consumer.class);
+    when(eventBridgeAsyncClient.putEvents(any(Consumer.class))).thenReturn(mock(CompletableFuture.class));
     BuildBean buildBean = generateBuild();
+
     eventBridgePublisher.publish(buildBean, ACTION);
-    Mockito.verify(eventBridgeClient).putEvents(putEventsRequestArgumentCaptor.capture());
+
+    Mockito.verify(eventBridgeAsyncClient).putEvents(putEventsRequestArgumentCaptor.capture());
 
     PutEventsRequestEntry entry = PutEventsRequestEntry.builder()
         .eventBusName(EVENT_BUS_NAME)
@@ -61,7 +66,10 @@ public class EventBridgePublisherTest {
         .build();
 
     PutEventsRequest expectedRequest = PutEventsRequest.builder().entries(entry).build();
-    PutEventsRequest actualRequest = putEventsRequestArgumentCaptor.getValue();
+
+    PutEventsRequest.Builder builder = PutEventsRequest.builder();
+    putEventsRequestArgumentCaptor.getValue().accept(builder);
+    PutEventsRequest actualRequest = builder.build();
 
     Assert.assertEquals(expectedRequest, actualRequest);
 

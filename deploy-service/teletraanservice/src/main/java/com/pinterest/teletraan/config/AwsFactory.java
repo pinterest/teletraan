@@ -3,7 +3,7 @@ package com.pinterest.teletraan.config;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.eventbridge.EventBridgeClient;
+import software.amazon.awssdk.services.eventbridge.EventBridgeAsyncClient;
 
 public class AwsFactory {
 
@@ -11,8 +11,8 @@ public class AwsFactory {
 
   private String eventBridgeEventBusName;
 
-  public EventBridgeClient buildEventBridgeClient() {
-    return EventBridgeClient.builder().region(Region.US_EAST_1).credentialsProvider(
+  public EventBridgeAsyncClient buildEventBridgeClient() {
+    return EventBridgeAsyncClient.builder().region(Region.US_EAST_1).credentialsProvider(
         ProfileCredentialsProvider.create())
         .build();
   }
