@@ -1,7 +1,6 @@
 package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eventbridge.EventBridgeAsyncClient;
 
@@ -12,9 +11,7 @@ public class AwsFactory {
   private String eventBridgeEventBusName;
 
   public EventBridgeAsyncClient buildEventBridgeClient() {
-    return EventBridgeAsyncClient.builder().region(Region.US_EAST_1).credentialsProvider(
-        ProfileCredentialsProvider.create())
-        .build();
+    return EventBridgeAsyncClient.builder().region(Region.US_EAST_1).build();
   }
 
   @JsonProperty
