@@ -16,6 +16,7 @@ import argparse
 import daemon
 import logging
 import os
+import sys
 from random import randrange
 import time
 import traceback
@@ -30,13 +31,10 @@ from deployd.common.env_status import EnvStatus
 from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_increment
 from deployd.common import utils
 from deployd.common.executor import Executor
-from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, \
-    DeployError, DeployErrorSource, DeployStage, AgentStatus
-from deployd.common.utils import check_telefig_unavailable_error
-from deployd import IS_PINTEREST
+from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, DeployStage, AgentStatus
+from deployd import __version__, IS_PINTEREST, MAIN_LOGGER
 
-log = logging.getLogger(__name__)
-
+log = logging.getLogger(MAIN_LOGGER)
 
 class PingServer(object):
     def __init__(self, ag):
@@ -112,14 +110,8 @@ class DeployAgent(object):
             tags['stage_name'] = self._response.deployGoal.stageName
         if deploy_report.status_code:
             tags['status_code'] = deploy_report.status_code
-        if deploy_report.output_msg: 
-            if check_telefig_unavailable_error(deploy_report.output_msg):
-                tags['error_source'] = DeployErrorSource.TELEFIG
-                tags['error'] = DeployError.TELEFIG_UNAVAILABLE
-            elif deploy_report.output_msg.find("teletraan_config_manager") != -1:
-                tags['error_source'] = DeployErrorSource.TELEFIG
             
-        create_sc_increment('deployd.stats.deploy.status', tags=tags)
+        create_sc_increment('deployd.stats.deploy.status.sum', tags=tags)
         
     def serve_build(self):
         """This is the main function of the ``DeployAgent``.
@@ -128,6 +120,16 @@ class DeployAgent(object):
         if not self._executor:
             self._executor = Executor(callback=PingServer(self), config=self._config)
         # start to ping server to get the latest deploy goal
+        if len(self._envs) > 0:
+            for status in self._envs.values():
+                # for each container, we check the health status
+                try:
+                    healthStatus = utils.get_container_health_info(status.report.envName)
+                    status.report.extraInfo = {'serviceHealth': healthStatus}
+                except Exception:
+                    status.report.extraInfo = None
+                    log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
+                    continue
         self._response = self._client.send_reports(self._envs)
 
         if self._response:
@@ -477,15 +479,17 @@ def main():
     parser.add_argument('--script-variables', dest='script_variables', default='{}',
                         help="Optional. In 'serverless' mode,  script_variables is needed in "
                              "json format.")
+    parser.add_argument('-v', '--version', action='version',
+                        version=__version__, help='Deploy agent version.')
 
     args = parser.parse_args()
 
     is_serverless_mode = AgentRunMode.is_serverless(args.mode)
     if args.daemon and is_serverless_mode:
         raise ValueError("daemon and serverless mode is mutually exclusive.")
+    
     config = Config(args.config_file)
-    utils.run_prereqs(config)
-
+    
     if IS_PINTEREST:
         import pinlogger
 
@@ -496,6 +500,10 @@ def main():
         logging.basicConfig(filename=log_filename, level=config.get_log_level(),
                             format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
 
+    if not utils.check_prereqs(config): 
+        log.warning("Deploy agent cannot start because the prerequisites on puppet did not meet.")
+        sys.exit(0)
+        
     log.info("Start to run deploy-agent.")
     # timing stats - agent start time
     create_sc_timing('deployd.stats.internal.time_start_sec',

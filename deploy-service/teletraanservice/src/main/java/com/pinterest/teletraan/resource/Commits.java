@@ -39,7 +39,7 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 public class Commits {
     private final static String DEFAULT_PATH = "";
-    private final static int DEFAULT_SIZE = 30;
+    private final static int DEFAULT_SIZE = 100;
     private SourceControlManagerProxy sourceControlManagerProxy;
 
     public Commits(TeletraanServiceContext context) throws Exception {

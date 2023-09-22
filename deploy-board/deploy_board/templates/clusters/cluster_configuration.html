@@ -27,7 +27,7 @@
 <script type="text/javascript" src="//cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script type="text/javascript" src="{% static "js/components/sharedcomponents.js"%}?changedate=2023.01.30"></script>
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2023.01.30"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.01.30"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.08.22"></script>
 <script type="text/javascript" src="{% static "js/base-image-utils.js"%}?changedate=2023.01.30"></script>
 
 <div class="panel panel-default" id="side-panel">
@@ -41,14 +41,15 @@
         <side-button-nolink styleclass="fa fa-gears" v-on:click="buttonClick" v-bind:text="settingText" title="Cluster Configuration"></side-button-nolink>
     </div>
     <div v-if="!noCluster" class="row">
-        <side-button styleclass="glyphicon glyphicon-time" text="Replacement History" href="/env/{{ env.envName }}/{{ env.stageName }}/replacement" title="Replacement History"></side-button>
-    </div>
-    <div v-if="!noCluster" class="row">
         <side-button styleclass="glyphicon glyphicon-time" text="Base Image History" title="Base Image History"
             href="/env/{{ env.envName }}/{{ env.stageName }}/base_images">
         </side-button>
     </div>
-    <replace-cluster v-bind:clusterstate="clusterState" v-on:input="clusterAction"></replace-cluster>
+    <div v-if="!noCluster" class="row">
+        <side-button styleclass="glyphicon glyphicon-refresh" text="Cluster Replacement" title="Cluster Replacement"
+            href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements">
+        </side-button>
+    </div>
 </div>
 {% endblock %} {% block new-builds-panel %} {% endblock %} {% block new-pred-deploys-panel %} {% endblock %} {% block main %}
 
@@ -84,8 +85,6 @@
                     <remaining-capacity title="The total remaining capacity of selected placements" v-bind:remainingcapacity="remainingCapacity" v-bind:inadvanced="inAdvanced"></remaining-capacity>
                     <form-warning v-show="showSubnetReplacementAlert" v-bind:alert-text="subnetReplacementWarning"></form-warning>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
-                    <label-input v-show="inAdvanced" label="Replacement Timeout" title="Time out for cluster replacement in minutes"
-                        v-model="replacementTimeout"></label-input>
                     <div v-if="inAdvanced">
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -105,7 +104,7 @@
         </div>
     </div>
     <modal v-bind:title="confirmDialogTitle" v-bind:id="confirmDialogId" v-on:input="clickDialog">
-        <div slot="body">Are you sure to save the changes? <br><br>Please note that the saved settings will only apply for newly launched hosts. If you have existing hosts in your cluster, you can use the "Replace Cluster" feature on the left to perform a rolling replacement of all existing hosts in your cluster.</div>
+        <div slot="body">Are you sure to save the changes? <br><br>Please note that the saved settings will only apply for newly launched hosts. If you have existing hosts in your cluster, you can replace your cluster to perform a rolling replacement of all existing hosts.</div>
     </modal>
 
     <div class="panel-footer clearfix">
@@ -117,33 +116,6 @@
     </div>
 </div>
 
-<div id="replaceProgressPanel" v-show="show" class="panel panel-default">
-    <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left pointer-cursor">
-            <a data-toggle="collapse" data-target="#activeClusterReplaceId">
-                <span class="glyphicon glyphicon-chevron-down"></span>
-                <span v-if="state == 'REPLACE'">Active Replacement</span>
-                <span v-if="state == 'PAUSE'">Active Replacement (Paused)</span>
-            </a>
-        </h4>
-    </div>
-    <div id="activeClusterReplaceId" class="collapse in panel-body">
-        {% include "clusters/replace_progress.tmpl" %}
-    </div>
-</div>
-
-<div id="activeClusterReplaceGraph" v-show="show" class="panel panel-default">
-    <div class="panel-heading clearfix">
-        <h4 class="panel-title pull-left pointer-cursor">
-            <a data-toggle="collapse" data-target="#activeClusterReplaceGraph">
-                <span class="glyphicon glyphicon-chevron-down"></span>
-                <span>Host Activities During Replacement</span>
-            </a>
-        </h4>
-    </div>
-    <div class="ct-chart"></div>
-    <div id="tooltip" class="alert alert-info" style="display:none; top: 10px; right:20px;"></div>
-</div>
 <script>
 /**
  * Chartist.js plugin that generates visually hidden tables for better accessibility. It's also possible to initialize a Chart with data from an existing table.
@@ -469,7 +441,7 @@
                         }).filter(function(item){return item.name!='assign_public_ip'}),
                 assignPublicIP: initialAssignPublicIP,
                 awsRole: currentCluster.configs.aws_role,
-                useLaunchTemplate: currentCluster.useLaunchTemplate != null ? currentCluster.useLaunchTemplate : false,
+                useLaunchTemplate: currentCluster.useLaunchTemplate != null ? currentCluster.useLaunchTemplate : info.defaultUseLaunchTemplate,
                 baseImages: mapBaseImagesToOptions(baseImagesSorted),
                 baseImageValue: currentCluster.baseImageId,
                 pinImage: getPinImageValue(goldenImage, currentCluster.autoUpdateBaseImage),
@@ -516,7 +488,6 @@
                             isSelected: item.name == currentCluster.archName
                         }
                     }),
-                replacementTimeout: currentCluster.replacementTimeout,
                 terminateLimit: currentCluster.terminateLimit,
                 securityZones: info.securityZones.map(function(item) {
                     return {
@@ -866,12 +837,6 @@
                         return false
                     }
 
-                    const replacementTimeout = clusterInfo['replacementTimeout']
-                    if (replacementTimeout == null || isNaN(replacementTimeout) || replacementTimeout < 5 || replacementTimeout > 24 * 60) {
-                        globalNotificationBanner.error = "Replacement timeout must be a number between 5 and 1440 minutes (24 hours)"
-                        return false
-                    }
-
                     return true
                 },
                 sendRequest: function(clusterInfo) {
@@ -943,7 +908,6 @@
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
                     clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
-                    clusterInfo['replacementTimeout'] = this.replacementTimeout;
                     clusterInfo['configs'] = this.allUserData.reduce(function(map, obj) {
                         map[obj.name] = obj.value;
                         return map
@@ -1008,21 +972,6 @@
             }
         });
 
-        var replaceProgressPanel = new Vue({
-             el: "#replaceProgressPanel",
-             data: {
-                 "show": currentCluster.state != 'NORMAL',
-                 "state":  currentCluster.state
-             }
-        });
-
-        var activeClusterReplaceGraph = new Vue({
-             el: "#activeClusterReplaceGraph",
-             data: {
-                 "show": currentCluster.state != 'NORMAL'
-             }
-        });
-
         var sidebar = new Vue({
             el: "#side-panel",
             data: {
@@ -1051,38 +1000,6 @@
                             }
                         });
                     },
-                    replaceCluster: function(){
-                        this.sendClusterActionRequest('enable_replacement')
-                    },
-                    cancelReplaceCluster:function(){
-                        this.sendClusterActionRequest('cancel_replacement')
-                    },
-                    pauseReplaceCluster:function(){
-                        this.sendClusterActionRequest('pause_replacement')
-                    },
-                    resumeReplaceCluster:function(){
-                        this.sendClusterActionRequest('resume_replacement')
-                    },
-                    clusterAction: function(confirmedAction){
-                        //Check if action is a confirm action
-                        if (confirmedAction.value){
-                            if (confirmedAction.action === "replace"){
-                                this.replaceCluster()
-                            }
-                            else if (confirmedAction.action === 'cancel'){
-                                this.cancelReplaceCluster()
-                            }
-                            else if (confirmedAction.action === 'resume'){
-                                this.resumeReplaceCluster()
-                            }
-                            else if (confirmedAction.action === 'pause'){
-                                this.pauseReplaceCluster()
-                            }
-                            else{
-                                globalNotificationBanner.error = "Unrecongized action "+confirmedAction.action
-                            }
-                        }
-                    },
                 buttonClick: function() {
                     capacitySetting.inAdvanced = !capacitySetting.inAdvanced
                     if (capacitySetting.inAdvanced) {
@@ -1110,48 +1027,12 @@
                     capacitySetting.selectedPlacements = $('.chosen-select').val()
                 });
 
-           if(showReplaceAlert) {
-                // include this tmpl, meaning a cluster replace is going-on, need to check its progress
-                // update every 1 min, and execute now
-                function setIntervalAndExecute(fn, t) {
-                    fn();
-                    return(setInterval(fn, t));
-                }
-                var replaceStartTime = new Date().getTime();
-                var replaceProgressInterval = setIntervalAndExecute(function() {
-                    if(new Date().getTime() - replaceStartTime > 3600000) {  // if more than 60 mins, clear it
-                        console.log('cleared time interval');
-                        clearInterval(replaceProgressInterval);
-                    }
-                    $('#activeClusterReplaceId').load(
-                            '/env/{{ env.envName }}/{{ env.stageName }}/get_replacement_progress/'
-                    );
-                }, 60000);  // request every 1 min
+           var selectedHostTypeObject = info.hostTypes.find(hostType => hostType.id === capacitySetting.selectedHostTypeValue);
+           var hostTypeRoadmapLink = "{{ host_type_roadmap_link }}"
 
-                $.get('/env/{{ env.envName }}/{{ env.stageName }}/get_replacement_details/', function(event_details) {
-                    var startTime = event_details['start_time'];
-                    console.log('startTime:', startTime);
-                    var graphStartTime = new Date().getTime();
-                    var graphProgressInterval = setIntervalAndExecute(function() {
-
-                        if(new Date().getTime() - graphStartTime > 3600000) {  // if more than 60 mins, clear it
-                            console.log('cleared time interval');
-                            clearInterval(graphProgressInterval);
-                        }
-
-                        $.get('/env/{{ env.envName }}/{{ env.stageName }}/replacement/scaling_activities/', function(response){
-                                    response = response.filter(function(v) {
-                                        var timestamp = v['scalingTime'];
-                                        return parseInt(timestamp) - parseInt(startTime) > 0;
-                                    });
-                                    var raw_data = normalizeGraphData(response);
-                                    accessibility(raw_data[0], raw_data[1][0], raw_data[1][1]);
-                            });
-                    }, 120000);  // request every 2 min
-                });
-
-           }
-
+            if (selectedHostTypeObject.blessed_status === "DECOMMISSIONING" || selectedHostTypeObject.retired === true) {
+                globalNotificationBanner.error = "This cluster is currently using an unblessed Instance Type. Please refer to " + hostTypeRoadmapLink + " for the recommended Instance Type.";
+            }
         });
     }
     else{

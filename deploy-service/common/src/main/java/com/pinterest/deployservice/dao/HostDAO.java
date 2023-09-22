@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,6 +17,7 @@ package com.pinterest.deployservice.dao;
 
 import com.pinterest.deployservice.bean.HostBean;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +34,7 @@ public interface HostDAO {
 
     void insert(HostBean hostBean) throws Exception;
 
-    void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception;
+    void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames, String accountId) throws Exception;
 
     void updateHostById(String hostId, HostBean hostBean) throws Exception;
 
@@ -55,6 +56,8 @@ public interface HostDAO {
 
     List<HostBean> getTerminatingHosts() throws Exception;
 
+    List<String> getStaleAgentlessHostIds(long lastUpdateBefore, int limit) throws SQLException;
+
     Collection<HostBean> getHostsByEnvId(String envId) throws Exception;
 
     HostBean getByEnvIdAndHostId(String envId, String hostId) throws Exception;
@@ -72,4 +75,6 @@ public interface HostDAO {
     Collection<String> getFailedHostIdsByGroup(String groupName) throws Exception;
 
     Collection<String> getTerminatingHostIdsByGroup(String groupName) throws Exception;
+
+    String getAccountIdByHost(String hostName) throws Exception;
 }

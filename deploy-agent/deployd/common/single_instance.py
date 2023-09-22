@@ -21,7 +21,7 @@ import errno
 import fcntl
 from . import utils
 from future.utils import PY3
-
+import tempfile
 log = logging.getLogger(__name__)
 LOCKFILE_DIR = '/var/lock'
 
@@ -32,7 +32,13 @@ class SingleInstance(object):
         appname = 'deploy-agent'
         lockfile_name = '.{}.lock'.format(appname)
         self._create_lock_dir()
-        lockfile_path = os.path.join(LOCKFILE_DIR, lockfile_name)
+        # Backward compatibility as old deploy agent versions use lock file in /tmp. 
+        # Use the old lock file if it exists 
+        tmp_lockfile_path = os.path.join(tempfile.gettempdir(), lockfile_name)
+        if os.path.exists(tmp_lockfile_path):
+            lockfile_path = tmp_lockfile_path
+        else: 
+            lockfile_path = os.path.join(LOCKFILE_DIR, lockfile_name)
         lockfile_flags = os.O_WRONLY | os.O_CREAT
         # This is 0o222, i.e. 146, --w--w--w-
         lockfile_mode = stat.S_IWUSR | stat.S_IWGRP | stat.S_IWOTH
@@ -48,8 +54,8 @@ class SingleInstance(object):
         try:
             fcntl.lockf(lockfile_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
-            print(('Error: {0} may already be running. Only one instance of it '
-                   'can run at a time.').format(appname))
+            log.error(('Error: {0} may already be running. Only one instance of it '
+                       'can run at a time.').format(appname))
             # noinspection PyTypeChecker
             os.close(lockfile_fd)
             utils.exit_abruptly(1)

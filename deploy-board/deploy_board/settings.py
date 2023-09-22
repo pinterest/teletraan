@@ -284,12 +284,14 @@ TELETRAAN_JIRA_SOURCE_URL = os.getenv("TELETRAAN_JIRA_SOURCE_URL", None)
 TELETRAAN_TRANSFER_OWNERSHIP_URL = os.getenv("TELETRAAN_TRANSFER_OWNERSHIP_URL", None)
 TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL = os.getenv("TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL", None)
 TELETRAAN_PROJECT_URL_FORMAT = os.getenv("TELETRAAN_PROJECT_URL_FORMAT", None)
+RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL = os.getenv("RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL", None)
 
 # use Rodimus if present
 RODIMUS_SERVICE_URL = os.getenv("RODIMUS_SERVICE_URL", None)
 RODIMUS_SERVICE_VERSION = os.getenv("RODIMUS_SERVICE_VERSION", None)
 RODIMUS_SERVICE_PROXY_HTTP = os.getenv("RODIMUS_SERVICE_PROXY_HTTP", None)
 RODIMUS_SERVICE_PROXY_HTTPS = os.getenv("RODIMUS_SERVICE_PROXY_HTTPS", None)
+RODIMUS_SERVICE_USE_BEARER = os.getenv("RODIMUS_SERVICE_USE_BEARER", "true").lower() != "false"  # default is True
 
 if IS_PINTEREST:
     # use knox if present
@@ -334,13 +336,14 @@ if IS_PINTEREST:
     DEFAULT_CMP_ARM_IMAGE = 'cmp_base_arm64'
 
     #Pinterest Default setting whether to use launch template or not
-    DEFAULT_USE_LAUNCH_TEMPLATE = False
+    DEFAULT_USE_LAUNCH_TEMPLATE = True
 
     #Pinterest Default Host Type
     # TODO: This is a description of the host type but is nonunique. However, it cannot be replaced by host_type ID since it is unique per service database.
     # TODO: The model for host type should be rebuilt based on a unique abstract factor such as ec2 instance type, for now we should keep expected behavior.
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
     DEFAULT_CMP_ARM_HOST_TYPE = 'EbsComputeXLoArm'
+    HOST_TYPE_ROADMAP_LINK = os.getenv("HOST_TYPE_ROADMAP_LINK")
 
 
     DEFAULT_CELL = 'aws-us-east-1'
@@ -366,5 +369,5 @@ if IS_PINTEREST:
 
     DEFAULT_CLUSTER_TYPE = "PRODUCTION"
 
-    #Auto AMI Update 
+    #Auto AMI Update
     ENABLE_AMI_AUTO_UPDATE = 1

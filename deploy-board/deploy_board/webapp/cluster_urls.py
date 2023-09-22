@@ -42,10 +42,12 @@ urlpatterns = [
     url(r'^clouds/cancel_image_update/(?P<image_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.cancel_image_update),
 
     url(r'^clouds/create_host_type/$', cluster_view.create_host_type),
+    url(r'^clouds/modify_host_type/$', cluster_view.modify_host_type),
     url(r'^clouds/hosttypes/$', cluster_view.get_host_types),
     url(r'^clouds/get_host_types/$', cluster_view.get_host_types_by_provider),
     url(r'^clouds/get_host_types/(?P<arch>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_host_types_by_arch),
     url(r'^clouds/get_host_type_info/$', cluster_view.get_host_type_info),
+    url(r'^clouds/get_host_type/(?P<host_type_id>[a-zA-Z0-9\-_\.]+)/$', cluster_view.get_host_type_by_id),
 
     url(r'^clouds/create_security_zone/$', cluster_view.create_security_zone),
     url(r'^clouds/securityzones/$', cluster_view.get_security_zones),
@@ -63,20 +65,10 @@ urlpatterns = [
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/terminate_hosts/$', cluster_view.terminate_hosts),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/force_terminate_hosts/$', cluster_view.force_terminate_hosts),
 
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/enable_replacement/$', cluster_view.enable_cluster_replacement),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/pause_replacement/$', cluster_view.pause_cluster_replacement),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/resume_replacement/$', cluster_view.resume_cluster_replacement),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cancel_replacement/$', cluster_view.cancel_cluster_replacement),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/$',
-        cluster_view.ClusterHistoriesView.as_view()),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/get_replacement_details/$', cluster_view.cluster_replacement_details),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/get_replacement_progress/$', cluster_view.cluster_replacement_progress),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/(?P<replacement_id>[a-zA-Z0-9\-_]+)/details/$',
-        cluster_view.view_cluster_replacement_details),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/scaling_activities/$',
-        cluster_view.view_cluster_replacement_scaling_activities),
-    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/replacement/(?P<replacement_id>[a-zA-Z0-9\-_]+)/schedule/$',
-        cluster_view.view_cluster_replacement_schedule),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/start_replacement/$', cluster_view.start_cluster_replacement),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/$', cluster_view.gen_cluster_replacement_view),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/(?P<replacement_id>[a-zA-Z0-9\-_]+)/details/$', cluster_view.get_cluster_replacement_details),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/(?P<action>cancel|pause|resume)/$', cluster_view.perform_cluster_replacement_action),
 
     # CMP specific util
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/config/cluster/capacity/$', cluster_view.ClusterCapacityUpdateView.as_view()),

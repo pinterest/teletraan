@@ -94,6 +94,7 @@ class EnvConfigView(View):
         data["branch"] = query_dict["branch"]
         data["emailRecipients"] = query_dict["email_recipients"]
         data["watchRecipients"] = query_dict["watch_recipients"]
+        data["groupMentionRecipients"] = query_dict["group_mention_recipients"]
         data["maxDeployNum"] = int(query_dict["maxDeployNum"])
         data["maxDeployDay"] = int(query_dict["maxDeployDay"])
         data["maxParallelRp"] = int(query_dict["maxParallelRp"])

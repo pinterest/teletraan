@@ -15,12 +15,13 @@
  */
 package com.pinterest.teletraan;
 
-import com.pinterest.teletraan.health.HealthCheckController;
 import com.pinterest.teletraan.health.WorkerHealthCheck;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.health.conf.HealthConfiguration;
+import io.dropwizard.health.core.HealthCheckBundle;
 import io.dropwizard.setup.Bootstrap;
 
 public class TeletraanWorker extends Application<TeletraanServiceConfiguration> {
@@ -37,6 +38,12 @@ public class TeletraanWorker extends Application<TeletraanServiceConfiguration> 
                         new EnvironmentVariableSubstitutor(false)
                 )
         );
+        bootstrap.addBundle(new HealthCheckBundle<TeletraanServiceConfiguration>() {
+            @Override
+            protected HealthConfiguration getHealthConfiguration(final TeletraanServiceConfiguration configuration) {
+                return configuration.getHealthConfiguration();
+            }
+        });
     }
 
     @Override
@@ -44,8 +51,6 @@ public class TeletraanWorker extends Application<TeletraanServiceConfiguration> 
         TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
         ConfigHelper.scheduleWorkers(configuration, context);
         environment.healthChecks().register("generic", new WorkerHealthCheck(context));
-
-        environment.jersey().register(new HealthCheckController(environment.healthChecks()));
     }
 
     public static void main(String[] args) throws Exception {

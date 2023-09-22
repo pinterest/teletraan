@@ -1,0 +1,8 @@
+name: "CodeQL config"
+
+paths-ignore: 
+  - '**/tests/**'
+  - '**/test/**'
+  - '**/integ_test/**'
+  - 'deploy-board/deploy_board/static/**'
+  - 'deploy-board/deploy_board/templates/**'

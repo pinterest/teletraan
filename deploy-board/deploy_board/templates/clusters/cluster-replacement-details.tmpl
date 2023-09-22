@@ -1,0 +1,127 @@
+{% extends 'environs/env_base.html' %}
+
+{% load utils %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/envs">Environments</a></li>
+    <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
+    <li class="active">Cluster Replacement Details</li>
+</ul>
+{% endblock %}
+
+{% block new-builds-panel %}
+{% endblock %}
+{% block new-pred-deploys-panel %}
+{% endblock %}
+
+{% block main %}
+
+<div id="replacementDetails" v-show="show" class="panel panel-default">
+    <div class="panel-heading clearfix">
+        <h4 class="panel-title pull-left">Replacement Detail</h4>
+    </div>
+    <div id="replacementDetails" class="collapse in panel-body">
+        <div class="container-fluid" style="height:500px;overflow:auto;">
+            <table id="replacementDetails" class="table table-condensed table-striped table-hover">
+                    <tr>
+                        <th>ID</th>
+                        <td>
+                            {{ replace_summary.id }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Start Time</th>
+                        <td>
+                            {{ replace_summary.startTime|convertTimestamp }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>End Time</th>
+                        <td>
+                            {{ replace_summary.endTime|convertTimestamp }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Completion Percentage</th>
+                        <td>
+                            {{ replace_summary.percentageComplete }}%
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Instances to Update</th>
+                        <td>
+                            {{ replace_summary.instancesToUpdate }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            <span class="replaceToolTip pointer-cursor {{ replace_summary.status|replaceStatusIcon }}">
+                            </span>
+                            <small>{{ replace_summary.status }}</small>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Reason</th>
+                        <td>
+                            {% if replace_summary.statusReason %}
+                                {{ replace_summary.statusReason }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Min Healthy Percentage</th>
+                        <td>
+                            {{ replace_summary.rollingUpdateConfig.minHealthyPercentage }}%
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Skip Matching</th>
+                        <td>
+                            {{ replace_summary.rollingUpdateConfig.skipMatching }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Replace Protected Instances</th>
+                        <td>
+                            {{ replace_summary.rollingUpdateConfig.scaleInProtectedInstances }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Checkpoint Percentages</th>
+                        <td>
+                            {{ replace_summary.rollingUpdateConfig.checkpointPercentages }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Checkpoint Delay</th>
+                        <td>
+                            {{ replace_summary.rollingUpdateConfig.checkpointDelay }} second(s)
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Desired Launch Template Name</th>
+                        <td>
+                            {{ replace_summary.desiredClusterConfig.launchTemplateName }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Desired Launch Template ID</th>
+                        <td>
+                            {{ replace_summary.desiredClusterConfig.launchTemplateId }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Desired Launch Template Version</th>
+                        <td>
+                            {{ replace_summary.desiredClusterConfig.version }}
+                        </td>
+                    </tr>
+                </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

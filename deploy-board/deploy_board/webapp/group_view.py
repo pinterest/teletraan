@@ -49,26 +49,26 @@ def group_landing(request):
         "disablePrevious": index <= 1,
         "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
     })
-    
+
 
 def get_group_names(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     group_names = autoscaling_groups_helper.get_env_group_names(request, index, size)
     return HttpResponse(json.dumps(group_names), content_type="application/json")
-    
-    
+
+
 def search_groups(request, group_name):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     group_names = autoscaling_groups_helper.get_env_group_names(request, index, size, name_filter=group_name)
-    
+
     if not group_names:
         return redirect('/groups/')
 
     if len(group_names) == 1:
         return redirect('/groups/%s/' % group_names[0])
-    
+
     return render(request, 'groups/group_landing.html', {
     "group_names": group_names,
     "pageIndex": index,
@@ -76,7 +76,7 @@ def search_groups(request, group_name):
     "disablePrevious": index <= 1,
     "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
     })
-    
+
 
 def get_system_specs(request):
     instance_types = specs_helper.get_instance_types(request)
@@ -265,6 +265,7 @@ def update_group_config(request, group_name):
         groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
         groupRequest["loadBalancers"] = params.get("load_balancers")
         groupRequest["targetGroups"] = params.get("target_groups")
+        groupRequest["runbookLink"] = params.get("runbook_link")
 
         if "healthcheck_state" in params:
             groupRequest["healthcheckState"] = True
@@ -799,6 +800,7 @@ def get_config_history(request, group_name):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
+    excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'groups/group_config_history.html', {
         "group_name": group_name,
@@ -807,6 +809,7 @@ def get_config_history(request, group_name):
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(configs) < DEFAULT_PAGE_SIZE,
+        "excludedTypes": excludedTypes
     })
 
 
@@ -1269,9 +1272,9 @@ def disable_scaling_down_event(request, group_name):
 
 def add_scheduled_actions(request, group_name):
     params = request.POST
-    
+
     # validate scheduled capacity against ASG config minimum and maximum size
-    asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name) 
+    asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
     asg_minsize = int(asg_summary.get("minSize", -1))
     asg_maxsize = int(asg_summary.get("maxSize", -1)) # invalid value indicates no need to check
 
@@ -1286,7 +1289,7 @@ def add_scheduled_actions(request, group_name):
         schedule_action['clusterName'] = group_name
         schedule_action['schedule'] = params['schedule']
         schedule_action['capacity'] = params['capacity']
-       
+
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
     except:
         log.error(traceback.format_exc())
@@ -1335,8 +1338,8 @@ def update_scheduled_actions(request, group_name):
     except:
         log.error(traceback.format_exc())
         return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
-        
-        
+
+
 def get_terminating_hosts_by_group(request, group_name):
     data = groups_helper.get_terminating_by_group(request, group_name)
     return HttpResponse(json.dumps(data), content_type="application/json")
