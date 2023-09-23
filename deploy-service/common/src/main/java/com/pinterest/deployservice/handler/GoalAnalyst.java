@@ -320,8 +320,10 @@ public class GoalAnalyst {
         updateBean.setStage_start_date(System.currentTimeMillis());
         updateBean.setDeploy_stage(report.getDeployStage());
         if (report.getExtraInfo() == null) {
+            LOG.debug("yaqin-debug-noContent");
             updateBean.setContainer_Health_Status("N/A (Not Applicable)");
         } else {
+            LOG.debug("yaqin-debug-hasContent");
             updateBean.setContainer_Health_Status(report.getExtraInfo().getOrDefault("serviceHealth", "N/A (Not Applicable)"));
         }
 
