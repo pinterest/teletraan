@@ -117,7 +117,7 @@ var capacitySetting = new Vue({
                 value: item.id,
                 text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.network+", " +item.storage+")",
                 isSelected: item.abstract_name === capacityCreationInfo.defaultHostType,
-                isDisabled: item.retired || item.blessed_status === "SUSTAINING" || item.blessed_status === "DECOMMISSIONING"
+                isDisabled: item.retired || item.blessed_status === "DECOMMISSIONING"
             }
         }),
         placements: placements.getSimpleList(false, null),
