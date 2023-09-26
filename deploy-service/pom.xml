@@ -100,7 +100,7 @@
                 <repository>
                     <id>snapshots</id>
                     <name>maven-snapshots</name>
-                    <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-private-dev-local</url>
+                    <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-private-prod-sox-local</url>
                     <releases>
                         <enabled>true</enabled>
                     </releases>
