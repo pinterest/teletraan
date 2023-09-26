@@ -473,7 +473,7 @@ public class ServiceContext {
         this.buildEventPublisher = buildEventPublisher;
     }
 
-    public void setResourceChangedEventPublisher(
+    public void setEventPublisher(
             AppEventPublisher<ResourceChangedEvent> resourceChangedEventPublisher) {
         this.resourceChangedEventPublisher = resourceChangedEventPublisher;
     }

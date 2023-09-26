@@ -231,7 +231,7 @@ public class ConfigHelper {
         // Publishers
         AppEventPublisher<ResourceChangedEvent> resourceChangedEventPublisher = new ResourceChangedEventPublisher();
         resourceChangedEventPublisher.subscribe(new MetricsAsEventsListener(Metrics.globalRegistry));
-        context.setResourceChangedEventPublisher(resourceChangedEventPublisher);
+        context.setEventPublisher(resourceChangedEventPublisher);
 
         return context;
     }
