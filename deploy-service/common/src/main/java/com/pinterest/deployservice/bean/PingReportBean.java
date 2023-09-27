@@ -29,6 +29,7 @@ public class PingReportBean {
     private Integer failCount;
     private Map<String, String> extraInfo;
     private String deployAlias;
+    private String containerHealthStatus;
 
     public String getDeployId() {
         return deployId;
@@ -100,6 +101,14 @@ public class PingReportBean {
 
     public void setDeployAlias(String deployAlias) {
         this.deployAlias = deployAlias;
+    }
+
+    public String getContainerHealthStatus() {
+        return containerHealthStatus;
+    }
+
+    public void setContainerHealthStatus(String containerHealthStatus) {
+        this.containerHealthStatus = containerHealthStatus;
     }
 
     @Override

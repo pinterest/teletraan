@@ -20,7 +20,13 @@
             </tr>
             <tr>
                 <td>Container Health Status</td>
-                <td>{{ agent.containerHealthStatus }}</td>
+                <td>
+                    {% if agent.containerHealthStatus == "" %}
+                        N/A (Not Applicable)
+                    {% else %}
+                        {{ agent.containerHealthStatus }}
+                    {% endif %}
+                </td>
             </tr>
             <tr>
                 <td>StartDate(-08:00)</td>
