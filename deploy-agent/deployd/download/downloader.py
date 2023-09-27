@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -72,7 +72,7 @@ class Downloader(object):
         if extension == 'gpg':
             try:
                 log.info("gpg decrypting {}.".format(local_full_fn))
-                
+
                 # assuming we use the standard GPG toolset, it creates the following format with gpg --encrypt:
                 # input: file.extension
                 # output: file.extension.gpg
@@ -84,14 +84,14 @@ class Downloader(object):
 
                 # decrypt gpg archive
                 status = gpgHelper.decryptFile(local_full_fn, dest_full_fn)
-                
+
                 if status != Status.SUCCEEDED:
                     # die if we hit a decryption or signing error
                     return status
 
                 # remove encrypted gpg archive since it is no longer needed
                 os.remove(local_full_fn)
-                
+
                 # Rebase the extension and file path to the decrypted file
                 local_full_fn = dest_full_fn
                 extension = innerExtension
@@ -121,13 +121,13 @@ class Downloader(object):
             log.info("Successfully extracted {} to {}".format(local_full_fn, working_dir))
         except tarfile.TarError as e:
             status = Status.FAILED
-            log.error("Failed to extract files: {}".format(e))
+            log.exception("Failed to extract tar files")
         except OSError as e:
             status = Status.FAILED
-            log.error("Failed: {}".format(e))
+            log.exception("Failed to extract files. OSError:")
         except Exception:
             status = Status.FAILED
-            log.error(traceback.format_exc())
+            log.exception("Failed to extract files")
         finally:
             return status
 
