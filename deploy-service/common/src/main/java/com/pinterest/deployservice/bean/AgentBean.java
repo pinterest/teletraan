@@ -37,6 +37,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * first_deploy   TINYINT(1)          NOT NULL DEFAULT 0,
  * first_deploy_time     BIGINT              NOT NULL,
  * stage_start_date     BIGINT              NOT NULL,
+ * container_health_status VARCHAR(32) NOT NULL DEFAULT "",
  * PRIMARY KEY    (host_id, env_id)
  * );
  */
@@ -86,6 +87,9 @@ public class AgentBean implements Updatable {
 
     @JsonProperty("stageStartDate")
     private Long stage_start_date;
+
+    @JsonProperty("containerHealthStatus")
+    private String container_health_status;
 
     public String getHost_id() {
         return host_id;
@@ -207,6 +211,14 @@ public class AgentBean implements Updatable {
         this.stage_start_date = stage_start_date;
     }
 
+    public String getContainer_Health_Status() {
+        return container_health_status;
+    }
+
+    public void setContainer_Health_Status(String container_health_status) {
+        this.container_health_status = container_health_status;
+    }
+
     @Override
     public SetClause genSetClause() {
         SetClause clause = new SetClause();
@@ -225,6 +237,7 @@ public class AgentBean implements Updatable {
         clause.addColumn("first_deploy", first_deploy);
         clause.addColumn("first_deploy_time", first_deploy_time);
         clause.addColumn("stage_start_date", stage_start_date);
+        clause.addColumn("container_health_status", container_health_status);
         return clause;
     }
 
@@ -242,7 +255,8 @@ public class AgentBean implements Updatable {
             "last_err_no=VALUES(last_err_no)," +
             "first_deploy=VALUES(first_deploy)," +
             "first_deploy_time=CASE WHEN first_deploy_time IS NULL THEN VALUES(first_deploy_time) ELSE first_deploy_time END," +
-            "stage_start_date=VALUES(stage_start_date)";
+            "stage_start_date=VALUES(stage_start_date)," +
+            "container_health_status=VALUES(container_health_status)";
 
     @Override
     public String toString() {
