@@ -189,22 +189,3 @@ workers:
 # Ping Requst validators:
 # pingrequestvalidators:
 #  -  com.pinterest.deployservice.pingrequests.Ec2InstanceValidator
-
-
-#
-# Health settings
-#
-health:
-  delayedShutdownHandlerEnabled: true
-  shutdownWaitPeriod: 30s
-  healthCheckUrlPaths:
-    - /healthcheck
-    - /health-check
-  healthChecks:
-    - name: generic
-      critical: true
-      schedule:
-        checkInterval: 5s
-        downtimeInterval: 10s
-        failureAttempts: 2
-        successAttempts: 1
