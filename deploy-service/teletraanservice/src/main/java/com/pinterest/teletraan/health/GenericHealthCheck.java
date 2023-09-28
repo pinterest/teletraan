@@ -22,10 +22,13 @@ import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class GenericHealthCheck extends HealthCheck {
+    private static final Logger LOG = LoggerFactory.getLogger(GenericHealthCheck.class);
     private final static int DEFAULT_SIZE = 2;
     private DeployDAO deployDAO;
 
