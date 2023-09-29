@@ -920,7 +920,7 @@
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
                     clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
-                    clusterInfo['statefulStatus'] = statefulOptions[this.currentStatefulStatus];
+                    clusterInfo['statefulStatus'] = this.currentStatefulStatus;
                     clusterInfo['configs'] = this.allUserData.reduce(function(map, obj) {
                         map[obj.name] = obj.value;
                         return map

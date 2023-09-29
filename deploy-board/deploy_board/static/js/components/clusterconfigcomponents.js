@@ -539,6 +539,8 @@ Vue.component('stateful-help', {
         <div class="col-xs-2">
         </div>
         <div class="col-xs-10">
+            STATELESS - your cluster can rotate hosts without data loss or other effects
+            STATEFUL - your cluster cannot automatically rotate hosts
             {{text}}
         </div>
     </div>`,
