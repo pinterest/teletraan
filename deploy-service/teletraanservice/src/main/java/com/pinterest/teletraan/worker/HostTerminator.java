@@ -112,7 +112,9 @@ public class HostTerminator implements Runnable {
                     } else if (host.getState() == HostState.TERMINATING) {
                         removeTerminatedHost(host);
                     }
+                    //Report success
                 } catch (Exception e) {
+                    //Report failure
                     LOG.error("Failed to process {} host {}", host.getState().toString(), host.getHost_id(), e);
                 } finally {
                     utilDAO.releaseLock(lockName, connection);
@@ -129,7 +131,9 @@ public class HostTerminator implements Runnable {
         try {
             LOG.info("Start to run HostTerminator");
             processBatch();
+            //Report succcess
         } catch (Throwable t) {
+            //Report failure
             LOG.error("HostTerminator failed", t);
         }
     }

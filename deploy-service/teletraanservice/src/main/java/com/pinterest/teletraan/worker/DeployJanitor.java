@@ -62,7 +62,9 @@ public class DeployJanitor implements Job {
                         deployDAO.deleteUnusedDeploys(envId, timeThreshold, numToDelete);
                         LOG.info(String.format("Successfully removed deploys: %s before %d milliseconds has %d.",
                             envId, timeThreshold, numToDelete));
+                        //report success
                     } catch (Exception e) {
+                        //report error
                         LOG.error("Failed to delete builds from tables.", e);
                     } finally {
                         utilDAO.releaseLock(deployLockName, connection);
@@ -82,6 +84,7 @@ public class DeployJanitor implements Job {
         try {
             schedulerContext = context.getScheduler().getContext();
         } catch (SchedulerException e) {
+            //report error
             LOG.error("Cannot retrive job context!", e);
             return;
         }
@@ -94,8 +97,10 @@ public class DeployJanitor implements Job {
         try {
             LOG.info("Start deploy janitor process...");
             processDeploys();
+            //report success
             LOG.info("Stop deploy janitor process...");
         } catch (Throwable t) {
+            //report error
             LOG.error("Failed to call deploy janitor.", t);
         }
     }

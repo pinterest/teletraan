@@ -62,6 +62,7 @@ public class SimpleAgentJanitor implements Runnable {
     void removeStaleHost(String id) {
         LOG.info("Delete records of stale host {}", id);
         hostHandler.removeHost(id);
+        //report Success
     }
 
     void markUnreachableHost(String id) {
@@ -71,7 +72,9 @@ public class SimpleAgentJanitor implements Runnable {
             updateBean.setState(AgentState.UNREACHABLE);
             agentDAO.updateAgentById(id, updateBean);
             LOG.info("Marked agent {} as UNREACHABLE.", id);
+            //report Success
         } catch (Exception e) {
+            //report Failure
             LOG.error("Failed to mark host {} as UNREACHABLE. exception {}", id, e);
         }
     }
@@ -124,7 +127,9 @@ public class SimpleAgentJanitor implements Runnable {
         try {
             LOG.info("Start agent janitor process...");
             processAllHosts();
+            //Report success
         } catch (Throwable t) {
+            //Report failure
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("AgentJanitor Failed.", t);
         }

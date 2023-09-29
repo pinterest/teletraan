@@ -82,6 +82,7 @@ public class AutoPromoter implements Runnable {
         List<String> envIds = promoteDAO.getAutoPromoteEnvIds();
         if (envIds.isEmpty()) {
             LOG.debug("AutoPromoter did not find any valid env to work on, exiting.");
+            //report success
             return;
         }
         Collections.shuffle(envIds);
@@ -89,8 +90,10 @@ public class AutoPromoter implements Runnable {
             try {
                 LOG.debug("AutoPromoter chooses env {} to work on.", envId);
                 processOnce(envId);
+                // report success
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
+                // report failure
                 LOG.error("AutoPromoter failed to process {}, Exception: {}", envId, t);
             }
         }
@@ -575,6 +578,7 @@ public class AutoPromoter implements Runnable {
             processBatch();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
+            //report error
             LOG.error("Failed to call AutoPromoter.", t);
         }
     }

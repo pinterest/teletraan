@@ -64,8 +64,10 @@ public class BuildJanitor implements Job {
                     try {
                         buildDAO.deleteUnusedBuilds(buildName, timeThreshold, numToDelete);
                         LOG.info(String.format("Successfully removed builds: %s before %d milliseconds has %d.",                            buildName, timeThreshold, numToDelete));
+                        //report success
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
+                        //report error
                     } finally {
                         utilDAO.releaseLock(buildLockName, connection);
                         LOG.info(String.format("DB lock operation is successful: release lock %s", buildLockName));
@@ -86,7 +88,9 @@ public class BuildJanitor implements Job {
             TeletraanServiceContext workerContext = (TeletraanServiceContext) schedulerContext.get("serviceContext");
             processBuilds(workerContext);
             LOG.info("Stop build janitor process...");
+            //report success
         } catch (Throwable t) {
+            //report error
             LOG.error("Failed to call build janitor.", t);
         }
     }

@@ -130,12 +130,14 @@ public class DeployTagWorker implements Runnable {
                         processEachEnvironConstraint(job);
                     } catch (SQLException e) {
                         LOG.error("failed to process job due to SQLException: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
+                        //report Failure
                     }  catch (Exception e) {
                         LOG.error("failed to process job due to all other exceptions: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
                         job.setState(TagSyncState.ERROR);
                         LOG.error("job {} deploy constraint transitions to error state due to exceptions", job.toString());
                         LOG.info("updated job state to {}", TagSyncState.ERROR);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
+                        //report Failure
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
                         LOG.info("DB lock operation is successful: release lock {}", lockName);
@@ -144,6 +146,8 @@ public class DeployTagWorker implements Runnable {
                     LOG.warn("DB lock operation fails: failed to get lock {}", lockName);
                 }
             }
+        } else {
+            //report success
         }
     }
 
@@ -152,6 +156,7 @@ public class DeployTagWorker implements Runnable {
         try {
             processBatch();
         } catch (Throwable t) {
+            //report failure
             LOG.error("Failed to run DeployTagWorker", t);
         }
     }

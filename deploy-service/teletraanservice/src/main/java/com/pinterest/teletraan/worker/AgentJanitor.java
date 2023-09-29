@@ -67,6 +67,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 terminatedHosts.addAll(rodimusManager
                         .getTerminatedHosts(staleHostIds.subList(i, Math.min(i + batchSize, staleHostIds.size()))));
             } catch (Exception ex) {
+                //Report failure
                 LOG.error("Failed to get terminated hosts", ex);
             }
         }
@@ -78,7 +79,9 @@ public class AgentJanitor extends SimpleAgentJanitor {
         if (clusterName != null) {
             try {
                 launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
+                //Report success
             } catch (Exception ex) {
+                //Report failure
                 LOG.error("failed to get launch grace period for cluster {}, exception: {}", clusterName, ex);
             }
         }
@@ -97,8 +100,10 @@ public class AgentJanitor extends SimpleAgentJanitor {
         HostBean hostBean;
         try {
             hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
+            //Report success
         } catch (Exception ex) {
             LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
+            //Report failure
             return false;
         }
 
@@ -130,6 +135,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             unreachableHosts = hostAgentDAO.getStaleHosts(maxThreshold, minThreshold);
         } catch (Exception ex) {
             LOG.error("failed to get unreachable hosts", ex);
+            //Report failure
             return;
         }
         List<String> unreachableHostIds = unreachableHosts.stream().map(HostAgentBean::getHost_id)
@@ -159,6 +165,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             staleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
         } catch (Exception ex) {
             LOG.error("failed to get stale hosts", ex);
+            //Report failure
             return;
         }
 
@@ -179,6 +186,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                     LOG.debug("host {} is not stale", staleId);
                 }
             }
+            //report success
         }
     }
 
@@ -196,6 +204,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             agentlessHosts = hostDAO.getStaleAgentlessHostIds(noUpdateSince, agentlessHostBatchSize);
         } catch (SQLException ex) {
             LOG.error("failed to get agentless hosts", ex);
+            //Report failure
             return;
         }
 
@@ -215,5 +224,6 @@ public class AgentJanitor extends SimpleAgentJanitor {
         processStaleHosts();
         determineStaleHostCandidates();
         cleanUpAgentlessHosts();
+        //report success
     }
 }
