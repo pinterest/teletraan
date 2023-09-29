@@ -26,6 +26,8 @@ class StatefulStatuses:
         for key, value in vars(cls).items():
             if status is value:
                 return key
+            elif status is key:
+                return value
 
     @classmethod
     def get_all_statuses(cls):

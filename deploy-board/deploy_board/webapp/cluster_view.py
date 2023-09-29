@@ -110,6 +110,7 @@ class EnvCapacityBasicCreateView(View):
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
+            cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -199,6 +200,7 @@ class EnvCapacityAdvCreateView(View):
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
+            cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
             log.info("Create Capacity in the provider")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
@@ -303,7 +305,7 @@ class ClusterConfigurationView(View):
                     if field in current_cluster['configs'] and field not in cluster_info['configs']:
                         log.error("Teletraan does not support user to remove %s %s" % (field, cluster_info[field]))
                         raise TeletraanException("Teletraan does not support user to remove %s" % field)
-
+            cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
