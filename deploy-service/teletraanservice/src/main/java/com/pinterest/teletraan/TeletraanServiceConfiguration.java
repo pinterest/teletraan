@@ -273,3 +273,4 @@ public class TeletraanServiceConfiguration extends Configuration {
     public void setDefaultScmTypeName(String defaultScmTypeName) {
         this.defaultScmTypeName = defaultScmTypeName;
     }
+}
