@@ -43,6 +43,7 @@ public class StateTransitioner implements Runnable {
         List<String> deployIds = environDAO.getCurrentDeployIds();
         if (deployIds.isEmpty()) {
             LOG.info("StateTransitioner did not find any active deploy, exiting.");
+            //report success
             return;
         }
         Collections.shuffle(deployIds);
@@ -50,7 +51,9 @@ public class StateTransitioner implements Runnable {
             try {
                 LOG.debug("StateTransitioner chooses deploy {} to work on.", deployId);
                 commonHandler.transitionDeployState(deployId, null);
+                //report success
             } catch (Throwable t) {
+                //report failure
                 // Catch all throwable so that subsequent job not suppressed
                 LOG.error("StateTransitioner failed to process {}", deployId, t);
             }
@@ -63,6 +66,7 @@ public class StateTransitioner implements Runnable {
             LOG.info("Start StateTransitioner process...");
             processBatch();
         } catch (Throwable t) {
+            //report error
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call StateTransitioner.", t);
         }

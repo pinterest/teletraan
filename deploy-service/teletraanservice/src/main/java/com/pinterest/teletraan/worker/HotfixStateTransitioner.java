@@ -65,6 +65,7 @@ public class HotfixStateTransitioner implements Runnable {
         List<String> hotfixIds = hotfixDAO.getOngoingHotfixIds();
         if (hotfixIds.isEmpty()) {
             LOG.info("HotfixStateTransitioner did not find any active hotfix, exiting.");
+            //report success
             return;
         }
         Collections.shuffle(hotfixIds);
@@ -73,7 +74,9 @@ public class HotfixStateTransitioner implements Runnable {
             try {
                 LOG.info("HotfixStateTransitioner chooses hotfix {} to work on.", hotfixId);
                 transitionHotfixState(hotBean);
+                //report success
             } catch (Throwable t) {
+                //report failure
                 // Catch all throwable so that subsequent job not suppressed, also long error in DB
                 LOG.error("HotfixStateTransitioner failed to process {} " + hotfixId, t);
                 hotBean.setError_message("Get Exception: " + t);
@@ -88,6 +91,7 @@ public class HotfixStateTransitioner implements Runnable {
             LOG.info("Start HotfixStateTransitioner process...");
             processBatch();
         } catch (Throwable t) {
+            //report failure
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call HotfixStateTransitioner.", t);
         }
