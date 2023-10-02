@@ -69,7 +69,7 @@
                     showhelp="true" v-on:helpclick="accessRoleHelpClick"></accessrole-input>
                 <accessrole-help v-show="showAccessRoleHelp" v-bind:data="accessRoleHelpText" v-bind:accessrolelist="accessRoleList"></accessrole-help>
                 <stateful-select :statefuloptions="statefulStatusOptions" :value="selectedStatefulStatus" @help-clicked="statefulHelpClick" @stateful-change="updateStatefulStatus"></stateful-select>
-                <stateful-help v-show="showStatefulHelp" v-bind:text="statefulHelpText"></stateful-help>
+                <stateful-help v-show="showStatefulHelp"></stateful-help>
             </form>
         </div>
     </div>
@@ -144,7 +144,6 @@ var capacitySetting = new Vue({
             }
         }),
         showStatefulHelp: false,
-        statefulHelpText: "Stateful clusters are clusters that have hosts where each host has information in the ram, storage, etc, that can't be lost."
     },
     methods:{
         validateInput: function(clusterInfo){

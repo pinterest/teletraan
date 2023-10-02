@@ -86,7 +86,7 @@
                     <form-warning v-show="showSubnetReplacementAlert" v-bind:alert-text="subnetReplacementWarning"></form-warning>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <stateful-select :statefuloptions="statefulStatusOptions" :value="currentStatefulStatus" @help-clicked="statefulHelpClick" @stateful-change="statefulStatusChange"></stateful-select>
-                    <stateful-help v-show="showStatefulHelp" v-bind:text="statefulHelpText"></stateful-help>
+                    <stateful-help v-show="showStatefulHelp"></stateful-help>
                     <div v-if="inAdvanced">
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -523,8 +523,7 @@
                 showSubnetReplacementAlert: false,
                 subnetReplacementWarning: "Cluster can't have a mix of public and private subnets. Saving this config will remove existing subnets.",
                 remainingCapacity: this.placements != null ? getRemainingCapacity(info.placements, currentPlacements) : Infinity,
-                showStatefulHelp: false,
-                statefulHelpText: ""
+                showStatefulHelp: false
             }),
             methods: {
                 addConfig: function(config) {
@@ -974,7 +973,6 @@
                     if (this.showStatefulHelp) {
                         this.showStatefulHelp = false
                     } else {
-                        capacitySetting.statefulHelpText = "Stateful clusters are clusters that have hosts where each host has information in the ram, storage, etc, that can't be lost."
                         capacitySetting.showStatefulHelp = true
                     }
                 },

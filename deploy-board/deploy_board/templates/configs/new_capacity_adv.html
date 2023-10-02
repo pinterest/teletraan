@@ -65,7 +65,7 @@
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <label-input label="Replacement Timeout" placeholder="45" v-model="replacementTimeout" title="Time out for cluster replacement in minutes"></label-input>
                     <stateful-select :statefuloptions="statefulStatusOptions" :value="selectedStatefulStatus" @help-clicked="statefulHelpClick" @stateful-change="updateStatefulStatus"></stateful-select>
-                    <stateful-help v-show="showStatefulHelp" v-bind:text="statefulHelpText"></stateful-help>
+                    <stateful-help v-show="showStatefulHelp"></stateful-help>
                     <div>
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -208,8 +208,7 @@ var capacitySetting = new Vue({
                 text: o
             }
         }),
-        showStatefulHelp: false,
-        statefulHelpText: "Stateful clusters are clusters that have hosts where each host has information in the ram, storage, etc, that can't be lost."
+        showStatefulHelp: false
     },
     methods: {
         addConfig: function (config) {
