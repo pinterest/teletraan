@@ -12,3 +12,4 @@ Contributors
 * Saurabh Joshi <sjoshi@pinterest.com>
 * Yongwen Xu <yongwen@pinterest.com>
 * Yaqin Li <yaqinli@pinterest.com>
+* Khoi Nguyen <khoinguyen@pinterest.com>
