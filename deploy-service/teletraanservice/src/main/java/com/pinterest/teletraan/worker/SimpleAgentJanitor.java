@@ -32,6 +32,7 @@ import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.HostHandler;
 
+
 /**
  * Housekeeping on stuck and dead agents
  * <p>
@@ -42,6 +43,7 @@ import com.pinterest.deployservice.handler.HostHandler;
 public class SimpleAgentJanitor implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(SimpleAgentJanitor.class);
     private AgentDAO agentDAO;
+    protected ErrorBudgetReporter errorBudgetReporter;
     protected HostDAO hostDAO;
     protected HostAgentDAO hostAgentDAO;
     private HostHandler hostHandler;
@@ -51,6 +53,7 @@ public class SimpleAgentJanitor implements Runnable {
     public SimpleAgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
             int maxStaleHostThreshold) {
         agentDAO = serviceContext.getAgentDAO();
+        errorBudgetReporter = new ErrorBudgetReporter(this);
         hostDAO = serviceContext.getHostDAO();
         hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
@@ -73,9 +76,11 @@ public class SimpleAgentJanitor implements Runnable {
             agentDAO.updateAgentById(id, updateBean);
             LOG.info("Marked agent {} as UNREACHABLE.", id);
             //report Success
+            errorBudgetReporter.SendMetric(true);
         } catch (Exception e) {
             //report Failure
             LOG.error("Failed to mark host {} as UNREACHABLE. exception {}", id, e);
+            errorBudgetReporter.SendMetric(false);
         }
     }
 
@@ -128,8 +133,10 @@ public class SimpleAgentJanitor implements Runnable {
             LOG.info("Start agent janitor process...");
             processAllHosts();
             //Report success
+            errorBudgetReporter.SendMetric(true);
         } catch (Throwable t) {
             //Report failure
+            errorBudgetReporter.SendMetric(false);
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("AgentJanitor Failed.", t);
         }

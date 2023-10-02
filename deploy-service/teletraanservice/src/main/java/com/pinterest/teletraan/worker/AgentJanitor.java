@@ -68,6 +68,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                         .getTerminatedHosts(staleHostIds.subList(i, Math.min(i + batchSize, staleHostIds.size()))));
             } catch (Exception ex) {
                 //Report failure
+                errorBudgetReporter.SendMetric(false);
                 LOG.error("Failed to get terminated hosts", ex);
             }
         }
@@ -80,8 +81,10 @@ public class AgentJanitor extends SimpleAgentJanitor {
             try {
                 launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
                 //Report success
+                errorBudgetReporter.SendMetric(true);
             } catch (Exception ex) {
                 //Report failure
+                errorBudgetReporter.SendMetric(false);
                 LOG.error("failed to get launch grace period for cluster {}, exception: {}", clusterName, ex);
             }
         }
@@ -101,9 +104,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
         try {
             hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
             //Report success
+            errorBudgetReporter.SendMetric(true);
         } catch (Exception ex) {
             LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
             //Report failure
+            errorBudgetReporter.SendMetric(false);
             return false;
         }
 
@@ -136,6 +141,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get unreachable hosts", ex);
             //Report failure
+            errorBudgetReporter.SendMetric(false);
             return;
         }
         List<String> unreachableHostIds = unreachableHosts.stream().map(HostAgentBean::getHost_id)
@@ -166,6 +172,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get stale hosts", ex);
             //Report failure
+            errorBudgetReporter.SendMetric(false);
             return;
         }
 
@@ -187,6 +194,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 }
             }
             //report success
+            errorBudgetReporter.SendMetric(true);
         }
     }
 
@@ -205,6 +213,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (SQLException ex) {
             LOG.error("failed to get agentless hosts", ex);
             //Report failure
+            errorBudgetReporter.SendMetric(false);
             return;
         }
 
@@ -224,6 +233,5 @@ public class AgentJanitor extends SimpleAgentJanitor {
         processStaleHosts();
         determineStaleHostCandidates();
         cleanUpAgentlessHosts();
-        //report success
     }
 }
