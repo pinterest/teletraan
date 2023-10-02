@@ -465,6 +465,140 @@ $('#privateBldUploadBtnId button').click(function () {
         </div>
     </div>
 
+    <div class="panel panel-default">
+        <div class="panel-heading clearfix">
+            <h4 class="panel-title pull-left pointer-cursor">
+                <a data-toggle="collapse" data-target="#activeDeployId">
+                <span id="activeDeployIdToggler"
+                    class="glyphicon glyphicon-chevron-down">
+                </span>
+                {% if env|canResume %}
+                Active Deployment (Paused)
+                {% else %}
+                Active Deployment
+                {% endif %}
+                </a>
+            </h4>
+            {% if pinterest %}
+                {% if project_info %}
+                <div class="btn-project-info">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                    <a href="{{ project_info.project_url }}" target="_blank">Project: {{ project_info.project_name }}</a>
+                </div>
+                {% else %}
+                <div class="btn-project-info-warning">
+                    <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                    <p>Missing project ownership information, please contact slack #infra-console to add it.</p>
+                </div>
+                {% endif %}
+            {% endif %}
+            <div class="btn-group pull-right">
+                {% if has_deploy and env|isEnvEnabled %}
+                <a href="/env/{{ env.envName }}/{{ env.stageName }}/rollback"
+                    type="button" class="deployToolTip btn btn-primary btn-sm"
+                    title="Rollback to a previous deploy">
+                    <span class="glyphicon glyphicon-repeat icon-flipped"></span> Rollback
+                </a>
+                {% endif %}
+                {% if env|canResume %}
+                <button type="button" class="deployToolTip btn btn-default btn-sm"
+                        data-toggle="modal" data-target="#resumeConfirmModelId"
+                        title="Resume the current deploy">
+                    <span class="glyphicon glyphicon-play"></span> Resume
+                </button>
+                {% else %}
+                <button type="button" class="deployToolTip btn btn-default btn-sm"
+                        data-toggle="modal" data-target="#pauseConfirmModelId"
+                        title="Pause the current deploy">
+                    <span class="glyphicon glyphicon-pause"></span> Pause
+                </button>
+                {% endif %}
+                <button type="button" class="deployToolTip btn btn-default btn-sm"
+                        data-toggle="modal" data-target="#restartConfirmModelId"
+                        title="Rolling restart the service on all hosts">
+                    <span class="glyphicon glyphicon-refresh"></span> Restart
+                </button>
+                <div class="btn-group">
+                <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
+                        title="Change how the hosts are displayed"
+                        data-toggle="dropdown" type="button">
+                    Display Mode <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" role="menu">
+                    <form id="updateModeFormId">
+                    <li>
+                        <div class="radio"><label>&nbsp;
+                        <input type="radio" name="showMode" value="simple"
+                        {% if report.showMode == "simple" %}
+                        checked
+                        {% endif %}
+                        > Simple
+                        </label></div>
+                    </li>
+                    <li>
+                        <div class="radio"><label>&nbsp;
+                        <input type="radio" name="showMode" value="compact"
+                        {% if report.showMode == "compact" %}
+                        checked
+                        {% endif %}
+                        > Compact
+                        </label></div>
+                    </li>
+                    <li>
+                        <div class="radio"><label>&nbsp;
+                        <input type="radio" name="showMode" value="complete"
+                        {% if report.showMode == "complete" %}
+                        checked
+                        {% endif %}
+                        > Complete
+                        </label></div>
+                    </li>
+                    <li>
+                        <div class="radio"><label>&nbsp;
+                        <input type="radio" name="showMode" value="primaryAcct"
+                        {% if report.showMode == "primaryAcct" %}
+                        checked
+                        {% endif %}
+                        > Primary Account
+                        </label></div>
+                    </li>
+                    <li>
+                        <div class="radio"><label>&nbsp;
+                        <input type="radio" name="showMode" value="subAcct"
+                        {% if report.showMode == "subAcct" %}
+                        checked
+                        {% endif %}
+                        > Sub Account
+                        </label></div>
+                    </li>
+                    <li role="presentation" class="divider"></li>
+                    <li>
+                        <div class="checkbox"><label>&nbsp;
+                        <input type="checkbox" name="sortByStatus" id="sortByStatusId" value="true"
+                        {% if report.sortByStatus == "true" %}
+                        checked
+                        {% endif %}
+                        > Sort by status
+                        </label></div>
+                    </li>
+                    </form>
+                </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="collapse in panel-body">
+            <div id="activeDeployId">
+                {% include "deploys/deploy_progress.tmpl" %}
+            </div>
+            <div class="row" id="serviceAddOnsId">
+                {% include "deploys/deploy_add_ons.tmpl" %}
+            </div>
+        </div>
+    </div>
+
+    
+
 
     <script>
     $(function () {

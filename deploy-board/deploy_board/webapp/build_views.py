@@ -20,7 +20,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 import common
-from helpers import builds_helper, systems_helper, tags_helper, environs_helper, deploys_helper
+from helpers import builds_helper, systems_helper, tags_helper, deploys_helper
 import random
 
 import logging
