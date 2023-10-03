@@ -101,6 +101,7 @@ public class ServiceContext {
     private List<PingRequestValidator> pingRequestValidators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
+    private BuildEventPublisher buildEventPublisher;
 
     // Publishers & Listeners
     private AppEventPublisher appEventPublisher;
