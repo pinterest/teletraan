@@ -1,9 +1,9 @@
-## The `universal` lib
+# The `universal` lib
 
 To publish (note this should only be run in the build pipeline)
 
 ```bash
-cd shared && mvn deploy
+cd deploy-service/universal && mvn deploy
 ```
 
 To consume
