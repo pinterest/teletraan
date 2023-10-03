@@ -25,9 +25,11 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.deployservice.events.BuildEventPublisher;
+import com.pinterest.deployservice.events.BuildEvent;
 import com.pinterest.teletraan.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.events.AppEventPublisher;
+
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -56,7 +58,7 @@ public class Builds {
     private final Allowlist buildAllowlist;
     private final SourceControlManagerProxy sourceControlManagerProxy;
     private final Authorizer authorizer;
-    private final BuildEventPublisher buildEventPublisher;
+    private final AppEventPublisher eventPublisher;
 
     @Context
     UriInfo uriInfo;
@@ -67,7 +69,7 @@ public class Builds {
         sourceControlManagerProxy = context.getSourceControlManagerProxy();
         authorizer = context.getAuthorizer();
         buildAllowlist = context.getBuildAllowlist();
-        buildEventPublisher = context.getBuildEventPublisher();
+        eventPublisher = context.getAppEventPublisher();
     }
 
     @GET
@@ -228,8 +230,8 @@ public class Builds {
         LOG.info("Successfully published build {} by {}.", buildId, sc.getUserPrincipal().getName());
 
         // publish event
-        if (buildEventPublisher != null) {
-            buildEventPublisher.publish(buildBean, "CREATE");
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new BuildEvent(this, buildBean, "CREATE"));
         }
 
         UriBuilder ub = uriInfo.getAbsolutePathBuilder();
@@ -256,8 +258,8 @@ public class Builds {
         LOG.info("{} successfully deleted build {}", sc.getUserPrincipal().getName(), id);
 
         // publish event
-        if (buildEventPublisher != null) {
-            buildEventPublisher.publish(buildBean, "DELETE");
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent((new BuildEvent(this, buildBean, "DELETE")));
         }
     }
 }

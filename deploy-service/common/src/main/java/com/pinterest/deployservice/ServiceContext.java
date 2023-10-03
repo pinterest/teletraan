@@ -42,7 +42,6 @@ import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.email.MailManager;
-import com.pinterest.deployservice.events.BuildEventPublisher;
 import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
@@ -101,7 +100,6 @@ public class ServiceContext {
     private List<PingRequestValidator> pingRequestValidators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
-    private BuildEventPublisher buildEventPublisher;
 
     // Publishers & Listeners
     private AppEventPublisher appEventPublisher;
@@ -461,12 +459,4 @@ public class ServiceContext {
         this.maxParallelThreshold = maxParallelThreshold;
     }
 
-    public BuildEventPublisher getBuildEventPublisher() {
-        return buildEventPublisher;
-    }
-
-    public void setBuildEventPublisher(
-        BuildEventPublisher buildEventPublisher) {
-        this.buildEventPublisher = buildEventPublisher;
-    }
 }
