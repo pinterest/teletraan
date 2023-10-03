@@ -296,6 +296,6 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     @JsonProperty("metrics")
     public void setMetricsFactory(MicrometerMetricsFactory metrics) {
-        this.metricsFactory = (MicrometerMetricsFactory) metrics;
+        this.metricsFactory = metrics;
     }
 }
