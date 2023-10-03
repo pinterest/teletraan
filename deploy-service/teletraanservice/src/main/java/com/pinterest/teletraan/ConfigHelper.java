@@ -40,7 +40,6 @@ import com.pinterest.deployservice.db.DBTagDAOImpl;
 import com.pinterest.deployservice.db.DBTokenRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUserRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUtilDAOImpl;
-import com.pinterest.deployservice.events.DefaultEventSender;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
