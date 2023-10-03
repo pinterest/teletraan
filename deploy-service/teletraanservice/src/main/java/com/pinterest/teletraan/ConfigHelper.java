@@ -47,12 +47,12 @@ import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
-import com.pinterest.deployservice.events.EventBridgePublisher;
-import com.pinterest.teletraan.config.EventSenderFactory;
+import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
+import com.pinterest.teletraan.universal.events.AppEventPublisher;
 import com.pinterest.teletraan.worker.AgentJanitor;
 import com.pinterest.teletraan.worker.AutoPromoter;
 import com.pinterest.teletraan.worker.BuildJanitor;
@@ -150,11 +150,12 @@ public class ConfigHelper {
         }
         context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers, defaultScmTypeName));
 
-        EventSenderFactory eventSenderFactory = configuration.getEventSenderFactory();
-        if (eventSenderFactory != null) {
-            context.setEventSender(eventSenderFactory.createEventSender());
+        AppEventFactory appEventFactory = configuration.getAppEventFactory();
+        if (appEventFactory != null) {
+            context.setAppEventPublisher(appEventFactory.createEventPublisher());
         } else {
-            context.setEventSender(new DefaultEventSender());
+            context.setAppEventPublisher(new AppEventPublisher(){});
+        }
         }
 
         RodimusFactory rodimusFactory = configuration.getRodimusFactory();

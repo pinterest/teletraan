@@ -48,6 +48,7 @@ import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
+import com.pinterest.teletraan.universal.events.AppEventPublisher;
 
 import org.apache.commons.dbcp.BasicDataSource;
 
@@ -102,7 +103,17 @@ public class ServiceContext {
     private List<PingRequestValidator> pingRequestValidators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
-    private BuildEventPublisher buildEventPublisher;
+
+    // Publishers & Listeners
+    private AppEventPublisher appEventPublisher;
+
+    public AppEventPublisher getAppEventPublisher() {
+        return appEventPublisher;
+    }
+
+    public void setAppEventPublisher(AppEventPublisher appEventPublisher) {
+        this.appEventPublisher = appEventPublisher;
+    }
 
     public Allowlist getBuildAllowlist() {
         return buildAllowlist;

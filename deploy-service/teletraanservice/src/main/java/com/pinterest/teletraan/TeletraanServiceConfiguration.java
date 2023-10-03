@@ -27,10 +27,11 @@ import com.pinterest.teletraan.config.DefaultEmailFactory;
 import com.pinterest.teletraan.config.DefaultHostGroupFactory;
 import com.pinterest.teletraan.config.EmailFactory;
 import com.pinterest.teletraan.config.EmbeddedDataSourceFactory;
-import com.pinterest.teletraan.config.EventSenderFactory;
+import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.ExternalAlertsConfigFactory;
 import com.pinterest.teletraan.config.HostGroupFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
+import com.pinterest.teletraan.config.MicrometerMetricsFactory;
 import com.pinterest.teletraan.config.OpenAuthorizationFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
@@ -83,7 +84,7 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     @Valid
     @JsonProperty("event")
-    private EventSenderFactory eventSenderFactory;
+    private AppEventFactory appEventFactory;
 
     @Valid
     @JsonProperty("workers")
@@ -113,6 +114,9 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     @JsonProperty("pingrequestvalidators")
     private List<String> pingRequestValidators;
+
+    @Valid
+    private MicrometerMetricsFactory metricsFactory = new MicrometerMetricsFactory();
 
     public DataSourceFactory getDataSourceFactory() {
         if (dataSourceFactory == null) {
@@ -203,12 +207,12 @@ public class TeletraanServiceConfiguration extends Configuration {
         this.hostGroupFactory = hostGroupFactory;
     }
 
-    public EventSenderFactory getEventSenderFactory() {
-        return eventSenderFactory;
+    public AppEventFactory getAppEventFactory() {
+        return appEventFactory;
     }
 
-    public void setEventSenderFactory(EventSenderFactory eventSenderFactory) {
-        this.eventSenderFactory = eventSenderFactory;
+    public void setAppEventFactory(AppEventFactory appEventFactory) {
+        this.appEventFactory = appEventFactory;
     }
 
     public SystemFactory getSystemFactory() {
@@ -283,5 +287,15 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setAwsFactory(AwsFactory awsFactory) {
         this.awsFactory = awsFactory;
+    }
+
+    @JsonProperty("metrics")
+    public MicrometerMetricsFactory getMetricsFactory() {
+        return metricsFactory;
+    }
+
+    @JsonProperty("metrics")
+    public void setMetricsFactory(MicrometerMetricsFactory metrics) {
+        this.metricsFactory = (MicrometerMetricsFactory) metrics;
     }
 }
