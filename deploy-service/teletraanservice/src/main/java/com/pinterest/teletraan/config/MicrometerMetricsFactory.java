@@ -21,7 +21,7 @@ public class MicrometerMetricsFactory extends MetricsFactory {
     private String mm_namePrefix;
 
     @JsonProperty("mm.enableCustomMetrics")
-    private Boolean mm_enabelCustomMetrics = true;
+    private Boolean mm_enableCustomMetrics;
 
     public String get(String propertyName) {
         try {
@@ -41,7 +41,7 @@ public class MicrometerMetricsFactory extends MetricsFactory {
     }
 
     public MeterRegistry getCustomMeterRegistry() {
-        if (mm_enabelCustomMetrics) {
+        if (Boolean.TRUE.equals(mm_enableCustomMetrics)) {
             PinStatsConfig config = this::get;
             return new PinStatsMeterRegistry(config, Clock.SYSTEM, new NamingConvention() {
 
@@ -51,6 +51,6 @@ public class MicrometerMetricsFactory extends MetricsFactory {
                 }
             });
         }
-        return null;
+        return Metrics.globalRegistry;
     }
 }
