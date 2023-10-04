@@ -589,6 +589,8 @@ public class AutoPromoter implements Runnable {
         try {
             LOG.info("Start AutoPromoter process...");
             processBatch();
+            Metrics.counter("").increment();
+            errorBudgeRegistry.counter("failed").increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);

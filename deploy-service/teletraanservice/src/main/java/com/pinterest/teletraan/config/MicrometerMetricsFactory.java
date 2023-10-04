@@ -37,24 +37,7 @@ public class MicrometerMetricsFactory extends MetricsFactory {
     public void configure(LifecycleEnvironment environment, MetricRegistry registry) {
         super.configure(environment, registry);
         PinStatsConfig config = this::get;
-        PinStatsConfig errorBudgetConfig = new PinStatsConfig() {
-            @Override
-            public String uri() {
-                return mm_uri;
-            }
-
-            @Override
-            public String namePrefix() {
-                return "";
-            }
-
-            @Override
-            public String get(String key) {
-                return null;
-            }
-        };
         Metrics.addRegistry(new PinStatsMeterRegistry(config, Clock.SYSTEM));
-        Metrics.globalRegistry.getRegistries(). addRegistry(new PinStatsMeterRegistry(errorBudgetConfig, Clock.SYSTEM));
     }
 
     public MeterRegistry getCustomMeterRegistry() {
