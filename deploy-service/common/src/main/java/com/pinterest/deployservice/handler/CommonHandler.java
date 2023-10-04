@@ -23,7 +23,9 @@ import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.common.WebhookDataFactory;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.email.MailManager;
-import com.pinterest.deployservice.events.EventSender;
+import com.pinterest.deployservice.events.DeployEvent;
+import com.pinterest.teletraan.universal.events.AppEventPublisher;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -50,7 +52,7 @@ public class CommonHandler {
     private UtilDAO utilDAO;
     private ScheduleDAO scheduleDAO;
     private ChatManager chatManager;
-    private EventSender sender;
+    private AppEventPublisher publisher;
     private MailManager mailManager;
     private ExecutorService jobPool;
     private DataHandler dataHandler;
@@ -124,7 +126,7 @@ public class CommonHandler {
         agentDAO = serviceContext.getAgentDAO();
         utilDAO = serviceContext.getUtilDAO();
         scheduleDAO = serviceContext.getScheduleDAO();
-        sender = serviceContext.getEventSender();
+        publisher = serviceContext.getAppEventPublisher();
         chatManager = serviceContext.getChatManager();
         mailManager = serviceContext.getMailManager();
         buildTagsManager = serviceContext.getBuildTagsManager();
@@ -155,7 +157,7 @@ public class CommonHandler {
         String webLink = deployBoardUrlPrefix + String.format("/env/%s/%s/deploy/",
             envBean.getEnv_name(),
             envBean.getStage_name());
-        
+
         TagBean tagBean = buildTagsManager.getEffectiveBuildTag(buildBean);
 
         String action = getDeployAction(deployType);
@@ -261,16 +263,16 @@ public class CommonHandler {
         for (int i = 0; i < currentSession; i++) {
             totalHosts+=Integer.parseInt(hostNumbersList[i]);
         }
-        if (schedule.getState() == ScheduleState.COOLING_DOWN) { 
+        if (schedule.getState() == ScheduleState.COOLING_DOWN) {
             // check if cooldown period is over
             if (System.currentTimeMillis() - schedule.getState_start_time() > Integer.parseInt(cooldownTimesList[currentSession-1]) * 60000) {
                 ScheduleBean updateScheduleBean = new ScheduleBean();
                 updateScheduleBean.setId(schedule.getId());
                 if (totalSessions == currentSession) {
-                    updateScheduleBean.setState(ScheduleState.FINAL); 
+                    updateScheduleBean.setState(ScheduleState.FINAL);
                     LOG.debug("Env {} is now going into final deloy stage and will deploy on the rest of all of the hosts.", envBean.getEnv_id());
                 } else {
-                    updateScheduleBean.setState(ScheduleState.RUNNING);  
+                    updateScheduleBean.setState(ScheduleState.RUNNING);
                     updateScheduleBean.setCurrent_session(currentSession+1);
                     LOG.debug("Env {} has finished cooling down and will now start resume deploy by running session {}", envBean.getEnv_id(), currentSession+1);
                 }
@@ -283,11 +285,11 @@ public class CommonHandler {
             updateScheduleBean.setState(ScheduleState.COOLING_DOWN);
             updateScheduleBean.setState_start_time(System.currentTimeMillis());
             scheduleDAO.update(updateScheduleBean, schedule.getId());
-            LOG.debug("Env {} has finished running session {} and will now begin cooling down", envBean.getEnv_id(), currentSession); 
+            LOG.debug("Env {} has finished running session {} and will now begin cooling down", envBean.getEnv_id(), currentSession);
         }
     }
 
-    void transition(DeployBean deployBean, DeployBean newDeployBean, EnvironBean envBean) throws Exception {  
+    void transition(DeployBean deployBean, DeployBean newDeployBean, EnvironBean envBean) throws Exception {
         transitionSchedule(envBean);
         String deployId = deployBean.getDeploy_id();
         String envId = envBean.getEnv_id();
@@ -339,7 +341,7 @@ public class CommonHandler {
             return;
         }
 
-        String scheduleId = envBean.getSchedule_id(); 
+        String scheduleId = envBean.getSchedule_id();
         long duration = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis() - deployBean.getLast_update());
         long stuckTh = envBean.getStuck_th();
         if (succeeded <= deployBean.getSuc_total() && duration >= stuckTh) {
@@ -350,15 +352,15 @@ public class CommonHandler {
                 newDeployBean.setState(DeployState.RUNNING);
                 return;
             } else {
-                if (scheduleId != null) { // don't change state if it's cooling down 
-                    ScheduleBean schedule = scheduleDAO.getById(scheduleId);  
-                    if (schedule.getState() == ScheduleState.COOLING_DOWN) {  
+                if (scheduleId != null) { // don't change state if it's cooling down
+                    ScheduleBean schedule = scheduleDAO.getById(scheduleId);
+                    if (schedule.getState() == ScheduleState.COOLING_DOWN) {
                         return;
                     }
                 }
                 newDeployBean.setState(DeployState.FAILING);
                 LOG.info("Set deploy {} as FAILING since {} seconds past without complete the deploy.", deployId, duration);
-                
+
                 // TODO, temp hack do NOT set lastUpdate for deploy stuck case, otherwise the
                 // next round transition will convert FAILING to RUNNING since new lastUpdate
                 // The better solution should be provide reason for previous transition
@@ -416,9 +418,8 @@ public class CommonHandler {
                 String envName = environBean.getEnv_name();
                 String stageName = environBean.getStage_name();
                 String what = String.format("%s/%s deploy initiated.", envName, stageName);
-                String tags = String.format("%s/%s", envName, stageName);
-                sender.sendDeployEvent(what, tags, commit);
-                LOG.info("Successfully sent deploy events to graphite server. what: {}, commit: {}", what, commit);
+                publisher.publishEvent(new DeployEvent(this, envName, stageName, commit, newDeployBean.getOperator()));
+                LOG.info("Successfully sent deploy event. what: {}, commit: {}", what, commit);
             } catch (Exception ex) {
                 LOG.error("Failed to send deploy events.", ex);
             }
@@ -455,7 +456,7 @@ public class CommonHandler {
         if (!StateMachines.DEPLOY_ACTIVE_STATES.contains(state)) {
             LOG.info("Deploy {} is currently in {} state, no need to transition.", deployId, state);
             return;
-        } 
+        }
 
         String envId = deployBean.getEnv_id();
         if (envBean == null) {
