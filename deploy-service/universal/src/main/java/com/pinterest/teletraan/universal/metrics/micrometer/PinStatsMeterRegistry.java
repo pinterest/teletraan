@@ -2,6 +2,7 @@ package com.pinterest.teletraan.universal.metrics.micrometer;
 
 import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.config.NamingConvention;
 import io.micrometer.core.instrument.util.MeterPartition;
 import io.micrometer.core.instrument.util.NamedThreadFactory;
 import io.micrometer.opentsdb.OpenTSDBMeterRegistry;
@@ -19,12 +20,20 @@ public class PinStatsMeterRegistry extends OpenTSDBMeterRegistry {
   private final PinStatsPublisher publisher;
 
   public PinStatsMeterRegistry(PinStatsConfig config, Clock clock) {
-    this(config, clock, null);
+    this(config, clock, null, new PinStatsNamingConvention(config.namePrefix()));
   }
 
   public PinStatsMeterRegistry(PinStatsConfig config, Clock clock, PinStatsPublisher publisher) {
+    this(config, clock, publisher, new PinStatsNamingConvention(config.namePrefix()));
+  }
+
+  public PinStatsMeterRegistry(PinStatsConfig config, Clock clock, NamingConvention namingConvention) {
+    this(config, clock, null, namingConvention);
+  }
+
+  public PinStatsMeterRegistry(PinStatsConfig config, Clock clock, PinStatsPublisher publisher, NamingConvention namingConvention) {
     super(config, clock, DEFAULT_THREAD_FACTORY, null);
-    config().namingConvention(new PinStatsNamingConvention(config.namePrefix()));
+    config().namingConvention(namingConvention);
     this.config = config;
     this.publisher =
         publisher == null

@@ -49,6 +49,8 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 import org.apache.commons.dbcp.BasicDataSource;
 
 import java.util.List;
@@ -92,6 +94,7 @@ public class ServiceContext {
 
     private boolean buildCacheEnabled;
     private String buildCacheSpec;
+    private MeterRegistry customMeterRegistry;
     private String deployCacheSpec;
     private boolean deployCacheEnabled;
     private String deployBoardUrlPrefix;
@@ -120,6 +123,14 @@ public class ServiceContext {
 
     public void setBuildAllowlist(Allowlist buildAllowlist) {
         this.buildAllowlist = buildAllowlist;
+    }
+
+    public MeterRegistry getCustomMeterRegistry() {
+        return customMeterRegistry;
+    }
+
+    public void setCustomMeterRegistry(MeterRegistry customMeterRegistry) {
+        this.customMeterRegistry = customMeterRegistry;
     }
 
     public GroupRolesDAO getGroupRolesDAO() {
