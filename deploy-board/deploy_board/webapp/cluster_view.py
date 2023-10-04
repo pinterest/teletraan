@@ -72,7 +72,9 @@ class EnvCapacityBasicCreateView(View):
             'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'access_role_list': ACCESS_ROLE_LIST,
-            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+            'stateful_status': clusters_helper.StatefulStatuses.get_status(None),
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
         }
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
@@ -108,6 +110,7 @@ class EnvCapacityBasicCreateView(View):
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
+            cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -165,7 +168,9 @@ class EnvCapacityAdvCreateView(View):
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
-            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+            'stateful_status': clusters_helper.StatefulStatuses.get_status(None),
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
         }
         # cluster manager
         return render(request, 'configs/new_capacity_adv.html', {
@@ -195,6 +200,7 @@ class EnvCapacityAdvCreateView(View):
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
+            cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
             log.info("Create Capacity in the provider")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
@@ -238,6 +244,8 @@ class ClusterConfigurationView(View):
         base_images_names = baseimages_helper.get_image_names_by_arch(
             request, current_cluster['provider'], current_cluster['cellName'], current_cluster['archName'])
 
+        current_cluster['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(current_cluster['statefulStatus'])
+
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
 
@@ -261,7 +269,8 @@ class ClusterConfigurationView(View):
             'readonlyFields': TELETRAAN_CLUSTER_READONLY_FIELDS,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'currentCluster': current_cluster,
-            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
         }
 
         return render(request, 'clusters/cluster_configuration.html', {
@@ -296,7 +305,7 @@ class ClusterConfigurationView(View):
                     if field in current_cluster['configs'] and field not in cluster_info['configs']:
                         log.error("Teletraan does not support user to remove %s %s" % (field, cluster_info[field]))
                         raise TeletraanException("Teletraan does not support user to remove %s" % field)
-
+            cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))

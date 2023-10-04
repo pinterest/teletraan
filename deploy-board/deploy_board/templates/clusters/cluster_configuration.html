@@ -85,6 +85,8 @@
                     <remaining-capacity title="The total remaining capacity of selected placements" v-bind:remainingcapacity="remainingCapacity" v-bind:inadvanced="inAdvanced"></remaining-capacity>
                     <form-warning v-show="showSubnetReplacementAlert" v-bind:alert-text="subnetReplacementWarning"></form-warning>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
+                    <stateful-select :statefuloptions="statefulStatusOptions" :value="currentStatefulStatus" @help-clicked="statefulHelpClick" @stateful-change="statefulStatusChange"></stateful-select>
+                    <stateful-help v-show="showStatefulHelp"></stateful-help>
                     <div v-if="inAdvanced">
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -404,6 +406,7 @@
     var info = {{capacity_creation_info | safe}};
     var env = info.environment;
     var currentCluster = info.currentCluster;
+    var statefulOptions = info.stateful_options;
     const goldenImage = info.baseImages.find(goldenImageFinder);
     if (currentCluster!=null){
         var currentPlacements = currentCluster.placement.split(',');
@@ -451,6 +454,7 @@
                 currentProvider: currentCluster.provider,
                 currentCell: currentCluster.cellName,
                 currentArch: currentCluster.archName,
+                currentStatefulStatus: currentCluster.statefulStatus,
                 hostTypeOptions: info.hostTypes.map(function(item, idx) {
                     return {
                         value: item.id,
@@ -467,6 +471,12 @@
                     placements.getFullList(initialAssignPublicIP, currentPlacements) :
                     placements.getSimpleList(initialAssignPublicIP, currentPlacements),
                 providers: info.providerList.map(function(o) {
+                    return {
+                        value: o,
+                        text: o
+                    }
+                }),
+                statefulStatusOptions: statefulOptions.map(function(o) {
                     return {
                         value: o,
                         text: o
@@ -513,6 +523,7 @@
                 showSubnetReplacementAlert: false,
                 subnetReplacementWarning: "Cluster can't have a mix of public and private subnets. Saving this config will remove existing subnets.",
                 remainingCapacity: this.placements != null ? getRemainingCapacity(info.placements, currentPlacements) : Infinity,
+                showStatefulHelp: false
             }),
             methods: {
                 addConfig: function(config) {
@@ -908,6 +919,7 @@
                     clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
                     clusterInfo['useLaunchTemplate'] = this.useLaunchTemplate;
                     clusterInfo['placement'] = this.selectedPlacements.join(',');
+                    clusterInfo['statefulStatus'] = this.currentStatefulStatus;
                     clusterInfo['configs'] = this.allUserData.reduce(function(map, obj) {
                         map[obj.name] = obj.value;
                         return map
@@ -956,7 +968,17 @@
                     if (value) {
                         this.updateCapacity();
                     }
-                }
+                },
+                statefulHelpClick: function(value) {
+                    if (this.showStatefulHelp) {
+                        this.showStatefulHelp = false
+                    } else {
+                        capacitySetting.showStatefulHelp = true
+                    }
+                },
+                statefulStatusChange: function(value) {
+                    this.currentStatefulStatus = value
+                },
             },
             watch: {
                 placements: function(){

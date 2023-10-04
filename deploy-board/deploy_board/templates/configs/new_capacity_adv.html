@@ -64,6 +64,8 @@
                         showhelp="true" v-on:helpclick="placementsHelpClick" v-on:assignpublicipclick="selectpublicip"></placements-select>
                     <placements-help v-show="showPlacementsHelp" v-bind:data="placementsHelpData"></placements-help>
                     <label-input label="Replacement Timeout" placeholder="45" v-model="replacementTimeout" title="Time out for cluster replacement in minutes"></label-input>
+                    <stateful-select :statefuloptions="statefulStatusOptions" :value="selectedStatefulStatus" @help-clicked="statefulHelpClick" @stateful-change="updateStatefulStatus"></stateful-select>
+                    <stateful-help v-show="showStatefulHelp"></stateful-help>
                     <div>
                         <div class="form-group"></div>
                         <div class="form-group">
@@ -103,6 +105,7 @@ var capacityView = new Vue({
 var info = {{capacity_creation_info|safe}};
 var environment = info.environment;
 var placements = getDefaultPlacement(info);
+var statefulOptions = info.stateful_options;
 const goldenImage = info.baseImages.find(goldenImageFinder);
 const baseImagesSorted = info.baseImages.sort(baseImageSorter);
 const defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImagesSorted);
@@ -197,6 +200,15 @@ var capacitySetting = new Vue({
         showHostTypeHelp: false,
         showSecurityZoneHelp: false,
         showPlacementsHelp: false,
+        accessRoleHelpText: "Please enter a valid access role",
+        selectedStatefulStatus: capacityCreationInfo.stateful_status,
+        statefulStatusOptions: statefulOptions.map(function(o) {
+            return {
+                value: o,
+                text: o
+            }
+        }),
+        showStatefulHelp: false
     },
     methods: {
         addConfig: function (config) {
@@ -562,6 +574,7 @@ var capacitySetting = new Vue({
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             clusterInfo['replacementTimeout'] = this.replacementTimeout;
+            clusterInfo['statefulStatus'] =  this.selectedStatefulStatus;
             if (this.selectedPlacements != null && this.selectedPlacements.length>0){
                 clusterInfo['placement'] = this.selectedPlacements.join(',');
             }
@@ -603,6 +616,12 @@ var capacitySetting = new Vue({
             if (value) {
                 this.createCapacity();
             }
+        },
+        statefulHelpClick: function(value) {
+            this.showStatefulHelp = !this.showStatefulHelp
+        },
+        updateStatefulStatus: function(value) {
+            this.selectedStatefulStatus = value
         }
     },
     watch: {

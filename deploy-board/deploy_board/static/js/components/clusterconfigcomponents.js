@@ -514,3 +514,35 @@ Vue.component("accessrole-input", {
         },
     }
 });
+
+Vue.component("stateful-select", {
+    template:
+    `<div class="form-group">
+        <label-select2 label="Stateful Status" title="stateful status" v-on:input="updateValue(value)" col-class="col-xs-2" show-help="true"
+        :options="statefuloptions" :selected="value" @input="$emit('stateful-change', $event)" @help-clicked="helpClick">
+        </label-select2>
+    </div>`,
+    props: ['statefuloptions', 'value'],
+    methods: {
+        updateValue: function (value) {
+            this.$emit('input', value)
+        },
+        helpClick: function () {
+            this.$emit('help-clicked')
+        },
+    }
+});
+
+Vue.component('stateful-help', {
+    template:
+    `<div class="form-group">
+        <div class="col-xs-2">
+        </div>
+        <div class="col-xs-10">
+            STATELESS - your cluster can rotate hosts without data loss or other effects
+            <br />
+            STATEFUL - your cluster cannot automatically rotate hosts without data loss or other effects (i.e. loss of information in the ram, storage, etc.)
+            <br />
+        </div>
+    </div>`
+});
