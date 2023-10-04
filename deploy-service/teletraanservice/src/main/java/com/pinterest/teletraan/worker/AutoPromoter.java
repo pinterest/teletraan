@@ -28,6 +28,9 @@ import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
+
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
@@ -59,7 +62,7 @@ public class AutoPromoter implements Runnable {
     private BuildTagsManager buildTagsManager;
     private int bufferTimeMinutes;
     private final int maxCheckBuildsOrDeploys = 100;
-
+    private final MeterRegistry errorBudgeRegistry;
 
     public AutoPromoter(ServiceContext serviceContext) {
         environDAO = serviceContext.getEnvironDAO();
@@ -70,6 +73,7 @@ public class AutoPromoter implements Runnable {
         buildTagsManager = new BuildTagsManagerImpl(serviceContext.getTagDAO());
         deployHandler = new DeployHandler(serviceContext);
         bufferTimeMinutes = DEFAULT_BUFFER_TIME_MINUTE;
+        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
     public AutoPromoter withBufferTimeMinutes(int bufferTime) {
@@ -573,6 +577,8 @@ public class AutoPromoter implements Runnable {
         try {
             LOG.info("Start AutoPromoter process...");
             processBatch();
+            Metrics.counter("").increment();
+            errorBudgeRegistry.counter("failed").increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);
