@@ -8,7 +8,10 @@ import com.pinterest.teletraan.universal.metrics.micrometer.PinStatsMeterRegistr
 import io.dropwizard.lifecycle.setup.LifecycleEnvironment;
 import io.dropwizard.metrics.MetricsFactory;
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.Meter.Type;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.config.NamingConvention;
 
 public class MicrometerMetricsFactory extends MetricsFactory {
     @JsonProperty("mm.uri")
@@ -16,6 +19,9 @@ public class MicrometerMetricsFactory extends MetricsFactory {
 
     @JsonProperty("mm.namePrefix")
     private String mm_namePrefix;
+
+    @JsonProperty("mm.enableCustomMetrics")
+    private Boolean mm_enabelCustomMetrics = true;
 
     public String get(String propertyName) {
         try {
@@ -31,23 +37,20 @@ public class MicrometerMetricsFactory extends MetricsFactory {
     public void configure(LifecycleEnvironment environment, MetricRegistry registry) {
         super.configure(environment, registry);
         PinStatsConfig config = this::get;
-        PinStatsConfig errorBudgetConfig = new PinStatsConfig() {
-            @Override
-            public String uri() {
-                return mm_uri;
-            }
-
-            @Override
-            public String namePrefix() {
-                return "";
-            }
-
-            @Override
-            public String get(String key) {
-                return null;
-            }
-        };
         Metrics.addRegistry(new PinStatsMeterRegistry(config, Clock.SYSTEM));
-        Metrics.globalRegistry.getRegistries(). addRegistry(new PinStatsMeterRegistry(errorBudgetConfig, Clock.SYSTEM));
+    }
+
+    public MeterRegistry getCustomMeterRegistry() {
+        if (mm_enabelCustomMetrics) {
+            PinStatsConfig config = this::get;
+            return new PinStatsMeterRegistry(config, Clock.SYSTEM, new NamingConvention() {
+
+                @Override
+                public String name(String name, Type type, String baseUnit) {
+                    return name;
+                }
+            });
+        }
+        return null;
     }
 }
