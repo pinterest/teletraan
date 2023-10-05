@@ -52,6 +52,9 @@ public class AutoPromoter implements Runnable {
 
     public static final String AUTO_PROMOTER_NAME = "AutoPromoter";
     public static final int DEFAULT_BUFFER_TIME_MINUTE = 2;
+    public static final String TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME = "error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d";
+    public static final String TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS = "success";
+    public static final String TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE = "failure";
     private static final Logger LOG = LoggerFactory.getLogger(AutoPromoter.class);
     public BuildDAO buildDAO;
     private EnvironDAO environDAO;
@@ -589,8 +592,6 @@ public class AutoPromoter implements Runnable {
         try {
             LOG.info("Start AutoPromoter process...");
             processBatch();
-            Metrics.counter("").increment();
-            errorBudgeRegistry.counter("failed").increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);
