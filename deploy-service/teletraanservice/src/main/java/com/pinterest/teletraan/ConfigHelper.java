@@ -40,14 +40,15 @@ import com.pinterest.deployservice.db.DBTagDAOImpl;
 import com.pinterest.deployservice.db.DBTokenRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUserRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUtilDAOImpl;
-import com.pinterest.deployservice.events.EventBridgePublisher;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
+import com.pinterest.deployservice.events.BuildEventListener;
 import com.pinterest.teletraan.config.AppEventFactory;
+import com.pinterest.teletraan.config.AwsFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
@@ -104,8 +105,6 @@ public class ConfigHelper {
         BasicDataSource dataSource = configuration.getDataSourceFactory().build();
         context.setDataSource(dataSource);
 
-        context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient(), configuration.getAwsFactory().getEventBridgeEventBusName()));
-
         context.setUserRolesDAO(new DBUserRolesDAOImpl(dataSource));
         context.setGroupRolesDAO(new DBGroupRolesDAOImpl(dataSource));
         context.setTokenRolesDAO(new DBTokenRolesDAOImpl(dataSource));
@@ -155,6 +154,13 @@ public class ConfigHelper {
             context.setAppEventPublisher(appEventFactory.createEventPublisher());
         } else {
             context.setAppEventPublisher(new AppEventPublisher(){});
+        }
+
+        AwsFactory awsFactory = configuration.getAwsFactory();
+        if (awsFactory != null) {
+            context.getAppEventPublisher().subscribe(
+                    new BuildEventListener(awsFactory.buildEventBridgeClient(),
+                            awsFactory.getEventBridgeEventBusName()));
         }
 
         RodimusFactory rodimusFactory = configuration.getRodimusFactory();

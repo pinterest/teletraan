@@ -1,7 +1,7 @@
 package com.pinterest.deployservice.events;
 
-import static com.pinterest.deployservice.events.EventBridgePublisher.DETAIL_TYPE;
-import static com.pinterest.deployservice.events.EventBridgePublisher.TELETRAAN_SOURCE;
+import static com.pinterest.deployservice.events.BuildEventListener.DETAIL_TYPE;
+import static com.pinterest.deployservice.events.BuildEventListener.TELETRAAN_SOURCE;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -24,7 +24,7 @@ import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public class EventBridgePublisherTest {
+public class BuildEventListenerTest {
 
   private static final long COMMIT_DATE = Instant.now().toEpochMilli();
   private static final long PUBLISH_DATE = Instant.now().toEpochMilli();
@@ -44,7 +44,7 @@ public class EventBridgePublisherTest {
   private static final String EVENT_BUS_NAME = "eventBusName";
 
   private final EventBridgeAsyncClient eventBridgeAsyncClient = mock(EventBridgeAsyncClient.class);
-  private final EventBridgePublisher eventBridgePublisher = new EventBridgePublisher(eventBridgeAsyncClient, EVENT_BUS_NAME);
+  private final BuildEventListener sut = new BuildEventListener(eventBridgeAsyncClient, EVENT_BUS_NAME);
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   @Test
@@ -53,8 +53,9 @@ public class EventBridgePublisherTest {
     ArgumentCaptor<Consumer> putEventsRequestArgumentCaptor = ArgumentCaptor.forClass(Consumer.class);
     when(eventBridgeAsyncClient.putEvents(any(Consumer.class))).thenReturn(mock(CompletableFuture.class));
     BuildBean buildBean = generateBuild();
+    BuildEvent event = new BuildEvent(this, buildBean, ACTION);
 
-    eventBridgePublisher.publish(buildBean, ACTION);
+    sut.onEvent(event);
 
     Mockito.verify(eventBridgeAsyncClient).putEvents(putEventsRequestArgumentCaptor.capture());
 
