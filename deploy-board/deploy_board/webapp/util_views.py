@@ -23,8 +23,8 @@ from django.http import HttpResponse
 import json
 import urllib2
 from deploy_board import settings
-from helpers import environs_helper
-from helpers import autoscaling_metrics_helper, autoscaling_groups_helper
+from .helpers import environs_helper
+from .helpers import autoscaling_metrics_helper, autoscaling_groups_helper
 import traceback
 import logging
 

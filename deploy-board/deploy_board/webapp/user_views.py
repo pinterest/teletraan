@@ -21,7 +21,7 @@ from django.middleware.csrf import get_token
 
 from django.shortcuts import render
 from django.template.loader import render_to_string
-from helpers import users_helper
+from .helpers import users_helper
 from deploy_board.settings import IS_PINTEREST
 import logging
 import re

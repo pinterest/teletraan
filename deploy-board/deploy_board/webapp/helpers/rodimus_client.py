@@ -14,9 +14,9 @@
 """Helper class to connect Rodimus service
 """
 import logging
-from decorators import singleton
+from .decorators import singleton
 from deploy_board.settings import RODIMUS_SERVICE_URL, RODIMUS_SERVICE_VERSION, RODIMUS_SERVICE_PROXY_HTTP, RODIMUS_SERVICE_PROXY_HTTPS, RODIMUS_SERVICE_USE_BEARER
-from base_client import BaseClient
+from .base_client import BaseClient
 
 
 log = logging.getLogger(__name__)

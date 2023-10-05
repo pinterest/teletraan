@@ -17,7 +17,7 @@ import traceback
 import json
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
-from helpers.exceptions import NotAuthorizedException, FailedAuthenticationException
+from .helpers.exceptions import NotAuthorizedException, FailedAuthenticationException
 
 logger = logging.getLogger(__name__)
 
