@@ -16,7 +16,7 @@
 """Some common functions
 """
 import logging
-from helpers import environs_helper, deploys_helper, builds_helper, tags_helper
+from deploy_board.webapp.helpers import environs_helper, deploys_helper, builds_helper, tags_helper
 from deploy_board.settings import IS_PINTEREST
 
 DEFAULT_BUILD_SIZE = 30
