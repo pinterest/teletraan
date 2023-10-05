@@ -16,7 +16,7 @@
 """Helper functions to help generate agents views
 """
 from common import is_agent_failed
-from .helpers import builds_helper, deploys_helper, environs_helper, environ_hosts_helper
+from helpers import builds_helper, deploys_helper, environs_helper, environ_hosts_helper
 from deploy_board.settings import IS_PINTEREST
 import time
 from collections import OrderedDict

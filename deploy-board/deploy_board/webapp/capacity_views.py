@@ -22,8 +22,8 @@ from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.views.generic import View
 import common
-from .helpers import environs_helper, clusters_helper, autoscaling_groups_helper, placements_helper
-from .helpers import baseimages_helper
+from helpers import environs_helper, clusters_helper, autoscaling_groups_helper, placements_helper
+from helpers import baseimages_helper
 from deploy_board.settings import IS_PINTEREST
 
 

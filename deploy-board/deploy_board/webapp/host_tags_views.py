@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect
 import common
 import logging
 import json
-from .helpers import environ_hosts_helper, environs_helper
+from helpers import environ_hosts_helper, environs_helper
 
 log = logging.getLogger(__name__)
 

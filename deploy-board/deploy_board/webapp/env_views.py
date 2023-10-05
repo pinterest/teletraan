@@ -32,9 +32,9 @@ import service_add_ons
 import common
 import random
 import json
-from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
+from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
     systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper, placements_helper, hosttypes_helper
-from .helpers.exceptions import TeletraanException
+from helpers.exceptions import TeletraanException
 import math
 from dateutil.parser import parse
 import calendar
@@ -45,7 +45,7 @@ import traceback
 import logging
 
 if IS_PINTEREST:
-    from .helpers import autoscaling_groups_helper
+    from helpers import autoscaling_groups_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5

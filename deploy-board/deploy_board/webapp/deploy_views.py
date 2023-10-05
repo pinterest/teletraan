@@ -22,7 +22,7 @@ from django.shortcuts import render
 from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
-from .helpers import builds_helper, deploys_helper, environs_helper, tags_helper
+from helpers import builds_helper, deploys_helper, environs_helper, tags_helper
 
 
 DEFAULT_PAGE_SIZE = 30

@@ -24,7 +24,7 @@ from django.template.loader import render_to_string
 from django.views.generic import View
 import unicodedata
 import common
-from .helpers import environs_helper
+from helpers import environs_helper
 
 
 class EnvMetricsView(View):

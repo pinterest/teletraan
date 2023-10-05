@@ -24,11 +24,11 @@ import json
 import logging
 import traceback
 
-from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
+from helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
                      specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper)
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
-from .helpers.exceptions import TeletraanException
+from helpers.exceptions import TeletraanException
 
 log = logging.getLogger(__name__)
 
