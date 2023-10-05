@@ -18,6 +18,9 @@ package com.pinterest.teletraan.worker;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.CommonHandler;
+
+import io.micrometer.core.instrument.MeterRegistry;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,10 +35,12 @@ public class StateTransitioner implements Runnable {
 
     private EnvironDAO environDAO;
     private CommonHandler commonHandler;
+    private final MeterRegistry errorBudgeRegistry;
 
     public StateTransitioner(ServiceContext serviceContext) {
         environDAO = serviceContext.getEnvironDAO();
         commonHandler = new CommonHandler(serviceContext);
+        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
     void processBatch() throws Exception {
@@ -43,6 +48,10 @@ public class StateTransitioner implements Runnable {
         List<String> deployIds = environDAO.getCurrentDeployIds();
         if (deployIds.isEmpty()) {
             LOG.info("StateTransitioner did not find any active deploy, exiting.");
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                    "method_name", this.getClass().getSimpleName()).increment();
             return;
         }
         Collections.shuffle(deployIds);
@@ -50,9 +59,17 @@ public class StateTransitioner implements Runnable {
             try {
                 LOG.debug("StateTransitioner chooses deploy {} to work on.", deployId);
                 commonHandler.transitionDeployState(deployId, null);
+
+                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                        "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
                 LOG.error("StateTransitioner failed to process {}", deployId, t);
+
+                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                        "method_name", this.getClass().getSimpleName()).increment();
             }
         }
     }
@@ -65,6 +82,10 @@ public class StateTransitioner implements Runnable {
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call StateTransitioner.", t);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 }

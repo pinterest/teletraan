@@ -68,6 +68,10 @@ public class AgentJanitor extends SimpleAgentJanitor {
                         .getTerminatedHosts(staleHostIds.subList(i, Math.min(i + batchSize, staleHostIds.size()))));
             } catch (Exception ex) {
                 LOG.error("Failed to get terminated hosts", ex);
+
+                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                        "method_name", this.getClass().getSimpleName()).increment();
             }
         }
         return terminatedHosts;
@@ -78,8 +82,16 @@ public class AgentJanitor extends SimpleAgentJanitor {
         if (clusterName != null) {
             try {
                 launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
+
+                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                        "method_name", this.getClass().getSimpleName()).increment();
             } catch (Exception ex) {
                 LOG.error("failed to get launch grace period for cluster {}, exception: {}", clusterName, ex);
+
+                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                        "method_name", this.getClass().getSimpleName()).increment();
             }
         }
         return launchGracePeriod == null ? maxLaunchLatencyThreshold : TimeUnit.SECONDS.toMillis(launchGracePeriod);
@@ -99,6 +111,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
             hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
         } catch (Exception ex) {
             LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
+
             return false;
         }
 
@@ -130,6 +147,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
             unreachableHosts = hostAgentDAO.getStaleHosts(maxThreshold, minThreshold);
         } catch (Exception ex) {
             LOG.error("failed to get unreachable hosts", ex);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
+
             return;
         }
         List<String> unreachableHostIds = unreachableHosts.stream().map(HostAgentBean::getHost_id)
@@ -159,6 +181,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
             staleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
         } catch (Exception ex) {
             LOG.error("failed to get stale hosts", ex);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
+
             return;
         }
 
@@ -196,6 +223,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
             agentlessHosts = hostDAO.getStaleAgentlessHostIds(noUpdateSince, agentlessHostBatchSize);
         } catch (SQLException ex) {
             LOG.error("failed to get agentless hosts", ex);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
+                    
             return;
         }
 
