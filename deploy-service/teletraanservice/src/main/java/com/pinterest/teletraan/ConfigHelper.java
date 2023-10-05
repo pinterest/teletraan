@@ -46,8 +46,8 @@ import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
-import com.pinterest.teletraan.config.BuildAllowlistFactory;
 import com.pinterest.teletraan.config.AppEventFactory;
+import com.pinterest.teletraan.config.BuildAllowlistFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
@@ -103,8 +103,6 @@ public class ConfigHelper {
 
         BasicDataSource dataSource = configuration.getDataSourceFactory().build();
         context.setDataSource(dataSource);
-
-        context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient(), configuration.getAwsFactory().getEventBridgeEventBusName()));
 
         context.setUserRolesDAO(new DBUserRolesDAOImpl(dataSource));
         context.setGroupRolesDAO(new DBGroupRolesDAOImpl(dataSource));
@@ -200,6 +198,9 @@ public class ConfigHelper {
             context.setPingRequestValidators(validators);
         }
 
+        if (configuration.getAwsFactory() != null) {
+            context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient(), configuration.getAwsFactory().getEventBridgeEventBusName()));
+        }
 
         /**
          Lastly, let us create the in-process background job executor, all transient, long
