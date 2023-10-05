@@ -20,6 +20,9 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+
+import io.micrometer.core.instrument.MeterRegistry;
+
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +41,7 @@ public class DeployJanitor implements Job {
     private EnvironDAO environDAO;
     private DeployDAO deployDAO;
     private UtilDAO utilDAO;
+    private MeterRegistry errorBudgeRegistry;
 
     public DeployJanitor() {
         // If using the Job interface, must keep constructor empty.
@@ -61,9 +65,17 @@ public class DeployJanitor implements Job {
                     try {
                         deployDAO.deleteUnusedDeploys(envId, timeThreshold, numToDelete);
                         LOG.info(String.format("Successfully removed deploys: %s before %d milliseconds has %d.",
-                            envId, timeThreshold, numToDelete));
+                                envId, timeThreshold, numToDelete));
+
+                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                                "method_name", this.getClass().getSimpleName()).increment();
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
+
+                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                                "method_name", this.getClass().getSimpleName()).increment();
                     } finally {
                         utilDAO.releaseLock(deployLockName, connection);
                         LOG.info(String.format("DB lock operation is successful: release lock %s", deployLockName));
@@ -83,6 +95,10 @@ public class DeployJanitor implements Job {
             schedulerContext = context.getScheduler().getContext();
         } catch (SchedulerException e) {
             LOG.error("Cannot retrive job context!", e);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
             return;
         }
 
@@ -90,13 +106,22 @@ public class DeployJanitor implements Job {
         environDAO = serviceContext.getEnvironDAO();
         deployDAO = serviceContext.getDeployDAO();
         utilDAO = serviceContext.getUtilDAO();
+        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
 
         try {
             LOG.info("Start deploy janitor process...");
             processDeploys();
             LOG.info("Stop deploy janitor process...");
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                    "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             LOG.error("Failed to call deploy janitor.", t);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 }

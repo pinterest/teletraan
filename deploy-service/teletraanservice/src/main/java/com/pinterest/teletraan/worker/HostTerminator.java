@@ -27,6 +27,9 @@ import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
+
+import io.micrometer.core.instrument.MeterRegistry;
+
 import com.pinterest.deployservice.handler.HostHandler;
 
 import org.slf4j.Logger;
@@ -43,6 +46,7 @@ public class HostTerminator implements Runnable {
     private final UtilDAO utilDAO;
     private final RodimusManager rodimusManager;
     private final HostHandler hostHandler;
+    private final MeterRegistry errorBudgeRegistry;
 
     public HostTerminator(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -51,6 +55,7 @@ public class HostTerminator implements Runnable {
         rodimusManager = serviceContext.getRodimusManager();
         hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
+        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
     private void terminateHost(HostBean host) throws Exception {
@@ -129,8 +134,16 @@ public class HostTerminator implements Runnable {
         try {
             LOG.info("Start to run HostTerminator");
             processBatch();
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                    "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             LOG.error("HostTerminator failed", t);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 }

@@ -18,6 +18,9 @@ package com.pinterest.teletraan.worker;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+
+import io.micrometer.core.instrument.MeterRegistry;
+
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -39,6 +42,7 @@ import java.util.List;
 public class BuildJanitor implements Job {
     private static final Logger LOG = LoggerFactory.getLogger(BuildJanitor.class);
     private static final long MILLIS_PER_DAY = 86400000;
+    private MeterRegistry errorBudgeRegistry;
 
     public BuildJanitor() {
         // If using the Job interface, must keep constructor empty.
@@ -66,6 +70,11 @@ public class BuildJanitor implements Job {
                         LOG.info(String.format("Successfully removed builds: %s before %d milliseconds has %d.",                            buildName, timeThreshold, numToDelete));
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
+
+                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                                "method_name", this.getClass().getSimpleName()).increment();
+
                     } finally {
                         utilDAO.releaseLock(buildLockName, connection);
                         LOG.info(String.format("DB lock operation is successful: release lock %s", buildLockName));
@@ -84,10 +93,20 @@ public class BuildJanitor implements Job {
             LOG.info("Start build janitor process...");
             SchedulerContext schedulerContext = context.getScheduler().getContext();
             TeletraanServiceContext workerContext = (TeletraanServiceContext) schedulerContext.get("serviceContext");
+            errorBudgeRegistry = workerContext.getCustomMeterRegistry();
+            
             processBuilds(workerContext);
             LOG.info("Stop build janitor process...");
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                    "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             LOG.error("Failed to call build janitor.", t);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 }
