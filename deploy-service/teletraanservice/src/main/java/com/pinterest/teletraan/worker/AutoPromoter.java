@@ -52,6 +52,9 @@ public class AutoPromoter implements Runnable {
 
     public static final String AUTO_PROMOTER_NAME = "AutoPromoter";
     public static final int DEFAULT_BUFFER_TIME_MINUTE = 2;
+    public static final String TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME = "error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d";
+    public static final String TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS = "success";
+    public static final String TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE = "failure";
     private static final Logger LOG = LoggerFactory.getLogger(AutoPromoter.class);
     public BuildDAO buildDAO;
     private EnvironDAO environDAO;
@@ -86,6 +89,10 @@ public class AutoPromoter implements Runnable {
         List<String> envIds = promoteDAO.getAutoPromoteEnvIds();
         if (envIds.isEmpty()) {
             LOG.debug("AutoPromoter did not find any valid env to work on, exiting.");
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                    "method_name", this.getClass().getSimpleName()).increment();
             return;
         }
         Collections.shuffle(envIds);
@@ -93,12 +100,20 @@ public class AutoPromoter implements Runnable {
             try {
                 LOG.debug("AutoPromoter chooses env {} to work on.", envId);
                 processOnce(envId);
+
+                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                        "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
                 LOG.error("AutoPromoter failed to process {}, Exception: {}", envId, t);
+
+                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                        "method_name", this.getClass().getSimpleName()).increment();
             }
         }
-      LOG.info("AutoPromoter processBatch finishes");
+        LOG.info("AutoPromoter processBatch finishes");
     }
 
     boolean isDeployFailed(DeployBean currDeployBean) {
@@ -125,9 +140,9 @@ public class AutoPromoter implements Runnable {
     }
 
     public <E>  E  getScheduledCheckResult(EnvironBean currEnvBean,
-                                                PromoteBean promoteBean,
-                                                List<E> candidates,
-                                                Function<E, Long> timeSupplier) throws Exception {
+            PromoteBean promoteBean,
+            List<E> candidates,
+            Function<E, Long> timeSupplier) throws Exception {
 
         E ret = null;
 
@@ -143,8 +158,8 @@ public class AutoPromoter implements Runnable {
                 autoDeployDueDate =
                 new DateTime(cronExpression.getNextValidTimeAfter(checkTime.toDate()));
             LOG.info("Auto deploy due time is {} for check time {} for Environment {}",
-                autoDeployDueDate.toString(ISODateTimeFormat.dateTime()),
-                checkTime.toString(), currEnvBean.getEnv_name());
+                    autoDeployDueDate.toString(ISODateTimeFormat.dateTime()),
+                    checkTime.toString(), currEnvBean.getEnv_name());
 
             if (!autoDeployDueDate.isAfterNow()) {
                 ret = bean;
@@ -155,7 +170,7 @@ public class AutoPromoter implements Runnable {
     }
 
     public long getCurrentDeployStartDate(DeployBean currDeployBean, EnvironBean precededEnvBean,
-                                          EnvironBean currEnvBean) throws Exception {
+            EnvironBean currEnvBean) throws Exception {
         long currentDeployDate = 0;
         if (currDeployBean != null) {
             String fromDeployId = currDeployBean.getFrom_deploy();
@@ -165,20 +180,20 @@ public class AutoPromoter implements Runnable {
                     currentDeployDate = fromDeployBean.getStart_date();
                 } else {
                     LOG.info(
-                        "Current deploy {} in env {} was not promoted from pred env {}, but from "
-                            + "env {}! "
-                            + "Use the current deploy startDate",
-                        currDeployBean.getDeploy_id(), currEnvBean.getEnv_id(),
-                        precededEnvBean.getEnv_id(),
-                        fromDeployBean.getEnv_id());
+                            "Current deploy {} in env {} was not promoted from pred env {}, but from "
+                                    + "env {}! "
+                                    + "Use the current deploy startDate",
+                            currDeployBean.getDeploy_id(), currEnvBean.getEnv_id(),
+                            precededEnvBean.getEnv_id(),
+                            fromDeployBean.getEnv_id());
                     currentDeployDate = currDeployBean.getStart_date();
                 }
             } else {
                 LOG.info(
-                    "Current deploy {} in env {} was not promoted from anywhere! Use the current "
-                        + "deploy "
-                        + "startDate",
-                    currDeployBean.getDeploy_id(), currEnvBean.getEnv_id());
+                        "Current deploy {} in env {} was not promoted from anywhere! Use the current "
+                                + "deploy "
+                                + "startDate",
+                        currDeployBean.getDeploy_id(), currEnvBean.getEnv_id());
                 currentDeployDate = currDeployBean.getStart_date();
             }
         }
@@ -196,20 +211,20 @@ public class AutoPromoter implements Runnable {
             // This is not very likely to happen
             LOG.info("Env {} with deploy {} is already in final state. It might happen " +
                     "other workers already handled this env. Do not retire this deploy!",
-                envId, deployId);
+                    envId, deployId);
             return false;
         }
 
         if (StateMachines.FINAL_ACCEPTANCE_STATUSES.contains(currDeployBean.getAcc_status())) {
             LOG.debug(
-                "Env {} with deploy {} is in final accepted state, allow retire of this deploy!",
-                envId, deployId);
+                    "Env {} with deploy {} is in final accepted state, allow retire of this deploy!",
+                    envId, deployId);
             return true;
         }
 
         if (currDeployState == DeployState.FAILING) {
             LOG.debug("Env {} with deploy {} is {}, allow retire of this deploy!",
-                envId, deployId, currDeployState);
+                    envId, deployId, currDeployState);
             return true;
         }
 
@@ -231,9 +246,9 @@ public class AutoPromoter implements Runnable {
 
     //This contains the logic about if there is build should be promoted
     public PromoteResult computePromoteBuildResult(EnvironBean currEnvBean,
-                                                   DeployBean currDeployBean,
-                                                   int size,
-                                                   PromoteBean promoteBean) throws Exception {
+            DeployBean currDeployBean,
+            int size,
+            PromoteBean promoteBean) throws Exception {
 
         Preconditions.checkArgument(size>0);
 
@@ -262,66 +277,66 @@ public class AutoPromoter implements Runnable {
                 maxCheckBuildsOrDeploys);
         if (buildBeans.size() < size) {
             return new PromoteResult()
-                .withResultCode(PromoteResult.ResultCode.NoAvailableBuild);
+                    .withResultCode(PromoteResult.ResultCode.NoAvailableBuild);
         }
 
         if (!StringUtils.isEmpty(schedule)) {
             Function<BuildBean, Long> getPublishDate = b-> b.getPublish_date();
             BuildBean toPromoteBuild = getScheduledCheckResult(currEnvBean,
-                promoteBean, buildBeans, getPublishDate);
+                    promoteBean, buildBeans, getPublishDate);
 
             if (toPromoteBuild != null) {
                 return new PromoteResult().withResultCode(PromoteResult.ResultCode.PromoteBuild)
-                    .withBuild(toPromoteBuild.getBuild_id());
+                        .withBuild(toPromoteBuild.getBuild_id());
 
             } else {
                 return new PromoteResult()
-                    .withResultCode(PromoteResult.ResultCode.NoAvailableBuild);
+                        .withResultCode(PromoteResult.ResultCode.NoAvailableBuild);
             }
 
         } else {
-                //No delay. Just promote it
-                return new PromoteResult().withBuild(buildBeans.get(size - 1).getBuild_id())
+            //No delay. Just promote it
+            return new PromoteResult().withBuild(buildBeans.get(size - 1).getBuild_id())
                     .withResultCode(PromoteResult.ResultCode.PromoteBuild);
         }
 
     }
 
     public void promoteBuild(EnvironBean currEnvBean, DeployBean currDeployBean, int size,
-                             PromoteBean promoteBean) throws Exception {
+            PromoteBean promoteBean) throws Exception {
 
         PromoteResult result =
             computePromoteBuildResult(currEnvBean, currDeployBean, size, promoteBean);
         LOG.info("Promote result {} for env {}", result.getResult().toString(),
-            currEnvBean.getEnv_name());
+                currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteBuild &&
-            StringUtils.isNotEmpty(result.getPromotedBuild())) {
+                StringUtils.isNotEmpty(result.getPromotedBuild())) {
             safePromote(null, result.getPromotedBuild(), Constants.BUILD_STAGE, currDeployBean,
-                currEnvBean);
+                    currEnvBean);
         }
     }
 
     //This contains the logic about if there should be a promote deploy from the preceded
     // environment.
     public PromoteResult computePromoteDeployResult(EnvironBean currEnvBean,
-                                                    DeployBean currDeployBean, int size,
-                                                    PromoteBean promoteBean) throws Exception {
+            DeployBean currDeployBean, int size,
+            PromoteBean promoteBean) throws Exception {
         String precededStage = promoteBean.getPred_stage();
         // Special case when there is no preceded environment
         EnvironBean precededEnvBean =
             environDAO.getByStage(currEnvBean.getEnv_name(), precededStage);
         if (precededEnvBean == null) {
             LOG.warn("Pred env {}/{} does not exist, bail out!", currEnvBean.getEnv_name(),
-                precededStage);
+                    precededStage);
             return new PromoteResult().withResultCode(PromoteResult.ResultCode.NoPredEnvironment);
         }
 
         String predDeployId = precededEnvBean.getDeploy_id();
         if (predDeployId == null) {
             LOG.debug("Pred env {}/{} does not have deploy yet, bail out!",
-                currEnvBean.getEnv_name(), precededStage);
+                    currEnvBean.getEnv_name(), precededStage);
             return new PromoteResult()
-                .withResultCode(PromoteResult.ResultCode.NoPredEnvironmentDeploy);
+                    .withResultCode(PromoteResult.ResultCode.NoPredEnvironmentDeploy);
         }
 
         //Get the start time to find a deploy in preceded environment. If current deploy is promoted
@@ -336,72 +351,72 @@ public class AutoPromoter implements Runnable {
         long endTime = getEndTime(promoteBean);
         if (endTime < startTime) {
             return new PromoteResult()
-                .withResultCode(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod);
+                    .withResultCode(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod);
         }
 
         //Get all deploys in preceded environment order by start dese
         List<DeployBean> deployCandidates = getDeployCandidates(precededEnvBean.getEnv_id(),
-            new Interval(startTime, endTime), maxCheckBuildsOrDeploys);
+                new Interval(startTime, endTime), maxCheckBuildsOrDeploys);
 
         if (deployCandidates.size() < size) {
             return new PromoteResult()
-                .withResultCode(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod);
+                    .withResultCode(PromoteResult.ResultCode.NoCandidateWithinDelayPeriod);
         }
         String schedule = promoteBean.getSchedule();
         if (!StringUtils.isEmpty(schedule)) {
             Function<DeployBean, Long> getSucceedDate = b-> b.getStart_date();
             DeployBean toPromoteDeploy = getScheduledCheckResult(currEnvBean,
-                promoteBean, deployCandidates, getSucceedDate);
+                    promoteBean, deployCandidates, getSucceedDate);
 
             if (toPromoteDeploy != null) {
                 return new PromoteResult().withResultCode(PromoteResult.ResultCode.PromoteDeploy)
-                    .withPredDeployBean(toPromoteDeploy, precededEnvBean);
+                        .withPredDeployBean(toPromoteDeploy, precededEnvBean);
 
             } else {
                 return new PromoteResult()
-                    .withResultCode(PromoteResult.ResultCode.NoRegularDeployWithinDelayPeriod);
+                        .withResultCode(PromoteResult.ResultCode.NoRegularDeployWithinDelayPeriod);
             }
 
         }else {
             return new PromoteResult().withResultCode(PromoteResult.ResultCode.PromoteDeploy)
-                .withPredDeployBean(deployCandidates.get(size-1), precededEnvBean);
+                    .withPredDeployBean(deployCandidates.get(size-1), precededEnvBean);
         }
 
     }
 
 
     DeployBean promoteDeploy(EnvironBean currEnvBean, DeployBean currDeployBean, int size,
-                             PromoteBean promoteBean) throws Exception {
+            PromoteBean promoteBean) throws Exception {
         PromoteResult result =
             computePromoteDeployResult(currEnvBean, currDeployBean, size, promoteBean);
         LOG.info("Promote result {} for env {}", result.getResult().toString(),
-            currEnvBean.getEnv_name());
+                currEnvBean.getEnv_name());
         if (result.getResult() == PromoteResult.ResultCode.PromoteDeploy
-            && result.getPredDeployInfo() != null) {
+                && result.getPredDeployInfo() != null) {
             safePromote(result.getPredDeployInfo().getLeft(), null,
-                result.getPredDeployInfo().getRight().getStage_name(),
-                currDeployBean, currEnvBean);
+                    result.getPredDeployInfo().getRight().getStage_name(),
+                    currDeployBean, currEnvBean);
             return result.predDeployInfo.getLeft();
         }
         return null;
     }
 
     void handleFailedPromote(PromoteBean promoteBean, EnvironBean currEnvBean, String deployId)
-        throws Exception {
+            throws Exception {
         PromoteFailPolicy autoPromotePolicy = promoteBean.getFail_policy();
         if (autoPromotePolicy == PromoteFailPolicy.DISABLE) {
             LOG.info("Disable auto deploy for env {}/{} since its current deploy {} failed, and " +
                     " and its current auto deploy fail policy is DISABLE!",
-                currEnvBean.getEnv_name(), currEnvBean.getStage_name(), deployId);
+                    currEnvBean.getEnv_name(), currEnvBean.getStage_name(), deployId);
             deployHandler.disableAutoPromote(currEnvBean, AUTO_PROMOTER_NAME, true);
             return;
         }
         if (autoPromotePolicy == PromoteFailPolicy.ROLLBACK) {
             LOG.info(
-                "Rollback deploy {} and disable auto deploy for env {}/{} since deploy failed and"
-                    + " env "
-                    + "fail policy is ROLLBACK!",
-                currEnvBean.getEnv_name(), currEnvBean.getStage_name(), deployId);
+                    "Rollback deploy {} and disable auto deploy for env {}/{} since deploy failed and"
+                            + " env "
+                            + "fail policy is ROLLBACK!",
+                    currEnvBean.getEnv_name(), currEnvBean.getStage_name(), deployId);
             deployHandler.rollback(currEnvBean, null, null, AUTO_PROMOTER_NAME);
             deployHandler.disableAutoPromote(currEnvBean, AUTO_PROMOTER_NAME, true);
         }
@@ -411,7 +426,7 @@ public class AutoPromoter implements Runnable {
     void processOnce(String envId) throws Exception {
         EnvironBean currEnvBean = environDAO.getById(envId);
         if (currEnvBean == null || currEnvBean.getEnv_state() != EnvState.NORMAL ||
-            currEnvBean.getState() != EnvironState.NORMAL) {
+                currEnvBean.getState() != EnvironState.NORMAL) {
             LOG.info("Env {} has just been disabled or paused or deleted, bail out!", envId);
             return;
         }
@@ -445,7 +460,7 @@ public class AutoPromoter implements Runnable {
                 return;
             } else {
                 LOG.info("Env {} current deploy {} failed but since promote fail policy is " +
-                    "CONTINUE, let us continue to promote!", envId, deployId);
+                        "CONTINUE, let us continue to promote!", envId, deployId);
             }
         }
 
@@ -463,7 +478,7 @@ public class AutoPromoter implements Runnable {
 
     /**
      * get a list of available builds, and filter out the BAD_BUILD builds
-     * @param envBean
+          * @param envBean
      * @param interval
      * @param size
      * @return
@@ -477,7 +492,7 @@ public class AutoPromoter implements Runnable {
 
         List<BuildBean> availableBuilds = buildDAO.getAcceptedBuilds(buildName, scmBranch, interval, size);
         LOG.info("Env {} stage {} has {} accepted builds with name {} branch {} between {} and {}", envBean.getEnv_name(),
-            envBean.getStage_name(), availableBuilds.size(), buildName, scmBranch, interval.getStart().toString(), interval.getEnd().toString());
+                envBean.getStage_name(), availableBuilds.size(), buildName, scmBranch, interval.getStart().toString(), interval.getEnd().toString());
         if(!availableBuilds.isEmpty()) {
             List<BuildTagBean> buildTagBeanList = buildTagsManager.getEffectiveTagsWithBuilds(availableBuilds);
             for(BuildTagBean buildTagBean: buildTagBeanList) {
@@ -504,7 +519,7 @@ public class AutoPromoter implements Runnable {
 
     /**
      * get a list of available deploys, and filter out the deploys with BAD_BUILD builds
-     * @param envId
+          * @param envId
      * @param interval
      * @param size
      * @return
@@ -516,7 +531,7 @@ public class AutoPromoter implements Runnable {
 
     // Lock, double check and promote
     void safePromote(DeployBean predDeployBean, String buildId, String predStageName,
-                     DeployBean currDeployBean, EnvironBean currEnvBean) throws Exception {
+            DeployBean currDeployBean, EnvironBean currEnvBean) throws Exception {
         String promoteLockName = String.format("PROMOTE-%s", currEnvBean.getEnv_id());
         Connection connection = utilDAO.getLock(promoteLockName);
         if (connection != null) {
@@ -526,15 +541,15 @@ public class AutoPromoter implements Runnable {
                 // think it is
                 currEnvBean = environDAO.getById(currEnvBean.getEnv_id());
                 if ((currDeployBean == null && currEnvBean.getDeploy_id() != null) ||
-                    (currDeployBean != null && !currEnvBean.getDeploy_id()
-                        .equals(currDeployBean.getDeploy_id()))) {
+                        (currDeployBean != null && !currEnvBean.getDeploy_id()
+                                .equals(currDeployBean.getDeploy_id()))) {
                     LOG.info(
-                        "Env {} has a new deploy already, previously was {}, now is {}, no need "
-                            + "to promote,"
-                            + " bail out!",
-                        currEnvBean.getEnv_id(),
-                        currDeployBean == null ? "NULL" : currDeployBean.getDeploy_id(),
-                        currEnvBean.getDeploy_id());
+                            "Env {} has a new deploy already, previously was {}, now is {}, no need "
+                                    + "to promote,"
+                                    + " bail out!",
+                            currEnvBean.getEnv_id(),
+                            currDeployBean == null ? "NULL" : currDeployBean.getDeploy_id(),
+                            currEnvBean.getDeploy_id());
                     return;
                 }
 
@@ -545,21 +560,21 @@ public class AutoPromoter implements Runnable {
                         newDeployId =
                         deployHandler
                             .promote(currEnvBean, predDeployBean.getDeploy_id(), description,
-                                AUTO_PROMOTER_NAME);
+                                    AUTO_PROMOTER_NAME);
                     LOG.info(
-                        "Auto promoted deploy {} from deploy {}, from stage {} to {} for env {}",
-                        newDeployId, predDeployBean.getDeploy_id(), predStageName,
-                        currEnvBean.getStage_name(),
-                        currEnvBean.getEnv_name());
+                            "Auto promoted deploy {} from deploy {}, from stage {} to {} for env {}",
+                            newDeployId, predDeployBean.getDeploy_id(), predStageName,
+                            currEnvBean.getStage_name(),
+                            currEnvBean.getEnv_name());
                 } else {
                     String desc = "Auto promote build " + buildId;
                     String
                         newDeployId =
                         deployHandler.deploy(currEnvBean, buildId, desc, AUTO_PROMOTER_NAME);
                     LOG.info(
-                        "Auto promoted deploy {} from build {}, from stage {} to {} for env {}",
-                        newDeployId, buildId, predStageName, currEnvBean.getStage_name(),
-                        currEnvBean.getEnv_name());
+                            "Auto promoted deploy {} from build {}, from stage {} to {} for env {}",
+                            newDeployId, buildId, predStageName, currEnvBean.getStage_name(),
+                            currEnvBean.getEnv_name());
                 }
             } catch (Exception e) {
                 LOG.warn("Failed to promote for env {}.", currEnvBean.getEnv_id(), e);
@@ -577,11 +592,13 @@ public class AutoPromoter implements Runnable {
         try {
             LOG.info("Start AutoPromoter process...");
             processBatch();
-            Metrics.counter("").increment();
-            errorBudgeRegistry.counter("failed").increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);
+            
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 }

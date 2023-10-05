@@ -5,6 +5,9 @@ import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.rodimus.RodimusManager;
+
+import io.micrometer.core.instrument.MeterRegistry;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.TransformerUtils;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -27,6 +30,7 @@ public class DeployTagWorker implements Runnable {
     private final RodimusManager rodimusManager;
     private final BasicDataSource dataSource;
     private final UtilDAO utilDAO;
+    private final MeterRegistry errorBudgeRegistry;
 
     public DeployTagWorker(ServiceContext serviceContext) {
         hostDAO = serviceContext.getHostDAO();
@@ -36,6 +40,7 @@ public class DeployTagWorker implements Runnable {
         rodimusManager = serviceContext.getRodimusManager();
         dataSource = serviceContext.getDataSource();
         utilDAO = serviceContext.getUtilDAO();
+        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
 
@@ -46,7 +51,7 @@ public class DeployTagWorker implements Runnable {
         Collection<HostBean> hostBeans = hostDAO.getHostsByEnvId(envId);
         Collection<HostTagBean> hostTagBeans = hostTagDAO.getAllByEnvIdAndTagName(envId, tagName);
 
-
+        
         Collection<String> envHostIds = CollectionUtils.collect(hostBeans, TransformerUtils.invokerTransformer("getHost_id"));
         Collection<String> envHostIdsWithHostTag = CollectionUtils.collect(hostTagBeans, TransformerUtils.invokerTransformer("getHost_id"));
 
@@ -130,12 +135,20 @@ public class DeployTagWorker implements Runnable {
                         processEachEnvironConstraint(job);
                     } catch (SQLException e) {
                         LOG.error("failed to process job due to SQLException: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
-                    }  catch (Exception e) {
+
+                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                                "method_name", this.getClass().getSimpleName()).increment();
+                            }  catch (Exception e) {
                         LOG.error("failed to process job due to all other exceptions: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
                         job.setState(TagSyncState.ERROR);
                         LOG.error("job {} deploy constraint transitions to error state due to exceptions", job.toString());
                         LOG.info("updated job state to {}", TagSyncState.ERROR);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
+
+                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                                "method_name", this.getClass().getSimpleName()).increment();
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
                         LOG.info("DB lock operation is successful: release lock {}", lockName);
@@ -144,6 +157,10 @@ public class DeployTagWorker implements Runnable {
                     LOG.warn("DB lock operation fails: failed to get lock {}", lockName);
                 }
             }
+        } else {
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                    "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 
@@ -153,6 +170,10 @@ public class DeployTagWorker implements Runnable {
             processBatch();
         } catch (Throwable t) {
             LOG.error("Failed to run DeployTagWorker", t);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 }

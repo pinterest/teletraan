@@ -22,6 +22,9 @@ import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.Jenkins;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.CommonHandler;
+
+import io.micrometer.core.instrument.MeterRegistry;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +49,7 @@ public class HotfixStateTransitioner implements Runnable {
     private CommonHandler commonHandler;
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
+    private final MeterRegistry errorBudgeRegistry;
     // TODO make this configurable
     private static final int HOTFIX_JOB_DURATION_TIMEOUT = 180;
 
@@ -58,6 +62,7 @@ public class HotfixStateTransitioner implements Runnable {
         commonHandler = new CommonHandler(serviceContext);
         jenkinsUrl = serviceContext.getJenkinsUrl();
         jenkinsRemoteToken = serviceContext.getJenkinsRemoteToken();
+        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
     void processBatch() throws Exception {
@@ -65,6 +70,11 @@ public class HotfixStateTransitioner implements Runnable {
         List<String> hotfixIds = hotfixDAO.getOngoingHotfixIds();
         if (hotfixIds.isEmpty()) {
             LOG.info("HotfixStateTransitioner did not find any active hotfix, exiting.");
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                    "method_name", this.getClass().getSimpleName()).increment();
+
             return;
         }
         Collections.shuffle(hotfixIds);
@@ -73,11 +83,19 @@ public class HotfixStateTransitioner implements Runnable {
             try {
                 LOG.info("HotfixStateTransitioner chooses hotfix {} to work on.", hotfixId);
                 transitionHotfixState(hotBean);
+
+                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                        "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed, also long error in DB
                 LOG.error("HotfixStateTransitioner failed to process {} " + hotfixId, t);
                 hotBean.setError_message("Get Exception: " + t);
                 hotfixDAO.update(hotfixId, hotBean);
+
+                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                        "method_name", this.getClass().getSimpleName()).increment();
             }
         }
     }
@@ -90,6 +108,10 @@ public class HotfixStateTransitioner implements Runnable {
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call HotfixStateTransitioner.", t);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 
@@ -119,8 +141,8 @@ public class HotfixStateTransitioner implements Runnable {
                 if (state == HotfixState.INITIAL) {
                     // Initial state, need to start job
                     String buildParams = "BASE_COMMIT=" + buildBean.getScm_commit() + "&COMMITS=" + hotBean.getCommits() +
-                        "&SUFFIX=" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
-                        "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
+                            "&SUFFIX=" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
+                            "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
                     // Start job and set start time
                     jenkins.startBuild(hotBean.getJob_name(), buildParams);
                     LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
@@ -145,7 +167,7 @@ public class HotfixStateTransitioner implements Runnable {
                         if (status.equals("SUCCESS")) {
                             String buildName = getBuildName(hotBean);
                             String buildParams = "BRANCH=" + "hotfix_" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
-                                "&BUILD_NAME=" + buildName + "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
+                                    "&BUILD_NAME=" + buildName + "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
                             hotBean.setJob_name(hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
                             jenkins.startBuild(hotBean.getJob_name(), buildParams);
                             LOG.info("Starting new Jenkins Job (private-build) for hotfix id {}", hotfixId);
@@ -156,7 +178,7 @@ public class HotfixStateTransitioner implements Runnable {
                         if (status.equals("FAILURE")) {
                             hotBean.setState(HotfixState.FAILED);
                             hotBean.setError_message("Failed to create hotfix, see " + jenkinsUrl + "/" +
-                                hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
+                                    hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state PUSHING for hotfix id " + hotfixId);
                         }
@@ -185,7 +207,7 @@ public class HotfixStateTransitioner implements Runnable {
                         if (status.equals("FAILURE")) {
                             hotBean.setState(HotfixState.FAILED);
                             hotBean.setError_message("Failed to build hotfix, see " + jenkinsUrl +
-                                hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
+                                    hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state BUILDING for hotfix id " + hotfixId);
                         }
@@ -217,12 +239,12 @@ public class HotfixStateTransitioner implements Runnable {
         if (state == HotfixState.INITIAL) {
             hotBean.setState(HotfixState.PUSHING);
             LOG.info("Hotfix Id {} has transitioned from the INITIAL state to the PUSH state.",
-                hotfixId);
+                    hotfixId);
         } else if (state == HotfixState.PUSHING) {
             hotBean.setProgress(0);
             hotBean.setState(HotfixState.BUILDING);
             LOG.info("Hotfix Id {} has transitioned from the PUSH state to the BUILD state.",
-                hotfixId);
+                    hotfixId);
         } else if (state == HotfixState.BUILDING) {
             hotBean.setState(HotfixState.SUCCEEDED);
             state = HotfixState.SUCCEEDED;
@@ -243,7 +265,7 @@ public class HotfixStateTransitioner implements Runnable {
             String name = hotBean.getOperator();
             String branch = "hotfix_" + name;
             String message = name + " just created a hotfix in " + branch + " branch, and including commit(s) " +
-                hotBean.getCommits() + " on top of commit " + commit;
+                    hotBean.getCommits() + " on top of commit " + commit;
             commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow", groupMentionRecipients);
 
             LOG.info("Hotfix Id {} is finished and now in the SUCCEEDED state.", hotfixId);

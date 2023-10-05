@@ -32,6 +32,8 @@ import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.HostHandler;
 
+import io.micrometer.core.instrument.MeterRegistry;
+
 /**
  * Housekeeping on stuck and dead agents
  * <p>
@@ -47,6 +49,7 @@ public class SimpleAgentJanitor implements Runnable {
     private HostHandler hostHandler;
     protected long maxStaleHostThreshold;
     protected long minStaleHostThreshold;
+    protected final MeterRegistry errorBudgeRegistry;
 
     public SimpleAgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
             int maxStaleHostThreshold) {
@@ -54,6 +57,8 @@ public class SimpleAgentJanitor implements Runnable {
         hostDAO = serviceContext.getHostDAO();
         hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
+        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
+
         this.maxStaleHostThreshold = maxStaleHostThreshold * 1000;
         this.minStaleHostThreshold = minStaleHostThreshold * 1000;
     }
@@ -62,6 +67,10 @@ public class SimpleAgentJanitor implements Runnable {
     void removeStaleHost(String id) {
         LOG.info("Delete records of stale host {}", id);
         hostHandler.removeHost(id);
+
+        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                "method_name", this.getClass().getSimpleName()).increment();
     }
 
     void markUnreachableHost(String id) {
@@ -71,7 +80,15 @@ public class SimpleAgentJanitor implements Runnable {
             updateBean.setState(AgentState.UNREACHABLE);
             agentDAO.updateAgentById(id, updateBean);
             LOG.info("Marked agent {} as UNREACHABLE.", id);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                    "method_name", this.getClass().getSimpleName()).increment();
         } catch (Exception e) {
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
+
             LOG.error("Failed to mark host {} as UNREACHABLE. exception {}", id, e);
         }
     }
@@ -124,9 +141,17 @@ public class SimpleAgentJanitor implements Runnable {
         try {
             LOG.info("Start agent janitor process...");
             processAllHosts();
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                    "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("AgentJanitor Failed.", t);
+
+            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                    "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 }
