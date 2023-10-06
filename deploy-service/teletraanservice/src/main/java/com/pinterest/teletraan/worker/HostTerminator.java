@@ -141,9 +141,9 @@ public class HostTerminator implements Runnable {
         } catch (Throwable t) {
             LOG.error("HostTerminator failed", t);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
-                    "method_name", this.getClass().getSimpleName()).increment();
+            // errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
+            //         "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            //         "method_name", this.getClass().getSimpleName()).increment();
         }
     }
 }
