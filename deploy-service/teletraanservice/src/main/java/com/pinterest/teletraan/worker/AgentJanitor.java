@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private final long maxLaunchLatencyThreshold;
     private final long absoluteThreshold = TimeUnit.DAYS.toMillis(7);
     private final int agentlessHostBatchSize = 300;
+    private final AtomicInteger unreachableHostsCount;
+    private final AtomicInteger staleHostsCount;
     private long janitorStartTime;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThresholdSeconds,
@@ -58,12 +61,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
         super(serviceContext, minStaleHostThresholdSeconds, maxStaleHostThresholdSeconds);
         rodimusManager = serviceContext.getRodimusManager();
         maxLaunchLatencyThreshold = TimeUnit.SECONDS.toMillis(maxLaunchLatencyThresholdSeconds);
-    }
-
-    protected void markUnreachableHost(String hostId, HostAgentBean hostAgentBean) {
-        markUnreachableHost(hostId);
-        Metrics.counter("unreachable_host",
-                "group", hostAgentBean.getAuto_scaling_group()).increment();
+        unreachableHostsCount = Metrics.gauge("unreachable_hosts", new AtomicInteger(0));
+        staleHostsCount = Metrics.gauge("stale_hosts", new AtomicInteger(0));
     }
 
     @Override
@@ -159,6 +158,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private void determineStaleHostCandidates() {
         long minThreshold = janitorStartTime - minStaleHostThreshold;
         long maxThreshold = janitorStartTime - maxStaleHostThreshold;
+        int unreachableHostCount = 0;
         Map<String, HostAgentBean> unreachableHostsMap = getStaleHostsMap(minThreshold, maxThreshold);
 
         Set<String> terminatedHosts = getTerminatedHostsFromSource(new ArrayList<>(unreachableHostsMap.keySet()));
@@ -166,9 +166,13 @@ public class AgentJanitor extends SimpleAgentJanitor {
             if (terminatedHosts.contains(unreachableId)) {
                 removeStaleHost(unreachableId);
             } else {
-                markUnreachableHost(unreachableId, unreachableHostsMap.get(unreachableId));
+                markUnreachableHost(unreachableId);
+                unreachableHostCount++;
+                HostAgentBean host = unreachableHostsMap.get(unreachableId);
+                LOG.info("{} has unreachable host {}", host.getAuto_scaling_group(), host.getHost_id());
             }
         }
+        this.unreachableHostsCount.set(unreachableHostCount);
     }
 
     /**
@@ -178,6 +182,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
      */
     private void processStaleHosts() {
         long maxThreshold = janitorStartTime - maxStaleHostThreshold;
+        int staleHostCount = 0;
         Map<String, HostAgentBean> staleHostMap = getStaleHostsMap(0, maxThreshold);
 
         Set<String> terminatedHosts = getTerminatedHostsFromSource(new ArrayList<>(staleHostMap.keySet()));
@@ -189,11 +194,13 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 if (isHostStale(hostAgent)) {
                     LOG.warn("Agent ({}) is stale (not Pinging Teletraan), but might be running.",
                             hostAgent);
+                    staleHostCount++;
                 } else {
                     LOG.debug("host {} is not stale", staleId);
                 }
             }
         }
+        this.staleHostsCount.set(staleHostCount);
     }
 
     /**
