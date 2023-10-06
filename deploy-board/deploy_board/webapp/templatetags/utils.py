@@ -346,8 +346,15 @@ def deployAcceptanceTip(status):
 
 @register.filter("progressTip")
 def progressTip(deploy):
-    return "Among total %d hosts, %d are succeeded and %d are stuck" % (
-        deploy["total"], deploy["successTotal"], deploy["failTotal"])
+    if deploy["showMode"] == "subAcct":
+        return "Among total %d hosts, %d are succeeded and %d are stuck" % (
+            deploy["subAcctTotalHostNum"], deploy["subAcctSucHostNum"], deploy["subAcctFailHostNum"])
+    elif deploy["showMode"] == "primaryAcct":
+        return "Among total %d hosts, %d are succeeded and %d are stuck" % (
+            deploy["primaryAcctTotalHostNum"], deploy["primaryAcctSucHostNum"], deploy["primaryAcctFailHostNum"])
+    else:
+        return "Among total %d hosts, %d are succeeded and %d are stuck" % (
+            deploy["total"], deploy["successTotal"], deploy["failTotal"])
 
 
 @register.filter("deployStateTip")
@@ -432,15 +439,31 @@ def getTotalDuration(start, end=None):
 @register.filter("successRate")
 def successRate(deploy):
     rate = 0
-    if deploy["total"] != 0:
-        rate = trunc(deploy["successTotal"] * 100 / deploy["total"])
-    return "%d%% (%d/%d)" % (rate, deploy["successTotal"], deploy["total"])
+    if deploy["showMode"] == "subAcct":
+        if deploy["subAcctTotalHostNum"] != 0:
+            rate = trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
+        return "%d%% (%d/%d)" % (rate, deploy["subAcctSucHostNum"], deploy["subAcctTotalHostNum"])
+    elif deploy["showMode"] == "primaryAcct":
+        if deploy["primaryAcctTotalHostNum"] != 0:
+            rate = trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])
+        return "%d%% (%d/%d)" % (rate, deploy["primaryAcctSucHostNum"], deploy["primaryAcctTotalHostNum"])
+    else:
+        if deploy["total"] != 0:
+            rate = trunc(deploy["successTotal"] * 100 / deploy["total"])
+        return "%d%% (%d/%d)" % (rate, deploy["successTotal"], deploy["total"])
 
 
 @register.filter("successRatePercentage")
 def successRatePercentage(deploy):
-    if deploy["total"] != 0:
-        return trunc(deploy["successTotal"] * 100 / deploy["total"])
+    if deploy["showMode"] == "subAcct":
+        if deploy["subAcctTotalHostNum"] != 0:
+            return trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
+    elif deploy["showMode"] == "primaryAcct":
+        if deploy["primaryAcctTotalHostNum"] != 0:
+            return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])   
+    else:     
+        if deploy["total"] != 0:
+            return trunc(deploy["successTotal"] * 100 / deploy["total"])
     return 0
 
 
