@@ -67,14 +67,14 @@ public class DeployJanitor implements Job {
                         LOG.info(String.format("Successfully removed deploys: %s before %d milliseconds has %d.",
                                 envId, timeThreshold, numToDelete));
 
-                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                                "response_type", "success",
                                 "method_name", this.getClass().getSimpleName()).increment();
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
 
-                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                                "response_type", "failure",
                                 "method_name", this.getClass().getSimpleName()).increment();
                     } finally {
                         utilDAO.releaseLock(deployLockName, connection);
@@ -96,8 +96,8 @@ public class DeployJanitor implements Job {
         } catch (SchedulerException e) {
             LOG.error("Cannot retrive job context!", e);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
             return;
         }
@@ -113,14 +113,14 @@ public class DeployJanitor implements Job {
             processDeploys();
             LOG.info("Stop deploy janitor process...");
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             LOG.error("Failed to call deploy janitor.", t);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
     }

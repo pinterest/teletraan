@@ -69,8 +69,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
             } catch (Exception ex) {
                 LOG.error("Failed to get terminated hosts", ex);
 
-                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
         }
@@ -83,14 +83,14 @@ public class AgentJanitor extends SimpleAgentJanitor {
             try {
                 launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
 
-                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        "response_type", "success",
                         "method_name", this.getClass().getSimpleName()).increment();
             } catch (Exception ex) {
                 LOG.error("failed to get launch grace period for cluster {}, exception: {}", clusterName, ex);
 
-                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
         }
@@ -112,8 +112,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
 
             return false;
@@ -148,8 +148,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get unreachable hosts", ex);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
 
             return;
@@ -182,8 +182,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get stale hosts", ex);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
 
             return;
@@ -224,8 +224,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (SQLException ex) {
             LOG.error("failed to get agentless hosts", ex);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
                     
             return;

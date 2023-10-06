@@ -71,8 +71,8 @@ public class BuildJanitor implements Job {
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
 
-                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                                "response_type", "failure",
                                 "method_name", this.getClass().getSimpleName()).increment();
 
                     } finally {
@@ -98,14 +98,14 @@ public class BuildJanitor implements Job {
             processBuilds(workerContext);
             LOG.info("Stop build janitor process...");
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             LOG.error("Failed to call build janitor.", t);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
     }

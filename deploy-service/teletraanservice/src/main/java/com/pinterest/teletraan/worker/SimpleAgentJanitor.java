@@ -68,8 +68,8 @@ public class SimpleAgentJanitor implements Runnable {
         LOG.info("Delete records of stale host {}", id);
         hostHandler.removeHost(id);
 
-        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                "response_type", "success",
                 "method_name", this.getClass().getSimpleName()).increment();
     }
 
@@ -81,12 +81,12 @@ public class SimpleAgentJanitor implements Runnable {
             agentDAO.updateAgentById(id, updateBean);
             LOG.info("Marked agent {} as UNREACHABLE.", id);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         } catch (Exception e) {
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
 
             LOG.error("Failed to mark host {} as UNREACHABLE. exception {}", id, e);
@@ -142,15 +142,15 @@ public class SimpleAgentJanitor implements Runnable {
             LOG.info("Start agent janitor process...");
             processAllHosts();
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("AgentJanitor Failed.", t);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
     }

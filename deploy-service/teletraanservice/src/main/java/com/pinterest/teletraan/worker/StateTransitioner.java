@@ -49,8 +49,8 @@ public class StateTransitioner implements Runnable {
         if (deployIds.isEmpty()) {
             LOG.info("StateTransitioner did not find any active deploy, exiting.");
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
             return;
         }
@@ -60,15 +60,15 @@ public class StateTransitioner implements Runnable {
                 LOG.debug("StateTransitioner chooses deploy {} to work on.", deployId);
                 commonHandler.transitionDeployState(deployId, null);
 
-                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        "response_type", "success",
                         "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
                 LOG.error("StateTransitioner failed to process {}", deployId, t);
 
-                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
         }
@@ -83,8 +83,8 @@ public class StateTransitioner implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call StateTransitioner.", t);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
     }
