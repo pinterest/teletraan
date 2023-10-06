@@ -174,6 +174,7 @@ class HostDetailView(View):
             is_protected = autoscaling_groups_helper.is_hosts_protected(request, asg, [host_id])
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
+        agent_wrappers = sorted(agent_wrappers, key=lambda x: x["agent"]['lastUpdateDate'])
         host_details = get_host_details(host_id)
 
         termination_limit = environs_helper.get_env_by_stage(request, name, stage).get('terminationLimit')
