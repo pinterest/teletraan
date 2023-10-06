@@ -40,6 +40,7 @@ import com.pinterest.teletraan.config.WorkerConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
+import io.dropwizard.health.conf.HealthConfiguration;
 
 import java.util.Collections;
 import java.util.List;
@@ -114,6 +115,9 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     @JsonProperty("pingrequestvalidators")
     private List<String> pingRequestValidators;
+
+    @JsonProperty("health")
+    private HealthConfiguration healthConfiguration = new HealthConfiguration();
 
     @Valid
     private MicrometerMetricsFactory metricsFactory = new MicrometerMetricsFactory();
@@ -279,6 +283,14 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setDefaultScmTypeName(String defaultScmTypeName) {
         this.defaultScmTypeName = defaultScmTypeName;
+    }
+
+    public HealthConfiguration getHealthConfiguration() {
+        return healthConfiguration;
+    }
+
+    public void setHealthConfiguration(final HealthConfiguration healthConfiguration) {
+        this.healthConfiguration = healthConfiguration;
     }
 
     public AwsFactory getAwsFactory() {
