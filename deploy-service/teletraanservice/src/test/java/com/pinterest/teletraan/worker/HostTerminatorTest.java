@@ -24,6 +24,7 @@ import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 
 
@@ -40,6 +41,7 @@ public class HostTerminatorTest {
     private RodimusManager mockRodimusManager;
     private UtilDAO mockUtilDAO;
     private MeterRegistry mockErrorBudgeRegistry;
+    private Counter mockCounter;
 
     private Collection<String> testHostIds = Collections.singletonList(TEST_HOST_ID);;
     private AgentBean testAgentBean;
@@ -88,6 +90,7 @@ public class HostTerminatorTest {
         mockRodimusManager = mock(RodimusManager.class);
         mockUtilDAO = mock(UtilDAO.class);
         mockErrorBudgeRegistry = mock(MeterRegistry.class);
+        mockCounter = mock(Counter.class);
 
         ServiceContext mockServiceContext = createMockServiceContext();
         hostTerminator = new HostTerminator(mockServiceContext);
@@ -97,6 +100,7 @@ public class HostTerminatorTest {
         testHostBean = createHostBean();
 
         when(mockUtilDAO.getLock(any())).thenReturn(mock(Connection.class));
+        when(mockErrorBudgeRegistry.counter(any(), any(), any(), any(), any())).thenReturn(mockCounter);
     }
 
     @Test
