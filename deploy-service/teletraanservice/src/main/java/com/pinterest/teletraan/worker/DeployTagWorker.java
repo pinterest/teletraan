@@ -136,8 +136,8 @@ public class DeployTagWorker implements Runnable {
                     } catch (SQLException e) {
                         LOG.error("failed to process job due to SQLException: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
 
-                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                                "response_type", "failure",
                                 "method_name", this.getClass().getSimpleName()).increment();
                             }  catch (Exception e) {
                         LOG.error("failed to process job due to all other exceptions: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
@@ -146,8 +146,8 @@ public class DeployTagWorker implements Runnable {
                         LOG.info("updated job state to {}", TagSyncState.ERROR);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
 
-                        errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                                "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                                "response_type", "failure",
                                 "method_name", this.getClass().getSimpleName()).increment();
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
@@ -158,8 +158,8 @@ public class DeployTagWorker implements Runnable {
                 }
             }
         } else {
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
     }
@@ -171,8 +171,8 @@ public class DeployTagWorker implements Runnable {
         } catch (Throwable t) {
             LOG.error("Failed to run DeployTagWorker", t);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
     }
