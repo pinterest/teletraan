@@ -71,8 +71,8 @@ public class HotfixStateTransitioner implements Runnable {
         if (hotfixIds.isEmpty()) {
             LOG.info("HotfixStateTransitioner did not find any active hotfix, exiting.");
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
 
             return;
@@ -84,8 +84,8 @@ public class HotfixStateTransitioner implements Runnable {
                 LOG.info("HotfixStateTransitioner chooses hotfix {} to work on.", hotfixId);
                 transitionHotfixState(hotBean);
 
-                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        "response_type", "success",
                         "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed, also long error in DB
@@ -93,8 +93,8 @@ public class HotfixStateTransitioner implements Runnable {
                 hotBean.setError_message("Get Exception: " + t);
                 hotfixDAO.update(hotfixId, hotBean);
 
-                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
         }
@@ -109,8 +109,8 @@ public class HotfixStateTransitioner implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call HotfixStateTransitioner.", t);
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
     }

@@ -52,9 +52,6 @@ public class AutoPromoter implements Runnable {
 
     public static final String AUTO_PROMOTER_NAME = "AutoPromoter";
     public static final int DEFAULT_BUFFER_TIME_MINUTE = 2;
-    public static final String TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME = "error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d";
-    public static final String TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS = "success";
-    public static final String TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE = "failure";
     private static final Logger LOG = LoggerFactory.getLogger(AutoPromoter.class);
     public BuildDAO buildDAO;
     private EnvironDAO environDAO;
@@ -90,8 +87,8 @@ public class AutoPromoter implements Runnable {
         if (envIds.isEmpty()) {
             LOG.debug("AutoPromoter did not find any valid env to work on, exiting.");
 
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
             return;
         }
@@ -101,15 +98,15 @@ public class AutoPromoter implements Runnable {
                 LOG.debug("AutoPromoter chooses env {} to work on.", envId);
                 processOnce(envId);
 
-                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_SUCCESS,
+                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        "response_type", "success",
                         "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
                 LOG.error("AutoPromoter failed to process {}, Exception: {}", envId, t);
 
-                errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                        "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
         }
@@ -596,8 +593,8 @@ public class AutoPromoter implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);
             
-            errorBudgeRegistry.counter(AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_NAME,
-                    "response_type", AutoPromoter.TELETRAAN_WORKER_ERROR_BUDGET_METRIC_FAILURE,
+            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                    "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
     }
