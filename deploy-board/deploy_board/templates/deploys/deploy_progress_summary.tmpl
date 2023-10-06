@@ -4,7 +4,6 @@
 <div class="panel panel-default table-responsive">
   <table class="table table-striped table-condensed table-hover">
     <tr>
-        <th class="col-lg-1">Test</th>
         <th class="col-lg-2">Build</th>
         <th class="col-lg-1">Type</th>
         <th class="col-lg-2">State</th>
@@ -16,13 +15,6 @@
         <th class="col-lg-1">Schedule</th>
     </tr>
     <tr>
-    <td>
-        {% if test %}
-          test
-        {% else %}
-          none
-        {% endif %}
-    <td>
         <a class="deployToolTip" data-toggle="tooltip"
            title="Click to see the build details"
            href="/builds/{{ build.id }}">
