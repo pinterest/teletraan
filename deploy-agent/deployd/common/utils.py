@@ -234,6 +234,20 @@ def get_container_health_info(key):
         return None
 
 
+def get_telefig_version():
+    if not IS_PINTEREST:
+        return None    
+    try:
+        cmd = ['configure-serviceset', '-v']
+        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
+        if output:
+            return output.decode().strip()
+        else:
+            return None
+    except:
+        log.error("Error when fetching teletraan configure manager version")
+        return None
+
 def check_not_none(arg, msg=None):
     if arg is None:
         raise ValueError(msg)
