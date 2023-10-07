@@ -220,9 +220,30 @@ def get_info_from_facter(keys):
         return None
 
 
+def get_envoy_container_name():
+    try:
+        log.info(f"Get envoy container name")
+        ps = subprocess.Popen(('docker', 'ps'), stdout=subprocess.PIPE)
+        output = subprocess.Popen(('grep', '-E', 'envoy-[AB]'), stdin=ps.stdout, stdout=subprocess.PIPE)
+        ps.wait()
+        result=subprocess.check_output(("sed", "-e", "s/^.*envoy/envoy/"), stdin=output.stdout)
+        output.wait()
+        if result:
+            return result.decode().strip()
+        else:
+            return None
+    except:
+        return None
+
+    
 def get_container_health_info(key):
     try:
         log.info(f"Get health info for container {key}")
+        if key == "envoy":
+            key = get_envoy_container_name()
+            if not key:
+                log.error("Failed to get container name for envoy")
+                return None
         cmd = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', key]
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         if output:
