@@ -42,7 +42,7 @@ from dateutil.parser import parse
 import calendar
 from deploy_board.webapp.agent_report import TOTAL_ALIVE_HOST_REPORT, TOTAL_HOST_REPORT, ALIVE_STAGE_HOST_REPORT, \
     FAILED_HOST_REPORT, UNKNOWN_HOST_REPORT, PROVISION_HOST_REPORT
-from .diff_match_patch import diff_match_patch
+from diff_match_patch import diff_match_patch
 import traceback
 import logging
 import os
