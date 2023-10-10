@@ -28,11 +28,11 @@ def create(name, stage, x):
     buildName = "sample-service-{}".format(x)
     buildId = pick_build_id(buildName, 0)
     id = deploys_helper.deploy(commons.REQUEST, name, stage, buildId)['id']
-    print "Successfully created deploy %s" % id
+    print("Successfully created deploy %s" % id)
 
 
 def main():
-    for x in xrange(2):
+    for x in range(1, 3):
         name = "sample-service-%d" % x
         stage = "canary"
         create(name, stage, x)

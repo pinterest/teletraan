@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/env python
+#!/usr/bin/env python3
 import commons
 
 environs_helper = commons.get_environ_helper()
 
 
 def main():
-    for x in xrange(2):
+    for x in range(1, 3):
         name = "sample-service-%d" % x
         stage = "canary"
         commons.create_env(name, stage)
@@ -35,5 +35,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception, e:
-        print e.message
+    except Exception as e:
+        print(e.message)

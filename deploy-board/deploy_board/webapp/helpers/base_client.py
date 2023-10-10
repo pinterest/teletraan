@@ -13,9 +13,9 @@
 # limitations under the License.
 import logging
 import requests
-from decorators import retry
+from deploy_board.webapp.helpers.decorators import retry
 
-from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
+from deploy_board.webapp.helpers.exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
 requests.packages.urllib3.disable_warnings()
 
 DEFAULT_TIMEOUT = 30
@@ -99,7 +99,7 @@ class BaseClient(object):
 
     def gen_params(self, kwargs):
         params = {}
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if value:
                 params[key] = value
         return params

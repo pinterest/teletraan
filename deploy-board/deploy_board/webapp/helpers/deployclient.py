@@ -16,9 +16,9 @@
 """Helper class to connect Teletraan service
 """
 import logging
-from decorators import singleton
+from deploy_board.webapp.helpers.decorators import singleton
 from deploy_board.settings import TELETRAAN_SERVICE_URL, TELETRAAN_SERVICE_VERSION, TELETRAAN_SERVICE_PROXY_HTTP, TELETRAAN_SERVICE_PROXY_HTTPS
-from base_client import BaseClient
+from deploy_board.webapp.helpers.base_client import BaseClient
 
 
 log = logging.getLogger(__name__)

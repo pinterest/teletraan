@@ -283,7 +283,7 @@ def update_group_config(request, group_name):
         else:
             groupRequest["lifecycleNotifications"] = False
 
-        print groupRequest
+        print(groupRequest)
         autoscaling_groups_helper.update_group_info(request, group_name, groupRequest)
         return get_group_config(request, group_name)
     except:

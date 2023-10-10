@@ -19,7 +19,6 @@ from deploy_board.settings import IS_PINTEREST, SERVICE_RATELIMIT_CONFIG_URL, \
                                   STATSBOARD_HUB_URL_ENDPOINT_FORMAT, STATSBOARD_HOST_TYPE_API_FORMAT
 import urllib2
 import simplejson as json
-import socket
 import time
 import os
 

@@ -20,7 +20,7 @@ import commons
 
 
 def main():
-    for x in xrange(2):
+    for x in range(1, 3):
         # deploy requires build name to be the same as env stage configuration's build name
         buildName = "sample-service-{}".format(x)
         commons.publish_build(buildName, "master")

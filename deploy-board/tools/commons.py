@@ -16,7 +16,7 @@
 
 import os
 import string
-from urllib2 import Request
+from urllib3 import request
 import random
 import time
 
@@ -29,7 +29,7 @@ if token:
     USER = UserIdentity(name="tester", token=token)
 else:
     USER = UserIdentity(name="anonymous")
-REQUEST = Request
+REQUEST = request
 REQUEST.teletraan_user_id = USER
 
 
@@ -43,7 +43,7 @@ def create_env(name, stage):
     request["stageName"] = stage
     request["stageType"]= "DEFAULT"
     env = environs_helper.create_env(REQUEST, request)
-    print "Successfully created env %s." % env['id']
+    print("Successfully created env %s." % env['id'])
     return env
 
 
@@ -57,7 +57,7 @@ def publish_build(build_name, branch='master', commit=gen_random_num(32)):
     request['artifactUrl'] = "https://sample.com"
     request['publishInfo'] = "https://sample.com"
     build = builds_helper.publish_build(REQUEST, request)
-    print "Successfully published build %s." % build['id']
+    print("Successfully published build %s." % build['id'])
     return build
 
 

@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from deploy_board import settings
 from django.views.generic import View
 from django.shortcuts import render
 
