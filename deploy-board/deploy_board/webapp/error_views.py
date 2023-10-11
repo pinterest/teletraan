@@ -47,6 +47,6 @@ class ExceptionHandlerMiddleware(object):
                 return HttpResponseRedirect("/")
 
             return render(request, 'error.html', {
-                'message': exception.message,
+                'message': str(exception),
                 'stacktrace': traceback.format_exc(),
             })

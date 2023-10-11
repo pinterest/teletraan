@@ -19,11 +19,14 @@ from oauthlib.common import add_params_to_uri
 import oauthlib.oauth2
 import random
 import time
-try:
-    import urllib2 as http
-except ImportError:
-    from urllib import request as http
+import base64  
 
+# try:
+#     import urllib2 as http
+# except ImportError:
+#     from urllib import request as http
+
+import urllib.request as http  
 log = logging.getLogger('oauth')
 STATE_LENGTH = 32
 # Default with Google endpoints
@@ -224,7 +227,7 @@ class OAuth(object):
         self.oauth_handler.token_setter(resp_data['access_token'], expires, **kwargs)
 
         try:
-            return json.loads(enc_data.decode('base64'))
+            return json.loads(enc_data)
         except ValueError:
             return None
 
@@ -237,7 +240,8 @@ class OAuth(object):
         self.oauth_handler.state_setter(state, **kwargs)
 
         # hack to add data to state
-        state_with_data = state + json.dumps(data).encode('base64')
+        encoded_data = base64.b64encode(json.dumps(data).encode('utf-8')).decode('utf-8')  
+        state_with_data = state + encoded_data
         return client.prepare_request_uri(
             self.authorize_url,
             redirect_uri=self.callback_url,
@@ -261,7 +265,7 @@ class OAuth(object):
             data = None
 
         log.debug('Request %r with %r method' % (uri, method))
-        req = http.Request(uri, headers=headers, data=data)
+        req = http.Request(uri, headers=headers, data=data.encode('utf-8'))
         req.get_method = lambda: method.upper()
         try:
             resp = http.urlopen(req)

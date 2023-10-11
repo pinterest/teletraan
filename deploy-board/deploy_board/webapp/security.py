@@ -129,7 +129,7 @@ def login_authorized(request):
         # failed to login for some reason, do something
         logger.error(traceback.format_exc())
         return render(request, 'oauth_failure.html', {
-            "message": e.message,
+            "message": str(e),
         })
 
     except OAuthExpiredTokenException as e:
