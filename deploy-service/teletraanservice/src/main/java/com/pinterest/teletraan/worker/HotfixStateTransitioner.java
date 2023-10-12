@@ -75,6 +75,9 @@ public class HotfixStateTransitioner implements Runnable {
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
 
+            String method_name = this.getClass().getSimpleName();
+            LOG.info("TEMP - Error Budget metric sent - success: method_name " + method_name);
+
             return;
         }
         Collections.shuffle(hotfixIds);
