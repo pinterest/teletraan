@@ -14,7 +14,6 @@
 import logging
 import requests
 from .decorators import retry
-
 from .exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
 requests.packages.urllib3.disable_warnings()
 

@@ -32,7 +32,7 @@ def create(name, stage, x):
 
 
 def main():
-    for x in range(2):
+    for x in range(1, 3):
         name = "sample-service-%d" % x
         stage = "canary"
         create(name, stage, x)

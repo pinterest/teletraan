@@ -16,7 +16,7 @@
 
 import os
 import string
-from urllib.request import Request
+from urllib3 import request
 import random
 import time
 
@@ -29,7 +29,7 @@ if token:
     USER = UserIdentity(name="tester", token=token)
 else:
     USER = UserIdentity(name="anonymous")
-REQUEST = Request
+REQUEST = request
 REQUEST.teletraan_user_id = USER
 
 

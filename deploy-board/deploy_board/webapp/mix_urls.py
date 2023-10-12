@@ -16,7 +16,6 @@
 from django.conf.urls import url
 from . import feedback_views
 from . import hotfix_views
-from . import util_views
 
 urlpatterns = [
 
