@@ -19,14 +19,13 @@ from oauthlib.common import add_params_to_uri
 import oauthlib.oauth2
 import random
 import time
-import base64  
+import base64
 
-# try:
-#     import urllib2 as http
-# except ImportError:
-#     from urllib import request as http
+try:
+    import urllib2 as http
+except ImportError:
+    from urllib import request as http
 
-import urllib.request as http  
 log = logging.getLogger('oauth')
 STATE_LENGTH = 32
 # Default with Google endpoints
@@ -240,8 +239,8 @@ class OAuth(object):
         self.oauth_handler.state_setter(state, **kwargs)
 
         # hack to add data to state
-        encoded_data = base64.b64encode(json.dumps(data).encode('utf-8')).decode('utf-8')  
-        state_with_data = state + encoded_data
+        encoded_data = base64.b64encode(json.dumps(data).encode('utf-8'))
+        state_with_data = state + encoded_data.decode('utf-8')
         return client.prepare_request_uri(
             self.authorize_url,
             redirect_uri=self.callback_url,
