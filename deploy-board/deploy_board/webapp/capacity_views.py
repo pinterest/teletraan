@@ -49,7 +49,6 @@ class EnvCapacityConfigView(View):
                 base_image_id = basic_cluster_info.get('baseImageId')
                 base_image = baseimages_helper.get_by_id(request, base_image_id)
                 asg_cluster = autoscaling_groups_helper.get_group_info(request, cluster_name)
-                asg_cluster = {}
                 basic_cluster_info['asg_info'] = asg_cluster
                 basic_cluster_info['base_image_info'] = base_image
                 try:
