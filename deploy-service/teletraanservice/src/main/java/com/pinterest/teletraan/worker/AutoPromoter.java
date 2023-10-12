@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
@@ -28,7 +30,9 @@ import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
 
+
 import com.google.common.base.Preconditions;
+import io.micrometer.core.instrument.Metrics;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Interval;
@@ -573,6 +577,7 @@ public class AutoPromoter implements Runnable {
         try {
             LOG.info("Start AutoPromoter process...");
             processBatch();
+            Metrics.counter(CUSTOM_NAME_PREFIX + "failed").increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);
