@@ -16,13 +16,13 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
 import logging
-from helpers import environs_helper, agents_helper, autoscaling_groups_helper
-from helpers import environ_hosts_helper, hosts_helper
+from .helpers import environs_helper, agents_helper, autoscaling_groups_helper
+from .helpers import environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
 from datetime import datetime
 import pytz
 import requests
-import common
+from . import common
 requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)

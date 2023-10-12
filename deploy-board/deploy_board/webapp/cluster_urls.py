@@ -14,7 +14,7 @@
 
 # -*- coding: utf-8 -*-
 from django.conf.urls import url
-import cluster_view
+from . import cluster_view
 
 urlpatterns = [
     url(r'^clouds/create_base_image/$', cluster_view.create_base_image),

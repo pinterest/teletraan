@@ -20,7 +20,7 @@ from django.conf import settings
 
 admin.autodiscover()
 
-from settings import IS_PINTEREST
+from .settings import IS_PINTEREST
 
 if IS_PINTEREST:
     urlpatterns = [

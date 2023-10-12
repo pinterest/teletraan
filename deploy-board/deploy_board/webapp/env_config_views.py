@@ -22,8 +22,8 @@ from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.generic import View
-import common
-from helpers import environs_helper
+from .common import get_all_stages
+from .helpers import environs_helper
 
 
 class EnvConfigView(View):
@@ -38,7 +38,7 @@ class EnvConfigView(View):
             return HttpResponse(json.dumps({'html': html}), content_type="application/json")
 
         envs = environs_helper.get_all_env_stages(request, name)
-        stages, env = common.get_all_stages(envs, stage)
+        stages, env = get_all_stages(envs, stage)
 
         # get capacity to decide if we need to show the remove stage button
         show_remove = True

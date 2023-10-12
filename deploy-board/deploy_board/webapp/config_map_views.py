@@ -21,8 +21,8 @@ from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.generic import View
-import common
-from helpers import environs_helper
+from .common import get_all_stages
+from .helpers import environs_helper
 
 # advanced/agent config or agent config map
 AC_FLAVOR = 'AC'
@@ -62,7 +62,7 @@ class EnvConfigMapView(View):
 
         # otherwise, return a page
         envs = environs_helper.get_all_env_stages(request, name)
-        stages, env = common.get_all_stages(envs, stage)
+        stages, env = get_all_stages(envs, stage)
         return render(request, 'configs/config_map.html', {
             "envs": envs,
             "env": env,
@@ -73,7 +73,7 @@ class EnvConfigMapView(View):
 
     def parse_configs(self, query_dict):
         configs = {}
-        for key, value in query_dict.iteritems():
+        for key, value in query_dict.items():
             if not value:
                 continue
             if key.startswith('TELETRAAN_'):
