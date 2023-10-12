@@ -71,7 +71,7 @@ public class HotfixStateTransitioner implements Runnable {
         if (hotfixIds.isEmpty()) {
             LOG.info("HotfixStateTransitioner did not find any active hotfix, exiting.");
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            errorBudgeRegistry.counter("error-budget.counters",
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
 
@@ -87,7 +87,7 @@ public class HotfixStateTransitioner implements Runnable {
                 LOG.info("HotfixStateTransitioner chooses hotfix {} to work on.", hotfixId);
                 transitionHotfixState(hotBean);
 
-                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                errorBudgeRegistry.counter("error-budget.counters",
                         "response_type", "success",
                         "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
@@ -96,7 +96,7 @@ public class HotfixStateTransitioner implements Runnable {
                 hotBean.setError_message("Get Exception: " + t);
                 hotfixDAO.update(hotfixId, hotBean);
 
-                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                errorBudgeRegistry.counter("error-budget.counters",
                         "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
@@ -112,7 +112,7 @@ public class HotfixStateTransitioner implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call HotfixStateTransitioner.", t);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            errorBudgeRegistry.counter("error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
