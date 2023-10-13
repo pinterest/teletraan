@@ -273,7 +273,7 @@ public class HotfixStateTransitioner implements Runnable {
             throw new DeployInternalException("Hotfix Id " + hotfixId + " has an unknown state " + state);
         }
 
-        // Reset job number and last worked on time, and clean up the error 
+        // Reset job number and last worked on time, and clean up the error
         if (state != HotfixState.SUCCEEDED) {
             hotBean.setJob_num("");
         }
