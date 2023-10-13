@@ -49,8 +49,6 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
 
-import io.micrometer.core.instrument.MeterRegistry;
-
 import org.apache.commons.dbcp.BasicDataSource;
 
 import java.util.List;
