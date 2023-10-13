@@ -13,9 +13,8 @@
 # limitations under the License.
 import logging
 import requests
-from deploy_board.webapp.helpers.decorators import retry
-
-from deploy_board.webapp.helpers.exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
+from .decorators import retry
+from .exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
 requests.packages.urllib3.disable_warnings()
 
 DEFAULT_TIMEOUT = 30

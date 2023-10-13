@@ -19,7 +19,7 @@ from django.shortcuts import render
 from django.views.generic import View
 from django.http import HttpResponse
 import json
-from helpers import ratings_helper
+from .helpers import ratings_helper
 
 DEFAULT_PAGE_SIZE = 30
 

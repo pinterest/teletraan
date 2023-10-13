@@ -64,7 +64,7 @@ class TestAutoDeploy(unittest.TestCase):
                 build = builds_helper.get_build(commons.REQUEST, deploy['buildId'])
                 if build['commit'] == expect_commit:
                     return
-            print("."),
+            print(("."), end=' ')
             sys.stdout.flush()
             time.sleep(1)
             count = count + 1
@@ -94,7 +94,7 @@ class TestAutoDeploy(unittest.TestCase):
         deploy = deploys_helper.deploy(commons.REQUEST, self.envName, PROD, self.build['id'])
         promote_config = environs_helper.get_env_promotes_config(commons.REQUEST, self.envName,
                                                                  PROD)
-        self.assertEquals(promote_config['type'], "MANUAL")
+        self.assertEqual(promote_config['type'], "MANUAL")
         deploys_helper.delete(commons.REQUEST, deploy['id'])
 
     def testDisablePolicyManual(self):
@@ -105,7 +105,7 @@ class TestAutoDeploy(unittest.TestCase):
         deploy = deploys_helper.deploy(commons.REQUEST, self.envName, PROD, self.build['id'])
         promote_config = environs_helper.get_env_promotes_config(commons.REQUEST, self.envName,
                                                                  PROD)
-        self.assertEquals(promote_config['type'], "AUTO")
+        self.assertEqual(promote_config['type'], "AUTO")
         deploys_helper.delete(commons.REQUEST, deploy['id'])
 
     def _assertState(self, stage, expect_state):
@@ -115,7 +115,7 @@ class TestAutoDeploy(unittest.TestCase):
                                                                      stage)
             if promote_config['type'] == expect_state:
                 return
-            print("."),
+            print(("."), end=' ')
             sys.stdout.flush()
             time.sleep(1)
             count = count + 1
@@ -136,7 +136,7 @@ class TestAutoDeploy(unittest.TestCase):
         environs_helper.update_env_promotes_config(commons.REQUEST, self.envName, PROD, data=data)
         promote_config = environs_helper.get_env_promotes_config(commons.REQUEST, self.envName,
                                                                  PROD)
-        self.assertEquals(promote_config['type'], "AUTO")
+        self.assertEqual(promote_config['type'], "AUTO")
         deploys_helper.delete(commons.REQUEST, deploy['id'])
         # This so that we can delete the env
         environs_helper.update_env_capacity(commons.REQUEST, self.envName, PROD,
@@ -183,7 +183,7 @@ class TestAutoDeploy(unittest.TestCase):
         new_env = environs_helper.get_env_by_stage(commons.REQUEST, self.envName, PROD)
         new_deploy = deploys_helper.get(commons.REQUEST, new_env['deployId'])
         new_build = builds_helper.get_build(commons.REQUEST, new_deploy['buildId'])
-        self.assertEquals(new_build['commit'], commit_0)
+        self.assertEqual(new_build['commit'], commit_0)
 
         builds_helper.delete_build(commons.REQUEST, build_0['id'])
         deploys_helper.delete(commons.REQUEST, deploy_0['id'])

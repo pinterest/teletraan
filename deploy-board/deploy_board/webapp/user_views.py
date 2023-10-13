@@ -21,7 +21,7 @@ from django.middleware.csrf import get_token
 
 from django.shortcuts import render
 from django.template.loader import render_to_string
-from helpers import users_helper
+from .helpers import users_helper
 from deploy_board.settings import IS_PINTEREST
 import logging
 import re
@@ -68,7 +68,7 @@ def update_users_config(request, name):
     user_types = request.GET.get('user_types')
     # First, retrive all the original users
     origin_user_dict = {}
-    for key, value in request.POST.iteritems():
+    for key, value in request.POST.items():
         if key.startswith('TELETRAAN_ORIGIN_'):
             user_name = key[len('TELETRAAN_ORIGIN_'):]
             origin_user_dict[user_name] = value
@@ -76,7 +76,7 @@ def update_users_config(request, name):
     # Then, loop and all the new values, figure out which needs to delete, which needs to update
     updated_user_dict = {}
     new_user_dict = {}
-    for key, value in request.POST.iteritems():
+    for key, value in request.POST.items():
         if key.startswith('TELETRAAN_NEW_'):
             user_name = key[len('TELETRAAN_NEW_'):].lower()
             if ' ' in user_name:
@@ -93,11 +93,11 @@ def update_users_config(request, name):
                 new_user_dict[user_name] = value
 
     # Finally update the backend accordingly
-    for key, value in origin_user_dict.iteritems():
+    for key, value in origin_user_dict.items():
         users_helper.delete_env_user(request, name, key, user_types)
-    for key, value in updated_user_dict.iteritems():
+    for key, value in updated_user_dict.items():
         users_helper.update_env_user(request, name, key, value, user_types)
-    for key, value in new_user_dict.iteritems():
+    for key, value in new_user_dict.items():
         users_helper.create_env_user(request, name, key, value, user_types)
 
     users = users_helper.get_env_users(request, name, user_types)

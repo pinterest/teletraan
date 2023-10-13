@@ -299,13 +299,13 @@ if IS_PINTEREST:
     if KNOX_SESSION_ID:
         from knox import Knox
 
-        SECRET_KEY = Knox().get_primary(KNOX_SESSION_ID)
+        SECRET_KEY = Knox(KNOX_SESSION_ID).get_primary()
 
     ADMIN_OAUTH_SECRET_KNOX_ID = os.getenv("ADMIN_OAUTH_SECRET_KNOX_ID")
     if ADMIN_OAUTH_SECRET_KNOX_ID:
         from knox import Knox
 
-        OAUTH_CLIENT_SECRET = Knox().get_primary(ADMIN_OAUTH_SECRET_KNOX_ID)
+        OAUTH_CLIENT_SECRET = Knox(ADMIN_OAUTH_SECRET_KNOX_ID).get_primary()
 
     # Site health metrics
     REQUESTS_URL = os.getenv("REQUESTS_URL")
