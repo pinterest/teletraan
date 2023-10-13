@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
@@ -28,7 +30,6 @@ import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Metrics;
 
 import com.google.common.base.Preconditions;
@@ -43,7 +44,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.util.*;
 import java.util.function.Function;
-
 
 /**
  * Monitor and promote deploy from one stage to another automatically
@@ -62,7 +62,6 @@ public class AutoPromoter implements Runnable {
     private BuildTagsManager buildTagsManager;
     private int bufferTimeMinutes;
     private final int maxCheckBuildsOrDeploys = 100;
-    private final MeterRegistry errorBudgeRegistry;
 
     public AutoPromoter(ServiceContext serviceContext) {
         environDAO = serviceContext.getEnvironDAO();
@@ -73,7 +72,6 @@ public class AutoPromoter implements Runnable {
         buildTagsManager = new BuildTagsManagerImpl(serviceContext.getTagDAO());
         deployHandler = new DeployHandler(serviceContext);
         bufferTimeMinutes = DEFAULT_BUFFER_TIME_MINUTE;
-        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
     public AutoPromoter withBufferTimeMinutes(int bufferTime) {
@@ -87,7 +85,7 @@ public class AutoPromoter implements Runnable {
         if (envIds.isEmpty()) {
             LOG.debug("AutoPromoter did not find any valid env to work on, exiting.");
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
             return;
@@ -98,14 +96,14 @@ public class AutoPromoter implements Runnable {
                 LOG.debug("AutoPromoter chooses env {} to work on.", envId);
                 processOnce(envId);
 
-                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                         "response_type", "success",
                         "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
                 LOG.error("AutoPromoter failed to process {}, Exception: {}", envId, t);
 
-                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                         "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
@@ -593,7 +591,7 @@ public class AutoPromoter implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);
             
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }

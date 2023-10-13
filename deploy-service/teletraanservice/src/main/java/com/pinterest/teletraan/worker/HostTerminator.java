@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
@@ -28,8 +30,6 @@ import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 
-import io.micrometer.core.instrument.MeterRegistry;
-
 import com.pinterest.deployservice.handler.HostHandler;
 
 import org.slf4j.Logger;
@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.util.*;
+
+import io.micrometer.core.instrument.Metrics;
 
 public class HostTerminator implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HostTerminator.class);
@@ -46,7 +48,6 @@ public class HostTerminator implements Runnable {
     private final UtilDAO utilDAO;
     private final RodimusManager rodimusManager;
     private final HostHandler hostHandler;
-    private final MeterRegistry errorBudgeRegistry;
 
     public HostTerminator(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -55,7 +56,6 @@ public class HostTerminator implements Runnable {
         rodimusManager = serviceContext.getRodimusManager();
         hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
-        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
     private void terminateHost(HostBean host) throws Exception {
@@ -135,13 +135,13 @@ public class HostTerminator implements Runnable {
             LOG.info("Start to run HostTerminator");
             processBatch();
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
             "response_type", "success",
             "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             LOG.error("HostTerminator failed", t);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }

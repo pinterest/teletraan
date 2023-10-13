@@ -15,17 +15,19 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.CommonHandler;
-
-import io.micrometer.core.instrument.MeterRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
+
+import io.micrometer.core.instrument.Metrics;
 
 /**
  * Check active deploys and transition them into final states
@@ -35,12 +37,10 @@ public class StateTransitioner implements Runnable {
 
     private EnvironDAO environDAO;
     private CommonHandler commonHandler;
-    private final MeterRegistry errorBudgeRegistry;
 
     public StateTransitioner(ServiceContext serviceContext) {
         environDAO = serviceContext.getEnvironDAO();
         commonHandler = new CommonHandler(serviceContext);
-        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
     void processBatch() throws Exception {
@@ -49,7 +49,7 @@ public class StateTransitioner implements Runnable {
         if (deployIds.isEmpty()) {
             LOG.info("StateTransitioner did not find any active deploy, exiting.");
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
             return;
@@ -60,14 +60,14 @@ public class StateTransitioner implements Runnable {
                 LOG.debug("StateTransitioner chooses deploy {} to work on.", deployId);
                 commonHandler.transitionDeployState(deployId, null);
 
-                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                         "response_type", "success",
                         "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
                 LOG.error("StateTransitioner failed to process {}", deployId, t);
 
-                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                         "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
@@ -83,7 +83,7 @@ public class StateTransitioner implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call StateTransitioner.", t);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }

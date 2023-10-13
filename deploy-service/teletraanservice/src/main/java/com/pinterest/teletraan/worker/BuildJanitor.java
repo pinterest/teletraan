@@ -15,11 +15,11 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-
-import io.micrometer.core.instrument.MeterRegistry;
 
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -32,6 +32,8 @@ import java.sql.Connection;
 import java.util.Collections;
 import java.util.List;
 
+import io.micrometer.core.instrument.Metrics;
+
 /**
  * Remove unused and old builds.
  * <p>
@@ -42,7 +44,6 @@ import java.util.List;
 public class BuildJanitor implements Job {
     private static final Logger LOG = LoggerFactory.getLogger(BuildJanitor.class);
     private static final long MILLIS_PER_DAY = 86400000;
-    private MeterRegistry errorBudgeRegistry;
 
     public BuildJanitor() {
         // If using the Job interface, must keep constructor empty.
@@ -71,7 +72,7 @@ public class BuildJanitor implements Job {
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
 
-                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                                 "response_type", "failure",
                                 "method_name", this.getClass().getSimpleName()).increment();
 
@@ -93,18 +94,17 @@ public class BuildJanitor implements Job {
             LOG.info("Start build janitor process...");
             SchedulerContext schedulerContext = context.getScheduler().getContext();
             TeletraanServiceContext workerContext = (TeletraanServiceContext) schedulerContext.get("serviceContext");
-            errorBudgeRegistry = workerContext.getCustomMeterRegistry();
             
             processBuilds(workerContext);
             LOG.info("Stop build janitor process...");
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             LOG.error("Failed to call build janitor.", t);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }

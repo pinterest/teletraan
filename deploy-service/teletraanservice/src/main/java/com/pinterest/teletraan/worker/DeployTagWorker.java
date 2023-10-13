@@ -1,12 +1,12 @@
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.rodimus.RodimusManager;
-
-import io.micrometer.core.instrument.MeterRegistry;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.TransformerUtils;
@@ -19,6 +19,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
+import io.micrometer.core.instrument.Metrics;
+
 public class DeployTagWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(DeployTagWorker.class);
     private static final int MAX_QUERY_TAGS_SIZE = 200;
@@ -30,7 +32,6 @@ public class DeployTagWorker implements Runnable {
     private final RodimusManager rodimusManager;
     private final BasicDataSource dataSource;
     private final UtilDAO utilDAO;
-    private final MeterRegistry errorBudgeRegistry;
 
     public DeployTagWorker(ServiceContext serviceContext) {
         hostDAO = serviceContext.getHostDAO();
@@ -40,7 +41,6 @@ public class DeployTagWorker implements Runnable {
         rodimusManager = serviceContext.getRodimusManager();
         dataSource = serviceContext.getDataSource();
         utilDAO = serviceContext.getUtilDAO();
-        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
 
@@ -136,7 +136,7 @@ public class DeployTagWorker implements Runnable {
                     } catch (SQLException e) {
                         LOG.error("failed to process job due to SQLException: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
 
-                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                                 "response_type", "failure",
                                 "method_name", this.getClass().getSimpleName()).increment();
                             }  catch (Exception e) {
@@ -146,7 +146,7 @@ public class DeployTagWorker implements Runnable {
                         LOG.info("updated job state to {}", TagSyncState.ERROR);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
 
-                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                                 "response_type", "failure",
                                 "method_name", this.getClass().getSimpleName()).increment();
                     } finally {
@@ -158,7 +158,7 @@ public class DeployTagWorker implements Runnable {
                 }
             }
         } else {
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
@@ -171,7 +171,7 @@ public class DeployTagWorker implements Runnable {
         } catch (Throwable t) {
             LOG.error("Failed to run DeployTagWorker", t);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }

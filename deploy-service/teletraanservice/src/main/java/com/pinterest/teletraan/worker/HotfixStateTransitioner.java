@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
@@ -22,8 +24,6 @@ import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.Jenkins;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.CommonHandler;
-
-import io.micrometer.core.instrument.MeterRegistry;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -34,6 +34,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import io.micrometer.core.instrument.Metrics;
 
 /**
  * Check active deploys and push them into their final states
@@ -49,7 +51,6 @@ public class HotfixStateTransitioner implements Runnable {
     private CommonHandler commonHandler;
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
-    private final MeterRegistry errorBudgeRegistry;
     // TODO make this configurable
     private static final int HOTFIX_JOB_DURATION_TIMEOUT = 180;
 
@@ -62,7 +63,6 @@ public class HotfixStateTransitioner implements Runnable {
         commonHandler = new CommonHandler(serviceContext);
         jenkinsUrl = serviceContext.getJenkinsUrl();
         jenkinsRemoteToken = serviceContext.getJenkinsRemoteToken();
-        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
     }
 
     void processBatch() throws Exception {
@@ -71,7 +71,7 @@ public class HotfixStateTransitioner implements Runnable {
         if (hotfixIds.isEmpty()) {
             LOG.info("HotfixStateTransitioner did not find any active hotfix, exiting.");
 
-            errorBudgeRegistry.counter("error-budget.counters",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
 
@@ -87,7 +87,7 @@ public class HotfixStateTransitioner implements Runnable {
                 LOG.info("HotfixStateTransitioner chooses hotfix {} to work on.", hotfixId);
                 transitionHotfixState(hotBean);
 
-                errorBudgeRegistry.counter("error-budget.counters",
+                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                         "response_type", "success",
                         "method_name", this.getClass().getSimpleName()).increment();
             } catch (Throwable t) {
@@ -96,7 +96,7 @@ public class HotfixStateTransitioner implements Runnable {
                 hotBean.setError_message("Get Exception: " + t);
                 hotfixDAO.update(hotfixId, hotBean);
 
-                errorBudgeRegistry.counter("error-budget.counters",
+                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                         "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
@@ -112,7 +112,7 @@ public class HotfixStateTransitioner implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call HotfixStateTransitioner.", t);
 
-            errorBudgeRegistry.counter("error-budget.counters",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }

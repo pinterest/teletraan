@@ -15,13 +15,13 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
-
-import io.micrometer.core.instrument.MeterRegistry;
 
 import org.quartz.*;
 import org.slf4j.Logger;
@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.util.Collections;
 import java.util.List;
+
+import io.micrometer.core.instrument.Metrics;
 
 /**
  * Removed unused/old deploys.
@@ -41,7 +43,6 @@ public class DeployJanitor implements Job {
     private EnvironDAO environDAO;
     private DeployDAO deployDAO;
     private UtilDAO utilDAO;
-    private MeterRegistry errorBudgeRegistry;
 
     public DeployJanitor() {
         // If using the Job interface, must keep constructor empty.
@@ -67,13 +68,13 @@ public class DeployJanitor implements Job {
                         LOG.info(String.format("Successfully removed deploys: %s before %d milliseconds has %d.",
                                 envId, timeThreshold, numToDelete));
 
-                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                                 "response_type", "success",
                                 "method_name", this.getClass().getSimpleName()).increment();
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
 
-                        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                                 "response_type", "failure",
                                 "method_name", this.getClass().getSimpleName()).increment();
                     } finally {
@@ -96,7 +97,7 @@ public class DeployJanitor implements Job {
         } catch (SchedulerException e) {
             LOG.error("Cannot retrive job context!", e);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
             return;
@@ -106,20 +107,19 @@ public class DeployJanitor implements Job {
         environDAO = serviceContext.getEnvironDAO();
         deployDAO = serviceContext.getDeployDAO();
         utilDAO = serviceContext.getUtilDAO();
-        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
 
         try {
             LOG.info("Start deploy janitor process...");
             processDeploys();
             LOG.info("Stop deploy janitor process...");
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             LOG.error("Failed to call deploy janitor.", t);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }

@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +35,8 @@ import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.rodimus.RodimusManager;
+
+import io.micrometer.core.instrument.Metrics;
 
 /**
  * Housekeeping on stuck and dead agents and hosts
@@ -69,7 +73,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             } catch (Exception ex) {
                 LOG.error("Failed to get terminated hosts", ex);
 
-                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                         "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
@@ -83,13 +87,13 @@ public class AgentJanitor extends SimpleAgentJanitor {
             try {
                 launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
 
-                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                         "response_type", "success",
                         "method_name", this.getClass().getSimpleName()).increment();
             } catch (Exception ex) {
                 LOG.error("failed to get launch grace period for cluster {}, exception: {}", clusterName, ex);
 
-                errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                         "response_type", "failure",
                         "method_name", this.getClass().getSimpleName()).increment();
             }
@@ -112,7 +116,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
 
@@ -148,7 +152,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get unreachable hosts", ex);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
 
@@ -182,7 +186,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get stale hosts", ex);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
 
@@ -224,7 +228,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (SQLException ex) {
             LOG.error("failed to get agentless hosts", ex);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
                     

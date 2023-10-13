@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan.worker;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +34,7 @@ import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.HostHandler;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
 
 /**
  * Housekeeping on stuck and dead agents
@@ -49,7 +51,6 @@ public class SimpleAgentJanitor implements Runnable {
     private HostHandler hostHandler;
     protected long maxStaleHostThreshold;
     protected long minStaleHostThreshold;
-    protected final MeterRegistry errorBudgeRegistry;
 
     public SimpleAgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
             int maxStaleHostThreshold) {
@@ -57,7 +58,6 @@ public class SimpleAgentJanitor implements Runnable {
         hostDAO = serviceContext.getHostDAO();
         hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
-        errorBudgeRegistry = serviceContext.getCustomMeterRegistry();
 
         this.maxStaleHostThreshold = maxStaleHostThreshold * 1000;
         this.minStaleHostThreshold = minStaleHostThreshold * 1000;
@@ -68,7 +68,7 @@ public class SimpleAgentJanitor implements Runnable {
         LOG.info("Delete records of stale host {}", id);
         hostHandler.removeHost(id);
 
-        errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                 "response_type", "success",
                 "method_name", this.getClass().getSimpleName()).increment();
     }
@@ -81,11 +81,11 @@ public class SimpleAgentJanitor implements Runnable {
             agentDAO.updateAgentById(id, updateBean);
             LOG.info("Marked agent {} as UNREACHABLE.", id);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         } catch (Exception e) {
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
 
@@ -142,14 +142,14 @@ public class SimpleAgentJanitor implements Runnable {
             LOG.info("Start agent janitor process...");
             processAllHosts();
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("AgentJanitor Failed.", t);
 
-            errorBudgeRegistry.counter("error-budget.counters.8ea965bb-baec-4484-94f8-72ecb8229f6d",
+            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                     "response_type", "failure",
                     "method_name", this.getClass().getSimpleName()).increment();
         }
