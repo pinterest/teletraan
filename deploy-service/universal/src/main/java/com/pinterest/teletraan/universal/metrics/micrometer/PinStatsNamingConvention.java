@@ -9,7 +9,7 @@ import io.micrometer.core.instrument.Meter.Type;
 import io.micrometer.opentsdb.OpenTSDBNamingConvention;
 
 public class PinStatsNamingConvention extends OpenTSDBNamingConvention {
-
+  public final static String CUSTOM_NAME_PREFIX = "custom.";
   private String prefix = "mm.";
 
   public PinStatsNamingConvention() {
@@ -28,6 +28,10 @@ public class PinStatsNamingConvention extends OpenTSDBNamingConvention {
 
   @Override
   public String name(String name, Type type, String baseUnit) {
+    if (name.startsWith(CUSTOM_NAME_PREFIX)) {
+      return name.replaceFirst(CUSTOM_NAME_PREFIX, "");
+    }
+
     String sanitized = super.name(name, type, baseUnit);
     switch (type) {
       case COUNTER:
