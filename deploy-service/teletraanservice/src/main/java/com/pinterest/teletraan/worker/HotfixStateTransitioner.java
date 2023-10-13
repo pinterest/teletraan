@@ -75,9 +75,6 @@ public class HotfixStateTransitioner implements Runnable {
                     "response_type", "success",
                     "method_name", this.getClass().getSimpleName()).increment();
 
-            String method_name = this.getClass().getSimpleName();
-            LOG.info("TEMP - Error Budget metric sent - success: method_name  " + method_name);
-
             return;
         }
         Collections.shuffle(hotfixIds);
@@ -276,7 +273,7 @@ public class HotfixStateTransitioner implements Runnable {
             throw new DeployInternalException("Hotfix Id " + hotfixId + " has an unknown state " + state);
         }
 
-        // Reset job number and last worked on time, and clean up the error
+        // Reset job number and last worked on time, and clean up the error 
         if (state != HotfixState.SUCCEEDED) {
             hotBean.setJob_num("");
         }
