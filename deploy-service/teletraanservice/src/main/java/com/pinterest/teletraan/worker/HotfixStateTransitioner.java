@@ -24,7 +24,6 @@ import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.Jenkins;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.CommonHandler;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,8 +140,8 @@ public class HotfixStateTransitioner implements Runnable {
                 if (state == HotfixState.INITIAL) {
                     // Initial state, need to start job
                     String buildParams = "BASE_COMMIT=" + buildBean.getScm_commit() + "&COMMITS=" + hotBean.getCommits() +
-                            "&SUFFIX=" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
-                            "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
+                        "&SUFFIX=" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
+                        "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
                     // Start job and set start time
                     jenkins.startBuild(hotBean.getJob_name(), buildParams);
                     LOG.info("Starting new Jenkins Job (hotfix-job) for hotfix id {}", hotfixId);
@@ -167,7 +166,7 @@ public class HotfixStateTransitioner implements Runnable {
                         if (status.equals("SUCCESS")) {
                             String buildName = getBuildName(hotBean);
                             String buildParams = "BRANCH=" + "hotfix_" + hotBean.getOperator() + "_" + buildBean.getScm_commit_7() +
-                                    "&BUILD_NAME=" + buildName + "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
+                                "&BUILD_NAME=" + buildName + "&HOTFIX_ID=" + hotBean.getId() + "&REPO=" + hotBean.getRepo();
                             hotBean.setJob_name(hotBean.getJob_name().replace("-hotfix-job", "-private-build"));
                             jenkins.startBuild(hotBean.getJob_name(), buildParams);
                             LOG.info("Starting new Jenkins Job (private-build) for hotfix id {}", hotfixId);
@@ -178,7 +177,7 @@ public class HotfixStateTransitioner implements Runnable {
                         if (status.equals("FAILURE")) {
                             hotBean.setState(HotfixState.FAILED);
                             hotBean.setError_message("Failed to create hotfix, see " + jenkinsUrl + "/" +
-                                    hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
+                                hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state PUSHING for hotfix id " + hotfixId);
                         }
@@ -207,7 +206,7 @@ public class HotfixStateTransitioner implements Runnable {
                         if (status.equals("FAILURE")) {
                             hotBean.setState(HotfixState.FAILED);
                             hotBean.setError_message("Failed to build hotfix, see " + jenkinsUrl +
-                                    hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
+                                hotBean.getJob_name() + "/" + hotBean.getJob_num() + "/console for more details");
                             hotfixDAO.update(hotfixId, hotBean);
                             LOG.warn("Jenkins returned a FAILURE status during state BUILDING for hotfix id " + hotfixId);
                         }
@@ -239,12 +238,12 @@ public class HotfixStateTransitioner implements Runnable {
         if (state == HotfixState.INITIAL) {
             hotBean.setState(HotfixState.PUSHING);
             LOG.info("Hotfix Id {} has transitioned from the INITIAL state to the PUSH state.",
-                    hotfixId);
+                hotfixId);
         } else if (state == HotfixState.PUSHING) {
             hotBean.setProgress(0);
             hotBean.setState(HotfixState.BUILDING);
             LOG.info("Hotfix Id {} has transitioned from the PUSH state to the BUILD state.",
-                    hotfixId);
+                hotfixId);
         } else if (state == HotfixState.BUILDING) {
             hotBean.setState(HotfixState.SUCCEEDED);
             state = HotfixState.SUCCEEDED;
@@ -265,7 +264,7 @@ public class HotfixStateTransitioner implements Runnable {
             String name = hotBean.getOperator();
             String branch = "hotfix_" + name;
             String message = name + " just created a hotfix in " + branch + " branch, and including commit(s) " +
-                    hotBean.getCommits() + " on top of commit " + commit;
+                hotBean.getCommits() + " on top of commit " + commit;
             commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow", groupMentionRecipients);
 
             LOG.info("Hotfix Id {} is finished and now in the SUCCEEDED state.", hotfixId);

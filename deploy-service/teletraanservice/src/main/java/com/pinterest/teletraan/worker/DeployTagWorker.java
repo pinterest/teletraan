@@ -51,7 +51,7 @@ public class DeployTagWorker implements Runnable {
         Collection<HostBean> hostBeans = hostDAO.getHostsByEnvId(envId);
         Collection<HostTagBean> hostTagBeans = hostTagDAO.getAllByEnvIdAndTagName(envId, tagName);
 
-        
+
         Collection<String> envHostIds = CollectionUtils.collect(hostBeans, TransformerUtils.invokerTransformer("getHost_id"));
         Collection<String> envHostIdsWithHostTag = CollectionUtils.collect(hostTagBeans, TransformerUtils.invokerTransformer("getHost_id"));
 
@@ -139,7 +139,7 @@ public class DeployTagWorker implements Runnable {
                         Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                                 "response_type", "failure",
                                 "method_name", this.getClass().getSimpleName()).increment();
-                            }  catch (Exception e) {
+                    }  catch (Exception e) {
                         LOG.error("failed to process job due to all other exceptions: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
                         job.setState(TagSyncState.ERROR);
                         LOG.error("job {} deploy constraint transitions to error state due to exceptions", job.toString());

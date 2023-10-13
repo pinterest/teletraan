@@ -66,7 +66,7 @@ public class DeployJanitor implements Job {
                     try {
                         deployDAO.deleteUnusedDeploys(envId, timeThreshold, numToDelete);
                         LOG.info(String.format("Successfully removed deploys: %s before %d milliseconds has %d.",
-                                envId, timeThreshold, numToDelete));
+                            envId, timeThreshold, numToDelete));
 
                         Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
                                 "response_type", "success",
