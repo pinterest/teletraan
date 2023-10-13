@@ -94,7 +94,6 @@ public class ServiceContext {
 
     private boolean buildCacheEnabled;
     private String buildCacheSpec;
-    private MeterRegistry customMeterRegistry;
     private String deployCacheSpec;
     private boolean deployCacheEnabled;
     private String deployBoardUrlPrefix;
@@ -123,14 +122,6 @@ public class ServiceContext {
 
     public void setBuildAllowlist(Allowlist buildAllowlist) {
         this.buildAllowlist = buildAllowlist;
-    }
-
-    public MeterRegistry getCustomMeterRegistry() {
-        return customMeterRegistry;
-    }
-
-    public void setCustomMeterRegistry(MeterRegistry customMeterRegistry) {
-        this.customMeterRegistry = customMeterRegistry;
     }
 
     public GroupRolesDAO getGroupRolesDAO() {

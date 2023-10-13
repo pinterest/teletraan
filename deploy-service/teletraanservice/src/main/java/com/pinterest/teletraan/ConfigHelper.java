@@ -222,8 +222,6 @@ public class ConfigHelper {
         // Only applies to Teletraan agent service
         context.setAgentCountCacheTtl(configuration.getSystemFactory().getAgentCountCacheTtl());
         context.setMaxParallelThreshold(configuration.getSystemFactory().getMaxParallelThreshold());
-
-        context.setCustomMeterRegistry(configuration.getMetricsFactory().getCustomMeterRegistry());
         return context;
     }
 
