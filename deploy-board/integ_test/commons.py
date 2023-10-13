@@ -16,7 +16,7 @@
 
 import os
 import string
-from urllib2 import Request
+from urllib.request import Request
 import random
 import time
 
@@ -46,7 +46,7 @@ def create_env(name, stage):
     request["envName"] = name
     request["stageName"] = stage
     env = environs_helper.create_env(REQUEST, request)
-    print "Successfully created env %s." % env['id']
+    print("Successfully created env %s." % env['id'])
     return env
 
 
@@ -60,7 +60,7 @@ def publish_build(build_name, branch='master', commit=gen_random_num(32)):
     request['artifactUrl'] = "https://sample.com"
     request['publishInfo'] = "https://sample.com"
     build = builds_helper.publish_build(REQUEST, request)
-    print "Successfully published build %s." % build['id']
+    print("Successfully published build %s." % build['id'])
     return build
 
 

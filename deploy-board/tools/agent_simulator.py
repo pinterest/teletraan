@@ -37,20 +37,20 @@ def ping(i, groups):
         pingRequest['hostName'] = host
         pingRequest['hostIp'] = ip
         pingRequest['groups'] = groups
-        pingRequest['reports'] = reports.values()
+        pingRequest['reports'] = list(reports.values())
 
         try:
             pingResponse = systems_helper.ping(commons.REQUEST, pingRequest)
         except Exception as e:
-            print e.message
+            print(e.message)
             continue
 
         if pingResponse.get('opCode') == 'NOOP':
             continue
         else:
-            print "%s :-> %s:%s" % (host,
+            print("%s :-> %s:%s" % (host,
                                     pingResponse.get('opCode'),
-                                    pingResponse.get('deployGoal').get('deployStage'))
+                                    pingResponse.get('deployGoal').get('deployStage')))
         goal = pingResponse.get('deployGoal')
         report = {}
         report['envId'] = goal.get('envId')
@@ -65,11 +65,11 @@ def main():
     parser.add_argument('-g', '--group', type=str, help='Group name', required=True)
     args = parser.parse_args()
     groups = [args.group]
-    for i in xrange(100):
+    for i in range(100):
         host = "host-sim-%d" % i
         states[host] = False
 
-    for i in xrange(100):
+    for i in range(100):
         t = threading.Thread(target=ping, args=(i, groups))
         t.daemon = True
         t.start()

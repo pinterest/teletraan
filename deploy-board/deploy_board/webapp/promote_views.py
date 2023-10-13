@@ -21,8 +21,8 @@ from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.generic import View
-import common
-from helpers import environs_helper
+from . import common
+from .helpers import environs_helper
 
 
 class EnvPromoteConfigView(View):

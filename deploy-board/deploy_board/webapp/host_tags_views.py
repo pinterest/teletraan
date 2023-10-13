@@ -2,10 +2,10 @@ from django.http import HttpResponse
 from django.views.generic import View
 from django.shortcuts import render, redirect
 
-import common
+from . import common
 import logging
 import json
-from helpers import environ_hosts_helper, environs_helper
+from .helpers import environ_hosts_helper, environs_helper
 
 log = logging.getLogger(__name__)
 
