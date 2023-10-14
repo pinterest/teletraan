@@ -15,8 +15,6 @@
  */
 package com.pinterest.teletraan.worker;
 
-import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
@@ -29,7 +27,9 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
+import com.pinterest.deployservice.metrics.MeterConstants;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 
 import com.google.common.base.Preconditions;
@@ -63,6 +63,8 @@ public class AutoPromoter implements Runnable {
     private BuildTagsManager buildTagsManager;
     private int bufferTimeMinutes;
     private final int maxCheckBuildsOrDeploys = 100;
+    private Counter errorBudgetSuccess;
+    private Counter errorBudgetFailure;
 
 
     public AutoPromoter(ServiceContext serviceContext) {
@@ -74,6 +76,14 @@ public class AutoPromoter implements Runnable {
         buildTagsManager = new BuildTagsManagerImpl(serviceContext.getTagDAO());
         deployHandler = new DeployHandler(serviceContext);
         bufferTimeMinutes = DEFAULT_BUFFER_TIME_MINUTE;
+
+        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+            
+        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
     }
 
     public AutoPromoter withBufferTimeMinutes(int bufferTime) {
@@ -87,9 +97,7 @@ public class AutoPromoter implements Runnable {
         if (envIds.isEmpty()) {
             LOG.debug("AutoPromoter did not find any valid env to work on, exiting.");
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "success",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetSuccess.increment();
             return;
         }
         Collections.shuffle(envIds);
@@ -98,16 +106,12 @@ public class AutoPromoter implements Runnable {
                 LOG.debug("AutoPromoter chooses env {} to work on.", envId);
                 processOnce(envId);
 
-                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                        "response_type", "success",
-                        "method_name", this.getClass().getSimpleName()).increment();
+                errorBudgetSuccess.increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
                 LOG.error("AutoPromoter failed to process {}, Exception: {}", envId, t);
 
-                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                        "response_type", "failure",
-                        "method_name", this.getClass().getSimpleName()).increment();
+                errorBudgetFailure.increment();
             }
         }
       LOG.info("AutoPromoter processBatch finishes");
@@ -593,9 +597,7 @@ public class AutoPromoter implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);
             
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
         }
     }
 }

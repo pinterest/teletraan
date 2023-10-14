@@ -73,9 +73,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             } catch (Exception ex) {
                 LOG.error("Failed to get terminated hosts", ex);
 
-                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                        "response_type", "failure",
-                        "method_name", this.getClass().getSimpleName()).increment();
+                errorBudgetFailure.increment();
             }
         }
         return terminatedHosts;
@@ -87,15 +85,11 @@ public class AgentJanitor extends SimpleAgentJanitor {
             try {
                 launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
 
-                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                        "response_type", "success",
-                        "method_name", this.getClass().getSimpleName()).increment();
+                errorBudgetSuccess.increment();
             } catch (Exception ex) {
                 LOG.error("failed to get launch grace period for cluster {}, exception: {}", clusterName, ex);
 
-                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                        "response_type", "failure",
-                        "method_name", this.getClass().getSimpleName()).increment();
+                errorBudgetFailure.increment();
             }
         }
         return launchGracePeriod == null ? maxLaunchLatencyThreshold : TimeUnit.SECONDS.toMillis(launchGracePeriod);
@@ -116,9 +110,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
 
             return false;
         }
@@ -152,9 +144,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get unreachable hosts", ex);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
 
             return;
         }
@@ -186,9 +176,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (Exception ex) {
             LOG.error("failed to get stale hosts", ex);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
 
             return;
         }
@@ -228,9 +216,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         } catch (SQLException ex) {
             LOG.error("failed to get agentless hosts", ex);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
                     
             return;
         }

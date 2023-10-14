@@ -15,11 +15,10 @@
  */
 package com.pinterest.teletraan.worker;
 
-import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.CommonHandler;
+import com.pinterest.deployservice.metrics.MeterConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 
 /**
@@ -37,10 +37,20 @@ public class StateTransitioner implements Runnable {
 
     private EnvironDAO environDAO;
     private CommonHandler commonHandler;
+    private Counter errorBudgetSuccess;
+    private Counter errorBudgetFailure;
 
     public StateTransitioner(ServiceContext serviceContext) {
         environDAO = serviceContext.getEnvironDAO();
         commonHandler = new CommonHandler(serviceContext);
+
+        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+
+        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
     }
 
     void processBatch() throws Exception {
@@ -49,9 +59,7 @@ public class StateTransitioner implements Runnable {
         if (deployIds.isEmpty()) {
             LOG.info("StateTransitioner did not find any active deploy, exiting.");
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "success",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetSuccess.increment();
             return;
         }
         Collections.shuffle(deployIds);
@@ -60,16 +68,12 @@ public class StateTransitioner implements Runnable {
                 LOG.debug("StateTransitioner chooses deploy {} to work on.", deployId);
                 commonHandler.transitionDeployState(deployId, null);
 
-                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                        "response_type", "success",
-                        "method_name", this.getClass().getSimpleName()).increment();
+                errorBudgetSuccess.increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
                 LOG.error("StateTransitioner failed to process {}", deployId, t);
 
-                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                        "response_type", "failure",
-                        "method_name", this.getClass().getSimpleName()).increment();
+                errorBudgetFailure.increment();
             }
         }
     }
@@ -83,9 +87,7 @@ public class StateTransitioner implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call StateTransitioner.", t);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
         }
     }
 }

@@ -15,8 +15,6 @@
  */
 package com.pinterest.teletraan.worker;
 
-import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
@@ -31,6 +29,7 @@ import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 
 import com.pinterest.deployservice.handler.HostHandler;
+import com.pinterest.deployservice.metrics.MeterConstants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.util.*;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 
 public class HostTerminator implements Runnable {
@@ -48,6 +48,8 @@ public class HostTerminator implements Runnable {
     private final UtilDAO utilDAO;
     private final RodimusManager rodimusManager;
     private final HostHandler hostHandler;
+    private final Counter errorBudgetSuccess;
+    private final Counter errorBudgetFailure;
 
     public HostTerminator(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -56,6 +58,14 @@ public class HostTerminator implements Runnable {
         rodimusManager = serviceContext.getRodimusManager();
         hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
+
+        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+            
+        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
     }
 
     private void terminateHost(HostBean host) throws Exception {
@@ -135,15 +145,11 @@ public class HostTerminator implements Runnable {
             LOG.info("Start to run HostTerminator");
             processBatch();
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-            "response_type", "success",
-            "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetSuccess.increment();
         } catch (Throwable t) {
             LOG.error("HostTerminator failed", t);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
         }
     }
 }

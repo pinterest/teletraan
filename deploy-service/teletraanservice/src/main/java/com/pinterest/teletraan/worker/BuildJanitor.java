@@ -15,10 +15,9 @@
  */
 package com.pinterest.teletraan.worker;
 
-import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
-
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.metrics.MeterConstants;
 import com.pinterest.teletraan.TeletraanServiceContext;
 
 import org.quartz.Job;
@@ -32,6 +31,7 @@ import java.sql.Connection;
 import java.util.Collections;
 import java.util.List;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 
 /**
@@ -44,6 +44,8 @@ import io.micrometer.core.instrument.Metrics;
 public class BuildJanitor implements Job {
     private static final Logger LOG = LoggerFactory.getLogger(BuildJanitor.class);
     private static final long MILLIS_PER_DAY = 86400000;
+    private Counter errorBudgetSuccess;
+    private Counter errorBudgetFailure;
 
     public BuildJanitor() {
         // If using the Job interface, must keep constructor empty.
@@ -72,9 +74,7 @@ public class BuildJanitor implements Job {
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
 
-                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                                "response_type", "failure",
-                                "method_name", this.getClass().getSimpleName()).increment();
+                        errorBudgetFailure.increment();
 
                     } finally {
                         utilDAO.releaseLock(buildLockName, connection);
@@ -95,18 +95,23 @@ public class BuildJanitor implements Job {
             SchedulerContext schedulerContext = context.getScheduler().getContext();
             TeletraanServiceContext workerContext = (TeletraanServiceContext) schedulerContext.get("serviceContext");
             
+            errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+                MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
+                MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+                
+            errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+                MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
+                MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+
             processBuilds(workerContext);
             LOG.info("Stop build janitor process...");
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "success",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetSuccess.increment();
         } catch (Throwable t) {
             LOG.error("Failed to call build janitor.", t);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            if(errorBudgetFailure != null)
+                errorBudgetFailure.increment();
         }
     }
 }

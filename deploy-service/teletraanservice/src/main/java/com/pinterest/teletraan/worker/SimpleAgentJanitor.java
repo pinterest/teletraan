@@ -15,8 +15,6 @@
  */
 package com.pinterest.teletraan.worker;
 
-// import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -66,11 +64,11 @@ public class SimpleAgentJanitor implements Runnable {
         this.maxStaleHostThreshold = maxStaleHostThreshold * 1000;
         this.minStaleHostThreshold = minStaleHostThreshold * 1000;
 
-        this.errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
                     MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
                     MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
 
-        this.errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
                     MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
                     MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
     }
@@ -80,9 +78,6 @@ public class SimpleAgentJanitor implements Runnable {
         LOG.info("Delete records of stale host {}", id);
         hostHandler.removeHost(id);
 
-        // Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-        //         "response_type", "success",
-        //         "method_name", this.getClass().getSimpleName()).increment();
         errorBudgetSuccess.increment();
     }
 
@@ -94,14 +89,8 @@ public class SimpleAgentJanitor implements Runnable {
             agentDAO.updateAgentById(id, updateBean);
             LOG.info("Marked agent {} as UNREACHABLE.", id);
 
-            // Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-            //         "response_type", "success",
-            //         "method_name", this.getClass().getSimpleName()).increment();
             errorBudgetSuccess.increment();
         } catch (Exception e) {
-            // Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-            //         "response_type", "failure",
-            //         "method_name", this.getClass().getSimpleName()).increment();
             errorBudgetFailure.increment();
 
             LOG.error("Failed to mark host {} as UNREACHABLE. exception {}", id, e);
@@ -158,16 +147,10 @@ public class SimpleAgentJanitor implements Runnable {
             processAllHosts();
             
             errorBudgetSuccess.increment();
-            // Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-            //         "response_type", "success",
-            //         "method_name", this.getClass().getSimpleName()).increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("AgentJanitor Failed.", t);
 
-            // Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-            //         "response_type", "failure",
-            //         "method_name", this.getClass().getSimpleName()).increment();
             errorBudgetFailure.increment();
         }
     }

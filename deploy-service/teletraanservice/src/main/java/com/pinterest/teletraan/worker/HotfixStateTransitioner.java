@@ -15,8 +15,6 @@
  */
 package com.pinterest.teletraan.worker;
 
-import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
@@ -24,6 +22,8 @@ import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.Jenkins;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.CommonHandler;
+import com.pinterest.deployservice.metrics.MeterConstants;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 
 /**
@@ -50,6 +51,8 @@ public class HotfixStateTransitioner implements Runnable {
     private CommonHandler commonHandler;
     private String jenkinsUrl;
     private String jenkinsRemoteToken;
+    private Counter errorBudgetSuccess;
+    private Counter errorBudgetFailure;
     // TODO make this configurable
     private static final int HOTFIX_JOB_DURATION_TIMEOUT = 180;
 
@@ -62,6 +65,14 @@ public class HotfixStateTransitioner implements Runnable {
         commonHandler = new CommonHandler(serviceContext);
         jenkinsUrl = serviceContext.getJenkinsUrl();
         jenkinsRemoteToken = serviceContext.getJenkinsRemoteToken();
+
+        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+            
+        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
     }
 
     void processBatch() throws Exception {
@@ -70,9 +81,7 @@ public class HotfixStateTransitioner implements Runnable {
         if (hotfixIds.isEmpty()) {
             LOG.info("HotfixStateTransitioner did not find any active hotfix, exiting.");
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "success",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetSuccess.increment();
 
             return;
         }
@@ -83,18 +92,14 @@ public class HotfixStateTransitioner implements Runnable {
                 LOG.info("HotfixStateTransitioner chooses hotfix {} to work on.", hotfixId);
                 transitionHotfixState(hotBean);
 
-                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                        "response_type", "success",
-                        "method_name", this.getClass().getSimpleName()).increment();
+                errorBudgetSuccess.increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed, also long error in DB
                 LOG.error("HotfixStateTransitioner failed to process {} " + hotfixId, t);
                 hotBean.setError_message("Get Exception: " + t);
                 hotfixDAO.update(hotfixId, hotBean);
 
-                Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                        "response_type", "failure",
-                        "method_name", this.getClass().getSimpleName()).increment();
+                errorBudgetFailure.increment();
             }
         }
     }
@@ -108,9 +113,7 @@ public class HotfixStateTransitioner implements Runnable {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call HotfixStateTransitioner.", t);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
         }
     }
 

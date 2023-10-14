@@ -1,11 +1,10 @@
 package com.pinterest.teletraan.worker;
 
-import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.db.DatabaseUtil;
+import com.pinterest.deployservice.metrics.MeterConstants;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -19,6 +18,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 
 public class DeployTagWorker implements Runnable {
@@ -32,6 +32,8 @@ public class DeployTagWorker implements Runnable {
     private final RodimusManager rodimusManager;
     private final BasicDataSource dataSource;
     private final UtilDAO utilDAO;
+    private final Counter errorBudgetSuccess;
+    private final Counter errorBudgetFailure;
 
     public DeployTagWorker(ServiceContext serviceContext) {
         hostDAO = serviceContext.getHostDAO();
@@ -41,6 +43,14 @@ public class DeployTagWorker implements Runnable {
         rodimusManager = serviceContext.getRodimusManager();
         dataSource = serviceContext.getDataSource();
         utilDAO = serviceContext.getUtilDAO();
+
+        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+            
+        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
     }
 
 
@@ -136,9 +146,7 @@ public class DeployTagWorker implements Runnable {
                     } catch (SQLException e) {
                         LOG.error("failed to process job due to SQLException: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
 
-                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                                "response_type", "failure",
-                                "method_name", this.getClass().getSimpleName()).increment();
+                        errorBudgetFailure.increment();
                     }  catch (Exception e) {
                         LOG.error("failed to process job due to all other exceptions: {} Error {} stack {}", job.toString(), ExceptionUtils.getRootCauseMessage(e), ExceptionUtils.getStackTrace(e));
                         job.setState(TagSyncState.ERROR);
@@ -146,9 +154,7 @@ public class DeployTagWorker implements Runnable {
                         LOG.info("updated job state to {}", TagSyncState.ERROR);
                         deployConstraintDAO.updateById(job.getConstraint_id(), job);
 
-                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                                "response_type", "failure",
-                                "method_name", this.getClass().getSimpleName()).increment();
+                        errorBudgetFailure.increment();
                     } finally {
                         utilDAO.releaseLock(lockName, connection);
                         LOG.info("DB lock operation is successful: release lock {}", lockName);
@@ -158,9 +164,7 @@ public class DeployTagWorker implements Runnable {
                 }
             }
         } else {
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "success",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetSuccess.increment();
         }
     }
 
@@ -171,9 +175,7 @@ public class DeployTagWorker implements Runnable {
         } catch (Throwable t) {
             LOG.error("Failed to run DeployTagWorker", t);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
         }
     }
 }

@@ -15,13 +15,12 @@
  */
 package com.pinterest.teletraan.worker;
 
-import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.metrics.MeterConstants;
 
 import org.quartz.*;
 import org.slf4j.Logger;
@@ -31,6 +30,7 @@ import java.sql.Connection;
 import java.util.Collections;
 import java.util.List;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 
 /**
@@ -43,6 +43,8 @@ public class DeployJanitor implements Job {
     private EnvironDAO environDAO;
     private DeployDAO deployDAO;
     private UtilDAO utilDAO;
+    private Counter errorBudgetSuccess;
+    private Counter errorBudgetFailure;
 
     public DeployJanitor() {
         // If using the Job interface, must keep constructor empty.
@@ -68,15 +70,11 @@ public class DeployJanitor implements Job {
                         LOG.info(String.format("Successfully removed deploys: %s before %d milliseconds has %d.",
                             envId, timeThreshold, numToDelete));
 
-                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                                "response_type", "success",
-                                "method_name", this.getClass().getSimpleName()).increment();
+                        errorBudgetSuccess.increment();
                     } catch (Exception e) {
                         LOG.error("Failed to delete builds from tables.", e);
 
-                        Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                                "response_type", "failure",
-                                "method_name", this.getClass().getSimpleName()).increment();
+                        errorBudgetFailure.increment();
                     } finally {
                         utilDAO.releaseLock(deployLockName, connection);
                         LOG.info(String.format("DB lock operation is successful: release lock %s", deployLockName));
@@ -92,14 +90,20 @@ public class DeployJanitor implements Job {
     public void execute(JobExecutionContext context) throws JobExecutionException {
         SchedulerContext schedulerContext;
 
+        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+            
+        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
+            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+
         try {
             schedulerContext = context.getScheduler().getContext();
         } catch (SchedulerException e) {
             LOG.error("Cannot retrive job context!", e);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
             return;
         }
 
@@ -113,15 +117,11 @@ public class DeployJanitor implements Job {
             processDeploys();
             LOG.info("Stop deploy janitor process...");
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "success",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetSuccess.increment();
         } catch (Throwable t) {
             LOG.error("Failed to call deploy janitor.", t);
 
-            Metrics.counter(CUSTOM_NAME_PREFIX + "error-budget.counters",
-                    "response_type", "failure",
-                    "method_name", this.getClass().getSimpleName()).increment();
+            errorBudgetFailure.increment();
         }
     }
 }
