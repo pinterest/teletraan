@@ -264,7 +264,8 @@ class OAuth(object):
             data = None
 
         log.debug('Request %r with %r method' % (uri, method))
-        req = http.Request(uri, headers=headers, data=data.encode('utf-8'))
+        data_encoded = data.encode('utf-8') if data else None
+        req = http.Request(uri, headers=headers, data=data_encoded)
         req.get_method = lambda: method.upper()
         try:
             resp = http.urlopen(req)
