@@ -128,7 +128,7 @@ class DeployAgent(object):
             for status in self._envs.values():
                 # for each container, we check the health status
                 try:
-                    healthStatus = get_container_health_info(status.report.envName)
+                    healthStatus = utils.get_container_health_info(status.build_info.build_commit)
                     if healthStatus:
                         status.report.containerHealthStatus = healthStatus
                     else:

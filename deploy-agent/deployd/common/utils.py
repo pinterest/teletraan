@@ -222,7 +222,7 @@ def get_info_from_facter(keys):
 
 def get_envoy_container_name():
     try:
-        log.info(f"Get envoy container name")
+        log.info("Get envoy container name")
         ps = subprocess.Popen(('docker', 'ps'), stdout=subprocess.PIPE)
         output = subprocess.Popen(('grep', '-E', 'envoy-[AB]'), stdin=ps.stdout, stdout=subprocess.PIPE)
         ps.wait()
@@ -236,22 +236,33 @@ def get_envoy_container_name():
         return None
 
     
-def get_container_health_info(key):
+def get_container_health_info(commit):
     try:
-        log.info(f"Get health info for container {key}")
-        if key == "envoy":
-            key = get_envoy_container_name()
-            if not key:
-                log.error("Failed to get container name for envoy")
-                return None
-        cmd = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', key]
+        log.info(f"Get health info for container with commit {commit}")
+        result = ""
+        cmd = ['docker', 'ps', '--format', '{{.Image}};{{.Names}}']
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         if output:
-            return output.decode().strip()
+            lines = output.decode().strip().splitlines()
+            for line in lines:
+                if commit in line:
+                    parts = line.split(';')
+                    name = parts[1]
+                    try:
+                        command = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', name]
+                        status = subprocess.run(command, check=True, stdout=subprocess.PIPE).stdout
+                        if status:
+                            result = result + name + ":" + status.decode().strip() + ";"
+                    except:
+                        continue
+            if result != "":    
+                return result
+            else:
+                return None
         else:
             return None
     except:
-        log.error("Failed to get container health info for {}".format(key))
+        log.error(f"Failed to get container health info with commit {commit}")
         return None
 
 
