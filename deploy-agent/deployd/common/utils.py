@@ -239,7 +239,7 @@ def get_container_health_info(commit):
                             result = result + name + ":" + status.decode().strip() + ";"
                     except:
                         continue
-            return result if result else None
+            return result[:-1] if result else None
         else:
             return None
     except:
