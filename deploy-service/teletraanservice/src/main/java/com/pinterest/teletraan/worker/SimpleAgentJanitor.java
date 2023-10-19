@@ -31,10 +31,6 @@ import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.HostAgentDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.HostHandler;
-import com.pinterest.deployservice.metrics.MeterConstants;
-
-import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Counter;
 
 /**
  * Housekeeping on stuck and dead agents
@@ -51,8 +47,6 @@ public class SimpleAgentJanitor implements Runnable {
     private HostHandler hostHandler;
     protected long maxStaleHostThreshold;
     protected long minStaleHostThreshold;
-    protected Counter errorBudgetSuccess;
-    protected Counter errorBudgetFailure;
 
     public SimpleAgentJanitor(ServiceContext serviceContext, int minStaleHostThreshold,
             int maxStaleHostThreshold) {
@@ -60,25 +54,14 @@ public class SimpleAgentJanitor implements Runnable {
         hostDAO = serviceContext.getHostDAO();
         hostAgentDAO = serviceContext.getHostAgentDAO();
         hostHandler = new HostHandler(serviceContext);
-
         this.maxStaleHostThreshold = maxStaleHostThreshold * 1000;
         this.minStaleHostThreshold = minStaleHostThreshold * 1000;
-
-        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-                    MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
-                    MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
-
-        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-                    MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
-                    MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
     }
 
     // remove the stale host from db
     void removeStaleHost(String id) {
         LOG.info("Delete records of stale host {}", id);
         hostHandler.removeHost(id);
-
-        errorBudgetSuccess.increment();
     }
 
     void markUnreachableHost(String id) {
@@ -88,11 +71,7 @@ public class SimpleAgentJanitor implements Runnable {
             updateBean.setState(AgentState.UNREACHABLE);
             agentDAO.updateAgentById(id, updateBean);
             LOG.info("Marked agent {} as UNREACHABLE.", id);
-
-            errorBudgetSuccess.increment();
         } catch (Exception e) {
-            errorBudgetFailure.increment();
-
             LOG.error("Failed to mark host {} as UNREACHABLE. exception {}", id, e);
         }
     }
@@ -145,13 +124,9 @@ public class SimpleAgentJanitor implements Runnable {
         try {
             LOG.info("Start agent janitor process...");
             processAllHosts();
-            
-            errorBudgetSuccess.increment();
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("AgentJanitor Failed.", t);
-
-            errorBudgetFailure.increment();
         }
     }
 }
