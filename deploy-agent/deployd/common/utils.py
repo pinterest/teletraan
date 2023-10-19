@@ -215,8 +215,8 @@ def get_info_from_facter(keys):
             return json.loads(output)
         else:
             return None
-    except:
-        log.error("Failed to get info from facter by keys {}".format(keys))
+    except Exception as e:
+        log.error("Failed to get info from facter by keys {}: {}".format(keys, e))
         return None
 
     
