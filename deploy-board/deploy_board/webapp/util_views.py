@@ -41,7 +41,11 @@ def _convert_opentsdb_data(dps):
 
 def _get_latest_metrics(url):
     response = urllib.request.urlopen(url)
-    data = json.load(response)
+    data_str = response.read().decode('utf-8')
+    if not data_str:
+        return 0
+
+    data = json.loads(data_str)
 
     # Return the first datapoint in the datapoints list
     if data:
@@ -73,7 +77,10 @@ def get_site_health_metrics(request):
 
 def _get_latest_alarm(url):
     response = urllib.request.urlopen(url)
-    data = json.loads(response.read())
+    data_str = response.read().decode('utf-8')
+    if not data_str:
+        return None
+    data = json.loads(data_str)
     # assume only return one alarm
     return next(iter(data.values()))
 
@@ -97,7 +104,7 @@ def validate_metrics_url(request):
     if not url.startswith(STATSBOARD_API_PREFIX):
         return HttpResponse(json.dumps({'result': False}), content_type="application/json")
     response = urllib.request.urlopen(url)
-    data = json.loads(response.read())
+    data = json.loads(response.read().decode('utf-8'))
     if len(data) > 0:
         data = data[0]
         if 'datapoints' in list(data.keys()) or 'dps' in list(data.keys()):
@@ -107,7 +114,7 @@ def validate_metrics_url(request):
 
 def _get_backend_health():
     response = urllib.request.urlopen(TELETRAAN_SERVICE_HEALTHCHECK_URL)
-    return json.loads(response.read())
+    return json.loads(response.read().decode('utf-8'))
 
 
 def health_check(request):
