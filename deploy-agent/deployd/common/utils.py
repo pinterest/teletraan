@@ -219,18 +219,31 @@ def get_info_from_facter(keys):
         log.error("Failed to get info from facter by keys {}".format(keys))
         return None
 
-
-def get_container_health_info(key):
+    
+def get_container_health_info(commit):
     try:
-        log.info(f"Get health info for container {key}")
-        cmd = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', key]
+        log.info(f"Get health info for container with commit {commit}")
+        result = []
+        cmd = ['docker', 'ps', '--format', '{{.Image}};{{.Names}}']
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         if output:
-            return output.decode().strip()
+            lines = output.decode().strip().splitlines()
+            for line in lines:
+                if commit in line:
+                    parts = line.split(';')
+                    name = parts[1]
+                    try:
+                        command = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', name]
+                        status = subprocess.run(command, check=True, stdout=subprocess.PIPE).stdout
+                        if status:
+                            result.append(f"{name}:{status.decode().strip()}")
+                    except:
+                        continue
+            return ";".join(result) if result else None
         else:
             return None
     except:
-        log.error("Failed to get container health info for {}".format(key))
+        log.error(f"Failed to get container health info with commit {commit}")
         return None
 
 
