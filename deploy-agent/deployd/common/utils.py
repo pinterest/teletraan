@@ -223,7 +223,7 @@ def get_info_from_facter(keys):
 def get_container_health_info(commit):
     try:
         log.info(f"Get health info for container with commit {commit}")
-        result = ""
+        result = []
         cmd = ['docker', 'ps', '--format', '{{.Image}};{{.Names}}']
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         if output:
@@ -236,10 +236,10 @@ def get_container_health_info(commit):
                         command = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', name]
                         status = subprocess.run(command, check=True, stdout=subprocess.PIPE).stdout
                         if status:
-                            result = result + name + ":" + status.decode().strip() + ";"
+                            result.append(f"{name}:{status.decode().strip()}")
                     except:
                         continue
-            return result[:-1] if result else None
+            return ";".join(result) if result else None
         else:
             return None
     except:
