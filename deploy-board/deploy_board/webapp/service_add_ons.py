@@ -618,7 +618,7 @@ def getStatsboardData(apiUrl):
     :return:
     """
     url = urllib.request.urlopen(apiUrl, timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
-    j = json.loads(url.read())
+    j = json.loads(url.read().decode('utf-8'))
     data = []
     for i in range(len(j)):
         data.append(j[i])
@@ -635,6 +635,6 @@ def getStatsboardHostType(env, stage):
     """
     apiUrl = STATSBOARD_HOST_TYPE_API_FORMAT.format(env=env, stage=stage)
     url = urllib.request.urlopen(apiUrl, timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
-    j = json.loads(url.read())
+    j = json.loads(url.read().decode('utf-8'))
     hostType = j[0] if len(j) > 0 else None
     return hostType
