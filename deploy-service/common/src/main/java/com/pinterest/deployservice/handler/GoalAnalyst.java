@@ -15,16 +15,31 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.pinterest.deployservice.bean.*;
-import com.pinterest.deployservice.common.Constants;
-import com.pinterest.deployservice.common.StateMachines;
-import com.pinterest.deployservice.dao.DeployDAO;
-import com.pinterest.deployservice.dao.EnvironDAO;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.AgentStatus;
+import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployPriority;
+import com.pinterest.deployservice.bean.DeployStage;
+import com.pinterest.deployservice.bean.DeployType;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.PingReportBean;
+import com.pinterest.deployservice.common.Constants;
+import com.pinterest.deployservice.common.StateMachines;
+import com.pinterest.deployservice.dao.DeployDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
 
 public class GoalAnalyst {
     private static final Logger LOG = LoggerFactory.getLogger(GoalAnalyst.class);
@@ -292,7 +307,8 @@ public class GoalAnalyst {
             origBean.getStatus() != null && origBean.getStatus().equals(updateBean.getStatus()) && 
             origBean.getLast_err_no() != null && origBean.getLast_err_no().equals(updateBean.getLast_err_no()) &&
             origBean.getState() != null && origBean.getState().equals(updateBean.getState()) && 
-            origBean.getDeploy_stage() != null && origBean.getDeploy_stage().equals(updateBean.getDeploy_stage())) {
+            origBean.getDeploy_stage() != null && origBean.getDeploy_stage().equals(updateBean.getDeploy_stage()) &&
+            origBean.getContainer_Health_Status() != null && origBean.getContainer_Health_Status().equals(updateBean.getContainer_Health_Status())) {
             LOG.debug("Skip updating agent record for env_id {}, deploy_id {} on host {}",
                     origBean.getEnv_id(), origBean.getDeploy_id(), origBean.getHost_id());
             return false;
@@ -319,6 +335,11 @@ public class GoalAnalyst {
         updateBean.setState(proposeNewAgentState(report, agent));
         updateBean.setStage_start_date(System.currentTimeMillis());
         updateBean.setDeploy_stage(report.getDeployStage());
+        if (report.getContainerHealthStatus() == null) {
+            updateBean.setContainer_Health_Status("");
+        } else {
+            updateBean.setContainer_Health_Status(report.getContainerHealthStatus());
+        }
 
         if (agent == null) {
             // if agent is missing in agent table, treat it as not first_deploy.

@@ -23,8 +23,8 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.generic import View
 import unicodedata
-import common
-from helpers import environs_helper
+from . import common
+from .helpers import environs_helper
 
 
 class EnvMetricsView(View):
@@ -60,7 +60,7 @@ class EnvMetricsView(View):
     def _parse_metrics_configs(self, query_data):
         page_data = dict(query_data.lists())
         configs = []
-        for key, value in page_data.iteritems():
+        for key, value in page_data.items():
             if not value:
                 continue
             if key.startswith('TELETRAAN_'):
@@ -74,7 +74,7 @@ class EnvMetricsView(View):
                 color_string = "color-selection_%s" % slugified_name
                 metricsSpecs = []
 
-                if min_string in page_data.keys():
+                if min_string in list(page_data.keys()):
                     num_specs = len(page_data[min_string])
                     for i in range(num_specs):
                         spec = {}

@@ -1,5 +1,5 @@
 Django==1.11.29
-python-dateutil==2.3
+python-dateutil==2.8.2
 pytz==2014.10
 requests==2.20.0
 diff-match-patch==20110725.1
@@ -10,3 +10,4 @@ mock==0.8.0
 simplejson==3.11.1
 django-csp==3.4
 concurrent-log-handler==0.9.20
+urllib3>=1.26.17 # not directly required, pinned by Snyk to avoid a vulnerability

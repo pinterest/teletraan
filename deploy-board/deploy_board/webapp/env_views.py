@@ -24,19 +24,18 @@ from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
-    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL
+    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
-from deploy_board.settings import GUINEA_PIG_ENVS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
 from django.conf import settings
-import agent_report
-import service_add_ons
-import common
+from . import agent_report
+from . import service_add_ons
+from . import common
 import random
 import json
-from helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper, placements_helper
-from helpers.exceptions import TeletraanException
+from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper, placements_helper, hosttypes_helper
+from .helpers.exceptions import TeletraanException
 import math
 from dateutil.parser import parse
 import calendar
@@ -45,12 +44,9 @@ from deploy_board.webapp.agent_report import TOTAL_ALIVE_HOST_REPORT, TOTAL_HOST
 from diff_match_patch import diff_match_patch
 import traceback
 import logging
-import os
-import datetime
-import time
 
 if IS_PINTEREST:
-    from helpers import autoscaling_groups_helper
+    from .helpers import autoscaling_groups_helper
 
 ENV_COOKIE_NAME = 'teletraan.env.names'
 ENV_COOKIE_CAPACITY = 5
@@ -182,6 +178,32 @@ def update_deploy_progress(request, name, stage):
 
     report.showMode = showMode
     report.sortByStatus = sortByStatus
+
+    # Get the host number for subAcct and primaryAcct
+    report.currentDeployStat.deploy["showMode"] = showMode
+    report.currentDeployStat.deploy["subAcctTotalHostNum"] = 0
+    report.currentDeployStat.deploy["subAcctSucHostNum"] = 0
+    report.currentDeployStat.deploy["subAcctFailHostNum"] = 0
+    report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
+    report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
+    report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
+    if showMode == "subAcct":
+        for agentStat in report.agentStats:
+            if agentStat.agent["accountId"] and agentStat.agent["accountId"] != "998131032990" and agentStat.agent["accountId"] != "null":
+                report.currentDeployStat.deploy["subAcctTotalHostNum"] += 1
+                if agentStat.agent["status"] == "SUCCEEDED":
+                    report.currentDeployStat.deploy["subAcctSucHostNum"] += 1
+                else:
+                    report.currentDeployStat.deploy["subAcctFailHostNum"] += 1
+    elif showMode == "primaryAcct":
+        for agentStat in report.agentStats:
+            if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == "998131032990" or agentStat.agent["accountId"] == "null":
+                report.currentDeployStat.deploy["primaryAcctTotalHostNum"] += 1
+                if agentStat.agent["status"] == "SUCCEEDED":
+                    report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
+                else:
+                    report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
+    
     context = {
         "report": report,
         "env": env,
@@ -365,6 +387,10 @@ class EnvLandingView(View):
                 placements = placements_helper.get_simplified_by_ids(
                         request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 remaining_capacity = functools.reduce(lambda s, e: s + e['capacity'], placements, 0)
+                host_type = hosttypes_helper.get_by_id(request, basic_cluster_info['hostType'])
+                host_type_blessed_status = host_type['blessed_status']
+                if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
+                    messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -411,6 +437,32 @@ class EnvLandingView(View):
             report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
             report.showMode = showMode
             report.sortByStatus = sortByStatus
+
+            # Get the host number for subAcct and primaryAcct
+            report.currentDeployStat.deploy["showMode"] = showMode
+            report.currentDeployStat.deploy["subAcctTotalHostNum"] = 0
+            report.currentDeployStat.deploy["subAcctSucHostNum"] = 0
+            report.currentDeployStat.deploy["subAcctFailHostNum"] = 0
+            report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
+            report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
+            report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
+            if showMode == "subAcct":
+                for agentStat in report.agentStats:
+                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] != "998131032990" and agentStat.agent["accountId"] != "null":
+                        report.currentDeployStat.deploy["subAcctTotalHostNum"] += 1
+                        if agentStat.agent["status"] == "SUCCEEDED":
+                            report.currentDeployStat.deploy["subAcctSucHostNum"] += 1
+                        else:
+                            report.currentDeployStat.deploy["subAcctFailHostNum"] += 1
+            elif showMode == "primaryAcct":
+                for agentStat in report.agentStats:
+                    if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == "998131032990" or agentStat.agent["accountId"] == "null":
+                        report.currentDeployStat.deploy["primaryAcctTotalHostNum"] += 1
+                        if agentStat.agent["status"] == "SUCCEEDED":
+                            report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
+                        else:
+                            report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
+            
             context = {
                 "envs": envs,
                 "env": env,
@@ -454,7 +506,7 @@ class EnvLandingView(View):
 def _compute_range(totalItems, thisPageIndex, totalItemsPerPage, totalPagesToShow):
     totalPages = int(math.ceil(float(totalItems) / totalItemsPerPage))
     if totalItems <= 0:
-        return range(0), 0, 0
+        return list(range(0)), 0, 0
 
     halfPagesToShow = totalPagesToShow / 2
     startPageIndex = thisPageIndex - halfPagesToShow
@@ -468,7 +520,7 @@ def _compute_range(totalItems, thisPageIndex, totalItemsPerPage, totalPagesToSho
     nextPageIndex = thisPageIndex + 1
     if nextPageIndex > totalPages:
         nextPageIndex = 0
-    return range(startPageIndex, endPageIndex), prevPageIndex, nextPageIndex
+    return list(range(startPageIndex, endPageIndex)), prevPageIndex, nextPageIndex
 
 
 def _convert_time(date_str, time_str):
@@ -633,7 +685,7 @@ def get_all_deploys(request):
             "branch": branch,
             "reverse_date": reverse_date,
             "operator": operator,
-            'pageRange': range(0),
+            'pageRange': list(range(0)),
             "prevPageIndex": 0,
             "nextPageIndex": 0,
             "query_string": query_string,
@@ -717,7 +769,7 @@ def get_env_deploys(request, name, stage):
             "branch": branch,
             "reverse_date": reverse_date,
             "operator": operator,
-            'pageRange': range(0),
+            'pageRange': list(range(0)),
             "prevPageIndex": 0,
             "nextPageIndex": 0,
             "query_string": query_string,
@@ -1495,6 +1547,8 @@ def get_env_config_history(request, name, stage):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
+    
+    excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'configs/config_history.html', {
         "envName": name,
@@ -1505,12 +1559,13 @@ def get_env_config_history(request, name, stage):
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(configs) < DEFAULT_PAGE_SIZE,
+        "excludedTypes": excludedTypes 
     })
 
 
 def _parse_config_comparison(query_dict):
     configs = {}
-    for key, value in query_dict.iteritems():
+    for key, value in query_dict.items():
         if key.startswith('chkbox_'):
             id = key[len('chkbox_'):]
             split_data = value.split('_')
@@ -1522,7 +1577,7 @@ def _parse_config_comparison(query_dict):
 def get_config_comparison(request, name, stage):
     configs = _parse_config_comparison(request.POST)
     if len(configs) > 1:
-        ids = configs.keys()
+        ids = list(configs.keys())
         change1 = configs[ids[0]]
         change2 = configs[ids[1]]
         return HttpResponse(json.dumps({'change1': change1, 'change2': change2}),
@@ -1678,11 +1733,11 @@ def compare_deploys(request, name, stage):
 def compare_deploys_2(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     configs = {}
-    for key, value in request.GET.iteritems():
+    for key, value in request.GET.items():
         if key.startswith('chkbox_'):
             index = key[len('chkbox_'):]
             configs[index] = value
-    indexes = configs.keys()
+    indexes = list(configs.keys())
     start_build_id = configs[indexes[0]]
     end_build_id = configs[indexes[1]]
     if int(indexes[0]) > int(indexes[1]):

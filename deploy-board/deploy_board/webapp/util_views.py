@@ -21,10 +21,10 @@ from deploy_board.settings import SITE_METRICS_CONFIGS, \
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 import json
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from deploy_board import settings
-from helpers import environs_helper
-from helpers import autoscaling_metrics_helper, autoscaling_groups_helper
+from .helpers import environs_helper
+from .helpers import autoscaling_metrics_helper, autoscaling_groups_helper
 import traceback
 import logging
 
@@ -33,14 +33,14 @@ log = logging.getLogger(__name__)
 # convert json opentsdb to array based
 def _convert_opentsdb_data(dps):
     data = []
-    for key, value in dps.iteritems():
+    for key, value in dps.items():
         data.append([int(key), value])
     data.sort(key=lambda x: x[0])
     return data
 
 
 def _get_latest_metrics(url):
-    response = urllib2.urlopen(url)
+    response = urllib.request.urlopen(url)
     data = json.load(response)
 
     # Return the first datapoint in the datapoints list
@@ -72,10 +72,10 @@ def get_site_health_metrics(request):
 
 
 def _get_latest_alarm(url):
-    response = urllib2.urlopen(url)
+    response = urllib.request.urlopen(url)
     data = json.loads(response.read())
     # assume only return one alarm
-    return data.itervalues().next()
+    return next(iter(data.values()))
 
 
 def get_service_alarms(request, name, stage):
@@ -96,17 +96,17 @@ def validate_metrics_url(request):
     url = request.POST['newEntryValue']
     if not url.startswith(STATSBOARD_API_PREFIX):
         return HttpResponse(json.dumps({'result': False}), content_type="application/json")
-    response = urllib2.urlopen(url)
+    response = urllib.request.urlopen(url)
     data = json.loads(response.read())
     if len(data) > 0:
         data = data[0]
-        if 'datapoints' in data.keys() or 'dps' in data.keys():
+        if 'datapoints' in list(data.keys()) or 'dps' in list(data.keys()):
             return HttpResponse(json.dumps({'result': True}), content_type="application/json")
     return HttpResponse(json.dumps({'result': False}), content_type="application/json")
 
 
 def _get_backend_health():
-    response = urllib2.urlopen(TELETRAAN_SERVICE_HEALTHCHECK_URL)
+    response = urllib.request.urlopen(TELETRAAN_SERVICE_HEALTHCHECK_URL)
     return json.loads(response.read())
 
 

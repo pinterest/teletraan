@@ -51,20 +51,20 @@ class TestEnvirons(unittest.TestCase):
     def testBasicConfigs(self):
         oldBuildName = environs_helper.get_env_by_stage(commons.REQUEST, TestEnvirons.envName,
                                                         TestEnvirons.stageName)['buildName']
-        self.assertEquals(oldBuildName, TestEnvirons.envName)
+        self.assertEqual(oldBuildName, TestEnvirons.envName)
         environs_helper.update_env_basic_config(commons.REQUEST, TestEnvirons.envName,
                                                 TestEnvirons.stageName, {"buildName": "foo"})
         newBuildName = environs_helper.get_env_by_stage(commons.REQUEST, TestEnvirons.envName,
                                                         TestEnvirons.stageName)['buildName']
-        self.assertEquals(newBuildName, "foo")
+        self.assertEqual(newBuildName, "foo")
 
     def testCapacityConfigs(self):
         hosts = environs_helper.get_env_capacity(commons.REQUEST, TestEnvirons.envName,
                                                  TestEnvirons.stageName, capacity_type="HOST")
-        self.assertEquals(len(hosts), 0)
+        self.assertEqual(len(hosts), 0)
         groups = environs_helper.get_env_capacity(commons.REQUEST, TestEnvirons.envName,
                                                   TestEnvirons.stageName, capacity_type="GROUP")
-        self.assertEquals(len(groups), 0)
+        self.assertEqual(len(groups), 0)
         hosts = ["host1", "host2"]
         groups = ["group"]
         environs_helper.update_env_capacity(commons.REQUEST, TestEnvirons.envName,
@@ -74,10 +74,10 @@ class TestEnvirons(unittest.TestCase):
                                             TestEnvirons.stageName, data=groups)
         new_hosts = environs_helper.get_env_capacity(commons.REQUEST, TestEnvirons.envName,
                                                      TestEnvirons.stageName, capacity_type="HOST")
-        self.assertEquals(hosts, new_hosts)
+        self.assertEqual(hosts, new_hosts)
         new_groups = environs_helper.get_env_capacity(commons.REQUEST, TestEnvirons.envName,
                                                       TestEnvirons.stageName)
-        self.assertEquals(groups, new_groups)
+        self.assertEqual(groups, new_groups)
 
         # delete them, otherwise we could not delete the environ
         hosts = []
@@ -89,10 +89,10 @@ class TestEnvirons(unittest.TestCase):
                                             TestEnvirons.stageName, data=groups)
         new_hosts = environs_helper.get_env_capacity(commons.REQUEST, TestEnvirons.envName,
                                                      TestEnvirons.stageName, capacity_type="HOST")
-        self.assertEquals(len(new_hosts), 0)
+        self.assertEqual(len(new_hosts), 0)
         new_groups = environs_helper.get_env_capacity(commons.REQUEST, TestEnvirons.envName,
                                                       TestEnvirons.stageName)
-        self.assertEquals(len(new_groups), 0)
+        self.assertEqual(len(new_groups), 0)
 
     def testAdvancedConfigs(self):
         oldConfigs = environs_helper.get_env_agent_config(commons.REQUEST, TestEnvirons.envName,
@@ -105,14 +105,14 @@ class TestEnvirons(unittest.TestCase):
                                                 TestEnvirons.stageName, configs)
         newConfigs = environs_helper.get_env_agent_config(commons.REQUEST, TestEnvirons.envName,
                                                           TestEnvirons.stageName)
-        self.assertEquals(configs, newConfigs)
+        self.assertEqual(configs, newConfigs)
 
         configs = {"foo1": "bar2", "foo3": "bar3"}
         environs_helper.update_env_agent_config(commons.REQUEST, TestEnvirons.envName,
                                                 TestEnvirons.stageName, configs)
         newConfigs = environs_helper.get_env_agent_config(commons.REQUEST, TestEnvirons.envName,
                                                           TestEnvirons.stageName)
-        self.assertEquals(configs, newConfigs)
+        self.assertEqual(configs, newConfigs)
 
     def testScriptConfigs(self):
         oldConfigs = environs_helper.get_env_script_config(commons.REQUEST, TestEnvirons.envName,
@@ -124,14 +124,14 @@ class TestEnvirons(unittest.TestCase):
                                                  TestEnvirons.stageName, configs)
         newConfigs = environs_helper.get_env_script_config(commons.REQUEST, TestEnvirons.envName,
                                                            TestEnvirons.stageName)
-        self.assertEquals(configs, newConfigs)
+        self.assertEqual(configs, newConfigs)
 
         configs = {"foo1": "bar2", "foo3": "bar3"}
         environs_helper.update_env_script_config(commons.REQUEST, TestEnvirons.envName,
                                                  TestEnvirons.stageName, configs)
         newConfigs = environs_helper.get_env_script_config(commons.REQUEST, TestEnvirons.envName,
                                                            TestEnvirons.stageName)
-        self.assertEquals(configs, newConfigs)
+        self.assertEqual(configs, newConfigs)
 
     def testAlarmsConfigs(self):
         oldAlarms = environs_helper.get_env_alarms_config(commons.REQUEST, TestEnvirons.envName,
@@ -147,7 +147,7 @@ class TestEnvirons(unittest.TestCase):
                                                  TestEnvirons.stageName, alarms)
         newAlarms = environs_helper.get_env_alarms_config(commons.REQUEST, TestEnvirons.envName,
                                                           TestEnvirons.stageName)
-        self.assertEquals(alarms, newAlarms)
+        self.assertEqual(alarms, newAlarms)
 
         newAlarm = {}
         newAlarm['name'] = "alarm2"
@@ -158,7 +158,7 @@ class TestEnvirons(unittest.TestCase):
                                                  TestEnvirons.stageName, alarms)
         newAlarms = environs_helper.get_env_alarms_config(commons.REQUEST, TestEnvirons.envName,
                                                           TestEnvirons.stageName)
-        self.assertEquals(alarms, newAlarms)
+        self.assertEqual(alarms, newAlarms)
 
     def testMetricsConfigs(self):
         oldMetrics = environs_helper.get_env_metrics_config(commons.REQUEST, TestEnvirons.envName,
@@ -189,7 +189,7 @@ class TestEnvirons(unittest.TestCase):
                                                   TestEnvirons.stageName, metrics)
         newMetrics = environs_helper.get_env_metrics_config(commons.REQUEST, TestEnvirons.envName,
                                                             TestEnvirons.stageName)
-        self.assertEquals(metrics, newMetrics)
+        self.assertEqual(metrics, newMetrics)
 
         metSpec["color"] = "blue"
         metSpec["min"] = 1
@@ -205,7 +205,7 @@ class TestEnvirons(unittest.TestCase):
                                                   TestEnvirons.stageName, metrics)
         newMetrics = environs_helper.get_env_metrics_config(commons.REQUEST, TestEnvirons.envName,
                                                             TestEnvirons.stageName)
-        self.assertEquals(metrics, newMetrics)
+        self.assertEqual(metrics, newMetrics)
 
     def testHooksConfigs(self):
         oldHooks = environs_helper.get_env_hooks_config(commons.REQUEST, TestEnvirons.envName,
@@ -225,7 +225,7 @@ class TestEnvirons(unittest.TestCase):
                                                 TestEnvirons.stageName, hooks)
         newHooks = environs_helper.get_env_hooks_config(commons.REQUEST, TestEnvirons.envName,
                                                         TestEnvirons.stageName)
-        self.assertEquals(hooks, newHooks)
+        self.assertEqual(hooks, newHooks)
 
         newHook = {}
         newHook['method'] = "POST"
@@ -247,7 +247,7 @@ class TestEnvirons(unittest.TestCase):
                                                 TestEnvirons.stageName, hooks)
         newHooks = environs_helper.get_env_hooks_config(commons.REQUEST, TestEnvirons.envName,
                                                         TestEnvirons.stageName)
-        self.assertEquals(hooks, newHooks)
+        self.assertEqual(hooks, newHooks)
 
     def testScheduleConfigs(self):
         schedule = {}
@@ -261,15 +261,15 @@ class TestEnvirons(unittest.TestCase):
         envSchedule = schedules_helper.get_schedule(commons.REQUEST, TestEnvirons.envName, TestEnvirons.stageName, scheduleId)
 
         newSchedule = {}
-        newSchedule[u'cooldownTimes'] = u'20,30,40'
-        newSchedule[u'hostNumbers'] = u'30,50,70'
-        newSchedule[u'totalSessions'] = 3
-        newSchedule[u'state'] = u'NOT_STARTED'
-        newSchedule[u'id'] = scheduleId
-        newSchedule[u'currentSession'] = 0
-        newSchedule[u'stateStartTime'] = envSchedule[u'stateStartTime']
+        newSchedule['cooldownTimes'] = '20,30,40'
+        newSchedule['hostNumbers'] = '30,50,70'
+        newSchedule['totalSessions'] = 3
+        newSchedule['state'] = 'NOT_STARTED'
+        newSchedule['id'] = scheduleId
+        newSchedule['currentSession'] = 0
+        newSchedule['stateStartTime'] = envSchedule['stateStartTime']
 
-        self.assertEquals(newSchedule, envSchedule)
+        self.assertEqual(newSchedule, envSchedule)
 
 if __name__ == '__main__':
     unittest.main()

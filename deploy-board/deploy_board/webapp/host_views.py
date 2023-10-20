@@ -16,13 +16,13 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
 import logging
-from helpers import environs_helper, agents_helper, autoscaling_groups_helper
-from helpers import environ_hosts_helper, hosts_helper
+from .helpers import environs_helper, agents_helper, autoscaling_groups_helper
+from .helpers import environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
 from datetime import datetime
 import pytz
 import requests
-import common
+from . import common
 requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
@@ -74,8 +74,9 @@ def get_host_id(hosts):
     return None
 
 def get_account_id(hosts):
-    if hosts:
-        return hosts[0].get('accountId')
+    for host in hosts:
+        if host and host.get('accountId') and host.get('accountId') not in {'NULL', 'null'}:
+            return host.get('accountId')
     return None
 
 
@@ -174,6 +175,7 @@ class HostDetailView(View):
             is_protected = autoscaling_groups_helper.is_hosts_protected(request, asg, [host_id])
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
+        agent_wrappers = sorted(agent_wrappers, key=lambda x: x["agent"]['lastUpdateDate'])
         host_details = get_host_details(host_id)
 
         termination_limit = environs_helper.get_env_by_stage(request, name, stage).get('terminationLimit')

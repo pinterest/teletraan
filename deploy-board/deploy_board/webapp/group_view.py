@@ -24,11 +24,11 @@ import json
 import logging
 import traceback
 
-from helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
+from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
                      specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper)
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
-from helpers.exceptions import TeletraanException
+from .helpers.exceptions import TeletraanException
 
 log = logging.getLogger(__name__)
 
@@ -283,7 +283,7 @@ def update_group_config(request, group_name):
         else:
             groupRequest["lifecycleNotifications"] = False
 
-        print groupRequest
+        print(groupRequest)
         autoscaling_groups_helper.update_group_info(request, group_name, groupRequest)
         return get_group_config(request, group_name)
     except:
@@ -492,7 +492,7 @@ def update_policy(request, group_name):
 def _parse_metrics_configs(query_data, group_name):
     page_data = dict(query_data.lists())
     configs = []
-    for key, value in page_data.iteritems():
+    for key, value in page_data.items():
         if not value:
             continue
         if key.startswith('TELETRAAN_'):
@@ -682,7 +682,7 @@ def get_group_size(request, group_name):
 
         if alarm_infos:
             alarm_infos = sorted(alarm_infos, key=lambda info: info["metricSource"])
-            for idx in xrange(len(alarm_infos)):
+            for idx in range(len(alarm_infos)):
                 alarm_info = alarm_infos[idx]
                 alarm_infos[idx]["actionType2"] = "UNKNOWN"
                 alarm_infos[idx]["threshold2"] = -1
@@ -800,6 +800,7 @@ def get_config_history(request, group_name):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
+    excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'groups/group_config_history.html', {
         "group_name": group_name,
@@ -808,12 +809,13 @@ def get_config_history(request, group_name):
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(configs) < DEFAULT_PAGE_SIZE,
+        "excludedTypes": excludedTypes
     })
 
 
 def _parse_config_comparison(query_dict):
     configs = {}
-    for key, value in query_dict.iteritems():
+    for key, value in query_dict.items():
         if key.startswith('chkbox_'):
             id = key[len('chkbox_'):]
             split_data = value.split('_')
@@ -825,7 +827,7 @@ def _parse_config_comparison(query_dict):
 def get_config_comparison(request, group_name):
     configs = _parse_config_comparison(request.POST)
     if len(configs) > 1:
-        ids = configs.keys()
+        ids = list(configs.keys())
         change1 = configs[ids[0]]
         change2 = configs[ids[1]]
 
@@ -1145,7 +1147,7 @@ def terminate_all_hosts(request, group_name):
 
             content = "{} hosts were marked for termination \n".format(len(response))
 
-            for id, status in response.iteritems():
+            for id, status in response.items():
                 if status == "UNKNOWN" or status == "FAILED":
                     failed_count += 1
                     failed_instance_ids.append(id)
@@ -1314,7 +1316,7 @@ def delete_scheduled_actions(request, group_name):
 def _parse_actions_configs(query_data, group_name):
     page_data = dict(query_data.lists())
     configs = []
-    for key, value in page_data.iteritems():
+    for key, value in page_data.items():
         if not value:
             continue
         if key.startswith('TELETRAAN_'):

@@ -17,9 +17,8 @@ from deploy_board.settings import IS_PINTEREST, SERVICE_RATELIMIT_CONFIG_URL, \
                                   STATSBOARD_API_FORMAT, RATELIMIT_ENABLED_METRIC_FORMAT, \
                                   ENABLING_SERVICE_RATELIMIT_URL, KAFKA_MSGS_DELIVERED_METRIC, \
                                   STATSBOARD_HUB_URL_ENDPOINT_FORMAT, STATSBOARD_HOST_TYPE_API_FORMAT
-import urllib2
+import urllib.request
 import simplejson as json
-import socket
 import time
 import os
 
@@ -364,7 +363,7 @@ def getLatestLogUnixTime(topics, lognames, hostsOnStage, commonHostPrefix):
             if "datapoints" not in dataSlice:
                 continue
             dataPoints = dataSlice["datapoints"]
-            for k in reversed(range(len(dataPoints))):
+            for k in reversed(list(range(len(dataPoints)))):
                 if dataPoints[k][1] > 0:
                     earliestMessages.append(dataPoints[k])
                     break
@@ -618,7 +617,7 @@ def getStatsboardData(apiUrl):
     :param apiUrl:
     :return:
     """
-    url = urllib2.urlopen(apiUrl, timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
+    url = urllib.request.urlopen(apiUrl, timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
     j = json.loads(url.read())
     data = []
     for i in range(len(j)):
@@ -635,7 +634,7 @@ def getStatsboardHostType(env, stage):
     :return:
     """
     apiUrl = STATSBOARD_HOST_TYPE_API_FORMAT.format(env=env, stage=stage)
-    url = urllib2.urlopen(apiUrl, timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
+    url = urllib.request.urlopen(apiUrl, timeout=ServiceAddOn.REQUEST_TIMEOUT_SECS)
     j = json.loads(url.read())
     hostType = j[0] if len(j) > 0 else None
     return hostType

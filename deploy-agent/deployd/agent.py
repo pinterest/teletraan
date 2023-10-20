@@ -29,7 +29,8 @@ from deployd.common.helper import Helper
 from deployd.common.single_instance import SingleInstance
 from deployd.common.env_status import EnvStatus
 from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_increment
-from deployd.common import utils
+from deployd.common.utils import get_telefig_version,get_container_health_info, check_prereqs
+from deployd.common.utils import uptime as utils_uptime, listen as utils_listen
 from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, DeployStage, AgentStatus
 from deployd import __version__, IS_PINTEREST, MAIN_LOGGER
@@ -75,6 +76,7 @@ class DeployAgent(object):
         self._env_status = estatus or EnvStatus(self._STATUS_FILE)
         # load environment deploy status file from local disk
         self.load_status_file()
+        self._telefig_version = get_telefig_version()
 
     def load_status_file(self):
         self._envs = self._env_status.load_envs()
@@ -110,15 +112,31 @@ class DeployAgent(object):
             tags['stage_name'] = self._response.deployGoal.stageName
         if deploy_report.status_code:
             tags['status_code'] = deploy_report.status_code
-            
+        if self._telefig_version: 
+            tags['telefig_version'] = self._telefig_version    
         create_sc_increment('deployd.stats.deploy.status.sum', tags=tags)
         
     def serve_build(self):
         """This is the main function of the ``DeployAgent``.
         """
+
         log.info('The deploy agent is starting.')
         if not self._executor:
             self._executor = Executor(callback=PingServer(self), config=self._config)
+        # include healthStatus info for each container
+        if len(self._envs) > 0:
+            for status in self._envs.values():
+                # for each container, we check the health status
+                try:
+                    healthStatus = get_container_health_info(status.build_info.build_commit)
+                    if healthStatus:
+                        status.report.containerHealthStatus = healthStatus
+                    else:
+                        status.report.containerHealthStatus = None
+                except Exception:
+                    status.report.containerHealthStatus = None
+                    log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
+                    continue
         # start to ping server to get the latest deploy goal
         self._response = self._client.send_reports(self._envs)
 
@@ -490,7 +508,7 @@ def main():
         logging.basicConfig(filename=log_filename, level=config.get_log_level(),
                             format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
 
-    if not utils.check_prereqs(config): 
+    if not check_prereqs(config): 
         log.warning("Deploy agent cannot start because the prerequisites on puppet did not meet.")
         sys.exit(0)
         
@@ -505,12 +523,12 @@ def main():
         client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,
                                   script_variables=args.script_variables)
 
-    uptime = utils.uptime()
+    uptime = utils_uptime()
     agent = DeployAgent(client=client, conf=config)
     create_sc_timing('deployd.stats.ec2_uptime_sec',
                      uptime,
                      tags={'first_run': agent.first_run})
-    utils.listen()
+    utils_listen()
     if args.daemon:
         logger = logging.getLogger()
         handles = []

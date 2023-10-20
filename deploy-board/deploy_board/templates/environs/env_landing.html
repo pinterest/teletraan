@@ -130,6 +130,9 @@
     <div v-if="showCluster" class="row">
         <side-button styleclass="fa fa-database" :style="capacityStateStyle" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
+    <div v-if="showCluster" class="row">
+        <side-button styleclass="fa fa-calendar" v-bind:text="scalingActivitiesText" href="/groups/{{ env.envName }}-{{ env.stageName }}/scaling_activities" title="List all scaling activities for the group in the past."></side-button>
+    </div>
     <div v-if="!showCluster" id="groupsDiv">
     </div>
 </div>
@@ -237,6 +240,9 @@ var capacityPanel = new Vue({
                     } else {
                         return "Capacity"
                     }
+                },
+                scalingActivitiesText: function() {
+                    return "Scaling Activities"
                 }
             },
             mounted: function(){
@@ -458,7 +464,6 @@ $('#privateBldUploadBtnId button').click(function () {
             </div>
         </div>
     </div>
-
 
     <script>
     $(function () {

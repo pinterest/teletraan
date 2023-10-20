@@ -25,16 +25,16 @@ if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST, \
-        ENABLE_AMI_AUTO_UPDATE
+        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK
 
 import json
 import logging
 
-from helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
+from .helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper, arches_helper
-from helpers import clusters_helper, environs_helper, environ_hosts_helper
-from helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
-import common
+from .helpers import clusters_helper, environs_helper, environ_hosts_helper
+from .helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
+from . import common
 import traceback
 
 log = logging.getLogger(__name__)
@@ -72,7 +72,9 @@ class EnvCapacityBasicCreateView(View):
             'defaultARMHostType': DEFAULT_CMP_ARM_HOST_TYPE,
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'access_role_list': ACCESS_ROLE_LIST,
-            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+            'stateful_status': clusters_helper.StatefulStatuses.get_status(None),
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
         }
         # cluster manager
         return render(request, 'configs/new_capacity.html', {
@@ -108,6 +110,7 @@ class EnvCapacityBasicCreateView(View):
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
+            cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -165,7 +168,9 @@ class EnvCapacityAdvCreateView(View):
             'defaultSeurityZone': DEFAULT_PLACEMENT,
             'providerList': provider_list,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
-            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+            'stateful_status': clusters_helper.StatefulStatuses.get_status(None),
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
         }
         # cluster manager
         return render(request, 'configs/new_capacity_adv.html', {
@@ -195,6 +200,7 @@ class EnvCapacityAdvCreateView(View):
             environs_helper.add_env_capacity(
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
+            cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
             log.info("Create Capacity in the provider")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
@@ -238,6 +244,8 @@ class ClusterConfigurationView(View):
         base_images_names = baseimages_helper.get_image_names_by_arch(
             request, current_cluster['provider'], current_cluster['cellName'], current_cluster['archName'])
 
+        current_cluster['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(current_cluster['statefulStatus'])
+
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
 
@@ -261,7 +269,8 @@ class ClusterConfigurationView(View):
             'readonlyFields': TELETRAAN_CLUSTER_READONLY_FIELDS,
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'currentCluster': current_cluster,
-            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE
+            'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
         }
 
         return render(request, 'clusters/cluster_configuration.html', {
@@ -272,6 +281,7 @@ class ClusterConfigurationView(View):
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
+            'host_type_roadmap_link': HOST_TYPE_ROADMAP_LINK,
             'is_pinterest': IS_PINTEREST})
 
     def post(self, request, name, stage):
@@ -295,7 +305,7 @@ class ClusterConfigurationView(View):
                     if field in current_cluster['configs'] and field not in cluster_info['configs']:
                         log.error("Teletraan does not support user to remove %s %s" % (field, cluster_info[field]))
                         raise TeletraanException("Teletraan does not support user to remove %s" % field)
-
+            cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
             clusters_helper.update_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -572,6 +582,37 @@ def create_host_type(request):
     hosttypes_helper.create_host_type(request, host_type_info)
     return redirect('/clouds/hosttypes/')
 
+def modify_host_type(request):
+    try:
+        host_type_info = json.loads(request.body)
+        host_type_id = host_type_info['id']
+
+        log.info("Update Host Type with {}".format(host_type_info))
+        host_type_info['mem'] = float(host_type_info['mem']) * 1024
+        host_type_info['core'] = int(host_type_info['core'])
+        hosttypes_helper.modify_host_type(request, host_type_id, host_type_info)
+    except NotAuthorizedException as e:
+        log.error("Have an NotAuthorizedException error {}".format(e))
+        return HttpResponse(e, status=403, content_type="application/json")
+    except Exception as e:
+        log.error("modifying host type has an error {}".format(e))
+        return HttpResponse(e, status=500, content_type="application/json")
+    return HttpResponse(json.dumps(host_type_info), content_type="application/json")
+
+def get_host_type_by_id(request, host_type_id):
+    provider_list = baseimages_helper.get_all_providers(request)
+    arches_list = arches_helper.get_all(request)
+    host_type = hosttypes_helper.get_by_id(request, host_type_id)
+    host_type['mem'] = float(host_type['mem']) / 1024
+    blessed_statuses = hosttypes_helper.BlessedStatusValues.get_all_statuses()
+    contents = render_to_string("clusters/modify_host_type_modal.tmpl", {
+        'arches_list': arches_list,
+        'provider_list': provider_list,
+        'host_type': host_type,
+        'blessed_statuses': blessed_statuses,
+        "csrf_token": get_token(request)
+    })
+    return HttpResponse(json.dumps(contents), content_type="application/json")
 
 def get_host_types(request):
     index = int(request.GET.get('page_index', '1'))
@@ -737,7 +778,7 @@ def get_placement_infos(request):
 
 def parse_configs(query_dict):
     configs = {}
-    for key, value in query_dict.iteritems():
+    for key, value in query_dict.items():
         if not value:
             continue
         if key.startswith('TELETRAAN_'):
@@ -995,7 +1036,7 @@ def get_cluster_replacement_details(request, name, stage, replacement_id):
     cluster_name = '{}-{}'.format(name, stage)
     get_cluster_replacement_details_body = {
         "clusterName": cluster_name,
-        "replacementIds": [replacement_id] 
+        "replacementIds": [replacement_id]
     }
     replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_details_body)
 
@@ -1015,7 +1056,7 @@ def start_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
     skipMatching = False
     scaleInProtectedInstances = 'Ignore'
-    
+
     checkpointPercentages = []
     if (params['checkpointPercentages']):
         checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
@@ -1032,7 +1073,7 @@ def start_cluster_replacement(request, name, stage):
     rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
     rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
     rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
-    
+
     start_cluster_replacement = {}
     start_cluster_replacement["clusterName"] = cluster_name
     start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
@@ -1048,7 +1089,7 @@ def start_cluster_replacement(request, name, stage):
             messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
         else:
             messages.warning(request, str(ex), "cluster-replacements")
-    
+
     return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
 
 def perform_cluster_replacement_action(request, name, stage, action, includeMessage=True):
