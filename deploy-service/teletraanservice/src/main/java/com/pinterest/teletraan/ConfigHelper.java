@@ -60,6 +60,7 @@ import com.pinterest.teletraan.worker.DeployJanitor;
 import com.pinterest.teletraan.worker.DeployTagWorker;
 import com.pinterest.teletraan.worker.HostTerminator;
 import com.pinterest.teletraan.worker.HotfixStateTransitioner;
+import com.pinterest.teletraan.worker.MetricsEmitter;
 import com.pinterest.teletraan.worker.SimpleAgentJanitor;
 import com.pinterest.teletraan.worker.StateTransitioner;
 
@@ -286,6 +287,13 @@ public class ConfigHelper {
                 Runnable worker = new DeployTagWorker(serviceContext);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
                 LOG.info("Scheduled DeployTagWorker.");
+            }
+
+            if (workerName.equalsIgnoreCase(MetricsEmitter.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new MetricsEmitter(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled MetricsEmitter.");
             }
 
             // Schedule cron like jobs

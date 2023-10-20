@@ -81,6 +81,8 @@ public class DBDeployDAOImpl implements DeployDAO {
             + "ORDER BY last_update ASC LIMIT ?";
     private static final String COUNT_DAILY_DEPLOYS =
         "SELECT COUNT(*) FROM deploys WHERE start_date*0.001 >= UNIX_TIMESTAMP(CURDATE())";
+    private static final String COUNT_ACTIVE_DEPLOYS =
+        "SELECT COUNT(*) FROM deploys WHERE state='RUNNING'";
 
     private BasicDataSource dataSource;
 
@@ -255,6 +257,13 @@ public class DBDeployDAOImpl implements DeployDAO {
     public long getDailyDeployCount() throws SQLException {
         Long n = new QueryRunner(dataSource)
             .query(COUNT_DAILY_DEPLOYS, SingleResultSetHandlerFactory.<Long>newObjectHandler());
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long getRunningDeployCount() throws SQLException {
+        Long n = new QueryRunner(dataSource)
+            .query(COUNT_ACTIVE_DEPLOYS, SingleResultSetHandlerFactory.<Long>newObjectHandler());
         return n == null ? 0 : n;
     }
 }

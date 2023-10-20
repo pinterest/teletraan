@@ -64,4 +64,6 @@ public interface DeployDAO {
     void deleteUnusedDeploys(String envId, long timeThreshold, long numOfDeploys) throws Exception;
 
     long getDailyDeployCount() throws SQLException;
+
+    long getRunningDeployCount() throws SQLException;
 }
