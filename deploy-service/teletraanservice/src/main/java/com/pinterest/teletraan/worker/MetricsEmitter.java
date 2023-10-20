@@ -1,17 +1,16 @@
 package com.pinterest.teletraan.worker;
 
+import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.HostAgentDAO;
 
 import io.micrometer.core.instrument.Metrics;
-
-import org.slf4j.LoggerFactory;
-
-import java.sql.SQLException;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.slf4j.Logger;
 
 public class MetricsEmitter implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsEmitter.class);
@@ -31,6 +30,17 @@ public class MetricsEmitter implements Runnable {
     hostCount = Metrics.gauge("hosts.total", new AtomicInteger(0));
     dailyDeployCount = Metrics.gauge("deploys.today.total", new AtomicInteger(0));
     runningDeployCount = Metrics.gauge("deploys.running.total", new AtomicInteger(0));
+  }
+
+  @Override
+  public void run() {
+    try {
+      reportHostsCount();
+      reportDailyDeployCount();
+      reportRunningDeployCount();
+    } catch (Exception e) {
+      LOG.error("Failed to emit metrics", e);
+    }
   }
 
   void reportHostsCount() {
@@ -54,17 +64,6 @@ public class MetricsEmitter implements Runnable {
       runningDeployCount.set((int) deployDAO.getRunningDeployCount());
     } catch (SQLException e) {
       LOG.error("Failed to get running deploy count", e);
-    }
-  }
-
-  @Override
-  public void run() {
-    try {
-      reportHostsCount();
-      reportDailyDeployCount();
-      reportRunningDeployCount();
-    } catch (Exception e) {
-      LOG.error("Failed to emit metrics", e);
     }
   }
 
