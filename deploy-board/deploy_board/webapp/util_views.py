@@ -45,7 +45,7 @@ def _get_latest_metrics(url):
     if not data_str:
         return 0
 
-    data = json.load(data_str)
+    data = json.loads(data_str)
 
     # Return the first datapoint in the datapoints list
     if data:

@@ -346,10 +346,10 @@ def deployAcceptanceTip(status):
 
 @register.filter("progressTip")
 def progressTip(deploy):
-    if deploy["showMode"] == "subAcct":
+    if deploy.get("showMode") == "subAcct":
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["subAcctTotalHostNum"], deploy["subAcctSucHostNum"], deploy["subAcctFailHostNum"])
-    elif deploy["showMode"] == "primaryAcct":
+    elif deploy.get("showMode") == "primaryAcct":
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["primaryAcctTotalHostNum"], deploy["primaryAcctSucHostNum"], deploy["primaryAcctFailHostNum"])
     else:
@@ -405,20 +405,20 @@ def smartDate(timestamp):
         if second_diff < 120:
             return "a minute ago"
         if second_diff < 3600:
-            return str(second_diff / 60) + " minutes ago"
+            return str(second_diff // 60) + " minutes ago"
         if second_diff < 7200:
             return "an hour ago"
         if second_diff < 86400:
-            return str(second_diff / 3600) + " hours ago"
+            return str(second_diff // 3600) + " hours ago"
     if day_diff == 1:
         return "Yesterday"
     if day_diff < 7:
         return str(day_diff) + " days ago"
     if day_diff < 31:
-        return str(day_diff / 7) + " weeks ago"
+        return str(day_diff // 7) + " weeks ago"
     if day_diff < 365:
-        return str(day_diff / 30) + " months ago"
-    return str(day_diff / 365) + " years ago"
+        return str(day_diff // 30) + " months ago"
+    return str(day_diff // 365) + " years ago"
 
 
 @register.filter("shortenDesc")
@@ -439,11 +439,11 @@ def getTotalDuration(start, end=None):
 @register.filter("successRate")
 def successRate(deploy):
     rate = 0
-    if deploy["showMode"] == "subAcct":
+    if deploy.get("showMode") == "subAcct":
         if deploy["subAcctTotalHostNum"] != 0:
             rate = trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
         return "%d%% (%d/%d)" % (rate, deploy["subAcctSucHostNum"], deploy["subAcctTotalHostNum"])
-    elif deploy["showMode"] == "primaryAcct":
+    elif deploy.get("showMode") == "primaryAcct":
         if deploy["primaryAcctTotalHostNum"] != 0:
             rate = trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])
         return "%d%% (%d/%d)" % (rate, deploy["primaryAcctSucHostNum"], deploy["primaryAcctTotalHostNum"])
@@ -455,10 +455,10 @@ def successRate(deploy):
 
 @register.filter("successRatePercentage")
 def successRatePercentage(deploy):
-    if deploy["showMode"] == "subAcct":
+    if deploy.get("showMode") == "subAcct":
         if deploy["subAcctTotalHostNum"] != 0:
             return trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
-    elif deploy["showMode"] == "primaryAcct":
+    elif deploy.get("showMode") == "primaryAcct":
         if deploy["primaryAcctTotalHostNum"] != 0:
             return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])   
     else:     

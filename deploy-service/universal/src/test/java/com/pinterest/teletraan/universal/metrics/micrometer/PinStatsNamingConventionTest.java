@@ -37,4 +37,11 @@ public class PinStatsNamingConventionTest {
     assertEquals("m_0tag_key", convention.tagKey("0tag.key"));
     assertEquals("m__tag_key", convention.tagKey("*tag.key"));
   }
+
+  @Test
+  void testCustomName() {
+    String customName = "abcDEF.123-xyZ";
+    assertEquals(customName,
+        convention.name(PinStatsNamingConvention.CUSTOM_NAME_PREFIX + customName, Meter.Type.COUNTER));
+  }
 }

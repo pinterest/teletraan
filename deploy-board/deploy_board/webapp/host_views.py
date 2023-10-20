@@ -74,8 +74,9 @@ def get_host_id(hosts):
     return None
 
 def get_account_id(hosts):
-    if hosts:
-        return hosts[0].get('accountId')
+    for host in hosts:
+        if host and host.get('accountId') and host.get('accountId') not in {'NULL', 'null'}:
+            return host.get('accountId')
     return None
 
 

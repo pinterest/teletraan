@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +32,11 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.metrics.MeterConstants;
 import com.pinterest.deployservice.rodimus.RodimusManager;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 
 /**
  * Housekeeping on stuck and dead agents and hosts
@@ -50,6 +54,10 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private final long maxLaunchLatencyThreshold;
     private final long absoluteThreshold = TimeUnit.DAYS.toMillis(7);
     private final int agentlessHostBatchSize = 300;
+    private final AtomicInteger unreachableHostsCount;
+    private final AtomicInteger staleHostsCount;
+    private final Counter errorBudgetSuccess;
+    private final Counter errorBudgetFailure;
     private long janitorStartTime;
 
     public AgentJanitor(ServiceContext serviceContext, int minStaleHostThresholdSeconds,
@@ -57,6 +65,27 @@ public class AgentJanitor extends SimpleAgentJanitor {
         super(serviceContext, minStaleHostThresholdSeconds, maxStaleHostThresholdSeconds);
         rodimusManager = serviceContext.getRodimusManager();
         maxLaunchLatencyThreshold = TimeUnit.SECONDS.toMillis(maxLaunchLatencyThresholdSeconds);
+        unreachableHostsCount = Metrics.gauge("unreachable_hosts", new AtomicInteger(0));
+        staleHostsCount = Metrics.gauge("stale_hosts", new AtomicInteger(0));
+        
+        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+                MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE,
+                MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
+                MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+
+        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
+                MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE,
+                MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
+                MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+    }
+
+    @Override
+    void processAllHosts() {
+        janitorStartTime = System.currentTimeMillis();
+        processStaleHosts();
+        determineStaleHostCandidates();
+        cleanUpAgentlessHosts();
+        errorBudgetSuccess.increment();
     }
 
     private Set<String> getTerminatedHostsFromSource(List<String> staleHostIds) {
@@ -68,6 +97,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                         .getTerminatedHosts(staleHostIds.subList(i, Math.min(i + batchSize, staleHostIds.size()))));
             } catch (Exception ex) {
                 LOG.error("Failed to get terminated hosts", ex);
+                errorBudgetFailure.increment();
             }
         }
         return terminatedHosts;
@@ -80,6 +110,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 launchGracePeriod = rodimusManager.getClusterInstanceLaunchGracePeriod(clusterName);
             } catch (Exception ex) {
                 LOG.error("failed to get launch grace period for cluster {}, exception: {}", clusterName, ex);
+                errorBudgetFailure.increment();
             }
         }
         return launchGracePeriod == null ? maxLaunchLatencyThreshold : TimeUnit.SECONDS.toMillis(launchGracePeriod);
@@ -99,6 +130,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
             hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
         } catch (Exception ex) {
             LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
+            errorBudgetFailure.increment();
+
             return false;
         }
 
@@ -114,6 +147,27 @@ public class AgentJanitor extends SimpleAgentJanitor {
         return false;
     }
 
+    private Map<String, HostAgentBean> getStaleHostsMap(long minThreshold, long maxThreshold) {
+        List<HostAgentBean> staleHosts;
+        Map<String, HostAgentBean> staleHostMap = new HashMap<>();
+        try {
+            LOG.debug("getting hosts between {}, {}", maxThreshold, minThreshold);
+            if (minThreshold > 0) {
+                staleHosts = hostAgentDAO.getStaleHosts(maxThreshold, minThreshold);
+            } else {
+                staleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
+            }
+        } catch (Exception ex) {
+            LOG.error("failed to get stale hosts", ex);
+            errorBudgetFailure.increment();
+            return staleHostMap;
+        }
+
+        staleHosts.stream().forEach(hostAgent -> staleHostMap.put(hostAgent.getHost_id(), hostAgent));
+        LOG.debug("fetched {} unreachable hosts", staleHostMap.size());
+        return staleHostMap;
+    }
+
     /**
      * Process stale hosts which have not pinged since
      * janitorStartTime - minStaleHostThreshold
@@ -124,26 +178,22 @@ public class AgentJanitor extends SimpleAgentJanitor {
     private void determineStaleHostCandidates() {
         long minThreshold = janitorStartTime - minStaleHostThreshold;
         long maxThreshold = janitorStartTime - maxStaleHostThreshold;
-        List<HostAgentBean> unreachableHosts;
-        try {
-            LOG.debug("getting hosts between {}, {}", maxThreshold, minThreshold);
-            unreachableHosts = hostAgentDAO.getStaleHosts(maxThreshold, minThreshold);
-        } catch (Exception ex) {
-            LOG.error("failed to get unreachable hosts", ex);
-            return;
-        }
-        List<String> unreachableHostIds = unreachableHosts.stream().map(HostAgentBean::getHost_id)
-                .collect(Collectors.toList());
-        LOG.debug("fetched {} unreachable hosts", unreachableHostIds.size());
+        int unreachableHostCount = 0;
+        Map<String, HostAgentBean> unreachableHostsMap = getStaleHostsMap(minThreshold, maxThreshold);
 
-        Set<String> terminatedHosts = getTerminatedHostsFromSource(unreachableHostIds);
-        for (String unreachableId : unreachableHostIds) {
+        Set<String> terminatedHosts = getTerminatedHostsFromSource(new ArrayList<>(unreachableHostsMap.keySet()));
+        for (String unreachableId : unreachableHostsMap.keySet()) {
             if (terminatedHosts.contains(unreachableId)) {
                 removeStaleHost(unreachableId);
             } else {
                 markUnreachableHost(unreachableId);
+                unreachableHostCount++;
+                HostAgentBean host = unreachableHostsMap.get(unreachableId);
+                LOG.info("{} has unreachable host {}", host.getAuto_scaling_group(), host.getHost_id());
             }
+            errorBudgetSuccess.increment();
         }
+        this.unreachableHostsCount.set(unreachableHostCount);
     }
 
     /**
@@ -153,18 +203,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
      */
     private void processStaleHosts() {
         long maxThreshold = janitorStartTime - maxStaleHostThreshold;
-        List<HostAgentBean> staleHosts;
-        try {
-            LOG.debug("getting hosts before {}", maxThreshold);
-            staleHosts = hostAgentDAO.getStaleHosts(maxThreshold);
-        } catch (Exception ex) {
-            LOG.error("failed to get stale hosts", ex);
-            return;
-        }
-
-        Map<String, HostAgentBean> staleHostMap = new HashMap<>();
-        staleHosts.stream().forEach(hostAgent -> staleHostMap.put(hostAgent.getHost_id(), hostAgent));
-        LOG.debug("fetched {} unreachable hosts", staleHostMap.values().size());
+        int staleHostCount = 0;
+        Map<String, HostAgentBean> staleHostMap = getStaleHostsMap(0, maxThreshold);
 
         Set<String> terminatedHosts = getTerminatedHostsFromSource(new ArrayList<>(staleHostMap.keySet()));
         for (String staleId : staleHostMap.keySet()) {
@@ -173,13 +213,16 @@ public class AgentJanitor extends SimpleAgentJanitor {
             } else {
                 HostAgentBean hostAgent = staleHostMap.get(staleId);
                 if (isHostStale(hostAgent)) {
-                    LOG.warn("Agent ({}) is stale (not Pinging Teletraan), but might be running.",
-                            hostAgent);
+                    LOG.warn("{}:{} is stale (not Pinging Teletraan), but might be running.",
+                            hostAgent.getAuto_scaling_group(), hostAgent.getHost_id());
+                    staleHostCount++;
+                    errorBudgetSuccess.increment();
                 } else {
                     LOG.debug("host {} is not stale", staleId);
                 }
             }
         }
+        this.staleHostsCount.set(staleHostCount);
     }
 
     /**
@@ -196,6 +239,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
             agentlessHosts = hostDAO.getStaleAgentlessHostIds(noUpdateSince, agentlessHostBatchSize);
         } catch (SQLException ex) {
             LOG.error("failed to get agentless hosts", ex);
+            errorBudgetFailure.increment();
             return;
         }
 
@@ -205,15 +249,8 @@ public class AgentJanitor extends SimpleAgentJanitor {
                 removeStaleHost(hostId);
             } else {
                 LOG.warn("Agentless host {} is stale but might be running", hostId);
+                errorBudgetSuccess.increment();
             }
         }
-    }
-
-    @Override
-    void processAllHosts() {
-        janitorStartTime = System.currentTimeMillis();
-        processStaleHosts();
-        determineStaleHostCandidates();
-        cleanUpAgentlessHosts();
     }
 }
