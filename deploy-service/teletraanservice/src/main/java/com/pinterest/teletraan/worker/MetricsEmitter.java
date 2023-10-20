@@ -15,6 +15,10 @@ import io.micrometer.core.instrument.Metrics;
 public class MetricsEmitter implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(MetricsEmitter.class);
 
+  static final String HOSTS_TOTAL = "hosts.total";
+  static final String DEPLOYS_TODAY_TOTAL = "deploys.today.total";
+  static final String DEPLOYS_RUNNING_TOTAL = "deploys.running.total";
+
   private final HostAgentDAO hostAgentDAO;
   private final DeployDAO deployDAO;
 
@@ -27,9 +31,9 @@ public class MetricsEmitter implements Runnable {
     hostAgentDAO = serviceContext.getHostAgentDAO();
     deployDAO = serviceContext.getDeployDAO();
 
-    hostCount = Metrics.gauge("hosts.total", new AtomicInteger(0));
-    dailyDeployCount = Metrics.gauge("deploys.today.total", new AtomicInteger(0));
-    runningDeployCount = Metrics.gauge("deploys.running.total", new AtomicInteger(0));
+    hostCount = Metrics.gauge(HOSTS_TOTAL, new AtomicInteger(0));
+    dailyDeployCount = Metrics.gauge(DEPLOYS_TODAY_TOTAL, new AtomicInteger(0));
+    runningDeployCount = Metrics.gauge(DEPLOYS_RUNNING_TOTAL, new AtomicInteger(0));
   }
 
   @Override
@@ -66,5 +70,4 @@ public class MetricsEmitter implements Runnable {
       LOG.error("Failed to get running deploy count", e);
     }
   }
-
 }
