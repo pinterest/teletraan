@@ -46,17 +46,22 @@ def _get_latest_metrics(url):
         return 0
 
     data = json.loads(data_str)
-
     # Return the first datapoint in the datapoints list
     if data:
         try:
             return [datapoint for datapoint in data['data'][0]['datapoints'] if datapoint[1] != None]
         except:
+            log.warning(f"No metrics data {data}")
             pass
 
-        # Check for TSDB response
-        if 'dps' in data[0] and len(data[0]['dps']) != 0:
-            return _convert_opentsdb_data(data[0]['dps'])
+        try:
+            # Check for TSDB response
+            if len(data) > 0 and 'dps' in data[0] and len(data[0]['dps']) != 0:
+                return _convert_opentsdb_data(data[0]['dps'])
+        except:
+            log.warning(f"No TSDB metrics data {data}")
+            pass
+
     return 0
 
 
