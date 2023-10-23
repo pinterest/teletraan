@@ -87,6 +87,7 @@ class EnvCapacityBasicCreateView(View):
 
     def post(self, request, name, stage):
         ret = 200
+        exception = None
         log.info("Post to capacity with data {0}".format(request.body))
         try:
             cluster_name = '{}-{}'.format(name, stage)
@@ -115,16 +116,18 @@ class EnvCapacityBasicCreateView(View):
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
             ret = 403
+            exception = e
         except Exception as e:
             log.error("Have an error {}".format(e))
             ret = 500
+            exception = e
         finally:
             if ret == 200:
                 return HttpResponse("{}", content_type="application/json")
             else:
                 environs_helper.remove_env_capacity(
                     request, name, stage, capacity_type="GROUP", data=cluster_name)
-                return HttpResponse(e, status=ret, content_type="application/json")
+                return HttpResponse(exception, status=ret, content_type="application/json")
 
 
 class EnvCapacityAdvCreateView(View):

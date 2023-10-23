@@ -210,7 +210,6 @@ class OAuth(object):
             data=str(body) if body else None,
             method='POST',
         )
-
         if resp.code is 401:
             # When auth.pinadmin.com returns a 401 error. remove token and redirect to / page
             raise OAuthExpiredTokenException("Expired Token")
@@ -218,7 +217,7 @@ class OAuth(object):
         if resp.code not in (200, 201):
             raise OAuthException("Invalid OAuth response")
         try:
-            resp_data = json.loads(content)
+            resp_data = json.loads(content.decode())
         except ValueError:
             raise OAuthException("Invalid OAuth response")
 
@@ -226,7 +225,7 @@ class OAuth(object):
         self.oauth_handler.token_setter(resp_data['access_token'], expires, **kwargs)
 
         try:
-            return json.loads(enc_data)
+            return json.loads(base64.b64decode(enc_data).decode())
         except ValueError:
             return None
 
