@@ -214,9 +214,10 @@ def get_info_from_facter(keys):
         if output:
             return json.loads(output)
         else:
+            log.warn("Got empty output from facter by keys {}".format(keys))
             return None
     except:
-        log.error("Failed to get info from facter by keys {}".format(keys))
+        log.exception("Failed to get info from facter by keys {}".format(keys))
         return None
 
     
