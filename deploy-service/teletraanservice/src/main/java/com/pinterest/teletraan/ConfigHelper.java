@@ -289,13 +289,6 @@ public class ConfigHelper {
                 LOG.info("Scheduled DeployTagWorker.");
             }
 
-            if (workerName.equalsIgnoreCase(MetricsEmitter.class.getSimpleName())) {
-                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                Runnable worker = new MetricsEmitter(serviceContext);
-                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
-                LOG.info("Scheduled MetricsEmitter.");
-            }
-
             // Schedule cron like jobs
             JobDetail deployJanitorJob = null;
             CronTrigger deployJanitorTrigger = null;
@@ -347,6 +340,12 @@ public class ConfigHelper {
                 LOG.info("Scheduled HostTerminator.");
             }
 
+            if (workerName.equalsIgnoreCase(MetricsEmitter.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new MetricsEmitter(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled MetricsEmitter.");
+            }
         }
     }
 }

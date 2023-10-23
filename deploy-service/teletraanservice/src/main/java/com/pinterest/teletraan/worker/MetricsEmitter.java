@@ -36,6 +36,10 @@ public class MetricsEmitter implements Runnable {
   @Override
   public void run() {
     // noop
+    // The initial gauges are registered in the constructor,
+    // and they will be updated automatically.
+    // If we want to add more complex metrics that require extra logic,
+    // we can add them here.
   }
 
   static int reportHostsCount(HostAgentDAO hostAgentDAO) {
