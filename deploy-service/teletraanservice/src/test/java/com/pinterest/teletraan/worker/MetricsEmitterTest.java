@@ -2,7 +2,6 @@ package com.pinterest.teletraan.worker;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -21,7 +20,6 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 public class MetricsEmitterTest {
 
-  private MetricsEmitter sut;
   private HostAgentDAO hostAgentDAO;
   private DeployDAO deployDAO;
 
@@ -34,12 +32,6 @@ public class MetricsEmitterTest {
   public void setUp() {
     hostAgentDAO = mock(HostAgentDAO.class);
     deployDAO = mock(DeployDAO.class);
-
-    ServiceContext serviceContext = new ServiceContext();
-    serviceContext.setHostAgentDAO(hostAgentDAO);
-    serviceContext.setDeployDAO(deployDAO);
-
-    sut = new MetricsEmitter(serviceContext);
   }
 
   @After
@@ -50,37 +42,48 @@ public class MetricsEmitterTest {
   @Test
   public void testReportDailyDeployCount() throws SQLException {
     when(deployDAO.getDailyDeployCount()).thenReturn(1L);
-    sut.reportDailyDeployCount();
-    assertEquals(1, Metrics.globalRegistry.get(MetricsEmitter.DEPLOYS_TODAY_TOTAL).gauge().value(), 0.01);
+    assertEquals(1, MetricsEmitter.reportDailyDeployCount(deployDAO));
+  }
 
-    when(deployDAO.getDailyDeployCount()).thenReturn(5L);
-    sut.reportDailyDeployCount();
-    assertEquals(5, Metrics.globalRegistry.get(MetricsEmitter.DEPLOYS_TODAY_TOTAL).gauge().value(), 0.01);
+  @Test
+  public void testReportDailyDeployCount_exceptionHandling() throws SQLException {
+    when(deployDAO.getDailyDeployCount()).thenThrow(new SQLException());
+    assertEquals(0, MetricsEmitter.reportDailyDeployCount(deployDAO));
   }
 
   @Test
   public void testReportHostsCount() throws SQLException {
     when(hostAgentDAO.getDistinctHostsCount()).thenReturn(2);
-    sut.reportHostsCount();
-    assertEquals(2, Metrics.globalRegistry.get(MetricsEmitter.HOSTS_TOTAL).gauge().value(), 0.01);
+    assertEquals(2, MetricsEmitter.reportHostsCount(hostAgentDAO));
   }
 
   @Test
   public void testReportRunningDeployCount() throws SQLException {
     when(deployDAO.getRunningDeployCount()).thenReturn(3L);
-    sut.reportRunningDeployCount();
-    assertEquals(3, Metrics.globalRegistry.get(MetricsEmitter.DEPLOYS_RUNNING_TOTAL).gauge().value(), 0.01);
-
-    when(deployDAO.getRunningDeployCount()).thenReturn(2L);
-    sut.reportRunningDeployCount();
-    assertEquals(2, Metrics.globalRegistry.get(MetricsEmitter.DEPLOYS_RUNNING_TOTAL).gauge().value(), 0.01);
+    assertEquals(3, MetricsEmitter.reportRunningDeployCount(deployDAO));
   }
 
   @Test
-  public void testRun() throws SQLException{
-    sut.run();
-    verify(hostAgentDAO).getDistinctHostsCount();
-    verify(deployDAO).getRunningDeployCount();
-    verify(deployDAO).getDailyDeployCount();
+  public void testMetricsEmitter() throws SQLException {
+    ServiceContext serviceContext = new ServiceContext();
+    serviceContext.setHostAgentDAO(hostAgentDAO);
+    serviceContext.setDeployDAO(deployDAO);
+
+    MetricsEmitter sut = new MetricsEmitter(serviceContext);
+
+    when(hostAgentDAO.getDistinctHostsCount()).thenReturn(2);
+    assertEquals(2, Metrics.globalRegistry.get(MetricsEmitter.HOSTS_TOTAL).gauge().value(), 0.01);
+
+    when(deployDAO.getDailyDeployCount()).thenReturn(1L);
+    assertEquals(1, Metrics.globalRegistry.get(MetricsEmitter.DEPLOYS_TODAY_TOTAL).gauge().value(), 0.01);
+
+    when(deployDAO.getDailyDeployCount()).thenReturn(5L);
+    assertEquals(5, Metrics.globalRegistry.get(MetricsEmitter.DEPLOYS_TODAY_TOTAL).gauge().value(), 0.01);
+
+    when(deployDAO.getRunningDeployCount()).thenReturn(3L);
+    assertEquals(3, Metrics.globalRegistry.get(MetricsEmitter.DEPLOYS_RUNNING_TOTAL).gauge().value(), 0.01);
+
+    when(deployDAO.getRunningDeployCount()).thenReturn(2L);
+    assertEquals(2, Metrics.globalRegistry.get(MetricsEmitter.DEPLOYS_RUNNING_TOTAL).gauge().value(), 0.01);
   }
 }

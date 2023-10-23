@@ -1,7 +1,6 @@
 package com.pinterest.teletraan.worker;
 
 import java.sql.SQLException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +9,7 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.HostAgentDAO;
 
+import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Metrics;
 
 public class MetricsEmitter implements Runnable {
@@ -19,55 +19,49 @@ public class MetricsEmitter implements Runnable {
   static final String DEPLOYS_TODAY_TOTAL = "deploys.today.total";
   static final String DEPLOYS_RUNNING_TOTAL = "deploys.running.total";
 
-  private final HostAgentDAO hostAgentDAO;
-  private final DeployDAO deployDAO;
-
-  private final AtomicInteger hostCount;
-  private final AtomicInteger dailyDeployCount;
-  private final AtomicInteger runningDeployCount;
-
   public MetricsEmitter(ServiceContext serviceContext) {
     // HostAgentDAO is more efficient than HostDAO to get total hosts
-    hostAgentDAO = serviceContext.getHostAgentDAO();
-    deployDAO = serviceContext.getDeployDAO();
+    Gauge.builder(HOSTS_TOTAL, serviceContext.getHostAgentDAO(), MetricsEmitter::reportHostsCount)
+        .strongReference(true)
+        .register(Metrics.globalRegistry);
 
-    hostCount = Metrics.gauge(HOSTS_TOTAL, new AtomicInteger(0));
-    dailyDeployCount = Metrics.gauge(DEPLOYS_TODAY_TOTAL, new AtomicInteger(0));
-    runningDeployCount = Metrics.gauge(DEPLOYS_RUNNING_TOTAL, new AtomicInteger(0));
+    Gauge.builder(DEPLOYS_TODAY_TOTAL, serviceContext.getDeployDAO(), MetricsEmitter::reportDailyDeployCount)
+        .strongReference(true)
+        .register(Metrics.globalRegistry);
+    Gauge.builder(DEPLOYS_RUNNING_TOTAL, serviceContext.getDeployDAO(), MetricsEmitter::reportRunningDeployCount)
+        .strongReference(true)
+        .register(Metrics.globalRegistry);
   }
 
   @Override
   public void run() {
-    try {
-      reportHostsCount();
-      reportDailyDeployCount();
-      reportRunningDeployCount();
-    } catch (Exception e) {
-      LOG.error("Failed to emit metrics", e);
-    }
+    // noop
   }
 
-  void reportHostsCount() {
+  static int reportHostsCount(HostAgentDAO hostAgentDAO) {
     try {
-      hostCount.set(hostAgentDAO.getDistinctHostsCount());
+      return hostAgentDAO.getDistinctHostsCount();
     } catch (SQLException e) {
       LOG.error("Failed to get host count", e);
     }
+    return 0;
   }
 
-  void reportDailyDeployCount() {
+  static int reportDailyDeployCount(DeployDAO deployDAO) {
     try {
-      dailyDeployCount.set((int) deployDAO.getDailyDeployCount());
+      return (int) deployDAO.getDailyDeployCount();
     } catch (SQLException e) {
       LOG.error("Failed to get daily deploy count", e);
     }
+    return 0;
   }
 
-  void reportRunningDeployCount() {
+  static int reportRunningDeployCount(DeployDAO deployDAO) {
     try {
-      runningDeployCount.set((int) deployDAO.getRunningDeployCount());
+      return (int) deployDAO.getRunningDeployCount();
     } catch (SQLException e) {
       LOG.error("Failed to get running deploy count", e);
     }
+    return 0;
   }
 }
