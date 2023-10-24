@@ -130,7 +130,27 @@ class DeployAgent(object):
                 try:
                     healthStatus = get_container_health_info(status.build_info.build_commit)
                     if healthStatus:
-                        status.report.containerHealthStatus = healthStatus
+                        if healthStatus == "delete":
+                            log.info(f"the current service is: {status}")
+                            fileName = "/mnt/deployd/" + status
+                            if os.path.exists(fileName):
+                                f=open(fileName,"r")
+                                retryNum = f.readline()
+                                f.close()
+                                if int(retryNum) < 10:
+                                    del self._envs[status]
+                                    ff=open(fileName,"w")
+                                    ff.write('%d' % int(retryNum))
+                                    ff.close()
+                            else:
+                                del self._envs[status]
+                        else:
+                            status.report.containerHealthStatus = healthStatus
+                            fileName = "/mnt/deployd/" + status
+                            if os.path.exists(fileName):
+                                f=open(fileName,"w")
+                                f.write("0")
+                                f.close()
                     else:
                         status.report.containerHealthStatus = None
                 except Exception:

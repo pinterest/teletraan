@@ -220,12 +220,16 @@ def get_info_from_facter(keys):
         log.exception("Failed to get info from facter by keys {}".format(keys))
         return None
 
+
+def force_redeploy():
+
+
     
 def get_container_health_info(commit):
     try:
         log.info(f"Get health info for container with commit {commit}")
         result = []
-        cmd = ['docker', 'ps', '--format', '{{.Image}};{{.Names}}']
+        cmd = ['docker', 'ps', '--format', '{{.Image}};{{.Names}};{{.Labels}}']
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
         if output:
             lines = output.decode().strip().splitlines()
@@ -237,7 +241,10 @@ def get_container_health_info(commit):
                         command = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', name]
                         status = subprocess.run(command, check=True, stdout=subprocess.PIPE).stdout
                         if status:
-                            result.append(f"{name}:{status.decode().strip()}")
+                            status = status.decode().strip()
+                            if status == "unhealthy" and parts[2] == "redeploy_when_unhealthy=enabled":
+                                return "delete"
+                            result.append(f"{name}:{status}")
                     except:
                         continue
             return ";".join(result) if result else None
