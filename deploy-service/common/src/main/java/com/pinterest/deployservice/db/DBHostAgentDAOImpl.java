@@ -102,9 +102,9 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
     }
 
     @Override
-    public int getDistinctHostsCount() throws SQLException {
-        Integer n = new QueryRunner(dataSource).query(GET_DISTINCT_HOSTS_COUNT,
-                SingleResultSetHandlerFactory.<Integer>newObjectHandler());
+    public long getDistinctHostsCount() throws SQLException {
+        Long n = new QueryRunner(dataSource).query(GET_DISTINCT_HOSTS_COUNT,
+                SingleResultSetHandlerFactory.<Long>newObjectHandler());
         return n == null ? 0 : n;
     }
 }

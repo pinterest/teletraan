@@ -53,7 +53,7 @@ public class MetricsEmitterTest {
 
   @Test
   public void testReportHostsCount() throws SQLException {
-    when(hostAgentDAO.getDistinctHostsCount()).thenReturn(2);
+    when(hostAgentDAO.getDistinctHostsCount()).thenReturn(2L);
     assertEquals(2, MetricsEmitter.reportHostsCount(hostAgentDAO));
   }
 
@@ -71,7 +71,7 @@ public class MetricsEmitterTest {
 
     MetricsEmitter sut = new MetricsEmitter(serviceContext);
 
-    when(hostAgentDAO.getDistinctHostsCount()).thenReturn(2);
+    when(hostAgentDAO.getDistinctHostsCount()).thenReturn(2L);
     assertEquals(2, Metrics.globalRegistry.get(MetricsEmitter.HOSTS_TOTAL).gauge().value(), 0.01);
 
     when(deployDAO.getDailyDeployCount()).thenReturn(1L);

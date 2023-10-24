@@ -42,7 +42,7 @@ public class MetricsEmitter implements Runnable {
     // we can add them here.
   }
 
-  static int reportHostsCount(HostAgentDAO hostAgentDAO) {
+  static long reportHostsCount(HostAgentDAO hostAgentDAO) {
     try {
       return hostAgentDAO.getDistinctHostsCount();
     } catch (SQLException e) {
@@ -51,18 +51,18 @@ public class MetricsEmitter implements Runnable {
     return 0;
   }
 
-  static int reportDailyDeployCount(DeployDAO deployDAO) {
+  static long reportDailyDeployCount(DeployDAO deployDAO) {
     try {
-      return (int) deployDAO.getDailyDeployCount();
+      return deployDAO.getDailyDeployCount();
     } catch (SQLException e) {
       LOG.error("Failed to get daily deploy count", e);
     }
     return 0;
   }
 
-  static int reportRunningDeployCount(DeployDAO deployDAO) {
+  static long reportRunningDeployCount(DeployDAO deployDAO) {
     try {
-      return (int) deployDAO.getRunningDeployCount();
+      return deployDAO.getRunningDeployCount();
     } catch (SQLException e) {
       LOG.error("Failed to get running deploy count", e);
     }
