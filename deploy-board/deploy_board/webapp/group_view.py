@@ -113,11 +113,11 @@ def get_launch_config(request, group_name):
 def get_group_config_internal(group_config):
     if group_config:
         if group_config.get("launchLatencyTh"):
-            group_config["launchLatencyTh"] = group_config.get("launchLatencyTh") / 60
+            group_config["launchLatencyTh"] = group_config.get("launchLatencyTh") // 60
         if group_config.get("healthcheckPeriod"):
-            group_config["healthcheckPeriod"] = group_config.get("healthcheckPeriod") / 60
+            group_config["healthcheckPeriod"] = group_config.get("healthcheckPeriod") // 60
         if group_config.get("lifecycleTimeout"):
-            group_config["lifecycleTimeout"] = group_config.get("lifecycleTimeout") / 60
+            group_config["lifecycleTimeout"] = group_config.get("lifecycleTimeout") // 60
         return group_config
     else:
         group_config = {}
