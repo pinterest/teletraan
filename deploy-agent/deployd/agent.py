@@ -137,6 +137,7 @@ class DeployAgent(object):
                     status.report.containerHealthStatus = None
                     log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
                     continue
+            self._env_status.dump_envs(self._envs)
         # start to ping server to get the latest deploy goal
         self._response = self._client.send_reports(self._envs)
 
