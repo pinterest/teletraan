@@ -185,7 +185,7 @@ public class Deploys {
             value = "Get deploys per day",
             notes = "Get total numbers of deploys on the current day",
             response = Long.class)
-    public Long dailyCount() throws Exception{
+    public long dailyCount() throws Exception{
         return deployDAO.getDailyDeployCount();
     }
 }

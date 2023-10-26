@@ -186,6 +186,11 @@ workers:
       minStaleHostThreshold: 150
       maxStaleHostThreshold: 600
 
+  - name: MetricsEmitter
+    properties:
+      initialDelay: 2
+      period: 5
+
 # Ping Requst validators:
 # pingrequestvalidators:
 #  -  com.pinterest.deployservice.pingrequests.Ec2InstanceValidator

@@ -41,4 +41,6 @@ public interface HostAgentDAO {
     List<HostAgentBean> getStaleEnvHosts(long lastUpdateBefore) throws Exception;
 
     List<HostAgentBean> getHostsByAgent(String agentVersion, long pageIndex, int pageSize) throws Exception;
+
+    long getDistinctHostsCount() throws SQLException;
 }

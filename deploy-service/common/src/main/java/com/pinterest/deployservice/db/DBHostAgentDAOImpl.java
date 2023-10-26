@@ -38,6 +38,7 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
     private static final String GET_HOSTS_BY_LAST_UPDATES = "SELECT DISTINCT * FROM hosts_and_agents WHERE last_update>? AND last_update<?";
     private static final String GET_STALE_ENV_HOST = "SELECT DISTINCT hosts_and_agents.* FROM hosts_and_agents INNER JOIN hosts_and_envs ON hosts_and_agents.host_name=hosts_and_envs.host_name WHERE hosts_and_agents.last_update<?";
     private static final String GET_HOSTS_BY_AGENT = "SELECT * FROM hosts_statuses WHERE agent_version=? ORDER BY host_id LIMIT ?,?";
+    private static final String GET_DISTINCT_HOSTS_COUNT = "SELECT COUNT(DISTINCT host_id) FROM hosts_and_agents";
 
     private BasicDataSource dataSource;
 
@@ -98,5 +99,12 @@ public class DBHostAgentDAOImpl implements HostAgentDAO {
     public List<HostAgentBean> getHostsByAgent(String agentVersion, long pageIndex, int pageSize) throws Exception {
         ResultSetHandler<List<HostAgentBean>> h = new BeanListHandler<>(HostAgentBean.class);
         return new QueryRunner(dataSource).query(GET_HOSTS_BY_AGENT, h, agentVersion, (pageIndex - 1) * pageSize, pageSize);
+    }
+
+    @Override
+    public long getDistinctHostsCount() throws SQLException {
+        Long n = new QueryRunner(dataSource).query(GET_DISTINCT_HOSTS_COUNT,
+                SingleResultSetHandlerFactory.<Long>newObjectHandler());
+        return n == null ? 0 : n;
     }
 }

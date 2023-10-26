@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.joda.time.Interval;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Arrays;
 
@@ -79,7 +80,9 @@ public class DBDeployDAOImpl implements DeployDAO {
             "AND NOT EXISTS (SELECT 1 FROM environs WHERE environs.deploy_id = deploys.deploy_id) "
             + "ORDER BY last_update ASC LIMIT ?";
     private static final String COUNT_DAILY_DEPLOYS =
-        "SELECT COUNT(*) FROM deploys WHERE DATE(FROM_UNIXTIME(start_date*0.001)) = CURDATE()";
+        "SELECT COUNT(*) FROM deploys WHERE start_date*0.001 >= UNIX_TIMESTAMP(CURDATE())";
+    private static final String COUNT_ACTIVE_DEPLOYS =
+        "SELECT COUNT(*) FROM deploys WHERE state='RUNNING'";
 
     private BasicDataSource dataSource;
 
@@ -117,7 +120,7 @@ public class DBDeployDAOImpl implements DeployDAO {
                 queryCountStr =
                     String
                         .format(GET_COUNT_FOR_ALL_DEPLOYMENTS_WITH_COMMIT_TEMPLATE, filterBean.getWhereClause());
-            }      
+            }
         } else {
             filterBean.generateClauseAndValues();
             queryStr = String.format(GET_ALL_DEPLOYMENTS_TEMPLATE, filterBean.getWhereClause());
@@ -130,7 +133,7 @@ public class DBDeployDAOImpl implements DeployDAO {
                 queryCountStr =
                     String
                         .format(GET_COUNT_FOR_ALL_DEPLOYMENTS_TEMPLATE, filterBean.getWhereClause());
-            }      
+            }
         }
 
         Connection connection = dataSource.getConnection();
@@ -251,8 +254,16 @@ public class DBDeployDAOImpl implements DeployDAO {
     }
 
     @Override
-    public Long getDailyDeployCount() throws Exception {
-        return new QueryRunner(dataSource)
+    public long getDailyDeployCount() throws SQLException {
+        Long n = new QueryRunner(dataSource)
             .query(COUNT_DAILY_DEPLOYS, SingleResultSetHandlerFactory.<Long>newObjectHandler());
+        return n == null ? 0 : n;
+    }
+
+    @Override
+    public long getRunningDeployCount() throws SQLException {
+        Long n = new QueryRunner(dataSource)
+            .query(COUNT_ACTIVE_DEPLOYS, SingleResultSetHandlerFactory.<Long>newObjectHandler());
+        return n == null ? 0 : n;
     }
 }
