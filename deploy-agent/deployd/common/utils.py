@@ -232,7 +232,6 @@ def get_container_health_info(commit, service):
             for line in lines:
                 if commit in line:
                     parts = line.split(';')
-                    log.info(f"parts[0]: {parts[0]}; parts[1]: {parts[1]}; parts[2]: {parts[2]}")
                     name = parts[1]
                     try:
                         command = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', name]
@@ -251,11 +250,7 @@ def get_container_health_info(commit, service):
                                     f=open(file_name,"r")
                                     retry_num = int(f.readline())
                                     f.close()
-                                log.info(f"retry num: {retry_num}")
-                                log.info(f"max retry: {max_retry}")
                                 if retry_num < max_retry:
-                                    log.info(f"yaqin-test")
-                                    log.info(f"write to file: {file_name}")
                                     ff=open(file_name,"w")
                                     ff.write('%d' % (retry_num + 1))
                                     ff.close()
