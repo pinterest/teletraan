@@ -203,7 +203,7 @@ def update_deploy_progress(request, name, stage):
                     report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
-    
+
     context = {
         "report": report,
         "env": env,
@@ -462,7 +462,7 @@ class EnvLandingView(View):
                             report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
                         else:
                             report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
-            
+
             context = {
                 "envs": envs,
                 "env": env,
@@ -508,7 +508,7 @@ def _compute_range(totalItems, thisPageIndex, totalItemsPerPage, totalPagesToSho
     if totalItems <= 0:
         return list(range(0)), 0, 0
 
-    halfPagesToShow = totalPagesToShow / 2
+    halfPagesToShow = totalPagesToShow // 2
     startPageIndex = thisPageIndex - halfPagesToShow
     if startPageIndex <= 0:
         startPageIndex = 1
@@ -1424,7 +1424,7 @@ def get_sub_account_hosts(request, name, stage):
     agents_wrapper = {}
     for agent in agents:
         if not accountIdMap.get(agent['hostId']) or accountIdMap.get(agent['hostId']) == "null" or accountIdMap.get(agent['hostId']) == "998131032990":
-            continue 
+            continue
         if agent['deployId'] not in agents_wrapper:
             agents_wrapper[agent['deployId']] = []
         agents_wrapper[agent['deployId']].append(agent)
@@ -1547,7 +1547,7 @@ def get_env_config_history(request, name, stage):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
-    
+
     excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'configs/config_history.html', {
@@ -1559,7 +1559,7 @@ def get_env_config_history(request, name, stage):
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(configs) < DEFAULT_PAGE_SIZE,
-        "excludedTypes": excludedTypes 
+        "excludedTypes": excludedTypes
     })
 
 
