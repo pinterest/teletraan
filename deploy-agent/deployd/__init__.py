@@ -21,6 +21,7 @@ METRIC_CACHE_PATH = os.getenv('METRIC_CACHE_PATH', None)
 TELEFIG_BINARY = os.getenv('TELEFIG_BINARY', None)
 MAIN_LOGGER = "deployd"
 STATSBOARD_URL=os.getenv('STATSBOARD_URL', "https://statsboard.pinadmin.com/api/v1/")
+REDEPLOY_RETRY_TIMES = 10
 
 # 0: puppet applied successfully with no changes
 # 2: puppet applied successfully with changes

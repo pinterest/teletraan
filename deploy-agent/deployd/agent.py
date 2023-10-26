@@ -125,38 +125,31 @@ class DeployAgent(object):
             self._executor = Executor(callback=PingServer(self), config=self._config)
         # include healthStatus info for each container
         if len(self._envs) > 0:
+            need_to_delete = []
             for status in self._envs.values():
-                # for each container, we check the health status
+                # for each service, we check the container health status
+                log.info(f"the current service is: {status.report.envName}")
                 try:
-                    healthStatus = get_container_health_info(status.build_info.build_commit)
+                    healthStatus = get_container_health_info(status.build_info.build_commit, status.report.envName)
                     if healthStatus:
                         if healthStatus == "delete":
-                            log.info(f"the current service is: {status}")
-                            fileName = "/mnt/deployd/" + status
-                            if os.path.exists(fileName):
-                                f=open(fileName,"r")
-                                retryNum = f.readline()
-                                f.close()
-                                if int(retryNum) < 10:
-                                    del self._envs[status]
-                                    ff=open(fileName,"w")
-                                    ff.write('%d' % int(retryNum))
-                                    ff.close()
-                            else:
-                                del self._envs[status]
+                            need_to_delete.append(status.report.envName)
                         else:
                             status.report.containerHealthStatus = healthStatus
-                            fileName = "/mnt/deployd/" + status
-                            if os.path.exists(fileName):
-                                f=open(fileName,"w")
-                                f.write("0")
-                                f.close()
+                            if "unhealthy" not in healthStatus:
+                                fileName = "/mnt/deployd/" + status.report.envName
+                                if os.path.exists(fileName):
+                                    f=open(fileName,"w")
+                                    f.write("0")
+                                    f.close()
                     else:
                         status.report.containerHealthStatus = None
                 except Exception:
                     status.report.containerHealthStatus = None
                     log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
                     continue
+            for item in need_to_delete:
+                del self._envs[item]
             self._env_status.dump_envs(self._envs)
         # start to ping server to get the latest deploy goal
         self._response = self._client.send_reports(self._envs)

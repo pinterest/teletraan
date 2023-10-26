@@ -26,7 +26,7 @@ import yaml
 
 
 import json
-from deployd import IS_PINTEREST, PUPPET_SUCCESS_EXIT_CODES
+from deployd import IS_PINTEREST, PUPPET_SUCCESS_EXIT_CODES, REDEPLOY_RETRY_TIMES
 from deployd.common.stats import TimeElapsed, create_sc_increment, create_sc_timing, send_statsboard_metric
 
 log = logging.getLogger(__name__)
@@ -220,12 +220,8 @@ def get_info_from_facter(keys):
         log.exception("Failed to get info from facter by keys {}".format(keys))
         return None
 
-
-def force_redeploy():
-
-
     
-def get_container_health_info(commit):
+def get_container_health_info(commit, service):
     try:
         log.info(f"Get health info for container with commit {commit}")
         result = []
@@ -236,14 +232,34 @@ def get_container_health_info(commit):
             for line in lines:
                 if commit in line:
                     parts = line.split(';')
+                    log.info(f"parts[0]: {parts[0]}; parts[1]: {parts[1]}; parts[2]: {parts[2]}")
                     name = parts[1]
                     try:
                         command = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', name]
                         status = subprocess.run(command, check=True, stdout=subprocess.PIPE).stdout
                         if status:
                             status = status.decode().strip()
-                            if status == "unhealthy" and parts[2] == "redeploy_when_unhealthy=enabled":
-                                return "delete"
+                            if status == "unhealthy" and "redeploy_when_unhealthy=enabled" in parts[2]:
+                                labels = parts[2].split(',')
+                                max_retry = REDEPLOY_RETRY_TIMES
+                                for label in labels:
+                                    if "redeploy_retry_times" in label:
+                                        max_retry = int(label.split('=')[1])
+                                retry_num = 0
+                                file_name = "/mnt/deployd/" + service
+                                if os.path.exists(file_name):
+                                    f=open(file_name,"r")
+                                    retry_num = int(f.readline())
+                                    f.close()
+                                log.info(f"retry num: {retry_num}")
+                                log.info(f"max retry: {max_retry}")
+                                if retry_num < max_retry:
+                                    log.info(f"yaqin-test")
+                                    log.info(f"write to file: {file_name}")
+                                    ff=open(file_name,"w")
+                                    ff.write('%d' % (retry_num + 1))
+                                    ff.close()
+                                    return "delete"
                             result.append(f"{name}:{status}")
                     except:
                         continue
