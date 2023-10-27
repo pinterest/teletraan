@@ -80,7 +80,7 @@ public class DBDeployDAOImpl implements DeployDAO {
             "AND NOT EXISTS (SELECT 1 FROM environs WHERE environs.deploy_id = deploys.deploy_id) "
             + "ORDER BY last_update ASC LIMIT ?";
     private static final String COUNT_DAILY_DEPLOYS =
-        "SELECT COUNT(*) FROM deploys WHERE start_date*0.001 >= UNIX_TIMESTAMP(CURDATE())";
+        "SELECT COUNT(*) FROM deploys WHERE start_date >= UNIX_TIMESTAMP(CURDATE())*1000";
     private static final String COUNT_ACTIVE_DEPLOYS =
         "SELECT COUNT(*) FROM deploys WHERE state='RUNNING'";
 
