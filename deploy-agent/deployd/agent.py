@@ -137,11 +137,10 @@ class DeployAgent(object):
                         else:
                             status.report.containerHealthStatus = healthStatus
                             if "unhealthy" not in healthStatus:
-                                fileName = "/mnt/deployd/" + status.report.envName
-                                if os.path.exists(fileName):
-                                    f=open(fileName,"w")
-                                    f.write("0")
-                                    f.close()
+                                file_name = "/mnt/deployd/" + status.report.envName
+                                if os.path.exists(file_name):
+                                    with open(file_name, mode="w") as f:
+                                        f.write("0")
                     else:
                         status.report.containerHealthStatus = None
                 except Exception:
