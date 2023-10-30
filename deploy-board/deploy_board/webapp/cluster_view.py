@@ -412,25 +412,21 @@ def get_base_images_by_abstract_name(request, abstract_name):
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
     arches_list = arches_helper.get_all(request)
-
     for image in base_images:
         tags = baseimages_helper.get_image_tag_by_id(request, image['id'])
         golden_tags = [ e['tag'] for e in tags ]
         image['golden_latest'] = 'GOLDEN_LATEST' in golden_tags
         image['golden_canary'] = 'GOLDEN_CANARY' in golden_tags
         image['golden_prod'] = 'GOLDEN' in golden_tags
-
-    """    
+    # add current golden tag
     golden_images = {}
     for cell in cells_list:
         cell_name = cell['name']
         golden_images[cell_name] = baseimages_helper.get_current_golden_image(request, abstract_name, cell_name)
-
-    # add golden tag to images
     for image in base_images:
         if golden_images[image['cell_name']] and image['id'] == golden_images[image['cell_name']]['id']:
             image['current_golden'] = True
-    """
+    
     return render(request, 'clusters/base_images.html', {
         'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
         'base_images': base_images,
