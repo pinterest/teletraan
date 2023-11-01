@@ -11,6 +11,7 @@
             {% for tagValue, hostTags in host_tag_infos.items %}
             <div class="panel panel-default table-responsive">
                 {% for agentStat in report.agentStats %}
+                    <p>{{ agentStat }}</p>
                     {% for hostTag in hostTags %}
                         {% if agentStat.agent.hostName == hostTag.hostName %}
                             {% if report.showMode == "complete" or report.showMode == "compact" %}
