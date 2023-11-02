@@ -31,6 +31,9 @@ class PingReport(object):
         self.extraInfo = None
         self.deployAlias = None
         self.containerHealthStatus = None
+        self.state = None
+        self.redeploy = 0
+        self.wait = 0
 
         if jsonValue:
             self.deployId = jsonValue.get('deployId')
@@ -53,10 +56,13 @@ class PingReport(object):
             self.extraInfo = jsonValue.get('extraInfo')
             self.deployAlias = jsonValue.get('deployAlias')
             self.containerHealthStatus = jsonValue.get('containerHealthStatus')
+            self.state = jsonValue.get('state')
+            self.redeploy = jsonValue.get('redeploy')
+            self.wait = jsonValue.get('wait')
 
     def __str__(self):
         return "PingReport(deployId={}, envId={}, deployStage={}, status={}, " \
                "errorCode={}, errorMessage={}, failCount={}, extraInfo={}, " \
-               "deployAlias={}, containerHealthStatus={})".format(self.deployId, self.envId, self.deployStage,
+               "deployAlias={}, containerHealthStatus={}, state={})".format(self.deployId, self.envId, self.deployStage,
                                         self.status, self.errorCode, self.errorMessage,
-                                        self.failCount, self.extraInfo, self.deployAlias, self.containerHealthStatus)
+                                        self.failCount, self.extraInfo, self.deployAlias, self.containerHealthStatus, self.state)
