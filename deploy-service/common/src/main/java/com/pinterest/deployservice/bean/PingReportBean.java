@@ -30,6 +30,7 @@ public class PingReportBean {
     private Map<String, String> extraInfo;
     private String deployAlias;
     private String containerHealthStatus;
+    private AgentState agentState;
 
     public String getDeployId() {
         return deployId;
@@ -109,6 +110,14 @@ public class PingReportBean {
 
     public void setContainerHealthStatus(String containerHealthStatus) {
         this.containerHealthStatus = containerHealthStatus;
+    }
+
+    public AgentState getAgentState() {
+        return agentState;
+    }
+
+    public void setAgentState(AgentState agentState) {
+        this.agentState = agentState;
     }
 
     @Override
