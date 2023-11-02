@@ -36,14 +36,12 @@
         </a>
             {% endif %}
         {% elif report.showMode == "containerStatus" %}
-            {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
         type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
         title="{{ agentStat | agentTip }}">
         <small>{{ agentStat.agent.hostName }}</small>
         {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
         </a>
-            {% endif %}
         {% endif %}              
     {% endfor %}
 
