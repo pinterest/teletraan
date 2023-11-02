@@ -7,96 +7,45 @@
 <div class="panel panel-default">
 <div class="panel-body">
     <div class="row">
-        {% if report.sortByTag %}
-            {% for tagValue, hostTags in host_tag_infos.items %}
-            <div class="panel panel-default table-responsive">
-                {% for agentStat in report.agentStats %}
-                    <p>{{ agentStat }}</p>
-                    {% for hostTag in hostTags %}
-                        {% if agentStat.agent.hostName == hostTag.hostName %}
-                            {% if report.showMode == "complete" or report.showMode == "compact" %}
-                            <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                            type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                            title="{{ agentStat | agentTip }}">
-                            {% if report.showMode != "compact" %}
-                            <small>{{ agentStat.agent.hostName }}</small>
-                            {% endif %}
-                            <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                            </a>
-                            {% elif report.showMode == "primaryAcct" %}
-                            {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
-                            <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                            type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                            title="{{ agentStat | agentTip }}">              
-                            <small>{{ agentStat.agent.hostName }}</small>
-                            <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                            </a>
-                            {% endif %}
-                            {% elif report.showMode == "subAcct" %}
-                            {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
-                            <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                            type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                            title="{{ agentStat | agentTip }}">              
-                            <small>{{ agentStat.agent.hostName }}</small>
-                            <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                            </a>
-                            {% endif %}
-                            {% elif report.showMode == "containerStatus" %}
-                            {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
-                            <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                            type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                            title="{{ agentStat | agentTip }}">
-                            <small>{{ agentStat.agent.hostName }}</small>
-                            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
-                            </a>
-                            {% endif %}
-                            {% endif %}        
-                        {% endif %}
-                    {% endfor %}
-                {% endfor %}
-            </div>
-            {% endfor %}
-        {% else %}
-            {% for agentStat in report.agentStats %}
-                {% if report.showMode == "complete" or report.showMode == "compact" %}
-                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                title="{{ agentStat | agentTip }}">
-                {% if report.showMode != "compact" %}
-                <small>{{ agentStat.agent.hostName }}</small>
-                {% endif %}
-                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                </a>
-                {% elif report.showMode == "primaryAcct" %}
-                {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
-                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                title="{{ agentStat | agentTip }}">              
-                <small>{{ agentStat.agent.hostName }}</small>
-                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                </a>
-                {% endif %}
-                {% elif report.showMode == "subAcct" %}
-                {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
-                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                title="{{ agentStat | agentTip }}">              
-                <small>{{ agentStat.agent.hostName }}</small>
-                <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                </a>
-                {% endif %}
-                {% elif report.showMode == "containerStatus" %}
-                {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
-                <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                title="{{ agentStat | agentTip }}">
-                <small>{{ agentStat.agent.hostName }}</small>
-                {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
-                </a>
-                {% endif %}
-                {% endif %}              
-            {% endfor %}
+    {% for agentStat in report.agentStats %}
+        {% if report.showMode == "complete" or report.showMode == "compact" %}
+        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+        title="{{ agentStat | agentTip }}">
+        {% if report.showMode != "compact" %}
+        <small>{{ agentStat.agent.hostName }}</small>
         {% endif %}
+        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+        </a>
+        {% elif report.showMode == "primaryAcct" %}
+        {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
+        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+        title="{{ agentStat | agentTip }}">              
+        <small>{{ agentStat.agent.hostName }}</small>
+        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+        </a>
+        {% endif %}
+        {% elif report.showMode == "subAcct" %}
+        {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
+        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+        title="{{ agentStat | agentTip }}">              
+        <small>{{ agentStat.agent.hostName }}</small>
+        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+        </a>
+        {% endif %}
+        {% elif report.showMode == "containerStatus" %}
+        {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
+        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+        title="{{ agentStat | agentTip }}">
+        <small>{{ agentStat.agent.hostName }}</small>
+        {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
+        </a>
+        {% endif %}
+        {% endif %}              
+    {% endfor %}
 
         <br><br>
         <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"

@@ -210,11 +210,6 @@ def update_deploy_progress(request, name, stage):
         "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
         "pinterest": IS_PINTEREST
     }
-    sortByTag = _fetch_param_with_cookie(
-        request, 'sortByTag', MODE_COOKIE_NAME, None)
-    if sortByTag:
-        report.sortByTag = sortByTag
-        context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
 
     html = render_to_string('deploys/deploy_progress.tmpl', context)
 
@@ -489,10 +484,6 @@ class EnvLandingView(View):
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
             }
-            sortByTag = request.GET.get('sortByTag', None)
-            if sortByTag:
-                report.sortByTag = sortByTag
-                context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
             response = render(request, 'environs/env_landing.html', context)
 
         # save preferences
