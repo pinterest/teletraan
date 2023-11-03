@@ -17,7 +17,7 @@
                                 <input type="radio" name="maxParallel" value="Number" id="maxParallelRadio"
                                     {% ifequal env.showNumber True%}checked{% endifequal %} >
                             </span>
-                                <input type="text" id="maxParallelValue" name="maxParallelValue" class="form-control"
+                                <input type="number" id="maxParallelValue" name="maxParallelValue" class="form-control"
                                     value="{% ifequal env.showNumber True%}{{env.maxParallel}}{% endifequal %}">
                         </div>
                     </div>
@@ -91,6 +91,32 @@
                                type="text" value="{{ env.chatroom |default_if_none:'' }}"
                                maxlength="128"/>
                     </div>
+
+                    <label for="groupMentionRecipients" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Ping slack user group in the chat rooms (slack channels), such as userGroupID1,userGroupID2.">
+                        Ping User Group
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="group_mention_recipients" required="false"
+                               type="text" value="{{ env.groupMentionRecipients |default_if_none:'' }}"/>
+                    </div>                    
+                </div>
+                <div class="form-group">
+                    <label for="chatRecipients" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="Chat user handles to send deploy notifies to, such as user1,user2">
+                        Chat Recipients
+                    </label>
+
+                    <div class="col-xs-4">
+                        <input class="form-control" name="watch_recipients" required="false"
+                               type="text" value="{{ env.watchRecipients |default_if_none:'' }}"/>
+                    </div>
+                </div>
+
+                <div class="form-group">
                     <label for="notify" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
                         title="Whether or not to notify commiters when deploy">
@@ -103,18 +129,6 @@
                     {% else %}
                         <input class="" id="notify_author" name="notify_author" type="checkbox" value="">
                     {% endif %}
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="chatRecipients" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="Chat user handles to send deploy notifies to, such as user1,user2">
-                        Chat Recipients
-                    </label>
-
-                    <div class="col-xs-4">
-                        <input class="form-control" name="watch_recipients" required="false"
-                               type="text" value="{{ env.watchRecipients |default_if_none:'' }}"/>
                     </div>
 
                     <label for="emailRecipients" class="deployToolTip control-label col-xs-2"
@@ -175,7 +189,7 @@
 
                     <div class="col-xs-4">
                         <input class="form-control" name="maxDeployDay" required="true"
-                               type="text" value="{{ env.maxDeployDay }}"/>
+                               type="number" min="1" value="{{ env.maxDeployDay }}"/>
                     </div>
                 </div>
                 <div class="form-group">
@@ -207,7 +221,7 @@
 
                     <div class="col-xs-4">
                         <input class="form-control" name="maxParallelRp" required="true"
-                               type="text" value="{{ env.maxParallelRp }}"/>
+                               type="number" min="1" value="{{ env.maxParallelRp }}"/>
                     </div>
                 </div>
                 <div class="form-group">

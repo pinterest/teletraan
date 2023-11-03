@@ -48,7 +48,7 @@
 
 {% include "environs/env_tabs.tmpl" with envTabKind="config/capacity" %}
 <script type="text/javascript" src="{% static "js/components/capacitycomponents.js"%}?changedate=2023.01.30"></script>
-<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.01.30"></script>
+<script type="text/javascript" src="{% static "js/components/clusterconfigcomponents.js"%}?changedate=2023.08.22"></script>
 <script type="text/javascript" src="{% static "js/base-image-utils.js"%}?changedate=2023.01.30"></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
@@ -68,6 +68,8 @@
                 <accessrole-input label="Access Role" title="access_role for host access" v-model="accessRole"
                     showhelp="true" v-on:helpclick="accessRoleHelpClick"></accessrole-input>
                 <accessrole-help v-show="showAccessRoleHelp" v-bind:data="accessRoleHelpText" v-bind:accessrolelist="accessRoleList"></accessrole-help>
+                <stateful-select :statefuloptions="statefulStatusOptions" :value="selectedStatefulStatus" @help-clicked="statefulHelpClick" @stateful-change="updateStatefulStatus"></stateful-select>
+                <stateful-help v-show="showStatefulHelp"></stateful-help>
             </form>
         </div>
     </div>
@@ -95,6 +97,7 @@ var capacityView = new Vue({
 var capacityCreationInfo = {{capacity_creation_info|safe}};
 var environment = capacityCreationInfo.environment;
 var accessRoleList = capacityCreationInfo.access_role_list;
+var statefulOptions = capacityCreationInfo.stateful_options;
 
 let goldenImage = capacityCreationInfo.baseImages.find(goldenImageFinder);
 
@@ -114,8 +117,9 @@ var capacitySetting = new Vue({
                 value: item.id,
                 text: item.abstract_name+" ("+item.core+" cores, "+item.mem+" GB, "+item.network+", " +item.storage+")",
                 isSelected: item.abstract_name === capacityCreationInfo.defaultHostType,
-                isDisabled: item.retired
-            }}),
+                isDisabled: item.retired || item.blessed_status === "DECOMMISSIONING"
+            }
+        }),
         placements: placements.getSimpleList(false, null),
         securityZoneOptions:capacityCreationInfo.securityZones.map(function(item,idx){
             return {
@@ -132,6 +136,14 @@ var capacitySetting = new Vue({
         showAccessRoleHelp: false,
         accessRoleList: accessRoleList,
         accessRoleHelpText: "Please enter a valid access role",
+        selectedStatefulStatus: capacityCreationInfo.stateful_status,
+        statefulStatusOptions: statefulOptions.map(function(o) {
+            return {
+                value: o,
+                text: o
+            }
+        }),
+        showStatefulHelp: false,
     },
     methods:{
         validateInput: function(clusterInfo){
@@ -182,6 +194,7 @@ var capacitySetting = new Vue({
             clusterInfo['useLaunchTemplate'] = capacityCreationInfo['defaultUseLaunchTemplate'];
             clusterInfo['hostType'] = this.selectedHostTypeValue;
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
+            clusterInfo['statefulStatus'] =  this.selectedStatefulStatus;
             if (this.selectedPlacements != null){
                 clusterInfo['placement'] = this.selectedPlacements.join(',');
             }
@@ -232,6 +245,12 @@ var capacitySetting = new Vue({
         },
         accessRoleHelpClick: function(){
             this.showAccessRoleHelp = !this.showAccessRoleHelp;
+        },
+        statefulHelpClick: function(value) {
+            this.showStatefulHelp = !this.showStatefulHelp
+        },
+        updateStatefulStatus: function(value) {
+            this.selectedStatefulStatus = value
         },
     },
     watch: {

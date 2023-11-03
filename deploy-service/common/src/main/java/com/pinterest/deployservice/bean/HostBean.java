@@ -30,6 +30,7 @@ import org.apache.commons.lang.builder.ReflectionToStringBuilder;
  * last_update     BIGINT              NOT NULL,
  * state           VARCHAR(32)         NOT NULL,
  * can_retire      TINYINT(1)          NOT NULL DEFAULT 0,
+ * account_id      VARCHAR(64),
  * PRIMARY KEY    (host_name, group_name)
  * );
  */
@@ -45,6 +46,9 @@ public class HostBean implements Updatable {
 
     @JsonProperty("hostId")
     private String host_id;
+
+    @JsonProperty("accountId")
+    private String account_id;
 
     @JsonProperty("createDate")
     private Long create_date;
@@ -97,6 +101,14 @@ public class HostBean implements Updatable {
         this.host_id = host_id;
     }
 
+    public String getAccount_id() {
+        return account_id;
+    }
+
+    public void setAccount_id(String account_id) {
+        this.account_id = account_id;
+    }
+
     public Long getCreate_date() {
         return create_date;
     }
@@ -144,6 +156,7 @@ public class HostBean implements Updatable {
         clause.addColumn("last_update", last_update);
         clause.addColumn("state", state);
         clause.addColumn("can_retire", can_retire);
+        clause.addColumn("account_id", account_id);
         return clause;
     }
 

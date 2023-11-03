@@ -16,10 +16,11 @@
 package com.pinterest.deployservice;
 
 
+import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.chat.ChatManager;
-import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentCountDAO;
+import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.dao.AgentErrorDAO;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.ConfigHistoryDAO;
@@ -29,8 +30,8 @@ import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
-import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostAgentDAO;
+import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
@@ -41,12 +42,12 @@ import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.email.MailManager;
-import com.pinterest.deployservice.events.EventSender;
+import com.pinterest.deployservice.events.BuildEventPublisher;
 import com.pinterest.deployservice.group.HostGroupManager;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
-import com.pinterest.deployservice.allowlists.Allowlist;
+import com.pinterest.teletraan.universal.events.AppEventPublisher;
 
 import org.apache.commons.dbcp.BasicDataSource;
 
@@ -67,7 +68,6 @@ public class ServiceContext {
     private DataDAO dataDAO;
     private UtilDAO utilDAO;
     private RatingDAO ratingDAO;
-    private EventSender eventSender;
     private PromoteDAO promoteDAO;
     private GroupDAO groupDAO;
     private HostGroupManager hostGroupDAO;
@@ -101,6 +101,18 @@ public class ServiceContext {
     private List<PingRequestValidator> pingRequestValidators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
+    private BuildEventPublisher buildEventPublisher;
+
+    // Publishers & Listeners
+    private AppEventPublisher appEventPublisher;
+
+    public AppEventPublisher getAppEventPublisher() {
+        return appEventPublisher;
+    }
+
+    public void setAppEventPublisher(AppEventPublisher appEventPublisher) {
+        this.appEventPublisher = appEventPublisher;
+    }
 
     public Allowlist getBuildAllowlist() {
         return buildAllowlist;
@@ -268,14 +280,6 @@ public class ServiceContext {
 
     public ConfigHistoryDAO getConfigHistoryDAO() {
         return configHistoryDAO;
-    }
-
-    public void setEventSender(EventSender sender) {
-        this.eventSender = sender;
-    }
-
-    public EventSender getEventSender() {
-        return this.eventSender;
     }
 
     public void setServiceStage(String serviceStage) {
@@ -455,5 +459,14 @@ public class ServiceContext {
 
     public void setMaxParallelThreshold(Long maxParallelThreshold) {
         this.maxParallelThreshold = maxParallelThreshold;
+    }
+
+    public BuildEventPublisher getBuildEventPublisher() {
+        return buildEventPublisher;
+    }
+
+    public void setBuildEventPublisher(
+        BuildEventPublisher buildEventPublisher) {
+        this.buildEventPublisher = buildEventPublisher;
     }
 }

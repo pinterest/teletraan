@@ -21,8 +21,8 @@ from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.generic import View
-import common
-from helpers import environs_helper
+from . import common
+from .helpers import environs_helper
 
 
 class EnvWebhooksView(View):
@@ -51,7 +51,7 @@ class EnvWebhooksView(View):
         page_data = query_data
         pre_webhooks = []
         post_webhooks = []
-        for key, value in page_data.iteritems():
+        for key, value in page_data.items():
             if key.startswith('url_'):
                 label = key.split('_')[1]
                 body = "body_%s" % label

@@ -1,17 +1,14 @@
 package com.pinterest.deployservice.handler;
 
 
-import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.common.CommonUtils;
-import com.pinterest.deployservice.dao.AgentDAO;
-import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.dao.HostAgentDAO;
-import com.pinterest.deployservice.dao.HostTagDAO;
-import com.pinterest.deployservice.handler.HostHandler;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.HostAgentDAO;
+import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.HostTagDAO;
 
 public class HostHandler {
     private static final Logger LOG = LoggerFactory.getLogger(HostHandler.class);
@@ -27,15 +24,36 @@ public class HostHandler {
         hostTagDAO = serviceContext.getHostTagDAO();
     }
 
-    public void removeHost(String hostId) throws Exception {
+    public void removeHost(String hostId) {
+        boolean hasException = false;
+        try {
+            agentDAO.deleteAllById(hostId);
+        } catch (Exception e) {
+            hasException = true;
+            LOG.error("Failed to remove host record from agent - " + hostId, e);
+        }
+        try {
+            hostTagDAO.deleteByHostId(hostId);
+        } catch (Exception e) {
+            hasException = true;
+            LOG.error("Failed to remove host record from hostTag - " + hostId, e);
+        }
+        try {
+            hostAgentDAO.delete(hostId);
+        } catch (Exception e) {
+            hasException = true;
+            LOG.error("Failed to remove host record from hostAgent - " + hostId, e);
+        }
         try {
             hostDAO.deleteAllById(hostId);
-            agentDAO.deleteAllById(hostId);
-            hostTagDAO.deleteByHostId(hostId);
-            hostAgentDAO.delete(hostId);
-            LOG.info("Removed all records for the host {}", hostId);
         } catch (Exception e) {
-            LOG.error("Failed to remove all records for the host {}, exception: {}", hostId, e);
+            hasException = true;
+            LOG.error("Failed to remove host record from host - " + hostId, e);
+        }
+
+        if (!hasException) {
+            LOG.info("Removed all records for host {}", hostId);
         }
     }
+
 }

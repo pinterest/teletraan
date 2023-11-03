@@ -16,13 +16,13 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic import View
 import logging
-from helpers import environs_helper, agents_helper, autoscaling_groups_helper
-from helpers import environ_hosts_helper, hosts_helper
+from .helpers import environs_helper, agents_helper, autoscaling_groups_helper
+from .helpers import environ_hosts_helper, hosts_helper
 from deploy_board.settings import IS_PINTEREST, CMDB_API_HOST, CMDB_INSTANCE_URL, CMDB_UI_HOST, PHOBOS_URL
 from datetime import datetime
 import pytz
 import requests
-import common
+from . import common
 requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
@@ -71,6 +71,12 @@ def get_show_terminate(hosts):
 def get_host_id(hosts):
     if hosts:
         return hosts[0].get('hostId')
+    return None
+
+def get_account_id(hosts):
+    for host in hosts:
+        if host and host.get('accountId') and host.get('accountId') not in {'NULL', 'null'}:
+            return host.get('accountId')
     return None
 
 
@@ -123,6 +129,7 @@ class GroupHostDetailView(View):
     def get(self, request, groupname, hostname):
         hosts = hosts_helper.get_hosts_by_name(request, hostname)
         host_id = get_host_id(hosts)
+        account_id = get_account_id(hosts)
         asg = get_asg_name(request, hosts)
 
         show_terminate = get_show_terminate(hosts)
@@ -135,6 +142,7 @@ class GroupHostDetailView(View):
             'hostname': hostname,
             'hosts': hosts,
             'host_id': host_id,
+            'account_id': account_id,
             'agent_wrappers': agent_wrappers,
             'show_warning_message': show_warning_message,
             'asg_group': asg,
@@ -158,6 +166,7 @@ class HostDetailView(View):
 
         hosts = environ_hosts_helper.get_host_by_env_and_hostname(request, name, stage, hostname)
         host_id = get_host_id(hosts)
+        account_id = get_account_id(hosts)
         show_terminate = get_show_terminate(hosts)
         show_warning_message = not show_terminate
         asg = get_asg_name(request, hosts)
@@ -166,6 +175,7 @@ class HostDetailView(View):
             is_protected = autoscaling_groups_helper.is_hosts_protected(request, asg, [host_id])
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
+        agent_wrappers = sorted(agent_wrappers, key=lambda x: x["agent"]['lastUpdateDate'])
         host_details = get_host_details(host_id)
 
         termination_limit = environs_helper.get_env_by_stage(request, name, stage).get('terminationLimit')
@@ -176,6 +186,7 @@ class HostDetailView(View):
             'hostname': hostname,
             'hosts': hosts,
             'host_id': host_id,
+            'account_id': account_id,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
             'show_warning_message': show_warning_message,

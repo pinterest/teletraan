@@ -26,7 +26,7 @@ import yaml
 
 
 import json
-from deployd import IS_PINTEREST, PUPPET_SUCCESS_EXIT_CODES
+from deployd import IS_PINTEREST, PUPPET_SUCCESS_EXIT_CODES, REDEPLOY_MAX_RETRY
 from deployd.common.stats import TimeElapsed, create_sc_increment, create_sc_timing, send_statsboard_metric
 
 log = logging.getLogger(__name__)
@@ -214,11 +214,74 @@ def get_info_from_facter(keys):
         if output:
             return json.loads(output)
         else:
+            log.warn("Got empty output from facter by keys {}".format(keys))
             return None
     except:
-        log.error("Failed to get info from facter by keys {}".format(keys))
+        log.exception("Failed to get info from facter by keys {}".format(keys))
         return None
 
+
+def redeploy_check(labels, service):
+    max_retry = REDEPLOY_MAX_RETRY
+    for label in labels:
+        if "redeploy_max_retry" in label:
+            max_retry = int(label.split('=')[1])
+    retry_num = 0
+    file_name = "/mnt/deployd/" + service
+    if os.path.exists(file_name):
+        with open(file_name, mode="r") as f:
+            retry_num = int(f.readline())
+    if retry_num < max_retry:
+        with open(file_name, mode="w") as ff:
+            ff.write('%d' % (retry_num + 1))
+            return True
+    return False
+    
+def get_container_health_info(commit, service):
+    try:
+        log.info(f"Get health info for container with commit {commit}")
+        result = []
+        cmd = ['docker', 'ps', '--format', '{{.Image}};{{.Names}};{{.Labels}}']
+        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
+        if output:
+            lines = output.decode().strip().splitlines()
+            for line in lines:
+                if commit in line:
+                    parts = line.split(';')
+                    name = parts[1]
+                    try:
+                        command = ['docker', 'inspect', '-f', '{{.State.Health.Status}}', name]
+                        status = subprocess.run(command, check=True, stdout=subprocess.PIPE).stdout
+                        if status:
+                            status = status.decode().strip()
+                            if status == "unhealthy" and "redeploy_when_unhealthy=enabled" in parts[2]:
+                                labels = parts[2].split(',')
+                                if redeploy_check(labels, service) == True:
+                                    return "delete"
+                            result.append(f"{name}:{status}")
+                    except:
+                        continue
+            return ";".join(result) if result else None
+        else:
+            return None
+    except:
+        log.error(f"Failed to get container health info with commit {commit}")
+        return None
+
+
+def get_telefig_version():
+    if not IS_PINTEREST:
+        return None    
+    try:
+        cmd = ['configure-serviceset', '-v']
+        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
+        if output:
+            return output.decode().strip()
+        else:
+            return None
+    except:
+        log.error("Error when fetching teletraan configure manager version")
+        return None
 
 def check_not_none(arg, msg=None):
     if arg is None:

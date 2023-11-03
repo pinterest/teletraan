@@ -24,11 +24,11 @@ import json
 import logging
 import traceback
 
-from helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
+from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
                      specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper)
 from diff_match_patch import diff_match_patch
 from deploy_board import settings
-from helpers.exceptions import TeletraanException
+from .helpers.exceptions import TeletraanException
 
 log = logging.getLogger(__name__)
 
@@ -49,26 +49,26 @@ def group_landing(request):
         "disablePrevious": index <= 1,
         "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
     })
-    
+
 
 def get_group_names(request):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     group_names = autoscaling_groups_helper.get_env_group_names(request, index, size)
     return HttpResponse(json.dumps(group_names), content_type="application/json")
-    
-    
+
+
 def search_groups(request, group_name):
     index = int(request.GET.get('page_index', '1'))
     size = int(request.GET.get('page_size', DEFAULT_PAGE_SIZE))
     group_names = autoscaling_groups_helper.get_env_group_names(request, index, size, name_filter=group_name)
-    
+
     if not group_names:
         return redirect('/groups/')
 
     if len(group_names) == 1:
         return redirect('/groups/%s/' % group_names[0])
-    
+
     return render(request, 'groups/group_landing.html', {
     "group_names": group_names,
     "pageIndex": index,
@@ -76,7 +76,7 @@ def search_groups(request, group_name):
     "disablePrevious": index <= 1,
     "disableNext": len(group_names) < DEFAULT_PAGE_SIZE,
     })
-    
+
 
 def get_system_specs(request):
     instance_types = specs_helper.get_instance_types(request)
@@ -113,11 +113,11 @@ def get_launch_config(request, group_name):
 def get_group_config_internal(group_config):
     if group_config:
         if group_config.get("launchLatencyTh"):
-            group_config["launchLatencyTh"] = group_config.get("launchLatencyTh") / 60
+            group_config["launchLatencyTh"] = group_config.get("launchLatencyTh") // 60
         if group_config.get("healthcheckPeriod"):
-            group_config["healthcheckPeriod"] = group_config.get("healthcheckPeriod") / 60
+            group_config["healthcheckPeriod"] = group_config.get("healthcheckPeriod") // 60
         if group_config.get("lifecycleTimeout"):
-            group_config["lifecycleTimeout"] = group_config.get("lifecycleTimeout") / 60
+            group_config["lifecycleTimeout"] = group_config.get("lifecycleTimeout") // 60
         return group_config
     else:
         group_config = {}
@@ -265,6 +265,7 @@ def update_group_config(request, group_name):
         groupRequest["launchLatencyTh"] = int(params["launch_latency_th"]) * 60
         groupRequest["loadBalancers"] = params.get("load_balancers")
         groupRequest["targetGroups"] = params.get("target_groups")
+        groupRequest["runbookLink"] = params.get("runbook_link")
 
         if "healthcheck_state" in params:
             groupRequest["healthcheckState"] = True
@@ -282,7 +283,7 @@ def update_group_config(request, group_name):
         else:
             groupRequest["lifecycleNotifications"] = False
 
-        print groupRequest
+        print(groupRequest)
         autoscaling_groups_helper.update_group_info(request, group_name, groupRequest)
         return get_group_config(request, group_name)
     except:
@@ -491,7 +492,7 @@ def update_policy(request, group_name):
 def _parse_metrics_configs(query_data, group_name):
     page_data = dict(query_data.lists())
     configs = []
-    for key, value in page_data.iteritems():
+    for key, value in page_data.items():
         if not value:
             continue
         if key.startswith('TELETRAAN_'):
@@ -681,7 +682,7 @@ def get_group_size(request, group_name):
 
         if alarm_infos:
             alarm_infos = sorted(alarm_infos, key=lambda info: info["metricSource"])
-            for idx in xrange(len(alarm_infos)):
+            for idx in range(len(alarm_infos)):
                 alarm_info = alarm_infos[idx]
                 alarm_infos[idx]["actionType2"] = "UNKNOWN"
                 alarm_infos[idx]["threshold2"] = -1
@@ -799,6 +800,7 @@ def get_config_history(request, group_name):
         replaced_config = config["configChange"].replace(",", ", ").replace("#", "%23").replace("\"", "%22")\
             .replace("{", "%7B").replace("}", "%7D").replace("_", "%5F")
         config["replaced_config"] = replaced_config
+    excludedTypes = list(filter(None, request.GET.get("exclude", '').replace("%20", " ").split(",")))
 
     return render(request, 'groups/group_config_history.html', {
         "group_name": group_name,
@@ -807,12 +809,13 @@ def get_config_history(request, group_name):
         "pageSize": DEFAULT_PAGE_SIZE,
         "disablePrevious": index <= 1,
         "disableNext": len(configs) < DEFAULT_PAGE_SIZE,
+        "excludedTypes": excludedTypes
     })
 
 
 def _parse_config_comparison(query_dict):
     configs = {}
-    for key, value in query_dict.iteritems():
+    for key, value in query_dict.items():
         if key.startswith('chkbox_'):
             id = key[len('chkbox_'):]
             split_data = value.split('_')
@@ -824,7 +827,7 @@ def _parse_config_comparison(query_dict):
 def get_config_comparison(request, group_name):
     configs = _parse_config_comparison(request.POST)
     if len(configs) > 1:
-        ids = configs.keys()
+        ids = list(configs.keys())
         change1 = configs[ids[0]]
         change2 = configs[ids[1]]
 
@@ -1144,7 +1147,7 @@ def terminate_all_hosts(request, group_name):
 
             content = "{} hosts were marked for termination \n".format(len(response))
 
-            for id, status in response.iteritems():
+            for id, status in response.items():
                 if status == "UNKNOWN" or status == "FAILED":
                     failed_count += 1
                     failed_instance_ids.append(id)
@@ -1269,9 +1272,9 @@ def disable_scaling_down_event(request, group_name):
 
 def add_scheduled_actions(request, group_name):
     params = request.POST
-    
+
     # validate scheduled capacity against ASG config minimum and maximum size
-    asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name) 
+    asg_summary = autoscaling_groups_helper.get_autoscaling_summary(request, group_name)
     asg_minsize = int(asg_summary.get("minSize", -1))
     asg_maxsize = int(asg_summary.get("maxSize", -1)) # invalid value indicates no need to check
 
@@ -1286,7 +1289,7 @@ def add_scheduled_actions(request, group_name):
         schedule_action['clusterName'] = group_name
         schedule_action['schedule'] = params['schedule']
         schedule_action['capacity'] = params['capacity']
-       
+
         autoscaling_groups_helper.add_scheduled_actions(request, group_name, [schedule_action])
     except:
         log.error(traceback.format_exc())
@@ -1313,7 +1316,7 @@ def delete_scheduled_actions(request, group_name):
 def _parse_actions_configs(query_data, group_name):
     page_data = dict(query_data.lists())
     configs = []
-    for key, value in page_data.iteritems():
+    for key, value in page_data.items():
         if not value:
             continue
         if key.startswith('TELETRAAN_'):
@@ -1335,8 +1338,8 @@ def update_scheduled_actions(request, group_name):
     except:
         log.error(traceback.format_exc())
         return HttpResponse(json.dumps({'content': ""}), content_type="application/json")
-        
-        
+
+
 def get_terminating_hosts_by_group(request, group_name):
     data = groups_helper.get_terminating_by_group(request, group_name)
     return HttpResponse(json.dumps(data), content_type="application/json")

@@ -21,9 +21,9 @@ from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
 from django.views.generic import View
-import common
-from helpers import environs_helper, clusters_helper, autoscaling_groups_helper, placements_helper
-from helpers import baseimages_helper
+from .common import get_env_groups, get_all_stages
+from .helpers import environs_helper, clusters_helper, autoscaling_groups_helper, placements_helper
+from .helpers import baseimages_helper
 from deploy_board.settings import IS_PINTEREST
 
 
@@ -66,7 +66,7 @@ class EnvCapacityConfigView(View):
         if request.is_ajax():
             # return data for ajax calls
             hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
-            groups = common.get_env_groups(request, name, stage)
+            groups = get_env_groups(request, name, stage)
             if cluster_name in groups:
                 groups.remove(cluster_name)
             info = {
@@ -85,9 +85,9 @@ class EnvCapacityConfigView(View):
 
         # otherwise, return a page
         envs = environs_helper.get_all_env_stages(request, name)
-        stages, env = common.get_all_stages(envs, stage)
+        stages, env = get_all_stages(envs, stage)
         hosts = environs_helper.get_env_capacity(request, name, stage, capacity_type="HOST")
-        groups = common.get_env_groups(request, name, stage)
+        groups = get_env_groups(request, name, stage)
         if cluster_name in groups:
             groups.remove(cluster_name)
         data = {

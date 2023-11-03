@@ -16,8 +16,10 @@
 package com.pinterest.teletraan;
 
 
-import com.pinterest.deployservice.db.DBAgentDAOImpl;
+import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
+import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.db.DBAgentCountDAOImpl;
+import com.pinterest.deployservice.db.DBAgentDAOImpl;
 import com.pinterest.deployservice.db.DBAgentErrorDAOImpl;
 import com.pinterest.deployservice.db.DBBuildDAOImpl;
 import com.pinterest.deployservice.db.DBConfigHistoryDAOImpl;
@@ -27,8 +29,8 @@ import com.pinterest.deployservice.db.DBDeployDAOImpl;
 import com.pinterest.deployservice.db.DBEnvironDAOImpl;
 import com.pinterest.deployservice.db.DBGroupDAOImpl;
 import com.pinterest.deployservice.db.DBGroupRolesDAOImpl;
-import com.pinterest.deployservice.db.DBHostDAOImpl;
 import com.pinterest.deployservice.db.DBHostAgentDAOImpl;
+import com.pinterest.deployservice.db.DBHostDAOImpl;
 import com.pinterest.deployservice.db.DBHostTagDAOImpl;
 import com.pinterest.deployservice.db.DBHotfixDAOImpl;
 import com.pinterest.deployservice.db.DBPromoteDAOImpl;
@@ -38,20 +40,19 @@ import com.pinterest.deployservice.db.DBTagDAOImpl;
 import com.pinterest.deployservice.db.DBTokenRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUserRolesDAOImpl;
 import com.pinterest.deployservice.db.DBUtilDAOImpl;
-import com.pinterest.deployservice.events.DefaultEventSender;
+import com.pinterest.deployservice.events.EventBridgePublisher;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 import com.pinterest.deployservice.rodimus.DefaultRodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.deployservice.scm.SourceControlManager;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
+import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
-import com.pinterest.deployservice.allowlists.BuildAllowlistImpl;
-import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
-import com.pinterest.teletraan.config.EventSenderFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
+import com.pinterest.teletraan.universal.events.AppEventPublisher;
 import com.pinterest.teletraan.worker.AgentJanitor;
 import com.pinterest.teletraan.worker.AutoPromoter;
 import com.pinterest.teletraan.worker.BuildJanitor;
@@ -59,6 +60,7 @@ import com.pinterest.teletraan.worker.DeployJanitor;
 import com.pinterest.teletraan.worker.DeployTagWorker;
 import com.pinterest.teletraan.worker.HostTerminator;
 import com.pinterest.teletraan.worker.HotfixStateTransitioner;
+import com.pinterest.teletraan.worker.MetricsEmitter;
 import com.pinterest.teletraan.worker.SimpleAgentJanitor;
 import com.pinterest.teletraan.worker.StateTransitioner;
 
@@ -89,14 +91,13 @@ import java.util.concurrent.TimeUnit;
 public class ConfigHelper {
     private static final Logger LOG = LoggerFactory.getLogger(ConfigHelper.class);
     private static final int DEFAULT_PERIOD = 30;
-    private static final int DEFAULT_MAX_STALE_HOST_THRESHOLD = 600; // 10 mins
-    private static final int DEFAULT_MIN_STALE_HOST_THRESHOLD = 150;
-    private static final int DEFAULT_LAUNCH_LATENCY_THRESHOLD = 600;
+    private static final int DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS = 600; // 10 min
+    private static final int DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS = 150; // 2.5 min
+    private static final int DEFAULT_LAUNCH_LATENCY_THRESHOLD_SECONDS = 600;
     private static final String DEFAULT_DEPLOY_JANITOR_SCHEDULE = "0 30 3 * * ?";
     private static final String DEFAULT_BUILD_JANITOR_SCHEDULE = "0 40 3 * * ?";
     private static final int DEFAULT_MAX_DAYS_TO_KEEP = 180;
     private static final int DEFAULT_MAX_BUILDS_TO_KEEP = 1000;
-    private static final int DEFAULT_RESERVED_INSTANCE_COUNT = 100;
 
     public static TeletraanServiceContext setupContext(TeletraanServiceConfiguration configuration) throws Exception {
         TeletraanServiceContext context = new TeletraanServiceContext();
@@ -140,7 +141,7 @@ public class ConfigHelper {
 
         String defaultScmTypeName = configuration.getDefaultScmTypeName();
         List<SourceControlFactory> sourceControlConfigs = configuration.getSourceControlConfigs();
-        Map<String, SourceControlManager> managers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);;
+        Map<String, SourceControlManager> managers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for(SourceControlFactory scf : sourceControlConfigs) {
             SourceControlManager scm = scf.create();
             String type = scm.getTypeName();
@@ -148,11 +149,11 @@ public class ConfigHelper {
         }
         context.setSourceControlManagerProxy(new SourceControlManagerProxy(managers, defaultScmTypeName));
 
-        EventSenderFactory eventSenderFactory = configuration.getEventSenderFactory();
-        if (eventSenderFactory != null) {
-            context.setEventSender(eventSenderFactory.createEventSender());
+        AppEventFactory appEventFactory = configuration.getAppEventFactory();
+        if (appEventFactory != null) {
+            context.setAppEventPublisher(appEventFactory.createEventPublisher());
         } else {
-            context.setEventSender(new DefaultEventSender());
+            context.setAppEventPublisher(new AppEventPublisher(){});
         }
 
         RodimusFactory rodimusFactory = configuration.getRodimusFactory();
@@ -172,7 +173,8 @@ public class ConfigHelper {
         if (buildAllowlistFactory != null) {
             context.setBuildAllowlist(new BuildAllowlistImpl(buildAllowlistFactory.getValidBuildURLs(), buildAllowlistFactory.getTrustedBuildURLs(), buildAllowlistFactory.getsoxBuildURLs()));
         } else {
-            context.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>()));
+            context.setBuildAllowlist(new BuildAllowlistImpl(new ArrayList<>(), new ArrayList<>(),
+                new ArrayList<>()));
         }
 
         JenkinsFactory jenkinsFactory = configuration.getJenkinsFactory();
@@ -197,6 +199,9 @@ public class ConfigHelper {
             context.setPingRequestValidators(validators);
         }
 
+        if (configuration.getAwsFactory() != null) {
+            context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient(), configuration.getAwsFactory().getEventBridgeEventBusName()));
+        }
 
         /**
          Lastly, let us create the in-process background job executor, all transient, long
@@ -209,7 +214,7 @@ public class ConfigHelper {
          unit - the time unit for the keepAliveTime argument
          workQueue - the queue to use for holding tasks before they are executed. This queue will hold only the Runnable tasks submitted by the execute method.
          */
-        // TODO make the thread configrable
+        // TODO make the thread configurable
         ExecutorService jobPool = new ThreadPoolExecutor(1, 10, 30, TimeUnit.SECONDS, new LinkedBlockingQueue<>());
         context.setJobPool(jobPool);
 
@@ -255,8 +260,10 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(SimpleAgentJanitor.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold", DEFAULT_MIN_STALE_HOST_THRESHOLD);
-                int maxStaleHostThreshold = MapUtils.getIntValue(properties, "maxStaleHostThreshold", DEFAULT_MAX_STALE_HOST_THRESHOLD);
+                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold",
+                        DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS);
+                int maxStaleHostThreshold = MapUtils.getIntValue(properties,
+                        "maxStaleHostThreshold", DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS);
                 Runnable worker = new SimpleAgentJanitor(serviceContext, minStaleHostThreshold, maxStaleHostThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled SimpleAgentJanitor.");
@@ -264,9 +271,12 @@ public class ConfigHelper {
 
             if (workerName.equalsIgnoreCase(AgentJanitor.class.getSimpleName())) {
                 ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold", DEFAULT_MIN_STALE_HOST_THRESHOLD);
-                int maxStaleHostThreshold = MapUtils.getIntValue(properties, "maxStaleHostThreshold", DEFAULT_MAX_STALE_HOST_THRESHOLD);
-                int maxLaunchLatencyThreshold = MapUtils.getIntValue(properties, "maxLaunchLaencyThreshold", DEFAULT_LAUNCH_LATENCY_THRESHOLD);
+                int minStaleHostThreshold = MapUtils.getIntValue(properties, "minStaleHostThreshold",
+                        DEFAULT_MIN_STALE_HOST_THRESHOLD_SECONDS);
+                int maxStaleHostThreshold = MapUtils.getIntValue(properties, "maxStaleHostThreshold",
+                        DEFAULT_MAX_STALE_HOST_THRESHOLD_SECONDS);
+                int maxLaunchLatencyThreshold = MapUtils.getIntValue(properties, "maxLaunchLatencyThreshold",
+                        DEFAULT_LAUNCH_LATENCY_THRESHOLD_SECONDS);
                 Runnable worker = new AgentJanitor(serviceContext, minStaleHostThreshold, maxStaleHostThreshold, maxLaunchLatencyThreshold);
                 scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.SECONDS);
                 LOG.info("Scheduled AgentJanitor.");
@@ -330,6 +340,12 @@ public class ConfigHelper {
                 LOG.info("Scheduled HostTerminator.");
             }
 
+            if (workerName.equalsIgnoreCase(MetricsEmitter.class.getSimpleName())) {
+                ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+                Runnable worker = new MetricsEmitter(serviceContext);
+                scheduler.scheduleAtFixedRate(worker, initDelay, period, TimeUnit.MINUTES);
+                LOG.info("Scheduled MetricsEmitter.");
+            }
         }
     }
 }

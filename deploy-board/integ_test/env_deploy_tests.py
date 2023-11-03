@@ -60,58 +60,58 @@ class TestDeploys(unittest.TestCase):
         # test regular deploy
         deploy1 = deploys_helper.deploy(commons.REQUEST, TestDeploys.envName, CANARY,
                                         TestDeploys.buildId1)
-        self.assertEquals(deploy1["envId"], TestDeploys.canaryEnvId)
-        self.assertEquals(deploy1["buildId"], TestDeploys.buildId1)
-        self.assertEquals(deploy1["type"], "REGULAR")
-        self.assertNotEquals(deploy1["acceptanceStatus"], "ACCEPTED")
-        self.assertEquals(deploy1["successTotal"], 0)
-        self.assertEquals(deploy1["failTotal"], 0)
-        self.assertEquals(deploy1["total"], 0)
+        self.assertEqual(deploy1["envId"], TestDeploys.canaryEnvId)
+        self.assertEqual(deploy1["buildId"], TestDeploys.buildId1)
+        self.assertEqual(deploy1["type"], "REGULAR")
+        self.assertNotEqual(deploy1["acceptanceStatus"], "ACCEPTED")
+        self.assertEqual(deploy1["successTotal"], 0)
+        self.assertEqual(deploy1["failTotal"], 0)
+        self.assertEqual(deploy1["total"], 0)
 
         deploy2 = deploys_helper.deploy(commons.REQUEST, TestDeploys.envName, CANARY,
                                         TestDeploys.buildId2)
-        self.assertEquals(deploy2["buildId"], TestDeploys.buildId2)
+        self.assertEqual(deploy2["buildId"], TestDeploys.buildId2)
         # test query
         envIds = [TestDeploys.canaryEnvId, commons.gen_random_num()]
         deployResult = deploys_helper.get_all(commons.REQUEST, envId=envIds, oldestFirst=True,
                                               pageIndex=1, pageSize=1)
-        self.assertEquals(deployResult["total"], 2)
+        self.assertEqual(deployResult["total"], 2)
         # TODO why we need truncated at all?
         self.assertTrue(deployResult["truncated"])
         deploys = deployResult["deploys"]
-        self.assertEquals(len(deploys), 1)
-        self.assertEquals(deploy1["id"], deploys[0]["id"])
+        self.assertEqual(len(deploys), 1)
+        self.assertEqual(deploy1["id"], deploys[0]["id"])
 
         # test pause and resume
         deploys_helper.pause(commons.REQUEST, TestDeploys.envName, CANARY)
         envState = environs_helper.get_env_by_stage(commons.REQUEST, TestDeploys.envName,
                                                     CANARY)['envState']
-        self.assertEquals(envState, "PAUSED")
+        self.assertEqual(envState, "PAUSED")
         deploys_helper.resume(commons.REQUEST, TestDeploys.envName, CANARY)
         envState = environs_helper.get_env_by_stage(commons.REQUEST, TestDeploys.envName,
                                                     CANARY)['envState']
-        self.assertEquals(envState, "NORMAL")
+        self.assertEqual(envState, "NORMAL")
 
         # test restart
         deploy3 = deploys_helper.restart(commons.REQUEST, TestDeploys.envName, CANARY)
-        self.assertEquals(deploy3["buildId"], TestDeploys.buildId2)
-        self.assertEquals(deploy3["type"], "RESTART")
+        self.assertEqual(deploy3["buildId"], TestDeploys.buildId2)
+        self.assertEqual(deploy3["type"], "RESTART")
 
         # test rollback
         deploy4 = deploys_helper.rollback(commons.REQUEST, TestDeploys.envName, CANARY,
                                           deploy1["id"])
-        self.assertEquals(deploy4["buildId"], TestDeploys.buildId1)
-        self.assertEquals(deploy4["type"], "ROLLBACK")
+        self.assertEqual(deploy4["buildId"], TestDeploys.buildId1)
+        self.assertEqual(deploy4["type"], "ROLLBACK")
 
         # test promote
         deploy5 = deploys_helper.promote(commons.REQUEST, TestDeploys.envName, PROD,
                                          deploy4["id"])
-        self.assertEquals(deploy5["envId"], TestDeploys.prodEnvId)
-        self.assertEquals(deploy5["buildId"], TestDeploys.buildId1)
-        self.assertEquals(deploy5["type"], "REGULAR")
-        self.assertEquals(deploy5["successTotal"], 0)
-        self.assertEquals(deploy5["failTotal"], 0)
-        self.assertEquals(deploy5["total"], 0)
+        self.assertEqual(deploy5["envId"], TestDeploys.prodEnvId)
+        self.assertEqual(deploy5["buildId"], TestDeploys.buildId1)
+        self.assertEqual(deploy5["type"], "REGULAR")
+        self.assertEqual(deploy5["successTotal"], 0)
+        self.assertEqual(deploy5["failTotal"], 0)
+        self.assertEqual(deploy5["total"], 0)
 
         # delete all the deploys
         deploys_helper.delete(commons.REQUEST, deploy1["id"])

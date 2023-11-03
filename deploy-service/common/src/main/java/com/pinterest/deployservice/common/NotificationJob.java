@@ -48,7 +48,7 @@ public final class NotificationJob implements Callable<Void> {
 
             if (!StringUtils.isEmpty(chatrooms)) {
                 LOG.info(String.format("Send message to %s", chatrooms));
-                commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow");
+                commonHandler.sendChatMessage(Constants.SYSTEM_OPERATOR, chatrooms, message, "yellow", "");
             }
         } catch (Throwable t) {
             LOG.error(String.format("%s: Failed to send notifications.", subject), t);

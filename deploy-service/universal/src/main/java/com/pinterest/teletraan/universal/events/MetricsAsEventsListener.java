@@ -1,0 +1,33 @@
+package com.pinterest.teletraan.universal.events;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Metrics;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
+
+@RequiredArgsConstructor
+public class MetricsAsEventsListener <E extends ResourceChangedEvent> implements AppEventListener<E> {
+    private final MeterRegistry registry;
+    private final Class<E> eventType;
+
+    public MetricsAsEventsListener(Class<E> eventType) {
+        this(Metrics.globalRegistry, eventType);
+    }
+
+    @Override
+    public void onEvent(ResourceChangedEvent event) {
+        String name = event.getResource();
+
+        Counter.builder(name)
+                .tag("operator", StringUtils.defaultString(event.getOperator()))
+                .tags(event.getTags())
+                .register(registry)
+                .increment();
+    }
+
+    @Override
+    public Class<E> getSupportedEventType() {
+        return eventType;
+    }
+}

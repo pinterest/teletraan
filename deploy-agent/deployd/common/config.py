@@ -285,3 +285,6 @@ class Config(object):
 
     def get_stage_type_key(self):
         return self.get_var('stage_type_key', None)
+
+    def get_facter_account_id_key(self):
+        return self.get_var('account_id_key', 'ec2_metadata.identity-credentials.ec2.info')

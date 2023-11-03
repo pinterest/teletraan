@@ -17,7 +17,7 @@ import traceback
 import json
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
-from helpers.exceptions import NotAuthorizedException, FailedAuthenticationException
+from .helpers.exceptions import NotAuthorizedException, FailedAuthenticationException
 
 logger = logging.getLogger(__name__)
 
@@ -32,13 +32,13 @@ class ExceptionHandlerMiddleware(object):
 
         # Error is displayed as a fragment over related feature area
         if request.is_ajax():
-            ajax_vars = {'success': False, 'error': exception.message}
+            ajax_vars = {'success': False, 'error': str(exception)}
             return HttpResponse(json.dumps(ajax_vars), content_type='application/javascript')
         else:
             # Not authorized
             if isinstance(exception, NotAuthorizedException):
                 return render(request, 'users/not_authorized.html', {
-                    "message": exception.message,
+                    "message": str(exception),
                 })
 
             elif isinstance(exception, FailedAuthenticationException):
@@ -47,6 +47,6 @@ class ExceptionHandlerMiddleware(object):
                 return HttpResponseRedirect("/")
 
             return render(request, 'error.html', {
-                'message': exception.message,
+                'message': str(exception),
                 'stacktrace': traceback.format_exc(),
             })

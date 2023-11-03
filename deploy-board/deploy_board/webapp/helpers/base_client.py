@@ -13,9 +13,8 @@
 # limitations under the License.
 import logging
 import requests
-from decorators import retry
-
-from exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
+from .decorators import retry
+from .exceptions import NotAuthorizedException, TeletraanException, FailedAuthenticationException, IllegalArgumentException
 requests.packages.urllib3.disable_warnings()
 
 DEFAULT_TIMEOUT = 30
@@ -48,37 +47,37 @@ class BaseClient(object):
 
             if response.status_code >= 400 and response.status_code < 600:
                 try:
-                    if "access_token=" in response.content:
-                        bad_text = response.content.split("access_token=")[1].split('"')[0].replace("\\", "")
-                        response.content = response.content.replace(bad_text, "ACCESS_TOKEN")
+                    if "access_token=" in response.text:
+                        bad_text = response.text.split("access_token=")[1].split('"')[0].replace("\\", "")
+                        response.text = response.text.replace(bad_text, "ACCESS_TOKEN")
                 except:
                     pass
 
             if response.status_code == 401:
                 raise FailedAuthenticationException(
                     "Oops! Teletraan was unable to authenticate you. Contact an environment ADMIN for "
-                    "assistance. " + response.content)
+                    "assistance. " + response.text)
 
             if response.status_code == 403:
                 raise NotAuthorizedException(
                     "Oops! You do not have the required permissions for this action. Contact an environment ADMIN for "
-                    "assistance. " + response.content)
+                    "assistance. " + response.text)
 
             if response.status_code == 400:
                 raise IllegalArgumentException(
-                    "Oops! It seems like Teletraan sent an illegal request. " + response.content)
+                    "Oops! It seems like Teletraan sent an illegal request. " + response.text)
 
             if response.status_code == 404:
                 log.info("Resource %s Not found" % path)
                 return None
 
             if 400 <= response.status_code < 600:
-                log.error("Backend return error %s" % response.content)
+                log.error("Backend return error %s" % response.text)
                 raise TeletraanException(
                     "Teletraan failed to call backend server."
-                    "Hint: %s, %s" % (response.status_code, response.content))
+                    "Hint: %s, %s" % (response.status_code, response.text))
 
-            if response.content:
+            if response.text:
                 return response.json()
 
             return None
@@ -99,7 +98,7 @@ class BaseClient(object):
 
     def gen_params(self, kwargs):
         params = {}
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if value:
                 params[key] = value
         return params

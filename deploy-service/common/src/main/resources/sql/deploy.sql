@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS hosts (
     last_update     BIGINT              NOT NULL,
     state           VARCHAR(32)         NOT NULL,
     can_retire      TINYINT(1)          NOT NULL DEFAULT 0,
+    account_id      VARCHAR(64),
     PRIMARY KEY    (host_id, group_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE UNIQUE INDEX rev_group_host_idx ON hosts (group_name, host_name);
@@ -170,6 +171,7 @@ CREATE TABLE IF NOT EXISTS agents (
     first_deploy   TINYINT(1)          NOT NULL DEFAULT 0,
     first_deploy_time     BIGINT,
     stage_start_date     BIGINT,
+    container_health_status VARCHAR(32) NOT NULL DEFAULT "",
     PRIMARY KEY    (host_id, env_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 CREATE INDEX agent_env_idx ON agents (env_id, host_name);

@@ -65,6 +65,7 @@ public class PingHandler {
     private static final Logger LOG = LoggerFactory.getLogger(PingHandler.class);
     private static final PingResponseBean NOOP;
     private static final Set<String> EMPTY_GROUPS;
+    private static final String PINTEREST_MAIN_AWS_ACCOUNT = "998131032990";
     //private static final long AGENT_COUNT_CACHE_TTL = 5 * 1000;
 
     static {
@@ -143,8 +144,9 @@ public class PingHandler {
     }
 
     // Keep host and group membership in sync
-    void updateHosts(String hostName, String hostIp, String hostId, Set<String> groups) throws Exception {
+    void updateHosts(String hostName, String hostIp, String hostId, Set<String> groups, String accountId) throws Exception {
         Set<String> recordedGroups = new HashSet<String>(hostDAO.getGroupNamesByHost(hostName));
+        String recordedAccountId = hostDAO.getAccountIdByHost(hostName);
 
         Set<String> groupsToAdd = new HashSet<String>();
         // Insert if not recorded
@@ -154,8 +156,11 @@ public class PingHandler {
                 groupsToAdd.add(group);
             }
         }
-        if (groupsToAdd.size() > 0) {
-            hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups);
+        
+        // if it is the main account, don't update it to avoid huge updates for existing hosts
+        // only update sub account id for existing hosts
+        if (groupsToAdd.size() > 0 || accountId != null && !accountId.equals(PINTEREST_MAIN_AWS_ACCOUNT) && !accountId.equals(recordedAccountId)) {
+            hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups, accountId);
         }
         
         // Remove if not reported
@@ -595,13 +600,14 @@ public class PingHandler {
         String hostName = pingRequest.getHostName();
         String asg = pingRequest.getAutoscalingGroup();
         Set<String> groups = this.shardGroups(pingRequest);
+        String accountId = pingRequest.getAccountId();
         //update agent version for host
         String agentVersion = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
         this.updateHostStatus(hostId, hostName, hostIp, agentVersion, asg);
 
         // update the host <-> groups mapping
-        this.updateHosts(hostName, hostIp, hostId, groups);
+        this.updateHosts(hostName, hostIp, hostId, groups, accountId);
 
         // Convert reports to map, keyed by envId
         Map<String, PingReportBean> reports = convertReports(pingRequest);

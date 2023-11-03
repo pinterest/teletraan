@@ -29,6 +29,7 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -38,7 +39,7 @@ public class DBHostDAOImpl implements HostDAO {
             "LEFT JOIN agent_errors ON agents.host_name=agent_errors.host_name WHERE hosts.host_id=?";
     private static final String UPDATE_HOST_BY_ID = "UPDATE hosts SET %s WHERE host_id=?";
     private static final String INSERT_HOST_TEMPLATE = "INSERT INTO hosts SET %s ON DUPLICATE KEY UPDATE %s";
-    private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, " +
+    private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, account_id=?, " +
             "state=IF(state!='%s' AND state!='%s' AND state!='%s', VALUES(state), state), " +
             "host_name=CASE WHEN host_name IS NULL THEN ? WHEN host_name=host_id THEN ? ELSE host_name END, " +
             "ip=CASE WHEN ip IS NULL THEN ? ELSE ip END";
@@ -51,8 +52,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String GET_HOST_BY_HOSTID = "SELECT * FROM hosts WHERE host_id=?";
     private static final String GET_HOSTS_BY_STATES = "SELECT * FROM hosts WHERE state in (?, ?, ?) GROUP BY host_id ORDER BY last_update";
     private static final String GET_GROUP_NAMES_BY_HOST = "SELECT group_name FROM hosts WHERE host_name=?";
-    private static final String GET_STALE_ENV_HOST = "SELECT DISTINCT hosts.* FROM hosts INNER JOIN hosts_and_envs ON hosts.host_name=hosts_and_envs.host_name WHERE hosts.last_update<?";
-    private static final String GET_STALE_HOST = "SELECT DISTINCT hosts.* FROM hosts WHERE hosts.last_update<?";
+    private static final String GET_STALE_AGENTLESS_HOST_IDS = "SELECT DISTINCT hosts.host_id FROM hosts LEFT JOIN hosts_and_agents ON hosts.host_id = hosts_and_agents.host_id WHERE hosts.last_update < ? AND hosts_and_agents.host_id IS NULL ORDER BY hosts.last_update DESC LIMIT ?";
     private static final String GET_HOST_NAMES_BY_GROUP = "SELECT host_name FROM hosts WHERE group_name=?";
     private static final String GET_HOST_IDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE group_name=?";
     private static final String GET_HOSTS_BY_ENVID = "SELECT h.* FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=? UNION DISTINCT SELECT hs.* FROM hosts hs INNER JOIN hosts_and_envs he ON he.host_name = hs.host_name WHERE he.env_id=?";
@@ -70,6 +70,7 @@ public class DBHostDAOImpl implements HostDAO {
             "GROUP BY x.host_id HAVING count(*) = (SELECT count(*) FROM agents y WHERE y.host_id = x.host_id) ORDER BY host_id";
     private static final String GET_NEW_HOSTIDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE can_retire=0 AND group_name=? AND state not in (?,?,?)";
     private static final String GET_TERMINATING_HOST_IDS_BY_GROUP = "SELECT DISTINCT host_id FROM hosts WHERE state in (?, ?, ?) AND group_name=?";
+    private static final String GET_ACCOUNTID_BY_HOSTNAME = "SELECT DISTINCT account_id FROM hosts WHERE host_name=?";
 
     private BasicDataSource dataSource;
 
@@ -110,11 +111,11 @@ public class DBHostDAOImpl implements HostDAO {
     }
 
     @Override
-    public void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames) throws Exception {
+    public void insertOrUpdate(String hostName, String ip, String hostId, String state, Set<String> groupNames, String accountId) throws Exception {
         long now = System.currentTimeMillis();
         //TODO need to refactoring this to be more generic to all columns, e.g. use genStringGroupClause() like the other DAOs
         // If state is PENDING_TERMINATE, PENDING_TERMINATE_NO_REPLACE or TERMINATING, do not overwrite its state
-        StringBuilder names = new StringBuilder("(host_id,group_name,create_date,last_update,state");
+        StringBuilder names = new StringBuilder("(host_id,group_name,create_date,last_update,state,account_id");
         if (hostName != null) {
             names.append(",host_name");
         }
@@ -135,6 +136,8 @@ public class DBHostDAOImpl implements HostDAO {
             sb.append(now);
             sb.append(",'");
             sb.append(state);
+            sb.append("','");
+            sb.append(accountId);
 
             if (hostName != null) {
                 sb.append("','");
@@ -151,7 +154,7 @@ public class DBHostDAOImpl implements HostDAO {
         sb.setLength(sb.length() - 1);
         new QueryRunner(dataSource).update(String.format(INSERT_UPDATE_TEMPLATE, names, sb.toString(),
                 HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                HostState.PENDING_TERMINATE_NO_REPLACE.toString()), ip, now, hostName, hostName, ip);
+                HostState.PENDING_TERMINATE_NO_REPLACE.toString()), ip, now, accountId, hostName, hostName, ip);
     }
 
     @Override
@@ -192,6 +195,12 @@ public class DBHostDAOImpl implements HostDAO {
         ResultSetHandler<List<HostBean>> h = new BeanListHandler<>(HostBean.class);
         return new QueryRunner(dataSource).query(GET_HOSTS_BY_STATES, h, HostState.PENDING_TERMINATE.toString(),
                 HostState.TERMINATING.toString(), HostState.PENDING_TERMINATE_NO_REPLACE.toString());
+    }
+
+    @Override
+    public List<String> getStaleAgentlessHostIds(long lastUpdateBefore, int limit) throws SQLException {
+        return new QueryRunner(dataSource).query(GET_STALE_AGENTLESS_HOST_IDS,
+                SingleResultSetHandlerFactory.<String>newListObjectHandler(), lastUpdateBefore, limit);
     }
 
     @Override
@@ -278,5 +287,11 @@ public class DBHostDAOImpl implements HostDAO {
         return new QueryRunner(dataSource).query(GET_TERMINATING_HOST_IDS_BY_GROUP,
         SingleResultSetHandlerFactory.<String>newListObjectHandler(), HostState.PENDING_TERMINATE.toString(),
                 HostState.TERMINATING.toString(), HostState.PENDING_TERMINATE_NO_REPLACE.toString(), groupName);
+    }
+
+    @Override
+    public String getAccountIdByHost(String hostName) throws Exception {
+        return new QueryRunner(dataSource).query(GET_ACCOUNTID_BY_HOSTNAME,
+                SingleResultSetHandlerFactory.<String>newObjectHandler(), hostName);
     }
 }

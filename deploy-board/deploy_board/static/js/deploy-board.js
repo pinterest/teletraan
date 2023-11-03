@@ -56,7 +56,7 @@ function getUrlParameter(sParam) {
     }
 }
 
-function getRemainingCapacity(capacityInfo, placementList) { 
+function getRemainingCapacity(capacityInfo, placementList) {
     if (!capacityInfo || !placementList) {
         return Infinity;
     }

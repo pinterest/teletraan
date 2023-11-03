@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,19 +18,20 @@ package com.pinterest.teletraan;
 import com.pinterest.teletraan.config.AnonymousAuthenticationFactory;
 import com.pinterest.teletraan.config.AuthenticationFactory;
 import com.pinterest.teletraan.config.AuthorizationFactory;
+import com.pinterest.teletraan.config.AwsFactory;
 import com.pinterest.teletraan.config.BuildAllowlistFactory;
 import com.pinterest.teletraan.config.ChatFactory;
 import com.pinterest.teletraan.config.DataSourceFactory;
 import com.pinterest.teletraan.config.DefaultChatFactory;
 import com.pinterest.teletraan.config.DefaultEmailFactory;
 import com.pinterest.teletraan.config.DefaultHostGroupFactory;
-import com.pinterest.teletraan.config.DefaultSourceControlFactory;
 import com.pinterest.teletraan.config.EmailFactory;
 import com.pinterest.teletraan.config.EmbeddedDataSourceFactory;
-import com.pinterest.teletraan.config.EventSenderFactory;
+import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.ExternalAlertsConfigFactory;
 import com.pinterest.teletraan.config.HostGroupFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
+import com.pinterest.teletraan.config.MicrometerMetricsFactory;
 import com.pinterest.teletraan.config.OpenAuthorizationFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
@@ -38,8 +39,8 @@ import com.pinterest.teletraan.config.SystemFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import io.dropwizard.Configuration;
+import io.dropwizard.health.conf.HealthConfiguration;
 
 import java.util.Collections;
 import java.util.List;
@@ -57,6 +58,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("authorization")
     @Valid
     private AuthorizationFactory authorizationFactory;
+
+    @JsonProperty("aws")
+    @Valid
+    private AwsFactory awsFactory;
 
     @JsonProperty("defaultScmTypeName")
     @Valid
@@ -80,7 +85,7 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     @Valid
     @JsonProperty("event")
-    private EventSenderFactory eventSenderFactory;
+    private AppEventFactory appEventFactory;
 
     @Valid
     @JsonProperty("workers")
@@ -110,6 +115,12 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     @JsonProperty("pingrequestvalidators")
     private List<String> pingRequestValidators;
+
+    @JsonProperty("health")
+    private HealthConfiguration healthConfiguration = new HealthConfiguration();
+
+    @Valid
+    private MicrometerMetricsFactory metricsFactory = new MicrometerMetricsFactory();
 
     public DataSourceFactory getDataSourceFactory() {
         if (dataSourceFactory == null) {
@@ -200,12 +211,12 @@ public class TeletraanServiceConfiguration extends Configuration {
         this.hostGroupFactory = hostGroupFactory;
     }
 
-    public EventSenderFactory getEventSenderFactory() {
-        return eventSenderFactory;
+    public AppEventFactory getAppEventFactory() {
+        return appEventFactory;
     }
 
-    public void setEventSenderFactory(EventSenderFactory eventSenderFactory) {
-        this.eventSenderFactory = eventSenderFactory;
+    public void setAppEventFactory(AppEventFactory appEventFactory) {
+        this.appEventFactory = appEventFactory;
     }
 
     public SystemFactory getSystemFactory() {
@@ -272,5 +283,31 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setDefaultScmTypeName(String defaultScmTypeName) {
         this.defaultScmTypeName = defaultScmTypeName;
+    }
+
+    public HealthConfiguration getHealthConfiguration() {
+        return healthConfiguration;
+    }
+
+    public void setHealthConfiguration(final HealthConfiguration healthConfiguration) {
+        this.healthConfiguration = healthConfiguration;
+    }
+
+    public AwsFactory getAwsFactory() {
+        return awsFactory;
+    }
+
+    public void setAwsFactory(AwsFactory awsFactory) {
+        this.awsFactory = awsFactory;
+    }
+
+    @JsonProperty("metrics")
+    public MicrometerMetricsFactory getMetricsFactory() {
+        return metricsFactory;
+    }
+
+    @JsonProperty("metrics")
+    public void setMetricsFactory(MicrometerMetricsFactory metrics) {
+        this.metricsFactory = metrics;
     }
 }

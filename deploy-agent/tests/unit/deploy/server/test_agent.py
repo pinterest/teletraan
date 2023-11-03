@@ -513,7 +513,7 @@ class TestDeployAgent(TestCase):
         agent = DeployAgent(client=client, estatus=estatus, conf=self.config,
                             executor=self.executor, helper=self.helper)
         agent.serve_build()
-        mock_create_sc.assert_called_once_with('deployd.stats.deploy.status', tags={
+        mock_create_sc.assert_called_once_with('deployd.stats.deploy.status.sum', tags={
                                                'first_run': False, 'deploy_stage': 'PRE_DOWNLOAD', 'env_name': 'abc', 'stage_name': 'beta', 'status_code': 'SUCCEEDED'})
         self.assertEqual(agent._curr_report.report.deployStage, DeployStage.PRE_DOWNLOAD)
         self.assertEqual(agent._curr_report.report.status, AgentStatus.SUCCEEDED)

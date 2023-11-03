@@ -16,12 +16,13 @@
 package com.pinterest.teletraan;
 
 import com.pinterest.teletraan.health.GenericHealthCheck;
-import com.pinterest.teletraan.health.HealthCheckController;
 import com.pinterest.teletraan.resource.Pings;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
+import io.dropwizard.health.conf.HealthConfiguration;
+import io.dropwizard.health.core.HealthCheckBundle;
 import io.dropwizard.setup.Bootstrap;
 
 public class TeletraanAgentService extends Application<TeletraanServiceConfiguration> {
@@ -38,7 +39,13 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
                         new EnvironmentVariableSubstitutor(false)
                 )
         );
-    }
+        bootstrap.addBundle(new HealthCheckBundle<TeletraanServiceConfiguration>() {
+            @Override
+            protected HealthConfiguration getHealthConfiguration(final TeletraanServiceConfiguration configuration) {
+                return configuration.getHealthConfiguration();
+            }
+        });
+        }
 
     @Override
     public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
@@ -49,8 +56,6 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
         environment.jersey().register(pings);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
-
-        environment.jersey().register(new HealthCheckController(environment.healthChecks()));
     }
 
     public static void main(String[] args) throws Exception {
