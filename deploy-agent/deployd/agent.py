@@ -125,7 +125,6 @@ class DeployAgent(object):
             self._executor = Executor(callback=PingServer(self), config=self._config)
         # include healthStatus info for each container
         if len(self._envs) > 0:
-            #need_to_delete = []
             for status in self._envs.values():
                 # for each service, we check the container health status
                 log.info(f"the current service is: {status.report.envName}")
@@ -134,14 +133,15 @@ class DeployAgent(object):
                         status.report.redeploy = 0
                     healthStatus = get_container_health_info(status.build_info.build_commit, status.report.envName, status.report.redeploy)
                     if healthStatus:
-                        if "reset" in healthStatus:
+                        
+                        if "redeploy" in healthStatus:
                             status.report.redeploy = int(healthStatus.split("-")[1])
                             status.report.wait = 0
-                            status.report.state = "RESET"
-                            status.report.containerHealthStatus = None
+                            status.report.state = "REDEPLOY"
+                            status.report.containerHealthStatus = healthStatus.split("-")[0]
                         else:
-                            status.report.state = None
                             status.report.containerHealthStatus = healthStatus
+                            status.report.state = None
                             if "unhealthy" not in healthStatus:
                                 if status.report.wait == None or status.report.wait > 5:
                                     status.report.redeploy = 0

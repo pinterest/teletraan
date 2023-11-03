@@ -251,7 +251,7 @@ def get_container_health_info(commit, service, redeploy):
                                 labels = parts[2].split(',')
                                 ret = redeploy_check(labels, service, redeploy)
                                 if ret > 0:
-                                    return "reset-" + str(ret)
+                                    return "redeploy-" + str(ret)
                             result.append(f"{name}:{status}")
                     except:
                         continue
