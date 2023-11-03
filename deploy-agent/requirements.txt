@@ -1,6 +1,6 @@
 -e .
 
-PyYAML==5.3.1
+PyYAML==5.4
 zipp==1.2.0
 configparser==4.0.2
 python-daemon==2.0.6
