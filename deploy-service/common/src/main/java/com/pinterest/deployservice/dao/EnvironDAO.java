@@ -45,6 +45,8 @@ public interface EnvironDAO {
 
     List<EnvironBean> getByName(String envName) throws Exception;
 
+    List<EnvironBean> getByBuildName(String buildName) throws Exception;
+
     EnvironBean getByStage(String envName, String envStage) throws Exception;
 
     EnvironBean getByCluster(String clusterName) throws Exception;

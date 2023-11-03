@@ -20,23 +20,39 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
+import com.pinterest.deployservice.bean.TagValue;
+import com.pinterest.deployservice.common.BadBuildNotificationJob;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.TagDAO;
+import com.pinterest.deployservice.dao.DeployDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
 
 public class BuildTagHandler extends TagHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(BuildTagHandler.class);
     private final TagDAO tagDAO;
     private final BuildDAO buildDAO;
+    private final EnvironDAO environDAO;
+    private final DeployDAO deployDAO;
+    private final ExecutorService jobPool;
+    private final CommonHandler commonHandler;
+    private final String deployBoardUrlPrefix;
 
     public BuildTagHandler(ServiceContext context) {
         this.tagDAO = context.getTagDAO();
         this.buildDAO = context.getBuildDAO();
+        this.environDAO = context.getEnvironDAO();
+        this.deployDAO = context.getDeployDAO();
+        this.jobPool = context.getJobPool();
+        this.commonHandler = new CommonHandler(context);
+        this.deployBoardUrlPrefix = context.getDeployBoardUrlPrefix();
     }
 
     @Override public TagBean createTag(TagBean tag, String operator) throws Exception {
@@ -53,6 +69,10 @@ public class BuildTagHandler extends TagHandler {
             LOG.info("Successfully tagged {} on build {} by {}. Tag id is {}", tag.getValue(),
                 tag.getTarget_id(), tag.getOperator(), tag.getId());
 
+            if (tag.getValue() == TagValue.BAD_BUILD) {
+                jobPool.submit(new BadBuildNotificationJob(build.getBuild_name(), this.deployBoardUrlPrefix, operator,
+                                            this.tagDAO, this.environDAO, this.deployDAO, this.buildDAO, commonHandler));
+            }
             return tagDAO.getById(tag.getId());
         } else {
             throw new DeployInternalException("Cannot find build {}", tag.getTarget_id());
