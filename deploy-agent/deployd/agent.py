@@ -137,8 +137,8 @@ class DeployAgent(object):
                         if "redeploy" in healthStatus:
                             status.report.redeploy = int(healthStatus.split("-")[1])
                             status.report.wait = 0
-                            status.report.state = "REDEPLOY"
-                            status.report.containerHealthStatus = healthStatus.split("-")[0]
+                            status.report.state = "RESET_BY_SYSTEM"
+                            status.report.containerHealthStatus = "unhealthy and redeploying"
                         else:
                             status.report.containerHealthStatus = healthStatus
                             status.report.state = None
