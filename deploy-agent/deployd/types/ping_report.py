@@ -63,6 +63,6 @@ class PingReport(object):
     def __str__(self):
         return "PingReport(deployId={}, envId={}, deployStage={}, status={}, " \
                "errorCode={}, errorMessage={}, failCount={}, extraInfo={}, " \
-               "deployAlias={}, containerHealthStatus={}, state={})".format(self.deployId, self.envId, self.deployStage,
+               "deployAlias={}, containerHealthStatus={}, agentState={})".format(self.deployId, self.envId, self.deployStage,
                                         self.status, self.errorCode, self.errorMessage,
                                         self.failCount, self.extraInfo, self.deployAlias, self.containerHealthStatus, self.state)
