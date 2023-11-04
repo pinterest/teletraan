@@ -252,8 +252,8 @@ public class GoalAnalyst {
     // What the new agent state should be, if this agent is not chosen to be deploy goal
     AgentState proposeNewAgentState(PingReportBean report, AgentBean agent) {
         AgentStatus status = report.getAgentStatus();
-        if (report.getAgentState() != null && report.getAgentState().equals("REDEPLOY")) {
-            agent.setState(AgentState.REDEPLOY);
+        if (report.getAgentState() != null && report.getAgentState().equals("RESET_BY_SYSTEM")) {
+            agent.setState(AgentState.RESET_BY_SYSTEM);
         }
 
         if (agent != null && agent.getState() == AgentState.STOP) {
@@ -276,10 +276,10 @@ public class GoalAnalyst {
             return AgentState.RESET;
         }
 
-        if (agent != null && agent.getState() == AgentState.REDEPLOY) {
+        if (agent != null && agent.getState() == AgentState.RESET_BY_SYSTEM) {
             // agent has been explicitly redeployed by deployd, do not override
-            // subsequent code would have to decide if need to override REDEPLOY state
-            return AgentState.REDEPLOY;
+            // subsequent code would have to decide if need to override RESET_BY_SYSTEM state
+            return AgentState.RESET_BY_SYSTEM;
         }
 
         if (status == AgentStatus.SUCCEEDED) {
@@ -627,11 +627,11 @@ public class GoalAnalyst {
                     return;
                 }
 
-                // Special case when agent state is REDEPLOY, start from beginning
-                if (updateBean.getState() == AgentState.REDEPLOY) {
+                // Special case when agent state is RESET_BY_SYSTEM, start from beginning
+                if (updateBean.getState() == AgentState.RESET_BY_SYSTEM) {
                     installNewUpdateBean(env, report, agent);
-                    LOG.debug("GoalAnalyst case 1.0.2 - host {} work on the same deploy {}, but agent state is REDEPLOY, set env {} as a goal candidate and start from beginning.",
-                        host, env.getDeploy_id(), envId);
+                    LOG.debug("GoalAnalyst case 1.0.2 - host {} work on the same deploy {}, but agent state is {}, set env {} as a goal candidate and start from beginning.",
+                        host, env.getDeploy_id(), AgentState.RESET_BY_SYSTEM, envId);
                     return;
                 }
 

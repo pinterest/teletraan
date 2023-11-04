@@ -24,8 +24,8 @@ package com.pinterest.deployservice.bean;
  *      Agent being paused by user manually
  * RESET:
  *      Agent should retry last failure
- * REDEPLOY:
- *      Agent should redeploy according to deployd
+ * RESET_BY_SYSTEM:
+ *      Agent triggers redeploy 
  * DELETE:
  *      Agent should delete its status file
  * UNREACHABLE:
@@ -39,7 +39,7 @@ public enum AgentState {
     PAUSED_BY_SYSTEM,
     PAUSED_BY_USER,
     RESET,
-    REDEPLOY,
+    RESET_BY_SYSTEM,
     DELETE,
     UNREACHABLE,
     STOP
