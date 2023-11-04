@@ -72,6 +72,7 @@ class PingRequest(object):
             ping_report["failCount"] = report.failCount
             ping_report["deployAlias"] = report.deployAlias
             ping_report["containerHealthStatus"] = report.containerHealthStatus
+            ping_report["agentState"] = report.state
             
             if report.extraInfo:
                 ping_report["extraInfo"] = \
