@@ -252,7 +252,7 @@ public class GoalAnalyst {
     // What the new agent state should be, if this agent is not chosen to be deploy goal
     AgentState proposeNewAgentState(PingReportBean report, AgentBean agent) {
         AgentStatus status = report.getAgentStatus();
-        if (report.getAgnetState() == AgentState.REDEPLOY) {
+        if (report.getAgentState() == AgentState.REDEPLOY) {
             agent.setState(AgentState.REDEPLOY);
         }
 
