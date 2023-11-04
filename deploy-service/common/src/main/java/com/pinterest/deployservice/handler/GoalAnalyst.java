@@ -253,9 +253,9 @@ public class GoalAnalyst {
     AgentState proposeNewAgentState(PingReportBean report, AgentBean agent) {
         AgentStatus status = report.getAgentStatus();
         if (report.getAgnetState() == AgentState.REDEPLOY) {
-            agent.setState(AgentState.REDEPLOY)
+            agent.setState(AgentState.REDEPLOY);
         }
-        
+
         if (agent != null && agent.getState() == AgentState.STOP) {
             // agent has been explicitly STOP, do not override
             if (agent.getDeploy_stage() == DeployStage.STOPPING && FATAL_AGENT_STATUSES.contains(status)) {
