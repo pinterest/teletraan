@@ -146,6 +146,7 @@ class DeployAgent(object):
                 except Exception:
                     status.report.containerHealthStatus = None
                     log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
+                    # Report error
                     continue
             for item in need_to_delete:
                 del self._envs[item]
@@ -159,6 +160,7 @@ class DeployAgent(object):
             if report.status_code != AgentStatus.SUCCEEDED:
                 self._update_ping_reports(deploy_report=report)
                 self._client.send_reports(self._envs)
+                # Report error
                 return
 
         while self._response and self._response.opCode and self._response.opCode != OpCode.NOOP:
@@ -190,6 +192,7 @@ class DeployAgent(object):
             self._send_deploy_status_stats(deploy_report)
 
             if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
+                # Report error
                 return
                 
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
@@ -197,6 +200,7 @@ class DeployAgent(object):
                                              AgentStatus.SCRIPT_TIMEOUT]:
                 log.error('Unexpeted exceptions: {}, error message {}'.format(
                     deploy_report.status_code, deploy_report.output_msg))
+                # Report error
                 return
 
         self.clean_stale_builds()
@@ -205,6 +209,7 @@ class DeployAgent(object):
 
         if self._response:
             log.info('Complete the current deploy with response: {}.'.format(self._response))
+            # Report success
         else:
             log.info('Failed to get response from server, exit.')
 
@@ -232,8 +237,10 @@ class DeployAgent(object):
             else:
                 log.info("No status file. Could be first time agent ran")
             self.serve_build()
+            # Report success
         except Exception:
             log.exception("Deploy Agent got exceptions: {}".format(traceback.format_exc()))
+            # Report failure
 
     def _resolve_deleted_env_name(self, envName, envId):
         # When server return DELETE goal, the envName might be empty if the env has already been

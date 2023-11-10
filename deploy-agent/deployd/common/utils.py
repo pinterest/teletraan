@@ -266,6 +266,7 @@ def get_container_health_info(commit, service):
             return None
     except:
         log.error(f"Failed to get container health info with commit {commit}")
+        # Report failure
         return None
 
 

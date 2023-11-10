@@ -88,7 +88,9 @@ class EnvStatus(object):
             return True
         except IOError as e:
             log.warning("Could not write to {}. Reason: {}".format(self._status_fn, e))
+            # Report error
             return False
         except Exception:
             log.error(traceback.format_exc())
+            # Report error
             return False
