@@ -1,3 +1,4 @@
+{% load utils %}
 <div class="modal fade" id="addStageModalId" tabindex="-1" role="dialog"
      aria-labelledby="addStageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -23,6 +24,38 @@
                                    data-placement="right"
                                    data-trigger="manual"
                                    title="Letters, numbers, underscores, and hyphens [A-Za-z0-9_-] only.">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="stageType" class="deployToolTip control-label col-xs-2"
+                            title="Determines the version of infrastructure services deployed on the hosts in this environment-stage.">
+                            Stage Type
+                        </label>
+                        <div class ="col-xs-6">
+                            <div class="input-group">
+                                <select class="form-control" name="stageType" data-toggle="tooltip"  data-placement="right"
+                                data-trigger="manual" title="Select a value that is not DEFAULT" required="required">
+                                    {% get_stage_types as stageTypes %}
+                                    {% for stageType in stageTypes %}
+                                    {% if env.stageType == stageType %}
+                                    <option value="{{ stageType }}" selected="selected">{{ stageType }}</option>
+                                    {% else %}
+                                    <option value="{{ stageType }}">{{ stageType }}</option>
+                                    {% endif %}>
+                                    {% endfor %}
+                                </select>
+                                <span v-if="showHelp" class="input-group-btn">
+                                    <button class="deployToolTip btn stage-type-btn-default" id="stage-type-btn-test" type="button" data-toggle="tooltip" title="click to see more information">
+                                        <span class="glyphicon glyphicon-question-sign"></span>
+                                    </button>
+                                </span>
+                            </div>
+                            <div class="col-xs-12" id="stageTypeHelpInfo" hidden="true">
+                                LATEST - Deploys the latest available build</br>
+                                CANARY - Deploy the build after TESTING</br>
+                                CONTROL - Deploy the commit as the production, used with CANARY</br>
+                                PRODUCTION - Deploy the commit to production
+                            </div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -71,10 +104,25 @@
                 $stageNameInput.tooltip("show");
                 e.preventDefault();
             })
+            var $stageTypeInput = $(this[name = "stageType"]);
+            validateInput($stageTypeInput.val(), validStageType, $.noop, function () {
+                $stageTypeInput.tooltip("show");
+                e.preventDefault();
+            })
         });
 
         $('#addStageModalId').on('hidden.bs.modal', function () {
             $('[data-toggle="tooltip"]').tooltip("destroy");
-        })
+
+            $('#stage-type-btn-test').click(function () {
+                if ($('#stageTypeHelpInfo').is(':visible')){
+                    $('#stageTypeHelpInfo').attr('hidden', 'true');
+                } else {
+                    $('#stageTypeHelpInfo').removeAttr('hidden');
+                }
+            });
+        });
+
+
     });
 </script>
