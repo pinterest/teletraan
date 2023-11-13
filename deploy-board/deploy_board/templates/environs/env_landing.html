@@ -278,44 +278,25 @@ $('#privateBldUploadBtnId button').click(function () {
 {% endif %}
 {% endif %}
 
-{% if not basic_cluster_info|canReplaceCluster %}
-    <div class="alert alert-info">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
+{% if lastClusterRefreshStatus %}
+    {% if lastClusterRefreshStatus.status == "Pending" or lastClusterRefreshStatus.status == "InProgress" %}
+    <div class="alert alert-info alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Info!</strong> This cluster is being refreshed. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
     </div>
-    <script>
-        $(function () {
-           var isReplacing = '{{ basic_cluster_info|canReplaceCluster }}';
-           if(isReplacing == 'False') {
-                // include this tmpl, meaning a cluster replace is going-on, need to check its progress
-                // update every 1 min, and execute now
-                function setIntervalAndExecute(fn, t) {
-                    fn();
-                    return(setInterval(fn, t));
-                }
-                var replaceStartTime = new Date().getTime();
-                var replaceProgressInterval = setIntervalAndExecute(function() {
-                    if(new Date().getTime() - replaceStartTime > 1800000) {  // if more than 30 mins, clear it
-                        console.log('cleared time interval');
-                        clearInterval(replaceProgressInterval);
-                    }
-                    $('#activeClusterReplaceId').load(
-                            '/env/{{ env.envName }}/{{ env.stageName }}/update_cluster_replace_progress/',
-                            function(response, status, xhr) {
-                                if(response == 'There is no on-going replacement.') {
-                                    clearInterval(replaceProgressInterval);
-                                    console.log('cleared time interval');
-                                    // hide the parent warning banner when replace finished as well
-                                    $('#activeClusterReplaceId').closest(".alert").alert('close');
-                                }
-                            }
-                    );
-                }, 60000);
-           }
-        });
-    </script>
-
+    {% elif lastClusterRefreshStatus.status == "Successful" %}
+    <div class="alert alert-success alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Success!</strong> This cluster was refreshed successfully at {{ lastClusterRefreshStatus.endTime|convertTimestamp }}. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+    </div>
+    {% elif lastClusterRefreshStatus.status == "Failed" %}
+    <div class="alert alert-warning alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Warning!</strong> This cluster was failed to be refreshed (or partially refreshed). Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+    </div>
+    {% endif %}
 {% endif %}
+
 
 {% include "message_banner.tmpl" %}
 {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
