@@ -1096,6 +1096,7 @@ def start_cluster_replacement(request, name, stage):
     log.info("Starting to replace cluster {0}".format(cluster_name))
 
     try:
+        perform_cluster_replacement_action(request, name, stage, 'resume', includeMessage=False)
         clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
         messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
     except TeletraanException as ex:
