@@ -359,7 +359,6 @@ class EnvLandingView(View):
                 break
 
         if env["stageType"] == "DEFAULT":
-            log.info(env)
             messages.add_message(request, messages.ERROR, "Please update the Stage Type to a value other than DEFAULT")
 
         if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:

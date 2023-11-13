@@ -260,8 +260,8 @@
                                 {% endif %}>
                                 {% endfor %}
                             </select>
-                            <span v-if="showHelp" class="input-group-btn">
-                                <button class="deployToolTip btn stage-type-btn-default" id="stage-type-btn-test" type="button" data-toggle="tooltip" title="click to see more information">
+                            <span class="input-group-btn">
+                                <button class="deployToolTip btn stage-type-btn-default" id="stageTypeBtnId" type="button" data-toggle="tooltip" title="click to see more information">
                                     <span class="glyphicon glyphicon-question-sign"></span>
                                 </button>
                             </span>
@@ -356,7 +356,7 @@
             $('#resetEnvConfigBtnId').removeAttr('disabled');
         });
 
-        $('#stage-type-btn-test').click(function () {
+        $('#stageTypeBtnId').click(function () {
             if ($('#stageTypeHelpInfo').is(':visible')){
                 $('#stageTypeHelpInfo').attr('hidden', 'true');
             } else {

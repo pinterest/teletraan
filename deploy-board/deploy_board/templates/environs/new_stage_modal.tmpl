@@ -33,24 +33,20 @@
                         </label>
                         <div class ="col-xs-6">
                             <div class="input-group">
-                                <select class="form-control" name="stageType" data-toggle="tooltip"  data-placement="right"
+                                <select class="form-control" name="stageType" data-toggle="tooltip"  data-placement="left"
                                 data-trigger="manual" title="Select a value that is not DEFAULT" required="required">
                                     {% get_stage_types as stageTypes %}
                                     {% for stageType in stageTypes %}
-                                    {% if env.stageType == stageType %}
-                                    <option value="{{ stageType }}" selected="selected">{{ stageType }}</option>
-                                    {% else %}
                                     <option value="{{ stageType }}">{{ stageType }}</option>
-                                    {% endif %}>
                                     {% endfor %}
                                 </select>
-                                <span v-if="showHelp" class="input-group-btn">
-                                    <button class="deployToolTip btn stage-type-btn-default" id="stage-type-btn-test" type="button" data-toggle="tooltip" title="click to see more information">
+                                <span class="input-group-btn">
+                                    <button class="deployToolTip btn stage-type-btn-default" id="newStageTypeBtnId" type="button" data-toggle="tooltip" title="click to see more information">
                                         <span class="glyphicon glyphicon-question-sign"></span>
                                     </button>
                                 </span>
                             </div>
-                            <div class="col-xs-12" id="stageTypeHelpInfo" hidden="true">
+                            <div class="col-xs-12" id="newStageTypeHelpInfo" hidden="true">
                                 LATEST - Deploys the latest available build</br>
                                 CANARY - Deploy the build after TESTING</br>
                                 CONTROL - Deploy the commit as the production, used with CANARY</br>
@@ -104,25 +100,23 @@
                 $stageNameInput.tooltip("show");
                 e.preventDefault();
             })
-            var $stageTypeInput = $(this[name = "stageType"]);
-            validateInput($stageTypeInput.val(), validStageType, $.noop, function () {
-                $stageTypeInput.tooltip("show");
+            var $newStageTypeInput = $(this[name = "stageType"]);
+            validateInput($newStageTypeInput.val(), validStageType, $.noop, function () {
+                $newStageTypeInput.tooltip("show");
                 e.preventDefault();
             })
         });
 
         $('#addStageModalId').on('hidden.bs.modal', function () {
             $('[data-toggle="tooltip"]').tooltip("destroy");
-
-            $('#stage-type-btn-test').click(function () {
-                if ($('#stageTypeHelpInfo').is(':visible')){
-                    $('#stageTypeHelpInfo').attr('hidden', 'true');
-                } else {
-                    $('#stageTypeHelpInfo').removeAttr('hidden');
-                }
-            });
         });
 
-
+        $('#newStageTypeBtnId').click(function () {
+            if ($('#newStageTypeHelpInfo').is(':visible')){
+                $('#newStageTypeHelpInfo').attr('hidden', 'true');
+            } else {
+                $('#newStageTypeHelpInfo').removeAttr('hidden');
+            }
+        });
     });
 </script>
