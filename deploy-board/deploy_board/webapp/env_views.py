@@ -949,8 +949,7 @@ def post_add_stage(request, name):
                 try:
                     environs_helper.delete_nimbus_identifier(request, external_id)
                 except TeletraanException as detail:
-                    message = 'Also failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(
-                        external_id, detail)
+                    message = 'Also failed to delete Nimbus identifier {}. Please verify that identifier no longer exists, Error Message: {}'.format(external_id, detail)
                     log.error(message)
                     messages.add_message(request, messages.ERROR, message)
     else:
