@@ -8,10 +8,7 @@
 {% endblock %}
 
 
-
 {% block main %}
-{% include "environs/site_health.tmpl" with metricsKind="site" %}
-
 <div class="panel panel-default">
     {% include "panel_heading.tmpl" with panel_title="Ongoing Deployments" panel_body_id="onGoingDeployId" direction="down" %}
     <div id="onGoingDeployId" class="collapse in panel-body table-responsive">
