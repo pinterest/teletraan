@@ -120,7 +120,7 @@
 </div>
 
 {% if pinterest %}
-<script type="text/javascript" src='{% static "js/components/sharedcomponents.js"%}?changedate=2017.1.4.140000'></script>
+<script type="text/javascript" src='{% static "js/components/sharedcomponents.js" %}?changedate=2017.1.4.140000'></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
         {% verbatim %}
@@ -131,7 +131,10 @@
         <side-button styleclass="fa fa-database" :style="capacityStateStyle" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-calendar" v-bind:text="scalingActivitiesText" href="/groups/{{ env.envName }}-{{ env.stageName }}/scaling_activities" title="List all scaling activities for the group in the past."></side-button>
+        <side-button styleclass="fa fa-expand" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Configure autoscaling group"></side-button>
+    </div>
+    <div v-if="showCluster" class="row">
+        <side-button styleclass="fa fa-cog" v-bind:text="clusterSettingsText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/" title="Go to the cluster configuration page."></side-button>
     </div>
     <div v-if="!showCluster" id="groupsDiv">
     </div>
@@ -241,9 +244,13 @@ var capacityPanel = new Vue({
                         return "Capacity"
                     }
                 },
-                scalingActivitiesText: function() {
-                    return "Scaling Activities"
-                }
+                autoScalingSettingsText: function() {
+                    return "Auto Scaling Configuration"
+                },
+                clusterSettingsText: function() {
+                    return "Cluster Configuration"
+                },
+
             },
             mounted: function(){
                 if (!renderCapacity){
