@@ -5,98 +5,64 @@
 
 {% if report.showMode != "simple" %}
 <div class="panel panel-default">
-  <div class="panel-body">
-<div class="row">
-    {% if report.sortByTag %}
-        {% for tagValue, hostTags in host_tag_infos.items %}
-        <div class="panel panel-default table-responsive">
-            {% for agentStat in report.agentStats %}
-                {% for hostTag in hostTags %}
-                    {% if agentStat.agent.hostName == hostTag.hostName %}
-                        {% if report.showMode == "complete" or report.showMode == "compact" %}
-                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                        title="{{ agentStat | agentTip }}">
-                        {% if report.showMode != "compact" %}
-                        <small>{{ agentStat.agent.hostName }}</small>
-                        {% endif %}
-                        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                        </a>
-                        {% elif report.showMode == "primaryAcct" %}
-                        {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
-                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                        title="{{ agentStat | agentTip }}">              
-                        <small>{{ agentStat.agent.hostName }}</small>
-                        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                        </a>
-                        {% endif %}
-                        {% elif report.showMode == "subAcct" %}
-                        {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
-                        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                        title="{{ agentStat | agentTip }}">              
-                        <small>{{ agentStat.agent.hostName }}</small>
-                        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-                        </a>
-                        {% endif %}
-                        {% endif %}        
-                    {% endif %}
-                {% endfor %}
-            {% endfor %}
-        </div>
-        {% endfor %}
-    {% else %}
-        {% for agentStat in report.agentStats %}
-               {% if report.showMode == "complete" or report.showMode == "compact" %}
-               <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-               type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-               title="{{ agentStat | agentTip }}">
-               {% if report.showMode != "compact" %}
-               <small>{{ agentStat.agent.hostName }}</small>
-               {% endif %}
-               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-               </a>
-               {% elif report.showMode == "primaryAcct" %}
-               {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
-               <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-               type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-               title="{{ agentStat | agentTip }}">              
-               <small>{{ agentStat.agent.hostName }}</small>
-               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-               </a>
-               {% endif %}
-               {% elif report.showMode == "subAcct" %}
-               {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
-               <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-               type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-               title="{{ agentStat | agentTip }}">              
-               <small>{{ agentStat.agent.hostName }}</small>
-               <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-               </a>
-               {% endif %}
-               {% endif %}              
-        {% endfor %}
-    {% endif %}
+<div class="panel-body">
+    <div class="row">
+    {% for agentStat in report.agentStats %}
+        {% if report.showMode == "complete" or report.showMode == "compact" %}
+        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+        title="{{ agentStat | agentTip }}">
+            {% if report.showMode != "compact" %}
+        <small>{{ agentStat.agent.hostName }}</small>
+            {% endif %}
+        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+        </a>
+        {% elif report.showMode == "primaryAcct" %}
+            {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
+        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+        title="{{ agentStat | agentTip }}">              
+        <small>{{ agentStat.agent.hostName }}</small>
+        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+        </a>
+            {% endif %}
+        {% elif report.showMode == "subAcct" %}
+            {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
+        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+        title="{{ agentStat | agentTip }}">              
+        <small>{{ agentStat.agent.hostName }}</small>
+        <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+        </a>
+            {% endif %}
+        {% elif report.showMode == "containerStatus" %}
+        <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
+        type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+        title="{{ agentStat | agentTip }}">
+        <small>{{ agentStat.agent.hostName }}</small>
+        {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
+        </a>
+        {% endif %}              
+    {% endfor %}
 
-    <br><br>
-    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/failed/"
-       title="Click to see the details of all failed hosts">
-       <strong>Failed Hosts</strong>
-    </a>
-    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/"
-       title="Click to see the details of all the hosts">
-       <strong>All Details</strong>
-    </a>
-    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/sub_account/"
-       title="Click to see the details of all sub account hosts">
-       <strong>Sub Account Hosts</strong>
-    </a>
+        <br><br>
+        <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+            href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/failed/"
+            title="Click to see the details of all failed hosts">
+            <strong>Failed Hosts</strong>
+        </a>
+        <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+            href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/"
+            title="Click to see the details of all the hosts">
+            <strong>All Details</strong>
+        </a>
+        <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+        href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/sub_account/"
+        title="Click to see the details of all sub account hosts">
+        <strong>Sub Account Hosts</strong>
+        </a>
+    </div>
 </div>
-  </div>
 </div>
 {% endif %}
 
@@ -106,7 +72,7 @@
         <tr>
             <td class="col-lg-2">
                 <span class="deployToolTip" data-toggle="tooltip"
-                   title="New hosts being installed for the first time">
+                title="New hosts being installed for the first time">
                 <small>New Hosts</small>
                 </span>
             </td>
@@ -114,12 +80,15 @@
                 <small>
                     {% for agentStat in report.firstTimeAgentStats %}
                         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
-                           type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-                           title="{{ agentStat | agentTip }}">
-                           {% if report.showMode == "complete" %}
-                           <small>{{ agentStat.agent.hostName }}</small>
-                           {% endif %}
-                           <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                            type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
+                            title="{{ agentStat | agentTip }}">
+                            {% if report.showMode == "complete" %}
+                            <small>{{ agentStat.agent.hostName }}</small>
+                            {% endif %}
+                            <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
+                            {% if report.showMode == "containerStatus" %}
+                            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
+                            {% endif %}
                         </a>
                     {% endfor %}
                 </small>
@@ -127,7 +96,7 @@
             <td class="col-lg-1 text-right">
                 <small>
                 <a href="hosts/show?stage=TODO" class="deployToolTip" data-toggle="tooltip"
-                   title="Click to see more details">
+                    title="Click to see more details">
                     {{ report.firstTimeAgentStats|length }}
                 </a>
                 </small>
@@ -192,12 +161,12 @@
             {% for key, value in deployStat.stageDistMap.items %}
                 {% if display_stopping_hosts == "true" or key != "STOPPING" and key != "STOPPED" %}
                 <td class="text-right">
-                  <small>
-                  <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts?hostStage={{ key }}" class="deployToolTip" data-toggle="tooltip"
-                      title="Click to see more details">
-                      {{ value }}
-                  </a>
-                  </small>
+                    <small>
+                    <a href="/env/{{ report.envName }}/{{ report.stageName }}/{{ deployStat.deploy.id }}/hosts?hostStage={{ key }}" class="deployToolTip" data-toggle="tooltip"
+                        title="Click to see more details">
+                        {{ value }}
+                    </a>
+                    </small>
                 </td>
                 {% endif %}
             {% endfor %}
@@ -208,7 +177,7 @@
                 <small>{{ deployStat.total }}</small>
                 </a>
             </td>
-         </tr>
+        </tr>
         {% endfor %}
     </table>
 </div>
@@ -219,15 +188,15 @@
         <tr>
             <td class="col-lg-2">
                 <span class="deployToolTip" data-toggle="tooltip"
-                   title="Host is new to this env.">
+                    title="Host is new to this env.">
                 <small>New Hosts</small>
                 </span>
             </td>
             <td class="col-lg-10">
                 {% for host in report.provisioningHosts %}
                 <a href="/env/{{ env.envName }}/{{ env.stageName }}/host/{{ host.hostName }}"
-                   type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
-                   title="{{ host | hostTip }}">
+                    type="button" class="deployToolTip btn btn-xs {{ host | hostButton }} host-btn"
+                    title="{{ host | hostTip }}">
                 <small>{{ host.hostName }}</small>
                     <i class="fa fa-fw {{ host | hostIcon }}"></i>
                 </a>
@@ -235,7 +204,7 @@
             </td>
             <td class="col-lg-1 text-right">
                 <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/provision/" class="deployToolTip" data-toggle="tooltip"
-                   title="Click to see more details">
+                    title="Click to see more details">
                 <small>{{ report.provisioningHosts | length }}</small>
                 </a>
             </td>
@@ -250,22 +219,22 @@
         <tr>
             <td class="col-lg-2">
                 <span class="deployToolTip" data-toggle="tooltip"
-                   title="Host status is unknown to this env. If the host is terminated,
-                   remove it from this env manually.">
+                    title="Host status is unknown to this env. If the host is terminated,
+                    remove it from this env manually.">
                 <small>Unknown Hosts</small>
                 </span>
             </td>
             <td class="col-lg-10">
                 {% for host in report.missingHosts %}
                 <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ host }}"
-                   type="button" class="btn btn-xs btn-warning">
+                    type="button" class="btn btn-xs btn-warning">
                 <small>{{ host }}</small>
                 </a>
                 {% endfor %}
             </td>
             <td class="col-lg-1 text-right">
                 <a href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/unknowns/" class="deployToolTip" data-toggle="tooltip"
-                   title="Click to see more details">
+                    title="Click to see more details">
                 <small>{{ report.missingHosts|length }}</small>
                 </a>
             </td>
@@ -275,10 +244,10 @@
 {% endif %}
 
 <div class="row text-right">
-     <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
-       href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/all/"
-       title="Click to see more details">
-       <small>Total Hosts: {{ report|reportTotal }}</small>
+    <a type="button" class="deployToolTip btn btn-xs" data-toggle="tooltip"
+        href="/env/{{ report.envName }}/{{ report.stageName }}/hosts/all/"
+        title="Click to see more details">
+        <small>Total Hosts: {{ report|reportTotal }}</small>
     </a>
 </div>
 {% endwith %}
