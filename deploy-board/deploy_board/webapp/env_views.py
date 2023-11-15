@@ -23,7 +23,7 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
-from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL,\
+from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL, \
     IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
@@ -109,6 +109,7 @@ def _fetch_param_with_cookie(request, param_name, cookie_name, default):
     saved_value = request.COOKIES.get(cookie_name, default)
     return request.GET.get(param_name, saved_value)
 
+
 def logging_status(request, name, stage):
 
     env = environs_helper.get_env_by_stage(request, name, stage)
@@ -134,6 +135,7 @@ def logging_status(request, name, stage):
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
+
 
 def check_logging_status(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
@@ -165,6 +167,7 @@ def check_logging_status(request, name, stage):
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
+
 
 def update_deploy_progress(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
@@ -210,11 +213,6 @@ def update_deploy_progress(request, name, stage):
         "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
         "pinterest": IS_PINTEREST
     }
-    sortByTag = _fetch_param_with_cookie(
-        request, 'sortByTag', MODE_COOKIE_NAME, None)
-    if sortByTag:
-        report.sortByTag = sortByTag
-        context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
 
     html = render_to_string('deploys/deploy_progress.tmpl', context)
 
@@ -225,6 +223,7 @@ def update_deploy_progress(request, name, stage):
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
+
 
 def update_service_add_ons(request, name, stage):
     serviceAddOns = []
@@ -261,6 +260,7 @@ def update_service_add_ons(request, name, stage):
     response = HttpResponse(html)
     return response
 
+
 def removeEnvCookie(request, name):
     if ENV_COOKIE_NAME in request.COOKIES:
         cookie = request.COOKIES[ENV_COOKIE_NAME]
@@ -276,6 +276,7 @@ def removeEnvCookie(request, name):
         return ','.join(names)
     else:
         return ""
+
 
 def genEnvCookie(request, name):
     if ENV_COOKIE_NAME in request.COOKIES:
@@ -395,6 +396,8 @@ class EnvLandingView(View):
                 if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
                     messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
 
+        lastClusterRefreshStatus = _getLastClusterRefreshStatus(request, env)
+
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
@@ -427,6 +430,7 @@ class EnvLandingView(View):
                 "project_name_is_default": project_name_is_default,
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
+                "lastClusterRefreshStatus": lastClusterRefreshStatus,
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -491,11 +495,8 @@ class EnvLandingView(View):
                 "project_name_is_default": project_name_is_default,
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
+                "lastClusterRefreshStatus": lastClusterRefreshStatus,
             }
-            sortByTag = request.GET.get('sortByTag', None)
-            if sortByTag:
-                report.sortByTag = sortByTag
-                context["host_tag_infos"] = environ_hosts_helper.get_host_tags(request, name, stage, sortByTag)
             response = render(request, 'environs/env_landing.html', context)
 
         # save preferences
@@ -504,6 +505,19 @@ class EnvLandingView(View):
         response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
         return response
+
+
+def _getLastClusterRefreshStatus(request, env):
+    try:
+        replace_summaries = clusters_helper.get_cluster_replacement_status(
+            request, data={"clusterName": '{}-{}'.format(env["envName"], env["stageName"])})
+
+        if len(replace_summaries["clusterRollingUpdateStatuses"]) == 0:
+            return None
+
+        return replace_summaries["clusterRollingUpdateStatuses"][0]
+    except:
+        return None
 
 
 def _compute_range(totalItems, thisPageIndex, totalItemsPerPage, totalPagesToShow):
@@ -902,6 +916,7 @@ class EnvNewDeployView(View):
         common.deploy(request, name, stage)
         return redirect('/env/%s/%s/deploy/' % (name, stage))
 
+
 def post_add_stage(request, name):
     """handler for creating a new stage depending on configuration (IS_PINTEREST, from_stage i.e. clone stage). """
     # TODO how to validate stage name
@@ -935,7 +950,7 @@ def post_add_stage(request, name):
     else:
         try:
             external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
-            common.create_simple_stage(request,name, stage, stage_type, description, external_id)
+            common.create_simple_stage(request, name, stage, stage_type, description, external_id)
         except TeletraanException as detail:
             message = 'Failed to create stage {}, Error Message: {}'.format(stage, detail)
             log.error(message)
@@ -949,6 +964,7 @@ def post_add_stage(request, name):
                     messages.add_message(request, messages.ERROR, message)
 
     return redirect('/env/' + name + '/' + stage + '/config/')
+
 
 def remove_stage(request, name, stage):
     # TODO so we need to make sure the capacity is empty???
@@ -1020,6 +1036,7 @@ def get_builds(request, name, stage):
         "show_lock": show_lock,
     })
     return HttpResponse(html)
+
 
 def get_groups(request, name, stage):
     groups = common.get_env_groups(request, name, stage)
@@ -1238,7 +1255,7 @@ def get_hosts(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
     if agents:
-        sorted(agents, key=lambda x:x['hostName'])
+        sorted(agents, key=lambda x: x['hostName'])
     title = "All hosts"
 
     agents_wrapper = {}
@@ -1298,11 +1315,15 @@ def pause_deploy(request, name, stage, host_id):
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
 # resume deploy stage for this env, this host
+
+
 def resume_deploy(request, name, stage, host_id):
     agents_helper.resume_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
 # pause hosts for this env and stage
+
+
 def pause_hosts(request, name, stage):
     post_params = request.POST
     host_ids = None
@@ -1313,6 +1334,8 @@ def pause_hosts(request, name, stage):
     return redirect('/env/{}/{}/'.format(name, stage))
 
 # resume hosts for this env and stage
+
+
 def resume_hosts(request, name, stage):
     post_params = request.POST
     host_ids = None
@@ -1323,6 +1346,8 @@ def resume_hosts(request, name, stage):
     return redirect('/env/{}/{}/'.format(name, stage))
 
 # reset hosts for this env and stage
+
+
 def reset_hosts(request, name, stage):
     post_params = request.POST
     host_ids = None
@@ -1416,7 +1441,7 @@ def get_sub_account_hosts(request, name, stage):
     stages, env = common.get_all_stages(envs, stage)
     agents = agents_helper.get_agents(request, env['envName'], env['stageName'])
     if agents:
-        sorted(agents, key=lambda x:x['hostName'])
+        sorted(agents, key=lambda x: x['hostName'])
     title = "Sub Account Hosts"
 
     # construct a map between host_id and account_id
@@ -1466,7 +1491,6 @@ def get_pred_deploys(request, name, stage):
                 deploy = deploys_helper.get(request, env['deployId'])
                 build = builds_helper.get_build(request, deploy['buildId'])
                 current_startDate = build['publishDate']
-
 
     deploy_wrappers = []
     for deploy in deploys:
@@ -1605,10 +1629,11 @@ def show_config_comparison(request, name, stage):
         "newChange": new_change,
     })
 
+
 def get_deploy_schedule(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     envs = environs_helper.get_all_env_stages(request, name)
-    schedule_id = env.get('scheduleId', None);
+    schedule_id = env.get('scheduleId', None)
     if schedule_id != None:
         schedule = schedules_helper.get_schedule(request, name, stage, schedule_id)
     else:
@@ -1620,6 +1645,7 @@ def get_deploy_schedule(request, name, stage):
         "schedule": schedule,
         "agent_number": agent_number,
     })
+
 
 class GenerateDiff(diff_match_patch):
     def old_content(self, diffs):
@@ -1765,12 +1791,14 @@ def compare_deploys_2(request, name, stage):
         "diffUrl": diffUrl,
     })
 
+
 def get_tag_message(request):
     envs_tag = tags_helper.get_latest_by_target_id(request, 'TELETRAAN')
     html = render_to_string('environs/tag_message.tmpl', {
         'envs_tag': envs_tag,
     })
     return HttpResponse(html)
+
 
 def update_schedule(request, name, stage):
     post_params = request.POST
@@ -1781,12 +1809,13 @@ def update_schedule(request, name, stage):
     schedules_helper.update_schedule(request, name, stage, data)
     return HttpResponse(json.dumps(''))
 
+
 def delete_schedule(request, name, stage):
     schedules_helper.delete_schedule(request, name, stage)
     return HttpResponse(json.dumps(''))
+
 
 def override_session(request, name, stage):
     session_num = request.GET.get('session_num')
     schedules_helper.override_session(request, name, stage, session_num)
     return HttpResponse(json.dumps(''))
-

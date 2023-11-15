@@ -213,31 +213,34 @@
                         <th>Remaining</th>
                         <th>Status</th>
                         <th>Reason</th>
+                        <th>Last Action</th>
+                        <th>At</th>
+                        <th>By</th>
                     </tr>
                     {% for replace_summary in replace_summaries %}
                     <tr>
                         <td>
-                            <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ replace_summary.id }}/details/" target="_blank">{{ replace_summary.id }}</a>
+                            <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ replace_summary.id }}/details/" target="_blank">{{ replace_summary.id | truncatechars:10 }}</a>
                         </td>
                         <td>
                             {% if replace_summary.startTime %}
                                 {{ replace_summary.startTime|convertTimestamp }}
+                            {% else %}
+                                _
                             {% endif %}
                         </td>
                         <td>
                             {% if replace_summary.endTime %}
                                 {{ replace_summary.endTime|convertTimestamp }}
+                             {% else %}
+                                _
                             {% endif %}
                         </td>
                         <td>
-                            {% if replace_summary.percentageComplete %}
-                                {{ replace_summary.percentageComplete }}%
-                            {% endif %}
+                            {{ replace_summary.percentageComplete|default_if_none:0 }}%
                         </td>
                         <td>
-                            {% if replace_summary.instancesToUpdate %}
-                                {{ replace_summary.instancesToUpdate }}
-                            {% endif %}
+                            {{ replace_summary.instancesToUpdate|default_if_none:0 }}
                         </td>
                         <td>
                             <span class="replaceToolTip pointer-cursor {{ replace_summary.status|replaceStatusIcon }}">
@@ -247,6 +250,27 @@
                         <td>
                             {% if replace_summary.statusReason %}
                                 {{ replace_summary.statusReason }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if replace_summary.clusterReplacementAuditTrails %}
+                                {% with replace_summary.clusterReplacementAuditTrails|first as latest %}
+                                    {{ latest.action }}
+                                {% endwith %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if replace_summary.clusterReplacementAuditTrails %}
+                                {% with replace_summary.clusterReplacementAuditTrails|first as latest %}
+                                    {{ latest.timestamp|convertTimestamp }}
+                                {% endwith %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if replace_summary.clusterReplacementAuditTrails %}
+                                {% with replace_summary.clusterReplacementAuditTrails|first as latest %}
+                                    {{ latest.operator }}
+                                {% endwith %}
                             {% endif %}
                         </td>
                     </tr>

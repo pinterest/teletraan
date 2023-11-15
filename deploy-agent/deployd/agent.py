@@ -126,20 +126,44 @@ class DeployAgent(object):
         # include healthStatus info for each container
         if len(self._envs) > 0:
             for status in self._envs.values():
-                # for each container, we check the health status
+                # for each service, we check the container health status
+                log.info(f"the current service is: {status.report.envName}")
                 try:
-                    healthStatus = get_container_health_info(status.build_info.build_commit)
+                    if status.report.redeploy == None:
+                        status.report.redeploy = 0
+                    healthStatus = get_container_health_info(status.build_info.build_commit, status.report.envName, status.report.redeploy)
                     if healthStatus:
-                        status.report.containerHealthStatus = healthStatus
+                        if "redeploy" in healthStatus:
+                            status.report.redeploy = int(healthStatus.split("-")[1])
+                            status.report.wait = 0
+                            status.report.state = "RESET_BY_SYSTEM"
+                            status.report.containerHealthStatus = None
+                        else:
+                            status.report.containerHealthStatus = healthStatus
+                            status.report.state = None
+                            if "unhealthy" not in healthStatus:
+                                if status.report.wait == None or status.report.wait > 5:
+                                    status.report.redeploy = 0
+                                    status.report.wait = 0
+                                else: 
+                                    status.report.wait = status.report.wait + 1
                     else:
+                        status.report.state = None
                         status.report.containerHealthStatus = None
                 except Exception:
+                    status.report.state = None
                     status.report.containerHealthStatus = None
                     log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
                     continue
             self._env_status.dump_envs(self._envs)
         # start to ping server to get the latest deploy goal
         self._response = self._client.send_reports(self._envs)
+        # we only need to send RESET once in one deploy-agent run 
+        if len(self._envs) > 0:
+            for status in self._envs.values():
+                if status.report.state == "RESET_BY_SYSTEM":
+                    status.report.state = None
+            self._env_status.dump_envs(self._envs)
 
         if self._response:
             report = self._update_internal_deploy_goal(self._response)

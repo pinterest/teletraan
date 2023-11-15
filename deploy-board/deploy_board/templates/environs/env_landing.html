@@ -120,7 +120,7 @@
 </div>
 
 {% if pinterest %}
-<script type="text/javascript" src='{% static "js/components/sharedcomponents.js"%}?changedate=2017.1.4.140000'></script>
+<script type="text/javascript" src='{% static "js/components/sharedcomponents.js" %}?changedate=2017.1.4.140000'></script>
 <div class="panel panel-default" id="capacityPanel">
     <div class="panel-heading clearfix">
         {% verbatim %}
@@ -131,7 +131,10 @@
         <side-button styleclass="fa fa-database" :style="capacityStateStyle" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-calendar" v-bind:text="scalingActivitiesText" href="/groups/{{ env.envName }}-{{ env.stageName }}/scaling_activities" title="List all scaling activities for the group in the past."></side-button>
+        <side-button styleclass="fa fa-expand" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Configure autoscaling group"></side-button>
+    </div>
+    <div v-if="showCluster" class="row">
+        <side-button styleclass="fa fa-cog" v-bind:text="clusterSettingsText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/" title="Go to the cluster configuration page."></side-button>
     </div>
     <div v-if="!showCluster" id="groupsDiv">
     </div>
@@ -241,9 +244,13 @@ var capacityPanel = new Vue({
                         return "Capacity"
                     }
                 },
-                scalingActivitiesText: function() {
-                    return "Scaling Activities"
-                }
+                autoScalingSettingsText: function() {
+                    return "Auto Scaling Configuration"
+                },
+                clusterSettingsText: function() {
+                    return "Cluster Configuration"
+                },
+
             },
             mounted: function(){
                 if (!renderCapacity){
@@ -278,44 +285,25 @@ $('#privateBldUploadBtnId button').click(function () {
 {% endif %}
 {% endif %}
 
-{% if not basic_cluster_info|canReplaceCluster %}
-    <div class="alert alert-info">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <strong>Warning!</strong> This environment stage has scheduled cluster rolling upgrade.
+{% if lastClusterRefreshStatus %}
+    {% if lastClusterRefreshStatus.status == "Pending" or lastClusterRefreshStatus.status == "InProgress" %}
+    <div class="alert alert-info alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Info!</strong> This cluster is being refreshed. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
     </div>
-    <script>
-        $(function () {
-           var isReplacing = '{{ basic_cluster_info|canReplaceCluster }}';
-           if(isReplacing == 'False') {
-                // include this tmpl, meaning a cluster replace is going-on, need to check its progress
-                // update every 1 min, and execute now
-                function setIntervalAndExecute(fn, t) {
-                    fn();
-                    return(setInterval(fn, t));
-                }
-                var replaceStartTime = new Date().getTime();
-                var replaceProgressInterval = setIntervalAndExecute(function() {
-                    if(new Date().getTime() - replaceStartTime > 1800000) {  // if more than 30 mins, clear it
-                        console.log('cleared time interval');
-                        clearInterval(replaceProgressInterval);
-                    }
-                    $('#activeClusterReplaceId').load(
-                            '/env/{{ env.envName }}/{{ env.stageName }}/update_cluster_replace_progress/',
-                            function(response, status, xhr) {
-                                if(response == 'There is no on-going replacement.') {
-                                    clearInterval(replaceProgressInterval);
-                                    console.log('cleared time interval');
-                                    // hide the parent warning banner when replace finished as well
-                                    $('#activeClusterReplaceId').closest(".alert").alert('close');
-                                }
-                            }
-                    );
-                }, 60000);
-           }
-        });
-    </script>
-
+    {% elif lastClusterRefreshStatus.status == "Successful" %}
+    <div class="alert alert-success alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Success!</strong> This cluster was refreshed successfully at {{ lastClusterRefreshStatus.endTime|convertTimestamp }}. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+    </div>
+    {% elif lastClusterRefreshStatus.status == "Failed" %}
+    <div class="alert alert-warning alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Warning!</strong> This cluster was failed to be refreshed (or partially refreshed). Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+    </div>
+    {% endif %}
 {% endif %}
+
 
 {% include "message_banner.tmpl" %}
 {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
@@ -432,6 +420,15 @@ $('#privateBldUploadBtnId button').click(function () {
                         > Sub Account
                         </label></div>
                     </li>
+                    <li>
+                        <div class="radio"><label>&nbsp;
+                        <input type="radio" name="showMode" value="containerStatus"
+                        {% if report.showMode == "containerStatus" %}
+                        checked
+                        {% endif %}
+                        > Container Status
+                        </label></div>
+                    </li>
                     <li role="presentation" class="divider"></li>
                     <li>
                         <div class="checkbox"><label>&nbsp;
@@ -474,7 +471,7 @@ $('#privateBldUploadBtnId button').click(function () {
             if(new Date().getTime() - startTime > 3600000) {
                 clearInterval(interval);
             }
-            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}&sortByTag={{ report.sortByTag }}');
+            $('#activeDeployId').load('/env/{{ env.envName }}/{{ env.stageName }}/update_deploy_progress/?showMode={{ report.showMode }}&sortByStatus={{ report.sortByStatus }}');
         }, 30000);
 
         $(".dropdown-menu li").click(function() {
