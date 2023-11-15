@@ -58,6 +58,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * This is where we handle agent ping and return deploy goal!
  */
@@ -601,6 +603,18 @@ public class PingHandler {
         String asg = pingRequest.getAutoscalingGroup();
         Set<String> groups = this.shardGroups(pingRequest);
         String accountId = pingRequest.getAccountId();
+
+        // go through ec2Tags
+        String ec2Tags = pingRequest.getEc2Tags();
+        LOG.debug("go through ec2 tags: {}", ec2Tags);
+        if (ec2Tags != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> tags = mapper.readValue(ec2Tags, Map.class);
+            for (Map.Entry<String, String> entry : tags.entrySet()) {
+                LOG.debug("key: {}, val: {}", entry.getKey(), entry.getValue());
+            }    
+        }
+           
         //update agent version for host
         String agentVersion = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
