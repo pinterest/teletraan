@@ -20,6 +20,7 @@ import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.deployservice.rodimus.RodimusManagerImpl;
 import com.pinterest.deployservice.knox.Knox;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
@@ -93,19 +94,15 @@ public class KnoxKeyTest {
             Assert.assertTrue("Unexpected exception: " + e, false);
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.NULL);
-            }
-        };
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
+        final Answer[] expected = {Answer.NULL};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     @Test
     public void terminateHostsByClusterName_ErrorOk() throws Exception {
         // Token does not work, refresh and retry, second try works
 
-        when(this.mockKnox.getPrimaryKey()).thenReturn(this.testKey[0], this.testKey[1], this.testKey[2], this.testKey[3]);
+        when(this.mockKnox.getPrimaryKey()).thenReturn(this.testKey[0], this.testKey[1]);
 
         when(this.mockHttpClient.delete(
                 Mockito.any(String.class),
@@ -126,8 +123,8 @@ public class KnoxKeyTest {
             fail("Unexpected exception: " + e);
         }
 
-        final List<Answer> cmpArray = Arrays.asList(Answer.EXCEPTION, Answer.NULL);
-        Assert.assertArrayEquals(cmpArray.toArray(), answerList.toArray());
+        final List<Answer> expected = Arrays.asList(Answer.EXCEPTION, Answer.NULL);
+        assertArrayEquals(expected.toArray(), answerList.toArray());
     }
 
     @Test
@@ -152,8 +149,8 @@ public class KnoxKeyTest {
             Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
         }
 
-        final List<Answer> cmpArray = Arrays.asList(Answer.EXCEPTION, Answer.EXCEPTION);
-        Assert.assertArrayEquals( cmpArray.toArray(), answerList.toArray());
+        final List<Answer> expected = Arrays.asList(Answer.EXCEPTION, Answer.EXCEPTION);
+        assertArrayEquals( expected.toArray(), answerList.toArray());
     }
 
     // ### getTerminatedHosts tests ###
@@ -174,20 +171,14 @@ public class KnoxKeyTest {
 
         this.postAnswerReturn = this.postAnswerArray;
 
-        Collection<String> res = null;
         try {
-            res = this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
+            this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
         } catch (Exception e) {
             Assert.assertTrue("Unexpected exception: " + e, false);
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.ARRAY);
-            }
-        };
-
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
+        final Answer[] expected = {Answer.ARRAY};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     @Test
@@ -206,26 +197,19 @@ public class KnoxKeyTest {
 
         this.postAnswerReturn = this.postAnswerArray;
 
-        Collection<String> res = null;
-
         Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
             this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
         });
         Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
 
         try {
-            res = this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
+            this.rodimusManager.getTerminatedHosts(Arrays.asList("i-001", "i-002"));
         } catch (Exception e) {
             Assert.assertTrue("Unexpected exception: " + e, false);
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.EXCEPTION);
-                add(Answer.ARRAY);
-            }
-        };
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
+        final Answer[] expected = {Answer.EXCEPTION, Answer.ARRAY};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     @Test
@@ -252,13 +236,8 @@ public class KnoxKeyTest {
             Assert.assertTrue(exception.getMessage().contains(msgUnauthException));
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.EXCEPTION);
-                add(Answer.EXCEPTION);
-            }
-        };
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
+        final Answer[] expected = {Answer.EXCEPTION, Answer.EXCEPTION};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     // ### getClusterInstanceLaunchGracePeriod tests
@@ -281,18 +260,13 @@ public class KnoxKeyTest {
         long res = 0;
         try {
             res = this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
+            Assert.assertEquals(res, (long) 10);
         } catch (Exception e) {
-            Assert.assertTrue("Unexpected exception: " + e, false);
+            fail("Unexpected exception: " + e);
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.LATENCY);
-            }
-        };
-
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
-        Assert.assertEquals(res, (long) 10);
+        final Answer[] expected = {Answer.LATENCY};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     @Test
@@ -313,26 +287,19 @@ public class KnoxKeyTest {
 
         this.postAnswerReturn = this.postAnswerArray;
 
-        long res = 0;
-
         Exception exception = Assert.assertThrows(DeployInternalException.class, () -> {
             this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
         });
         Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
 
         try {
-            res = this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
+            this.rodimusManager.getClusterInstanceLaunchGracePeriod("cluster");
         } catch (Exception e) {
-            Assert.assertTrue("Unexpected exception: " + e, false);
+            fail("Unexpected exception: " + e);
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.EXCEPTION);
-                add(Answer.LATENCY);
-            }
-        };
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
+        final Answer[] expected = {Answer.EXCEPTION, Answer.LATENCY};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     @Test
@@ -359,13 +326,8 @@ public class KnoxKeyTest {
             Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.EXCEPTION);
-                add(Answer.EXCEPTION);
-            }
-        };
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
+        final Answer[] expected = {Answer.EXCEPTION, Answer.EXCEPTION};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     // ### getEC2Tags tests ###
@@ -386,19 +348,14 @@ public class KnoxKeyTest {
 
         this.postAnswerReturn = this.postAnswerTag;
 
-        Map<String, Map<String, String>> res = null;
         try {
-            res = this.rodimusManager.getEc2Tags(Arrays.asList("i-001", "i-002"));
+            rodimusManager.getEc2Tags(Arrays.asList("i-001", "i-002"));
         } catch (Exception e) {
-            Assert.assertTrue("Unexpected exception: " + e, false);
+            fail("Unexpected exception: " + e);
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.ARRAY);
-            }
-        };
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
+        final Answer[] expected = {Answer.ARRAY};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     @Test
@@ -430,19 +387,12 @@ public class KnoxKeyTest {
             Assert.assertTrue("Unexpected exception: " + e, false);
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.EXCEPTION);
-                add(Answer.ARRAY);
-            }
-        };
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
-
+        final Answer[] expected = {Answer.EXCEPTION, Answer.ARRAY};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     @Test
     public void getEC2Tags_MultipleError() throws Exception {
-        // getEC2Tags
         // Token does not work, refresh does not offer new token
 
         when(this.mockKnox.getPrimaryKey()).thenReturn(this.testKey[0], this.testKey[0]);
@@ -465,30 +415,23 @@ public class KnoxKeyTest {
             Assert.assertTrue(exception.getMessage().contains("HTTP request failed, status"));
         }
 
-        final ArrayList<Answer> cmpArray = new ArrayList<Answer>() {
-            {
-                add(Answer.EXCEPTION);
-                add(Answer.EXCEPTION);
-            }
-        };
-        Assert.assertArrayEquals(this.answerList.toArray(), cmpArray.toArray());
+        final Answer[] expected = {Answer.EXCEPTION, Answer.EXCEPTION};
+        assertArrayEquals(expected, answerList.toArray());
     }
 
     // =======================================================
-
-// to test: methods: terminateHostsByClusterName         1
-//                   getTerminatedHosts                  2
-//                   getClusterInstanceLaunchGracePeriod 3
-//                   getEc2Tags                          4
-//          actions: token ok                                        1234
-//                     (everyday operation)
-//                   token error and retry ok                        1234
-//                     (expected behaviour when token changes)
-//                   token error and no new token given              1234
-//                     (do not try more than once with same token)
-//                   token error and new token does not work neither 1234
-//                     (do not try indefinitely)
-
+    // to test: methods: terminateHostsByClusterName         1
+    //                   getTerminatedHosts                  2
+    //                   getClusterInstanceLaunchGracePeriod 3
+    //                   getEc2Tags                          4
+    //          actions: token ok                                        1234
+    //                     (everyday operation)
+    //                   token error and retry ok                        1234
+    //                     (expected behaviour when token changes)
+    //                   token error and no new token given              1234
+    //                     (do not try more than once with same token)
+    //                   token error and new token does not work neither 1234
+    //                     (do not try indefinitely)
     // =======================================================
 
     // ### HELPER METHODS ###
