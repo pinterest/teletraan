@@ -17,11 +17,3 @@ function validName(name) {
     }
     return true;
 }
-
-function validStageType(stageType) {
-    // Valid if it is not DEFAULT
-    if (stageType == "DEFAULT") {
-        return false;
-    }
-    return true;
-}

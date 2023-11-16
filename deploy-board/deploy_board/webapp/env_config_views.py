@@ -102,8 +102,5 @@ class EnvConfigView(View):
         data["stageType"] = query_dict["stageType"]
         data["terminationLimit"] = query_dict["terminationLimit"]
 
-        if data["stageType"] == "DEFAULT":
-            raise ValueError("Please update the Stage Type to a value other than DEFAULT")
-
         environs_helper.update_env_basic_config(request, name, stage, data=data)
         return self.get(request, name, stage)

@@ -101,7 +101,7 @@
                     <div class="col-xs-4">
                         <input class="form-control" name="group_mention_recipients" required="false"
                                type="text" value="{{ env.groupMentionRecipients |default_if_none:'' }}"/>
-                    </div>
+                    </div>                    
                 </div>
                 <div class="form-group">
                     <label for="chatRecipients" class="deployToolTip control-label col-xs-2"
@@ -249,29 +249,16 @@
                         Stage Type (Immutable once set off the DEFAULT type)
                     </label>
                     <div class ="col-xs-4">
-                        <div class="input-group">
-                            <select class="form-control" name="stageType">
-                                {% get_stage_types as stageTypes %}
-                                {% for stageType in stageTypes %}
-                                {% if env.stageType == stageType %}
-                                <option value="{{ stageType }}" selected="selected">{{ stageType }}</option>
-                                {% else %}
-                                <option value="{{ stageType }}">{{ stageType }}</option>
-                                {% endif %}>
-                                {% endfor %}
-                            </select>
-                            <span class="input-group-btn">
-                                <button class="deployToolTip btn stage-type-btn-default" id="stageTypeBtnId" type="button" data-toggle="tooltip" title="click to see more information">
-                                    <span class="glyphicon glyphicon-question-sign"></span>
-                                </button>
-                            </span>
-                        </div>
-                        <div class="col-xs-12" id="stageTypeHelpInfo" hidden="true">
-                            LATEST - Deploy the latest available build</br>
-                            CANARY - Deploy the build after tests</br>
-                            CONTROL - Deploy the build as the production, used with CANARY</br>
-                            PRODUCTION - Deploy the build to production
-                        </div>
+                        <select class="form-control" name="stageType">
+                            {% get_stage_types as stageTypes %}
+                            {% for stageType in stageTypes %}
+                            {% if env.stageType == stageType %}
+                            <option value="{{ stageType }}" selected="selected">{{ stageType }}</option>
+                            {% else %}
+                            <option value="{{ stageType }}">{{ stageType }}</option>
+                            {% endif %}>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
                 {% if env.systemPriority != None %}
@@ -354,14 +341,6 @@
         $('#envConfigFormId textarea').keyup(function() {
             $('#saveEnvConfigBtnId').removeAttr('disabled');
             $('#resetEnvConfigBtnId').removeAttr('disabled');
-        });
-
-        $('#stageTypeBtnId').click(function () {
-            if ($('#stageTypeHelpInfo').is(':visible')){
-                $('#stageTypeHelpInfo').attr('hidden', 'true');
-            } else {
-                $('#stageTypeHelpInfo').removeAttr('hidden');
-            }
         });
 
         $('#saveEnvConfigBtnId').click(function () {
