@@ -24,8 +24,8 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
 import com.pinterest.deployservice.common.HTTPClient;
-import com.pinterest.deployservice.knox.FileSystemKnox;
-import com.pinterest.deployservice.knox.Knox;
+import com.pinterest.deployservice.common.KnoxKeyManager;
+import com.pinterest.deployservice.common.KnoxKeyReader;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ public class RodimusManagerImpl implements RodimusManager {
     private HTTPClient httpClient;
     private Map<String, String> headers;
     private Gson gson;
-    private Knox fsKnox = null;
+    private KnoxKeyReader knoxKeyReader = new KnoxKeyReader();
 
     public RodimusManagerImpl(String rodimusUrl, String knoxKey, boolean useProxy, String httpProxyAddr,
             String httpProxyPort) throws Exception {
@@ -72,7 +72,8 @@ public class RodimusManagerImpl implements RodimusManager {
         }
 
         if (knoxKey != null) {
-            this.fsKnox = new FileSystemKnox(knoxKey);
+            knoxKeyReader = new KnoxKeyReader();
+            knoxKeyReader.init(knoxKey);
         } else {
             throw new NullPointerException("Knox key is null");
         }
@@ -92,7 +93,7 @@ public class RodimusManagerImpl implements RodimusManager {
     }
 
     private void setAuthorization() throws Exception {
-        String knoxKey = new String(this.fsKnox.getPrimaryKey());
+        String knoxKey = knoxKeyReader.getKey();
         this.headers.put("Authorization", String.format("token %s", knoxKey));
     }
 
