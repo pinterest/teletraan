@@ -27,6 +27,9 @@ import com.pinterest.deployservice.common.HTTPClient;
 import com.pinterest.deployservice.common.KnoxKeyManager;
 import com.pinterest.deployservice.common.KnoxKeyReader;
 
+import io.netty.util.internal.StringUtil;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,11 +74,11 @@ public class RodimusManagerImpl implements RodimusManager {
             this.httpClient = new HTTPClient();
         }
 
+        knoxKeyReader = new KnoxKeyReader();
         if (knoxKey != null) {
-            knoxKeyReader = new KnoxKeyReader();
             knoxKeyReader.init(knoxKey);
         } else {
-            throw new NullPointerException("Knox key is null");
+            LOG.warn("Rodimus Knox key is null, this is only acceptable in test environment.");
         }
         this.gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
     }
@@ -94,6 +97,9 @@ public class RodimusManagerImpl implements RodimusManager {
 
     private void setAuthorization() throws Exception {
         String knoxKey = knoxKeyReader.getKey();
+        if (knoxKey == null) {
+            throw new IllegalStateException("Rodimus knoxKey is null");
+        }
         this.headers.put("Authorization", String.format("token %s", knoxKey));
     }
 
