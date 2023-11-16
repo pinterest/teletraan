@@ -359,6 +359,9 @@ class EnvLandingView(View):
                 stage_with_external_id = env_stage
                 break
 
+        if env["stageType"] == "DEFAULT":
+            messages.add_message(request, messages.ERROR, "Please update the Stage Type to a value other than DEFAULT")
+
         if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
             try:
                 existing_stage_identifier = environs_helper.get_nimbus_identifier(request, stage_with_external_id['externalId'])
@@ -919,6 +922,7 @@ def post_add_stage(request, name):
     # TODO how to validate stage name
     data = request.POST
     stage = data.get("stage")
+    stage_type = data.get("stageType")
     from_stage = data.get("from_stage")
     description = data.get("description")
 
@@ -931,7 +935,7 @@ def post_add_stage(request, name):
     if from_stage:
         try:
             external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
-            common.clone_from_stage_name(request, name, stage, name, from_stage, description, external_id)
+            common.clone_from_stage_name(request, name, stage, name, stage_type, from_stage, description, external_id)
         except TeletraanException as detail:
             message = 'Failed to create stage {}/{}: {}'.format(name, stage, detail)
             log.error(message)
@@ -946,7 +950,7 @@ def post_add_stage(request, name):
     else:
         try:
             external_id = environs_helper.create_identifier_for_new_stage(request, name, stage)
-            common.create_simple_stage(request, name, stage, description, external_id)
+            common.create_simple_stage(request, name, stage, stage_type, description, external_id)
         except TeletraanException as detail:
             message = 'Failed to create stage {}, Error Message: {}'.format(stage, detail)
             log.error(message)
