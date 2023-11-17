@@ -760,6 +760,7 @@ public class PingHandler {
         goal.setEnvId(envBean.getEnv_id());
         goal.setEnvName(envBean.getEnv_name());
         goal.setStageName(envBean.getStage_name());
+        LOG.debug("stage type: {}", envBean.getStage_type());
         goal.setStageType(envBean.getStage_type());
         goal.setIsDocker(envBean.getIs_docker());
 
