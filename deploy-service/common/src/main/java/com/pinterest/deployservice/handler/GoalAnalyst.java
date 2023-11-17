@@ -556,7 +556,7 @@ public class GoalAnalyst {
             if (tags.containsKey(tagName)) {
                 String tagValue = tags.get(tagName);
                 HostTagBean hostTagBean = hostTagDAO.get(host_id, tagName);
-                if (hostTagBean.getTag_value().equals(tagValue) == false) {
+                if (tagValue.equals(hostTagBean.getTag_value()) == false) {
                     hostTagBean.setTag_value(tagValue);
                     hostTagBean.setEnv_id(envId);
                     hostTagBean.setCreate_date(System.currentTimeMillis());
