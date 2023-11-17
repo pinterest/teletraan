@@ -23,6 +23,7 @@ class PingReport(object):
         self.envId = None
         self.envName = None
         self.stageName = None
+        self.StageType = None
         self.deployStage = None
         self.status = None
         self.errorCode = 0
@@ -50,6 +51,7 @@ class PingReport(object):
 
             self.envName = jsonValue.get('envName')
             self.stageName = jsonValue.get('stageName')
+            self.stageType = jsonValue.get('stageType')
             self.errorCode = jsonValue.get('errorCode')
             self.errorMessage = jsonValue.get('errorMessage')
             self.failCount = jsonValue.get('failCount')
