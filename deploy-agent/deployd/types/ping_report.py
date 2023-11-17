@@ -23,7 +23,7 @@ class PingReport(object):
         self.envId = None
         self.envName = None
         self.stageName = None
-        self.StageType = None
+        self.stageType = None
         self.deployStage = None
         self.status = None
         self.errorCode = 0
