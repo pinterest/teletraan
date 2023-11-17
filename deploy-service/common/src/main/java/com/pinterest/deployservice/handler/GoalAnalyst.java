@@ -556,13 +556,13 @@ public class GoalAnalyst {
             if (tags.containsKey(tagName)) {
                 String tagValue = tags.get(tagName);
                 HostTagBean hostTagBean = hostTagDAO.get(host_id, tagName);
-                hostTagBean.setHost_id(host_id);
-                hostTagBean.setTag_name(tagName);
-                hostTagBean.setTag_value(tagValue);
-                hostTagBean.setEnv_id(envId);
-                hostTagBean.setCreate_date(System.currentTimeMillis());
-                hostTagDAO.genInsertOrUpdate(hostTagBean);
-                LOG.debug("update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                if (hostTagBean.getTag_value().equals(tagValue) == false) {
+                    hostTagBean.setTag_value(tagValue);
+                    hostTagBean.setEnv_id(envId);
+                    hostTagBean.setCreate_date(System.currentTimeMillis());
+                    hostTagDAO.genInsertOrUpdate(hostTagBean);
+                    LOG.debug("update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                }      
             }         
         }
 
