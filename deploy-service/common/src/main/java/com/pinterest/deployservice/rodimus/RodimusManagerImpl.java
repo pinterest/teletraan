@@ -24,10 +24,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
 import com.pinterest.deployservice.common.HTTPClient;
-import com.pinterest.deployservice.common.KnoxKeyManager;
 import com.pinterest.deployservice.common.KnoxKeyReader;
-
-import io.netty.util.internal.StringUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -43,7 +40,7 @@ public class RodimusManagerImpl implements RodimusManager {
     private static final Logger LOG = LoggerFactory.getLogger(RodimusManagerImpl.class);
     private static final int RETRIES = 3;
 
-    private static enum Verb {
+    protected static enum Verb {
         GET, POST, DELETE
     };
 
@@ -74,11 +71,10 @@ public class RodimusManagerImpl implements RodimusManager {
             this.httpClient = new HTTPClient();
         }
 
-        knoxKeyReader = new KnoxKeyReader();
-        if (knoxKey != null) {
+        if (StringUtils.isNotBlank(knoxKey)) {
             knoxKeyReader.init(knoxKey);
         } else {
-            LOG.warn("Rodimus Knox key is null, this is only acceptable in test environment.");
+            LOG.warn("Rodimus Knox key is blank, this is only acceptable in test environment.");
         }
         this.gson = new GsonBuilder().addSerializationExclusionStrategy(new CustomExclusionStrategy()).create();
     }
@@ -121,7 +117,7 @@ public class RodimusManagerImpl implements RodimusManager {
         return res;
     }
 
-    private String callHttpClient(Verb verb, String url, String payload) throws Exception {
+    protected String callHttpClient(Verb verb, String url, String payload) throws Exception {
         setAuthorization();
         return switchHttpClient(verb, url, payload);
     }

@@ -134,7 +134,7 @@ public class KnoxKeyTest {
 
     @Test
     public void terminateHostsByClusterName_MultipleError() throws Exception {
-        // Token does not work, refresh does not offer new token
+        // Token does not work
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[0]);
 
         for (int i = 1; i <= 2; i++) {
@@ -170,7 +170,6 @@ public class KnoxKeyTest {
     @Test
     public void getTerminatedHosts_ErrorOk() throws Exception {
         // Token does not work, refresh and retry, second try works
-
         when(this.mockKnoxKeyReader.getKey()).thenReturn(this.testKey[0], this.testKey[1]);
         this.postAnswerReturn = postAnswerArray;
 
