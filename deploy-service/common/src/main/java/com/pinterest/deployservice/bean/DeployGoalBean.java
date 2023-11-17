@@ -25,7 +25,7 @@ public class DeployGoalBean {
     private String envId;
     private String envName;
     private String stageName;
-    private String stageType;
+    private EnvType stageType;
     private DeployStage deployStage;
     private BuildBean build;
     private String deployAlias;
@@ -66,11 +66,11 @@ public class DeployGoalBean {
         this.stageName = stageName;
     }
 
-    public String getStageType() {
+    public EnvType getStageType() {
         return stageType;
     }
 
-    public void setStageType(String stageType) {
+    public void setStageType(EnvType stageType) {
         this.stageType = stageType;
     }
 
