@@ -547,18 +547,14 @@ public class GoalAnalyst {
         }
 
         // update host_tags table
-        LOG.debug("ec2Tags: {}", ec2Tags);
         if (ec2Tags != null && env != null && env.getDeploy_constraint_id() != null) {
             String constraintId = env.getDeploy_constraint_id();
-            LOG.debug("constraint id: {}", constraintId);
             DeployConstraintBean deployConstraintBean = deployConstraintDAO.getById(constraintId);
             String tagName = deployConstraintBean.getConstraint_key();
-            LOG.debug("tag name: {}", tagName);
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> tags = mapper.readValue(ec2Tags, Map.class);
             if (tags.containsKey(tagName)) {
                 String tagValue = tags.get(tagName);
-                LOG.debug("tag value: {}", tagValue);
                 HostTagBean hostTagBean = hostTagDAO.get(host_id, tagName);
                 if (hostTagBean == null) {
                     hostTagBean = new HostTagBean();
@@ -567,12 +563,12 @@ public class GoalAnalyst {
                     hostTagBean.setTag_value(tagValue);
                     hostTagBean.setEnv_id(envId);
                     hostTagBean.setCreate_date(System.currentTimeMillis());
-                    hostTagDAO.genInsertOrUpdate(hostTagBean);
-                    LOG.debug("update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                    hostTagDAO.insertOrUpdate(hostTagBean);
+                    LOG.debug("insert host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
                 } else if (tagValue.equals(hostTagBean.getTag_value()) == false) {
                     hostTagBean.setTag_value(tagValue);
                     hostTagBean.setCreate_date(System.currentTimeMillis());
-                    hostTagDAO.genInsertOrUpdate(hostTagBean);
+                    hostTagDAO.insertOrUpdate(hostTagBean);
                     LOG.debug("update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
                 }      
             }         
