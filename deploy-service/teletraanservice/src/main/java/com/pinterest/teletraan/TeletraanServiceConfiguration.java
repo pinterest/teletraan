@@ -15,7 +15,14 @@
  */
 package com.pinterest.teletraan;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.validation.Valid;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.teletraan.config.AnonymousAuthenticationFactory;
+import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.AuthenticationFactory;
 import com.pinterest.teletraan.config.AuthorizationFactory;
 import com.pinterest.teletraan.config.AwsFactory;
@@ -27,7 +34,6 @@ import com.pinterest.teletraan.config.DefaultEmailFactory;
 import com.pinterest.teletraan.config.DefaultHostGroupFactory;
 import com.pinterest.teletraan.config.EmailFactory;
 import com.pinterest.teletraan.config.EmbeddedDataSourceFactory;
-import com.pinterest.teletraan.config.AppEventFactory;
 import com.pinterest.teletraan.config.ExternalAlertsConfigFactory;
 import com.pinterest.teletraan.config.HostGroupFactory;
 import com.pinterest.teletraan.config.JenkinsFactory;
@@ -38,13 +44,8 @@ import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.SystemFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.dropwizard.Configuration;
 import io.dropwizard.health.conf.HealthConfiguration;
-
-import java.util.Collections;
-import java.util.List;
-import javax.validation.Valid;
 
 public class TeletraanServiceConfiguration extends Configuration {
     @Valid
