@@ -31,6 +31,7 @@ public class KnoxKeyReader implements KeyReader {
 
     private String knoxKeyId;
     private KnoxKeyManager knoxManager;
+
     private final LoadingCache<String, Optional<String>> knoxCache;
 
     public KnoxKeyReader() {
@@ -44,6 +45,10 @@ public class KnoxKeyReader implements KeyReader {
                                 return Optional.fromNullable(getKeyInternal());
                             }
                         });
+    }
+
+    void setKnoxManager(KnoxKeyManager knoxManager) {
+        this.knoxManager = knoxManager;
     }
 
     public void init(String keyID) {
