@@ -47,8 +47,10 @@
                                 </span>
                             </div>
                             <div class="col-xs-12" id="newStageTypeHelpInfo" hidden="true">
+                                DEV - Used for manual testing</br>
                                 LATEST - Deploy the latest available build</br>
-                                CANARY - Deploy the build after tests</br>
+                                STAGING - Deploy the latest available artifacts from master, then verify with testing (integration, stress, smoke etc)</br>
+                                CANARY - Deploy the build after tests, then verify the ACA together with the CONTROL</br>
                                 CONTROL - Deploy the build as the production, used with CANARY</br>
                                 PRODUCTION - Deploy the build to production
                             </div>

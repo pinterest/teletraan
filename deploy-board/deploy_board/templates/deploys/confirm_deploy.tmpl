@@ -81,15 +81,6 @@
 <script>
     var stageType = $('#defaultStageTypeMessageId').attr('stagetype');
     $('#deployConfirmFormlId').submit(function (e) {
-        validateInput(stageType, validStageType, $.noop, function () {
-            e.preventDefault();
-        })
-        if (e.isDefaultPrevented()) {
-            $('#defaultStageTypeMessageId').show();
-            return;
-        } else {
-            $('#defaultStageTypeMessageId').hide();
-        }
         $(this).find('button[type=submit]').prop('disabled', 'disabled');
         $(this).find('button[type=submit]').text('Creating...');
     });
@@ -111,6 +102,8 @@
         } else {
             $('#privateBuildDeployMessageId').hide();
         }
+        validateInput(stageType, validStageType, $.noop, function () {
+            $('#defaultStageTypeMessageId').show();
+        });
     });
-
 </script>
