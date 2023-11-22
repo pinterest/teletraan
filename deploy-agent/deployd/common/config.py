@@ -4,9 +4,9 @@ from __future__ import print_function
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -246,7 +246,7 @@ class Config(object):
 
     def get_daemon_sleep_time(self):
         return self.get_intvar("daemon_sleep_time", 30)
-    
+
     def get_init_sleep_time(self):
         return self.get_intvar("init_sleep_time", 50)
 
@@ -269,7 +269,7 @@ class Config(object):
 
     def get_facter_group_key(self):
         return self.get_var('agent_group_key', None)
-    
+
     def get_verify_https_certificate(self):
         return self.get_var('verify_https_certificate', 'False')
 
