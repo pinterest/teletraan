@@ -16,7 +16,10 @@
 package com.pinterest.deployservice;
 
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.dbcp.BasicDataSource;
@@ -102,7 +105,7 @@ public class ServiceContext {
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
     private BuildEventPublisher buildEventPublisher;
-    private List<String> accountAllowList;
+    private Set<String> accountAllowList;
 
     // Publishers & Listeners
     private AppEventPublisher appEventPublisher;
@@ -470,11 +473,11 @@ public class ServiceContext {
         this.buildEventPublisher = buildEventPublisher;
     }
 
-    public List<String> getAccountAllowList() { 
+    public Set<String> getAccountAllowList() { 
         return accountAllowList;
     }
 
-    public void setAccountAllowList(List<String> accountAllowList) {
-        this.accountAllowList = accountAllowList;
+    public void setAccountAllowList(Collection<String> accountAllowList) {
+        this.accountAllowList = new HashSet<String>(accountAllowList);
     }
 }

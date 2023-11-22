@@ -1,4 +1,5 @@
 {% load utils %}
+{% load static %}
 <div class="modal fade" id="confirmDeployModalId" tabindex="-1" role="dialog"
      aria-labelledby="confirmDeployModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -21,6 +22,9 @@
                         </div>
                         <div id="privateBuildDeployMessageId" class="alert alert-warning" role="alert" hidden=true>
                             <strong>Notice: </strong> This build is private and should only be deployed in testing environments and not production environments
+                        </div>
+                        <div id="defaultStageTypeMessageId" class="alert alert-warning" role="alert" stagetype="{{env.stageType}}" hidden=true>
+                            <strong>Notice: </strong> This stage has a value of DEFAULT for the Stage Type. Please update the Stage Type to a value other than DEFAULT.
                         </div>
                         <div class="form-group">
                             <label for="description"
@@ -71,8 +75,21 @@
         </div>
     </div>
 </div>
+
+<script src="{% static "js/data-validation-helpers.js" %}"></script>
+
 <script>
-    $('#deployConfirmFormlId').submit(function () {
+    var stageType = $('#defaultStageTypeMessageId').attr('stagetype');
+    $('#deployConfirmFormlId').submit(function (e) {
+        validateInput(stageType, validStageType, $.noop, function () {
+            e.preventDefault();
+        })
+        if (e.isDefaultPrevented()) {
+            $('#defaultStageTypeMessageId').show();
+            return;
+        } else {
+            $('#defaultStageTypeMessageId').hide();
+        }
         $(this).find('button[type=submit]').prop('disabled', 'disabled');
         $(this).find('button[type=submit]').text('Creating...');
     });

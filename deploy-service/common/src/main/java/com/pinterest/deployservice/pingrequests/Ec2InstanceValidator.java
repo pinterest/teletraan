@@ -1,8 +1,8 @@
 package com.pinterest.deployservice.pingrequests;
 
-import java.util.List;
+import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,13 +15,13 @@ public class Ec2InstanceValidator extends PingRequestValidator {
     private static final Logger LOG = LoggerFactory.getLogger(MetricsDataFactory.class);
 
     @Override
-    public void validate(PingRequestBean bean, List<String> accountAllowList) throws Exception {
+    public void validate(PingRequestBean bean, Set<String> accountAllowList) throws Exception {
         // Validate instance for ec2
         if (!StringUtils.startsWith(bean.getHostId(), "i-")) {
             LOG.warn("Ignore invalid id {} for host {}", bean.getHostId(), bean.getHostName());
             throw new DeployInternalException(
-                    String.format("Host id %s is not a valid ec2 instance id"),
-                    bean.getHostId() == null ? "null" : bean.getHostId());
+                    String.format("Host id {} is not a valid ec2 instance id"),
+                    StringUtils.defaultString(bean.getHostId()));
         }
 
         // Validate account id of EC2 instance
@@ -30,15 +30,15 @@ public class Ec2InstanceValidator extends PingRequestValidator {
         }
 
         String accountId = bean.getAccountId();
-        if (accountId == null || accountId.isEmpty()) {
+        if (StringUtils.isBlank(accountId)) {
             return;
         }
 
         if (!accountAllowList.contains(accountId)) {
             LOG.warn("Ignore ping request from host {} with unknown account id {}", bean.getHostName(), accountId);
             throw new DeployInternalException(
-                    String.format("Host id %s is not from a allowed account id"),
-                    bean.getHostId() == null ? "null" : bean.getHostId());
+                    String.format("Host id {} is not from the account allow list"),
+                    StringUtils.defaultString(bean.getHostId()));
         }
     }
 }

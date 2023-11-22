@@ -118,7 +118,7 @@ public class PingHandler {
     private List<PingRequestValidator> validators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
-    private List<String> accountAllowList;
+    private Set<String> accountAllowList;
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -783,6 +783,8 @@ public class PingHandler {
         goal.setEnvId(envBean.getEnv_id());
         goal.setEnvName(envBean.getEnv_name());
         goal.setStageName(envBean.getStage_name());
+        LOG.debug("stage type: {}", envBean.getStage_type());
+        goal.setStageType(envBean.getStage_type());
         goal.setIsDocker(envBean.getIs_docker());
 
         // TODO optimize the next stage here based on deploy ( some deploy does not have all the stages )
@@ -858,6 +860,7 @@ public class PingHandler {
         goal.setDeployStage(candidate.report.getDeployStage());
         goal.setEnvName(candidate.environ.getEnv_name());
         goal.setStageName(candidate.environ.getStage_name());
+        goal.setStageType(candidate.environ.getStage_type());
         goal.setFirstDeploy(false);
         response.setDeployGoal(goal);
         return response;
