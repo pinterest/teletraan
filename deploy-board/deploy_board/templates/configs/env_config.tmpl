@@ -250,7 +250,7 @@
                     </label>
                     <div class ="col-xs-4">
                         <div class="input-group">
-                            <select class="form-control" name="stageType">
+                            <select class="form-control" name="stageType" id="stageTypeValueId">
                                 {% get_stage_types as stageTypes %}
                                 {% for stageType in stageTypes %}
                                 {% if env.stageType == stageType %}
@@ -377,8 +377,11 @@
                     btn.button('loading');
                 },
                 success: function (data) {
-                    if(data != null && data.success == false) {
+                    if (data != null && data.success == false) {
                         $('#errorBannerId').append(data.error);
+                        if ($('#stageTypeValueId').val() == 'DEFAULT') {
+                            $('#errorBannerId').append("<a href='//pinch/teletraan-stagetypes'>pinch/teletraan-stagetypes</a>");
+                        }
                         $('#errorBannerId').show();
                     } else {
                         $("#envConfigId").parent().html(data.html);
