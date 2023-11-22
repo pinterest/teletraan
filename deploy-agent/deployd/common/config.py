@@ -105,7 +105,7 @@ class Config(object):
         if deploy_status.report.stageName:
             self._environ['STAGE_NAME'] = deploy_status.report.stageName
         if deploy_status.report.stageType:
-            self._environ['COMPUTE_STAGE_TYPE'] = deploy_status.report.stageType
+            self._environ['COMPUTE_ENV_TYPE'] = deploy_status.report.stageType
         if deploy_status.first_deploy:
             self._environ['FIRST_DEPLOY'] = str(deploy_status.first_deploy)
         if deploy_status.is_docker:

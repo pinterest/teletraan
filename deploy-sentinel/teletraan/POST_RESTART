@@ -8,7 +8,7 @@ echo $PORT
 # Built in Environment Variables
 echo $ENV_NAME
 echo $STAGE_NAME
-echo $COMPUTE_STAGE_TYPE
+echo $COMPUTE_ENV_TYPE
 echo $DEPLOY_ID
 echo $DEPLOY_STEP
 echo $OPCODE
