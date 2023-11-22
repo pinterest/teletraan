@@ -118,7 +118,7 @@ public class PingHandler {
     private List<PingRequestValidator> validators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
-    private List<String> accountAllowList;
+    private Set<String> accountAllowList;
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();

@@ -2,7 +2,7 @@ package com.pinterest.deployservice.pingrequests;
 
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +30,7 @@ public class Ec2InstanceValidator extends PingRequestValidator {
         }
 
         String accountId = bean.getAccountId();
-        if (StringUtils.isNotBlank(accountId)) {
+        if (StringUtils.isBlank(accountId)) {
             return;
         }
 

@@ -16,6 +16,7 @@
 package com.pinterest.deployservice;
 
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -476,7 +477,7 @@ public class ServiceContext {
         return accountAllowList;
     }
 
-    public void setAccountAllowList(List<String> accountAllowList) {
+    public void setAccountAllowList(Collection<String> accountAllowList) {
         this.accountAllowList = new HashSet<String>(accountAllowList);
     }
 }
