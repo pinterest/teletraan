@@ -505,7 +505,7 @@ public class PingHandler {
             String envName = envBean.getEnv_name();
             if (envs.containsKey(envName)) {
                 // In theory, such conflict should've already been avoid by frontend/UI etc.
-                LOG.error("Found conflict env for host {}: {}/{} and {}/{}, will ignore {}/{} for now. Please correct the wrong deploy configure.",
+                LOG.warn("Found conflict env for host {}: {}/{} and {}/{}, will ignore {}/{} for now. Please correct the wrong deploy configure.",
                         host, envName, envBean.getStage_name(), envName, envs.get(envName).getStage_name(), envName, envs.get(envName).getStage_name());
             } else {
                 envs.put(envName, envBean);
