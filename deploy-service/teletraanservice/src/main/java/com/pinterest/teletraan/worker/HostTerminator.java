@@ -78,8 +78,10 @@ public class HostTerminator implements Runnable {
         List<AgentBean> agentBeans = agentDAO.getByHostId(hostId);
         boolean stopSucceeded = true;
         for (AgentBean agentBean : agentBeans) {
-            if (agentBean.getDeploy_stage() != DeployStage.STOPPED && agentBean.getState() != AgentState.PAUSED_BY_SYSTEM) {
+            if (agentBean.getDeploy_stage() != DeployStage.STOPPED
+                && agentBean.getState() != AgentState.PAUSED_BY_SYSTEM) {
                 stopSucceeded = false;
+                break;
             }
         }
 
