@@ -43,7 +43,7 @@ public class RodimusManagerImplTest {
 
         Map<String, String> headers = argument.getValue();
         assertTrue(headers.containsKey("Authorization"));
-        assertEquals("token key", headers.get("Authorization"));
+        assertEquals("token defaultKeyContent", headers.get("Authorization"));
     }
 
     @Test
