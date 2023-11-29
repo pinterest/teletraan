@@ -360,7 +360,10 @@ class EnvLandingView(View):
                 break
 
         if env["stageType"] == "DEFAULT":
-            messages.add_message(request, messages.ERROR, "Please update the Stage Type to a value other than DEFAULT")
+            stageTypeWikiInfo = {}
+            stageTypeWikiInfo['link'] = "//pinch/teletraan-stagetypes"
+            stageTypeWikiInfo['text'] = "pinch/teletraan-stagetypes"
+            messages.add_message(request, messages.ERROR, "Please update the Stage Type to a value other than DEFAULT. See more details at ", stageTypeWikiInfo)
 
         if stage_with_external_id is not None and stage_with_external_id['externalId'] is not None:
             try:
