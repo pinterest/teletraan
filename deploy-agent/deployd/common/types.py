@@ -141,6 +141,7 @@ class DeployStatus(object):
         self.report.envName = deploy_goal.envName
         self.report.status = AgentStatus.UNKNOWN
         self.report.stageName = deploy_goal.stageName
+        self.report.stageType = deploy_goal.stageType
         self.first_deploy = deploy_goal.firstDeploy
         self.is_docker = deploy_goal.isDocker
 

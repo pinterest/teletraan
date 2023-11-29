@@ -1,0 +1,7 @@
+{% if healthStatus == "healthy" %}
+<i class="fa fa-check-circle color-green"></i>
+{% elif healthStatus == "unhealthy" %}
+<i class="fa fa-exclamation-triangle color-red"></i>
+{% else %}
+<i class="fa fa-ban"></i>
+{% endif %}

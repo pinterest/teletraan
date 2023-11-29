@@ -26,8 +26,8 @@ from deployd.client.serverless_client import ServerlessClient
 from deployd.common.config import Config
 from deployd.common.exceptions import AgentException
 from deployd.common.helper import Helper
-from deployd.common.single_instance import SingleInstance
 from deployd.common.env_status import EnvStatus
+from deployd.common.single_instance import SingleInstance
 from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_increment
 from deployd.common.utils import get_telefig_version,get_container_health_info, check_prereqs
 from deployd.common.utils import uptime as utils_uptime, listen as utils_listen
@@ -35,10 +35,10 @@ from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, DeployStage, AgentStatus
 from deployd import __version__, IS_PINTEREST, MAIN_LOGGER
 
-log = logging.getLogger(MAIN_LOGGER)
+log: logging.Logger = logging.getLogger(name=MAIN_LOGGER)
 
 class PingServer(object):
-    def __init__(self, ag):
+    def __init__(self, ag) -> None:
         self._agent = ag
 
     def __call__(self, deploy_report):
@@ -125,33 +125,45 @@ class DeployAgent(object):
             self._executor = Executor(callback=PingServer(self), config=self._config)
         # include healthStatus info for each container
         if len(self._envs) > 0:
-            need_to_delete = []
             for status in self._envs.values():
                 # for each service, we check the container health status
                 log.info(f"the current service is: {status.report.envName}")
                 try:
-                    healthStatus = get_container_health_info(status.build_info.build_commit, status.report.envName)
+                    if status.report.redeploy == None:
+                        status.report.redeploy = 0
+                    healthStatus = get_container_health_info(status.build_info.build_commit, status.report.envName, status.report.redeploy)
                     if healthStatus:
-                        if healthStatus == "delete":
-                            need_to_delete.append(status.report.envName)
+                        if "redeploy" in healthStatus:
+                            status.report.redeploy = int(healthStatus.split("-")[1])
+                            status.report.wait = 0
+                            status.report.state = "RESET_BY_SYSTEM"
+                            status.report.containerHealthStatus = None
                         else:
                             status.report.containerHealthStatus = healthStatus
+                            status.report.state = None
                             if "unhealthy" not in healthStatus:
-                                file_name = "/mnt/deployd/" + status.report.envName
-                                if os.path.exists(file_name):
-                                    with open(file_name, mode="w") as f:
-                                        f.write("0")
+                                if status.report.wait == None or status.report.wait > 5:
+                                    status.report.redeploy = 0
+                                    status.report.wait = 0
+                                else: 
+                                    status.report.wait = status.report.wait + 1
                     else:
+                        status.report.state = None
                         status.report.containerHealthStatus = None
                 except Exception:
+                    status.report.state = None
                     status.report.containerHealthStatus = None
                     log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
                     continue
-            for item in need_to_delete:
-                del self._envs[item]
             self._env_status.dump_envs(self._envs)
         # start to ping server to get the latest deploy goal
         self._response = self._client.send_reports(self._envs)
+        # we only need to send RESET once in one deploy-agent run 
+        if len(self._envs) > 0:
+            for status in self._envs.values():
+                if status.report.state == "RESET_BY_SYSTEM":
+                    status.report.state = None
+            self._env_status.dump_envs(self._envs)
 
         if self._response:
             report = self._update_internal_deploy_goal(self._response)
@@ -223,8 +235,8 @@ class DeployAgent(object):
     def serve_once(self):
         log.info("Running deploy agent in non daemon mode")
         try:
-            if len(self._envs) > 0:
-                # randomly sleep some time before pinging server
+            if len(self._envs) > 0 and not isinstance(self._client, ServerlessClient):
+                # randomly sleep some time before pinging server. Skip sleeping if in serverless mode.
                 # TODO: consider pause stat_time_elapsed_internal here
                 sleep_secs = randrange(self._config.get_init_sleep_time())
                 log.info("Randomly sleep {} seconds before starting.".format(sleep_secs))
@@ -497,19 +509,21 @@ def main():
                              "json format.")
     parser.add_argument('--env-name', dest='env_name', default=None,
                         help="Optional. In 'serverless' mode, env_name needs to be passed in.")
+    parser.add_argument('--deploy-stage', dest='deploy_stage', default=None,
+                        help="Optional. In 'serverless' mode, initial deploy_stage to start with.")
     parser.add_argument('--script-variables', dest='script_variables', default='{}',
                         help="Optional. In 'serverless' mode,  script_variables is needed in "
                              "json format.")
     parser.add_argument('-v', '--version', action='version',
                         version=__version__, help='Deploy agent version.')
 
-    args = parser.parse_args()
+    args: argparse.Namespace = parser.parse_args()
 
     is_serverless_mode = AgentRunMode.is_serverless(args.mode)
     if args.daemon and is_serverless_mode:
         raise ValueError("daemon and serverless mode is mutually exclusive.")
     
-    config = Config(args.config_file)
+    config = Config(filenames=args.config_file)
     
     if IS_PINTEREST:
         import pinlogger
@@ -534,7 +548,7 @@ def main():
     if is_serverless_mode:
         log.info("Running agent with severless client")
         client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,
-                                  script_variables=args.script_variables)
+                                  script_variables=args.script_variables, deploy_stage=args.deploy_stage)
 
     uptime = utils_uptime()
     agent = DeployAgent(client=client, conf=config)

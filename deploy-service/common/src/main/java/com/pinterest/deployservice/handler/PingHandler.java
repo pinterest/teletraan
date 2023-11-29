@@ -15,39 +15,9 @@
  */
 package com.pinterest.deployservice.handler;
 
-import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.*;
-import com.pinterest.deployservice.common.Constants;
-import com.pinterest.deployservice.common.DeployInternalException;
-import com.pinterest.deployservice.common.StateMachines;
-import com.pinterest.deployservice.dao.AgentDAO;
-import com.pinterest.deployservice.dao.AgentCountDAO;
-import com.pinterest.deployservice.dao.AgentErrorDAO;
-import com.pinterest.deployservice.dao.BuildDAO;
-import com.pinterest.deployservice.dao.DeployConstraintDAO;
-import com.pinterest.deployservice.dao.DeployDAO;
-import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.dao.GroupDAO;
-import com.pinterest.deployservice.dao.HostDAO;
-import com.pinterest.deployservice.dao.HostAgentDAO;
-import com.pinterest.deployservice.dao.HostTagDAO;
-import com.pinterest.deployservice.dao.ScheduleDAO;
-import com.pinterest.deployservice.dao.UtilDAO;
-import com.pinterest.deployservice.pingrequests.PingRequestValidator;
-
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.sql.Connection;
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,7 +26,59 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.*;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentCountBean;
+import com.pinterest.deployservice.bean.AgentErrorBean;
+import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.BuildBean;
+import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployConstraintBean;
+import com.pinterest.deployservice.bean.DeployConstraintType;
+import com.pinterest.deployservice.bean.DeployGoalBean;
+import com.pinterest.deployservice.bean.DeployStage;
+import com.pinterest.deployservice.bean.EnvType;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.HostAgentBean;
+import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.bean.HostTagBean;
+import com.pinterest.deployservice.bean.OpCode;
+import com.pinterest.deployservice.bean.PingReportBean;
+import com.pinterest.deployservice.bean.PingRequestBean;
+import com.pinterest.deployservice.bean.PingResponseBean;
+import com.pinterest.deployservice.bean.PingResult;
+import com.pinterest.deployservice.bean.ScheduleBean;
+import com.pinterest.deployservice.bean.ScheduleState;
+import com.pinterest.deployservice.bean.TagSyncState;
+import com.pinterest.deployservice.common.Constants;
+import com.pinterest.deployservice.common.DeployInternalException;
+import com.pinterest.deployservice.common.StateMachines;
+import com.pinterest.deployservice.dao.AgentCountDAO;
+import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.AgentErrorDAO;
+import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.dao.DeployConstraintDAO;
+import com.pinterest.deployservice.dao.DeployDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.GroupDAO;
+import com.pinterest.deployservice.dao.HostAgentDAO;
+import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.HostTagDAO;
+import com.pinterest.deployservice.dao.ScheduleDAO;
+import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 
 /**
  * This is where we handle agent ping and return deploy goal!
@@ -96,6 +118,7 @@ public class PingHandler {
     private List<PingRequestValidator> validators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
+    private Set<String> accountAllowList;
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -116,7 +139,8 @@ public class PingHandler {
         validators = serviceContext.getPingRequestValidators();
         agentCountCacheTtl = serviceContext.getAgentCountCacheTtl();
         maxParallelThreshold = serviceContext.getMaxParallelThreshold();
-
+        accountAllowList = serviceContext.getAccountAllowList();
+        
         if (serviceContext.isBuildCacheEnabled()) {
             buildCache = CacheBuilder.from(serviceContext.getBuildCacheSpec().replace(";", ","))
                     .build(new CacheLoader<String, BuildBean>() {
@@ -250,6 +274,7 @@ public class PingHandler {
         return true;
     }
 
+  
     /**
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
@@ -480,7 +505,7 @@ public class PingHandler {
             String envName = envBean.getEnv_name();
             if (envs.containsKey(envName)) {
                 // In theory, such conflict should've already been avoid by frontend/UI etc.
-                LOG.error("Found conflict env for host {}: {}/{} and {}/{}, will ignore {}/{} for now. Please correct the wrong deploy configure.",
+                LOG.warn("Found conflict env for host {}: {}/{} and {}/{}, will ignore {}/{} for now. Please correct the wrong deploy configure.",
                         host, envName, envBean.getStage_name(), envName, envs.get(envName).getStage_name(), envName, envs.get(envName).getStage_name());
             } else {
                 envs.put(envName, envBean);
@@ -591,7 +616,7 @@ public class PingHandler {
         if (validators != null) {
             // validate requests
             for (PingRequestValidator validator : validators) {
-                validator.validate(pingRequest);
+                validator.validate(pingRequest, accountAllowList);
             }
         }
 
@@ -601,6 +626,18 @@ public class PingHandler {
         String asg = pingRequest.getAutoscalingGroup();
         Set<String> groups = this.shardGroups(pingRequest);
         String accountId = pingRequest.getAccountId();
+
+        // go through ec2Tags
+        String ec2Tags = pingRequest.getEc2Tags();
+        LOG.debug("go through ec2 tags: {}", ec2Tags);
+        if (ec2Tags != null) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> tags = mapper.readValue(ec2Tags, Map.class);
+            for (Map.Entry<String, String> entry : tags.entrySet()) {
+                LOG.debug("key: {}, val: {}", entry.getKey(), entry.getValue());
+            }    
+        }
+           
         //update agent version for host
         String agentVersion = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
@@ -746,6 +783,8 @@ public class PingHandler {
         goal.setEnvId(envBean.getEnv_id());
         goal.setEnvName(envBean.getEnv_name());
         goal.setStageName(envBean.getStage_name());
+        LOG.debug("stage type: {}", envBean.getStage_type());
+        goal.setStageType(envBean.getStage_type());
         goal.setIsDocker(envBean.getIs_docker());
 
         // TODO optimize the next stage here based on deploy ( some deploy does not have all the stages )
@@ -821,6 +860,7 @@ public class PingHandler {
         goal.setDeployStage(candidate.report.getDeployStage());
         goal.setEnvName(candidate.environ.getEnv_name());
         goal.setStageName(candidate.environ.getStage_name());
+        goal.setStageType(candidate.environ.getStage_type());
         goal.setFirstDeploy(false);
         response.setDeployGoal(goal);
         return response;

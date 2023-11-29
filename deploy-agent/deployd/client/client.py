@@ -171,6 +171,7 @@ class Client(BaseClient):
             # so need to read ec2_tags from facter and parse Autoscaling tag to cover this case
             if not self._autoscaling_group:
                 ec2_tags = facter_data.get(ec2_tags_key)
+                self._ec2_tags = json.dumps(ec2_tags) if ec2_tags else None
                 self._autoscaling_group = ec2_tags.get(asg_tag_key) if ec2_tags else None
 
             if not self._stage_type and not self._stage_type_fetched:
@@ -185,8 +186,8 @@ class Client(BaseClient):
 
         log.info("Host information is loaded. "
                  "Host name: {}, IP: {}, host id: {}, agent_version={}, autoscaling_group: {}, "
-                 "availability_zone: {}, stage_type: {}, group: {}, account id: {}".format(self._hostname, self._ip, self._id, 
-                 self._agent_version, self._autoscaling_group, self._availability_zone, self._stage_type, self._hostgroup, self._account_id))
+                 "availability_zone: {}, ec2_tags: {}, stage_type: {}, group: {}, account id: {}".format(self._hostname, self._ip, self._id, 
+                 self._agent_version, self._autoscaling_group, self._availability_zone, self._ec2_tags, self._stage_type, self._hostgroup, self._account_id))
 
         if not self._availability_zone:
             log.error("Fail to read host info: availablity zone")
@@ -214,6 +215,7 @@ class Client(BaseClient):
                                         agentVersion=self._agent_version,
                                         autoscalingGroup=self._autoscaling_group,
                                         availabilityZone=self._availability_zone,
+                                        ec2Tags=self._ec2_tags,
                                         stageType=self._stage_type,
                                         accountId=self._account_id)
 
