@@ -32,7 +32,7 @@ import logging
 
 from .helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper, arches_helper
-from .helpers import clusters_helper, environs_helper, environ_hosts_helper
+from .helpers import clusters_helper, environs_helper, environ_hosts_helper, baseimages_helper
 from .helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
 from . import common
 import traceback
@@ -1033,11 +1033,42 @@ def gen_cluster_replacement_view(request, name, stage):
     storage = get_messages(request)
 
     content = render_to_string("clusters/cluster-replacements.tmpl", {
+        "auto_refresh_view": False,
         "env": env,
         "env_name": name,
         "env_stage": stage,
         "cluster_name": cluster_name,
         "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
+        "csrf_token": get_token(request),
+        "storage": storage,
+        "cluster_replacement_wiki_url": RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
+    })
+
+    return HttpResponse(content)
+
+def gen_auto_cluster_refresh_view(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+    get_cluster_replacement_body = {
+        "clusterName": cluster_name
+    }
+    replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
+
+    cluster = clusters_helper.get_cluster(request, cluster_name)
+
+    image_update_events = baseimages_helper.get_image_update_events_by_cluster(request, cluster_name)
+
+    storage = get_messages(request)
+
+    content = render_to_string("clusters/cluster-replacements.tmpl", {
+        "auto_refresh_view": True,
+        "auto_refresh_enabled": cluster["autoRefresh"],
+        "env": env,
+        "env_name": name,
+        "env_stage": stage,
+        "cluster_name": cluster_name,
+        "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
+        "image_update_events": image_update_events,
         "csrf_token": get_token(request),
         "storage": storage,
         "cluster_replacement_wiki_url": RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
