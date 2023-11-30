@@ -1056,19 +1056,20 @@ def gen_auto_cluster_refresh_view(request, name, stage):
 
     cluster = clusters_helper.get_cluster(request, cluster_name)
 
-    image_update_events = baseimages_helper.get_image_update_events_by_cluster(request, cluster_name)
+    auto_refresh_config = clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
 
     storage = get_messages(request)
 
     content = render_to_string("clusters/cluster-replacements.tmpl", {
         "auto_refresh_view": True,
+        "auto_refresh_config": auto_refresh_config,
         "auto_refresh_enabled": cluster["autoRefresh"],
+        "cluster_last_update_time": cluster["lastUpdate"],
         "env": env,
         "env_name": name,
         "env_stage": stage,
         "cluster_name": cluster_name,
         "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
-        "image_update_events": image_update_events,
         "csrf_token": get_token(request),
         "storage": storage,
         "cluster_replacement_wiki_url": RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
@@ -1137,6 +1138,63 @@ def start_cluster_replacement(request, name, stage):
 
     return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
 
+def submit_auto_refresh_config(request, name, stage):
+    params = request.POST
+    cluster_name = common.get_cluster_name(request, name, stage)
+    autoRefresh = False
+    skipMatching = False
+    scaleInProtectedInstances = 'Ignore'
+    checkpointPercentages = []
+
+    if "enableAutoRefresh" in params:
+        autoRefresh = True
+
+    if (params['checkpointPercentages']):
+        checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
+
+    if "skipMatching" in params:
+        skipMatching = True
+
+    if "replaceProtectedInstances" in params:
+        scaleInProtectedInstances = 'Refresh'
+
+    rollingUpdateConfig = {}
+    rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+    rollingUpdateConfig["skipMatching"] = skipMatching
+    rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
+    rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
+    rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
+    auto_refresh_config = {}
+    auto_refresh_config["clusterName"] = cluster_name
+    auto_refresh_config["envName"] = cluster_name
+    auto_refresh_config["config"] = rollingUpdateConfig
+    auto_refresh_config["type"] = "LATEST"
+
+    try:
+        clusters_helper.submit_cluster_auto_refresh_config(request, data=auto_refresh_config)
+        cluster = clusters_helper.get_cluster(request, cluster_name)
+        cluster["autoRefresh"] = autoRefresh
+        clusters_helper.update_cluster(request, cluster_name, cluster)
+        messages.success(request, "Auto refresh config saved successfully.", "cluster-replacements")
+    except TeletraanException as ex:
+        if "already in progress" in str(ex) and "409" in str(ex):
+            messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
+        else:
+            messages.warning(request, str(ex), "cluster-replacements")
+
+    return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
+
+def get_auto_refresh_config(request, name, stage):
+    cluster_name = common.get_cluster_name(request, name, stage)
+    try:
+        clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
+    except TeletraanException as ex:
+        if "already in progress" in str(ex) and "409" in str(ex):
+            messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
+        else:
+            messages.warning(request, str(ex), "cluster-replacements")
+
+    return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
 
 def perform_cluster_replacement_action(request, name, stage, action, includeMessage=True):
     cluster_name = common.get_cluster_name(request, name, stage)

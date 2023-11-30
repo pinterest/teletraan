@@ -35,21 +35,21 @@
         </a>
     </div>
     <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto_refresh"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-leaf"></span> Set up Auto Refresh</b>
+        </a>
+    </div>
+    <div class="row">
         <a href="/groups/{{ env_name }}-{{ env_stage }}/scaling_activities/" target="_blank"
             type="button" class="btn btn-default btn-block">
             <span class="glyphicon glyphicon-list"></span> Show Replacement Activities
         </a>
     </div>
     <div class="row">
-        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto-refresh"
-            type="button" class="btn btn-default btn-block">
-            <span class="glyphicon glyphicon-leaf"></span> Set up Auto Refresh</b>
-        </a>
-    </div>
-    <div class="row">
         <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/"
             type="button" class="btn btn-default btn-block">
-            <span class="glyphicon glyphicon-home"></span> Home
+            <span class="glyphicon glyphicon-home"></span> Cluster Replacement Home
         </a>
     </div>
 </div>
@@ -106,32 +106,80 @@
         {% endif %}
     </div>
     <div id="clusterReplacementConfigId" class="collapse in panel-body">
+        <script>
+        function isValidPercentage(percentage) {
+            return percentage > 0 && percentage <= 100;
+        }
+
+        function validateCheckpointPercentages() {
+            const checkpointPercentagesElement = document.getElementById("checkpointPercentages");
+            const checkpointPercentagesRaw = checkpointPercentagesElement.value;
+
+            if (checkpointPercentagesRaw.trim().length === 0 ) {
+                checkpointPercentagesElement.setCustomValidity('');
+                return;
+            }
+
+            const constraint = new RegExp("^(\\s)*[0-9]{1,3}((\\s)*,(\\s)*[0-9]{1,3}(\\s)*)*$");
+
+            if (!constraint.test(checkpointPercentagesRaw)) {
+                checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be numbers from 1 to 100 and separated by ,');
+                return;
+            }
+            else {
+                checkpointPercentagesElement.setCustomValidity('');
+            }
+            
+            const checkpointPercentages = checkpointPercentagesElement.value.split(',').reduce( (acc, p) => acc.concat(+p), []);
+
+            for (let i = 0; i < checkpointPercentages.length - 1; i++) {
+                if (!isValidPercentage(checkpointPercentages[i])) {
+                    checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
+                    return;
+                }
+
+                if (checkpointPercentages[i] >= checkpointPercentages[i + 1]) {
+                    checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be a strictly increasing sequence');
+                    return;
+                }
+            }
+
+            if (checkpointPercentages.length > 0) {
+                if (!isValidPercentage(checkpointPercentages[checkpointPercentages.length - 1])) {
+                    checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
+                    return;
+                }
+            }
+
+            checkpointPercentagesElement.setCustomValidity('');
+        }
+        </script>
         {% if auto_refresh_view %}
         <div class="container-fluid">
-            <form id="clusterReplacementFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/start_replacement/">
+            <form id="clusterAutoRefreshFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto_refresh/config/submit">
                 <div>
                     <label for="minHealthyPercentage" data-toggle="tooltip"
                         title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
                         <span class="fa fa-check"></span> Minimum healthy percentage:
                     </label>
-                    <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value="90">
+                    <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value={{ auto_refresh_config.config.minHealthyPercentage }}>
 
                     <label for="checkpointPercentages" data-toggle="tooltip"
                         title="Replacement will pause when replacement progress reaches the defined checkpoint percentages before continuing. E.g with 25, 100, the replacement will pause when completion reaches 25% and 100%. Note that the replacement will stop at the last checkpoint. If the last checkpoint is not 100, then it will be a partial replacement.">
                         <span class="fa fa-bell"></span> Checkpoint percentages:
                     </label>
-                    <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" placeholder="e.g. 25, 50, 100">
+                    <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" value={{ auto_refresh_config.config.checkpointPercentages|join:"," }}>
                     
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
                         <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
-                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" max="3600" value="3600">
+                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" max="3600" value={{ auto_refresh_config.config.checkpointDelay }}>
                 </div>
                 
                 <div>
                     <label class="switch" data-toggle="tooltip" title="Skip replacing instances that already use the latest launch template." >
                         Skip matching launch template
-                        <input type="checkbox" id="skipMatching" name="skipMatching" checked>
+                        <input type="checkbox" id="skipMatching" name="skipMatching" {% if auto_refresh_config.config.skipMatching %} checked {% endif %}>
                         <div class="slider round"></div>
                     </label>
                 </div>
@@ -139,7 +187,7 @@
                 <div>
                     <label class="switch" data-toggle="tooltip" title="Whether to replace instances that are protected from autoscaling.">
                         Replace protected instances
-                        <input type="checkbox" id="replaceProtectedInstances" name="replaceProtectedInstances">
+                        <input type="checkbox" id="replaceProtectedInstances" name="replaceProtectedInstances" {% if auto_refresh_config.config.scaleInProtectedInstances == "Refresh" %} checked {% endif %}>
                         <div class="slider round"></div>
                     </label>
                 </div>
@@ -147,12 +195,11 @@
                 <div>
                     <label class="switch" data-toggle="tooltip" title="Enable auto refresh.">
                         Enable auto refresh
-                        <input type="checkbox" id="enableAutoRefresh" name="enableAutoRefresh">
+                        <input type="checkbox" id="enableAutoRefresh" name="enableAutoRefresh" {% if auto_refresh_enabled %} checked {% endif %}>
                         <div class="slider round"></div>
                     </label>
                 </div>
 
-                
                 <div class="pull-left">
                     <button type="submit" id="updateAutoRefreshConfigBtnId" class="btn"
                             data-toggle="modal"
@@ -163,6 +210,11 @@
         
                 {% csrf_token %}
             </form>
+
+            <script>
+                const updateClusterAutoRefreshConfigBtnElement = document.getElementById("updateAutoRefreshConfigBtnId");
+                updateClusterAutoRefreshConfigBtnElement.addEventListener("click", validateCheckpointPercentages);
+            </script>    
         </div>
         {% else %}
         <div class="container-fluid">
@@ -213,67 +265,20 @@
                 
                 {% csrf_token %}
             </form>
+
+            <script>
+                const startReplacementBtnElement = document.getElementById("startReplacementBtnId");
+                startReplacementBtnElement.addEventListener("click", validateCheckpointPercentages);
+            </script>
         </div>
         {% endif %}
     </div>
 </div>
 
-<script>
-    function isValidPercentage(percentage) {
-        return percentage > 0 && percentage <= 100;
-    }
-
-    function validateCheckpointPercentages() {
-        const checkpointPercentagesElement = document.getElementById("checkpointPercentages");
-        const checkpointPercentagesRaw = checkpointPercentagesElement.value;
-
-        if (checkpointPercentagesRaw.trim().length === 0 ) {
-            checkpointPercentagesElement.setCustomValidity('');
-            return;
-        }
-
-        const constraint = new RegExp("^(\\s)*[0-9]{1,3}((\\s)*,(\\s)*[0-9]{1,3}(\\s)*)*$");
-
-        if (!constraint.test(checkpointPercentagesRaw)) {
-            checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be numbers from 1 to 100 and separated by ,');
-            return;
-        }
-        else {
-            checkpointPercentagesElement.setCustomValidity('');
-        }
-        
-        const checkpointPercentages = checkpointPercentagesElement.value.split(',').reduce( (acc, p) => acc.concat(+p), []);
-
-        for (let i = 0; i < checkpointPercentages.length - 1; i++) {
-            if (!isValidPercentage(checkpointPercentages[i])) {
-                checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
-                return;
-            }
-
-            if (checkpointPercentages[i] >= checkpointPercentages[i + 1]) {
-                checkpointPercentagesElement.setCustomValidity('Checkpoint percentages must be a strictly increasing sequence');
-                return;
-            }
-        }
-
-        if (checkpointPercentages.length > 0) {
-            if (!isValidPercentage(checkpointPercentages[checkpointPercentages.length - 1])) {
-                checkpointPercentagesElement.setCustomValidity('Checkpoint percentage must be between 1 and 100');
-                return;
-            }
-        }
-
-        checkpointPercentagesElement.setCustomValidity('');
-    }
-
-    const startReplacementBtnElement = document.getElementById("startReplacementBtnId");
-    startReplacementBtnElement.addEventListener("click", validateCheckpointPercentages);
-</script>
-
 {% if auto_refresh_view %}
 <h5>Auto refresh is {% if auto_refresh_enabled %} <p style="color:green;">ENABLED</p> {% else %} <p style="color:gray;">DISABLED</p> {% endif %}</h5>
-<h5>Last refresh started at: <p style="color:green;">{% with replace_summaries|first as latest %}{{ latest.startTime|convertTimestamp }} {{ latest.status }}{% endwith %}</p></li>
-<h5>Last golden AMI update at: {{ image_update_events }}</li>
+<h5>The last time this cluster was updated: {{ cluster_last_update_time|convertTimestamp }}</li>
+<h5>The last time this cluster was refreshed: {% with replace_summaries|first as latest %}{{ latest.startTime|convertTimestamp }} {{ latest.status }}{% endwith %}</li>
 
 {% else %}
     <div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
