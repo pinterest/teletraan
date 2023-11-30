@@ -83,6 +83,9 @@ def start_cluster_replacement(request, data):
 def get_cluster_auto_refresh_config(request, cluster_name):
     return rodimus_client.get("/cluster-replacements/auto-refresh/config/%s" % cluster_name, request.teletraan_user_id.token)
 
+def get_default_cluster_auto_refresh_config(request, cluster_name):
+    return rodimus_client.get("/cluster-replacements/auto-refresh/config/default/%s" % cluster_name, request.teletraan_user_id.token)
+
 def submit_cluster_auto_refresh_config(request, data):
     return rodimus_client.post("/cluster-replacements/auto-refresh/config", request.teletraan_user_id.token, data=data)
 

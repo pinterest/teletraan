@@ -55,6 +55,7 @@
 </div>
 
 <div>
+    {% if not auto_refresh_view %}
     <h4>Tips</h4>
     <ul>
         <li>Make sure your current service deployment (if you have one) can be deployed successfully. Any agent/service deployment failure will result in a failed replacement health check.</li>
@@ -63,7 +64,8 @@
         <li>Only one replacement task can be in-progress. You must wait for an in-progress one to finish (or be canceled) before you can start a new one.</li>
         <li>If the goal is to replace instances to match the latest cluster configuration, you should skip replacing (checked by default) matching instances to avoid unnecessary work.</li>
         <li>If replacement fails, see "Reason" for details. After addressing the root cause, you can replace your cluster again, and only the remaining instances will be replaced (assume Skip Matching is checked).</li>
-    </ul> 
+    </ul>
+    {% endif%}
 </div>
 {% endblock %}
 
@@ -176,7 +178,7 @@
                     <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value={{ auto_refresh_config.config.checkpointDelay }}>
                 </div>
                 
-                <div>
+                <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Skip replacing instances that already use the latest launch template." >
                         Skip matching launch template
                         <input type="checkbox" id="skipMatching" name="skipMatching" {% if auto_refresh_config.config.skipMatching %} checked {% endif %}>
@@ -184,7 +186,7 @@
                     </label>
                 </div>
                 
-                <div>
+                <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Whether to replace instances that are protected from autoscaling.">
                         Replace protected instances
                         <input type="checkbox" id="replaceProtectedInstances" name="replaceProtectedInstances" {% if auto_refresh_config.config.scaleInProtectedInstances == "Refresh" %} checked {% endif %}>
@@ -192,22 +194,26 @@
                     </label>
                 </div>
 
-                <div>
-                    <label for="bakeTime" data-toggle="tooltip" title="Seconds to wait after cluster refreshed successfully before refreshing clusters in the next stage">
-                        <span class="fa fa-clock-o"></span> Bake time (seconds):
-                    </label>
-                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={{ auto_refresh_config.bakeTime }}>
+                <div style="padding-top: 20px;">
+                    <div>
+                        <label for="bakeTime" data-toggle="tooltip" title="Seconds to wait after cluster refreshed successfully before refreshing clusters in the next stage">
+                            <span class="fa fa-clock-o"></span> Bake time:
+                        </label>
+                        <p><i>Seconds to wait after the cluster is refreshed successfully before refreshing clusters in the next stage (if applicable).</i></p>
+                    </div>
+                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={{ auto_refresh_config.bakeTime }}> second(s)
                 </div>
 
-                <div>
+                <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Enable auto refresh.">
                         Enable auto refresh
                         <input type="checkbox" id="enableAutoRefresh" name="enableAutoRefresh" {% if auto_refresh_enabled %} checked {% endif %}>
                         <div class="slider round"></div>
                     </label>
+                    <p><i>If enabled, the cluster will automatically be refreshed when cluster configurations change.</i></p>
                 </div>
 
-                <div class="pull-left">
+                <div class="pull-left" style="padding-top: 20px;">
                     <button type="submit" id="updateAutoRefreshConfigBtnId" class="btn"
                             data-toggle="modal"
                             title="Update auto refresh configurations">
@@ -245,7 +251,7 @@
                     <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value="3600">
                 </div>
                 
-                <div>
+                <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Skip replacing instances that already use the latest launch template." >
                         Skip matching launch template
                         <input type="checkbox" id="skipMatching" name="skipMatching" checked>
@@ -253,7 +259,7 @@
                     </label>
                 </div>
                 
-                <div>
+                <div style="padding-top: 20px;">
                     <label class="switch" data-toggle="tooltip" title="Whether to replace instances that are protected from autoscaling.">
                         Replace protected instances
                         <input type="checkbox" id="replaceProtectedInstances" name="replaceProtectedInstances">
@@ -261,7 +267,7 @@
                     </label>
                 </div>
                 
-                <div class="pull-left">
+                <div class="pull-left" style="padding-top: 20px;">
                     <button type="submit" id="startReplacementBtnId" class="btn"
                             data-toggle="modal"
                             title="Start cluster replacement">

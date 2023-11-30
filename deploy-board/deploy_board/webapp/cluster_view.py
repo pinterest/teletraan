@@ -1057,6 +1057,13 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     cluster = clusters_helper.get_cluster(request, cluster_name)
 
     auto_refresh_config = clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
+    
+    # get default configurations for first time
+    try:
+        if auto_refresh_config == None:
+            auto_refresh_config = clusters_helper.get_default_cluster_auto_refresh_config(request, cluster_name)
+    except IllegalArgumentException as ex:
+        messages.warning(request, str(ex), "cluster-replacements")
 
     storage = get_messages(request)
 
