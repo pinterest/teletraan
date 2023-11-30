@@ -1101,26 +1101,8 @@ def get_cluster_replacement_details(request, name, stage, replacement_id):
 
 
 def start_cluster_replacement(request, name, stage):
-    params = request.POST
     cluster_name = common.get_cluster_name(request, name, stage)
-    skipMatching = False
-    scaleInProtectedInstances = 'Ignore'
-    checkpointPercentages = []
-    if (params['checkpointPercentages']):
-        checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
-
-    if "skipMatching" in params:
-        skipMatching = True
-
-    if "replaceProtectedInstances" in params:
-        scaleInProtectedInstances = 'Refresh'
-
-    rollingUpdateConfig = {}
-    rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
-    rollingUpdateConfig["skipMatching"] = skipMatching
-    rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
-    rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
-    rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
+    rollingUpdateConfig = gen_replacement_config(request)
     start_cluster_replacement = {}
     start_cluster_replacement["clusterName"] = cluster_name
     start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
@@ -1142,29 +1124,12 @@ def submit_auto_refresh_config(request, name, stage):
     params = request.POST
     cluster_name = common.get_cluster_name(request, name, stage)
     autoRefresh = False
-    skipMatching = False
-    scaleInProtectedInstances = 'Ignore'
-    checkpointPercentages = []
 
     if "enableAutoRefresh" in params:
         autoRefresh = True
 
-    if (params['checkpointPercentages']):
-        checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
-
-    if "skipMatching" in params:
-        skipMatching = True
-
-    if "replaceProtectedInstances" in params:
-        scaleInProtectedInstances = 'Refresh'
-
-    rollingUpdateConfig = {}
-    rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
-    rollingUpdateConfig["skipMatching"] = skipMatching
-    rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
-    rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
-    rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
     auto_refresh_config = {}
+    rollingUpdateConfig = gen_replacement_config(request)
     auto_refresh_config["clusterName"] = cluster_name
     auto_refresh_config["envName"] = cluster_name
     auto_refresh_config["config"] = rollingUpdateConfig
@@ -1183,6 +1148,29 @@ def submit_auto_refresh_config(request, name, stage):
             messages.warning(request, str(ex), "cluster-replacements")
 
     return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
+
+def gen_replacement_config(request):
+    params = request.POST
+    skipMatching = False
+    scaleInProtectedInstances = 'Ignore'
+    checkpointPercentages = []
+    if (params['checkpointPercentages']):
+        checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
+
+    if "skipMatching" in params:
+        skipMatching = True
+
+    if "replaceProtectedInstances" in params:
+        scaleInProtectedInstances = 'Refresh'
+
+    rollingUpdateConfig = {}
+    rollingUpdateConfig["minHealthyPercentage"] = params["minHealthyPercentage"]
+    rollingUpdateConfig["skipMatching"] = skipMatching
+    rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
+    rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
+    rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
+
+    return rollingUpdateConfig
 
 def get_auto_refresh_config(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)

@@ -277,8 +277,8 @@
 
 {% if auto_refresh_view %}
 <h5>Auto refresh is {% if auto_refresh_enabled %} <p style="color:green;">ENABLED</p> {% else %} <p style="color:gray;">DISABLED</p> {% endif %}</h5>
-<h5>The last time this cluster was updated: {{ cluster_last_update_time|convertTimestamp }}</li>
-<h5>The last time this cluster was refreshed: {% with replace_summaries|first as latest %}{{ latest.startTime|convertTimestamp }} {{ latest.status }}{% endwith %}</li>
+<h5>The last time this cluster's configurations changed: {{ cluster_last_update_time|convertTimestamp }}</li>
+<h5>The last time this cluster was refreshed: {% with replace_summaries|first as latest %}{{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a>{% endwith %}</li>
 
 {% else %}
     <div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
