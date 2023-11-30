@@ -1132,6 +1132,7 @@ def submit_auto_refresh_config(request, name, stage):
     rollingUpdateConfig = gen_replacement_config(request)
     auto_refresh_config["clusterName"] = cluster_name
     auto_refresh_config["envName"] = cluster_name
+    auto_refresh_config["bakeTime"] = params["bakeTime"]
     auto_refresh_config["config"] = rollingUpdateConfig
     auto_refresh_config["type"] = "LATEST"
 
@@ -1141,11 +1142,8 @@ def submit_auto_refresh_config(request, name, stage):
         cluster["autoRefresh"] = autoRefresh
         clusters_helper.update_cluster(request, cluster_name, cluster)
         messages.success(request, "Auto refresh config saved successfully.", "cluster-replacements")
-    except TeletraanException as ex:
-        if "already in progress" in str(ex) and "409" in str(ex):
-            messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
-        else:
-            messages.warning(request, str(ex), "cluster-replacements")
+    except IllegalArgumentException as ex:
+        messages.warning(request, str(ex), "cluster-replacements")
 
     return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
 

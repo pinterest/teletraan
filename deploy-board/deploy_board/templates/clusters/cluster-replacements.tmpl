@@ -173,7 +173,7 @@
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
                         <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
-                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" max="3600" value={{ auto_refresh_config.config.checkpointDelay }}>
+                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value={{ auto_refresh_config.config.checkpointDelay }}>
                 </div>
                 
                 <div>
@@ -190,6 +190,13 @@
                         <input type="checkbox" id="replaceProtectedInstances" name="replaceProtectedInstances" {% if auto_refresh_config.config.scaleInProtectedInstances == "Refresh" %} checked {% endif %}>
                         <div class="slider round"></div>
                     </label>
+                </div>
+
+                <div>
+                    <label for="bakeTime" data-toggle="tooltip" title="Seconds to wait after cluster refreshed successfully before refreshing clusters in the next stage">
+                        <span class="fa fa-clock-o"></span> Bake time (seconds):
+                    </label>
+                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={{ auto_refresh_config.bakeTime }}>
                 </div>
 
                 <div>
@@ -235,7 +242,7 @@
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
                         <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
-                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" max="3600" value="3600">
+                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value="3600">
                 </div>
                 
                 <div>
@@ -253,7 +260,6 @@
                         <div class="slider round"></div>
                     </label>
                 </div>
-
                 
                 <div class="pull-left">
                     <button type="submit" id="startReplacementBtnId" class="btn"
@@ -276,9 +282,12 @@
 </div>
 
 {% if auto_refresh_view %}
+{% with replace_summaries|first as latest %}
 <h5>Auto refresh is {% if auto_refresh_enabled %} <p style="color:green;">ENABLED</p> {% else %} <p style="color:gray;">DISABLED</p> {% endif %}</h5>
 <h5>The last time this cluster's configurations changed: {{ cluster_last_update_time|convertTimestamp }}</li>
-<h5>The last time this cluster was refreshed: {% with replace_summaries|first as latest %}{{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a>{% endwith %}</li>
+<h5>The last time this cluster was refreshed: {% if latest %} {{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a> {% else %} unknown {% endif %}</h5>
+<h5>The cluster {% if cluster_last_update_time <= latest.startTime and latest.status == "Successful" %} is <p style="color:green;">up-to-date</p> {% else %} <p style="color:gray;">may need to be refreshed</p>{% endif %}</h5>
+{% endwith %}
 
 {% else %}
     <div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
