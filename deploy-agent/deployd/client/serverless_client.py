@@ -71,7 +71,7 @@ class ServerlessClient(BaseClient):
         if report.errorCode != 0:
             # terminate the deployment.
             return None
-        numeric_deploy_stage = DeployStage._NAMES_TO_VALUES[report.deployStage] 
+        numeric_deploy_stage = DeployStage[report.deployStage].value
         if report.status == AgentStatus.SUCCEEDED:
             # check if this is the last deploy stage.
             if numeric_deploy_stage == DeployStage.SERVING_BUILD:
