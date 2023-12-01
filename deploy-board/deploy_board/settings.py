@@ -97,7 +97,7 @@ GUINEA_PIG_ENVS = os.getenv("GUINEA_PIG_ENVS", "").split(",")
 KAFKA_LOGGING_ADD_ON_ENVS = os.getenv("KAFKA_LOGGING_ADD_ON_ENVS", "").split(",")
 
 LOG_DIR = os.getenv("LOG_DIR")
-LOG_LEVEL = 'DEBUG'
+LOG_LEVEL = os.getenv("LOG_LEVEL")
 
 # Change to your domain or hosts
 if LOG_LEVEL == 'DEBUG':
