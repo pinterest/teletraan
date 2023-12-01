@@ -40,12 +40,14 @@ class PingReport(object):
             self.deployId = jsonValue.get('deployId')
             self.envId = jsonValue.get('envId')
             if isinstance(jsonValue.get('deployStage'), int):
-                self.deployStage = DeployStage._VALUES_TO_NAMES[jsonValue.get('deployStage')]
+                self.deployStage = DeployStage(
+                    jsonValue.get('deployStage')).name
             else:
                 self.deployStage = jsonValue.get('deployStage')
 
             if isinstance(jsonValue.get('status'), int):
-                self.status = AgentStatus._VALUES_TO_NAMES[jsonValue.get('status')]
+                self.status = AgentStatus(jsonValue.get(
+                    'status')).name
             else:
                 self.status = jsonValue.get('status')
 

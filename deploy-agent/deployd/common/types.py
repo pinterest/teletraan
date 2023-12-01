@@ -190,7 +190,7 @@ class DeployStatus(object):
         self.runtime_config = json_value.get('runtime_config')
         op_code = json_value.get('op_code', OpCode.NOOP)
         if isinstance(op_code, int):
-            self.op_code = OperationCode._VALUES_TO_NAMES[op_code]
+            self.op_code = OperationCode(op_code).name
         else:
             self.op_code = op_code
 
