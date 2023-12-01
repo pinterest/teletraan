@@ -7,7 +7,12 @@
     <li><a href="/">Home</a></li>
     <li><a href="/envs">Environments</a></li>
     <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
-    <li class="active">Cluster Replacement</li>
+    {% if auto_refresh_view %}
+        <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements">Cluster Replacement</a></li>
+        <li>Auto Refresh</li>
+    {% else %}
+        <li class="active">Cluster Replacement</li>
+    {% endif %}
 </ul>
 {% endblock %}
 
@@ -37,7 +42,7 @@
     <div class="row">
         <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto_refresh"
             type="button" class="btn btn-default btn-block">
-            <span class="glyphicon glyphicon-leaf"></span> Set up Auto Refresh</b>
+            <span class="glyphicon glyphicon-leaf"></span> Set up Auto Refresh <b>(Preview)</b>
         </a>
     </div>
     <div class="row">
@@ -98,6 +103,28 @@
 <!-- class="glyphicon glyphicon-question-sign" -->
 <div id="clusterReplacementPanelId"class="panel panel-default">
     <panel-heading title="Cluster Replacement" target="#clusterReplacementConfigId" initcollapse="false"></panel-heading>
+    <div class="panel-heading clearfix">
+        {% with replace_summaries|first as latest %}
+        <p>
+            <span>Auto refresh is</span>
+            {% if auto_refresh_enabled %}
+                <span style="color:green;"><b>ON</b></span>
+            {% else %}
+                <span style="color:gray;"><b>OFF</b></span>
+            {% endif %}
+        </p>
+        <p>
+            <span>The cluster</span>
+            {% if cluster_last_update_time <= latest.startTime and latest.status == "Successful" %}
+                <span style="color:green;"><b>up-to-date</b></span>
+            {% else %}
+                <span style="color:gray;"><b>may need to be refreshed</b></span>
+            {% endif %}
+        </p>
+        <p>The last cluster configurations changed at: {{ cluster_last_update_time|convertTimestamp }}</p>
+        <p>The last cluster refresh at: {% if latest %} {{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a> {% else %} unknown {% endif %}</p>
+        {% endwith %}
+    </div>
     <div class="panel-heading clearfix">
         {% if auto_refresh_view %}
         <h4 class="panel-title pull-left">Auto Refresh Configuration</h4>
@@ -199,7 +226,7 @@
                         <label for="bakeTime" data-toggle="tooltip" title="Seconds to wait after cluster refreshed successfully before refreshing clusters in the next stage">
                             <span class="fa fa-clock-o"></span> Bake time:
                         </label>
-                        <p><i>Seconds to wait after the cluster is refreshed successfully before refreshing clusters in the next stage (if applicable).</i></p>
+                        <p><i>Seconds to wait after the cluster is refreshed successfully before refreshing cluster(s) in the next stage (if applicable).</i></p>
                     </div>
                     <input type="number" id="bakeTime" name="bakeTime" min="0" value={{ auto_refresh_config.bakeTime }}> second(s)
                 </div>
@@ -210,7 +237,7 @@
                         <input type="checkbox" id="enableAutoRefresh" name="enableAutoRefresh" {% if auto_refresh_enabled %} checked {% endif %}>
                         <div class="slider round"></div>
                     </label>
-                    <p><i>If enabled, the cluster will automatically be refreshed when cluster configurations change.</i></p>
+                    <p><i>If enabled, the cluster will automatically be refreshed (not necessarily immediately) after cluster configurations change.</i></p>
                 </div>
 
                 <div class="pull-left" style="padding-top: 20px;">
@@ -287,15 +314,7 @@
     </div>
 </div>
 
-{% if auto_refresh_view %}
-{% with replace_summaries|first as latest %}
-<h5>Auto refresh is {% if auto_refresh_enabled %} <p style="color:green;">ENABLED</p> {% else %} <p style="color:gray;">DISABLED</p> {% endif %}</h5>
-<h5>The last time this cluster's configurations changed: {{ cluster_last_update_time|convertTimestamp }}</li>
-<h5>The last time this cluster was refreshed: {% if latest %} {{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a> {% else %} unknown {% endif %}</h5>
-<h5>The cluster {% if cluster_last_update_time <= latest.startTime and latest.status == "Successful" %} is <p style="color:green;">up-to-date</p> {% else %} <p style="color:gray;">may need to be refreshed</p>{% endif %}</h5>
-{% endwith %}
-
-{% else %}
+{% if not auto_refresh_view %}
     <div id="replaceHistoryPanel" v-show="show" class="panel panel-default">
     <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">Replacement Status</h4>

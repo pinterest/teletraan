@@ -1029,11 +1029,14 @@ def gen_cluster_replacement_view(request, name, stage):
         "clusterName": cluster_name
     }
     replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
+    cluster = clusters_helper.get_cluster(request, cluster_name)
 
     storage = get_messages(request)
 
     content = render_to_string("clusters/cluster-replacements.tmpl", {
         "auto_refresh_view": False,
+        "auto_refresh_enabled": cluster["autoRefresh"],
+        "cluster_last_update_time": cluster["lastUpdate"],
         "env": env,
         "env_name": name,
         "env_stage": stage,
@@ -1062,8 +1065,9 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     try:
         if auto_refresh_config == None:
             auto_refresh_config = clusters_helper.get_default_cluster_auto_refresh_config(request, cluster_name)
-    except IllegalArgumentException as ex:
-        messages.warning(request, str(ex), "cluster-replacements")
+    except IllegalArgumentException:
+        note = "To use auto cluster refresh, update cluster stage type to one of these: LATEST, CANARY, CONTROL, PRODUCTION"
+        messages.warning(request, note, "cluster-replacements")
 
     storage = get_messages(request)
 
@@ -1149,8 +1153,9 @@ def submit_auto_refresh_config(request, name, stage):
         cluster["autoRefresh"] = autoRefresh
         clusters_helper.update_cluster(request, cluster_name, cluster)
         messages.success(request, "Auto refresh config saved successfully.", "cluster-replacements")
-    except IllegalArgumentException as ex:
-        messages.warning(request, str(ex), "cluster-replacements")
+    except IllegalArgumentException:
+        note = "To use auto cluster refresh, update cluster stage type to one of these: LATEST, CANARY, CONTROL, PRODUCTION"
+        messages.warning(request, note, "cluster-replacements")
 
     return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
 
