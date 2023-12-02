@@ -17,9 +17,10 @@ import unittest
 from tests import TestCase
 
 from deployd.client.serverless_client import ServerlessClient
-from deployd.common.types import DeployStage, DeployStatus, AgentStatus
+from deployd.common.types import DeployStatus, AgentStatus
 from deployd.types.ping_report import PingReport
 from deployd.types.ping_response import PingResponse
+from deployd.types.deploy_stage import DeployStage
 
 
 class TestServerlessClient(TestCase):
