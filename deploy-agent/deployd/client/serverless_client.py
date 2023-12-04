@@ -26,7 +26,7 @@ from deployd.types.ping_response import PingResponse
 
 log: logging.Logger = logging.getLogger(__name__)
 
-_DEPLOY_STAGE_TRANSITIONS = dict([(i, i+1) for i in range(DeployStage.PRE_DOWNLOAD.value, DeployStage.SERVING_BUILD.value)])
+_DEPLOY_STAGE_TRANSITIONS = { DeployStage(i).value : DeployStage(i+1).value for i in range(DeployStage.PRE_DOWNLOAD.value, DeployStage.SERVING_BUILD.value) }
 
 
 class ServerlessClient(BaseClient):

@@ -16,7 +16,7 @@ from typing import Optional
 import unittest
 from tests import TestCase
 
-from deployd.client.serverless_client import ServerlessClient
+from deployd.client.serverless_client import ServerlessClient, _DEPLOY_STAGE_TRANSITIONS
 from deployd.common.types import DeployStatus, AgentStatus
 from deployd.types.ping_report import PingReport
 from deployd.types.ping_response import PingResponse
@@ -104,6 +104,10 @@ class TestServerlessClient(TestCase):
 
         response = self.client.send_reports(env_status)
         self.assertEqual(response.deployGoal.deployStage, 'PRE_DOWNLOAD')
+
+    def test_deploy_stage_transitions(self):
+        expected: dict[int, int] = dict([(i, i+1) for i in range(DeployStage.PRE_DOWNLOAD.value, DeployStage.SERVING_BUILD.value)])
+        self.assertDictEqual(_DEPLOY_STAGE_TRANSITIONS, expected)
  
 
 if __name__ == '__main__':
