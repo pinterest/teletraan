@@ -289,12 +289,9 @@ public class DeployHandler implements DeployHandlerInterface{
         EnvironBean updateEnvBean = new EnvironBean();
         updateEnvBean.setDeploy_id(deployId);
         updateEnvBean.setDeploy_type(deployBean.getDeploy_type());
-        LOG.info("the new stage type is : {}", envBean.getStage_type());
         updateEnvBean.setStage_type(envBean.getStage_type());
-        LOG.info("the new stage type is : {}", updateEnvBean.getStage_type());
 
         statements.add(environDAO.genUpdateStatement(envBean.getEnv_id(), updateEnvBean));
-        LOG.info("the statement to update environ bean is : {}", environDAO.genUpdateStatement(envBean.getEnv_id(), updateEnvBean));
 
         // Deprecate/Obsolete the previous deploy
         DeployBean oldDeployBean = null;
@@ -428,33 +425,35 @@ public class DeployHandler implements DeployHandlerInterface{
         deployBean.setOperator(operator);
         
         //compare the current stage_type 
-        if(StringUtils.isEmpty(deliveryType) == false) {
-            EnvType type = envBean.getStage_type();
-            LOG.info("input deleivery type is : {}; stage type in database is: {}", deliveryType, type);
-            switch (deliveryType) {
-                case "PRODUCTION":
-                    type = EnvType.PRODUCTION;
-                case "CANARY":
-                    type = EnvType.CANARY;
-                case "CONTROL":
-                    type = EnvType.CONTROL;
-                case "DEV":
-                    type = EnvType.DEV;
-                case "LATEST":
-                    type = EnvType.LATEST;
-                case "STAGING":
-                    type = EnvType.STAGING;
-                default:
-                    type = envBean.getStage_type();
-            }
-            LOG.info("input deleivery type is : {}; stage type in database is: {}", deliveryType, type);
-            if (envBean.getStage_type().toString().equals(deliveryType) == false) {
-                LOG.info("stage type and delievery type are different");
-                if (envBean.getStage_type() != EnvType.DEFAULT) {
-                    throw new Exception("The delivery type is different with the stage type, deployment is not allowed!");
-                } else {
-                    envBean.setStage_type(type);
+        if(StringUtils.isEmpty(deliveryType) == false && envBean.getStage_type().toString().equals(deliveryType) == false) {
+            if (envBean.getStage_type() != EnvType.DEFAULT) {
+                throw new Exception("The delivery type is different with the stage type, deployment is not allowed!");
+            } else {
+                EnvType type = envBean.getStage_type();
+                switch (deliveryType) {
+                    case "PRODUCTION":
+                        type = EnvType.PRODUCTION;
+                        break;
+                    case "CANARY":
+                        type = EnvType.CANARY;
+                        break;
+                    case "CONTROL":
+                        type = EnvType.CONTROL;
+                        break;
+                    case "DEV":
+                        type = EnvType.DEV;
+                        break;
+                    case "LATEST":
+                        type = EnvType.LATEST;
+                        break;
+                    case "STAGING":
+                        type = EnvType.STAGING;
+                        break;
+                    default:
+                        throw new Exception("The delivery type is not a valid delivery type!");
                 }
+                envBean.setStage_type(type);
+                LOG.info("The stage type is updated from {} to {} for env {}", envBean.getStage_type(), type, envBean.getEnv_id())
             }
         }
 
