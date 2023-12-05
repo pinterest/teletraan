@@ -234,26 +234,27 @@
 
                 <div style="padding-top: 20px;">
                     <div>
-                        <label for="bakeTime" data-toggle="tooltip" title="Seconds to wait after cluster refreshed successfully before refreshing clusters in the next stage">
+                        <label for="bakeTime" data-toggle="tooltip" title="Hour(s) to wait after cluster refreshed successfully before refreshing clusters in the next stage">
                             <span class="fa fa-clock-o"></span> Bake time:
                         </label>
-                        <p><i>Seconds to wait after the cluster is refreshed successfully before refreshing cluster(s) in the next stage (if applicable).</i></p>
+                        <p><i>Hour(s) to wait after the cluster is refreshed successfully before refreshing cluster(s) in the next stage (if applicable).</i></p>
                     </div>
-                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={{ auto_refresh_config.bakeTime }}> second(s)
+                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={{ auto_refresh_config.bakeTime }}> hour(s)
                 </div>
 
                 <div style="padding-top: 20px;">
+                    <p><i>It's <b>strongly</b> recommended to subscribe to either email or Slack notification to be informed about cluster refresh status.</i></p>
                     <label for="emails" data-toggle="tooltip"
                             title="Emails to receive notifications.">
                             <span class="fa fa-bell"></span> Emails:
                     </label>
-                    <input type="email" multiple id="emails" name="emails" maxlength="200" size="50" value="" placeholder="emails separated by ,">
+                    <input type="email" multiple id="emails" name="emails" maxlength="200" size="50" value={{ emails }} placeholder="emails separated by ,">
 
-                    <label for="slack" data-toggle="tooltip"
+                    <label for="slack_channels" data-toggle="tooltip"
                             title="Slack channels to receive notifications.">
                             <span class="fa fa-bell"></span> Slack channels:
                     </label>
-                    <input type="slack" id="slack" name="emails" maxlength="200" size="50" value="" placeholder="slack channels separated by ,">
+                    <input type="text" id="slack_channels" name="slack_channels" pattern="[A-Za-z0-9_\-]+(\s*,\s*[A-Za-z0-9_\-]+)*" maxlength="200" size="50" value={{ slack_channels }}>
                 </div>
 
                 <div class="pull-left" style="padding-top: 20px;">

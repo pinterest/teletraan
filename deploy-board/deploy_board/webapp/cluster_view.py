@@ -1056,11 +1056,22 @@ def gen_auto_cluster_refresh_view(request, name, stage):
         "clusterName": cluster_name
     }
     replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
-
     cluster = clusters_helper.get_cluster(request, cluster_name)
-
     auto_refresh_config = clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
+
+    emails = ""
+    slack_channels = ""
+    try:
+        group_info = autoscaling_groups_helper.get_group_info(request, cluster_name)
+        # the helper above returns a nested groupInfo object, so need to access this nested object first.
+        # avoid changing the helper to not making other changes where it's being used.
+        emails = group_info["groupInfo"]["emailRecipients"].replace(" ", "")
+        slack_channels = group_info["groupInfo"]["chatroom"].replace(" ", "")
+    except Exception:
+        log.exception('Failed to get group %s info', cluster_name)
+
     button_disabled = False
+
     # get default configurations for first time
     try:
         if auto_refresh_config == None:
@@ -1083,6 +1094,8 @@ def gen_auto_cluster_refresh_view(request, name, stage):
         "env_stage": stage,
         "cluster_name": cluster_name,
         "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
+        "emails": emails,
+        "slack_channels": slack_channels,
         "csrf_token": get_token(request),
         "storage": storage,
         "auto_cluster_refresh_wiki_url": RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL
