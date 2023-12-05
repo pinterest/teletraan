@@ -427,6 +427,7 @@ public class DeployHandler implements DeployHandlerInterface{
         //compare the current stage_type 
         if(StringUtils.isEmpty(deliveryType) == false) {
             EnvType type = envBean.getStage_type();
+            LOG.info("input deleivery type is : {}; stage type in database is: {}", deliveryType, type);
             switch (deliveryType) {
                 case "PRODUCTION":
                     type = EnvType.PRODUCTION;
@@ -443,7 +444,9 @@ public class DeployHandler implements DeployHandlerInterface{
                 default:
                     type = envBean.getStage_type();
             }
+            LOG.info("input deleivery type is : {}; stage type in database is: {}", deliveryType, type);
             if (envBean.getStage_type().toString().equals(deliveryType) == false) {
+                LOG.info("stage type and delievery type are different");
                 if (envBean.getStage_type() != EnvType.DEFAULT) {
                     throw new Exception("The delivery type is different with the stage type, deployment is not allowed!");
                 } else {
