@@ -35,4 +35,14 @@ public class DeployEvent extends ResourceChangedEvent {
     public String getOperator() {
         return operator;
     }
+
+    @Override
+    public String toString() {
+        return "DeployEvent{" +
+                "env='" + env + '\'' +
+                ", stage='" + stage + '\'' +
+                ", commit='" + commit + '\'' +
+                ", operator='" + operator + '\'' +
+                '}';
+    }
 }

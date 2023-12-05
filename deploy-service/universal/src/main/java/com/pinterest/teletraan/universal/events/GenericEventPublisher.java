@@ -30,6 +30,8 @@ public class GenericEventPublisher implements ReactiveEventPublisher {
             EmitResult result = eventsSink.tryEmitNext((AppEvent) event);
             if (result.isFailure()) {
                 LOG.error("Failed to publish event, cause: " + result);
+            } else {
+                LOG.debug("Published event: " + event);
             }
         } catch (Exception ex) {
             LOG.error("Failed to publish event", ex);
