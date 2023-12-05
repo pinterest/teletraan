@@ -453,7 +453,7 @@ public class DeployHandler implements DeployHandlerInterface{
                         throw new Exception("The delivery type is not a valid delivery type!");
                 }
                 envBean.setStage_type(type);
-                LOG.info("The stage type is updated from {} to {} for env {}", envBean.getStage_type(), type, envBean.getEnv_id())
+                LOG.info("The stage type is updated from {} to {} for env {}", envBean.getStage_type(), type, envBean.getEnv_id());
             }
         }
 
