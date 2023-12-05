@@ -1,7 +1,5 @@
 package com.pinterest.deployservice.events;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-
 import com.google.common.collect.ImmutableMap;
 import com.pinterest.teletraan.universal.events.ResourceChangedEvent;
 
@@ -36,10 +34,5 @@ public class DeployEvent extends ResourceChangedEvent {
 
     public String getOperator() {
         return operator;
-    }
-
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
     }
 }
