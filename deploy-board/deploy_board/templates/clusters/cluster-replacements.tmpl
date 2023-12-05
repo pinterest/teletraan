@@ -9,9 +9,9 @@
     <li><a href="/env/{{ env.envName }}/{{ env.stageName }}">{{ env.envName }} ({{ env.stageName }})</a></li>
     {% if auto_refresh_view %}
         <li><a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements">Cluster Replacement</a></li>
-        <li>Auto Refresh</li>
+        <li class="active"><b>Auto Refresh</b></li>
     {% else %}
-        <li class="active">Cluster Replacement</li>
+        <li class="active"><b>Cluster Replacement</b></li>
     {% endif %}
 </ul>
 {% endblock %}
@@ -40,15 +40,15 @@
         </a>
     </div>
     <div class="row">
-        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto_refresh"
-            type="button" class="btn btn-default btn-block">
-            <span class="glyphicon glyphicon-leaf"></span> Set up Auto Refresh <b>(Preview)</b>
-        </a>
-    </div>
-    <div class="row">
         <a href="/groups/{{ env_name }}-{{ env_stage }}/scaling_activities/" target="_blank"
             type="button" class="btn btn-default btn-block">
             <span class="glyphicon glyphicon-list"></span> Show Replacement Activities
+        </a>
+    </div>
+    <div class="row">
+        <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto_refresh"
+            type="button" class="btn btn-default btn-block">
+            <span class="glyphicon glyphicon-leaf" style="color:green;"></span> Set up Auto Refresh <b style="color:blue;">(Preview)</b>
         </a>
     </div>
     <div class="row">
@@ -116,22 +116,23 @@
         <p>
             <span>The cluster</span>
             {% if cluster_last_update_time <= latest.startTime and latest.status == "Successful" %}
-                <span style="color:green;"><b>up-to-date</b></span>
+                <span>is</span>
+                <span style="color:green;"><b>UP-TO-DATE</b></span>
             {% else %}
-                <span style="color:gray;"><b>may need to be refreshed</b></span>
+                <span style="color:red;"><b>may need to be refreshed</b></span>
+                <span class="glyphicon glyphicon-warning-sign"></span>
+                <span>(This suggestion is based on the last time cluster configuration was changed/updated vs. the last time cluster refresh was started and its status.)</span>
             {% endif %}
         </p>
-        <p>The last cluster configurations changed at: {{ cluster_last_update_time|convertTimestamp }}</p>
-        <p>The last cluster refresh at: {% if latest %} {{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a> {% else %} unknown {% endif %}</p>
+        <p>The last cluster configurations updated at: {{ cluster_last_update_time|convertTimestamp }}</p>
+        <p>The last cluster refresh started at: {% if latest %} {{ latest.startTime|convertTimestamp }} <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/{{ latest.id }}/details/" target="_blank">{{ latest.status }}</a> {% else %} unknown {% endif %}</p>
         {% endwith %}
     </div>
     <div class="panel-heading clearfix">
         {% if auto_refresh_view %}
-        <h4 class="panel-title pull-left">Auto Refresh Configuration</h4>
-        <a href="{{ auto_cluster_refresh_wiki_url }}" target="_blank">What is auto refresh?</a>
+        <h4 class="panel-title pull-left">Auto Refresh Configuration <sup><a href="{{ auto_cluster_refresh_wiki_url }}" target="_blank">What is auto refresh?</a></sup> </h4>
         {% else %}
-         <h4 class="panel-title pull-left">Replacement Configuration</h4>
-         <a href="{{ cluster_replacement_wiki_url }}" target="_blank"> Details</a>
+            <h4 class="panel-title pull-left">Replacement Configuration <sup><a href="{{ cluster_replacement_wiki_url }}" target="_blank">Understand configurations</a></sup></h4>
         {% endif %}
     </div>
     <div id="clusterReplacementConfigId" class="collapse in panel-body">
@@ -185,8 +186,18 @@
         </script>
         {% if auto_refresh_view %}
         <div class="container-fluid">
+            <input type="hidden" id="buttonDisabled" name="buttonDisabled" value="{{ button_disabled }}">
             <form id="clusterAutoRefreshFormId" class="form-horizontal" role="form" method="post" action="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto_refresh/config/submit">
                 <div>
+                    <label class="switch" data-toggle="tooltip" title="Enable auto refresh.">
+                        Enable auto refresh
+                        <input type="checkbox" id="enableAutoRefresh" name="enableAutoRefresh" {% if auto_refresh_enabled %} checked {% endif %}>
+                        <div class="slider round"></div>
+                    </label>
+                    <p><i>If enabled, the cluster will automatically be refreshed (not necessarily immediately) after cluster configurations change.</i></p>
+                </div>
+
+                <div style="padding-top: 20px;">
                     <label for="minHealthyPercentage" data-toggle="tooltip"
                         title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
                         <span class="fa fa-check"></span> Minimum healthy percentage:
@@ -232,12 +243,17 @@
                 </div>
 
                 <div style="padding-top: 20px;">
-                    <label class="switch" data-toggle="tooltip" title="Enable auto refresh.">
-                        Enable auto refresh
-                        <input type="checkbox" id="enableAutoRefresh" name="enableAutoRefresh" {% if auto_refresh_enabled %} checked {% endif %}>
-                        <div class="slider round"></div>
+                    <label for="emails" data-toggle="tooltip"
+                            title="Emails to receive notifications.">
+                            <span class="fa fa-bell"></span> Emails:
                     </label>
-                    <p><i>If enabled, the cluster will automatically be refreshed (not necessarily immediately) after cluster configurations change.</i></p>
+                    <input type="email" multiple id="emails" name="emails" maxlength="200" size="50" value="" placeholder="emails separated by ,">
+
+                    <label for="slack" data-toggle="tooltip"
+                            title="Slack channels to receive notifications.">
+                            <span class="fa fa-bell"></span> Slack channels:
+                    </label>
+                    <input type="slack" id="slack" name="emails" maxlength="200" size="50" value="" placeholder="slack channels separated by ,">
                 </div>
 
                 <div class="pull-left" style="padding-top: 20px;">
@@ -253,7 +269,16 @@
 
             <script>
                 const updateClusterAutoRefreshConfigBtnElement = document.getElementById("updateAutoRefreshConfigBtnId");
+                const buttonDisabled = document.getElementById("buttonDisabled").value;
                 updateClusterAutoRefreshConfigBtnElement.addEventListener("click", validateCheckpointPercentages);
+
+                if (buttonDisabled == "True") {
+                    updateClusterAutoRefreshConfigBtnElement.disabled = true
+                    console.log(buttonDisabled)
+                }
+                else {
+                    updateClusterAutoRefreshConfigBtnElement.disabled = false
+                }
             </script>    
         </div>
         {% else %}

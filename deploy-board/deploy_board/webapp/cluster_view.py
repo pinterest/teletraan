@@ -1060,7 +1060,7 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     cluster = clusters_helper.get_cluster(request, cluster_name)
 
     auto_refresh_config = clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
-    
+    button_disabled = False
     # get default configurations for first time
     try:
         if auto_refresh_config == None:
@@ -1068,11 +1068,13 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     except IllegalArgumentException:
         note = "To use auto cluster refresh, update cluster stage type to one of these: LATEST, CANARY, CONTROL, PRODUCTION"
         messages.warning(request, note, "cluster-replacements")
+        button_disabled = True
 
     storage = get_messages(request)
 
     content = render_to_string("clusters/cluster-replacements.tmpl", {
         "auto_refresh_view": True,
+        "button_disabled": button_disabled,
         "auto_refresh_config": auto_refresh_config,
         "auto_refresh_enabled": cluster["autoRefresh"],
         "cluster_last_update_time": cluster["lastUpdate"],
@@ -1154,8 +1156,7 @@ def submit_auto_refresh_config(request, name, stage):
         clusters_helper.update_cluster(request, cluster_name, cluster)
         messages.success(request, "Auto refresh config saved successfully.", "cluster-replacements")
     except IllegalArgumentException:
-        note = "To use auto cluster refresh, update cluster stage type to one of these: LATEST, CANARY, CONTROL, PRODUCTION"
-        messages.warning(request, note, "cluster-replacements")
+        pass
 
     return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
 
