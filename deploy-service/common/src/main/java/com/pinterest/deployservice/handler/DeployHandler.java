@@ -289,9 +289,12 @@ public class DeployHandler implements DeployHandlerInterface{
         EnvironBean updateEnvBean = new EnvironBean();
         updateEnvBean.setDeploy_id(deployId);
         updateEnvBean.setDeploy_type(deployBean.getDeploy_type());
+        LOG.info("the new stage type is : {}", envBean.getStage_type());
         updateEnvBean.setStage_type(envBean.getStage_type());
+        LOG.info("the new stage type is : {}", updateEnvBean.getStage_type());
 
         statements.add(environDAO.genUpdateStatement(envBean.getEnv_id(), updateEnvBean));
+        LOG.info("the statement to update environ bean is : {}", environDAO.genUpdateStatement(envBean.getEnv_id(), updateEnvBean));
 
         // Deprecate/Obsolete the previous deploy
         DeployBean oldDeployBean = null;
