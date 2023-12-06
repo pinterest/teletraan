@@ -121,7 +121,10 @@
             {% else %}
                 <span style="color:red;"><b>may need to be refreshed</b></span>
                 <span class="glyphicon glyphicon-warning-sign"></span>
-                <span>(This suggestion is based on the last time cluster configuration was changed/updated vs. the last time cluster refresh was started and its status.)</span>
+                <span>(This <i>suggestion</i> is based on the last time cluster configuration was changed/updated vs. the last time cluster refresh was started and its status. It may be <i>inaccurate</i>
+                    in case where the last configuration change was <i>not</i> related to host/instance configurations. In this case, if the cluster is indeed up to date, refreshing it 
+                    will result in a no-op, and it will complete after few seconds. And the cluster will be up to date.)
+                </span>
             {% endif %}
         </p>
         <p>The last cluster configurations updated at: {{ cluster_last_update_time|convertTimestamp }}</p>
@@ -243,18 +246,18 @@
                 </div>
 
                 <div style="padding-top: 20px;">
-                    <p><i>It's <b>strongly</b> recommended to subscribe to either email or Slack notification to be informed about cluster refresh status.</i></p>
+                    <p><i>It's <b>strongly</b> recommended to subscribe to email or Slack notification to be informed about cluster refresh status.</i></p>
                     <label for="emails" data-toggle="tooltip"
                             title="Emails to receive notifications.">
                             <span class="fa fa-bell"></span> Emails:
                     </label>
-                    <input type="email" multiple id="emails" name="emails" maxlength="200" size="50" value={{ emails }} placeholder="emails separated by ,">
+                    <input type="email" multiple id="emails" name="emails" maxlength="200" size="50" placeholder="emails separated by ," value={{ emails }} >
 
                     <label for="slack_channels" data-toggle="tooltip"
                             title="Slack channels to receive notifications.">
                             <span class="fa fa-bell"></span> Slack channels:
                     </label>
-                    <input type="text" id="slack_channels" name="slack_channels" pattern="[A-Za-z0-9_\-]+(\s*,\s*[A-Za-z0-9_\-]+)*" maxlength="200" size="50" value={{ slack_channels }}>
+                    <input type="text" id="slack_channels" name="slack_channels" pattern="[A-Za-z0-9_\-]+(\s*,\s*[A-Za-z0-9_\-]+)*" maxlength="200" size="50" placeholder="slack channels separated by ," value={{ slack_channels }}>
                 </div>
 
                 <div class="pull-left" style="padding-top: 20px;">

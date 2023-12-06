@@ -1059,16 +1059,17 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     cluster = clusters_helper.get_cluster(request, cluster_name)
     auto_refresh_config = clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
 
-    emails = ""
-    slack_channels = ""
+    emails = ''
+    slack_channels = ''
     try:
         group_info = autoscaling_groups_helper.get_group_info(request, cluster_name)
         # the helper above returns a nested groupInfo object, so need to access this nested object first.
         # avoid changing the helper to not making other changes where it's being used.
-        emails = group_info["groupInfo"]["emailRecipients"].replace(" ", "")
-        slack_channels = group_info["groupInfo"]["chatroom"].replace(" ", "")
+        emails = sanitize_slack_email_input(group_info["groupInfo"]["emailRecipients"])
+        slack_channels = sanitize_slack_email_input(group_info["groupInfo"]["chatroom"])
     except Exception:
         log.exception('Failed to get group %s info', cluster_name)
+        messages.warning(request, "failed to retrieve group info", "cluster-replacements")
 
     button_disabled = False
 
@@ -1102,6 +1103,18 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     })
 
     return HttpResponse(content)
+
+def sanitize_slack_email_input(input):
+    tokens = input.strip().split(',')
+    res = ''
+    for e in tokens:
+        e = e.strip()
+        if e:
+            if not res:
+                res = e
+            else:
+                res = res + ',' + e
+    return res
 
 
 def get_cluster_replacement_details(request, name, stage, replacement_id):
@@ -1161,15 +1174,26 @@ def submit_auto_refresh_config(request, name, stage):
     auto_refresh_config["bakeTime"] = params["bakeTime"]
     auto_refresh_config["config"] = rollingUpdateConfig
     auto_refresh_config["type"] = "LATEST"
+    
+    emails = params["emails"]
+    slack_channels = params["slack_channels"]
 
     try:
         clusters_helper.submit_cluster_auto_refresh_config(request, data=auto_refresh_config)
         cluster = clusters_helper.get_cluster(request, cluster_name)
         cluster["autoRefresh"] = autoRefresh
         clusters_helper.update_cluster(request, cluster_name, cluster)
+        group_info = autoscaling_groups_helper.get_group_info(request, cluster_name)
+        if group_info:
+            group_info["groupInfo"]["emailRecipients"] = emails
+            group_info["groupInfo"]["chatroom"] = slack_channels
+            autoscaling_groups_helper.update_group_info(request, cluster_name, group_info["groupInfo"])
         messages.success(request, "Auto refresh config saved successfully.", "cluster-replacements")
-    except IllegalArgumentException:
+    except IllegalArgumentException as e:
+        log.exception("Failed to update refresh config. Some request could succeed.")
         pass
+    except Exception as e:
+        messages.error(request, str(e), "cluster-replacements")
 
     return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
 
