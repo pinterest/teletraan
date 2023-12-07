@@ -233,7 +233,7 @@
 |**scheduleId**  <br>*optional*||string|
 |**scriptConfigId**  <br>*optional*||string|
 |**stageName**  <br>*optional*||string|
-|**stageType**  <br>*optional*||enum (DEFAULT, PRODUCTION, CONTROL, CANARY, STAGING, LATEST, DEV)|
+|**stageType**  <br>*optional*||enum (DEFAULT, PRODUCTION, CONTROL, CANARY, LATEST)|
 |**state**  <br>*optional*||enum (NORMAL, DISABLED)|
 |**stuckThreshold**  <br>*optional*||integer (int32)|
 |**successThreshold**  <br>*optional*||integer (int32)|
