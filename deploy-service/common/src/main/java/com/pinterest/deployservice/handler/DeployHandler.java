@@ -425,7 +425,7 @@ public class DeployHandler implements DeployHandlerInterface{
         deployBean.setOperator(operator);
         
         //compare the current stage_type 
-        if(StringUtils.isEmpty(deliveryType) == false && envBean.getStage_type().toString().equals(deliveryType) == false) {
+        if(StringUtils.isNotBlank(deliveryType) && !envBean.getStage_type().toString().equals(deliveryType)) {
             if (envBean.getStage_type() != EnvType.DEFAULT) {
                 throw new Exception("The delivery type is different with the stage type, deployment is not allowed!");
             } else {
