@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import unittest
+from abc import ABCMeta, abstractmethod
+from future.utils import with_metaclass
 from tests import TestCase
 
 from deployd.client.base_client import BaseClient
@@ -27,6 +29,16 @@ class TestBaseClient(TestCase):
 
         with self.assertRaises(TypeError):
             myclient = MyClient()
+
+    def test_abc_equivalent_to_old(self):
+        """
+        Make sure that new changes to base client extend the original class
+        """
+        class OldBaseClient(with_metaclass(ABCMeta, object)):
+            @abstractmethod
+            def send_reports(self, env_reports=None):
+                pass
+        self.assertLessEqual(set(dir(OldBaseClient)), set(dir(BaseClient)))
 
 
 if __name__ == '__main__':
