@@ -1078,7 +1078,7 @@ def gen_auto_cluster_refresh_view(request, name, stage):
         if auto_refresh_config == None:
             auto_refresh_config = clusters_helper.get_default_cluster_auto_refresh_config(request, cluster_name)
     except IllegalArgumentException:
-        note = "To use auto cluster refresh, update cluster stage type to one of these: LATEST, CANARY, CONTROL, PRODUCTION"
+        note = "To use auto cluster refresh, update stage type to one of these: LATEST, CANARY, CONTROL, PRODUCTION"
         messages.warning(request, note, "cluster-replacements")
         button_disabled = True
 
@@ -1105,8 +1105,11 @@ def gen_auto_cluster_refresh_view(request, name, stage):
     return HttpResponse(content)
 
 def sanitize_slack_email_input(input):
-    tokens = input.strip().split(',')
     res = ''
+    if input == None or len(input) == 0:
+        return res
+    
+    tokens = input.strip().split(',')
     for e in tokens:
         e = e.strip()
         if e:
