@@ -424,34 +424,14 @@ public class DeployHandler implements DeployHandlerInterface{
         deployBean.setDeploy_type(DeployType.REGULAR);
         deployBean.setOperator(operator);
         
-        //compare the current stage_type 
+        // compare the current stage_type and the delivery_type
+        // When the delivery_type is different with stage_type and stage_type is not DEFAULT, we reject the deployment API call;
+        // When the delivery_type is different with stage_type and stage_type is DEFAULT, we update the stage_type;
         if(StringUtils.isNotBlank(deliveryType) && !envBean.getStage_type().toString().equals(deliveryType)) {
             if (envBean.getStage_type() != EnvType.DEFAULT) {
                 throw new Exception("The delivery type is different with the stage type, deployment is not allowed!");
             } else {
-                EnvType type = envBean.getStage_type();
-                switch (deliveryType) {
-                    case "PRODUCTION":
-                        type = EnvType.PRODUCTION;
-                        break;
-                    case "CANARY":
-                        type = EnvType.CANARY;
-                        break;
-                    case "CONTROL":
-                        type = EnvType.CONTROL;
-                        break;
-                    case "DEV":
-                        type = EnvType.DEV;
-                        break;
-                    case "LATEST":
-                        type = EnvType.LATEST;
-                        break;
-                    case "STAGING":
-                        type = EnvType.STAGING;
-                        break;
-                    default:
-                        throw new Exception("The delivery type is not a valid delivery type!");
-                }
+                EnvType type = EnvType.valueOf(deliveryType);
                 envBean.setStage_type(type);
                 LOG.info("The stage type is updated from {} to {} for env {}", envBean.getStage_type(), type, envBean.getEnv_id());
             }
