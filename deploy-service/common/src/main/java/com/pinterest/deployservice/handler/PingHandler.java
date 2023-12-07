@@ -568,6 +568,14 @@ public class PingHandler {
         return envBean;
     }
 
+    private EnvType stageTypeMapping(EnvType type) {
+        if (type == EnvType.DEV || type == EnvType.STAGING) {
+            return EnvType.LATEST;
+        } else {
+            return type;
+        }
+    }
+
     private EnvType populateStageType(PingRequestBean pingRequest) throws Exception {
         if (pingRequest.getStageType() != null) {
             return pingRequest.getStageType();
@@ -594,6 +602,9 @@ public class PingHandler {
     private Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
         List<String> shards = new ArrayList<>();
         EnvType stageType = populateStageType(pingRequest);
+        // A tmp solution to map dev and staging to latest.
+        // This way sidecar deployments will work without sidecar owners to update their env/stage setup and spinnaker pipelines, which might take a long time.
+        stageType = stageTypeMapping(stageType);
         shards.add(stageType.toString().toLowerCase());
 
         String availabilityZone = pingRequest.getAvailabilityZone();
