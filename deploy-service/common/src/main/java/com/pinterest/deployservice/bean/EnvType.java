@@ -32,5 +32,7 @@ public enum EnvType {
     PRODUCTION,
     CONTROL,
     CANARY,
-    LATEST;
+    LATEST,
+    DEV,
+    STAGING
 }

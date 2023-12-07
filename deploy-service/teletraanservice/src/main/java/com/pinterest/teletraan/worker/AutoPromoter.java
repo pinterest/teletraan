@@ -571,7 +571,7 @@ public class AutoPromoter implements Runnable {
                     String desc = "Auto promote build " + buildId;
                     String
                         newDeployId =
-                        deployHandler.deploy(currEnvBean, buildId, desc, AUTO_PROMOTER_NAME);
+                        deployHandler.deploy(currEnvBean, buildId, desc, null, AUTO_PROMOTER_NAME);
                     LOG.info(
                         "Auto promoted deploy {} from build {}, from stage {} to {} for env {}",
                         newDeployId, buildId, predStageName, currEnvBean.getStage_name(),

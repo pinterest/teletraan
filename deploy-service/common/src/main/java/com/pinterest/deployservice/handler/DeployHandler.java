@@ -25,6 +25,7 @@ import com.pinterest.deployservice.bean.DeployFilterBean;
 import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.DeployType;
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvWebHookBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.PromoteBean;
@@ -288,6 +289,7 @@ public class DeployHandler implements DeployHandlerInterface{
         EnvironBean updateEnvBean = new EnvironBean();
         updateEnvBean.setDeploy_id(deployId);
         updateEnvBean.setDeploy_type(deployBean.getDeploy_type());
+        updateEnvBean.setStage_type(envBean.getStage_type());
 
         statements.add(environDAO.genUpdateStatement(envBean.getEnv_id(), updateEnvBean));
 
@@ -412,7 +414,7 @@ public class DeployHandler implements DeployHandlerInterface{
             throw new DeployInternalException("This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.");
         }
     }
-    public String deploy(EnvironBean envBean, String buildId, String desc, String operator) throws Exception {
+    public String deploy(EnvironBean envBean, String buildId, String desc, String deliveryType, String operator) throws Exception {
         validateBuild(envBean, buildId);
 
         DeployBean deployBean = new DeployBean();
@@ -421,6 +423,19 @@ public class DeployHandler implements DeployHandlerInterface{
         deployBean.setDescription(desc);
         deployBean.setDeploy_type(DeployType.REGULAR);
         deployBean.setOperator(operator);
+        
+        // compare the current stage_type and the delivery_type
+        // When the delivery_type is different with stage_type and stage_type is not DEFAULT, we reject the deployment API call;
+        // When the delivery_type is different with stage_type and stage_type is DEFAULT, we update the stage_type;
+        if(StringUtils.isNotBlank(deliveryType) && !envBean.getStage_type().toString().equals(deliveryType)) {
+            if (envBean.getStage_type() != EnvType.DEFAULT) {
+                throw new Exception("The delivery type is different with the stage type, deployment is not allowed!");
+            } else {
+                EnvType type = EnvType.valueOf(deliveryType);
+                envBean.setStage_type(type);
+                LOG.info("The stage type is updated from {} to {} for env {}", envBean.getStage_type(), type, envBean.getEnv_id());
+            }
+        }
 
         disableAutoPromote(envBean, operator, false);
         resetSchedule(envBean);

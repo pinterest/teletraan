@@ -417,9 +417,9 @@ public class CommonHandler {
                 String commit = buildBean.getScm_commit_7();
                 String envName = environBean.getEnv_name();
                 String stageName = environBean.getStage_name();
-                String what = String.format("%s/%s deploy initiated.", envName, stageName);
-                publisher.publishEvent(new DeployEvent(this, envName, stageName, commit, newDeployBean.getOperator()));
-                LOG.info("Successfully sent deploy event. what: {}, commit: {}", what, commit);
+                DeployEvent event = new DeployEvent(this, envName, stageName, commit, newDeployBean.getOperator());
+                publisher.publishEvent(event);
+                LOG.info("Successfully sent deploy event: {}", event);
             } catch (Exception ex) {
                 LOG.error("Failed to send deploy events.", ex);
             }
