@@ -205,18 +205,18 @@
                         title="The percentage of the cluster size that must be in healthy state. E.g. with 90%, each round, 10% of the cluster will be replaced until completion. If minimum healthy percentage results in 0 instance to be replaced, then 1 instance will be replaced at a time. Use 100 if you want to replace 1 instance at time.">
                         <span class="fa fa-check"></span> Minimum healthy percentage:
                     </label>
-                    <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value={{ auto_refresh_config.config.minHealthyPercentage }}>
+                    <input type="number" id="minHealthyPercentage" name="minHealthyPercentage" min="0" max="100" value={% if auto_refresh_config.config.minHealthyPercentage %}{{ auto_refresh_config.config.minHealthyPercentage }}{% else %}90{% endif %}>
 
                     <label for="checkpointPercentages" data-toggle="tooltip"
                         title="Replacement will pause when replacement progress reaches the defined checkpoint percentages before continuing. E.g with 25, 100, the replacement will pause when completion reaches 25% and 100%. Note that the replacement will stop at the last checkpoint. If the last checkpoint is not 100, then it will be a partial replacement.">
                         <span class="fa fa-bell"></span> Checkpoint percentages:
                     </label>
-                    <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" value={{ auto_refresh_config.config.checkpointPercentages|join:"," }}>
+                    <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" value={% if auto_refresh_config.config.checkpointPercentages %}{{ auto_refresh_config.config.checkpointPercentages|join:"," }}{% endif %}>
                     
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
                         <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
-                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value={{ auto_refresh_config.config.checkpointDelay }}>
+                    <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value={% if auto_refresh_config.config.checkpointDelay %}{{ auto_refresh_config.config.checkpointDelay }}{% endif %}>
                 </div>
                 
                 <div style="padding-top: 20px;">
@@ -242,7 +242,7 @@
                         </label>
                         <p><i>Hour(s) to wait after the cluster is refreshed successfully before refreshing cluster(s) in the next stage (if applicable).</i></p>
                     </div>
-                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={{ auto_refresh_config.bakeTime }}> hour(s)
+                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={% if auto_refresh_config.bakeTime %}{{ auto_refresh_config.bakeTime }}{% else %}0{% endif %}> hour(s)
                 </div>
 
                 <div style="padding-top: 20px;">
