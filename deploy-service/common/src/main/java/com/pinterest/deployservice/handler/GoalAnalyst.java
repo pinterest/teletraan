@@ -31,6 +31,8 @@ import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.AgentState;
 import com.pinterest.deployservice.bean.AgentStatus;
 import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.DeployConstraintBean;
+import com.pinterest.deployservice.bean.HostTagBean;
 import com.pinterest.deployservice.bean.DeployPriority;
 import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.DeployType;
@@ -40,6 +42,10 @@ import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.common.StateMachines;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.dao.HostTagDAO;
+import com.pinterest.deployservice.dao.DeployConstraintDAO;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GoalAnalyst {
     private static final Logger LOG = LoggerFactory.getLogger(GoalAnalyst.class);
@@ -51,6 +57,11 @@ public class GoalAnalyst {
     private String host;
     private String host_id;
     private DeployDAO deployDAO;
+    private HostTagDAO hostTagDAO;
+    private DeployConstraintDAO deployConstraintDAO;
+
+
+    private String ec2Tags;
 
     // input maps, all keyed by envId
     private Map<String, EnvironBean> envs;
@@ -198,13 +209,16 @@ public class GoalAnalyst {
         }
     }
 
-    GoalAnalyst(DeployDAO deployDAO, EnvironDAO environDAO, String host, String host_id, Map<String, EnvironBean> envs, Map<String, PingReportBean> reports, Map<String, AgentBean> agents) {
+    GoalAnalyst(DeployConstraintDAO deployConstraintDAO, HostTagDAO hostTagDAO, DeployDAO deployDAO, EnvironDAO environDAO, String host, String host_id, Map<String, EnvironBean> envs, Map<String, PingReportBean> reports, Map<String, AgentBean> agents, String ec2Tags) {
         this.deployDAO = deployDAO;
         this.host = host;
         this.host_id = host_id;
         this.envs = envs;
         this.reports = reports;
         this.agents = agents;
+        this.ec2Tags = ec2Tags;
+        this.hostTagDAO = hostTagDAO;
+        this.deployConstraintDAO = deployConstraintDAO;
 
         for (Map.Entry<String, AgentBean> entry : agents.entrySet()) {
             try {
@@ -530,6 +544,34 @@ public class GoalAnalyst {
                     errorMessages.put(envId, report.getErrorMessage());
                 }
             }
+        }
+
+        // update host_tags table
+        if (ec2Tags != null && env != null && env.getDeploy_constraint_id() != null) {
+            String constraintId = env.getDeploy_constraint_id();
+            DeployConstraintBean deployConstraintBean = deployConstraintDAO.getById(constraintId);
+            String tagName = deployConstraintBean.getConstraint_key();
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> tags = mapper.readValue(ec2Tags, Map.class);
+            if (tags.containsKey(tagName)) {
+                String tagValue = tags.get(tagName);
+                HostTagBean hostTagBean = hostTagDAO.get(host_id, tagName);
+                if (hostTagBean == null) {
+                    hostTagBean = new HostTagBean();
+                    hostTagBean.setHost_id(host_id);
+                    hostTagBean.setTag_name(tagName);
+                    hostTagBean.setTag_value(tagValue);
+                    hostTagBean.setEnv_id(envId);
+                    hostTagBean.setCreate_date(System.currentTimeMillis());
+                    hostTagDAO.insertOrUpdate(hostTagBean);
+                    LOG.debug("insert host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                } else if (tagValue.equals(hostTagBean.getTag_value()) == false) {
+                    hostTagBean.setTag_value(tagValue);
+                    hostTagBean.setCreate_date(System.currentTimeMillis());
+                    hostTagDAO.insertOrUpdate(hostTagBean);
+                    LOG.debug("update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                }      
+            }         
         }
 
         /**
