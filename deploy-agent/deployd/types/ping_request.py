@@ -20,7 +20,7 @@ from deployd.types.agent_status import AgentStatus
 class PingRequest(object):
 
     def __init__(self, hostId=None, hostName=None, hostIp=None, groups=None, reports=None,
-                agentVersion=None, autoscalingGroup=None, availabilityZone=None, ec2Tags=None, stageType=None, accountId=None):
+                 agentVersion=None, autoscalingGroup=None, availabilityZone=None, ec2Tags=None, stageType=None, accountId=None) -> None:
         self.hostId = hostId
         self.hostName = hostName
         self.hostIp = hostIp
@@ -33,7 +33,7 @@ class PingRequest(object):
         self.stageType = stageType
         self.accountId = accountId
 
-    def to_json(self):
+    def to_json(self) -> dict:
         ping_requests = {}
         ping_requests["hostId"] = self.hostId
         ping_requests["hostName"] = self.hostName
@@ -84,7 +84,7 @@ class PingRequest(object):
             ping_requests["reports"].append(ping_report)
         return ping_requests
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "PingRequest(hostId={}, hostName={}, hostIp={}, agentVersion={}, autoscalingGroup={}, " \
             "availabilityZone={}, ec2Tags={}, stageType={}, groups={}, accountId={}, reports={})".format(self.hostId, self.hostName, 
             self.hostIp, self.agentVersion, self.autoscalingGroup, self.availabilityZone, self.ec2Tags, self.stageType,

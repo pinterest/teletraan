@@ -19,6 +19,8 @@ import socket
 import traceback
 import json
 
+from typing import Optional
+
 from deployd.client.base_client import BaseClient
 from deployd.client.restfulclient import RestfulClient
 from deployd.common.decorators import retry
@@ -26,6 +28,7 @@ from deployd.common.stats import create_stats_timer, create_sc_increment
 from deployd.common import utils
 from deployd.types.ping_request import PingRequest
 from deployd import IS_PINTEREST
+from deployd.types.ping_response import PingResponse
 
 
 log = logging.getLogger(__name__)
@@ -33,7 +36,7 @@ log = logging.getLogger(__name__)
 
 class Client(BaseClient):
     def __init__(self, config=None, hostname=None, ip=None, hostgroup=None, 
-                host_id=None, use_facter=None, use_host_info=False):
+                 host_id=None, use_facter=None, use_host_info=False) -> None:
         self._hostname = hostname
         self._ip = ip
         self._hostgroup = hostgroup
@@ -50,7 +53,7 @@ class Client(BaseClient):
         self._stage_type_fetched = False
         self._account_id = None
 
-    def _read_host_info(self):
+    def _read_host_info(self) -> bool:
         if self._use_facter:
             log.info("Use facter to get host info")
             name_key = self._config.get_facter_name_key()
@@ -197,7 +200,7 @@ class Client(BaseClient):
 
         return True
 
-    def send_reports(self, env_reports=None):
+    def send_reports(self, env_reports=None) -> Optional[PingResponse]:
         try:
             if self._read_host_info():
                 reports = [status.report for status in env_reports.values()]
@@ -236,7 +239,7 @@ class Client(BaseClient):
             return None
 
     @retry(ExceptionToCheck=Exception, delay=1, tries=3)
-    def send_reports_internal(self, request):
+    def send_reports_internal(self, request) -> PingResponse:
         ping_service = RestfulClient(self._config)
         response = ping_service.ping(request)
         return response
