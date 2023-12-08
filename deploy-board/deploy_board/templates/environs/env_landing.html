@@ -130,12 +130,16 @@
     <div v-if="showCluster" class="row">
         <side-button styleclass="fa fa-database" :style="capacityStateStyle" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
+    {% if capacity_info.groups %}
     <div v-if="showCluster" class="row">
         <side-button styleclass="fa fa-expand" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Configure autoscaling group"></side-button>
     </div>
+    {% endif %}
+    {% if capacity_info.cluster %}
     <div v-if="showCluster" class="row">
         <side-button styleclass="fa fa-cog" v-bind:text="clusterSettingsText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/cluster/config/" title="Go to the cluster configuration page."></side-button>
     </div>
+    {% endif %}
     <div v-if="!showCluster" id="groupsDiv">
     </div>
 </div>
