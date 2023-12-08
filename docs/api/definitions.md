@@ -233,7 +233,7 @@
 |**scheduleId**  <br>*optional*||string|
 |**scriptConfigId**  <br>*optional*||string|
 |**stageName**  <br>*optional*||string|
-|**stageType**  <br>*optional*||enum (DEFAULT, PRODUCTION, CONTROL, CANARY, LATEST)|
+|**stageType**  <br>*optional*||enum (DEFAULT, PRODUCTION, CONTROL, CANARY, STAGING, LATEST, DEV)|
 |**state**  <br>*optional*||enum (NORMAL, DISABLED)|
 |**stuckThreshold**  <br>*optional*||integer (int32)|
 |**successThreshold**  <br>*optional*||integer (int32)|
@@ -417,7 +417,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -425,11 +425,11 @@
 
   You may obtain a copy of the License at
 
- 
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
- 
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -445,7 +445,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -453,11 +453,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -475,7 +475,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -483,11 +483,11 @@
 
   You may obtain a copy of the License at
 
- 
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
- 
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -503,7 +503,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -511,11 +511,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -531,7 +531,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -539,11 +539,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -559,7 +559,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -567,11 +567,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -587,7 +587,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -595,11 +595,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -615,7 +615,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -623,11 +623,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -645,7 +645,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -653,11 +653,11 @@
 
   You may obtain a copy of the License at
 
- 
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
- 
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -673,7 +673,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -681,11 +681,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -701,7 +701,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -709,11 +709,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -731,7 +731,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -739,11 +739,11 @@
 
   You may obtain a copy of the License at
 
- 
+
 
        http://www.apache.org/licenses/LICENSE-2.0
 
- 
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -777,7 +777,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -785,11 +785,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -805,7 +805,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -813,11 +813,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -833,7 +833,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -841,11 +841,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -861,7 +861,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -869,11 +869,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -889,7 +889,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -897,11 +897,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -917,7 +917,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -925,11 +925,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -945,7 +945,7 @@
 
   Copyright 2020 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -953,11 +953,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -973,7 +973,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -981,11 +981,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -1001,7 +1001,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -1009,11 +1009,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -1041,7 +1041,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -1049,11 +1049,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 
@@ -1069,7 +1069,7 @@
 
   Copyright 2016 Pinterest, Inc.
 
- 
+
 
   Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -1077,11 +1077,11 @@
 
   You may obtain a copy of the License at
 
-   
+
 
       http://www.apache.org/licenses/LICENSE-2.0
 
-     
+
 
   Unless required by applicable law or agreed to in writing, software
 

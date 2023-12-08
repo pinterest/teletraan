@@ -34,6 +34,8 @@ public class PingRequestBean {
 
     private String availabilityZone;
 
+    private String ec2Tags;
+
     private String agentVersion;
 
     private EnvType stageType;
@@ -82,6 +84,14 @@ public class PingRequestBean {
 
     public void setAvailabilityZone(String availabilityZone){
         this.availabilityZone = availabilityZone;
+    }
+
+    public String getEc2Tags() {
+        return ec2Tags;
+    }
+
+    public void setEc2Tags(String ec2Tags) {
+        this.ec2Tags = ec2Tags;
     }
 
     public String getAgentVersion() {

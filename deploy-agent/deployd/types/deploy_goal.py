@@ -21,6 +21,7 @@ class DeployGoal(object):
         self.envId = None
         self.envName = None
         self.stageName = None
+        self.stageType = None
         self.deployStage = None
         self.build = None
         self.deployAlias = None
@@ -34,6 +35,7 @@ class DeployGoal(object):
             self.envId = jsonValue.get('envId')
             self.envName = jsonValue.get('envName')
             self.stageName = jsonValue.get('stageName')
+            self.stageType = jsonValue.get('stageType')
             # TODO: Only used for migration, should remove later
             if isinstance(jsonValue.get('deployStage'), int):
                 self.deployStage = DeployStage._VALUES_TO_NAMES[jsonValue.get('deployStage')]
@@ -54,6 +56,7 @@ class DeployGoal(object):
                 self.envId,
                 self.envName,
                 self.stageName,
+                self.stageType,
                 self.deployStage,
                 self.build,
                 self.deployAlias,
@@ -76,10 +79,10 @@ class DeployGoal(object):
                     and self.__key() == other.__key())
 
     def __str__(self):
-        return "DeployGoal(deployId={}, envId={}, envName={}, stageName={}, " \
+        return "DeployGoal(deployId={}, envId={}, envName={}, stageName={}, stageType={}, " \
                "deployStage={}, build={}, deployAlias={}, agentConfig={}," \
                "scriptVariables={}, firstDeploy={}, isDocker={})".format(self.deployId, self.envId, self.envName,
-                                                            self.stageName, self.deployStage,
+                                                            self.stageName, self.stageType, self.deployStage,
                                                             self.build, self.deployAlias,
                                                             self.config, self.scriptVariables,
                                                             self.firstDeploy, self.isDocker)

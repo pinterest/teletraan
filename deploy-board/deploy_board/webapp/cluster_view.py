@@ -247,7 +247,8 @@ class ClusterConfigurationView(View):
         base_images_names = baseimages_helper.get_image_names_by_arch(
             request, current_cluster['provider'], current_cluster['cellName'], current_cluster['archName'])
 
-        current_cluster['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(current_cluster['statefulStatus'])
+        current_cluster['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(
+            current_cluster['statefulStatus'])
 
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
@@ -389,7 +390,7 @@ def get_base_images(request):
     arches_list = arches_helper.get_all(request)
     for image in base_images:
         tags = baseimages_helper.get_image_tag_by_id(request, image['id'])
-        golden_tags = [ e['tag'] for e in tags ]
+        golden_tags = [e['tag'] for e in tags]
         image['golden_latest'] = 'GOLDEN_LATEST' in golden_tags
         image['golden_canary'] = 'GOLDEN_CANARY' in golden_tags
         image['golden_prod'] = 'GOLDEN' in golden_tags
@@ -412,12 +413,17 @@ def get_base_images_by_abstract_name(request, abstract_name):
     provider_list = baseimages_helper.get_all_providers(request)
     cells_list = cells_helper.get_by_provider(request, DEFAULT_PROVIDER)
     arches_list = arches_helper.get_all(request)
+    for image in base_images:
+        tags = baseimages_helper.get_image_tag_by_id(request, image['id'])
+        golden_tags = [e['tag'] for e in tags]
+        image['golden_latest'] = 'GOLDEN_LATEST' in golden_tags
+        image['golden_canary'] = 'GOLDEN_CANARY' in golden_tags
+        image['golden_prod'] = 'GOLDEN' in golden_tags
+    # add current golden tag
     golden_images = {}
     for cell in cells_list:
         cell_name = cell['name']
         golden_images[cell_name] = baseimages_helper.get_current_golden_image(request, abstract_name, cell_name)
-
-    # add golden tag to images
     for image in base_images:
         if golden_images[image['cell_name']] and image['id'] == golden_images[image['cell_name']]['id']:
             image['current_golden'] = True
@@ -440,7 +446,7 @@ def get_base_image_events(request, image_id):
         request, image_id)
     update_events = sorted(update_events, key=lambda event: event['create_time'], reverse=True)
     tags = baseimages_helper.get_image_tag_by_id(request, image_id)
-    golden_tags = [ e['tag'] for e in tags ]
+    golden_tags = [e['tag'] for e in tags]
     golden_latest = 'GOLDEN_LATEST' in golden_tags
     golden_canary = 'GOLDEN_CANARY' in golden_tags
     golden_prod = 'GOLDEN' in golden_tags
@@ -449,7 +455,8 @@ def get_base_image_events(request, image_id):
     latest_update_events = baseimages_helper.get_latest_image_update_events(update_events)
     progress_info = baseimages_helper.get_base_image_update_progress(latest_update_events)
     show_promote_ui = current_image['abstract_name'].startswith('cmp')
-    cluster_statuses = [{'cluster_name': event['cluster_name'], 'status': event['status']} for event in latest_update_events]
+    cluster_statuses = [{'cluster_name': event['cluster_name'], 'status': event['status']}
+                        for event in latest_update_events]
     cluster_statuses = sorted(cluster_statuses, key=lambda event: event['status'], reverse=True)
 
     return render(request, 'clusters/base_images_events.html', {
@@ -585,6 +592,7 @@ def create_host_type(request):
     hosttypes_helper.create_host_type(request, host_type_info)
     return redirect('/clouds/hosttypes/')
 
+
 def modify_host_type(request):
     try:
         host_type_info = json.loads(request.body)
@@ -602,6 +610,7 @@ def modify_host_type(request):
         return HttpResponse(e, status=500, content_type="application/json")
     return HttpResponse(json.dumps(host_type_info), content_type="application/json")
 
+
 def get_host_type_by_id(request, host_type_id):
     provider_list = baseimages_helper.get_all_providers(request)
     arches_list = arches_helper.get_all(request)
@@ -616,6 +625,7 @@ def get_host_type_by_id(request, host_type_id):
         "csrf_token": get_token(request)
     })
     return HttpResponse(json.dumps(contents), content_type="application/json")
+
 
 def get_host_types(request):
     index = int(request.GET.get('page_index', '1'))
@@ -1011,11 +1021,12 @@ def enable_cluster_replacement(request, name, stage):
     clusters_helper.enable_cluster_replacement(request, cluster_name)
     return redirect('/env/{}/{}/config/capacity/'.format(name, stage))
 
+
 def gen_cluster_replacement_view(request, name, stage):
     env = environs_helper.get_env_by_stage(request, name, stage)
     cluster_name = '{}-{}'.format(name, stage)
     get_cluster_replacement_body = {
-        "clusterName" : cluster_name
+        "clusterName": cluster_name
     }
     replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
 
@@ -1034,6 +1045,7 @@ def gen_cluster_replacement_view(request, name, stage):
 
     return HttpResponse(content)
 
+
 def get_cluster_replacement_details(request, name, stage, replacement_id):
     env = environs_helper.get_env_by_stage(request, name, stage)
     cluster_name = '{}-{}'.format(name, stage)
@@ -1041,7 +1053,8 @@ def get_cluster_replacement_details(request, name, stage, replacement_id):
         "clusterName": cluster_name,
         "replacementIds": [replacement_id]
     }
-    replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_details_body)
+    replace_summaries = clusters_helper.get_cluster_replacement_status(
+        request, data=get_cluster_replacement_details_body)
 
     content = render_to_string("clusters/cluster-replacement-details.tmpl", {
         "env": env,
@@ -1054,12 +1067,12 @@ def get_cluster_replacement_details(request, name, stage, replacement_id):
     })
     return HttpResponse(content)
 
+
 def start_cluster_replacement(request, name, stage):
     params = request.POST
     cluster_name = common.get_cluster_name(request, name, stage)
     skipMatching = False
     scaleInProtectedInstances = 'Ignore'
-
     checkpointPercentages = []
     if (params['checkpointPercentages']):
         checkpointPercentages = [int(x) for x in params["checkpointPercentages"].split(',')]
@@ -1076,7 +1089,6 @@ def start_cluster_replacement(request, name, stage):
     rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
     rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
     rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
-
     start_cluster_replacement = {}
     start_cluster_replacement["clusterName"] = cluster_name
     start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
@@ -1084,7 +1096,6 @@ def start_cluster_replacement(request, name, stage):
     log.info("Starting to replace cluster {0}".format(cluster_name))
 
     try:
-        perform_cluster_replacement_action(request, name, stage, 'resume', includeMessage=False)
         clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
         messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
     except TeletraanException as ex:
@@ -1094,6 +1105,7 @@ def start_cluster_replacement(request, name, stage):
             messages.warning(request, str(ex), "cluster-replacements")
 
     return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
+
 
 def perform_cluster_replacement_action(request, name, stage, action, includeMessage=True):
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -1115,6 +1127,7 @@ def perform_cluster_replacement_action(request, name, stage, action, includeMess
             messages.warning(request, str(ex), "cluster-replacements")
 
     return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
+
 
 def pause_cluster_replacement(request, name, stage):
     cluster_name = common.get_cluster_name(request, name, stage)
@@ -1203,6 +1216,7 @@ def get_replacement_summary(request, cluster_name, event, current_capacity):
             'successRate': '{}% ({}/{})'.format(progress_rate, succeeded, current_capacity)
         }
 
+
 class ClusterHistoriesView(View):
     def get(self, request, name, stage):
         env = environs_helper.get_env_by_stage(request, name, stage)
@@ -1228,6 +1242,7 @@ class ClusterHistoriesView(View):
             "replace_summaries": replace_summaries
         }
         return render(request, 'clusters/replace_histories.html', data)
+
 
 class ClusterBaseImageHistoryView(View):
 

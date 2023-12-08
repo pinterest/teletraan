@@ -26,8 +26,8 @@ from deployd.client.serverless_client import ServerlessClient
 from deployd.common.config import Config
 from deployd.common.exceptions import AgentException
 from deployd.common.helper import Helper
-from deployd.common.single_instance import SingleInstance
 from deployd.common.env_status import EnvStatus
+from deployd.common.single_instance import SingleInstance
 from deployd.common.stats import TimeElapsed, create_sc_timing, create_sc_increment
 from deployd.common.utils import get_telefig_version,get_container_health_info, check_prereqs
 from deployd.common.utils import uptime as utils_uptime, listen as utils_listen
@@ -35,10 +35,10 @@ from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, DeployStage, AgentStatus
 from deployd import __version__, IS_PINTEREST, MAIN_LOGGER
 
-log = logging.getLogger(MAIN_LOGGER)
+log: logging.Logger = logging.getLogger(name=MAIN_LOGGER)
 
 class PingServer(object):
-    def __init__(self, ag):
+    def __init__(self, ag) -> None:
         self._agent = ag
 
     def __call__(self, deploy_report):
@@ -101,8 +101,8 @@ class DeployAgent(object):
 
     def _send_deploy_status_stats(self, deploy_report):
         if not self._response.deployGoal or not deploy_report:
-            return 
-        
+            return
+
         tags = {'first_run': self.first_run}
         if self._response.deployGoal.deployStage:
             tags['deploy_stage'] = self._response.deployGoal.deployStage
@@ -112,10 +112,10 @@ class DeployAgent(object):
             tags['stage_name'] = self._response.deployGoal.stageName
         if deploy_report.status_code:
             tags['status_code'] = deploy_report.status_code
-        if self._telefig_version: 
-            tags['telefig_version'] = self._telefig_version    
+        if self._telefig_version:
+            tags['telefig_version'] = self._telefig_version
         create_sc_increment('deployd.stats.deploy.status.sum', tags=tags)
-        
+
     def serve_build(self):
         """This is the main function of the ``DeployAgent``.
         """
@@ -126,19 +126,44 @@ class DeployAgent(object):
         # include healthStatus info for each container
         if len(self._envs) > 0:
             for status in self._envs.values():
-                # for each container, we check the health status
+                # for each service, we check the container health status
+                log.info(f"the current service is: {status.report.envName}")
                 try:
-                    healthStatus = get_container_health_info(status.build_info.build_commit)
+                    if status.report.redeploy == None:
+                        status.report.redeploy = 0
+                    healthStatus = get_container_health_info(status.build_info.build_commit, status.report.envName, status.report.redeploy)
                     if healthStatus:
-                        status.report.containerHealthStatus = healthStatus
+                        if "redeploy" in healthStatus:
+                            status.report.redeploy = int(healthStatus.split("-")[1])
+                            status.report.wait = 0
+                            status.report.state = "RESET_BY_SYSTEM"
+                            status.report.containerHealthStatus = None
+                        else:
+                            status.report.containerHealthStatus = healthStatus
+                            status.report.state = None
+                            if "unhealthy" not in healthStatus:
+                                if status.report.wait == None or status.report.wait > 5:
+                                    status.report.redeploy = 0
+                                    status.report.wait = 0
+                                else:
+                                    status.report.wait = status.report.wait + 1
                     else:
+                        status.report.state = None
                         status.report.containerHealthStatus = None
                 except Exception:
+                    status.report.state = None
                     status.report.containerHealthStatus = None
                     log.exception('get exception while trying to check container health: {}'.format(traceback.format_exc()))
                     continue
+            self._env_status.dump_envs(self._envs)
         # start to ping server to get the latest deploy goal
         self._response = self._client.send_reports(self._envs)
+        # we only need to send RESET once in one deploy-agent run
+        if len(self._envs) > 0:
+            for status in self._envs.values():
+                if status.report.state == "RESET_BY_SYSTEM":
+                    status.report.state = None
+            self._env_status.dump_envs(self._envs)
 
         if self._response:
             report = self._update_internal_deploy_goal(self._response)
@@ -178,7 +203,7 @@ class DeployAgent(object):
 
             if PingStatus.PING_FAILED == self.update_deploy_status(deploy_report):
                 return
-                
+
             if deploy_report.status_code in [AgentStatus.AGENT_FAILED,
                                              AgentStatus.TOO_MANY_RETRY,
                                              AgentStatus.SCRIPT_TIMEOUT]:
@@ -210,8 +235,8 @@ class DeployAgent(object):
     def serve_once(self):
         log.info("Running deploy agent in non daemon mode")
         try:
-            if len(self._envs) > 0:
-                # randomly sleep some time before pinging server
+            if len(self._envs) > 0 and not isinstance(self._client, ServerlessClient):
+                # randomly sleep some time before pinging server. Skip sleeping if in serverless mode.
                 # TODO: consider pause stat_time_elapsed_internal here
                 sleep_secs = randrange(self._config.get_init_sleep_time())
                 log.info("Randomly sleep {} seconds before starting.".format(sleep_secs))
@@ -259,6 +284,7 @@ class DeployAgent(object):
             '''
             # pause stat_time_elapsed_internal so that external actions are not counted
             self.stat_time_elapsed_internal.pause()
+            log.info(f"The current deploy stage is: {curr_stage}")
             if curr_stage == DeployStage.DOWNLOADING:
                 return self._executor.run_cmd(self.get_download_script(deploy_goal=deploy_goal))
             elif curr_stage == DeployStage.STAGING:
@@ -484,20 +510,22 @@ def main():
                              "json format.")
     parser.add_argument('--env-name', dest='env_name', default=None,
                         help="Optional. In 'serverless' mode, env_name needs to be passed in.")
+    parser.add_argument('--deploy-stage', dest='deploy_stage', default=None,
+                        help="Optional. In 'serverless' mode, initial deploy_stage to start with.")
     parser.add_argument('--script-variables', dest='script_variables', default='{}',
                         help="Optional. In 'serverless' mode,  script_variables is needed in "
                              "json format.")
     parser.add_argument('-v', '--version', action='version',
                         version=__version__, help='Deploy agent version.')
 
-    args = parser.parse_args()
+    args: argparse.Namespace = parser.parse_args()
 
     is_serverless_mode = AgentRunMode.is_serverless(args.mode)
     if args.daemon and is_serverless_mode:
         raise ValueError("daemon and serverless mode is mutually exclusive.")
-    
-    config = Config(args.config_file)
-    
+
+    config = Config(filenames=args.config_file)
+
     if IS_PINTEREST:
         import pinlogger
 
@@ -508,10 +536,10 @@ def main():
         logging.basicConfig(filename=log_filename, level=config.get_log_level(),
                             format='%(asctime)s %(name)s:%(lineno)d %(levelname)s %(message)s')
 
-    if not check_prereqs(config): 
+    if not check_prereqs(config):
         log.warning("Deploy agent cannot start because the prerequisites on puppet did not meet.")
         sys.exit(0)
-        
+
     log.info("Start to run deploy-agent.")
     # timing stats - agent start time
     create_sc_timing('deployd.stats.internal.time_start_sec',
@@ -521,7 +549,7 @@ def main():
     if is_serverless_mode:
         log.info("Running agent with severless client")
         client = ServerlessClient(env_name=args.env_name, stage=args.stage, build=args.build,
-                                  script_variables=args.script_variables)
+                                  script_variables=args.script_variables, deploy_stage=args.deploy_stage)
 
     uptime = utils_uptime()
     agent = DeployAgent(client=client, conf=config)

@@ -60,6 +60,11 @@ workers:
       minStaleHostThreshold: 150
       maxStaleHostThreshold: 600
 
+  - name: MetricsEmitter
+    properties:
+      initialDelay: 2
+      period: 5
+
 #
 # Health settings
 #
