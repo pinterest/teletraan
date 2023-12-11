@@ -293,7 +293,7 @@ $('#privateBldUploadBtnId button').click(function () {
     {% if lastClusterRefreshStatus.status == "Pending" or lastClusterRefreshStatus.status == "InProgress" %}
     <div class="alert alert-info alert-dismissible">
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        <strong>Info!</strong> This cluster is being refreshed. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
+        <strong>Info!</strong> This cluster is being refreshed with {{ lastClusterRefreshStatus.percentageComplete|default_if_none:0 }}% completed. Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> for more details.
     </div>
     {% elif lastClusterRefreshStatus.status == "Successful" %}
     <div class="alert alert-success alert-dismissible">
