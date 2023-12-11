@@ -130,6 +130,7 @@
     <div v-if="showCluster" class="row">
         <side-button styleclass="fa fa-database" :style="capacityStateStyle" v-bind:text="capacityText" href="/env/{{ env.envName }}/{{ env.stageName }}/config/capacity" title="Configure capacity"></side-button>
     </div>
+    <p>{{ capacity_info }}</p>
     {% if capacity_info.groups %}
     <div v-if="showCluster" class="row">
         <side-button styleclass="fa fa-expand" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Configure autoscaling group"></side-button>
@@ -176,12 +177,12 @@
       </div>
       <div class="modal-body">
         <p>Are you sure to pause the current deploy? <br>
-           Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster. 
+           Deployment will be paused on existing instances of a cluster but will continue on any new hosts added to a cluster.
         </p>
         <div class="alert alert-danger" role="alert">
             <strong>WARNING</strong>:
             Please don't leave deployment in the PAUSED state permanently. <br>
-            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.  
+            Cluster will be running two different builds(old on existing instances and new on new instances) as long as deployment is paused.
         </div>
       </div>
       <div class="modal-footer">
