@@ -16,7 +16,7 @@
 """Collection of all env promote config views
 """
 import json
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import IS_PINTEREST, STAGE_TYPE_INFO_LINK
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
@@ -60,6 +60,7 @@ class EnvConfigView(View):
             "stages": stages,
             "show_remove": show_remove,
             "pinterest": IS_PINTEREST,
+            "stage_type_info_link": STAGE_TYPE_INFO_LINK,
         })
 
     def _set_parallel(self, data, query_dict):
