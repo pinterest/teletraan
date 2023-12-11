@@ -48,15 +48,15 @@ Vue.component('baseimage-select', {
                 :options="imageNames" :selected="selectedImageName"
                 @input="$emit('image-name-change', $event)" @help-clicked="helpClick">
             </label-select2>
-            <label-select2 col-class="col-xs-3" show-help="true" label="Image" title="Provider Name"
-                :disabled="!pinImage" :options="baseImages" :selected="selectedBaseImage"
-                @input="$emit('base-image-change', $event)" @help-clicked="helpClick">
-            </label-select2>
-            <div class="col-xs-2">
+            <div class="col-xs-3">
                 <base-checkbox :checked="pinImage" :enabled="pinImageEnabled"
                     @input="pinImageClick"></base-checkbox>
                 <label for="pinImageCB" title="Check the box to select AMI manually. If unchecked, AMI will be auto-updated. If there is no Golden AMI, then only manual selection is supported.">Pin An Image to Opt out of Golden AMI</label>
             </div>
+            <label-select2 col-class="col-xs-3" show-help="true" label="Image" title="Provider Name"
+                :disabled="!pinImage" :options="baseImages" :selected="selectedBaseImage"
+                @input="$emit('base-image-change', $event)" @help-clicked="helpClick">
+            </label-select2>
         </div>
         <form-warning v-show="showWarning" :alert-text="warningText"></form-warning>
     </div>`,
