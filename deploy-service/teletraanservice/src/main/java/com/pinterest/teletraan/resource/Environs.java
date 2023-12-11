@@ -29,7 +29,7 @@ import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import com.pinterest.teletraan.security.OpenAuthorizer;
 import io.swagger.annotations.*;

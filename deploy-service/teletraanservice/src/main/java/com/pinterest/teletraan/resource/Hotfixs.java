@@ -22,7 +22,7 @@ import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

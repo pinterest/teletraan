@@ -21,7 +21,7 @@ import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
