@@ -23,7 +23,7 @@
                         <div id="privateBuildDeployMessageId" class="alert alert-warning" role="alert" hidden=true>
                             <strong>Notice: </strong> This build is private and should only be deployed in testing environments and not production environments
                         </div>
-                        <div id="defaultStageTypeMessageId" class="alert alert-warning" role="alert" stagetype="{{env.stageType}}" hidden=true>
+                        <div id="defaultStageTypeMessageId" class="alert alert-warning" role="alert" stagetype="{{env.stageType}}" syspriority="{{env.systemPriority}}" hidden=true>
                             <strong>Notice: </strong> This stage has a value of DEFAULT for the Stage Type. Please update the Stage Type to a value other than DEFAULT. See more details at
                             <a href="{{stage_type_info_link}}">pinch/teletraan-stagetypes</a>
                         </div>
@@ -81,6 +81,7 @@
 
 <script>
     var stageType = $('#defaultStageTypeMessageId').attr('stagetype');
+    var systemPriority = $('#defaultStageTypeMessageId').attr('syspriority');
     $('#deployConfirmFormlId').submit(function (e) {
         $(this).find('button[type=submit]').prop('disabled', 'disabled');
         $(this).find('button[type=submit]').text('Creating...');
@@ -103,8 +104,12 @@
         } else {
             $('#privateBuildDeployMessageId').hide();
         }
-        validateInput(stageType, validStageType, $.noop, function () {
-            $('#defaultStageTypeMessageId').show();
-        });
+        if (systemPriority == null) {
+            validateInput(stageType, validStageType, $.noop, function () {
+                $('#defaultStageTypeMessageId').show();
+            });
+        } else {
+            $('#defaultStageTypeMessageId').hide();
+        }
     });
 </script>

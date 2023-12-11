@@ -359,7 +359,7 @@ class EnvLandingView(View):
                 stage_with_external_id = env_stage
                 break
 
-        if env["stageType"] == "DEFAULT":
+        if env["stageType"] == "DEFAULT" and env["systemPriority"] is None:
             stageTypeWikiInfo = {}
             stageTypeWikiInfo['link'] = STAGE_TYPE_INFO_LINK
             stageTypeWikiInfo['text'] = "pinch/teletraan-stagetypes"
