@@ -24,6 +24,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.reflect.TypeToken;
 
 import com.pinterest.deployservice.common.HTTPClient;
+import com.pinterest.deployservice.common.KeyReader;
 import com.pinterest.deployservice.common.KnoxKeyReader;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,7 +49,7 @@ public class RodimusManagerImpl implements RodimusManager {
     private HTTPClient httpClient;
     private Map<String, String> headers;
     private Gson gson;
-    private KnoxKeyReader knoxKeyReader = new KnoxKeyReader();
+    private KeyReader knoxKeyReader = new KnoxKeyReader();
 
     public RodimusManagerImpl(String rodimusUrl, String knoxKey, boolean useProxy, String httpProxyAddr,
             String httpProxyPort) throws Exception {
