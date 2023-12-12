@@ -16,7 +16,7 @@
 """Collection of all env promote config views
 """
 import json
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import IS_PINTEREST, STAGE_TYPE_INFO_LINK
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from django.shortcuts import render
@@ -60,6 +60,7 @@ class EnvConfigView(View):
             "stages": stages,
             "show_remove": show_remove,
             "pinterest": IS_PINTEREST,
+            "stage_type_info_link": STAGE_TYPE_INFO_LINK,
         })
 
     def _set_parallel(self, data, query_dict):
@@ -102,7 +103,7 @@ class EnvConfigView(View):
         data["stageType"] = query_dict["stageType"]
         data["terminationLimit"] = query_dict["terminationLimit"]
 
-        if data["stageType"] == "DEFAULT":
+        if data["stageType"] == "DEFAULT" and "systemPriority" in query_dict and data["systemPriority"] is None:
             raise ValueError("Please update the Stage Type to a value other than DEFAULT. See more details at ")
 
         environs_helper.update_env_basic_config(request, name, stage, data=data)

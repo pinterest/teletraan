@@ -371,3 +371,6 @@ if IS_PINTEREST:
 
     #Auto AMI Update
     ENABLE_AMI_AUTO_UPDATE = 1
+
+    #Stage Type Info Link
+    STAGE_TYPE_INFO_LINK = os.getenv("STAGE_TYPE_INFO_LINK")

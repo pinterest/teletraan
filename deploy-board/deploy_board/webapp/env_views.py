@@ -24,7 +24,7 @@ from django.http import HttpResponse
 from django.contrib import messages
 from deploy_board.settings import IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL, \
-    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK
+    IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK, STAGE_TYPE_INFO_LINK
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
 from django.conf import settings
@@ -359,9 +359,9 @@ class EnvLandingView(View):
                 stage_with_external_id = env_stage
                 break
 
-        if env["stageType"] == "DEFAULT":
+        if env["stageType"] == "DEFAULT" and env["systemPriority"] is None:
             stageTypeWikiInfo = {}
-            stageTypeWikiInfo['link'] = "//pinch/teletraan-stagetypes"
+            stageTypeWikiInfo['link'] = STAGE_TYPE_INFO_LINK
             stageTypeWikiInfo['text'] = "pinch/teletraan-stagetypes"
             messages.add_message(request, messages.ERROR, "Please update the Stage Type to a value other than DEFAULT. See more details at ", stageTypeWikiInfo)
 
@@ -434,6 +434,8 @@ class EnvLandingView(View):
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
+                "hasGroups": bool(capacity_info.get("groups")),
+                "hasCluster": bool(capacity_info.get("cluster")),
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -499,6 +501,8 @@ class EnvLandingView(View):
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
+                "hasGroups": bool(capacity_info.get("groups")),
+                "hasCluster": bool(capacity_info.get("cluster")),
             }
             response = render(request, 'environs/env_landing.html', context)
 
@@ -914,6 +918,7 @@ class EnvNewDeployView(View):
             "current_build": current_build,
             "pageIndex": 1,
             "pageSize": common.DEFAULT_BUILD_SIZE,
+            "stage_type_info_link": STAGE_TYPE_INFO_LINK,
         })
 
     def post(self, request, name, stage):

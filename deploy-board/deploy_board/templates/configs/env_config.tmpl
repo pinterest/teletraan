@@ -267,7 +267,9 @@
                             </span>
                         </div>
                         <div class="col-xs-12" id="stageTypeHelpInfo" hidden="true">
+                            DEV - Used for manual testing</br>
                             LATEST - Deploy the latest available build</br>
+                            STAGING - Deploy the latest available artifacts from master, then verify with testing (integration, stress, smoke etc)</br>
                             CANARY - Deploy the build after tests, then verify the ACA together with the CONTROL</br>
                             CONTROL - Deploy the build as the production, used with CANARY</br>
                             PRODUCTION - Deploy the build to production
@@ -378,7 +380,7 @@
                     if (data != null && data.success == false) {
                         $('#errorBannerId').append(data.error);
                         if ($('#stageTypeValueId').val() == 'DEFAULT') {
-                            $('#errorBannerId').append("<a href='//pinch/teletraan-stagetypes'>pinch/teletraan-stagetypes</a>");
+                            $('#errorBannerId').append("<a href='{{stage_type_info_link}}'>pinch/teletraan-stagetypes</a>");
                         }
                         $('#errorBannerId').show();
                     } else {
