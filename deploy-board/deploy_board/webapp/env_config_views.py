@@ -82,8 +82,8 @@ class EnvConfigView(View):
             data["notifyAuthors"] = True
         else:
             data["notifyAuthors"] = False
-        if "systemPriority" in query_dict:
-            data["systemPriority"] = query_dict["systemPriority"]
+        if "syspriority" in query_dict:
+            data["systemPriority"] = query_dict["syspriority"]
         self._set_parallel(data, query_dict)
         data["priority"] = query_dict["priority"]
         data["stuckThreshold"] = int(query_dict["stuckThreshold"])
@@ -103,7 +103,7 @@ class EnvConfigView(View):
         data["stageType"] = query_dict["stageType"]
         data["terminationLimit"] = query_dict["terminationLimit"]
 
-        if data["stageType"] == "DEFAULT" and "systemPriority" in query_dict and data["systemPriority"] is None:
+        if data["stageType"] == "DEFAULT" and "syspriority" not in query_dict:
             raise ValueError("Please update the Stage Type to a value other than DEFAULT. See more details at ")
 
         environs_helper.update_env_basic_config(request, name, stage, data=data)

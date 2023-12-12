@@ -104,7 +104,7 @@
         } else {
             $('#privateBuildDeployMessageId').hide();
         }
-        if (systemPriority == null) {
+        if (stageType == "DEFAULT" && systemPriority == 'None') {
             validateInput(stageType, validStageType, $.noop, function () {
                 $('#defaultStageTypeMessageId').show();
             });
