@@ -434,6 +434,8 @@ class EnvLandingView(View):
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
+                "hasGroups": bool(capacity_info.get("groups")),
+                "hasCluster": bool(capacity_info.get("cluster")),
             })
             showMode = 'complete'
             sortByStatus = 'true'
@@ -499,6 +501,8 @@ class EnvLandingView(View):
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
+                "hasGroups": bool(capacity_info.get("groups")),
+                "hasCluster": bool(capacity_info.get("cluster")),
             }
             response = render(request, 'environs/env_landing.html', context)
 
