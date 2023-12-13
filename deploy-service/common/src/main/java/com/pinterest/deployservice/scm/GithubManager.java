@@ -23,7 +23,7 @@ import com.pinterest.deployservice.exception.TeletaanInternalException;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -54,7 +54,7 @@ public class GithubManager extends BaseManager {
 
     public Map<String, String> headers = new HashMap<>();
 
-    public GithubManager(String token, String appId, String appPrivateKeyKnox, String appOrganization, String typeName, String apiPrefix, String urlPrefix) throws Exception {
+    public GithubManager(String token, String appId, String appPrivateKeyKnox, String appOrganization, String typeName, String apiPrefix, String urlPrefix) {
         this.typeName = typeName;
         this.apiPrefix = apiPrefix;
         this.urlPrefix = urlPrefix;
