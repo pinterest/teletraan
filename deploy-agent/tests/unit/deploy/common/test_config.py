@@ -55,7 +55,7 @@ class TestConfigFunctions(tests.TestCase):
         self.assertEqual(os.environ['DEPLOY_ID'], '123')
         self.assertEqual(os.environ['ENV_NAME'], 'pinboard')
         self.assertEqual(os.environ['STAGE_NAME'], 'beta')
-        self.assertEqual(os.environ['COMPUTE_ENV_TYPE'], 'DEFAULT')
+        self.assertEqual(os.environ['COMPUTE_ENV_TYPE'], 'PRODUCTION')
         self.assertEqual(self.config.get_target(), '/tmp/pinboard')
 
     def test_init(self):
