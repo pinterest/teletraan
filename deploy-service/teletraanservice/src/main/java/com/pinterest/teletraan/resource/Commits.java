@@ -40,7 +40,7 @@ import java.util.List;
 public class Commits {
     private final static String DEFAULT_PATH = "";
     private final static int DEFAULT_SIZE = 100;
-    private SourceControlManagerProxy sourceControlManagerProxy;
+    private final SourceControlManagerProxy sourceControlManagerProxy;
 
     public Commits(TeletraanServiceContext context) throws Exception {
         sourceControlManagerProxy = context.getSourceControlManagerProxy();
@@ -55,7 +55,7 @@ public class Commits {
             notes = "Returns a commit object given a repo and commit sha",
             response = CommitBean.class)
     public CommitBean getCommit(
-            @ApiParam(value = "Commit's scm type, either github or phabricator", required = false)@PathParam("scm") String scm,
+            @ApiParam(value = "Commit's scm type, either github or phabricator")@PathParam("scm") String scm,
             @ApiParam(value = "Commit's repo", required = true)@PathParam("repo") String repo,
             @ApiParam(value = "Commit SHA", required = true)@PathParam("sha") String sha) throws Exception {
         repo = repo.replace("%2F", "/");
