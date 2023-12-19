@@ -290,3 +290,9 @@ class Config(object):
 
     def get_facter_account_id_key(self):
         return self.get_var('account_id_key', 'ec2_metadata.identity-credentials.ec2.info')
+
+    def get_http_download_allow_list(self):
+        return self.get_var('http_download_allow_list', [])
+
+    def get_s3_download_allow_list(self):
+        return self.get_var('s3_download_allow_list', [])

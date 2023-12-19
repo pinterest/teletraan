@@ -14,17 +14,24 @@ from __future__ import absolute_import
 # limitations under the License.
 
 from deployd.common.caller import Caller
-from .downloader import Status
-from deployd.download.download_helper import DownloadHelper
+from deployd.common.status_code import Status
+from deployd.common.config import Config
+from deployd.download.download_helper import DownloadHelper, DOWNLOAD_VALIDATE_METRICS
+from deployd.common.stats import create_sc_increment
 import os
 import requests
 import logging
+from urllib.parse import ParseResult, urlparse
 requests.packages.urllib3.disable_warnings()
 
 log = logging.getLogger(__name__)
 
 
 class HTTPDownloadHelper(DownloadHelper):
+
+    def __init__(self, url=None, config=None):
+        super().__init__(url)
+        self._config = config if config else Config()
 
     def _download_files(self, local_full_fn):
         download_cmd = ['curl', '-o', local_full_fn, '-fksS', self._url]
@@ -41,6 +48,9 @@ class HTTPDownloadHelper(DownloadHelper):
     def download(self, local_full_fn):
         log.info("Start to download from url {} to {}".format(
             self._url, local_full_fn))
+        if not self.validate_source():
+            log.error(f'Invalid url: {self._url}. Skip downloading.')
+            return Status.FAILED
 
         status_code = self._download_files(local_full_fn)
         if status_code != Status.SUCCEEDED:
@@ -65,3 +75,19 @@ class HTTPDownloadHelper(DownloadHelper):
         except requests.ConnectionError:
             log.error('Could not connect to: {}'.format(self._url))
             return Status.FAILED
+
+    def validate_source(self):
+        tags = {'type': 'http', 'url': self._url}
+        create_sc_increment(DOWNLOAD_VALIDATE_METRICS, tags=tags)
+
+        parsed_url: ParseResult = urlparse(self._url)
+        if not parsed_url.scheme == 'https':
+            return False
+
+        domain: str = parsed_url.netloc
+        if not domain:
+            return False
+
+        allow_list = self._config.get_http_download_allow_list()
+
+        return domain in allow_list if allow_list else True
