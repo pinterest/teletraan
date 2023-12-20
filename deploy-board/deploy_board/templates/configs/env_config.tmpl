@@ -380,7 +380,7 @@
                     if (data != null && data.success == false) {
                         $('#errorBannerId').append(data.error);
                         if ($('#stageTypeValueId').val() == 'DEFAULT') {
-                            $('#errorBannerId').append("<a href='//pinch/teletraan-stagetypes'>pinch/teletraan-stagetypes</a>");
+                            $('#errorBannerId').append("<a href='{{stage_type_info_link}}'>pinch/teletraan-stagetypes</a>");
                         }
                         $('#errorBannerId').show();
                     } else {

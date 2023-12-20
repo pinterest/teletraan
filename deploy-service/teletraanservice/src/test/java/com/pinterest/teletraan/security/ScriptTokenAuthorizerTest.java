@@ -19,7 +19,7 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.bean.TokenRolesBean;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 import org.junit.Before;
 import org.junit.Test;
 
