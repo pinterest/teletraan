@@ -353,6 +353,9 @@ def progressTip(deploy):
     elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["primaryAcctTotalHostNum"], deploy["primaryAcctSucHostNum"], deploy["primaryAcctFailHostNum"])
+    elif deploy.get("account") == "others":
+        return "Among total %d hosts, %d are succeeded and %d are stuck" % (
+            deploy["otherAcctTotalHostNum"], deploy["otherAcctSucHostNum"], deploy["otherAcctFailHostNum"])
     else:
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["total"], deploy["successTotal"], deploy["failTotal"])
@@ -448,6 +451,10 @@ def successRate(deploy):
         if deploy["primaryAcctTotalHostNum"] != 0:
             rate = trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])
         return "%d%% (%d/%d)" % (rate, deploy["primaryAcctSucHostNum"], deploy["primaryAcctTotalHostNum"])
+    elif deploy.get("account") == "others":
+        if deploy["otherAcctTotalHostNum"] != 0:
+            rate = trunc(deploy["otherAcctSucHostNum"] * 100 / deploy["otherAcctTotalHostNum"])
+        return "%d%% (%d/%d)" % (rate, deploy["otherAcctSucHostNum"], deploy["otherAcctTotalHostNum"])
     else:
         if deploy["total"] != 0:
             rate = trunc(deploy["successTotal"] * 100 / deploy["total"])
@@ -462,6 +469,9 @@ def successRatePercentage(deploy):
     elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         if deploy["primaryAcctTotalHostNum"] != 0:
             return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])   
+    elif deploy.get("account") == "others":
+        if deploy["otherAcctTotalHostNum"] != 0:
+            return trunc(deploy["otherAcctSucHostNum"] * 100 / deploy["otherAcctTotalHostNum"])   
     else:     
         if deploy["total"] != 0:
             return trunc(deploy["successTotal"] * 100 / deploy["total"])

@@ -201,6 +201,10 @@ def update_deploy_progress(request, name, stage):
     report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
+    report.currentDeployStat.deploy["otherAcctTotalHostNum"] = 0
+    report.currentDeployStat.deploy["otherAcctSucHostNum"] = 0
+    report.currentDeployStat.deploy["otherAcctFailHostNum"] = 0
+
     if account == AWS_SUB_ACCOUNT:
         for agentStat in report.agentStats:
             if agentStat.agent["accountId"] and agentStat.agent["accountId"] == AWS_SUB_ACCOUNT:
@@ -217,6 +221,14 @@ def update_deploy_progress(request, name, stage):
                     report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
+    elif account == "others":
+        for agentStat in report.agentStats:
+            if agentStat.agent["accountId"] and agentStat.agent["accountId"] != AWS_PRIMARY_ACCOUNT and agentStat.agent["accountId"] != AWS_SUB_ACCOUNT and agentStat.agent["accountId"] != "null":
+                report.currentDeployStat.deploy["otherAcctTotalHostNum"] += 1
+                if agentStat.agent["status"] == "SUCCEEDED":
+                    report.currentDeployStat.deploy["otherAcctSucHostNum"] += 1
+                else:
+                    report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
 
     context = {
         "report": report,
@@ -478,6 +490,10 @@ class EnvLandingView(View):
             report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
+            report.currentDeployStat.deploy["otherAcctTotalHostNum"] = 0
+            report.currentDeployStat.deploy["otherAcctSucHostNum"] = 0
+            report.currentDeployStat.deploy["otherAcctFailHostNum"] = 0
+
             if account == AWS_SUB_ACCOUNT:
                 for agentStat in report.agentStats:
                     if agentStat.agent["accountId"] and agentStat.agent["accountId"] == AWS_SUB_ACCOUNT:
@@ -494,6 +510,14 @@ class EnvLandingView(View):
                             report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
                         else:
                             report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
+            elif account == "others":
+                for agentStat in report.agentStats:
+                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] != AWS_PRIMARY_ACCOUNT and agentStat.agent["accountId"] != AWS_SUB_ACCOUNT and agentStat.agent["accountId"] != "null":
+                        report.currentDeployStat.deploy["otherAcctTotalHostNum"] += 1
+                        if agentStat.agent["status"] == "SUCCEEDED":
+                            report.currentDeployStat.deploy["otherAcctSucHostNum"] += 1
+                        else:
+                            report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
 
             context = {
                 "envs": envs,
