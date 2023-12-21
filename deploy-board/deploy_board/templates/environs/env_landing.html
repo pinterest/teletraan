@@ -526,7 +526,7 @@ $('#privateBldUploadBtnId button').click(function () {
             if (query_string_mode.indexOf("sortByStatus") == -1) {
                 query_string_mode += "&sortByStatus=false";
             }
-            query_string += query_string_mode;
+            query_string += "&" + query_string_mode;
             window.location ="/env/{{ env.envName }}/{{ env.stageName }}/deploy/?" + query_string;
         });
     });
