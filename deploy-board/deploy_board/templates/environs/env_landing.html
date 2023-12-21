@@ -446,6 +446,46 @@ $('#privateBldUploadBtnId button').click(function () {
                     </form>
                 </ul>
                 </div>
+
+                <div class="btn-group">
+                    <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
+                            title="Change how the hosts are displayed based on Account"
+                            data-toggle="dropdown" type="button">
+                        Account <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                        <form id="accountFormId">
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="account" value="998131032990"
+                            {% if report.account == "998131032990" %}
+                            checked
+                            {% endif %}
+                            > 998131032990
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="account" value="562567494283"
+                            {% if report.account == "562567494283" %}
+                            checked
+                            {% endif %}
+                            > 562567494283
+                            </label></div>
+                        </li>
+                        <li>
+                            <div class="radio"><label>&nbsp;
+                            <input type="radio" name="account" value="all"
+                            {% if report.account == "all" %}
+                            checked
+                            {% endif %}
+                            > All
+                            </label></div>
+                        </li>
+                        </form>
+                    </ul>
+                    </div>
+
             </div>
         </div>
 
@@ -479,11 +519,14 @@ $('#privateBldUploadBtnId button').click(function () {
         }, 30000);
 
         $(".dropdown-menu li").click(function() {
-            query_string = $("#updateModeFormId").serialize();
+            query_string_account = $("#accountFormId").serialize();
+            query_string = query_string_account;
+            query_string_mode = $("#updateModeFormId").serialize();
             // we need to explicitly turn off sortByStatus
-            if (query_string.indexOf("sortByStatus") == -1) {
-                query_string += "&sortByStatus=false";
+            if (query_string_mode.indexOf("sortByStatus") == -1) {
+                query_string_mode += "&sortByStatus=false";
             }
+            query_string += query_string_mode;
             window.location ="/env/{{ env.envName }}/{{ env.stageName }}/deploy/?" + query_string;
         });
     });

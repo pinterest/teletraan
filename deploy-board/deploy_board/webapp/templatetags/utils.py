@@ -346,10 +346,10 @@ def deployAcceptanceTip(status):
 
 @register.filter("progressTip")
 def progressTip(deploy):
-    if deploy.get("showMode") == "subAcct":
+    if deploy.get("account") == "562567494283":
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["subAcctTotalHostNum"], deploy["subAcctSucHostNum"], deploy["subAcctFailHostNum"])
-    elif deploy.get("showMode") == "primaryAcct":
+    elif deploy.get("account") == "998131032990":
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["primaryAcctTotalHostNum"], deploy["primaryAcctSucHostNum"], deploy["primaryAcctFailHostNum"])
     else:
@@ -439,11 +439,11 @@ def getTotalDuration(start, end=None):
 @register.filter("successRate")
 def successRate(deploy):
     rate = 0
-    if deploy.get("showMode") == "subAcct":
+    if deploy.get("account") == "562567494283":
         if deploy["subAcctTotalHostNum"] != 0:
             rate = trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
         return "%d%% (%d/%d)" % (rate, deploy["subAcctSucHostNum"], deploy["subAcctTotalHostNum"])
-    elif deploy.get("showMode") == "primaryAcct":
+    elif deploy.get("account") == "998131032990":
         if deploy["primaryAcctTotalHostNum"] != 0:
             rate = trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])
         return "%d%% (%d/%d)" % (rate, deploy["primaryAcctSucHostNum"], deploy["primaryAcctTotalHostNum"])
@@ -455,10 +455,10 @@ def successRate(deploy):
 
 @register.filter("successRatePercentage")
 def successRatePercentage(deploy):
-    if deploy.get("showMode") == "subAcct":
+    if deploy.get("account") == "562567494283":
         if deploy["subAcctTotalHostNum"] != 0:
             return trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
-    elif deploy.get("showMode") == "primaryAcct":
+    elif deploy.get("account") == "998131032990":
         if deploy["primaryAcctTotalHostNum"] != 0:
             return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])   
     else:     
