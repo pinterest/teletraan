@@ -53,7 +53,6 @@
             {% endif %}  
             {% endif %}
             </a>
-        {% endif %}
         {% elif report.account == "all" %}
             <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
             type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
