@@ -189,25 +189,26 @@ def update_deploy_progress(request, name, stage):
     report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
 
     report.showMode = showMode
+    report.account = account
     report.sortByStatus = sortByStatus
 
     # Get the host number for subAcct and primaryAcct
-    report.currentDeployStat.deploy["showMode"] = showMode
+    report.currentDeployStat.deploy["account"] = account
     report.currentDeployStat.deploy["subAcctTotalHostNum"] = 0
     report.currentDeployStat.deploy["subAcctSucHostNum"] = 0
     report.currentDeployStat.deploy["subAcctFailHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
-    if showMode == "subAcct":
+    if account == "562567494283":
         for agentStat in report.agentStats:
-            if agentStat.agent["accountId"] and agentStat.agent["accountId"] != "998131032990" and agentStat.agent["accountId"] != "null":
+            if agentStat.agent["accountId"] and agentStat.agent["accountId"] == "562567494283":
                 report.currentDeployStat.deploy["subAcctTotalHostNum"] += 1
                 if agentStat.agent["status"] == "SUCCEEDED":
                     report.currentDeployStat.deploy["subAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["subAcctFailHostNum"] += 1
-    elif showMode == "primaryAcct":
+    elif account == "998131032990":
         for agentStat in report.agentStats:
             if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == "998131032990" or agentStat.agent["accountId"] == "null":
                 report.currentDeployStat.deploy["primaryAcctTotalHostNum"] += 1
@@ -461,7 +462,7 @@ class EnvLandingView(View):
                 request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
             report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
             report.showMode = showMode
-            reort.account = account
+            report.account = account
             report.sortByStatus = sortByStatus
 
             # Get the host number for subAcct and primaryAcct
