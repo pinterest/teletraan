@@ -57,6 +57,7 @@ DEFAULT_ROLLBACK_DEPLOY_NUM = 6
 
 STATUS_COOKIE_NAME = 'sort-by-status'
 MODE_COOKIE_NAME = 'show-mode'
+ACCOUNT_COOKIE_NAME = 'account'
 
 log = logging.getLogger(__name__)
 
@@ -116,6 +117,8 @@ def logging_status(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     showMode = _fetch_param_with_cookie(
         request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
     sortByStatus = _fetch_param_with_cookie(
         request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
 
@@ -132,6 +135,7 @@ def logging_status(request, name, stage):
 
     # save preferences
     response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(ACCOUNT_COOKIE_NAME, account)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
@@ -142,6 +146,8 @@ def check_logging_status(request, name, stage):
     progress = deploys_helper.update_progress(request, name, stage)
     showMode = _fetch_param_with_cookie(
         request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
     sortByStatus = _fetch_param_with_cookie(
         request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
 
@@ -164,6 +170,7 @@ def check_logging_status(request, name, stage):
 
     # save preferences
     response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(ACCOUNT_COOKIE_NAME, account)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
@@ -174,6 +181,8 @@ def update_deploy_progress(request, name, stage):
     progress = deploys_helper.update_progress(request, name, stage)
     showMode = _fetch_param_with_cookie(
         request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
     sortByStatus = _fetch_param_with_cookie(
         request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
 
@@ -220,6 +229,7 @@ def update_deploy_progress(request, name, stage):
 
     # save preferences
     response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(ACCOUNT_COOKIE_NAME, account)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
