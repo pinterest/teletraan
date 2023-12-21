@@ -8,8 +8,8 @@
 <div class="panel-body">
     <div class="row">
     {% for agentStat in report.agentStats %}
-        {% if report.account == "998131032990" %}
-            {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
+        {% if report.account == primaryAccount %}
+            {% if not agentStat.agent.accountId or agentStat.agent.accountId == primaryAccount or agentStat.agent.accountId == "null" %}
             <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
             type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
             title="{{ agentStat | agentTip }}">
@@ -23,8 +23,8 @@
             {% endif %}  
             {% endif %}
             </a>
-        {% elif report.account == "562567494283" %}
-            {% if agentStat.agent.accountId and agentStat.agent.accountId == "562567494283" %}
+        {% elif report.account == subAccount %}
+            {% if agentStat.agent.accountId and agentStat.agent.accountId == subAccount %}
             <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
             type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
             title="{{ agentStat | agentTip }}">

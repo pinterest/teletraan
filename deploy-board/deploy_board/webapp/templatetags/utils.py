@@ -29,6 +29,7 @@ from deploy_board.webapp.agent_report import UNKNOWN_HOSTS_CODE, PROVISION_HOST_
 from deploy_board.webapp.common import is_agent_failed, BUILD_STAGE
 from deploy_board.webapp.helpers import environs_helper
 from deploy_board.webapp.helpers.tags_helper import TagValue
+from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
 import ast
 
 register = template.Library()
@@ -346,10 +347,10 @@ def deployAcceptanceTip(status):
 
 @register.filter("progressTip")
 def progressTip(deploy):
-    if deploy.get("account") == "562567494283":
+    if deploy.get("account") == AWS_SUB_ACCOUNT:
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["subAcctTotalHostNum"], deploy["subAcctSucHostNum"], deploy["subAcctFailHostNum"])
-    elif deploy.get("account") == "998131032990":
+    elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         return "Among total %d hosts, %d are succeeded and %d are stuck" % (
             deploy["primaryAcctTotalHostNum"], deploy["primaryAcctSucHostNum"], deploy["primaryAcctFailHostNum"])
     else:
@@ -439,11 +440,11 @@ def getTotalDuration(start, end=None):
 @register.filter("successRate")
 def successRate(deploy):
     rate = 0
-    if deploy.get("account") == "562567494283":
+    if deploy.get("account") == AWS_SUB_ACCOUNT:
         if deploy["subAcctTotalHostNum"] != 0:
             rate = trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
         return "%d%% (%d/%d)" % (rate, deploy["subAcctSucHostNum"], deploy["subAcctTotalHostNum"])
-    elif deploy.get("account") == "998131032990":
+    elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         if deploy["primaryAcctTotalHostNum"] != 0:
             rate = trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])
         return "%d%% (%d/%d)" % (rate, deploy["primaryAcctSucHostNum"], deploy["primaryAcctTotalHostNum"])
@@ -455,10 +456,10 @@ def successRate(deploy):
 
 @register.filter("successRatePercentage")
 def successRatePercentage(deploy):
-    if deploy.get("account") == "562567494283":
+    if deploy.get("account") == AWS_SUB_ACCOUNT:
         if deploy["subAcctTotalHostNum"] != 0:
             return trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
-    elif deploy.get("account") == "998131032990":
+    elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         if deploy["primaryAcctTotalHostNum"] != 0:
             return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])   
     else:     

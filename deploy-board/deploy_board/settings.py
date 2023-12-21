@@ -374,3 +374,8 @@ if IS_PINTEREST:
 
     #Stage Type Info Link
     STAGE_TYPE_INFO_LINK = os.getenv("STAGE_TYPE_INFO_LINK")
+
+    #Primary Account
+    AWS_PRIMARY_ACCOUNT = os.getenv("AWS_PRIMARY_ACCOUNT", "998131032990")
+    #Sub Account
+    AWS_SUB_ACCOUNT = os.getenv("AWS_SUB_ACCOUNT", "562567494283")

@@ -27,6 +27,7 @@ from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_R
     IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK, STAGE_TYPE_INFO_LINK
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
+from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
 from django.conf import settings
 from . import agent_report
 from . import service_add_ons
@@ -200,17 +201,17 @@ def update_deploy_progress(request, name, stage):
     report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
-    if account == "562567494283":
+    if account == AWS_SUB_ACCOUNT:
         for agentStat in report.agentStats:
-            if agentStat.agent["accountId"] and agentStat.agent["accountId"] == "562567494283":
+            if agentStat.agent["accountId"] and agentStat.agent["accountId"] == AWS_SUB_ACCOUNT:
                 report.currentDeployStat.deploy["subAcctTotalHostNum"] += 1
                 if agentStat.agent["status"] == "SUCCEEDED":
                     report.currentDeployStat.deploy["subAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["subAcctFailHostNum"] += 1
-    elif account == "998131032990":
+    elif account == AWS_PRIMARY_ACCOUNT:
         for agentStat in report.agentStats:
-            if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == "998131032990" or agentStat.agent["accountId"] == "null":
+            if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == AWS_PRIMARY_ACCOUNT or agentStat.agent["accountId"] == "null":
                 report.currentDeployStat.deploy["primaryAcctTotalHostNum"] += 1
                 if agentStat.agent["status"] == "SUCCEEDED":
                     report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
@@ -221,7 +222,9 @@ def update_deploy_progress(request, name, stage):
         "report": report,
         "env": env,
         "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
-        "pinterest": IS_PINTEREST
+        "pinterest": IS_PINTEREST,
+        "primaryAccount": AWS_PRIMARY_ACCOUNT,
+        "subAccount": AWS_SUB_ACCOUNT,
     }
 
     html = render_to_string('deploys/deploy_progress.tmpl', context)
@@ -447,6 +450,8 @@ class EnvLandingView(View):
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
+                "primaryAccount": AWS_PRIMARY_ACCOUNT,
+                "subAccount": AWS_SUB_ACCOUNT,
             })
             showMode = 'complete'
             account = 'all'
@@ -473,17 +478,17 @@ class EnvLandingView(View):
             report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
-            if account == "562567494283":
+            if account == AWS_SUB_ACCOUNT:
                 for agentStat in report.agentStats:
-                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] == "562567494283":
+                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] == AWS_SUB_ACCOUNT:
                         report.currentDeployStat.deploy["subAcctTotalHostNum"] += 1
                         if agentStat.agent["status"] == "SUCCEEDED":
                             report.currentDeployStat.deploy["subAcctSucHostNum"] += 1
                         else:
                             report.currentDeployStat.deploy["subAcctFailHostNum"] += 1
-            elif account == "998131032990":
+            elif account == AWS_PRIMARY_ACCOUNT:
                 for agentStat in report.agentStats:
-                    if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == "998131032990" or agentStat.agent["accountId"] == "null":
+                    if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == AWS_PRIMARY_ACCOUNT or agentStat.agent["accountId"] == "null":
                         report.currentDeployStat.deploy["primaryAcctTotalHostNum"] += 1
                         if agentStat.agent["status"] == "SUCCEEDED":
                             report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
@@ -518,6 +523,8 @@ class EnvLandingView(View):
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
+                "primaryAccount": AWS_PRIMARY_ACCOUNT,
+                "subAccount": AWS_SUB_ACCOUNT,
             }
             response = render(request, 'environs/env_landing.html', context)
 
@@ -1477,7 +1484,7 @@ def get_sub_account_hosts(request, name, stage):
 
     agents_wrapper = {}
     for agent in agents:
-        if not accountIdMap.get(agent['hostId']) or accountIdMap.get(agent['hostId']) == "null" or accountIdMap.get(agent['hostId']) == "998131032990":
+        if not accountIdMap.get(agent['hostId']) or accountIdMap.get(agent['hostId']) == "null" or accountIdMap.get(agent['hostId']) == AWS_PRIMARY_ACCOUNT:
             continue
         if agent['deployId'] not in agents_wrapper:
             agents_wrapper[agent['deployId']] = []

@@ -439,20 +439,20 @@ $('#privateBldUploadBtnId button').click(function () {
                         <form id="accountFormId">
                         <li>
                             <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="998131032990"
-                            {% if report.account == "998131032990" %}
+                            <input type="radio" name="account" value="{{ primaryAccount }}"
+                            {% if report.account == primaryAccount %}
                             checked
                             {% endif %}
-                            > 998131032990
+                            > {{ primaryAccount }}
                             </label></div>
                         </li>
                         <li>
                             <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="562567494283"
-                            {% if report.account == "562567494283" %}
+                            <input type="radio" name="account" value="{{ subAccount }}"
+                            {% if report.account == subAccount %}
                             checked
                             {% endif %}
-                            > 562567494283
+                            > {{ subAccount }}
                             </label></div>
                         </li>
                         <li>
