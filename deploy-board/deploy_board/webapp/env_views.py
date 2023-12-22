@@ -27,6 +27,7 @@ from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_R
     IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK, STAGE_TYPE_INFO_LINK
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
 from deploy_board.settings import KAFKA_LOGGING_ADD_ON_ENVS
+from deploy_board.settings import AWS_PRIMARY_ACCOUNT, AWS_SUB_ACCOUNT
 from django.conf import settings
 from . import agent_report
 from . import service_add_ons
@@ -57,6 +58,7 @@ DEFAULT_ROLLBACK_DEPLOY_NUM = 6
 
 STATUS_COOKIE_NAME = 'sort-by-status'
 MODE_COOKIE_NAME = 'show-mode'
+ACCOUNT_COOKIE_NAME = 'account'
 
 log = logging.getLogger(__name__)
 
@@ -116,6 +118,8 @@ def logging_status(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
     showMode = _fetch_param_with_cookie(
         request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
     sortByStatus = _fetch_param_with_cookie(
         request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
 
@@ -132,6 +136,7 @@ def logging_status(request, name, stage):
 
     # save preferences
     response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(ACCOUNT_COOKIE_NAME, account)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
@@ -142,6 +147,8 @@ def check_logging_status(request, name, stage):
     progress = deploys_helper.update_progress(request, name, stage)
     showMode = _fetch_param_with_cookie(
         request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
     sortByStatus = _fetch_param_with_cookie(
         request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
 
@@ -164,6 +171,7 @@ def check_logging_status(request, name, stage):
 
     # save preferences
     response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(ACCOUNT_COOKIE_NAME, account)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
@@ -174,44 +182,61 @@ def update_deploy_progress(request, name, stage):
     progress = deploys_helper.update_progress(request, name, stage)
     showMode = _fetch_param_with_cookie(
         request, 'showMode', MODE_COOKIE_NAME, 'complete')
+    account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
     sortByStatus = _fetch_param_with_cookie(
         request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
 
     report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
 
     report.showMode = showMode
+    report.account = account
     report.sortByStatus = sortByStatus
 
     # Get the host number for subAcct and primaryAcct
-    report.currentDeployStat.deploy["showMode"] = showMode
+    report.currentDeployStat.deploy["account"] = account
     report.currentDeployStat.deploy["subAcctTotalHostNum"] = 0
     report.currentDeployStat.deploy["subAcctSucHostNum"] = 0
     report.currentDeployStat.deploy["subAcctFailHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
     report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
-    if showMode == "subAcct":
+    report.currentDeployStat.deploy["otherAcctTotalHostNum"] = 0
+    report.currentDeployStat.deploy["otherAcctSucHostNum"] = 0
+    report.currentDeployStat.deploy["otherAcctFailHostNum"] = 0
+
+    if account == AWS_SUB_ACCOUNT:
         for agentStat in report.agentStats:
-            if agentStat.agent["accountId"] and agentStat.agent["accountId"] != "998131032990" and agentStat.agent["accountId"] != "null":
+            if agentStat.agent["accountId"] and agentStat.agent["accountId"] == AWS_SUB_ACCOUNT:
                 report.currentDeployStat.deploy["subAcctTotalHostNum"] += 1
                 if agentStat.agent["status"] == "SUCCEEDED":
                     report.currentDeployStat.deploy["subAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["subAcctFailHostNum"] += 1
-    elif showMode == "primaryAcct":
+    elif account == AWS_PRIMARY_ACCOUNT:
         for agentStat in report.agentStats:
-            if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == "998131032990" or agentStat.agent["accountId"] == "null":
+            if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == AWS_PRIMARY_ACCOUNT or agentStat.agent["accountId"] == "null":
                 report.currentDeployStat.deploy["primaryAcctTotalHostNum"] += 1
                 if agentStat.agent["status"] == "SUCCEEDED":
                     report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
+    elif account == "others":
+        for agentStat in report.agentStats:
+            if agentStat.agent["accountId"] and agentStat.agent["accountId"] != AWS_PRIMARY_ACCOUNT and agentStat.agent["accountId"] != AWS_SUB_ACCOUNT and agentStat.agent["accountId"] != "null":
+                report.currentDeployStat.deploy["otherAcctTotalHostNum"] += 1
+                if agentStat.agent["status"] == "SUCCEEDED":
+                    report.currentDeployStat.deploy["otherAcctSucHostNum"] += 1
+                else:
+                    report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
 
     context = {
         "report": report,
         "env": env,
         "display_stopping_hosts": DISPLAY_STOPPING_HOSTS,
-        "pinterest": IS_PINTEREST
+        "pinterest": IS_PINTEREST,
+        "primaryAccount": AWS_PRIMARY_ACCOUNT,
+        "subAccount": AWS_SUB_ACCOUNT,
     }
 
     html = render_to_string('deploys/deploy_progress.tmpl', context)
@@ -220,6 +245,7 @@ def update_deploy_progress(request, name, stage):
 
     # save preferences
     response.set_cookie(MODE_COOKIE_NAME, showMode)
+    response.set_cookie(ACCOUNT_COOKIE_NAME, account)
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
@@ -436,44 +462,62 @@ class EnvLandingView(View):
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
+                "primaryAccount": AWS_PRIMARY_ACCOUNT,
+                "subAccount": AWS_SUB_ACCOUNT,
             })
             showMode = 'complete'
+            account = 'all'
             sortByStatus = 'true'
         else:
             # Get deploy progress
             progress = deploys_helper.update_progress(request, name, stage)
             showMode = _fetch_param_with_cookie(
                 request, 'showMode', MODE_COOKIE_NAME, 'complete')
+            account = _fetch_param_with_cookie(
+                request, 'account', ACCOUNT_COOKIE_NAME, 'all')
             sortByStatus = _fetch_param_with_cookie(
                 request, 'sortByStatus', STATUS_COOKIE_NAME, 'true')
             report = agent_report.gen_report(request, env, progress, sortByStatus=sortByStatus)
             report.showMode = showMode
+            report.account = account
             report.sortByStatus = sortByStatus
 
             # Get the host number for subAcct and primaryAcct
-            report.currentDeployStat.deploy["showMode"] = showMode
+            report.currentDeployStat.deploy["account"] = account
             report.currentDeployStat.deploy["subAcctTotalHostNum"] = 0
             report.currentDeployStat.deploy["subAcctSucHostNum"] = 0
             report.currentDeployStat.deploy["subAcctFailHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctTotalHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctSucHostNum"] = 0
             report.currentDeployStat.deploy["primaryAcctFailHostNum"] = 0
-            if showMode == "subAcct":
+            report.currentDeployStat.deploy["otherAcctTotalHostNum"] = 0
+            report.currentDeployStat.deploy["otherAcctSucHostNum"] = 0
+            report.currentDeployStat.deploy["otherAcctFailHostNum"] = 0
+
+            if account == AWS_SUB_ACCOUNT:
                 for agentStat in report.agentStats:
-                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] != "998131032990" and agentStat.agent["accountId"] != "null":
+                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] == AWS_SUB_ACCOUNT:
                         report.currentDeployStat.deploy["subAcctTotalHostNum"] += 1
                         if agentStat.agent["status"] == "SUCCEEDED":
                             report.currentDeployStat.deploy["subAcctSucHostNum"] += 1
                         else:
                             report.currentDeployStat.deploy["subAcctFailHostNum"] += 1
-            elif showMode == "primaryAcct":
+            elif account == AWS_PRIMARY_ACCOUNT:
                 for agentStat in report.agentStats:
-                    if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == "998131032990" or agentStat.agent["accountId"] == "null":
+                    if not agentStat.agent["accountId"] or agentStat.agent["accountId"] == AWS_PRIMARY_ACCOUNT or agentStat.agent["accountId"] == "null":
                         report.currentDeployStat.deploy["primaryAcctTotalHostNum"] += 1
                         if agentStat.agent["status"] == "SUCCEEDED":
                             report.currentDeployStat.deploy["primaryAcctSucHostNum"] += 1
                         else:
                             report.currentDeployStat.deploy["primaryAcctFailHostNum"] += 1
+            elif account == "others":
+                for agentStat in report.agentStats:
+                    if agentStat.agent["accountId"] and agentStat.agent["accountId"] != AWS_PRIMARY_ACCOUNT and agentStat.agent["accountId"] != AWS_SUB_ACCOUNT and agentStat.agent["accountId"] != "null":
+                        report.currentDeployStat.deploy["otherAcctTotalHostNum"] += 1
+                        if agentStat.agent["status"] == "SUCCEEDED":
+                            report.currentDeployStat.deploy["otherAcctSucHostNum"] += 1
+                        else:
+                            report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
 
             context = {
                 "envs": envs,
@@ -503,12 +547,15 @@ class EnvLandingView(View):
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
+                "primaryAccount": AWS_PRIMARY_ACCOUNT,
+                "subAccount": AWS_SUB_ACCOUNT,
             }
             response = render(request, 'environs/env_landing.html', context)
 
         # save preferences
         response.set_cookie(ENV_COOKIE_NAME, genEnvCookie(request, name))
         response.set_cookie(MODE_COOKIE_NAME, showMode)
+        response.set_cookie(ACCOUNT_COOKIE_NAME, account)
         response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
         return response
@@ -1461,7 +1508,7 @@ def get_sub_account_hosts(request, name, stage):
 
     agents_wrapper = {}
     for agent in agents:
-        if not accountIdMap.get(agent['hostId']) or accountIdMap.get(agent['hostId']) == "null" or accountIdMap.get(agent['hostId']) == "998131032990":
+        if not accountIdMap.get(agent['hostId']) or accountIdMap.get(agent['hostId']) == "null" or accountIdMap.get(agent['hostId']) == AWS_PRIMARY_ACCOUNT:
             continue
         if agent['deployId'] not in agents_wrapper:
             agents_wrapper[agent['deployId']] = []
