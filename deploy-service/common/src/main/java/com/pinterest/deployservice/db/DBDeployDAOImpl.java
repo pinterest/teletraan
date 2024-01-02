@@ -28,6 +28,7 @@ import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
 import org.apache.commons.lang.StringUtils;
 import org.joda.time.Interval;
 
@@ -84,7 +85,7 @@ public class DBDeployDAOImpl implements DeployDAO {
     private static final String COUNT_ACTIVE_DEPLOYS =
         "SELECT COUNT(*) FROM deploys WHERE state='RUNNING'";
 
-    private BasicDataSource dataSource;
+    private final BasicDataSource dataSource;
 
     public DBDeployDAOImpl(BasicDataSource dataSource) {
         this.dataSource = dataSource;
@@ -251,6 +252,12 @@ public class DBDeployDAOImpl implements DeployDAO {
         throws Exception {
         new QueryRunner(dataSource)
             .update(DELETE_UNUSED_DEPLOYS, envId, timeThreshold, numOfDeploys);
+    }
+
+    @Override
+    public boolean isThereADeployWithBuildId(String buildId) throws Exception {
+        return new QueryRunner(dataSource).query("SELECT EXISTS(SELECT * FROM deploys WHERE build_id =?)",
+            new ScalarHandler<Integer>()) == 1;
     }
 
     @Override

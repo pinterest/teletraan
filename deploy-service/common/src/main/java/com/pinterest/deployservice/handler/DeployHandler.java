@@ -54,7 +54,6 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 
 import com.google.common.base.Joiner;
@@ -75,7 +74,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import javax.ws.rs.core.Response;
 
 public class DeployHandler implements DeployHandlerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(DeployHandler.class);
@@ -105,6 +103,7 @@ public class DeployHandler implements DeployHandlerInterface{
     private final String changeFeedUrl;
     private final BuildTagsManager buildTagsManager;
     private final Allowlist buildAllowlist;
+    private final ConfigHistoryHandler configHistoryHandler;
 
 
     private final class NotifyJob implements Callable<Void> {
@@ -176,8 +175,8 @@ public class DeployHandler implements DeployHandlerInterface{
         }
 
         public Void call() {
-            String additonalMessage = generateMentions(envBean, newDeployBean, oldDeployBean);
-            sendStartDeployMessage(additonalMessage);
+            String additionalMessage = generateMentions(envBean, newDeployBean, oldDeployBean);
+            sendStartDeployMessage(additionalMessage);
             LOG.info("Successfully send deploy start message for deploy {}", newDeployBean.getDeploy_id());
 
             if (!StringUtils.isEmpty(changeFeedUrl)) {
@@ -206,6 +205,7 @@ public class DeployHandler implements DeployHandlerInterface{
         changeFeedUrl = serviceContext.getChangeFeedUrl();
         buildTagsManager = new BuildTagsManagerImpl(tagDAO);
         buildAllowlist = serviceContext.getBuildAllowlist();
+        configHistoryHandler = new ConfigHistoryHandler(serviceContext);
     }
 
     private String generateMentions(EnvironBean envBean, DeployBean newDeployBean, DeployBean oldDeployBean) {
@@ -367,6 +367,7 @@ public class DeployHandler implements DeployHandlerInterface{
             updateBean.setLast_operator(operator);
             updateBean.setLast_update(System.currentTimeMillis());
             promoteDAO.update(envBean.getEnv_id(), updateBean);
+            configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, updateBean, "auto-deploy");
             LOG.info("Disable auto promote for env {} due to the manual deploy by {}", envBean, operator);
         } catch (Exception e) {
             LOG.error("Failed to disable auto promote env {}", envBean, e);
@@ -383,38 +384,37 @@ public class DeployHandler implements DeployHandlerInterface{
     */
     private void validateBuild(EnvironBean envBean, String buildId) throws Exception {
         if(StringUtils.isEmpty(buildId)) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Build id can not be empty.");
+            throw new DeployInternalException("Build id can not be empty.");
         }
         BuildBean buildBean = buildDAO.getById(buildId);
         
         // check build name must match stage config
         if(!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Build name (%s) does not match stage config (%s).", buildBean.getBuild_name(), envBean.getBuild_name()));
+            throw new DeployInternalException("Build name (%s) does not match stage config (%s).", 
+                    buildBean.getBuild_name(), envBean.getBuild_name());
         }
-
         // only allow a non-private deploy if the build is from a trusted artifact url
         if(envBean.getEnsure_trusted_build() && !buildBean.getScm_branch().equals("private") &&
             buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
-                    buildBean.getArtifact_url()));
+            throw new DeployInternalException("Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
+                    buildBean.getArtifact_url());
         }
         // if the stage is not allowed (allow_private_build)
         if(! envBean.getAllow_private_build()) {
             // only allow deploy if it is not private build
             if (buildBean.getScm_branch().equals("private")) {
-                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.");
+                throw new DeployInternalException("This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.");
             }
         }
         // disallow sox deploy if the build artifact is private
         if(envBean.getIs_sox() && buildBean.getScm_branch().equals("private")) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.");
+            throw new DeployInternalException("This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.");
         }
         // disallow sox deploy if the build artifact is not from a sox source url
         if(envBean.getIs_sox() && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.");
+            throw new DeployInternalException("This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.");
         }
     }
-
     public String deploy(EnvironBean envBean, String buildId, String desc, String deliveryType, String operator) throws Exception {
         validateBuild(envBean, buildId);
 
