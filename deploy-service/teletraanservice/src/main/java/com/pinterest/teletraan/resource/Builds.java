@@ -21,6 +21,7 @@ import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.buildtags.BuildTagsManagerImpl;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.BuildDAO;
+import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.deployservice.allowlists.Allowlist;
@@ -52,6 +53,7 @@ public class Builds {
     private static final Logger LOG = LoggerFactory.getLogger(Builds.class);
     private final static int DEFAULT_SIZE = 100;
     private final BuildDAO buildDAO;
+    private final DeployDAO deployDAO;
     private final TagDAO tagDAO;
     private final Allowlist buildAllowlist;
     private final SourceControlManagerProxy sourceControlManagerProxy;
@@ -68,6 +70,7 @@ public class Builds {
         authorizer = context.getAuthorizer();
         buildAllowlist = context.getBuildAllowlist();
         buildEventPublisher = context.getBuildEventPublisher();
+        deployDAO = context.getDeployDAO();
     }
 
     @GET
@@ -252,7 +255,16 @@ public class Builds {
         if (buildBean == null) {
             throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));
         }
+
+        if (deployDAO.isThereADeployWithBuildId(buildBean.getBuild_id())) {
+            // When a build has been deployed (associated with a deployment), it should not be deleted.
+            // This keeps a record for what was deployed. Also, this helps avoid problem when
+            // the build is currently deployed (or being actively deployed).
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Build %s is currently associated with a deployment and cannot be deleted", id));
+        }
+
         buildDAO.delete(id);
+
         LOG.info("{} successfully deleted build {}", sc.getUserPrincipal().getName(), id);
 
         // publish event
