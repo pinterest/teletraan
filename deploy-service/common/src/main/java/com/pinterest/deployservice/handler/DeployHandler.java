@@ -16,6 +16,7 @@
 package com.pinterest.deployservice.handler;
 
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.deployservice.bean.AcceptanceStatus;
 import com.pinterest.deployservice.bean.BuildBean;
 import com.pinterest.deployservice.bean.BuildTagBean;
@@ -54,7 +55,6 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
-import com.pinterest.deployservice.allowlists.Allowlist;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.collections.CollectionUtils;
@@ -67,8 +67,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -89,32 +87,33 @@ public class DeployHandler implements DeployHandlerInterface{
         + "\"nimbus_uuid\":\"%s\"}";
     private static final String COMPARE_DEPLOY_URL = "https://deploy.pinadmin.com/env/%s/%s/compare_deploys_2/?chkbox_1=%s&chkbox_2=%s";
 
-    private DeployDAO deployDAO;
-    private EnvironDAO environDAO;
-    private BuildDAO buildDAO;
-    private PromoteDAO promoteDAO;
-    private AgentDAO agentDAO;
-    private ScheduleDAO scheduleDAO;
-    private TagDAO tagDAO;
-    private BasicDataSource dataSource;
-    private CommonHandler commonHandler;
-    private DataHandler dataHandler;
-    private SourceControlManagerProxy sourceControlManagerProxy;
-    private ExecutorService jobPool;
-    private String deployBoardUrlPrefix;
-    private String changeFeedUrl;
-    private BuildTagsManager buildTagsManager;
-    private Allowlist buildAllowlist;
+    private final DeployDAO deployDAO;
+    private final EnvironDAO environDAO;
+    private final BuildDAO buildDAO;
+    private final PromoteDAO promoteDAO;
+    private final AgentDAO agentDAO;
+    private final ScheduleDAO scheduleDAO;
+    private final TagDAO tagDAO;
+    private final BasicDataSource dataSource;
+    private final CommonHandler commonHandler;
+    private final DataHandler dataHandler;
+    private final SourceControlManagerProxy sourceControlManagerProxy;
+    private final ExecutorService jobPool;
+    private final String deployBoardUrlPrefix;
+    private final String changeFeedUrl;
+    private final BuildTagsManager buildTagsManager;
+    private final Allowlist buildAllowlist;
+    private final ConfigHistoryHandler configHistoryHandler;
 
 
     private final class NotifyJob implements Callable<Void> {
-        private EnvironBean envBean;
-        private DeployBean newDeployBean;
-        private DeployBean oldDeployBean;
-        private HTTPClient httpClient;
-        private CommonHandler commonHandler;
-        private String deployBoardUrlPrefix;
-        private String changeFeedUrl;
+        private final EnvironBean envBean;
+        private final DeployBean newDeployBean;
+        private final DeployBean oldDeployBean;
+        private final HTTPClient httpClient;
+        private final CommonHandler commonHandler;
+        private final String deployBoardUrlPrefix;
+        private final String changeFeedUrl;
         private final int RETRIES = 3;
 
         public NotifyJob(EnvironBean envBean, DeployBean newDeployBean,
@@ -176,8 +175,8 @@ public class DeployHandler implements DeployHandlerInterface{
         }
 
         public Void call() {
-            String additonalMessage = generateMentions(envBean, newDeployBean, oldDeployBean);
-            sendStartDeployMessage(additonalMessage);
+            String additionalMessage = generateMentions(envBean, newDeployBean, oldDeployBean);
+            sendStartDeployMessage(additionalMessage);
             LOG.info("Successfully send deploy start message for deploy {}", newDeployBean.getDeploy_id());
 
             if (!StringUtils.isEmpty(changeFeedUrl)) {
@@ -206,6 +205,7 @@ public class DeployHandler implements DeployHandlerInterface{
         changeFeedUrl = serviceContext.getChangeFeedUrl();
         buildTagsManager = new BuildTagsManagerImpl(tagDAO);
         buildAllowlist = serviceContext.getBuildAllowlist();
+        configHistoryHandler = new ConfigHistoryHandler(serviceContext);
     }
 
     private String generateMentions(EnvironBean envBean, DeployBean newDeployBean, DeployBean oldDeployBean) {
@@ -242,7 +242,7 @@ public class DeployHandler implements DeployHandlerInterface{
 
             Set<String> authors = new HashSet<>();
             for (CommitBean commit : commits) {
-                if (commit.getAuthor().toLowerCase().equals("unknown")) {
+                if (commit.getAuthor().equalsIgnoreCase("unknown")) {
                     // ignore unknown authors
                     continue;
                 }
@@ -367,6 +367,7 @@ public class DeployHandler implements DeployHandlerInterface{
             updateBean.setLast_operator(operator);
             updateBean.setLast_update(System.currentTimeMillis());
             promoteDAO.update(envBean.getEnv_id(), updateBean);
+            configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, updateBean, "auto-deploy");
             LOG.info("Disable auto promote for env {} due to the manual deploy by {}", envBean, operator);
         } catch (Exception e) {
             LOG.error("Failed to disable auto promote env {}", envBean, e);
@@ -443,7 +444,7 @@ public class DeployHandler implements DeployHandlerInterface{
         return internalDeploy(envBean, deployBean);
     }
 
-    public void update(String deployId, DeployBean updateBean, String operator) throws Exception {
+    public void update(String deployId, DeployBean updateBean) throws Exception {
         updateBean.setLast_update(System.currentTimeMillis());
         // TODO use oldStatus to do atomic update status or state
         deployDAO.update(deployId, updateBean);
@@ -561,7 +562,7 @@ public class DeployHandler implements DeployHandlerInterface{
             interval.getStart().toString(ISODateTimeFormat.dateTime()),
             interval.getEnd().toString(ISODateTimeFormat.dateTime()),
             envId);
-        List<DeployBean> taggedGoodDeploys = new ArrayList<DeployBean>();
+        List<DeployBean> taggedGoodDeploys = new ArrayList<>();
 
         List<DeployBean> availableDeploys = deployDAO.getAcceptedDeploys(envId, interval, size);
 
@@ -570,7 +571,7 @@ public class DeployHandler implements DeployHandlerInterface{
         }
 
         if(!availableDeploys.isEmpty()) {
-            Map<String, DeployBean> buildId2DeployBean = new HashMap<String, DeployBean>();
+            Map<String, DeployBean> buildId2DeployBean = new HashMap<>();
             for(DeployBean deployBean: availableDeploys) {
                 String buildId = deployBean.getBuild_id();
                 if(StringUtils.isNotEmpty(buildId)) {
@@ -591,12 +592,7 @@ public class DeployHandler implements DeployHandlerInterface{
         }
         // should order deploy bean by start date desc
         if(taggedGoodDeploys.size() > 0) {
-            Collections.sort(taggedGoodDeploys, new Comparator<DeployBean>() {
-                @Override
-                public int compare(final DeployBean d1, final DeployBean d2) {
-                    return Long.compare(d2.getStart_date(), d1.getStart_date());
-                }
-            });
+            taggedGoodDeploys.sort((d1, d2) -> Long.compare(d2.getStart_date(), d1.getStart_date()));
             LOG.info("Env {} the first deploy candidate is {}", envId, taggedGoodDeploys.get(0).getBuild_id());
         }
         return taggedGoodDeploys;
