@@ -35,7 +35,7 @@ public class Ec2InstanceValidator extends PingRequestValidator {
         }
 
         if (!accountAllowList.contains(accountId)) {
-            LOG.warn("Ignore ping request from host {} with unknown account id {}", bean.getHostName(), accountId);
+            LOG.warn("Ignore ping request from host {} with unknown account id: {}", bean.getHostName(), accountId);
             throw new DeployInternalException(
                     String.format("Host id {} is from an disallowed AWS account: {}"),
                     StringUtils.defaultString(bean.getHostId()), accountId);
