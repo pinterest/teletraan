@@ -1,85 +1,92 @@
 {% load utils %}
-{% include "panel_heading.tmpl" with panel_title="Scaling Policy" panel_body_id="autoscalingPolicyId" direction="down" %}
+{% include "panel_heading.tmpl" with panel_title="Scaling Policies" panel_body_id="autoscalingPolicyId" direction="down" %}
 <div id="autoscalingPolicyId" class="collapse in panel-body">
     <div class="container-fluid">
-        <form id="autoscalingPolicyConfigFormId" class="form-horizontal" role="form">
+        <div class="tab">
+            <button class="tablinks" onclick="openPolicy(event, 'simple-scaling')">Simple Scaling</button>
+            <button class="tablinks" onclick="openPolicy(event, 'step-scaling')">Step Scaling</button>
+            <button class="tablinks" onclick="openPolicy(event, 'target-tracking-scaling')">Target Tracking Scaling</button>
+        </div>
+
+        <div id="simple-scaling" class="tabcontent">
+        <h4>Simple Scaling</h4>
+            <form id="autoscalingPolicyConfigFormId" class="form-horizontal" role="form">
             <fieldset id="envConfigFieldSetId">
                 <div class="form-group">
                     <label for="scaleUpSize" class="deployToolTip control-label col-xs-2"
                         data-toggle="tooltip"
-                        title="minimum number of hosts in one autoscaling group">
+                        title="Scale up size adjustment">
                         Scale up:
                     </label>
 
                     <div class="col-xs-1">
-                    <div class="input-group">
-                    {% if policy.enabled %}
-                        <input class="form-control col-xs-1" name="scaleupSize" required="true"
-                               type="text" value="{{ policy.scaleUpSize }}"/>
-                    {% else %}
-                        <input class="form-control col-xs-1" name="scaleupSize" required="true"
-                               type="text" value=""/>
-                    {% endif %}
-
-                    </div>
+                        <div class="input-group">
+                            {% if policy.enabled %}
+                                <input class="form-control col-xs-1" name="scaleupSize" required="true"
+                                    type="text" value="{{ policy.scaleUpSize }}"/>
+                            {% else %}
+                                <input class="form-control col-xs-1" name="scaleupSize" required="true"
+                                    type="text" value=""/>
+                            {% endif %}
+                        </div>
                     </div>
 
                 <div class="col-xs-2">
-                <select class="form-control" name="scaleupType" required="true" id="scaleupSelectId">
+                    <select class="form-control" name="scaleupType" required="true" id="scaleupSelectId">
 
-                   {% if policy.scaleUpType == "PercentChangeInCapacity" %}
-                   <option value="ChangeInCapacity">Instances</option>
-                   <option value="PercentChangeInCapacity" selected>Percent of the group</option>
-                   {% else %}
-                   <option value="ChangeInCapacity" selected>Instances</option>
-                   <option value="PercentChangeInCapacity">Percent of the group</option>
-                   {% endif %}
-
-               </select>
-            </div>
-                    <label for="maxSize" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="maximum number of hosts in one autoscaling group">
-                        and then wait for:
-                    </label>
-
-                    <div class="col-xs-2">
-                    <div class="input-group">
-                    {% if policy.enabled %}
-                        <input class="form-control" name="scaleupCooldownTime" required="true"
-                               type="text" value="{{ policy.scaleUpCoolDownTime }}"/>
+                    {% if policy.scaleUpType == "PercentChangeInCapacity" %}
+                    <option value="ChangeInCapacity">Instances</option>
+                    <option value="PercentChangeInCapacity" selected>Percent of the group</option>
                     {% else %}
-                        <input class="form-control" name="scaleupCooldownTime" required="true"
-                               type="text" value=""/>
-                    {% endif %}
-                    <span class="input-group-addon">minutes</span>
-                    </div>
-                    </div>
-                     <label for="maxSize" class="deployToolTip control-label col-xs-2"
-                        style="font-weight: normal !important">
-                        before allowing another activity
-                    </label>
-
-                </div>
-                <div class="form-group">
-                    <label for="minSize" class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip"
-                        title="minimum number of hosts in one autoscaling group">
-                        Scale down:
-                    </label>
-                    <div class="col-xs-1">
-                    <div class="input-group">
-                    {% if policy.enabled %}
-                        <input class="form-control" name="scaledownSize" required="true"
-                               type="text" value="{{ policy.scaleDownSize }}"/>
-                    {% else %}
-                        <input class="form-control" name="scaledownSize" required="true"
-                               type="text" value=""/>
+                    <option value="ChangeInCapacity" selected>Instances</option>
+                    <option value="PercentChangeInCapacity">Percent of the group</option>
                     {% endif %}
 
+                    </select>
                     </div>
+                        <label for="maxSize" class="deployToolTip control-label col-xs-2"
+                            data-toggle="tooltip"
+                            title="cool down period">
+                            and then wait for:
+                        </label>
+
+                        <div class="col-xs-2">
+                        <div class="input-group">
+                        {% if policy.enabled %}
+                            <input class="form-control" name="scaleupCooldownTime" required="true"
+                                type="text" value="{{ policy.scaleUpCoolDownTime }}"/>
+                        {% else %}
+                            <input class="form-control" name="scaleupCooldownTime" required="true"
+                                type="text" value=""/>
+                        {% endif %}
+                        <span class="input-group-addon">minutes</span>
+                        </div>
+                        </div>
+                        <label for="maxSize" class="deployToolTip control-label col-xs-2"
+                            style="font-weight: normal !important">
+                            before allowing another activity
+                        </label>
+
                     </div>
-<div class="col-xs-2">
+                    <div class="form-group">
+                        <label for="minSize" class="deployToolTip control-label col-xs-2"
+                            data-toggle="tooltip"
+                            title="Scale down size adjustment">
+                            Scale down:
+                        </label>
+                        <div class="col-xs-1">
+                        <div class="input-group">
+                        {% if policy.enabled %}
+                            <input class="form-control" name="scaledownSize" required="true"
+                                type="text" value="{{ policy.scaleDownSize }}"/>
+                        {% else %}
+                            <input class="form-control" name="scaledownSize" required="true"
+                                type="text" value=""/>
+                        {% endif %}
+
+                        </div>
+                        </div>
+                <div class="col-xs-2">
                 <select class="form-control" name="scaledownType" required="true" id="scaledownSelectId">
 
                    {% if policy.scaleDownType == "PercentChangeInCapacity" %}
@@ -93,7 +100,8 @@
                </select>
                </div>
                     <label for="maxSize"  class="deployToolTip control-label col-xs-2"
-                        data-toggle="tooltip">
+                        data-toggle="tooltip"
+                        title="cool down period">
                          and then wait for:
                     </label>
 
@@ -117,7 +125,136 @@
                 </div>
             </fieldset>
             {% csrf_token %}
-        </form>
+            </form>
+        </div>
+
+        <div id="step-scaling" class="tabcontent">
+            <h4>Step Scaling</h4>
+
+            <form id="autoscalingPolicyConfigFormId" class="form-horizontal" role="form">
+            <fieldset id="envConfigFieldSetId">
+                <div class="form-group">
+                    <label for="scaleUpSteps" class="deployToolTip control-label col-xs-2"
+                        style="color:blue;"
+                        data-toggle="tooltip"
+                        title="Scale up Steps. Must start with 0 and end will 'null'". Increasing sequence.>
+                        Scale up Steps:
+                    </label>
+                    <div class="input-group">
+                        <input class="form-control col-xs-1" name="scaleupSize" required="true" size="50" type="text" placeholder="example: 0, 10, 20, null">
+                    </div>
+                  
+                    <label for="scaleUpAdjustments" class="deployToolTip control-label col-xs-2"
+                        style="color:blue;"
+                        data-toggle="tooltip"
+                        title="Adjustments corresponds to scale up steps">
+                        Scale up Adjustments:
+                    </label>
+                    <div class="input-group">
+                        <input class="form-control col-xs-1" name="scaleUpAdjustments" required="true" size="50" type="text" placeholder="example: 0, 10, 30">
+                    </div>
+
+
+                    <label for="scaleDownSteps" class="deployToolTip control-label col-xs-2"
+                        style="color:red;"
+                        data-toggle="tooltip"
+                        title="Scale down Steps. Must start with 'null' and end will 0". Increasing sequence.>
+                        Scale down Steps:
+                    </label>
+                    <div class="input-group">
+                        <input class="form-control col-xs-1" name="scaleupSize" required="true" size="50" type="text" placeholder="example: null, -20, -10, 0">
+                    </div>
+                  
+                    <label for="scaleDownAdjustments" class="deployToolTip control-label col-xs-2"
+                        style="color:red;"
+                        data-toggle="tooltip"
+                        title="Adjustments corresponds to scale down steps">
+                        Scale down Adjustments:
+                    </label>
+                    <div class="input-group">
+                        <input class="form-control col-xs-1" name="scaleDownAdjustments" required="true" size="50" type="text" placeholder="example: -30, -10, 0">
+                    </div>
+
+                    <label for="minAdjustmentMagnitude" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="The minimum value to scale by when the adjustment type is PercentChangeInCapacity">
+                        Min Adjustment Magnitude:
+                    </label>
+                    <div class="input-group">
+                        <input class="form-control col-xs-1" name="minAdjustmentMagnitude" required="true" min="0" type="number" placeholder="1">
+                    </div>
+                   
+                    <label for="adjustmentType" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="adjustmentType">
+                        Adjustment Type:
+                    </label>
+                    <select class="form-control" name="scaleupType" required="true" id="scaleupSelectId" style="width: 250px;">
+                        {% if policy.scaleUpType == "PercentChangeInCapacity" %}
+                            <option value="ChangeInCapacity">Change In Capacity</option>
+                            <option value="PercentChangeInCapacity" selected>Percent Change In Capacity</option>
+                        {% else %}
+                            <option value="ChangeInCapacity" selected>Change In Capacity</option>
+                            <option value="PercentChangeInCapacity">Percent of the group</option>
+                        {% endif %}
+                    </select>
+
+                    <label for="instanceWarmup" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="The estimated time, in seconds, until a newly launched instance can contribute to the CloudWatch metrics.">
+                        Instance Warmup:
+                    </label>
+                    <div class="input-group">
+                        <input class="form-control col-xs-1" name="instanceWarmup" required="false" min="0" type="number">
+                    </div>
+
+                    <label for="metricAggregationType" class="deployToolTip control-label col-xs-2"
+                        data-toggle="tooltip"
+                        title="The aggregation type for the CloudWatch metrics. The valid values are Minimum , Maximum , and Average . If the aggregation type is null, the value is treated as Average">
+                        Metric Aggregation Type:
+                    </label>
+                    <select class="form-control" name="metricAggregationType" required="false" id="scaleupSelectId" style="width: 250px;">
+                        {% if policy.metricAggregationType == "Average" %}
+                            <option value="Average" selected>Average</option>
+                            <option value="Minimum">Minimum</option>
+                            <option value="Maximum">Maximum</option>
+                        {% elif policy.metricAggregationType == "Minimum" %}
+                            <option value="Average">Average</option>
+                            <option value="Minimum" selected>Minimum</option>
+                            <option value="Maximum">Maximum</option>
+                        {% else %}
+                            <option value="Average">Average</option>
+                            <option value="Minimum">Minimum</option>
+                            <option value="Maximum" selected>Maximum</option>
+                        {% endif %}
+                    </select>
+                    
+            </fieldset>
+            {% csrf_token %}
+            </form>
+        </div>
+
+        <div id="target-tracking-scaling" class="tabcontent">
+            <h4>Target Tracking Scaling (Will be supported)</h4>
+        </div>
+
+        <script>
+            openPolicy(event, 'simple-scaling');
+
+            function openPolicy(evt, policyType) {
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+                tablinks = document.getElementsByClassName("tablinks");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+                document.getElementById(policyType).style.display = "block";
+                evt.currentTarget.className += " active";
+            }
+        </script>
     </div>
 </div>
 <div class="panel-footer clearfix">
