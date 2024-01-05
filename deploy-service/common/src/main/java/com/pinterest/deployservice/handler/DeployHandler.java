@@ -1,12 +1,12 @@
 /**
  * Copyright 2016 Pinterest, Inc.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -54,6 +54,7 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.deployservice.db.DeployQueryFilter;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 
 import com.google.common.base.Joiner;
@@ -66,7 +67,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -74,6 +75,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import javax.ws.rs.core.Response;
 
 public class DeployHandler implements DeployHandlerInterface{
     private static final Logger LOG = LoggerFactory.getLogger(DeployHandler.class);
@@ -114,7 +116,7 @@ public class DeployHandler implements DeployHandlerInterface{
         private final CommonHandler commonHandler;
         private final String deployBoardUrlPrefix;
         private final String changeFeedUrl;
-        private final int RETRIES = 3;
+        private static final int RETRIES = 3;
 
         public NotifyJob(EnvironBean envBean, DeployBean newDeployBean,
             DeployBean oldDeployBean, CommonHandler commonHandler,
@@ -384,7 +386,7 @@ public class DeployHandler implements DeployHandlerInterface{
     */
     private void validateBuild(EnvironBean envBean, String buildId) throws Exception {
         if(StringUtils.isEmpty(buildId)) {
-            throw new DeployInternalException("Build id can not be empty.");
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Build id can not be empty.");
         }
         BuildBean buildBean = buildDAO.getById(buildId);
         
@@ -396,23 +398,23 @@ public class DeployHandler implements DeployHandlerInterface{
         // only allow a non-private deploy if the build is from a trusted artifact url
         if(envBean.getEnsure_trusted_build() && !buildBean.getScm_branch().equals("private") &&
             buildAllowlist != null && !buildAllowlist.trusted(buildBean.getArtifact_url())) {
-            throw new DeployInternalException("Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
-                    buildBean.getArtifact_url());
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, String.format("Non-private build url points to an untrusted location (%s). Please Contact #teletraan to ensure the build artifact is published to a trusted url.",
+                buildBean.getArtifact_url()));
         }
         // if the stage is not allowed (allow_private_build)
-        if(! envBean.getAllow_private_build()) {
+        if(!envBean.getAllow_private_build()) {
             // only allow deploy if it is not private build
             if (buildBean.getScm_branch().equals("private")) {
-                throw new DeployInternalException("This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.");
+                throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage does not allow deploying a private build. Please Contact #teletraan to allow your stage for deploying private build.");
             }
         }
         // disallow sox deploy if the build artifact is private
         if(envBean.getIs_sox() && buildBean.getScm_branch().equals("private")) {
-            throw new DeployInternalException("This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.");
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage requires SOX builds. A private build cannot be used in a sox-compliant stage.");
         }
         // disallow sox deploy if the build artifact is not from a sox source url
-        if(envBean.getIs_sox() && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
-            throw new DeployInternalException("This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.");
+        if(envBean.getIs_sox() && buildAllowlist != null && !buildAllowlist.sox_compliant(buildBean.getArtifact_url())) {
+            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.");
         }
     }
     public String deploy(EnvironBean envBean, String buildId, String desc, String deliveryType, String operator) throws Exception {
@@ -479,12 +481,12 @@ public class DeployHandler implements DeployHandlerInterface{
         int index = 1;
         int size = 100;
         DeployFilterBean filterBean = new DeployFilterBean();
-        filterBean.setEnvIds(Arrays.asList(envBean.getEnv_id()));
+        filterBean.setEnvIds(Collections.singletonList(envBean.getEnv_id()));
         filterBean.setPageIndex(index);
         filterBean.setPageSize(size);
         int maxPages = 50; //This makes us check at most 5000 deploys
-        int tocheckPages = maxPages;
-        while (tocheckPages-- > 0) {
+        int toCheckPages = maxPages;
+        while (toCheckPages-- > 0) {
             DeployQueryFilter filter = new DeployQueryFilter(filterBean);
             DeployQueryResultBean resultBean = deployDAO.getAllDeploys(filter);
             if (resultBean.getTotal() < 1) {
