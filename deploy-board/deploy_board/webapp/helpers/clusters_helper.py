@@ -80,6 +80,15 @@ def get_cluster_replacement_status(request, data):
 def start_cluster_replacement(request, data):
     return rodimus_client.put("/cluster-replacements", request.teletraan_user_id.token, data=data)
 
+def get_cluster_auto_refresh_config(request, cluster_name):
+    return rodimus_client.get("/cluster-replacements/auto-refresh/config/%s" % cluster_name, request.teletraan_user_id.token)
+
+def get_default_cluster_auto_refresh_config(request, cluster_name):
+    return rodimus_client.get("/cluster-replacements/auto-refresh/config/default/%s" % cluster_name, request.teletraan_user_id.token)
+
+def submit_cluster_auto_refresh_config(request, data):
+    return rodimus_client.post("/cluster-replacements/auto-refresh/config", request.teletraan_user_id.token, data=data)
+
 def perform_cluster_replacement_action(request, cluster_name, action):
     if action == "cancel":
         return rodimus_client.put("/cluster-replacements/action/{}".format(cluster_name), request.teletraan_user_id.token, params=[('action', 'CANCEL')])

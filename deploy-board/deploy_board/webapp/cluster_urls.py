@@ -66,6 +66,9 @@ urlpatterns = [
 
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/start_replacement/$', cluster_view.start_cluster_replacement),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/$', cluster_view.gen_cluster_replacement_view),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/auto_refresh$', cluster_view.gen_auto_cluster_refresh_view),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/auto_refresh/config/submit$', cluster_view.submit_auto_refresh_config),
+    url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/auto_refresh/config/get$', cluster_view.get_auto_refresh_config),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/(?P<replacement_id>[a-zA-Z0-9\-_]+)/details/$', cluster_view.get_cluster_replacement_details),
     url(r'^env/(?P<name>[a-zA-Z0-9\-_]+)/(?P<stage>[a-zA-Z0-9\-_]+)/cluster_replacements/(?P<action>cancel|pause|resume)/$', cluster_view.perform_cluster_replacement_action),
 
