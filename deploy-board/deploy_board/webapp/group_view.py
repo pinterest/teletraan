@@ -445,25 +445,50 @@ def make_int(s):
     return int(s) if s else 0
 
 
-class ScalingPolicy(object):
-    def __init__(self, policies):
-        self.enabled = len(policies.get("scaleupPolicies")) > 0 and \
-            len(policies.get("scaledownPolicies")) > 0
-        if self.enabled:
-            self.scaleUpSize = policies.get("scaleupPolicies")[0].get("scaleSize")
-            self.scaleDownSize = policies.get("scaledownPolicies")[0].get("scaleSize")
-            self.scaleUpCoolDownTime = policies.get("scaleupPolicies")[0].get("coolDown")
-            self.scaleDownCoolDownTime = policies.get("scaledownPolicies")[0].get("coolDown")
-            self.scaleUpType = policies.get("scaleupPolicies")[0].get("scalingType")
-            self.scaleDownType = policies.get("scaledownPolicies")[0].get("scalingType")
-
-
 def get_policy(request, group_name):
     policies = autoscaling_groups_helper.get_policies(request, group_name)
-    policy = ScalingPolicy(policies)
+    step_scaling_policy = None
+    for policy in policies["scalingPolicies"]:
+        if policy["policyType"] == "StepScaling":
+            step_scaling_policy = policy
+            break
+    
+    scale_up_steps = []
+    scale_down_steps = []
+
+    if step_scaling_policy != None:
+        for step in step_scaling_policy["stepAdjustments"]:
+            if step["metricIntervalUpperBound"] != None and float(step["metricIntervalUpperBound"]) <= 0:
+                scale_down_steps.append({"upper_bound": float(step["metricIntervalUpperBound"]), "adjustment": step["scalingAdjustment"]})
+            if step["metricIntervalLowerBound"] != None and float(step["metricIntervalLowerBound"]) >= 0:
+                scale_up_steps.append({"lower_bound": float(step["metricIntervalLowerBound"]), "adjustment": step["scalingAdjustment"]})
+
+    scale_down_steps = sorted(scale_down_steps, key=lambda d: d['upper_bound']) 
+    scale_up_steps = sorted(scale_up_steps, key=lambda d: d['lower_bound'])
+
+    print(scale_down_steps)
+    print(scale_up_steps)
+    
+    scale_down_steps_string = ", ".join([str(step['upper_bound']) for step in scale_down_steps])
+    scale_up_steps_string = ", ".join([str(step['lower_bound']) for step in scale_up_steps])
+
+    print(scale_up_steps_string)
+    print(scale_down_steps_string)
+
+    scale_down_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_down_steps])
+    scale_up_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_up_steps])
+    
+    step_scaling_policy["scale_down_steps_string"] = scale_down_steps_string
+    step_scaling_policy["scale_up_steps_string"] = scale_up_steps_string
+    step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
+    step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
+
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
-        "policy": policy,
+        "scalingPolicies": policies["scalingPolicies"],
+        "scaleupPolicies": policies["scaleupPolicies"],
+        "scaledownPolicies": policies["scaledownPolicies"],
+        "stepScalingPolicy": step_scaling_policy,
         "csrf_token": get_token(request),
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -472,23 +497,67 @@ def get_policy(request, group_name):
 def update_policy(request, group_name):
     params = request.POST
     try:
+        policyType = params["policyType"]
         scaling_policies = {}
-        scaling_policies["scaleupPolicies"] = []
-        scaling_policies["scaledownPolicies"] = []
-        scaling_policies["scaleupPolicies"].append({"scaleSize": make_int(params["scaleupSize"]),
-                                                    "scalingType": params["scaleupType"],
-                                                    "coolDown": make_int(params["scaleupCooldownTime"])})
-        scaling_policies["scaledownPolicies"].append({"scaleSize": make_int(params["scaledownSize"]),
-                                                      "scalingType": params["scaledownType"],
-                                                      "coolDown": make_int(params["scaleDownCooldownTime"])})
+
+        if policyType == "simple-scaling":
+            scaling_policies["scaleupPolicies"] = []
+            scaling_policies["scaledownPolicies"] = []
+            scaling_policies["scaleupPolicies"].append({"scaleSize": make_int(params["scaleupSize"]),
+                                                        "scalingType": params["scaleupType"],
+                                                        "coolDown": make_int(params["scaleupCooldownTime"])})
+            scaling_policies["scaledownPolicies"].append({"scaleSize": make_int(params["scaledownSize"]),
+                                                        "scalingType": params["scaledownType"],
+                                                        "coolDown": make_int(params["scaleDownCooldownTime"])})
+        elif policyType == "step-scaling":
+            scaling_policies["scalingPolicies"] = []
+            step_scaling_policy = {}
+            step_scaling_policy["policyType"] = "StepScaling"
+            step_scaling_policy["scalingType"] = params["scalingType"]
+            step_scaling_policy["instanceWarmup"] = params["instanceWarmup"]
+            step_scaling_policy["metricAggregationType"] = "Average"
+            step_scaling_policy["minAdjustmentMagnitude"] = params["minAdjustmentMagnitude"]
+            step_scaling_policy["stepAdjustments"] = []
+
+            print(params)
+
+            if (params['scaleUpSteps']):
+                scaleUpSteps = [int(x) for x in params["scaleUpSteps"].split(',')]
+                scaleUpAdjustments = [int(x) for x in params["scaleUpAdjustments"].split(',')]
+                print(scaleUpSteps)
+                print(scaleUpAdjustments)
+                for i in range(len(scaleUpSteps)):
+                    step = {}
+                    step["metricIntervalLowerBound"] = scaleUpSteps[i]
+                    if i < len(scaleUpSteps) - 1:
+                        step["metricIntervalUpperBound"] = scaleUpSteps[i + 1]
+                    step["scalingAdjustment"] = scaleUpAdjustments[i]
+                    step_scaling_policy["stepAdjustments"].append(step)
+
+            if (params['scaleDownSteps']):
+                scaleDownSteps = [int(x) for x in params["scaleDownSteps"].split(',')]
+                scaleDownAdjustments = [int(x) for x in params["scaleDownAdjustments"].split(',')]
+                print(scaleDownSteps)
+                print(scaleDownAdjustments)
+                for i in range(len(scaleDownSteps)):
+                    step = {}
+                    step["metricIntervalUpperBound"] = scaleDownSteps[i]
+                    if i > 0:
+                        step["metricIntervalLowerBound"] = scaleDownSteps[i - 1]
+                    step["scalingAdjustment"] = scaleDownAdjustments[i]
+                    step_scaling_policy["stepAdjustments"].append(step)
+
+            scaling_policies["scalingPolicies"].append(step_scaling_policy)
+
         autoscaling_groups_helper.put_scaling_policies(request, group_name, scaling_policies)
+
         return get_policy(request, group_name)
     except:
         log.error(traceback.format_exc())
         raise
 
 
-# alarm relelated information
+# alarm related information
 def _parse_metrics_configs(query_data, group_name):
     page_data = dict(query_data.lists())
     configs = []

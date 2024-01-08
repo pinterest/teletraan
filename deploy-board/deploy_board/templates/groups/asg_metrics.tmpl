@@ -68,6 +68,23 @@ var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recomm
                      Then {{ alarm.actionType | actionTypeTitle }} the group
                     </label>
                 </div>
+
+                <div class="form-group">
+                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                    Simple Scaling:
+                    </label>
+                    <div class="col-xs-1">
+                        <input type="checkbox" id="scales" name="scales" checked />
+                    </div>
+
+                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                    Step Scaling:
+                    </label>
+                    <div class="col-xs-1">
+                        <input type="checkbox" id="scales" name="scales" checked />
+                    </div>
+                </div>
+                
                 <form-warning v-show="showWarning" :alert-text="warning"></form-warning>
             </fieldset>
             {% csrf_token %}
