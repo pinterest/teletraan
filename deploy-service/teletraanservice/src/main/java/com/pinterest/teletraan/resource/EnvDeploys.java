@@ -28,13 +28,12 @@ import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -201,12 +200,13 @@ public class EnvDeploys {
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "Build id", required = true)@NotEmpty @QueryParam("buildId") String buildId,
-            @ApiParam(value = "Description", required = true)@QueryParam("description") String description) throws Exception {
+            @ApiParam(value = "Description", required = true)@QueryParam("description") String description,
+            @ApiParam(value = "Delivery type", required = false)@QueryParam("deliveryType") String deliveryType) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
 
-        String deployId = deployHandler.deploy(envBean, buildId, description, operator);
+        String deployId = deployHandler.deploy(envBean, buildId, description, deliveryType, operator);
         LOG.info("Successfully create deploy {} for env {}/{} by {}.", deployId, envName, stageName, operator);
 
         UriBuilder ub = uriInfo.getAbsolutePathBuilder();

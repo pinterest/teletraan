@@ -54,7 +54,7 @@ OVERRIDE_POLICY_VALUES = ['OVERRIDE', 'WARN']
 DEPLOY_CONSTRAINT_TYPES = ['GROUP_BY_GROUP', 'ALL_GROUPS_IN_PARALLEL']
 
 # Fetch from backend to avoid maintainng at multiple places?
-STAGE_TYPES = ['DEFAULT', 'LATEST', 'CANARY', 'CONTROL', 'PRODUCTION']
+STAGE_TYPES = ['DEFAULT', 'LATEST', 'DEV', 'STAGING', 'CANARY', 'CONTROL', 'PRODUCTION']
 
 deployclient = DeployClient()
 

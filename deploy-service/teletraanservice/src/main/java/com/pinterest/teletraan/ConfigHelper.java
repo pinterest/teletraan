@@ -201,7 +201,11 @@ public class ConfigHelper {
 
         if (configuration.getAwsFactory() != null) {
             context.setBuildEventPublisher(new EventBridgePublisher(configuration.getAwsFactory().buildEventBridgeClient(), configuration.getAwsFactory().getEventBridgeEventBusName()));
-            context.setAccountAllowList(configuration.getAwsFactory().getAccountAllowList());
+            
+        }
+
+        if (configuration.getAccountAllowList() != null) {
+            context.setAccountAllowList(configuration.getAccountAllowList());
         }
 
         /**

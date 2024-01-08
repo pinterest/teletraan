@@ -55,7 +55,7 @@ Vue.component('baseimage-select', {
             <div class="col-xs-2">
                 <base-checkbox :checked="pinImage" :enabled="pinImageEnabled"
                     @input="pinImageClick"></base-checkbox>
-                <label for="pinImageCB" title="Check the box to select AMI manually. If unchecked, AMI will be auto-updated. If there is no Golden AMI, then only manual selection is supported.">Pin This Image</label>
+                <label for="pinImageCB" title="Check the box to select AMI manually. If unchecked, AMI will be auto-updated. If there is no Golden AMI, then only manual selection is supported.">Opt out of Golden AMI</label>
             </div>
         </div>
         <form-warning v-show="showWarning" :alert-text="warningText"></form-warning>

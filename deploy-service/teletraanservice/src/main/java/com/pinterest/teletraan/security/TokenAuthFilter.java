@@ -17,7 +17,7 @@ package com.pinterest.teletraan.security;
 
 import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

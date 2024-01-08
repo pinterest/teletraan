@@ -571,17 +571,33 @@ public class PingHandler {
         return envBean;
     }
 
-    private EnvType populateStageType(PingRequestBean pingRequest) throws Exception {
-        EnvType stageType = EnvType.PRODUCTION;
-        if (pingRequest.getStageType() != null) {
-            stageType = pingRequest.getStageType();
+    private EnvType stageTypeMapping(EnvType type) {
+        if (type == EnvType.DEV || type == EnvType.STAGING) {
+            return EnvType.LATEST;
         } else {
-            EnvironBean envBean = populateEnviron(pingRequest.getAutoscalingGroup());
-            if (envBean != null && envBean.getStage_type() != EnvType.DEFAULT) {
-                stageType = envBean.getStage_type();
-            }
+            return type;
         }
-        return stageType;
+    }
+
+    private EnvType populateStageType(PingRequestBean pingRequest) throws Exception {
+        if (pingRequest.getStageType() != null) {
+            return pingRequest.getStageType();
+        }
+
+        EnvironBean envBean = populateEnviron(pingRequest.getAutoscalingGroup());
+        if (envBean != null && envBean.getStage_type() != EnvType.DEFAULT) {
+            return envBean.getStage_type();        
+        }
+        
+        // Search for stage type from groups like CMP,group
+        Set<String> groups = pingRequest.getGroups();
+        for (String group: groups) {
+            envBean = populateEnviron(group);
+            if (envBean != null && envBean.getStage_type() != EnvType.DEFAULT) {
+                return envBean.getStage_type();
+            }    
+        }
+        return EnvType.PRODUCTION;
     }
     
     // Creates composite deploy group. size is limited by group_name size in hosts table.
@@ -589,6 +605,9 @@ public class PingHandler {
     private Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
         List<String> shards = new ArrayList<>();
         EnvType stageType = populateStageType(pingRequest);
+        // A tmp solution to map dev and staging to latest.
+        // This way sidecar deployments will work without sidecar owners to update their env/stage setup and spinnaker pipelines, which might take a long time.
+        stageType = stageTypeMapping(stageType);
         shards.add(stageType.toString().toLowerCase());
 
         String availabilityZone = pingRequest.getAvailabilityZone();
@@ -663,7 +682,7 @@ public class PingHandler {
 
         // Now we have all the relevant envs, reports and agents, let us do some
         // analysis & pick the potential install candidate and uninstall candidate
-        GoalAnalyst analyst = new GoalAnalyst(deployDAO, environDAO, hostName, hostId, envs, reports, agents);
+        GoalAnalyst analyst = new GoalAnalyst(deployConstraintDAO, hostTagDAO, deployDAO, environDAO, hostName, hostId, envs, reports, agents, ec2Tags);
         analyst.analysis();
 
         PingResponseBean response = null;

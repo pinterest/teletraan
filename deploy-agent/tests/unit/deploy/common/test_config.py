@@ -20,7 +20,7 @@ import unittest
 import tests
 
 from deployd.common.config import Config
-from deployd.common.types import DeployStatus, OpCode, DeployStage
+from deployd.common.types import DeployStatus, DeployType, OpCode, DeployStage
 from deployd.types.ping_response import PingResponse
 
 
@@ -55,8 +55,44 @@ class TestConfigFunctions(tests.TestCase):
         self.assertEqual(os.environ['DEPLOY_ID'], '123')
         self.assertEqual(os.environ['ENV_NAME'], 'pinboard')
         self.assertEqual(os.environ['STAGE_NAME'], 'beta')
-        self.assertEqual(os.environ['COMPUTE_ENV_TYPE'], 'DEFAULT')
+        self.assertEqual(os.environ['COMPUTE_ENV_TYPE'], 'PRODUCTION')
         self.assertEqual(self.config.get_target(), '/tmp/pinboard')
+
+    def test_init(self):
+        Config()
+
+        with self.assertRaises(TypeError):
+            Config(filenames=[
+                os.path.join(self.dirname, "test_file1.conf"),
+                os.path.join(self.dirname, "test_file2.conf"),
+                ])
+
+        open(os.path.join(self.dirname, "test_file1.conf"), "w")
+        Config(filenames=os.path.join(self.dirname, "test_file1.conf"))
+
+        os.remove(os.path.join(self.dirname, "test_file1.conf"))
+        with self.assertRaises(SystemExit), mock.patch('builtins.print') as print_mock:
+            Config(filenames=os.path.join(self.dirname, "test_file1.conf"))
+            print_mock.assert_called_once_with(f"Cannot find config files: {os.path.join(self.dirname, 'test_file1.conf')}")
+
+    def test_get_config_filename(self):
+        filename = os.path.join(self.dirname, "test_file1.conf")
+        open(os.path.join(self.dirname, "test_file1.conf"), "w")
+            
+        config = Config(filenames=filename) 
+        self.assertEqual(config.get_config_filename(), filename)
+    
+    def test_get_deploy_type_from_op_code(self):
+        config = Config()
+        self.assertEqual(config._get_deploy_type_from_opcode(opCode="NOOP"), DeployType.REGULAR)
+        self.assertEqual(config._get_deploy_type_from_opcode(opCode="DEPLOY"), DeployType.REGULAR)
+        self.assertEqual(config._get_deploy_type_from_opcode(opCode="UPDATE"), DeployType.REGULAR)
+        self.assertEqual(config._get_deploy_type_from_opcode(opCode="RESTART"), DeployType.RESTART)
+        self.assertEqual(config._get_deploy_type_from_opcode(opCode="DELETE"), DeployType.REGULAR)
+        self.assertEqual(config._get_deploy_type_from_opcode(opCode="TERMINATE"), DeployType.STOP)
+        self.assertEqual(config._get_deploy_type_from_opcode(opCode="WAIT"), DeployType.REGULAR)
+        self.assertEqual(config._get_deploy_type_from_opcode(opCode="ROLLBACK"), DeployType.ROLLBACK)
+        self.assertEqual(config._get_deploy_type_from_opcode(opCode="STOP"), DeployType.STOP)
 
 
 if __name__ == '__main__':

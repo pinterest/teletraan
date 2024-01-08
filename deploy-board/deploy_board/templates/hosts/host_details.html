@@ -111,7 +111,11 @@
     </div>
     {% endfor %}
     <span>For complete host details, </span>
-    <a href="{{ host_information_url }}/instance/{{ host_id }}">click here</a>
+    {% if account_id and account_id != "null" %}
+        <a href="{{ host_information_url }}/instance/{{ host_id }}?{{ account_id }}">click here</a>
+    {% else %}
+        <a href="{{ host_information_url }}/instance/{{ host_id }}">click here</a>
+    {% endif %}
     </div>
     {% endif %}
 </div>
