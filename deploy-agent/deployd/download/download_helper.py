@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -18,8 +18,9 @@ import logging
 
 log = logging.getLogger(__name__)
 
+DOWNLOAD_VALIDATE_METRICS = 'deployd.stats.download.validate'
 
-class DownloadHelper(object):
+class DownloadHelper(metaclass=abc.ABCMeta):
 
     def __init__(self, url) -> None:
         self._url = url
@@ -40,6 +41,10 @@ class DownloadHelper(object):
                 md5.update(chunk)
         return md5.hexdigest()
 
-    @abc.abstractproperty
+    @abc.abstractmethod
     def download(self, local_full_fn):
+        pass
+
+    @abc.abstractmethod
+    def validate_source(self):
         pass

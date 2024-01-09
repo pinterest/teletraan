@@ -123,6 +123,10 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     private MicrometerMetricsFactory metricsFactory = new MicrometerMetricsFactory();
 
+    @Valid
+    @JsonProperty("accountAllowList")
+    private List<String> accountAllowList;
+
     public DataSourceFactory getDataSourceFactory() {
         if (dataSourceFactory == null) {
             return new EmbeddedDataSourceFactory();
@@ -310,5 +314,9 @@ public class TeletraanServiceConfiguration extends Configuration {
     @JsonProperty("metrics")
     public void setMetricsFactory(MicrometerMetricsFactory metrics) {
         this.metricsFactory = metrics;
+    }
+
+    public List<String> getAccountAllowList() {
+        return accountAllowList;
     }
 }

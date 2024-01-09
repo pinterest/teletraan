@@ -21,9 +21,8 @@ import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 
-import org.hibernate.validator.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import javax.ws.rs.*;

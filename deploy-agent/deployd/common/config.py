@@ -106,7 +106,7 @@ class Config(object):
         if deploy_status.report.stageName:
             self._environ['STAGE_NAME'] = deploy_status.report.stageName
         if deploy_status.report.stageType:
-            self._environ['COMPUTE_ENV_TYPE'] = deploy_status.report.stageType
+            self._environ['COMPUTE_ENV_TYPE'] = "PRODUCTION" if deploy_status.report.stageType == "DEFAULT" else deploy_status.report.stageType
         if deploy_status.first_deploy:
             self._environ['FIRST_DEPLOY'] = str(deploy_status.first_deploy)
         if deploy_status.is_docker:
@@ -291,3 +291,9 @@ class Config(object):
 
     def get_facter_account_id_key(self):
         return self.get_var('account_id_key', 'ec2_metadata.identity-credentials.ec2.info')
+
+    def get_http_download_allow_list(self):
+        return self.get_var('http_download_allow_list', [])
+
+    def get_s3_download_allow_list(self):
+        return self.get_var('s3_download_allow_list', [])

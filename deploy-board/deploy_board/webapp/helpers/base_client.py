@@ -64,8 +64,7 @@ class BaseClient(object):
                     "assistance. " + response.text)
 
             if response.status_code == 400:
-                raise IllegalArgumentException(
-                    "Oops! It seems like Teletraan sent an illegal request. " + response.text)
+                raise IllegalArgumentException(response.text)
 
             if response.status_code == 404:
                 log.info("Resource %s Not found" % path)

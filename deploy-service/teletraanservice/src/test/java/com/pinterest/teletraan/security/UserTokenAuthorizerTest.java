@@ -20,7 +20,7 @@ import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.dao.UserRolesDAO;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;

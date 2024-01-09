@@ -1,6 +1,9 @@
 package com.pinterest.teletraan.config;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.eventbridge.EventBridgeAsyncClient;
 
@@ -10,6 +13,9 @@ public class AwsFactory {
 
   private String eventBridgeEventBusName;
 
+  @JsonProperty
+  private List<String> accountAllowList;
+  
   public EventBridgeAsyncClient buildEventBridgeClient() {
     return EventBridgeAsyncClient.builder().region(Region.US_EAST_1).build();
   }
@@ -32,5 +38,13 @@ public class AwsFactory {
   @JsonProperty
   public void setEventBridgeEventBusName(String eventBridgeEventBusName) {
     this.eventBridgeEventBusName = eventBridgeEventBusName;
+  }
+
+  public List<String> getAccountAllowList() {
+    return this.accountAllowList;
+  }
+
+  public void setAccountAllowList(List<String> accountAllowList) {
+    this.accountAllowList = accountAllowList;
   }
 }

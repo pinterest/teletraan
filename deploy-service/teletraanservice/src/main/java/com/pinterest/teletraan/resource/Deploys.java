@@ -34,7 +34,7 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.exception.TeletaanInternalException;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
 
 import org.slf4j.Logger;
@@ -156,7 +156,7 @@ public class Deploys {
         EnvironBean environBean = Utils.getEnvStage(environDAO, originBean.getEnv_id());
         authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
-        deployHandler.update(id, deployBean, userName);
+        deployHandler.update(id, deployBean);
         LOG.info("{} successfully updated deploy {} with {}",
             userName, id, deployBean);
     }
