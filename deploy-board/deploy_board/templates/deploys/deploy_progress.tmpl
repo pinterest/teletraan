@@ -21,7 +21,7 @@
             {% if not agentStat.agent.accountId or agentStat.agent.accountId == "998131032990" or agentStat.agent.accountId == "null" %}
         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
         type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-        title="{{ agentStat | agentTip }}">
+        title="{{ agentStat | agentTip }}">              
         <small>{{ agentStat.agent.hostName }}</small>
         <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
         </a>
@@ -30,7 +30,7 @@
             {% if agentStat.agent.accountId and agentStat.agent.accountId != "998131032990" and agentStat.agent.accountId != "null" %}
         <a href="/env/{{env.envName}}/{{env.stageName}}/host/{{ agentStat.agent.hostName }}"
         type="button" class="deployToolTip btn btn-xs {{ agentStat | agentButton }} host-btn"
-        title="{{ agentStat | agentTip }}">
+        title="{{ agentStat | agentTip }}">              
         <small>{{ agentStat.agent.hostName }}</small>
         <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
         </a>
@@ -42,9 +42,7 @@
         <small>{{ agentStat.agent.hostName }}</small>
         {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
         </a>
-        <p>{{ agentStat.agent }}</p>
-        <p>{{ agentStat.agent.serviceHealthStatus }}</p>
-        {% endif %}
+        {% endif %}              
     {% endfor %}
 
         <br><br>
