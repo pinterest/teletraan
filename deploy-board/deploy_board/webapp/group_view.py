@@ -627,10 +627,26 @@ def add_alarms(request, group_name):
     alarm_info = {}
     print(params)
     action_type = params["asgActionType"]
-    if action_type == "grow":
-        alarm_info["actionType"] = "GROW"
+    policy_type = params["policyType"]
+    
+    alarm_info["scalingPolicies"] = []
+
+    policies = get_policy(request, group_name)
+
+    if policy_type == "simple-scaling":
+        if action_type == "grow":
+            if policies["scaleupPolicies"] != None:
+                alarm_info["scalingPolicies"].append(policies["scaleupPolicies"])
+        else:
+            if policies["scaledownPolicies"] != None:
+                alarm_info["scalingPolicies"].append(policies["scaledownPolicies"])
     else:
-        alarm_info["actionType"] = "SHRINK"
+        if policies["scalingPolicies"] != None:
+            for p in policies["scalingPolicies"]:
+                if p["policyType"] ==  "StepScaling":
+                    alarm_info["scalingPolicies"].append(p)
+                    break
+
     alarm_info["comparator"] = params["comparators"]
     alarm_info["threshold"] = float(params["threshold"])
     alarm_info["evaluationTime"] = int(params["evaluate_time"])
