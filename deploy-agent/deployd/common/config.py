@@ -15,7 +15,6 @@ from __future__ import print_function
 
 import logging
 import os
-from typing import List, Optional
 
 from deployd import __version__
 
@@ -35,7 +34,7 @@ class Config(object):
     _DEFAULT_CONFIG_SECTION = 'default_config'
     _configs = {}
 
-    def __init__(self, filenames=None, config_reader=None) -> None:
+    def __init__(self, filenames=None, config_reader=None):
         self._configs = {}
         self._filenames = None
         self._environ = {}
@@ -57,10 +56,10 @@ class Config(object):
             print('Cannot read config files: {}'.format(self._filenames))
             exit_abruptly(1)
 
-    def get_config_filename(self) -> Optional[List[str]]:
+    def get_config_filename(self):
         return self._filenames
 
-    def _get_deploy_type_from_opcode(self, opCode) -> str:
+    def _get_deploy_type_from_opcode(self, opCode):
         # TODO: Should use common.types.OpCode for next version
         if opCode == 'RESTART':
             return DeployType.RESTART
@@ -71,7 +70,7 @@ class Config(object):
         else:
             return DeployType.REGULAR
 
-    def update_variables(self, deploy_status) -> None:
+    def update_variables(self, deploy_status):
         if not deploy_status:
             return
 
@@ -146,23 +145,23 @@ class Config(object):
                 return default_value
             raise DeployConfigException('{} cannot be found.'.format(var_name))
 
-    def get_intvar(self, var_name, default_value=None) -> int:
+    def get_intvar(self, var_name, default_value=None):
         return int(self.get_var(var_name, default_value))
 
-    def get_target(self) -> Optional[str]:
+    def get_target(self):
         target_default_dir = self.get_var("target_default_dir", "/tmp")
         if not (self._configs and self._configs.get('target')):
             return os.path.join(target_default_dir, self._environ['ENV_NAME'])
 
         return self._configs.get('target')
 
-    def get_subprocess_log_name(self) -> str:
+    def get_subprocess_log_name(self):
         if 'ENV_NAME' in self._environ:
             return '{}/{}.log'.format(self.get_log_directory(), self._environ['ENV_NAME'])
         else:
             return os.path.join(self.get_log_directory(), "deploy_subprocess.log")
 
-    def get_script_directory(self) -> str:
+    def get_script_directory(self):
         script_dir = '{}/teletraan/'.format(self.get_target())
         subscript_dir = os.path.join(script_dir, self._environ['ENV_NAME'])
         if os.path.exists(subscript_dir):

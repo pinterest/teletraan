@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 
 class HTTPDownloadHelper(DownloadHelper):
 
-    def _download_files(self, local_full_fn) -> int:
+    def _download_files(self, local_full_fn):
         download_cmd = ['curl', '-o', local_full_fn, '-fksS', self._url]
         log.info('Running command: {}'.format(' '.join(download_cmd)))
         output, error, process_return_code = Caller.call_and_log(download_cmd, cwd=os.getcwd())
@@ -38,7 +38,7 @@ class HTTPDownloadHelper(DownloadHelper):
         log.info('Finish downloading: {} to {}'.format(self._url, local_full_fn))
         return status_code
 
-    def download(self, local_full_fn) -> int:
+    def download(self, local_full_fn):
         log.info("Start to download from url {} to {}".format(
             self._url, local_full_fn))
 

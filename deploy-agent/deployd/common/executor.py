@@ -20,7 +20,6 @@ import signal
 import stat
 import time
 import traceback
-from typing import Optional, Tuple
 
 from future.utils import PY3
 
@@ -30,7 +29,7 @@ log = logging.getLogger(__name__)
 
 
 class Executor(object):
-    def __init__(self, callback=None, config=None) -> None:
+    def __init__(self, callback=None, config=None):
         self._ping_server = callback
         if not config:
             return
@@ -38,7 +37,7 @@ class Executor(object):
         self._config = config
         self.update_configs(config)
 
-    def update_configs(self, config) -> None:
+    def update_configs(self, config):
         self.LOG_FILENAME = config.get_subprocess_log_name()
         self.MAX_RUNNING_TIME = config.get_subprocess_running_timeout()
         self.MIN_RUNNING_TIME = config.get_agent_ping_interval()
@@ -54,14 +53,14 @@ class Executor(object):
                                                                       self.MAX_RUNNING_TIME,
                                                                       self.MAX_RETRY))
 
-    def get_subprocess_output(self, fd, file_pos) -> str:
+    def get_subprocess_output(self, fd, file_pos):
         curr_pos = fd.tell()
         fd.seek(file_pos, 0)
         output = fd.read()
         fd.seek(curr_pos, 0)
         return output[-(self.MAX_TAIL_BYTES+1):-1]
 
-    def run_cmd(self, cmd, **kw) -> DeployReport:
+    def run_cmd(self, cmd, **kw):
         if not isinstance(cmd, list):
             cmd = cmd.split(' ')
         cmd_str = ' '.join(cmd)
@@ -169,7 +168,7 @@ class Executor(object):
         deploy_report.status_code = AgentStatus.TOO_MANY_RETRY
         return deploy_report
 
-    def ping_server_if_possible(self, start, cmd_str, deploy_report) -> Tuple[datetime.datetime, DeployReport]:
+    def ping_server_if_possible(self, start, cmd_str, deploy_report):
         now = datetime.datetime.now()
         processed_time = (now - start).seconds
         log.debug("start: {}, now: {}, process: {}".format(start, now, processed_time))
@@ -185,20 +184,20 @@ class Executor(object):
 
         return start, deploy_report
 
-    def _get_sleep_interval(self, start, interval) -> int:
+    def _get_sleep_interval(self, start, interval):
         now = datetime.datetime.now()
         max_sleep_seconds = self.MIN_RUNNING_TIME - (now - start).seconds
         return min(interval, max(max_sleep_seconds, 1))
 
     @staticmethod
-    def _kill_process(process) -> None:
+    def _kill_process(process):
         try:
             log.info('Kill currently running process')
             os.killpg(process.pid, signal.SIGKILL)
         except Exception as e:
             log.debug('Failed to kill process: {}'.format(e))
 
-    def _graceful_shutdown(self, process) -> None:
+    def _graceful_shutdown(self, process):
         try:
             log.info('Gracefully shutdown currently running process with timeout {}'.format(self.TERMINATE_TIMEOUT))
             os.killpg(process.pid, signal.SIGTERM)
@@ -214,7 +213,7 @@ class Executor(object):
             log.debug('Failed to gracefully shutdown: {}'.format(e))
             Executor._kill_process(process)
 
-    def execute_command(self, script) -> DeployReport:
+    def execute_command(self, script):
         try:
             deploy_step = os.getenv('DEPLOY_STEP')
             if not os.path.exists(self._config.get_script_directory()):

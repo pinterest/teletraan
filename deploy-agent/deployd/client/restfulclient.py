@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 
 @singleton
 class RestfulClient(object):
-    def __init__(self, config) -> None:
+    def __init__(self, config):
         self.config = config
         self.url_prefix = config.get_restful_service_url()
         self.url_version = config.get_restful_service_version()
@@ -35,7 +35,7 @@ class RestfulClient(object):
         self.default_timeout = 30
 
     @staticmethod
-    def sc_fail(reason) -> None:
+    def sc_fail(reason):
         """ send RestfulClient failure metrics """
         create_sc_increment(name='deploy.agent.rest.failure',
                             tags={'reason': reason})
@@ -77,7 +77,7 @@ class RestfulClient(object):
     def _ping_internal(self, ping_request):
         return self.__call('post')("/system/ping", data=ping_request)
 
-    def ping(self, ping_request) -> PingResponse:
+    def ping(self, ping_request):
         # python object -> json
         response = self._ping_internal(ping_request.to_json())
 

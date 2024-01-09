@@ -16,17 +16,16 @@ import glob
 import logging
 import os
 import shutil
-from typing import Generator, List, Optional, Tuple
 
 log = logging.getLogger(__name__)
 
 
 class Helper(object):
 
-    def __init__(self, config=None) -> None:
+    def __init__(self, config=None):
         self._config = config
 
-    def builds_available_locally(self, builds_dir, env_name) -> List[Tuple[Tuple[bool, Optional[str]], float]]:
+    def builds_available_locally(self, builds_dir, env_name):
         """Returns a list of (build, timestamp) that we have installed."""
         builds = []
         try:
@@ -47,7 +46,7 @@ class Helper(object):
             return builds
 
     @staticmethod
-    def get_build_id(filename, env_name) -> Tuple[bool, Optional[str]]:
+    def get_build_id(filename, env_name):
         """
         Extract build id from the file name
         In downloader.py, we have the following name convenion
@@ -60,7 +59,7 @@ class Helper(object):
         return False, None
 
     @staticmethod
-    def get_stale_builds(build_timestamps, num_builds_to_retain=2) -> Generator:
+    def get_stale_builds(build_timestamps, num_builds_to_retain=2):
         """
         Given a list of (build, timestamp) tuples, determine which are stale.
 
@@ -81,7 +80,7 @@ class Helper(object):
             yielded_builds += 1
 
     @staticmethod
-    def clean_package(base_dir, build, build_name) -> None:
+    def clean_package(base_dir, build, build_name):
         """
            Clean a package:
            :param base_dir: builds dir

@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 
 class S3DownloadHelper(DownloadHelper):
 
-    def __init__(self, local_full_fn, aws_connection=None, url=None) -> None:
+    def __init__(self, local_full_fn, aws_connection=None, url=None):
         super(S3DownloadHelper, self).__init__(local_full_fn)
         self._s3_matcher = "^s3://(?P<BUCKET>[a-zA-Z0-9\-_]+)/(?P<KEY>[a-zA-Z0-9\-_/\.]+)/?"
         if aws_connection:
@@ -40,7 +40,7 @@ class S3DownloadHelper(DownloadHelper):
         if url:
             self._url = url
 
-    def download(self, local_full_fn) -> int:
+    def download(self, local_full_fn):
         s3url_parse = re.match(self._s3_matcher, self._url)
         bucket_name = s3url_parse.group("BUCKET")
         key = s3url_parse.group("KEY")

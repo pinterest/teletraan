@@ -16,7 +16,6 @@ import subprocess
 import traceback
 import logging
 import time
-from typing import Optional, Tuple
 
 from future.utils import PY3
 
@@ -24,11 +23,11 @@ log = logging.getLogger(__name__)
 
 
 class Caller(object):
-    def __init__(self) -> None:
+    def __init__(self):
         pass
 
     @staticmethod
-    def call_and_log(cmd, **kwargs) -> Tuple[Optional[str], str, Optional[int]]:
+    def call_and_log(cmd, **kwargs):
         output = ""
         start = time.time()
         try:

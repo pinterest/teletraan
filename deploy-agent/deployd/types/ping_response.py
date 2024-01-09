@@ -18,7 +18,7 @@ from deployd.common.types import OpCode
 
 
 class PingResponse(object):
-    def __init__(self, jsonValue=None) -> None:
+    def __init__(self, jsonValue=None):
         self.opCode = OpCode.NOOP
         self.deployGoal = None
 
@@ -32,5 +32,5 @@ class PingResponse(object):
             if jsonValue.get('deployGoal'):
                 self.deployGoal = DeployGoal(jsonValue=jsonValue.get('deployGoal'))
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "PingResponse(opCode={}, deployGoal={})".format(self.opCode, self.deployGoal)

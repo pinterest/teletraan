@@ -22,7 +22,6 @@ import signal
 import sys
 import traceback
 import subprocess
-from typing import Literal, Optional, Union
 import yaml
 
 
@@ -35,7 +34,7 @@ log = logging.getLogger(__name__)
 # noinspection PyProtectedMember
 
 
-def exit_abruptly(status=0) -> None:
+def exit_abruptly(status=0):
     """Exit method that just quits abruptly.
 
     Helps with KeyError issues.
@@ -49,7 +48,7 @@ def exit_abruptly(status=0) -> None:
     os._exit(status)
 
 
-def touch(fname, times=None) -> None:
+def touch(fname, times=None):
     try:
         with open(fname, 'a'):
             os.utime(fname, times)
@@ -57,7 +56,7 @@ def touch(fname, times=None) -> None:
         log.error('Failed touching host type file {}'.format(fname))
 
 
-def hash_file(filepath) -> str:
+def hash_file(filepath):
     """ hash the file content
     :param filepath: the full path of the file
     :return:the sha1 of the file data
@@ -69,7 +68,7 @@ def hash_file(filepath) -> str:
 # steal from http://stackoverflow.com/questions/132058/
 # showing-the-stack-trace-from-a-running-python-application
 # use : sudo kill -SIGUSR1 $pid to trigger the debug
-def debug(sig, frame) -> None:
+def debug(sig, frame):
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
     d = {'_frame': frame}      # Allow access to frame object.
@@ -82,11 +81,11 @@ def debug(sig, frame) -> None:
     i.interact(message)
 
 
-def listen() -> None:
+def listen():
     signal.signal(signal.SIGUSR1, debug)  # Register handler
 
 
-def mkdir_p(path) -> None:
+def mkdir_p(path):
     try:
         os.makedirs(path)
     except OSError as ex:
@@ -97,7 +96,7 @@ def mkdir_p(path) -> None:
             raise
 
 
-def uptime() -> int:
+def uptime():
     """ return int: seconds of uptime in int, default 0 """
     sec = 0
     if sys.platform.startswith('linux'):
@@ -107,19 +106,19 @@ def uptime() -> int:
     return sec
 
 
-def ensure_dirs(config) -> None:
+def ensure_dirs(config):
     # make sure deployd directories exist
     mkdir_p(config.get_builds_directory())
     mkdir_p(config.get_agent_directory())
     mkdir_p(config.get_log_directory())
 
 
-def is_first_run(config) -> bool:
+def is_first_run(config):
     env_status_file = config.get_env_status_fn()
     return not os.path.exists(env_status_file)
 
 
-def check_prereqs(config) -> bool:
+def check_prereqs(config):
     """
     Check prerequisites before deploy agent can run
 
@@ -141,7 +140,7 @@ def check_prereqs(config) -> bool:
     return True
 
 
-def get_puppet_exit_code(config) -> Union[str, Literal[999]]:
+def get_puppet_exit_code(config):
     """
     Get puppet exit code from the corresponding file
 
@@ -158,7 +157,7 @@ def get_puppet_exit_code(config) -> Union[str, Literal[999]]:
     return exit_code
 
 
-def load_puppet_summary(config) -> dict:
+def load_puppet_summary(config):
     """
     Load last_run_summary yaml file, parse results
 
@@ -175,7 +174,7 @@ def load_puppet_summary(config) -> dict:
     return summary
 
 
-def check_first_puppet_run_success(config) -> bool:
+def check_first_puppet_run_success(config):
     """
     Check first puppet run success from exit code and last run summary
 
@@ -200,7 +199,7 @@ def check_first_puppet_run_success(config) -> bool:
     return puppet_failures == 0
 
 
-def get_info_from_facter(keys) -> Optional[dict]:
+def get_info_from_facter(keys):
     try:
         time_facter = TimeElapsed()
         # increment stats - facter calls
@@ -222,7 +221,7 @@ def get_info_from_facter(keys) -> Optional[dict]:
         return None
 
 
-def redeploy_check(labels, service, redeploy) -> int:
+def redeploy_check(labels, service, redeploy):
     max_retry = REDEPLOY_MAX_RETRY
     for label in labels:
         if "redeploy_max_retry" in label:
@@ -231,7 +230,7 @@ def redeploy_check(labels, service, redeploy) -> int:
         return redeploy + 1
     return 0
     
-def get_container_health_info(commit, service, redeploy) -> Optional[str]:
+def get_container_health_info(commit, service, redeploy):
     try:
         log.info(f"Get health info for container with commit {commit}")
         result = []
@@ -264,7 +263,7 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
         return None
 
 
-def get_telefig_version() -> Optional[str]:
+def get_telefig_version():
     if not IS_PINTEREST:
         return None    
     try:

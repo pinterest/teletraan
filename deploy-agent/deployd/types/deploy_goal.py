@@ -16,7 +16,7 @@ from deployd.types.build import Build
 from deployd.types.deploy_stage import DeployStage
 
 class DeployGoal(object):
-    def __init__(self, jsonValue=None) -> None:
+    def __init__(self, jsonValue=None):
         self.deployId = None
         self.envId = None
         self.envName = None
@@ -51,7 +51,7 @@ class DeployGoal(object):
             self.firstDeploy = jsonValue.get('firstDeploy')
             self.isDocker = jsonValue.get('isDocker')
 
-    def __key(self) -> tuple:
+    def __key(self):
         return (self.deployId,
                 self.envId,
                 self.envName,
@@ -65,20 +65,20 @@ class DeployGoal(object):
                 self.firstDeploy,
                 self.isDocker)
 
-    def __hash__(self) -> int:
+    def __hash__(self):
         return hash(self.__key())
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other):
         """ compare DeployGoals """
         return isinstance(other, DeployGoal) \
             and self.__key() == other.__key()
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other):
         """ compare DeployGoals """
         return not (isinstance(other, DeployGoal)
                     and self.__key() == other.__key())
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "DeployGoal(deployId={}, envId={}, envName={}, stageName={}, stageType={}, " \
                "deployStage={}, build={}, deployAlias={}, agentConfig={}," \
                "scriptVariables={}, firstDeploy={}, isDocker={})".format(self.deployId, self.envId, self.envName,

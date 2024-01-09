@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 
 class Downloader(object):
 
-    def __init__(self, config, build, url, env_name) -> None:
+    def __init__(self, config, build, url, env_name):
         self._matcher = re.compile(r'^.*?[.](?P<ext>tar\.gz|tar\.bz2|\w+)$')
         self._base_dir = config.get_builds_directory()
         self._build_name = env_name
@@ -39,15 +39,15 @@ class Downloader(object):
         self._url = url
         self._config = config
 
-    def _get_inner_extension(self, url) -> str:
+    def _get_inner_extension(self, url):
         outerExtension = self._get_extension(url)
         inverseExtLen = (len(outerExtension) * -1) - 1
         return self._get_extension(url[:inverseExtLen])
 
-    def _get_extension(self, url) -> str:
+    def _get_extension(self, url):
         return self._matcher.match(url).group('ext')
 
-    def download(self) -> int:
+    def download(self):
         extension = self._get_extension(self._url.lower())
         local_fn = u'{}-{}.{}'.format(self._build_name, self._build, extension)
         local_full_fn = os.path.join(self._base_dir, local_fn)
