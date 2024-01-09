@@ -482,6 +482,9 @@ def get_policy(request, group_name):
     step_scaling_policy["scale_up_steps_string"] = scale_up_steps_string
     step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
     step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
+    step_scaling_policy["instanceWarmup"] = int(step_scaling_policy["instanceWarmup"]) // 60
+
+    print(step_scaling_policy["scale_up_steps_string"])
 
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
@@ -514,15 +517,18 @@ def update_policy(request, group_name):
             step_scaling_policy = {}
             step_scaling_policy["policyType"] = "StepScaling"
             step_scaling_policy["scalingType"] = params["scalingType"]
-            step_scaling_policy["instanceWarmup"] = params["instanceWarmup"]
+            step_scaling_policy["instanceWarmup"] = int(params["instanceWarmup"]) * 60
             step_scaling_policy["metricAggregationType"] = "Average"
-            step_scaling_policy["minAdjustmentMagnitude"] = params["minAdjustmentMagnitude"]
+
+            if params["scalingType"] == "PercentChangeInCapacity":
+                step_scaling_policy["minAdjustmentMagnitude"] = params["minAdjustmentMagnitude"]
+            
             step_scaling_policy["stepAdjustments"] = []
 
             print(params)
 
             if (params['scaleUpSteps']):
-                scaleUpSteps = [int(x) for x in params["scaleUpSteps"].split(',')]
+                scaleUpSteps = [float(x) for x in params["scaleUpSteps"].split(',')]
                 scaleUpAdjustments = [int(x) for x in params["scaleUpAdjustments"].split(',')]
                 print(scaleUpSteps)
                 print(scaleUpAdjustments)
@@ -535,7 +541,7 @@ def update_policy(request, group_name):
                     step_scaling_policy["stepAdjustments"].append(step)
 
             if (params['scaleDownSteps']):
-                scaleDownSteps = [int(x) for x in params["scaleDownSteps"].split(',')]
+                scaleDownSteps = [float(x) for x in params["scaleDownSteps"].split(',')]
                 scaleDownAdjustments = [int(x) for x in params["scaleDownAdjustments"].split(',')]
                 print(scaleDownSteps)
                 print(scaleDownAdjustments)
@@ -619,6 +625,7 @@ def delete_alarms(request, group_name):
 def add_alarms(request, group_name):
     params = request.POST
     alarm_info = {}
+    print(params)
     action_type = params["asgActionType"]
     if action_type == "grow":
         alarm_info["actionType"] = "GROW"
@@ -637,6 +644,7 @@ def add_alarms(request, group_name):
             alarm_info["metricSource"] = params["awsMetrics"]
     alarm_info["groupName"] = group_name
     autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
+
     return redirect("/groups/{}/config/".format(group_name))
 
 

@@ -166,46 +166,57 @@
                     <label for="scaleUpSteps" class="deployToolTip control-label"
                         style="color:blue;"
                         data-toggle="tooltip"
-                        title="Scale up Steps. Must start with 0 and end will 'null'. Increasing sequence.">
-                        Scale up Steps (Must start with 0 and end will 'null'". Increasing sequence.):
+                        title="Scale up Steps">
+                        Scale up Steps (Must START with 0. Increasing sequence. E.g. 0, 10, 20 will create step1[0, 10], step2[10, 20], step3[20, positive-infinity]):
                     </label>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.scale_up_steps_string %}
-                            <input class="form-control" name="scaleUpSteps" required="true" type="text" value={{ stepScalingPolicy.scale_up_steps_string }}>
+                            <input class="form-control" name="scaleUpSteps" required="true" size="50" type="text" value="{{ stepScalingPolicy.scale_up_steps_string }}">
                         {% else %}
                             <input class="form-control" name="scaleUpSteps" required="true" size="50" type="text" placeholder="example: 0, 10, 20, null">
                         {% endif %}
-                        
                     </div>
                   
                     <label for="scaleUpAdjustments" class="deployToolTip control-label"
                         style="color:blue;"
                         data-toggle="tooltip"
                         title="Adjustments corresponds to scale up steps">
-                        Scale up Adjustments (Adjustments corresponds to scale up steps):
+                        Scale up Adjustments (Adjustments for scale up steps. There must be an adjustment for each step. E.g. with step1[0, 10], step2[10, 20], step3[20, positive-infinity], you must provide 3 numbers here.):
                     </label>
                     <div class="input-group">
-                        <input class="form-control" name="scaleUpAdjustments" required="true" size="50" type="text" placeholder="example: 0, 10, 30">
+                        {% if stepScalingPolicy and stepScalingPolicy.scale_up_adjustments_string %}
+                            <input class="form-control" name="scaleUpAdjustments" required="true" size="50" type="text" value="{{ stepScalingPolicy.scale_up_adjustments_string }}">
+                        {% else %}
+                            <input class="form-control" name="scaleUpAdjustments" required="true" size="50" type="text" placeholder="example: 0, 10, 30">
+                        {% endif %}
                     </div>
 
                     <label for="scaleDownSteps" class="deployToolTip control-label"
                         style="color:red;"
                         data-toggle="tooltip"
-                        title="Scale down Steps. Must start with 'null' and end will 0. Increasing sequence.">
-                        Scale down Steps (Scale down Steps. Must start with 'null' and end will 0. Increasing sequence.):
+                        title="Scale down Steps">
+                        Scale down Steps (Must END with 0. Increasing sequence. E.g. -20, -10, 0 will create step1[negative-infinity, -20], step2[-20, -10], step3[-10, 0]):
                     </label>
                     <div class="input-group">
-                        <input class="form-control" name="scaleDownSteps" required="true" size="50" type="text" placeholder="example: null, -20, -10, 0">
+                        {% if stepScalingPolicy and stepScalingPolicy.scale_down_steps_string %}
+                            <input class="form-control" name="scaleDownSteps" required="true" size="50" type="text" value="{{ stepScalingPolicy.scale_down_steps_string }}">
+                        {% else %}
+                            <input class="form-control" name="scaleDownSteps" required="true" size="50" type="text" placeholder="example: -20, -10, 0">
+                        {% endif %}
                     </div>
                   
                     <label for="scaleDownAdjustments" class="deployToolTip control-label"
                         style="color:red;"
                         data-toggle="tooltip"
                         title="Adjustments corresponds to scale down steps">
-                        Scale down Adjustments (Adjustments corresponds to scale down steps):
+                        Scale down Adjustments (Adjustments for scale down steps. There must be an adjustment for each step. E.g. with step1[negative-infinity, -20], step2[-20, -10], step3[-10, 0]), you must provide 3 numbers here.)::
                     </label>
                     <div class="input-group">
-                        <input class="form-control" name="scaleDownAdjustments" required="true" size="50" type="text" placeholder="example: -30, -10, 0">
+                        {% if stepScalingPolicy and stepScalingPolicy.scale_down_adjustments_string %}
+                            <input class="form-control" name="scaleDownAdjustments" required="true" size="50" type="text" value="{{ stepScalingPolicy.scale_down_adjustments_string }}">
+                        {% else %}
+                            <input class="form-control" name="scaleDownAdjustments" required="true" size="50" type="text" placeholder="example: -30, -10, 0">
+                        {% endif %}
                     </div>
 
                     <label for="minAdjustmentMagnitude" class="deployToolTip control-label"
@@ -214,16 +225,24 @@
                         Min Adjustment Magnitude (Only applied for PercentChangeInCapacity):
                     </label>
                     <div class="input-group">
-                        <input class="form-control" name="minAdjustmentMagnitude" required="true" min="0" type="number" placeholder="0">
+                        {% if stepScalingPolicy and stepScalingPolicy.minAdjustmentMagnitude %}
+                            <input class="form-control" name="minAdjustmentMagnitude" required="true" size="50" type="number" min="1" value="{{ stepScalingPolicy.minAdjustmentMagnitude }}">
+                        {% else %}
+                            <input class="form-control" name="minAdjustmentMagnitude" required="true" min="0" size="50" type="number" min="1" placeholder="1">
+                        {% endif %}
                     </div>
 
                     <label for="instanceWarmup" class="deployToolTip control-label"
                         data-toggle="tooltip"
-                        title="The estimated time, in seconds, until a newly launched instance can contribute to the CloudWatch metrics.">
-                        Instance Warmup:
+                        title="The estimated time, in minutes, until a newly launched instance can contribute to the CloudWatch metrics.">
+                        Instance Warmup (minutes):
                     </label>
                     <div class="input-group">
-                        <input class="form-control" name="instanceWarmup" required="false" min="0" type="number">
+                        {% if stepScalingPolicy and stepScalingPolicy.instanceWarmup %}
+                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" value="{{ stepScalingPolicy.instanceWarmup }}">
+                        {% else %}
+                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" placeholder="0">
+                        {% endif %}
                     </div>
                 </div>
             </fieldset>
@@ -309,10 +328,8 @@
             }
         });
     }
-      
-    const saveAsgPolicyBtnElement = document.getElementById("saveAsgPolicyBtnId");
-    console.log(saveAsgPolicyBtnElement);
 
+    const saveAsgPolicyBtnElement = document.getElementById("saveAsgPolicyBtnId");
     saveAsgPolicyBtnElement.addEventListener("click", validate);
 
     $(function () {
