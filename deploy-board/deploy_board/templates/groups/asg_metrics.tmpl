@@ -33,9 +33,8 @@ var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recomm
                         {% endif %}
                     </label>
                     <div class="col-xs-10">
-                    <input class="form-control" name="metricsUrl_{{ alarm.alarmId }}" required="true"
-                               type="text" v-model="metrics"/>
-
+                        <input class="form-control" name="metricsUrl_{{ alarm.alarmId }}" required="true"
+                                type="text" v-model="metrics"/>
                     </div>
                 </div>
 
@@ -70,18 +69,11 @@ var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recomm
                 </div>
 
                 <div class="form-group">
-                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
-                    Simple Scaling:
-                    </label>
-                    <div class="col-xs-1">
-                        <input type="checkbox" id="scales" name="scales" checked />
-                    </div>
-
-                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
-                    Step Scaling:
-                    </label>
-                    <div class="col-xs-1">
-                        <input type="checkbox" id="scales" name="scales" checked />
+                    <div class="form-group">
+                        <label class="col-xs-2">Simple Scaling</label>
+                        <input class="col-xs-1" type="radio" name="policyType" value="simple-scaling">
+                        <label class="col-xs-2">Step Scaling</label>
+                        <input class="col-xs-1" type="radio" name="policyType" value="step-scaling">
                     </div>
                 </div>
                 

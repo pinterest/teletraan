@@ -283,7 +283,6 @@ def update_group_config(request, group_name):
         else:
             groupRequest["lifecycleNotifications"] = False
 
-        print(groupRequest)
         autoscaling_groups_helper.update_group_info(request, group_name, groupRequest)
         return get_group_config(request, group_name)
     except:
@@ -465,15 +464,9 @@ def get_policy(request, group_name):
 
     scale_down_steps = sorted(scale_down_steps, key=lambda d: d['upper_bound']) 
     scale_up_steps = sorted(scale_up_steps, key=lambda d: d['lower_bound'])
-
-    print(scale_down_steps)
-    print(scale_up_steps)
     
     scale_down_steps_string = ", ".join([str(step['upper_bound']) for step in scale_down_steps])
     scale_up_steps_string = ", ".join([str(step['lower_bound']) for step in scale_up_steps])
-
-    print(scale_up_steps_string)
-    print(scale_down_steps_string)
 
     scale_down_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_down_steps])
     scale_up_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_up_steps])
@@ -483,8 +476,6 @@ def get_policy(request, group_name):
     step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
     step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
     step_scaling_policy["instanceWarmup"] = int(step_scaling_policy["instanceWarmup"]) // 60
-
-    print(step_scaling_policy["scale_up_steps_string"])
 
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
@@ -525,13 +516,9 @@ def update_policy(request, group_name):
             
             step_scaling_policy["stepAdjustments"] = []
 
-            print(params)
-
             if (params['scaleUpSteps']):
                 scaleUpSteps = [float(x) for x in params["scaleUpSteps"].split(',')]
                 scaleUpAdjustments = [int(x) for x in params["scaleUpAdjustments"].split(',')]
-                print(scaleUpSteps)
-                print(scaleUpAdjustments)
                 for i in range(len(scaleUpSteps)):
                     step = {}
                     step["metricIntervalLowerBound"] = scaleUpSteps[i]
@@ -543,8 +530,7 @@ def update_policy(request, group_name):
             if (params['scaleDownSteps']):
                 scaleDownSteps = [float(x) for x in params["scaleDownSteps"].split(',')]
                 scaleDownAdjustments = [int(x) for x in params["scaleDownAdjustments"].split(',')]
-                print(scaleDownSteps)
-                print(scaleDownAdjustments)
+
                 for i in range(len(scaleDownSteps)):
                     step = {}
                     step["metricIntervalUpperBound"] = scaleDownSteps[i]
@@ -564,14 +550,36 @@ def update_policy(request, group_name):
 
 
 # alarm related information
-def _parse_metrics_configs(query_data, group_name):
-    page_data = dict(query_data.lists())
+def _parse_metrics_configs(request, group_name):
+    params = request.POST
+    page_data = dict(params.lists())
     configs = []
     for key, value in page_data.items():
         if not value:
             continue
         if key.startswith('TELETRAAN_'):
             alarm_info = {}
+            alarm_info["scalingPolicies"] = []
+            action_type = params["asgActionType"]
+            policy_type = params["policyType"]
+            policies = autoscaling_groups_helper.get_policies(request, group_name)
+
+            if policy_type == "simple-scaling":
+                if action_type == "grow":
+                    if policies["scaleupPolicies"] != None:
+                        for i in policies["scaleupPolicies"]:
+                            alarm_info["scalingPolicies"].append(i)
+                else:
+                    if policies["scaledownPolicies"] != None:
+                        for i in policies["scaledownPolicies"]:
+                            alarm_info["scalingPolicies"].append(i)
+            else:
+                if policies["scalingPolicies"] != None:
+                    for p in policies["scalingPolicies"]:
+                        if p["policyType"] ==  "StepScaling":
+                            alarm_info["scalingPolicies"].append(p)
+                            break
+
             alarm_id = key[len('TELETRAAN_'):]
             # skip scheduled actions
             if page_data.get("schedule_{}".format(alarm_id)) or page_data.get("capacity_{}".format(alarm_id)):
@@ -588,6 +596,7 @@ def _parse_metrics_configs(query_data, group_name):
                 alarm_info["fromAwsMetric"] = False
             alarm_info["groupName"] = group_name
             configs.append(alarm_info)
+
     return configs
 
 
@@ -607,7 +616,8 @@ def get_alarms(request, group_name):
 
 def update_alarms(request, group_name):
     try:
-        configs = _parse_metrics_configs(request.POST, group_name)
+        configs = _parse_metrics_configs(request, group_name)
+
         autoscaling_groups_helper.update_alarms(request, group_name, configs)
         return get_alarms(request, group_name)
     except Exception as ex:
@@ -625,21 +635,20 @@ def delete_alarms(request, group_name):
 def add_alarms(request, group_name):
     params = request.POST
     alarm_info = {}
-    print(params)
+    alarm_info["scalingPolicies"] = []
     action_type = params["asgActionType"]
     policy_type = params["policyType"]
-    
-    alarm_info["scalingPolicies"] = []
-
-    policies = get_policy(request, group_name)
+    policies = autoscaling_groups_helper.get_policies(request, group_name)
 
     if policy_type == "simple-scaling":
         if action_type == "grow":
             if policies["scaleupPolicies"] != None:
-                alarm_info["scalingPolicies"].append(policies["scaleupPolicies"])
+                for i in policies["scaleupPolicies"]:
+                    alarm_info["scalingPolicies"].append(i)
         else:
             if policies["scaledownPolicies"] != None:
-                alarm_info["scalingPolicies"].append(policies["scaledownPolicies"])
+                for i in policies["scaledownPolicies"]:
+                    alarm_info["scalingPolicies"].append(i)
     else:
         if policies["scalingPolicies"] != None:
             for p in policies["scalingPolicies"]:
