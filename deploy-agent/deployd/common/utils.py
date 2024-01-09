@@ -22,7 +22,7 @@ import signal
 import sys
 import traceback
 import subprocess
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 import yaml
 
 
@@ -141,7 +141,7 @@ def check_prereqs(config) -> bool:
     return True
 
 
-def get_puppet_exit_code(config) -> Union[str, int]:
+def get_puppet_exit_code(config) -> Union[str, Literal[999]]:
     """
     Get puppet exit code from the corresponding file
 
