@@ -17,10 +17,10 @@
             <small>{{ agentStat.agent.hostName }}</small>
             {% endif %}
             {% if report.showMode == "containerStatus" %}
-            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
+            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.containerHealthStatus %}
             {% else %}
             <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-            {% endif %}  
+            {% endif %}
             {% endif %}
             </a>
         {% elif report.account == subAccount %}
@@ -32,10 +32,10 @@
             <small>{{ agentStat.agent.hostName }}</small>
             {% endif %}
             {% if report.showMode == "containerStatus" %}
-            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
+            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.containerHealthStatus %}
             {% else %}
             <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-            {% endif %}  
+            {% endif %}
             {% endif %}
             </a>
         {% elif report.account == "others" %}
@@ -47,10 +47,10 @@
             <small>{{ agentStat.agent.hostName }}</small>
             {% endif %}
             {% if report.showMode == "containerStatus" %}
-            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
+            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.containerHealthStatus %}
             {% else %}
             <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-            {% endif %}  
+            {% endif %}
             {% endif %}
             </a>
         {% elif report.account == "all" %}
@@ -61,10 +61,10 @@
             <small>{{ agentStat.agent.hostName }}</small>
             {% endif %}
             {% if report.showMode == "containerStatus" %}
-            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
+            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.containerHealthStatus %}
             {% else %}
             <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
-            {% endif %}  
+            {% endif %}
             </a>
         {% endif %}
     {% endfor %}
@@ -111,7 +111,7 @@
                             {% endif %}
                             <i class="fa fa-fw {{ agentStat | agentIcon }}"></i>
                             {% if report.showMode == "containerStatus" %}
-                            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.serviceHealthStatus %}
+                            {% include "deploys/_container_status.html" with healthStatus=agentStat.agent.containerHealthStatus %}
                             {% endif %}
                         </a>
                     {% endfor %}
