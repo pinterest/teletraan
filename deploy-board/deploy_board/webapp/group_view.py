@@ -562,7 +562,19 @@ def _parse_metrics_configs(request, group_name):
             alarm_info["scalingPolicies"] = []
             action_type = params["asgActionType"]
             policy_type = params["policyType"]
+
             policies = autoscaling_groups_helper.get_policies(request, group_name)
+
+            alarm_id = key[len('TELETRAAN_'):]
+
+            if page_data["fromAwsMetric_{}".format(alarm_id)][0] == "True":
+                alarm_info["fromAwsMetric"] = True
+            else:
+                alarm_info["fromAwsMetric"] = False
+
+            # Use simple scaling for custom metric 
+            if alarm_info["fromAwsMetric"] == False:
+                policy_type = "simple-scaling"
 
             if policy_type == "simple-scaling":
                 if action_type == "grow":
@@ -580,21 +592,18 @@ def _parse_metrics_configs(request, group_name):
                             alarm_info["scalingPolicies"].append(p)
                             break
 
-            alarm_id = key[len('TELETRAAN_'):]
             # skip scheduled actions
             if page_data.get("schedule_{}".format(alarm_id)) or page_data.get("capacity_{}".format(alarm_id)):
                 continue
+
             alarm_info["alarmId"] = alarm_id
             alarm_info["actionType"] = page_data["actionType_{}".format(alarm_id)][0]
             alarm_info["metricSource"] = page_data["metricsUrl_{}".format(alarm_id)][0]
             alarm_info["comparator"] = page_data["comparator_{}".format(alarm_id)][0]
             alarm_info["evaluationTime"] = int(page_data["evaluateTime_{}".format(alarm_id)][0])
             alarm_info["threshold"] = float(page_data["threshold_{}".format(alarm_id)][0])
-            if page_data["fromAwsMetric_{}".format(alarm_id)][0] == "True":
-                alarm_info["fromAwsMetric"] = True
-            else:
-                alarm_info["fromAwsMetric"] = False
             alarm_info["groupName"] = group_name
+
             configs.append(alarm_info)
 
     return configs
@@ -603,6 +612,15 @@ def _parse_metrics_configs(request, group_name):
 def get_alarms(request, group_name):
     comparators = autoscaling_groups_helper.Comparator
     alarms = autoscaling_groups_helper.get_alarms(request, group_name)
+
+    for alarm in alarms:
+        alarm["scalingType"] = None
+        if alarm["scalingPolicies"] != None:
+            if len(alarm["scalingPolicies"]) > 0:
+                # we restrict alarm has only one scaling policy
+                policy = alarm["scalingPolicies"][0]
+                alarm["scalingType"] = policy["policyType"]
+
     aws_metric_names = autoscaling_groups_helper.get_system_metrics(request, group_name)
     content = render_to_string("groups/asg_metrics.tmpl", {
         "group_name": group_name,
@@ -617,7 +635,6 @@ def get_alarms(request, group_name):
 def update_alarms(request, group_name):
     try:
         configs = _parse_metrics_configs(request, group_name)
-
         autoscaling_groups_helper.update_alarms(request, group_name, configs)
         return get_alarms(request, group_name)
     except Exception as ex:
@@ -637,8 +654,15 @@ def add_alarms(request, group_name):
     alarm_info = {}
     alarm_info["scalingPolicies"] = []
     action_type = params["asgActionType"]
-    policy_type = params["policyType"]
+    policy_type = "simple-scaling"
+    if "policyType" in params:
+        policy_type = params["policyType"]
+
     policies = autoscaling_groups_helper.get_policies(request, group_name)
+
+    # Use simple scaling for custom metric 
+    if "customUrlCheckbox" in params:
+        policy_type = "simple-scaling"
 
     if policy_type == "simple-scaling":
         if action_type == "grow":

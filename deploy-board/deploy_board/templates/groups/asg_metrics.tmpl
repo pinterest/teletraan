@@ -29,7 +29,7 @@ var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recomm
                         {% if alarm.fromAwsMetric %}
                             AWS Metric:
                         {% else %}
-                            Custom Metric:
+                            Custom Metric (works with simple scaling only):
                         {% endif %}
                     </label>
                     <div class="col-xs-10">
@@ -70,10 +70,24 @@ var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recomm
 
                 <div class="form-group">
                     <div class="form-group">
-                        <label class="col-xs-2">Simple Scaling</label>
-                        <input class="col-xs-1" type="radio" name="policyType" value="simple-scaling">
-                        <label class="col-xs-2">Step Scaling</label>
-                        <input class="col-xs-1" type="radio" name="policyType" value="step-scaling">
+                        {% if alarm.scalingType %}
+                            {% if alarm.scalingType == "StepScaling" %}
+                                <label class="col-xs-2">Simple Scaling</label>
+                                <input class="col-xs-1" type="radio" name="policyType" value="simple-scaling">
+                                <label class="col-xs-2">Step Scaling</label>
+                                <input class="col-xs-1" type="radio" name="policyType" value="step-scaling" checked>
+                            {% else %}
+                                <label class="col-xs-2">Simple Scaling</label>
+                                <input class="col-xs-1" type="radio" name="policyType" value="simple-scaling" checked>
+                                <label class="col-xs-2">Step Scaling</label>
+                                <input class="col-xs-1" type="radio" name="policyType" value="step-scaling">
+                            {% endif %}
+                        {% else %}
+                            <label class="col-xs-2">Simple Scaling</label>
+                            <input class="col-xs-1" type="radio" name="policyType" value="simple-scaling">
+                            <label class="col-xs-2">Step Scaling</label>
+                            <input class="col-xs-1" type="radio" name="policyType" value="step-scaling">
+                        {% endif %}
                     </div>
                 </div>
                 
@@ -285,7 +299,7 @@ let alarmVue = new Vue({
                     <div class="form-group">
                         <label for="newEntryValue" class="deployToolTip control-label col-xs-2"
                             title="You can provide a custom metric from OpenTSDB, e.g. avg:stats.gauges.deployagenttest.metric">
-                            Custom Metric:
+                            Custom Metric (works with simple scaling only):
                         </label>
                         <div class="col-md-8">
                             <input type="checkbox" name="customUrlCheckbox" v-model="useCustomMetric" />
