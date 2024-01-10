@@ -332,7 +332,7 @@ public class GoalAnalyst {
             origBean.getLast_err_no() != null && origBean.getLast_err_no().equals(updateBean.getLast_err_no()) &&
             origBean.getState() != null && origBean.getState().equals(updateBean.getState()) && 
             origBean.getDeploy_stage() != null && origBean.getDeploy_stage().equals(updateBean.getDeploy_stage()) &&
-            origBean.getContainer_Health_Status() != null && origBean.getContainer_Health_Status().equals(updateBean.getContainer_Health_Status())) {
+            origBean.getContainer_health_status() != null && origBean.getContainer_health_status().equals(updateBean.getContainer_health_status())) {
             LOG.debug("Skip updating agent record for env_id {}, deploy_id {} on host {}",
                     origBean.getEnv_id(), origBean.getDeploy_id(), origBean.getHost_id());
             return false;
@@ -360,9 +360,9 @@ public class GoalAnalyst {
         updateBean.setStage_start_date(System.currentTimeMillis());
         updateBean.setDeploy_stage(report.getDeployStage());
         if (report.getContainerHealthStatus() == null) {
-            updateBean.setContainer_Health_Status("");
+            updateBean.setContainer_health_status("");
         } else {
-            updateBean.setContainer_Health_Status(report.getContainerHealthStatus());
+            updateBean.setContainer_health_status(report.getContainerHealthStatus());
         }
 
         if (agent == null) {
