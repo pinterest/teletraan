@@ -621,7 +621,33 @@ def get_alarms(request, group_name):
                 policy = alarm["scalingPolicies"][0]
                 alarm["scalingType"] = policy["policyType"]
 
-    aws_metric_names = autoscaling_groups_helper.get_system_metrics(request, group_name)
+    aws_metric_names = [
+        "CPUUtilization",
+        "DiskReadOps",
+        "DiskWriteOps",
+        "DiskReadBytes",
+        "DiskWriteBytes",
+        "MetadataNoToken",
+        "NetworkIn",
+        "NetworkOut",
+        "NetworkPacketsIn",
+        "NetworkPacketsOut",
+        "CPUCreditUsage",
+        "CPUCreditBalance",
+        "CPUSurplusCreditBalance",
+        "CPUSurplusCreditsCharged",
+        "DedicatedHostCPUUtilization",
+        "EBSReadOps",
+        "EBSWriteOps",
+        "EBSReadBytes",
+        "EBSWriteBytes",
+        "EBSIOBalance%",
+        "EBSByteBalance%",
+        "StatusCheckFailed",
+        "StatusCheckFailed_Instance",
+        "StatusCheckFailed_System",
+        "StatusCheckFailed_AttachedEBS"
+    ] 
     content = render_to_string("groups/asg_metrics.tmpl", {
         "group_name": group_name,
         "alarms": alarms,
@@ -680,6 +706,11 @@ def add_alarms(request, group_name):
                     alarm_info["scalingPolicies"].append(p)
                     break
 
+    if action_type == "grow":
+        alarm_info["actionType"] = "GROW"
+    else:
+        alarm_info["actionType"] = "SHRINK"
+
     alarm_info["comparator"] = params["comparators"]
     alarm_info["threshold"] = float(params["threshold"])
     alarm_info["evaluationTime"] = int(params["evaluate_time"])
@@ -692,6 +723,7 @@ def add_alarms(request, group_name):
         if "awsMetrics" in params:
             alarm_info["metricSource"] = params["awsMetrics"]
     alarm_info["groupName"] = group_name
+
     autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
 
     return redirect("/groups/{}/config/".format(group_name))
