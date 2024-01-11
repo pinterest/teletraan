@@ -462,20 +462,20 @@ def get_policy(request, group_name):
             if step["metricIntervalLowerBound"] != None and float(step["metricIntervalLowerBound"]) >= 0:
                 scale_up_steps.append({"lower_bound": float(step["metricIntervalLowerBound"]), "adjustment": step["scalingAdjustment"]})
 
-    scale_down_steps = sorted(scale_down_steps, key=lambda d: d['upper_bound']) 
-    scale_up_steps = sorted(scale_up_steps, key=lambda d: d['lower_bound'])
-    
-    scale_down_steps_string = ", ".join([str(step['upper_bound']) for step in scale_down_steps])
-    scale_up_steps_string = ", ".join([str(step['lower_bound']) for step in scale_up_steps])
+        scale_down_steps = sorted(scale_down_steps, key=lambda d: d['upper_bound']) 
+        scale_up_steps = sorted(scale_up_steps, key=lambda d: d['lower_bound'])
+        
+        scale_down_steps_string = ", ".join([str(step['upper_bound']) for step in scale_down_steps])
+        scale_up_steps_string = ", ".join([str(step['lower_bound']) for step in scale_up_steps])
 
-    scale_down_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_down_steps])
-    scale_up_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_up_steps])
-    
-    step_scaling_policy["scale_down_steps_string"] = scale_down_steps_string
-    step_scaling_policy["scale_up_steps_string"] = scale_up_steps_string
-    step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
-    step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
-    step_scaling_policy["instanceWarmup"] = int(step_scaling_policy["instanceWarmup"]) // 60
+        scale_down_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_down_steps])
+        scale_up_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_up_steps])
+        
+        step_scaling_policy["scale_down_steps_string"] = scale_down_steps_string
+        step_scaling_policy["scale_up_steps_string"] = scale_up_steps_string
+        step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
+        step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
+        step_scaling_policy["instanceWarmup"] = int(step_scaling_policy["instanceWarmup"]) // 60
 
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
@@ -561,7 +561,10 @@ def _parse_metrics_configs(request, group_name):
             alarm_info = {}
             alarm_info["scalingPolicies"] = []
             action_type = params["asgActionType"]
-            policy_type = params["policyType"]
+
+            policy_type = "simple-scaling"
+            if "policyType" in params:
+                policy_type = params["policyType"]
 
             policies = autoscaling_groups_helper.get_policies(request, group_name)
 
