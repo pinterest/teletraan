@@ -45,6 +45,9 @@
                                 <option value="PercentChangeInCapacity">Percent of the group</option>
                             {% endif %}
                         {% endwith %}
+                    {% else %}
+                        <option value="ChangeInCapacity">Instances</option>
+                        <option value="PercentChangeInCapacity">Percent of the group</option>
                     {% endif %}
 
                     </select>
@@ -106,6 +109,9 @@
                                 <option value="PercentChangeInCapacity">Percent of the group</option>
                             {% endif %}
                         {% endwith %}
+                    {% else %}
+                        <option value="ChangeInCapacity">Instances</option>
+                        <option value="PercentChangeInCapacity">Percent of the group</option>
                     {% endif %}
                </select>
                </div>
@@ -160,6 +166,9 @@
                                 <option value="ChangeInCapacity" selected>Change In Capacity</option>
                                 <option value="PercentChangeInCapacity">Percent Change In Capacity</option>
                             {% endif %}
+                        {% else %}
+                            <option value="ChangeInCapacity">Change In Capacity</option>
+                            <option value="PercentChangeInCapacity">Percent Change In Capacity</option>
                         {% endif %}
                     </select>
 
