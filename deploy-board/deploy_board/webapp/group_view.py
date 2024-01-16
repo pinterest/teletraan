@@ -568,13 +568,6 @@ def _parse_metrics_configs(request, group_name):
             alarm_info = {}
             alarm_info["scalingPolicies"] = []
             action_type = params["asgActionType"]
-
-            policy_type = "simple-scaling"
-            if "policyType" in params:
-                policy_type = params["policyType"]
-
-            policies = autoscaling_groups_helper.get_policies(request, group_name)
-
             alarm_id = key[len('TELETRAAN_'):]
 
             if page_data["fromAwsMetric_{}".format(alarm_id)][0] == "True":
@@ -582,8 +575,19 @@ def _parse_metrics_configs(request, group_name):
             else:
                 alarm_info["fromAwsMetric"] = False
 
-            # Use simple scaling for custom metric 
-            if alarm_info["fromAwsMetric"] == False:
+            # skip scheduled actions
+            if page_data.get("schedule_{}".format(alarm_id)) or page_data.get("capacity_{}".format(alarm_id)):
+                continue
+
+            policy_type = "simple-scaling"
+            policy_type_key = "policyType_{}".format(alarm_id)
+            if policy_type_key in page_data:
+                policy_type = page_data[policy_type_key][0]
+
+            policies = autoscaling_groups_helper.get_policies(request, group_name)
+
+            # Use simple scaling for custom metric
+            if page_data["fromAwsMetric_{}".format(alarm_id)][0] == False:
                 policy_type = "simple-scaling"
 
             if policy_type == "simple-scaling":
@@ -601,10 +605,6 @@ def _parse_metrics_configs(request, group_name):
                         if p["policyType"] ==  "StepScaling":
                             alarm_info["scalingPolicies"].append(p)
                             break
-
-            # skip scheduled actions
-            if page_data.get("schedule_{}".format(alarm_id)) or page_data.get("capacity_{}".format(alarm_id)):
-                continue
 
             alarm_info["alarmId"] = alarm_id
             alarm_info["actionType"] = page_data["actionType_{}".format(alarm_id)][0]
