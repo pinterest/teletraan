@@ -73,20 +73,20 @@ var ALARM_WARNING_TEXT = `CPUUtilization > ${ALARM_WARNING_THRESHOLD}% is recomm
                         {% if alarm.scalingType %}
                             {% if alarm.scalingType == "StepScaling" %}
                                 <label class="col-xs-2">Simple Scaling</label>
-                                <input class="col-xs-1" type="radio" name="policyType" value="simple-scaling">
+                                <input class="col-xs-1" type="radio" name="policyType_{{ alarm.alarmId }}" value="simple-scaling">
                                 <label class="col-xs-2">Step Scaling</label>
-                                <input class="col-xs-1" type="radio" name="policyType" value="step-scaling" checked>
+                                <input class="col-xs-1" type="radio" name="policyType_{{ alarm.alarmId }}" value="step-scaling" checked>
                             {% else %}
                                 <label class="col-xs-2">Simple Scaling</label>
-                                <input class="col-xs-1" type="radio" name="policyType" value="simple-scaling" checked>
+                                <input class="col-xs-1" type="radio" name="policyType_{{ alarm.alarmId }}" value="simple-scaling" checked>
                                 <label class="col-xs-2">Step Scaling</label>
-                                <input class="col-xs-1" type="radio" name="policyType" value="step-scaling">
+                                <input class="col-xs-1" type="radio" name="policyType_{{ alarm.alarmId }}" value="step-scaling">
                             {% endif %}
                         {% else %}
                             <label class="col-xs-2">Simple Scaling</label>
-                            <input class="col-xs-1" type="radio" name="policyType" value="simple-scaling">
+                            <input class="col-xs-1" type="radio" name="policyType_{{ alarm.alarmId }}" value="simple-scaling">
                             <label class="col-xs-2">Step Scaling</label>
-                            <input class="col-xs-1" type="radio" name="policyType" value="step-scaling">
+                            <input class="col-xs-1" type="radio" name="policyType_{{ alarm.alarmId }}" value="step-scaling">
                         {% endif %}
                     </div>
                 </div>
