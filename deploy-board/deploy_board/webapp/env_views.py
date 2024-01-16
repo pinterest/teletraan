@@ -1364,6 +1364,11 @@ def reset_deploy(request, name, stage, host_id):
     agents_helper.retry_deploy(request, name, stage, host_id)
     return HttpResponse(json.dumps({'html': ''}), content_type="application/json")
 
+# retry all deploys for this host
+def reset_all_deploys(request, name, stage, host_id):
+    agents_helper.retry_all_deploys(request, host_id)
+    return redirect('/env/{}/{}/'.format(name, stage))
+
 
 # pause deploy for this this env, this host
 def pause_deploy(request, name, stage, host_id):
