@@ -20,6 +20,12 @@
           title="reset selected hosts">
           <span class="glyphicon glyphicon-repeat"></span> Reset
           </button>
+          <button id="resetAllDeploysButton"
+            class="btn btn-default btn-sm" data-toggle="tooltip"
+            title="reset all deploys at selected hosts"
+          >
+            <span class="glyphicon glyphicon-repeat"></span> Reset All Deploys
+          </button>
           <button id="terminateButton"
           class="btn btn-default btn-sm" data-toggle="tooltip"
           title="Soft terminate selected hosts">
@@ -168,6 +174,11 @@
         $('#resetSelectedHosts .modal-body #hostsList').val(checkedHosts);
     });
 
+    $("#resetAllDeploysButton").on("click", function() {
+        $('#resetAllDeploysSelectedHosts').modal();
+        $('#resetAllDeploysSelectedHosts .modal-body #hostsList').val(checkedHosts);
+    });
+
     $("#terminateButton").on("click", function() {
         $('#terminateSelectedHosts').modal();
         $('#terminateSelectedHosts .modal-body #hostsList').val(checkedHosts);
@@ -240,6 +251,28 @@
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary">Reset</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+                {% csrf_token %}
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" id="resetAllDeploysSelectedHosts" tabindex="-1" role="dialog" aria-labelledby="newEntryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="resetAllSelectedHostForm" class="form-horizontal" method="post" role="form"  action="/env/{{ env.envName }}/{{ env.stageName }}/reset_deploys_on_hosts/">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title">Host(s) Reset All Deploys Confirmation</h4>
+                </div>
+                <div class="modal-body">
+                    <p> Are you sure you would like to reset all deploys of the following hosts?</p>
+                    <input id="hostsList" class="form-control" name="hostIds" type="text" value=""/>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Reset All Deploys</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                 </div>
                 {% csrf_token %}
