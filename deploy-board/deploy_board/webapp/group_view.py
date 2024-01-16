@@ -475,7 +475,11 @@ def get_policy(request, group_name):
         step_scaling_policy["scale_up_steps_string"] = scale_up_steps_string
         step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
         step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
-        step_scaling_policy["instanceWarmup"] = int(step_scaling_policy["instanceWarmup"]) // 60
+
+        if step_scaling_policy["instanceWarmup"]:
+            step_scaling_policy["instanceWarmup"] = step_scaling_policy["instanceWarmup"] // 60
+        else:
+            step_scaling_policy["instanceWarmup"] = 0
 
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
@@ -508,7 +512,10 @@ def update_policy(request, group_name):
             step_scaling_policy = {}
             step_scaling_policy["policyType"] = "StepScaling"
             step_scaling_policy["scalingType"] = params["scalingType"]
-            step_scaling_policy["instanceWarmup"] = int(params["instanceWarmup"]) * 60
+
+            if params["instanceWarmup"]:
+                step_scaling_policy["instanceWarmup"] = int(params["instanceWarmup"]) * 60
+
             step_scaling_policy["metricAggregationType"] = "Average"
 
             if params["scalingType"] == "PercentChangeInCapacity":
