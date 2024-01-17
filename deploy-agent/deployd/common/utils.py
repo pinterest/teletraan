@@ -22,6 +22,7 @@ import signal
 import sys
 import traceback
 import subprocess
+from typing import Any, Optional, Union
 import yaml
 
 
@@ -34,7 +35,7 @@ log = logging.getLogger(__name__)
 # noinspection PyProtectedMember
 
 
-def exit_abruptly(status=0):
+def exit_abruptly(status=0) -> None:
     """Exit method that just quits abruptly.
 
     Helps with KeyError issues.
@@ -48,7 +49,7 @@ def exit_abruptly(status=0):
     os._exit(status)
 
 
-def touch(fname, times=None):
+def touch(fname, times=None) -> None:
     try:
         with open(fname, 'a'):
             os.utime(fname, times)
@@ -56,7 +57,7 @@ def touch(fname, times=None):
         log.error('Failed touching host type file {}'.format(fname))
 
 
-def hash_file(filepath):
+def hash_file(filepath) -> str:
     """ hash the file content
     :param filepath: the full path of the file
     :return:the sha1 of the file data
@@ -68,7 +69,7 @@ def hash_file(filepath):
 # steal from http://stackoverflow.com/questions/132058/
 # showing-the-stack-trace-from-a-running-python-application
 # use : sudo kill -SIGUSR1 $pid to trigger the debug
-def debug(sig, frame):
+def debug(sig, frame) -> None:
     """Interrupt running process, and provide a python prompt for
     interactive debugging."""
     d = {'_frame': frame}      # Allow access to frame object.
@@ -81,11 +82,11 @@ def debug(sig, frame):
     i.interact(message)
 
 
-def listen():
+def listen() -> None:
     signal.signal(signal.SIGUSR1, debug)  # Register handler
 
 
-def mkdir_p(path):
+def mkdir_p(path) -> None:
     try:
         os.makedirs(path)
     except OSError as ex:
@@ -96,7 +97,7 @@ def mkdir_p(path):
             raise
 
 
-def uptime():
+def uptime() -> int:
     """ return int: seconds of uptime in int, default 0 """
     sec = 0
     if sys.platform.startswith('linux'):
@@ -106,19 +107,19 @@ def uptime():
     return sec
 
 
-def ensure_dirs(config):
+def ensure_dirs(config) -> None:
     # make sure deployd directories exist
     mkdir_p(config.get_builds_directory())
     mkdir_p(config.get_agent_directory())
     mkdir_p(config.get_log_directory())
 
 
-def is_first_run(config):
+def is_first_run(config) -> bool:
     env_status_file = config.get_env_status_fn()
     return not os.path.exists(env_status_file)
 
 
-def check_prereqs(config):
+def check_prereqs(config) -> bool:
     """
     Check prerequisites before deploy agent can run
 
@@ -140,7 +141,7 @@ def check_prereqs(config):
     return True
 
 
-def get_puppet_exit_code(config):
+def get_puppet_exit_code(config) -> Union[str, int]:
     """
     Get puppet exit code from the corresponding file
 
@@ -157,7 +158,7 @@ def get_puppet_exit_code(config):
     return exit_code
 
 
-def load_puppet_summary(config):
+def load_puppet_summary(config) -> dict:
     """
     Load last_run_summary yaml file, parse results
 
@@ -174,7 +175,7 @@ def load_puppet_summary(config):
     return summary
 
 
-def check_first_puppet_run_success(config):
+def check_first_puppet_run_success(config) -> bool:
     """
     Check first puppet run success from exit code and last run summary
 
@@ -199,7 +200,7 @@ def check_first_puppet_run_success(config):
     return puppet_failures == 0
 
 
-def get_info_from_facter(keys):
+def get_info_from_facter(keys) -> Optional[dict]:
     try:
         time_facter = TimeElapsed()
         # increment stats - facter calls
@@ -221,7 +222,7 @@ def get_info_from_facter(keys):
         return None
 
 
-def redeploy_check(labels, service, redeploy):
+def redeploy_check(labels, service, redeploy) -> int:
     max_retry = REDEPLOY_MAX_RETRY
     for label in labels:
         if "redeploy_max_retry" in label:
@@ -230,7 +231,7 @@ def redeploy_check(labels, service, redeploy):
         return redeploy + 1
     return 0
     
-def get_container_health_info(commit, service, redeploy):
+def get_container_health_info(commit, service, redeploy) -> Optional[str]:
     try:
         log.info(f"Get health info for container with commit {commit}")
         result = []
@@ -263,7 +264,7 @@ def get_container_health_info(commit, service, redeploy):
         return None
 
 
-def get_telefig_version():
+def get_telefig_version() -> Optional[str]:
     if not IS_PINTEREST:
         return None    
     try:
@@ -277,7 +278,7 @@ def get_telefig_version():
         log.error("Error when fetching teletraan configure manager version")
         return None
 
-def check_not_none(arg, msg=None):
+def check_not_none(arg, msg=None) -> Any:
     if arg is None:
         raise ValueError(msg)
     return arg
