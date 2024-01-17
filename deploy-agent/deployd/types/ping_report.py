@@ -18,7 +18,7 @@ from deployd.types.agent_status import AgentStatus
 
 class PingReport(object):
 
-    def __init__(self, jsonValue=None):
+    def __init__(self, jsonValue=None) -> None:
         self.deployId = None
         self.envId = None
         self.envName = None
@@ -62,7 +62,7 @@ class PingReport(object):
             self.redeploy = jsonValue.get('redeploy')
             self.wait = jsonValue.get('wait')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "PingReport(deployId={}, envId={}, deployStage={}, status={}, " \
                "errorCode={}, errorMessage={}, failCount={}, extraInfo={}, " \
                "deployAlias={}, containerHealthStatus={}, agentState={})".format(self.deployId, self.envId, self.deployStage,
