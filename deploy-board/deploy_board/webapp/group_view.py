@@ -567,8 +567,9 @@ def _parse_metrics_configs(request, group_name):
         if key.startswith('TELETRAAN_'):
             alarm_info = {}
             alarm_info["scalingPolicies"] = []
-            action_type = params["asgActionType"]
+            
             alarm_id = key[len('TELETRAAN_'):]
+            action_type = params["actionType_{}".format(alarm_id)]
 
             if page_data["fromAwsMetric_{}".format(alarm_id)][0] == "True":
                 alarm_info["fromAwsMetric"] = True
@@ -591,7 +592,7 @@ def _parse_metrics_configs(request, group_name):
                 policy_type = "simple-scaling"
 
             if policy_type == "simple-scaling":
-                if action_type == "grow":
+                if action_type == "GROW":
                     if policies["scaleupPolicies"] != None:
                         for i in policies["scaleupPolicies"]:
                             alarm_info["scalingPolicies"].append(i)
