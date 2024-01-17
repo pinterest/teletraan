@@ -22,11 +22,11 @@ DOWNLOAD_VALIDATE_METRICS = 'deployd.stats.download.validate'
 
 class DownloadHelper(metaclass=abc.ABCMeta):
 
-    def __init__(self, url):
+    def __init__(self, url) -> None:
         self._url = url
 
     @staticmethod
-    def hash_file(file_path):
+    def hash_file(file_path) -> str:
         sha = hashlib.sha1()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):
@@ -34,7 +34,7 @@ class DownloadHelper(metaclass=abc.ABCMeta):
         return sha.hexdigest()
 
     @staticmethod
-    def md5_file(file_path):
+    def md5_file(file_path) -> str:
         md5 = hashlib.md5()
         with open(file_path, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):

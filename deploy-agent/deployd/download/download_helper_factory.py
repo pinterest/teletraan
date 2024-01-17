@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+from typing import Optional
 
 from future.moves.urllib.parse import urlparse
 from boto.s3.connection import S3Connection
@@ -28,7 +29,7 @@ log = logging.getLogger(__name__)
 class DownloadHelperFactory(object):
 
     @staticmethod
-    def gen_downloader(url, config):
+    def gen_downloader(url, config) -> Optional[S3DownloadHelper|LocalDownloadHelper|HTTPDownloadHelper]:
         url_parse = urlparse(url)
         if url_parse.scheme == 's3':
             aws_access_key_id = config.get_aws_access_key()

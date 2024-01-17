@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 
 class S3DownloadHelper(DownloadHelper):
 
-    def __init__(self, local_full_fn, aws_connection=None, url=None):
+    def __init__(self, local_full_fn, aws_connection=None, url=None) -> None:
         super(S3DownloadHelper, self).__init__(local_full_fn)
         self._s3_matcher = "^s3://(?P<BUCKET>[a-zA-Z0-9\-_]+)/(?P<KEY>[a-zA-Z0-9\-_/\.]+)/?"
         self._config = Config()
@@ -45,7 +45,7 @@ class S3DownloadHelper(DownloadHelper):
             self._key = s3url_parse.group("KEY")
 
 
-    def download(self, local_full_fn):
+    def download(self, local_full_fn) -> int:
         log.info(f"Start to download file {self._key} from s3 bucket {self._bucket_name} to {local_full_fn}")
         if not self.validate_source():
             log.error(f'Invalid url: {self._url}. Skip downloading.')
@@ -76,7 +76,7 @@ class S3DownloadHelper(DownloadHelper):
             log.error("Failed to get package from s3: {}".format(traceback.format_exc()))
             return Status.FAILED
 
-    def validate_source(self):
+    def validate_source(self) -> bool:
         allow_list = self._config.get_s3_download_allow_list()
         tags = {'type': 's3', 'url': self._url, 'bucket' : self._bucket_name}
         create_sc_increment(DOWNLOAD_VALIDATE_METRICS, tags=tags)
