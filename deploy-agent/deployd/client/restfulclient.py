@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Callable, Optional
 import requests
 import logging
 
@@ -26,7 +27,7 @@ log = logging.getLogger(__name__)
 
 @singleton
 class RestfulClient(object):
-    def __init__(self, config):
+    def __init__(self, config) -> None:
         self.config = config
         self.url_prefix = config.get_restful_service_url()
         self.url_version = config.get_restful_service_version()
@@ -35,13 +36,13 @@ class RestfulClient(object):
         self.default_timeout = 30
 
     @staticmethod
-    def sc_fail(reason):
+    def sc_fail(reason) -> None:
         """ send RestfulClient failure metrics """
         create_sc_increment(name='deploy.agent.rest.failure',
                             tags={'reason': reason})
 
-    def __call(self, method):
-        def api(path, params=None, data=None):
+    def __call(self, method) -> Callable:
+        def api(path, params=None, data=None) -> Optional[dict]:
             url = '%s/%s%s' % (self.url_prefix, self.url_version, path)
             if self.token:
                 headers = {'Authorization': 'token %s' % self.token, 'Content-type': 'application/json'}
@@ -74,10 +75,10 @@ class RestfulClient(object):
 
         return api
 
-    def _ping_internal(self, ping_request):
+    def _ping_internal(self, ping_request) -> Optional[dict]:
         return self.__call('post')("/system/ping", data=ping_request)
 
-    def ping(self, ping_request):
+    def ping(self, ping_request) -> PingResponse:
         # python object -> json
         response = self._ping_internal(ping_request.to_json())
 
