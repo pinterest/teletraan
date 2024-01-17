@@ -15,7 +15,10 @@
  */
 package com.pinterest.deployservice.handler;
 
+import static com.pinterest.teletraan.universal.metrics.micrometer.PinStatsNamingConvention.CUSTOM_NAME_PREFIX;
+
 import java.sql.Connection;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,6 +55,7 @@ import com.pinterest.deployservice.bean.DeployStage;
 import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostAgentBean;
+import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.bean.HostTagBean;
 import com.pinterest.deployservice.bean.OpCode;
@@ -80,6 +84,8 @@ import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.pingrequests.PingRequestValidator;
 
+import io.micrometer.core.instrument.Metrics;
+
 /**
  * This is where we handle agent ping and return deploy goal!
  */
@@ -88,7 +94,7 @@ public class PingHandler {
     private static final PingResponseBean NOOP;
     private static final Set<String> EMPTY_GROUPS;
     private static final String PINTEREST_MAIN_AWS_ACCOUNT = "998131032990";
-    //private static final long AGENT_COUNT_CACHE_TTL = 5 * 1000;
+    private static final String PROVISION_LATENCY_TIMER_NAME = CUSTOM_NAME_PREFIX + "teletraan.%s.provision_latency";
 
     static {
         NOOP = new PingResponseBean();
@@ -140,7 +146,7 @@ public class PingHandler {
         agentCountCacheTtl = serviceContext.getAgentCountCacheTtl();
         maxParallelThreshold = serviceContext.getMaxParallelThreshold();
         accountAllowList = serviceContext.getAccountAllowList();
-        
+
         if (serviceContext.isBuildCacheEnabled()) {
             buildCache = CacheBuilder.from(serviceContext.getBuildCacheSpec().replace(";", ","))
                     .build(new CacheLoader<String, BuildBean>() {
@@ -180,13 +186,13 @@ public class PingHandler {
                 groupsToAdd.add(group);
             }
         }
-        
+
         // if it is the main account, don't update it to avoid huge updates for existing hosts
         // only update sub account id for existing hosts
         if (groupsToAdd.size() > 0 || accountId != null && !accountId.equals(PINTEREST_MAIN_AWS_ACCOUNT) && !accountId.equals(recordedAccountId)) {
             hostDAO.insertOrUpdate(hostName, hostIp, hostId, HostState.ACTIVE.toString(), groups, accountId);
         }
-        
+
         // Remove if not reported
         for (String recordedGroup : recordedGroups) {
             if (!groups.contains(recordedGroup)) {
@@ -198,24 +204,42 @@ public class PingHandler {
 
     void updateHostStatus(String hostId, String hostName, String hostIp, String agentVersion, String asg) throws Exception {
         HostAgentBean hostAgentBean = hostAgentDAO.getHostById(hostId);
-        long current_time = System.currentTimeMillis();
+        long currentTime = System.currentTimeMillis();
         boolean isExisting = true;
         if (hostAgentBean == null) {
             hostAgentBean = new HostAgentBean();
             hostAgentBean.setHost_id(hostId);
-            hostAgentBean.setCreate_date(current_time);
+            hostAgentBean.setCreate_date(currentTime);
             isExisting = false;
         }
         hostAgentBean.setHost_name(hostName);
         hostAgentBean.setIp(hostIp);
-        hostAgentBean.setLast_update(current_time);
+        hostAgentBean.setLast_update(currentTime);
         hostAgentBean.setAgent_Version(agentVersion);
-        hostAgentBean.setAuto_scaling_group(asg);            
- 
+        hostAgentBean.setAuto_scaling_group(asg);
+
         if (!isExisting) {
-            hostAgentDAO.insert(hostAgentBean); 
+            // First ping
+            hostAgentDAO.insert(hostAgentBean);
+            emitInfraLatency(currentTime, hostId, asg);
         } else {
             hostAgentDAO.update(hostId, hostAgentBean);
+        }
+    }
+
+    void emitInfraLatency(long currentTime, String hostId, String asg) {
+        try {
+            List<HostBean> hosts = hostDAO.getHostsByHostId(hostId);
+            if (hosts.size() == 0) {
+                LOG.warn("No host found for hostId {}, skip", hostId);
+                return;
+            }
+            String timerName = String.format(PROVISION_LATENCY_TIMER_NAME, asg);
+            HostBean initialHost = hosts.get(0);
+            long infraLatency = currentTime - initialHost.getCreate_date();
+            Metrics.timer(timerName).record(Duration.ofMillis(infraLatency));
+        } catch (Exception e) {
+            LOG.warn("Failed to emit infra latency for " + hostId, e);
         }
     }
 
@@ -274,7 +298,7 @@ public class PingHandler {
         return true;
     }
 
-  
+
     /**
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
@@ -356,8 +380,8 @@ public class PingHandler {
                     long now = System.currentTimeMillis();
                     agentCountBean.setLast_refresh(now);
                 }
-                /* Typically, should update agentCount and agent in transaction, 
-                 * however, treating agentCount as cache w/ ttl and 
+                /* Typically, should update agentCount and agent in transaction,
+                 * however, treating agentCount as cache w/ ttl and
                  * make sure we update count first and then agent state.
                  */
                 LOG.debug("updating count for envId {}, existing_count {}, active_count {}, last_refresh {}, ttl {} ms",
@@ -586,20 +610,20 @@ public class PingHandler {
 
         EnvironBean envBean = populateEnviron(pingRequest.getAutoscalingGroup());
         if (envBean != null && envBean.getStage_type() != EnvType.DEFAULT) {
-            return envBean.getStage_type();        
+            return envBean.getStage_type();
         }
-        
+
         // Search for stage type from groups like CMP,group
         Set<String> groups = pingRequest.getGroups();
         for (String group: groups) {
             envBean = populateEnviron(group);
             if (envBean != null && envBean.getStage_type() != EnvType.DEFAULT) {
                 return envBean.getStage_type();
-            }    
+            }
         }
         return EnvType.PRODUCTION;
     }
-    
+
     // Creates composite deploy group. size is limited by group_name size in hosts table.
     // TODO: Consider storing host <-> shard mapping separately.
     private Set<String> shardGroups(PingRequestBean pingRequest) throws Exception {
@@ -654,9 +678,9 @@ public class PingHandler {
             Map<String, String> tags = mapper.readValue(ec2Tags, Map.class);
             for (Map.Entry<String, String> entry : tags.entrySet()) {
                 LOG.debug("key: {}, val: {}", entry.getKey(), entry.getValue());
-            }    
+            }
         }
-           
+
         //update agent version for host
         String agentVersion = pingRequest.getAgentVersion() != null ? pingRequest.getAgentVersion() : "UNKNOWN";
 
@@ -697,9 +721,9 @@ public class PingHandler {
                 if (installCandidate.needWait) {
                     LOG.debug("Checking if host {}, updateBean = {}, rate_limited = {}, system_priority = {} can deploy",
                                 hostName, updateBean, rate_limited, env.getSystem_priority());
-                    // Request has hit LWM rate-limit. we already updated heartbeat. 
+                    // Request has hit LWM rate-limit. we already updated heartbeat.
                     // Next, see if we can handle light-weight deploys, instead of completly discarding request.
-                    // Idea is, 
+                    // Idea is,
                     // 1. we want to continue in-progress deploy.
                     // 2. delay starting new deploy on the host(canDeploy call below is expensive for services with system priority).
                     // 3. allow any light weight deploys.
@@ -719,7 +743,7 @@ public class PingHandler {
                             break;
                     } else {
                         LOG.debug("Host {} needs to wait for env {}. Try next env",
-                            hostName, updateBean.getEnv_id()); 
+                            hostName, updateBean.getEnv_id());
                     }
                 } else {
                     LOG.debug("Host {} is in the middle of deploy, no need to wait, updateBean = {}",
