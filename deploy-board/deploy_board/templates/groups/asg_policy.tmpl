@@ -147,7 +147,7 @@
         </div>
 
         <div id="step-scaling" class="tabcontent">
-            <h4>Step Scaling</h4>
+            <h4>Step Scaling <sup><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-simple-step.html" target="_blank">What is step scaling?</a></sup></h4>
             <form id="stepAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
             <fieldset id="envConfigFieldSetId">
                 <div class="form-group">
@@ -196,7 +196,7 @@
                             title="Adjustments corresponds to scale up steps">
                             Scale up Adjustments
                         </label>
-                        <p>(Adjustments for scale up steps. There must be an adjustment for each step. E.g. with step1[0, 10], step2[10, 20], step3[20, positive-infinity], you must provide 3 numbers here.)</p>
+                        <p>(Adjustments for scale up steps. Must be 0 or <b>POSITIVE</b> integers. There must be an adjustment for each step. E.g. with step1[0, 10], step2[10, 20], step3[20, positive-infinity], you must provide 3 numbers here.)</p>
                     </div>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.scale_up_adjustments_string %}
@@ -230,7 +230,7 @@
                             title="Adjustments corresponds to scale down steps">
                             Scale down Adjustments
                         </label>
-                        <p>(Adjustments for scale down steps. There must be an adjustment for each step. E.g. with step1[negative-infinity, -20], step2[-20, -10], step3[-10, 0]), you must provide 3 numbers here.)</p>
+                        <p>(Adjustments for scale down steps. Must be 0 or <b>NEGATIVE</b> integers. There must be an adjustment for each step. E.g. with step1[negative-infinity, -20], step2[-20, -10], step3[-10, 0]), you must provide 3 numbers here.)</p>
                     </div>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.scale_down_adjustments_string %}
@@ -308,7 +308,6 @@
 </div>
 <script>
     function validate() {
-        console.log("Button clicked");
         policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId")
         policyType = "simple-scaling";
 
