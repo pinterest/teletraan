@@ -1419,14 +1419,6 @@ def reset_hosts(request, name, stage):
     return redirect('/env/{}/{}/hosts/'.format(name, stage))
 
 
-def reset_deploys_on_hosts(request, name, stage):
-    post_params = request.POST
-    if 'hostIds' in post_params:
-        hosts_str = post_params['hostIds']
-        for host_id in hosts_str.split(','):
-            agents_helper.retry_all_deploys(request, host_id.strip())
-    return redirect('/env/{}/{}/hosts/'.format(name, stage))
-
 # get total unknown(unreachable) hosts
 def get_unknown_hosts(request, name, stage):
     envs = environs_helper.get_all_env_stages(request, name)
