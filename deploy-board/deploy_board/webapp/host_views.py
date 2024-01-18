@@ -67,7 +67,7 @@ def get_show_terminate(hosts):
             return True
     return False
 
-def get_show_restart_all_deploys(hosts):
+def should_display_reset_all_environments(hosts):
     for host in hosts:
         if host and host.get('state') and host.get('state') not in {'PENDING_TERMINATE', 'TERMINATING', 'TERMINATED', 'PENDING_TERMINATE_NO_REPLACE'}:
             return True
@@ -138,7 +138,7 @@ class GroupHostDetailView(View):
         asg = get_asg_name(request, hosts)
 
         show_terminate = get_show_terminate(hosts)
-        show_restart_all_deploys = get_show_restart_all_deploys(hosts)
+        show_reset_all_environments = should_display_reset_all_environments(hosts)
         show_warning_message = not show_terminate
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         host_details = get_host_details(host_id)
@@ -151,7 +151,7 @@ class GroupHostDetailView(View):
             'account_id': account_id,
             'agent_wrappers': agent_wrappers,
             'show_warning_message': show_warning_message,
-            'show_restart_all_deploys': show_restart_all_deploys,
+            'show_reset_all_environments': show_reset_all_environments,
             'asg_group': asg,
             'is_unreachable': is_unreachable,
             'pinterest': IS_PINTEREST,
@@ -175,7 +175,7 @@ class HostDetailView(View):
         host_id = get_host_id(hosts)
         account_id = get_account_id(hosts)
         show_terminate = get_show_terminate(hosts)
-        show_restart_all_deploys = get_show_restart_all_deploys(hosts)
+        show_reset_all_environments = should_display_reset_all_environments(hosts)
         show_warning_message = not show_terminate
         asg = get_asg_name(request, hosts)
         is_protected = False
@@ -197,7 +197,7 @@ class HostDetailView(View):
             'account_id': account_id,
             'agent_wrappers': agent_wrappers,
             'show_terminate': show_terminate,
-            'show_restart_all_deploys': show_restart_all_deploys,
+            'show_reset_all_environments': show_reset_all_environments,
             'show_warning_message': show_warning_message,
             'show_force_terminate': IS_PINTEREST,
             'asg_group': asg,
