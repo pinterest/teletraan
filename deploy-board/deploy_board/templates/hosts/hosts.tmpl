@@ -6,27 +6,27 @@
       <strong>Deploy:</strong><a href="/deploy/{{ deployId }}"> {{ deployId }}</a>
        <div class="btn-toolbar pull-right">
           <button id="pauseButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="Pause selected hosts">
           <span class="glyphicon glyphicon-pause"></span> Pause
           </button>
           <button id="resumeButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="Resume selected hosts">
           <span class="glyphicon glyphicon-play"></span> Resume
           </button>
           <button id="resetButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="reset selected hosts">
           <span class="glyphicon glyphicon-repeat"></span> Reset
           </button>
           <button id="terminateButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="Soft terminate selected hosts">
           <span class="glyphicon glyphicon-off"></span> Terminate
           </button>
           <button id="forceTerminateButton"
-          class="btn btn-default btn-sm" data-toggle="tooltip"
+          class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="Soft terminate selected hosts">
           <span class="glyphicon glyphicon-remove"></span> Force Terminate
           </button>
@@ -128,6 +128,12 @@
     });
 
     $('#hostTable input[type="checkbox"]').click(function(){
+        if ($("#hostTable input:checkbox:checked").length <= 0) {
+            $(".checked-hosts-btn").prop("disabled", true);
+        } else {
+            $(".checked-hosts-btn").prop("disabled", false);
+        }
+
         if ($(this).is(":checked")) {
           checkedHosts.push($(this).val());
         } else {
@@ -144,6 +150,12 @@
                 checkedHosts.push($(this).val());
             }
         });
+
+        if ($("#hostTable input:checkbox:checked").length <= 0) {
+            $(".checked-hosts-btn").prop("disabled", true);
+        } else {
+            $(".checked-hosts-btn").prop("disabled", false);
+        }
     });
 
     $("#pauseButton").on("click", function() {
