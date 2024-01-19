@@ -40,6 +40,12 @@ def retry_deploy(request, env_name, stage_name, host_id):
     return deployclient.put("/envs/%s/%s/agents/%s" % (env_name, stage_name, host_id),
                             request.teletraan_user_id.token, data={"state": "RESET"})
 
+def reset_all_environments(request, host_id):
+    return deployclient.put(
+        "/agents/id/%s" % (host_id,), 
+        request.teletraan_user_id.token, 
+        data={"state": "RESET"},
+    )
 
 def pause_deploy(request, env_name, stage_name, host_id):
     return deployclient.put("/envs/%s/%s/agents/%s" % (env_name, stage_name, host_id),
