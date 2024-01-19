@@ -17,6 +17,7 @@ import traceback
 from string import Template
 import re
 import logging
+from typing import List
 from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ class Transformer(object):
             log.error('Fail to translate script {}, stacktrace: {}'.format(from_path,
                                                                            traceback.format_exc()))
 
-    def transform_scripts(self, script_dir, template_dirname, script_dirname) -> list:
+    def transform_scripts(self, script_dir, template_dirname, script_dirname) -> List:
         scripts = []
         suffix = ".tmpl"
         try:
