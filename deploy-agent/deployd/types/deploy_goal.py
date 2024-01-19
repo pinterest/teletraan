@@ -51,7 +51,7 @@ class DeployGoal(object):
             self.firstDeploy = jsonValue.get('firstDeploy')
             self.isDocker = jsonValue.get('isDocker')
 
-    def __key(self) -> tuple:
+    def __key(self) -> Tuple:
         return (self.deployId,
                 self.envId,
                 self.envName,

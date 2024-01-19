@@ -13,6 +13,9 @@
 # limitations under the License.
 
 
+from typing import Tuple
+
+
 class Build(object):
 
     def __init__(self, jsonValue=None) -> None:
@@ -43,7 +46,7 @@ class Build(object):
             self.publishInfo = jsonValue.get('publishInfo')
             self.publishDate = jsonValue.get('publishDate')
 
-    def __key(self) -> tuple:
+    def __key(self) -> Tuple:
         return (self.buildId,
                 self.buildName,
                 self.buildVersion,
