@@ -96,7 +96,7 @@
 
     {% if pinterest and host_ids %}
     <div class="pull-left ml-1">
-        <button class="deployToolTip btn btn-default btn-block checked-hosts-btn" data-target="#terminateHost"
+        <button class="deployToolTip btn btn-default btn-block" data-target="#terminateHost"
             data-toggle="modal" title="Terminate all failed hosts">
         <span class="glyphicon glyphicon-remove"></span> Terminate failed hosts
         </button>
@@ -128,12 +128,6 @@
     });
 
     $('#hostTable input[type="checkbox"]').click(function(){
-        if ($("#hostTable input:checkbox:checked").length <= 0) {
-          $(".checked-hosts-btn").prop("disabled", true);
-        } else {
-          $(".checked-hosts-btn").prop("disabled", false);
-        }
-
         if ($(this).is(":checked")) {
           checkedHosts.push($(this).val());
         } else {
@@ -150,12 +144,6 @@
                 checkedHosts.push($(this).val());
             }
         });
-
-        if ($("#hostTable input:checkbox:checked").length <= 0) {
-            $(".checked-hosts-btn").prop("disabled", true);
-        } else {
-            $(".checked-hosts-btn").prop("disabled", false);
-        }
     });
 
     $("#pauseButton").on("click", function() {
