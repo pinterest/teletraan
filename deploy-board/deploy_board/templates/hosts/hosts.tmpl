@@ -89,7 +89,7 @@
         <button id="reset_{{ deployId }}"
                 class="deployToolTip btn btn-primary" data-toggle="tooltip"
                 title="Retry deploys on all failed hosts.">
-            Retry deploys on all failed hosts
+            Retry current deploy on all failed hosts
         </button>
     </div>
     {% endif %}
@@ -332,13 +332,13 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title">Retry deploys on all failed hosts confirmation</h4>
+                <h4 class="modal-title">Retry current deploy on all failed hosts confirmation</h4>
             </div>
             <div class="modal-body">
-                <p> Are you sure to retry deploys on all failed hosts?</p>
+                <p>Are you sure to retry the current deploy on all failed hosts?</p>
             </div>
             <div class="modal-footer">
-                <button type="submit" class="btn btn-warning" id="resetAllFailedDeploys">Retry deploys on all failed hosts</button>
+                <button type="submit" class="btn btn-warning" id="resetAllFailedDeploys">Retry current deploy on all failed hosts</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div><!-- /.modal-content -->
