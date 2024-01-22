@@ -38,7 +38,7 @@ class ServerlessClient(BaseClient):
       PRE_DOWNLOAD->DOWNLOADING->POST_DOWNLOAD->STAGING->PRE_RESTART
           ->RESTARTING->POST_RESTART->SERVING_BUILD
     """
-    def __init__(self, env_name, stage, build, script_variables, deploy_stage: Optional[DeployStage] = None) -> None:
+    def __init__(self, env_name, stage, build, script_variables, deploy_stage: Optional[int] = None) -> None:
         """build contains build information in json format. It contains information defined in types/build.py.
         """
         self._env_name: str = utils.check_not_none(env_name, 'env_name can not be None')
@@ -47,7 +47,7 @@ class ServerlessClient(BaseClient):
         
         self._script_variables: dict[str, str] = json.loads(utils.check_not_none(script_variables, 'script_variables can not be None'))
         self._deploy_id: str = uuid.uuid4().hex
-        self._deploy_stage: DeployStage = deploy_stage if deploy_stage is not None else DeployStage.PRE_DOWNLOAD
+        self._deploy_stage: int = deploy_stage if deploy_stage is not None else DeployStage.PRE_DOWNLOAD.value
 
     def send_reports(self, env_reports=None) -> Optional[PingResponse]:
         reports: list = [status.report for status in env_reports.values()]
@@ -67,7 +67,7 @@ class ServerlessClient(BaseClient):
         # check if this is the first step
         if report is None or report.deployId is None or report.deployId != self._deploy_id:
             # first report from agent, start first deploy stage.
-            return self._new_response_value(numeric_deploy_stage=self._deploy_stage.value)
+            return self._new_response_value(numeric_deploy_stage=self._deploy_stage)
         if report.errorCode != 0:
             # terminate the deployment.
             return None
