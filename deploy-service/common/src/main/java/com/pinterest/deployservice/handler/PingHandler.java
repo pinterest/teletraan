@@ -118,7 +118,6 @@ public class PingHandler {
     private List<PingRequestValidator> validators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
-    private Set<String> accountAllowList;
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -139,8 +138,7 @@ public class PingHandler {
         validators = serviceContext.getPingRequestValidators();
         agentCountCacheTtl = serviceContext.getAgentCountCacheTtl();
         maxParallelThreshold = serviceContext.getMaxParallelThreshold();
-        accountAllowList = serviceContext.getAccountAllowList();
-        
+
         if (serviceContext.isBuildCacheEnabled()) {
             buildCache = CacheBuilder.from(serviceContext.getBuildCacheSpec().replace(";", ","))
                     .build(new CacheLoader<String, BuildBean>() {
@@ -274,7 +272,6 @@ public class PingHandler {
         return true;
     }
 
-  
     /**
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
@@ -572,16 +569,24 @@ public class PingHandler {
     }
 
     private EnvType populateStageType(PingRequestBean pingRequest) throws Exception {
-        EnvType stageType = EnvType.PRODUCTION;
         if (pingRequest.getStageType() != null) {
-            stageType = pingRequest.getStageType();
-        } else {
-            EnvironBean envBean = populateEnviron(pingRequest.getAutoscalingGroup());
-            if (envBean != null && envBean.getStage_type() != EnvType.DEFAULT) {
-                stageType = envBean.getStage_type();
-            }
+            return pingRequest.getStageType();
         }
-        return stageType;
+
+        EnvironBean envBean = populateEnviron(pingRequest.getAutoscalingGroup());
+        if (envBean != null && envBean.getStage_type() != EnvType.DEFAULT) {
+            return envBean.getStage_type();        
+        }
+        
+        // Search for stage type from groups like CMP,group
+        Set<String> groups = pingRequest.getGroups();
+        for (String group: groups) {
+            envBean = populateEnviron(group);
+            if (envBean != null && envBean.getStage_type() != EnvType.DEFAULT) {
+                return envBean.getStage_type();
+            }    
+        }
+        return EnvType.PRODUCTION;
     }
     
     // Creates composite deploy group. size is limited by group_name size in hosts table.
@@ -616,7 +621,7 @@ public class PingHandler {
         if (validators != null) {
             // validate requests
             for (PingRequestValidator validator : validators) {
-                validator.validate(pingRequest, accountAllowList);
+                validator.validate(pingRequest);
             }
         }
 

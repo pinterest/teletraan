@@ -108,6 +108,14 @@ class TestServerlessClient(TestCase):
     def test_deploy_stage_transitions(self):
         expected: dict[int, int] = dict([(i, i+1) for i in range(DeployStage.PRE_DOWNLOAD.value, DeployStage.SERVING_BUILD.value)])
         self.assertDictEqual(_DEPLOY_STAGE_TRANSITIONS, expected)
+    
+    def test_create_response_last_deploy_stage(self):
+        report = self._new_report()
+        report.deployId = self.client._deploy_id
+        report.status = "SUCCEEDED"
+        report.deployStage = "SERVING_BUILD" 
+        response: PingResponse = self.client._create_response(report)
+        self.assertEqual(response.opCode, "NOOP")
  
 
 if __name__ == '__main__':

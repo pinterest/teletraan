@@ -24,19 +24,13 @@ package com.pinterest.deployservice.bean;
  *      Control stage type
  * CANARY:
  *      Canary stage type
- * STAGING:
- *    Staging stage type
  * LATEST:
  *      LATEST stage type
- * DEV:
- *      DEV stage type
  */
 public enum EnvType {
     DEFAULT,
     PRODUCTION,
     CONTROL,
     CANARY,
-    STAGING,
-    LATEST,
-    DEV;
+    LATEST;
 }
