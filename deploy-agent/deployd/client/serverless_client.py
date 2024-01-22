@@ -75,7 +75,7 @@ class ServerlessClient(BaseClient):
         if report.status == AgentStatus.SUCCEEDED:
             # check if this is the last deploy stage.
             if DeployStage(numeric_deploy_stage) == DeployStage.SERVING_BUILD:
-                return PingResponse({'opCode': OperationCode.NOOP.name})
+                return PingResponse({'opCode': OperationCode.NOOP.value})
 
             # move to next deploy stage
             next_deploy_stage = _DEPLOY_STAGE_TRANSITIONS.get(numeric_deploy_stage)
@@ -89,7 +89,7 @@ class ServerlessClient(BaseClient):
         return None
 
     def _new_response_value(self, numeric_deploy_stage: int) -> PingResponse:
-        value= {'opCode': OperationCode.DEPLOY.name,
+        value= {'opCode': OperationCode.DEPLOY.value,
                 'deployGoal': {'deployId': self._deploy_id,
                                'envId': self._env_id,
                                'envName': self._env_name,
