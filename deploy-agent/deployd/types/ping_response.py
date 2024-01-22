@@ -30,6 +30,9 @@ class PingResponse(object):
                 self.opCode = jsonValue.get('opCode')
 
             if jsonValue.get('deployGoal'):
+                import logging
+                log = logging.getLogger(__name__)
+                log.info(jsonValue.get('deployGoal'))
                 self.deployGoal = DeployGoal(jsonValue=jsonValue.get('deployGoal'))
 
     def __str__(self):

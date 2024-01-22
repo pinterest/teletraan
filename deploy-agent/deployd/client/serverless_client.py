@@ -89,6 +89,7 @@ class ServerlessClient(BaseClient):
         return None
 
     def _new_response_value(self, numeric_deploy_stage: int) -> PingResponse:
+        log.info(numeric_deploy_stage)
         value= {'opCode': OperationCode.DEPLOY.value,
                 'deployGoal': {'deployId': self._deploy_id,
                                'envId': self._env_id,
