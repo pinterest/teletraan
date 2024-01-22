@@ -65,7 +65,7 @@ class TestServerlessClient(TestCase):
  
     def test_run_with_defined_deploy_stage(self) -> None:
         self.client = ServerlessClient(env_name=self.env_name, stage=self.stage, build=self.build,
-                                       script_variables=self.script_variables, deploy_stage=DeployStage.PRE_RESTART)
+                                       script_variables=self.script_variables, deploy_stage=DeployStage.PRE_RESTART.value)
         report: PingReport = self._new_report()
         report.deployId = None
         deploy_status = DeployStatus()
