@@ -18,7 +18,7 @@
           <button id="resetButton"
           class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
           title="reset selected hosts">
-          <span class="glyphicon glyphicon-repeat"></span> Reset
+          <span class="glyphicon glyphicon-repeat"></span> Restart
           </button>
           <button id="terminateButton"
           class="btn btn-default btn-sm checked-hosts-btn" data-toggle="tooltip"
@@ -88,8 +88,8 @@
     <div class="pull-left mr-1">
         <button id="reset_{{ deployId }}"
                 class="deployToolTip btn btn-primary" data-toggle="tooltip"
-                title="Retry deploys on all failed hosts.">
-            Restart current environment on all failed hosts
+                title="Restart deploy on all failed hosts.">
+            Restart current deploy on all failed hosts
         </button>
     </div>
     {% endif %}
@@ -332,13 +332,13 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title">Restart current environment on all failed hosts confirmation</h4>
+                <h4 class="modal-title">Restart current deploy on all failed hosts confirmation</h4>
             </div>
             <div class="modal-body">
-                <p>Are you sure to restart the current environment on all failed hosts?</p>
+                <p>Are you sure to restart the current deploy on all failed hosts?</p>
             </div>
             <div class="modal-footer">
-                <button type="submit" class="btn btn-warning" id="resetAllFailedDeploys">Restart current environment on all failed hosts</button>
+                <button type="submit" class="btn btn-warning" id="resetAllFailedDeploys">Restart current deploy on all failed hosts</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div><!-- /.modal-content -->
