@@ -161,7 +161,7 @@ _HEALTH_STATE_TO_ICONS = {
 
 _HEALTH_TYPE_TO_ICONS = {
     "AMI_TRIGGERED": "fa fa-plus-circle",
-    "TIME_TRIGGERED": "fa fa-clock-o",
+    "TIME_TRIGGERED": "fa fa-regular fa-clock",
     "MANUALLY_TRIGGERED": "fa fa-hand-o-left",
 }
 
@@ -640,7 +640,7 @@ def agentIcon(agentStats):
     if agentStats.isCurrent:
         return 'fa-spinner fa-spin'
 
-    return 'fa-clock-o'
+    return 'fa-regular fa-clock'
 
 
 @register.filter("hostButton")
@@ -699,7 +699,7 @@ def jenkinsIcon(current_status):
     if current_status == 'SUCCESS':
         return 'fa-check'
 
-    return 'fa-clock-o'
+    return 'fa-regular fa-clock'
 
 
 @register.filter("isInstalling")
