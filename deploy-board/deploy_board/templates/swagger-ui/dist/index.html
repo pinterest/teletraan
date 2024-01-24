@@ -37,18 +37,18 @@
         <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
     </head>
     <body>
-        <rapi-doc id="apidoc" spec-url="http://0.0.0.0:8011/swagger.json" server-url="http://0.0.0.0:8011/" allow-authentication ="false">
+        <rapi-doc id="apidoc" spec-url="http://0.0.0.0:8011/swagger.json" server-url="http://0.0.0.0:8011/" >
         <!--
           below html is custom html that adds an input field and a button in header
           on clicking the button the 'api-key-value' is set to the value in input box
         -->
-        <div slot='header' style='display:flex; margin:0 16px;'>
+        {% comment %} <div slot='header' style='display:flex; margin:0 16px;'>
             <input class='txt'
                    id='key-val-input'
                    type='text'
                    placeholder="Oauth2 Jwt Token">
             <button class='btn' onclick='setApiKey()'>Apply</button>
-        </div>
+        </div> {% endcomment %}
         </rapi-doc>
         <script>
             function setApiKey(){

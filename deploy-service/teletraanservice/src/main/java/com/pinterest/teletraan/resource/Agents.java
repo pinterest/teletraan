@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Path("/v1/agents")
-@Api(tags = "Agents")
+@Api(tags = "Agents", authorizations = @Authorization(value = "apiKey"))
 @SwaggerDefinition(
         tags = {
                 @Tag(name = "Agents", description = "Deploy agent information APIs"),

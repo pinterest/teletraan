@@ -26,6 +26,9 @@ import io.dropwizard.health.conf.HealthConfiguration;
 import io.dropwizard.health.core.HealthCheckBundle;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
+import io.swagger.annotations.ApiKeyAuthDefinition;
+import io.swagger.annotations.SecurityDefinition;
+import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
@@ -37,6 +40,18 @@ import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 
+
+@SwaggerDefinition(
+    securityDefinition =  @SecurityDefinition(
+        apiKeyAuthDefinitions = {
+            @ApiKeyAuthDefinition(
+                key = "apiKey",
+                in = ApiKeyAuthDefinition.ApiKeyLocation.HEADER,
+                name = "Authentication"
+            )
+         }
+    )
+)
 public class TeletraanService extends Application<TeletraanServiceConfiguration> {
     private static final Logger LOG = LoggerFactory.getLogger(TeletraanService.class);
 
