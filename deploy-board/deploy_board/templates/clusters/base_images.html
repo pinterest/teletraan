@@ -209,12 +209,17 @@
 
     function validateProviderName(provider) {
         var validators = {
-            "AWS": "ami-"
+            "AWS": {
+                prefix: "ami-",
+                example: "ami-b1cf1c23346789fff"
+            }
         }
         var providerName = $("#create-base-image-provider-name").val();  
-        if (validators[provider]) {
-            if (!providerName.startsWith(validators[provider])) {
-                return "\"Cloud specific image id\" should starts with \"" + validators[provider] + "\"";
+        var validator = validators[provider];
+        if (validator) {
+            if (!providerName.startsWith(validator.prefix)) {
+                return "\"Cloud specific image id\" should start with \"" 
+                    + validator.prefix + "\", example: " + validator.example;
             }
         }
         return null;
@@ -222,12 +227,17 @@
 
     function validateCellName(provider) {
         var validators = {
-            "AWS": "aws-"
+            "AWS": {
+                prefix: "aws-",
+                example: "aws-us-east-1"
+            }
         }
-        var cellName = $("#cellName").val();  
-        if (validators[provider]) {
-            if (!cellName.startsWith(validators[provider])) {
-                return "\"Cell\" should starts with \"" + validators[provider] + "\"";
+        var cellName = $("#cellName").val();
+        var validator = validators[provider];  
+        if (validator) {
+            if (!cellName.startsWith(validator.prefix)) {
+                return "\"Cell\" should start with \"" 
+                    + validator.prefix + "\", example: " + validator.example;
             }
         }
         return null;
