@@ -37,7 +37,6 @@ import java.util.EnumSet;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 
-
 public class TeletraanService extends Application<TeletraanServiceConfiguration> {
     private static final Logger LOG = LoggerFactory.getLogger(TeletraanService.class);
 
