@@ -6,7 +6,7 @@
         <script type="module" src="{% static "js/rapidoc-min.js" %}"></script>
     </head>
     <body>
-        <rapi-doc id="apidoc" spec-url="{{ teletraanServiceUrl }}/swagger.json" render-style="read" api-key-name="Authorization" api-key-location="header" api-key-value="Bearer {{ token }}" allow-server-selection="false" allow-authentication="false">
+        <rapi-doc id="apidoc" spec-url="{{ teletraanServiceUrl }}/swagger.json" render-style="read" api-key-name="Authorization" api-key-location="header" api-key-value="token {{ token }}" allow-server-selection="false" allow-authentication="false">
         <div slot='operations-top'>
             <div style="font-size:14px;
                         border:0;
