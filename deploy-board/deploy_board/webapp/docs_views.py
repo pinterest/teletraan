@@ -20,17 +20,20 @@ import os
 
 class SwaggerUIView(View):
     def get(self, request):
-        teletraanServiceUrl = os.environ.get("TELETRAAN_SERVICE_URL", "http://localhost:8011")
-        rodimusServiceUrl = os.environ.get("RODIMUS_SERVICE_URL", "http://localhost:8012")
+        teletraanSwaggerUrl = os.environ.get("TELETRAAN_SERVICE_URL", "http://localhost:8011") + "/swagger.json"
+        rodimusSwaggerUrl = os.environ.get("RODIMUS_SERVICE_URL", "http://localhost:8012") + "/swagger.json"
         envStage = os.environ.get("ENV_STAGE", "local")
+        if envStage != "local":
+            teletraanSwaggerUrl.replace("http://", "https://")
+            rodimusSwaggerUrl.replace("http://", "https://")
         response = render(
             request,
             "swagger-ui/dist/index.html",
             {
                 "token": request.session.get("oauth_token"),
                 "envStage": envStage,
-                "teletraanServiceUrl": teletraanServiceUrl,
-                "rodimusServiceUrl": rodimusServiceUrl,
+                "teletraanSwaggerUrl": teletraanSwaggerUrl,
+                "rodimusSwaggerUrl": rodimusSwaggerUrl,
             },
         )
         return response

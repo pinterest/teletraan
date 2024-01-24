@@ -1,9 +1,10 @@
 <!DOCTYPE html> <!-- Important: must specify -->
 <html>
     <head>
-        {%load static %}
+        {% load static %}
         <meta charset="utf-8">
         <script type="module" src="{% static "js/rapidoc-min.js" %}"></script>
+        <script type="module" src="{% static "js/apidoc.js" %}"></script>
     </head>
     <body>
         <rapi-doc id="apidoc"
@@ -25,8 +26,8 @@
                         <td>Predefined Swagger URL</td>
                         <td>
                             <select class='size txt' style="width:138px" id='spec-url-override'>
-                                <option value="{{ teletraanServiceUrl }}/swagger.json">Teletraan-{{ envStage }}</option>
-                                <option value="{{ rodimusServiceUrl }}/swagger.json">Rodimus-{{ envStage }}</option>
+                                <option value="{{ teletraanSwaggerUrl }}">Teletraan-{{ envStage }}</option>
+                                <option value="{{ rodimusSwaggerUrl }}">Rodimus-{{ envStage }}</option>
                             </select>
                             <button class='size btn' onclick='pickSpec(event)'>Change</button>
                         </td>
@@ -34,7 +35,7 @@
                 </table>
                 <table>
                     <tr>
-                        <td>Authorization: </td>
+                        <td>Authorization:</td>
                         <td>
                             <select class='size txt'
                                     style="width:138px"
@@ -63,40 +64,5 @@
             </div>
         </div>
         </rapi-doc>
-
-        <script>
-        function clearSecurityKeys(ev) {
-            const docEl = document.getElementById('apidoc');
-            docEl.removeAllSecurityKeys();
-        }
-
-        function pickSpec(event) {
-            const docEl = document.getElementById('apidoc');
-            const specUrl = event.target.closest('tr').querySelector('#spec-url-override').value;
-            docEl.setAttribute('spec-url', specUrl);
-        }
-
-        function setSecurity(ev, securityType) {
-            const docEl = document.getElementById('apidoc');
-            const trEl = ev.target.closest('tr');
-            if (securityType === 'apikey') {
-                const securitySchemeId = trEl.querySelector('#api-security-scheme-id').value;
-                const newApiToken = trEl.querySelector('#api-key-value').value;
-                docEl.setAttribute('api-key-name', 'Authorization');
-                docEl.setAttribute('api-key-location', 'header');
-                if (securitySchemeId === 'http-bearer') {
-                    docEl.setAttribute('api-key-value', "Bearer " + newApiToken);
-                } else {
-                    docEl.setAttribute('api-key-value', "token " + newApiToken);
-                }
-            }
-            ev.target.innerText = 'Applied !';
-            ev.target.style.backgroundColor = 'green';
-            window.setTimeout(function () {
-                ev.target.innerText = 'Apply';
-                ev.target.style.backgroundColor = '#2069e0';
-            }, 5000)
-        }
-        </script>
     </body>
 </html>
