@@ -214,7 +214,7 @@
                     <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" value={% if auto_refresh_config.config.checkpointPercentages %}{{ auto_refresh_config.config.checkpointPercentages|join:"," }}{% endif %}>
                     
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
-                        <span class="fa fa-regular fa-clock"></span> Checkpoint delay (seconds):
+                        <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
                     <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value={% if auto_refresh_config.config.checkpointDelay %}{{ auto_refresh_config.config.checkpointDelay }}{% endif %}>
                 </div>
@@ -238,7 +238,7 @@
                 <div style="padding-top: 20px;">
                     <div>
                         <label for="bakeTime" data-toggle="tooltip" title="Hour(s) to wait after cluster refreshed successfully before refreshing clusters in the next stage">
-                            <span class="fa fa-regular fa-clock"></span> Bake time:
+                            <span class="fa fa-clock-o"></span> Bake time:
                         </label>
                         <p><i>Hour(s) to wait after the cluster is refreshed successfully before refreshing cluster(s) in the next stage (if applicable).</i></p>
                     </div>
@@ -302,7 +302,7 @@
                     <input type="text" id="checkpointPercentages" name="checkpointPercentages" maxlength="200" placeholder="e.g. 25, 50, 100">
                     
                     <label for="checkpointDelay" data-toggle="tooltip" title="Delay in seconds between checkpoints">
-                        <span class="fa fa-regular fa-clock"></span> Checkpoint delay (seconds):
+                        <span class="fa fa-clock-o"></span> Checkpoint delay (seconds):
                     </label>
                     <input type="number" id="checkpointDelay" name="checkpointDelay" min="0" value="3600">
                 </div>

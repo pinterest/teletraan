@@ -132,7 +132,7 @@
     </div>
     {% if hasGroups %}
     <div v-if="showCluster" class="row">
-        <side-button styleclass="fa fa-expand-alt" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Configure autoscaling group"></side-button>
+        <side-button styleclass="fa fa-expand" v-bind:text="autoScalingSettingsText" href="/groups/{{ env.envName }}-{{ env.stageName }}/config" title="Configure autoscaling group"></side-button>
     </div>
     {% endif %}
     {% if hasCluster %}
