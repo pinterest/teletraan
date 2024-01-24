@@ -1,55 +1,71 @@
 <!DOCTYPE html> <!-- Important: must specify -->
 <html>
-
-<head>
-    <meta charset="utf-8">
-    <!-- Important: rapi-doc uses utf8 characters -->
-    <script type="module" src="https://unpkg.com/rapidoc/dist/rapidoc-min.js"></script>
-</head>
-
-<body>
-    <rapi-doc id="apidoc" spec-url="http://0.0.0.0:8011/swagger.json" server-url="http://0.0.0.0:8011/" render-style="read"
-        api-key-name="Authorization" api-key-location="header" api-key-value="Bearer {{ token }}"
-        allow-server-selection="false" allow-authentication="false">
-        <!-- <div slot='header' style='display:flex; margin:0 16px;'>
-            <input class='txt' id='key-val-input' type='text' placeholder="Oauth2 Jwt Token">
-            <button class='btn' onclick='setApiKey()'>Apply</button>
-        </div>  -->
+    <head>
+        {%load static %}
+        <meta charset="utf-8">
+        <script type="module" src="{% static "js/rapidoc-min.js" %}"></script>
+    </head>
+    <body>
+        <rapi-doc id="apidoc" spec-url="{{ teletraanServiceUrl }}/swagger.json" render-style="read" api-key-name="Authorization" api-key-location="header" api-key-value="Bearer {{ token }}" allow-server-selection="false" allow-authentication="false">
         <div slot='operations-top'>
-            <div
-                style="font-size:14px; border:0; border-radius:4px; padding:16px; margin:16px 75px">
-
-                <div style="margin:32px 0 16px 0; color:#777; font-weight:bold">
-                    Below form is used for taking user input and apply the security key using javascipt
-                </div>
+            <div style="font-size:14px;
+                        border:0;
+                        border-radius:4px;
+                        padding:16px;
+                        margin:16px 75px">
                 <table>
                     <tr>
-                        <td> Authorization: </td>
+                        <td>Predifined Swagger URL</td>
                         <td>
-                            <select class='size txt' style="width:138px" id='api-security-scheme-id'
-                                placeholder='Security Scheme ID'>
+                            <select class='size txt' style="width:138px" id='spec-url-override'>
+                                <option value="{{ teletraanServiceUrl }}/swagger.json">Teletraan-{{ envStage }}</option>
+                                <option value="{{ rodimusServiceUrl }}/swagger.json">Rodimus-{{ envStage }}</option>
+                            </select>
+                            <button class='size btn' onclick='pickSpec(event)'>Change</button>
+                        </td>
+                    </tr>
+                </table>
+                <table>
+                    <tr>
+                        <td>Authorization: </td>
+                        <td>
+                            <select class='size txt'
+                                    style="width:138px"
+                                    id='api-security-scheme-id'
+                                    placeholder='Security Scheme ID'>
                                 <option value="http-bearer">Bearer</option>
                                 <option value="http-token">token</option>
                             </select>
-
-                            <input class='size txt' id='api-key-value' type='text' value="new-token"
-                                placeholder='API Key Value' spellcheck='false'>
+                            <input class='size txt'
+                                   id='api-key-value'
+                                   type='text'
+                                   placeholder='Token override'
+                                   spellcheck='false'>
                             <button class='size btn' onclick='setSecurity(event, "apikey")'>Apply</button>
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="2"><button class='size btn' style="width:200px"
-                                onclick='clearSecurityKeys(event)'>Clear all Keys</button></td>
+                        <td colspan="2">
+                            <button class='size btn'
+                                    style="width:200px"
+                                    onclick='clearSecurityKeys(event)'>Clear all Keys</button>
+                        </td>
                     </tr>
                 </table>
-
             </div>
         </div>
-    </rapi-doc>
-    <script>
+        </rapi-doc>
+
+        <script>
         function clearSecurityKeys(ev) {
             const docEl = document.getElementById('apidoc');
             docEl.removeAllSecurityKeys();
+        }
+
+        function pickSpec(event) {
+            const docEl = document.getElementById('apidoc');
+            const specUrl = event.target.closest('tr').querySelector('#spec-url-override').value;
+            docEl.setAttribute('spec-url', specUrl);
         }
 
         function setSecurity(ev, securityType) {
@@ -73,7 +89,6 @@
                 ev.target.style.backgroundColor = '#2069e0';
             }, 5000)
         }
-    </script>
-</body>
-
+        </script>
+    </body>
 </html>
