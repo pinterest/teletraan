@@ -95,7 +95,7 @@ _ACCEPTANCE_TO_ICONS = {
 
 _STATE_TO_ICONS = {
     "RUNNING": "fa fa-spinner fa-spin",
-    "FAILING": "fa fa-circle fa-blink color-red",
+    "FAILING": "fa fa-circle fa-fade color-red",
     "SUCCEEDING": "fa fa-circle color-green",
     "SUCCEEDED": "fa fa-check-circle color-green",
     "ABORTED": "fa fa-minus-circle",
@@ -124,7 +124,7 @@ _REPLACE_STATUS_TO_TIPS = {
 
 _JENKINS_TO_ICONS = {
     "RUNNING": "fa fa-spinner fa-spin",
-    "FAILURE": "fa fa-circle fa-blink color-red",
+    "FAILURE": "fa fa-circle fa-fade color-red",
     "SUCCESS": "fa fa-check-circle color-green"
 }
 
@@ -147,7 +147,7 @@ _HEALTH_STATUS_TO_ICONS = {
     "SUCCEEDED": "fa fa-spinner fa-spin color-green",
     "QUALIFIED": "fa fa-check-circle color-green",
     "TELETRAAN_STOP_REQUESTED": "fa fa-check-circle color-green",
-    "FAILED": "fa fa-circle fa-blink color-red",
+    "FAILED": "fa fa-circle fa-fade color-red",
     "TIMEOUT": "fa fa-minus-circle",
 }
 
@@ -161,7 +161,7 @@ _HEALTH_STATE_TO_ICONS = {
 
 _HEALTH_TYPE_TO_ICONS = {
     "AMI_TRIGGERED": "fa fa-plus-circle",
-    "TIME_TRIGGERED": "fa fa-clock-o",
+    "TIME_TRIGGERED": "fa fa-regular fa-clock",
     "MANUALLY_TRIGGERED": "fa fa-hand-o-left",
 }
 
@@ -468,11 +468,11 @@ def successRatePercentage(deploy):
             return trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
     elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         if deploy["primaryAcctTotalHostNum"] != 0:
-            return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])   
+            return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])
     elif deploy.get("account") == "others":
         if deploy["otherAcctTotalHostNum"] != 0:
-            return trunc(deploy["otherAcctSucHostNum"] * 100 / deploy["otherAcctTotalHostNum"])   
-    else:     
+            return trunc(deploy["otherAcctSucHostNum"] * 100 / deploy["otherAcctTotalHostNum"])
+    else:
         if deploy["total"] != 0:
             return trunc(deploy["successTotal"] * 100 / deploy["total"])
     return 0
@@ -640,7 +640,7 @@ def agentIcon(agentStats):
     if agentStats.isCurrent:
         return 'fa-spinner fa-spin'
 
-    return 'fa-clock-o'
+    return 'fa-regular fa-clock'
 
 
 @register.filter("hostButton")
@@ -699,7 +699,7 @@ def jenkinsIcon(current_status):
     if current_status == 'SUCCESS':
         return 'fa-check'
 
-    return 'fa-clock-o'
+    return 'fa-regular fa-clock'
 
 
 @register.filter("isInstalling")
