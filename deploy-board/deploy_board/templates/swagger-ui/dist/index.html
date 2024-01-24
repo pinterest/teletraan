@@ -6,7 +6,14 @@
         <script type="module" src="{% static "js/rapidoc-min.js" %}"></script>
     </head>
     <body>
-        <rapi-doc id="apidoc" spec-url="{{ teletraanServiceUrl }}/swagger.json" render-style="read" api-key-name="Authorization" api-key-location="header" api-key-value="token {{ token }}" allow-server-selection="false" allow-authentication="false">
+        <rapi-doc id="apidoc"
+            spec-url="{{ teletraanServiceUrl }}/swagger.json"
+            render-style="read"
+            api-key-name="Authorization"
+            api-key-location="header"
+            api-key-value="token {{ token }}"
+            allow-server-selection="false"
+            allow-authentication="false">
         <div slot='operations-top'>
             <div style="font-size:14px;
                         border:0;
@@ -15,7 +22,7 @@
                         margin:16px 75px">
                 <table>
                     <tr>
-                        <td>Predifined Swagger URL</td>
+                        <td>Predefined Swagger URL</td>
                         <td>
                             <select class='size txt' style="width:138px" id='spec-url-override'>
                                 <option value="{{ teletraanServiceUrl }}/swagger.json">Teletraan-{{ envStage }}</option>
@@ -40,7 +47,8 @@
                                    id='api-key-value'
                                    type='text'
                                    placeholder='Token override'
-                                   spellcheck='false'>
+                                   spellcheck='false'
+                                   value="{{ token }}">
                             <button class='size btn' onclick='setSecurity(event, "apikey")'>Apply</button>
                         </td>
                     </tr>
