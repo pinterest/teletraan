@@ -97,6 +97,7 @@
                     <h4 class="modal-title">Create Base Image Confirm</h4>
                 </div>
                 <div class="modal-body" id="createBaseImageModal">
+                    <div class="hidden" id="create-base-image-form-errors"></div>
                     <div class="form-group">
                         <label class="deployToolTip control-label text-center col-xs-6">
                             Cell
@@ -134,7 +135,7 @@
                             Cloud specific image id
                         </label>
                         <div class="col-md-6">
-                            <input class="form-control" name="providerName" required="true" type="text" value="" />
+                            <input id="create-base-image-provider-name" class="form-control" name="providerName" required="true" type="text" value="" />
                         </div>
                     </div>
                     <div class="form-group">
@@ -176,4 +177,60 @@
         </div>
     </div>
 </div>
+
+<script>
+    $("#createBaseImageFormId").submit(function(event) {            
+        var provider = $("#providerNameId").val();
+        var errorElement = $("#create-base-image-form-errors");  
+        var errors = "";
+        var validationErrors = [validateProviderName(provider), validateCellName(provider)];
+        validationErrors
+            .filter(err => err != null)
+            .forEach((error, i) => {
+                errors += createValidationErrorHtml(i === 0, "Validation error: " + error);
+            });
+
+        if (errors.length === 0) {
+            errorElement.addClass("hidden");
+        } else {
+            errorElement.removeClass("hidden");
+            errorElement.html(errors);
+            event.preventDefault();
+        }
+    });  
+
+    function createValidationErrorHtml(isFirst, err) {
+        var classes = ["alert", "alert-danger"];
+        if (!isFirst) {
+            classes.push("mt-1");
+        }
+        return "<div class=\"" + classes.join(" ") + "\" role=\"alert\">" + err + "</div>";
+    }
+
+    function validateProviderName(provider) {
+        var validators = {
+            "AWS": "ami-"
+        }
+        var providerName = $("#create-base-image-provider-name").val();  
+        if (validators[provider]) {
+            if (!providerName.startsWith(validators[provider])) {
+                return "\"Cloud specific image id\" should starts with \"" + validators[provider] + "\"";
+            }
+        }
+        return null;
+    }
+
+    function validateCellName(provider) {
+        var validators = {
+            "AWS": "aws-"
+        }
+        var cellName = $("#cellName").val();  
+        if (validators[provider]) {
+            if (!cellName.startsWith(validators[provider])) {
+                return "\"Cell\" should starts with \"" + validators[provider] + "\"";
+            }
+        }
+        return null;
+    }
+</script>
 {% endblock %}
