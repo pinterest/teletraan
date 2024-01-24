@@ -257,8 +257,11 @@ def get_container_health_info(commit, service, redeploy):
                             result.append(f"{name}:{status}")
                     except:
                         continue
-            ret = ";".join(result) if result else None
-            if "unhealthy" in ret:
+            returnValue = ";".join(result) if result else None
+            if returnValue == None:
+                send_statsboard_metric(name='deployd.service_health_status', value=1,
+                                            tags={"status": "None", "service": service, "commit": commit})
+            else if "unhealthy" in returnValue:
                 send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "unhealthy", "service": service, "commit": commit})
             else:
