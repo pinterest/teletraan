@@ -100,6 +100,18 @@
                     <div class="hidden" id="create-base-image-form-errors"></div>
                     <div class="form-group">
                         <label class="deployToolTip control-label text-center col-xs-6">
+                            Cloud Provider
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="provider" required id="providerNameId">
+                                {% for provider in provider_list %}
+                                <option value="{{ provider }}">{{ provider }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
                             Cell
                         </label>
                         <div class="col-md-6">
@@ -136,18 +148,6 @@
                         </label>
                         <div class="col-md-6">
                             <input id="create-base-image-provider-name" class="form-control" name="providerName" required="true" type="text" value="" />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="deployToolTip control-label text-center col-xs-6">
-                            Cloud Provider
-                        </label>
-                        <div class="col-md-6">
-                            <select class="form-control" name="provider" required id="providerNameId">
-                                {% for provider in provider_list %}
-                                <option value="{{ provider }}">{{ provider }}</option>
-                                {% endfor %}
-                            </select>
                         </div>
                     </div>
                     <div class="form-group">
