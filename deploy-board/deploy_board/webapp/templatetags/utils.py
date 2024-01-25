@@ -637,7 +637,10 @@ def agentIcon(agentStats):
     if agentStats.isCurrent:
         if agent['deployStage'] == "SERVING_BUILD":
             return 'fa-check'
-        if agentStats.isStale:
+        if agentStats.isStale or (
+                agent['status'] == "PROVISIONED" and
+                agent["ip"] == "None"
+                ):
             return 'fa-exclamation-triangle'
         return 'fa-spinner fa-spin'
 
