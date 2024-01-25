@@ -4,7 +4,7 @@
         {% load static %}
         <meta charset="utf-8">
         <script type="module" src="{% static "js/rapidoc-min.js" %}"></script>
-        <script type="module" src="{% static "js/apidoc.js" %}"></script>
+        <script type="application/javascript" src="{% static "js/apidoc.js" %}"></script>
     </head>
     <body>
         <rapi-doc id="apidoc"
@@ -13,6 +13,7 @@
             api-key-name="Authorization"
             api-key-location="header"
             api-key-value="token {{ token }}"
+            fetch-credentials="include"
             allow-server-selection="false"
             allow-authentication="false">
         <div slot='operations-top'>
