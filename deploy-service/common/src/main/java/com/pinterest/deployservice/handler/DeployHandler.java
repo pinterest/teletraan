@@ -389,10 +389,10 @@ public class DeployHandler implements DeployHandlerInterface{
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "Build id can not be empty.");
         }
         BuildBean buildBean = buildDAO.getById(buildId);
-        
+
         // check build name must match stage config
         if(!buildBean.getBuild_name().equals(envBean.getBuild_name())) {
-            throw new DeployInternalException("Build name (%s) does not match stage config (%s).", 
+            throw new DeployInternalException("Build name (%s) does not match stage config (%s).",
                     buildBean.getBuild_name(), envBean.getBuild_name());
         }
         // only allow a non-private deploy if the build is from a trusted artifact url
@@ -417,6 +417,7 @@ public class DeployHandler implements DeployHandlerInterface{
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST, "This stage requires SOX builds. The build must be from a sox-compliant source. Contact your sox administrators.");
         }
     }
+
     public String deploy(EnvironBean envBean, String buildId, String desc, String deliveryType, String operator) throws Exception {
         validateBuild(envBean, buildId);
 
@@ -426,13 +427,14 @@ public class DeployHandler implements DeployHandlerInterface{
         deployBean.setDescription(desc);
         deployBean.setDeploy_type(DeployType.REGULAR);
         deployBean.setOperator(operator);
-        
+
         // compare the current stage_type and the delivery_type
-        // When the delivery_type is different with stage_type and stage_type is not DEFAULT, we reject the deployment API call;
+        // When the delivery_type is different with stage_type and stage_type is not DEFAULT, we log the deployment API call;
         // When the delivery_type is different with stage_type and stage_type is DEFAULT, we update the stage_type;
-        if(StringUtils.isNotBlank(deliveryType) && !envBean.getStage_type().toString().equals(deliveryType)) {
+        if (StringUtils.isNotBlank(deliveryType) && !envBean.getStage_type().toString().equals(deliveryType)) {
             if (envBean.getStage_type() != EnvType.DEFAULT) {
-                throw new Exception("The delivery type is different with the stage type, deployment is not allowed!");
+                LOG.error("The delivery type {} is different with the stage type {} for {}/{}",
+                        deliveryType, envBean.getStage_type(), envBean.getEnv_name(), envBean.getStage_name());
             } else {
                 EnvType type = EnvType.valueOf(deliveryType);
                 envBean.setStage_type(type);
@@ -459,7 +461,7 @@ public class DeployHandler implements DeployHandlerInterface{
             throw new DeployInternalException(String.format("Can not promote to a disabled env %s/%s",
                     envBean.getEnv_name(), envBean.getStage_name()));
         }
-     
+
         DeployBean fromDeployBean = getDeploySafely(fromDeployId);
 
         validateBuild(envBean, fromDeployBean.getBuild_id());
@@ -555,7 +557,7 @@ public class DeployHandler implements DeployHandlerInterface{
             updateScheduleBean.setState(ScheduleState.RUNNING);
             updateScheduleBean.setCurrent_session(1);
             updateScheduleBean.setState_start_time(System.currentTimeMillis());
-            scheduleDAO.update(updateScheduleBean, scheduleId);   
+            scheduleDAO.update(updateScheduleBean, scheduleId);
         }
     }
 
