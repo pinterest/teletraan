@@ -638,7 +638,7 @@ def agentIcon(agentStats):
         if agent['deployStage'] == "SERVING_BUILD":
             return 'fa-check'
         if agentStats.isStale or (
-                agent['status'] == "PROVISIONED" and
+                agent['state']== "PROVISIONED" and
                 agent["ip"] is None
                 ):
             return 'fa-exclamation-triangle'
