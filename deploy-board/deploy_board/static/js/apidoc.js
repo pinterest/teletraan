@@ -16,10 +16,11 @@ function loadSpecManually(specUrl) {
     const docEl = document.getElementById("apidoc");
     let headers = new Headers();
     headers.append("Authorization", docEl.getAttribute("api-key-value"));
-
     fetch(specUrl, { headers: headers })
         .then((response) => response.json())
         .then((specJson) => {
+            const specUrlObj = new URL(specUrl);
+            specJson.servers = [{ url: specUrlObj.origin }];
             docEl.loadSpec(specJson);
         });
 }

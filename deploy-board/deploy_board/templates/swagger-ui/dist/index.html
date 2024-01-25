@@ -14,7 +14,8 @@
             api-key-value="token {{ token }}"
             fetch-credentials="same-origin"
             allow-server-selection="false"
-            allow-authentication="false">
+            allow-authentication="false"
+            sort-tags="true">
         <div >
             <div style="font-size:14px;
                         border:0;
@@ -26,8 +27,8 @@
                         <td>Predefined Swagger URL</td>
                         <td>
                             <select class='size txt' style="width:138px" id='spec-url-override'>
-                                <option value="{{ teletraanSwaggerUrl }}">Teletraan-{{ envStage }}</option>
-                                <option value="{{ rodimusSwaggerUrl }}">Rodimus-{{ envStage }}</option>
+                                <option value="{{ teletraanSwaggerUrl }}/swagger.json">Teletraan-{{ envStage }}</option>
+                                <option value="{{ rodimusSwaggerUrl }}/swagger.json">Rodimus-{{ envStage }}</option>
                             </select>
                             <button class='size btn' onclick='pickSpec(event)'>Change</button>
                         </td>
