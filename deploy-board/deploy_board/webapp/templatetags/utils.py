@@ -634,10 +634,11 @@ def agentIcon(agentStats):
         return 'fa-recycle fa-spin'
 
     # normal state
-    if agent['deployStage'] == "SERVING_BUILD" and agentStats.isCurrent:
-        return 'fa-check'
-
     if agentStats.isCurrent:
+        if agent['deployStage'] == "SERVING_BUILD":
+            return 'fa-check'
+        if agentStats.isStale:
+            return 'fa-exclamation-triangle'
         return 'fa-spinner fa-spin'
 
     return 'fa-clock-o'
