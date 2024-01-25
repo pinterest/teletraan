@@ -267,7 +267,7 @@ def get_container_health_info(commit, service, redeploy):
             else:
                 send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "healthy", "service": service, "commit": commit})
-            return ret
+            return returnValue
         else:
             send_statsboard_metric(name='deployd.service_health_status', value=1,
                                tags={"status": "None", "service": service, "commit": commit})
