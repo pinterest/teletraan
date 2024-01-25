@@ -97,6 +97,19 @@
                     <h4 class="modal-title">Create Base Image Confirm</h4>
                 </div>
                 <div class="modal-body" id="createBaseImageModal">
+                    <div class="hidden" id="create-base-image-form-errors"></div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Cloud Provider
+                        </label>
+                        <div class="col-md-6">
+                            <select class="form-control" name="provider" required id="providerNameId">
+                                {% for provider in provider_list %}
+                                <option value="{{ provider }}">{{ provider }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label class="deployToolTip control-label text-center col-xs-6">
                             Cell
@@ -134,19 +147,7 @@
                             Cloud specific image id
                         </label>
                         <div class="col-md-6">
-                            <input class="form-control" name="providerName" required="true" type="text" value="" />
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="deployToolTip control-label text-center col-xs-6">
-                            Cloud Provider
-                        </label>
-                        <div class="col-md-6">
-                            <select class="form-control" name="provider" required id="providerNameId">
-                                {% for provider in provider_list %}
-                                <option value="{{ provider }}">{{ provider }}</option>
-                                {% endfor %}
-                            </select>
+                            <input id="create-base-image-provider-name" class="form-control" name="providerName" required="true" type="text" value="" />
                         </div>
                     </div>
                     <div class="form-group">
@@ -155,6 +156,14 @@
                         </label>
                         <div class="col-md-6">
                             <input class="form-control" name="description" type="text" value="" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="deployToolTip control-label text-center col-xs-6">
+                            Is basic?
+                        </label>
+                        <div class="col-md-6">
+                            <input name="basic" type="checkbox" checked />
                         </div>
                     </div>
                 </div>
@@ -168,4 +177,70 @@
         </div>
     </div>
 </div>
+
+<script>
+    $("#createBaseImageFormId").submit(function(event) {            
+        var provider = $("#providerNameId").val();
+        var errorElement = $("#create-base-image-form-errors");  
+        var errors = "";
+        var validationErrors = [validateProviderName(provider), validateCellName(provider)];
+        validationErrors
+            .filter(err => err != null)
+            .forEach((error, i) => {
+                errors += createValidationErrorHtml(i === 0, error);
+            });
+
+        if (errors.length === 0) {
+            errorElement.addClass("hidden");
+        } else {
+            errorElement.removeClass("hidden");
+            errorElement.html(errors);
+            event.preventDefault();
+        }
+    });  
+
+    function createValidationErrorHtml(isFirst, err) {
+        var classes = ["alert", "alert-danger"];
+        if (!isFirst) {
+            classes.push("mt-1");
+        }
+        return "<div class=\"" + classes.join(" ") + "\" role=\"alert\">" + err + "</div>";
+    }
+
+    function validateProviderName(provider) {
+        var validators = {
+            "AWS": {
+                prefix: "ami-",
+                example: "ami-b1cf1c23346789fff"
+            }
+        }
+        var providerName = $("#create-base-image-provider-name").val();  
+        var validator = validators[provider];
+        if (validator) {
+            if (!providerName.startsWith(validator.prefix)) {
+                return "\"Cloud specific image id\" should start with \"" 
+                    + validator.prefix + "\", example: " + validator.example;
+            }
+        }
+        return null;
+    }
+
+    function validateCellName(provider) {
+        var validators = {
+            "AWS": {
+                prefix: "aws-",
+                example: "aws-us-east-1"
+            }
+        }
+        var cellName = $("#cellName").val();
+        var validator = validators[provider];  
+        if (validator) {
+            if (!cellName.startsWith(validator.prefix)) {
+                return "\"Cell\" should start with \"" 
+                    + validator.prefix + "\", example: " + validator.example;
+            }
+        }
+        return null;
+    }
+</script>
 {% endblock %}

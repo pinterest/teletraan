@@ -376,6 +376,7 @@ def create_base_image(request):
     base_image_info['description'] = params['description']
     base_image_info['cell_name'] = params['cellName']
     base_image_info['arch_name'] = params['archName']
+    base_image_info['basic'] = 'basic' in params and params['basic'] == "true"
     baseimages_helper.create_base_image(request, base_image_info)
     return redirect('/clouds/baseimages/')
 
