@@ -639,7 +639,7 @@ def agentIcon(agentStats):
             return 'fa-check'
         if agentStats.isStale or (
                 agent['status'] == "PROVISIONED" and
-                agent["ip"] == "None"
+                agent["ip"] is None
                 ):
             return 'fa-exclamation-triangle'
         return 'fa-spinner fa-spin'
