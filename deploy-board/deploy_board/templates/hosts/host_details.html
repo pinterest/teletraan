@@ -73,9 +73,9 @@
     {% for host in hosts %}
     <tr class="{{ host.state|hostStateClass}}">
         {% if account_id and account_id != "null" %}
-        {{ host }}
         <td>{{ host.accountId }}</td>
         {% endif %}
+        {{ host }}
         <td>{{ host.hostName }}</td>
         <td>{{ host.hostId }}</td>
         <td>{{ host.groupName }}</td>
