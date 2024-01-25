@@ -58,7 +58,7 @@
 
 <div id="hostDetailId" class="collapse in panel-body table-responsive">
 <table class="table table-striped table-bordered table-condensed table-hover">
-    <tr>  
+    <tr>
         {% if account_id and account_id != "null" %}
         <th class="col-lg-1">Acccount Id</th>
         {% endif %}
@@ -85,8 +85,12 @@
     </tr>
     {% endfor %}
 </table>
+    <div class="row">
     {% if pinterest %}
-    <a href="javascript:void(0)" id="seeMoreLink">See more host details</a>
+    <div class="row">
+        <a href="javascript:void(0)" id="seeMoreLink">See more host details</a>
+        <a class="pull-right" href="#" data-toggle="modal" data-target="#rawHostInfoModel">Raw Host Info</a>
+    </div>
     <div id="moreHostDetails" hidden="true">
     {% for key, value in host_details.items %}
     <div class="row">
@@ -118,6 +122,17 @@
     {% endif %}
     </div>
     {% endif %}
+        <div id="rawHostInfoModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog">
+          <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <p>
+                {{ host }}
+                </p>
+            </div>
+          </div>
+          </div>
+        </div>
+    </div>
 </div>
 
 </div>
