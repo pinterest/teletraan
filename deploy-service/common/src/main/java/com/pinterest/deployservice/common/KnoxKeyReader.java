@@ -73,6 +73,6 @@ public class KnoxKeyReader implements KeyReader {
             LOG.warn("Using default key since knoxManager is null");
             return defaultKeyContent;
         }
-        return knoxManager.getKey();
+        return knoxManager.getKey().trim();
     }
 }
