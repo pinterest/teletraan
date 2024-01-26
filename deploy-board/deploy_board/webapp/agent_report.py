@@ -22,6 +22,9 @@ import time
 from collections import OrderedDict
 from functools import cmp_to_key
 
+import logging
+log = logging.getLogger(__name__)
+
 # Constants used to distinguish the action to generate the host report
 TOTAL_ALIVE_HOST_REPORT = "TOTAL_ALIVE_HOST_REPORT"
 UNKNOWN_HOST_REPORT = "UNKNOWN_HOST_REPORT"
@@ -168,6 +171,8 @@ def gen_report(request, env, progress, sortByStatus="false"):
             deprecatedDeployStats.append(value)
 
     provisioning_hosts = progress["provisioningHosts"]
+
+    log.debug(firstTimeAgentStats)
 
     return AgentReport(firstTimeAgentStats=firstTimeAgentStats,
                        agentStats=agentStats,
