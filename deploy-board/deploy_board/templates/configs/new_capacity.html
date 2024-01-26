@@ -58,7 +58,7 @@
         <div class="container-fluid">
             <form id="envCapacityFormId" class="form-horizontal" role="form">
                 <div class="row">
-                    <label>This is for CMP docker only hosts. For other type, click the Advanced Settings on the left</label>
+                    <label>This is for CMP docker with cpu architecture x86_64 only hosts. For other types, please click the Advanced Settings on the left. </label>
                 </div>
                 <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                 <hosttype-select label="Host Type" title="Compute Capability of the host" v-model="selectedHostTypeValue" v-bind:selectoptions="hostTypeOptions" selectsearch="true"></hosttype-select>

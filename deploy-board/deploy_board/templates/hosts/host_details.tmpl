@@ -63,8 +63,8 @@
             {% if agent|agentRetryable %}
             <button id="reset_agent_{{ env.envName }}_{{ env.stageName }}"
                     class="deployToolTip btn btn-default" data-toggle="tooltip"
-                    title="Retry the deploy on this host.">
-                <span class="glyphicon glyphicon-repeat"></span> Retry
+                    title="Restart an environment on this host.">
+                <span class="glyphicon glyphicon-repeat"></span> Restart
             </button>
             {% endif %}
             {% if agent|agentPausable %}

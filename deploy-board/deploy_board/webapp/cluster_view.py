@@ -20,7 +20,7 @@ from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.views.generic import View
 
-from deploy_board.settings import IS_PINTEREST, RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL
+from deploy_board.settings import IS_PINTEREST, RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL, RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL
 if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
@@ -32,7 +32,7 @@ import logging
 
 from .helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
     autoscaling_groups_helper, groups_helper, cells_helper, arches_helper
-from .helpers import clusters_helper, environs_helper, environ_hosts_helper
+from .helpers import clusters_helper, environs_helper, environ_hosts_helper, baseimages_helper
 from .helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
 from . import common
 import traceback
@@ -376,6 +376,7 @@ def create_base_image(request):
     base_image_info['description'] = params['description']
     base_image_info['cell_name'] = params['cellName']
     base_image_info['arch_name'] = params['archName']
+    base_image_info['basic'] = 'basic' in params and params['basic'] == "true"
     baseimages_helper.create_base_image(request, base_image_info)
     return redirect('/clouds/baseimages/')
 
@@ -1029,10 +1030,14 @@ def gen_cluster_replacement_view(request, name, stage):
         "clusterName": cluster_name
     }
     replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
+    cluster = clusters_helper.get_cluster(request, cluster_name)
 
     storage = get_messages(request)
 
     content = render_to_string("clusters/cluster-replacements.tmpl", {
+        "auto_refresh_view": False,
+        "auto_refresh_enabled": cluster["autoRefresh"],
+        "cluster_last_update_time": cluster["lastUpdate"],
         "env": env,
         "env_name": name,
         "env_stage": stage,
@@ -1044,6 +1049,76 @@ def gen_cluster_replacement_view(request, name, stage):
     })
 
     return HttpResponse(content)
+
+def gen_auto_cluster_refresh_view(request, name, stage):
+    env = environs_helper.get_env_by_stage(request, name, stage)
+    cluster_name = '{}-{}'.format(name, stage)
+    get_cluster_replacement_body = {
+        "clusterName": cluster_name
+    }
+    replace_summaries = clusters_helper.get_cluster_replacement_status(request, data=get_cluster_replacement_body)
+    cluster = clusters_helper.get_cluster(request, cluster_name)
+    auto_refresh_config = clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
+
+    emails = ''
+    slack_channels = ''
+    try:
+        group_info = autoscaling_groups_helper.get_group_info(request, cluster_name)
+        # the helper above returns a nested groupInfo object, so need to access this nested object first.
+        # avoid changing the helper to not making other changes where it's being used.
+        emails = sanitize_slack_email_input(group_info["groupInfo"]["emailRecipients"])
+        slack_channels = sanitize_slack_email_input(group_info["groupInfo"]["chatroom"])
+    except Exception:
+        log.exception('Failed to get group %s info', cluster_name)
+        messages.warning(request, "failed to retrieve group info", "cluster-replacements")
+
+    button_disabled = False
+
+    # get default configurations for first time
+    try:
+        if auto_refresh_config == None:
+            auto_refresh_config = clusters_helper.get_default_cluster_auto_refresh_config(request, cluster_name)
+    except IllegalArgumentException:
+        note = "To use auto cluster refresh, update stage type to one of these: DEV, LATEST, CANARY, CONTROL, STAGING, PRODUCTION"
+        messages.warning(request, note, "cluster-replacements")
+        button_disabled = True
+
+    storage = get_messages(request)
+
+    content = render_to_string("clusters/cluster-replacements.tmpl", {
+        "auto_refresh_view": True,
+        "button_disabled": button_disabled,
+        "auto_refresh_config": auto_refresh_config,
+        "auto_refresh_enabled": cluster["autoRefresh"],
+        "cluster_last_update_time": cluster["lastUpdate"],
+        "env": env,
+        "env_name": name,
+        "env_stage": stage,
+        "cluster_name": cluster_name,
+        "replace_summaries": replace_summaries["clusterRollingUpdateStatuses"],
+        "emails": emails,
+        "slack_channels": slack_channels,
+        "csrf_token": get_token(request),
+        "storage": storage,
+        "auto_cluster_refresh_wiki_url": RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL
+    })
+
+    return HttpResponse(content)
+
+def sanitize_slack_email_input(input):
+    res = ''
+    if input == None or len(input) == 0:
+        return res
+    
+    tokens = input.strip().split(',')
+    for e in tokens:
+        e = e.strip()
+        if e:
+            if not res:
+                res = e
+            else:
+                res = res + ',' + e
+    return res
 
 
 def get_cluster_replacement_details(request, name, stage, replacement_id):
@@ -1069,8 +1144,65 @@ def get_cluster_replacement_details(request, name, stage, replacement_id):
 
 
 def start_cluster_replacement(request, name, stage):
+    cluster_name = common.get_cluster_name(request, name, stage)
+    rollingUpdateConfig = gen_replacement_config(request)
+    start_cluster_replacement = {}
+    start_cluster_replacement["clusterName"] = cluster_name
+    start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
+
+    log.info("Starting to replace cluster {0}".format(cluster_name))
+
+    try:
+        clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
+        messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
+    except TeletraanException as ex:
+        if "already in progress" in str(ex) and "409" in str(ex):
+            messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
+        else:
+            messages.warning(request, str(ex), "cluster-replacements")
+
+    return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
+
+def submit_auto_refresh_config(request, name, stage):
     params = request.POST
     cluster_name = common.get_cluster_name(request, name, stage)
+    autoRefresh = False
+
+    if "enableAutoRefresh" in params:
+        autoRefresh = True
+
+    auto_refresh_config = {}
+    rollingUpdateConfig = gen_replacement_config(request)
+    auto_refresh_config["clusterName"] = cluster_name
+    auto_refresh_config["envName"] = cluster_name
+    auto_refresh_config["bakeTime"] = params["bakeTime"]
+    auto_refresh_config["config"] = rollingUpdateConfig
+    auto_refresh_config["type"] = "LATEST"
+    
+    emails = params["emails"]
+    slack_channels = params["slack_channels"]
+
+    try:
+        clusters_helper.submit_cluster_auto_refresh_config(request, data=auto_refresh_config)
+        cluster = clusters_helper.get_cluster(request, cluster_name)
+        cluster["autoRefresh"] = autoRefresh
+        clusters_helper.update_cluster(request, cluster_name, cluster)
+        group_info = autoscaling_groups_helper.get_group_info(request, cluster_name)
+        if group_info:
+            group_info["groupInfo"]["emailRecipients"] = emails
+            group_info["groupInfo"]["chatroom"] = slack_channels
+            autoscaling_groups_helper.update_group_info(request, cluster_name, group_info["groupInfo"])
+        messages.success(request, "Auto refresh config saved successfully.", "cluster-replacements")
+    except IllegalArgumentException as e:
+        log.exception("Failed to update refresh config. Some request could succeed.")
+        pass
+    except Exception as e:
+        messages.error(request, str(e), "cluster-replacements")
+
+    return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
+
+def gen_replacement_config(request):
+    params = request.POST
     skipMatching = False
     scaleInProtectedInstances = 'Ignore'
     checkpointPercentages = []
@@ -1089,23 +1221,20 @@ def start_cluster_replacement(request, name, stage):
     rollingUpdateConfig["scaleInProtectedInstances"] = scaleInProtectedInstances
     rollingUpdateConfig["checkpointPercentages"] = checkpointPercentages
     rollingUpdateConfig["checkpointDelay"] = params["checkpointDelay"]
-    start_cluster_replacement = {}
-    start_cluster_replacement["clusterName"] = cluster_name
-    start_cluster_replacement["rollingUpdateConfig"] = rollingUpdateConfig
 
-    log.info("Starting to replace cluster {0}".format(cluster_name))
+    return rollingUpdateConfig
 
+def get_auto_refresh_config(request, name, stage):
+    cluster_name = common.get_cluster_name(request, name, stage)
     try:
-        clusters_helper.start_cluster_replacement(request, data=start_cluster_replacement)
-        messages.success(request, "Cluster replacement started successfully.", "cluster-replacements")
+        clusters_helper.get_cluster_auto_refresh_config(request, cluster_name)
     except TeletraanException as ex:
         if "already in progress" in str(ex) and "409" in str(ex):
             messages.warning(request, "Cluster replacement is already in progress.", "cluster-replacements")
         else:
             messages.warning(request, str(ex), "cluster-replacements")
 
-    return redirect('/env/{}/{}/cluster_replacements'.format(name, stage))
-
+    return redirect('/env/{}/{}/cluster_replacements/auto_refresh'.format(name, stage))
 
 def perform_cluster_replacement_action(request, name, stage, action, includeMessage=True):
     cluster_name = common.get_cluster_name(request, name, stage)

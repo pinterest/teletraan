@@ -118,6 +118,7 @@ public class PingHandler {
     private List<PingRequestValidator> validators;
     private Long agentCountCacheTtl;
     private Long maxParallelThreshold;
+    private Set<String> accountAllowList;
 
     public PingHandler(ServiceContext serviceContext) {
         agentDAO = serviceContext.getAgentDAO();
@@ -138,7 +139,8 @@ public class PingHandler {
         validators = serviceContext.getPingRequestValidators();
         agentCountCacheTtl = serviceContext.getAgentCountCacheTtl();
         maxParallelThreshold = serviceContext.getMaxParallelThreshold();
-
+        accountAllowList = serviceContext.getAccountAllowList();
+        
         if (serviceContext.isBuildCacheEnabled()) {
             buildCache = CacheBuilder.from(serviceContext.getBuildCacheSpec().replace(";", ","))
                     .build(new CacheLoader<String, BuildBean>() {
@@ -272,6 +274,7 @@ public class PingHandler {
         return true;
     }
 
+  
     /**
      * Check if we can start deploy on host for certain env. We should not allow
      * more than parallelThreshold hosts in install in the same time
@@ -632,7 +635,7 @@ public class PingHandler {
         if (validators != null) {
             // validate requests
             for (PingRequestValidator validator : validators) {
-                validator.validate(pingRequest);
+                validator.validate(pingRequest, accountAllowList);
             }
         }
 

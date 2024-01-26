@@ -283,7 +283,6 @@ def update_group_config(request, group_name):
         else:
             groupRequest["lifecycleNotifications"] = False
 
-        print(groupRequest)
         autoscaling_groups_helper.update_group_info(request, group_name, groupRequest)
         return get_group_config(request, group_name)
     except:
@@ -445,25 +444,49 @@ def make_int(s):
     return int(s) if s else 0
 
 
-class ScalingPolicy(object):
-    def __init__(self, policies):
-        self.enabled = len(policies.get("scaleupPolicies")) > 0 and \
-            len(policies.get("scaledownPolicies")) > 0
-        if self.enabled:
-            self.scaleUpSize = policies.get("scaleupPolicies")[0].get("scaleSize")
-            self.scaleDownSize = policies.get("scaledownPolicies")[0].get("scaleSize")
-            self.scaleUpCoolDownTime = policies.get("scaleupPolicies")[0].get("coolDown")
-            self.scaleDownCoolDownTime = policies.get("scaledownPolicies")[0].get("coolDown")
-            self.scaleUpType = policies.get("scaleupPolicies")[0].get("scalingType")
-            self.scaleDownType = policies.get("scaledownPolicies")[0].get("scalingType")
-
-
 def get_policy(request, group_name):
     policies = autoscaling_groups_helper.get_policies(request, group_name)
-    policy = ScalingPolicy(policies)
+    step_scaling_policy = None
+    for policy in policies["scalingPolicies"]:
+        if policy["policyType"] == "StepScaling":
+            step_scaling_policy = policy
+            break
+    
+    scale_up_steps = []
+    scale_down_steps = []
+
+    if step_scaling_policy != None:
+        for step in step_scaling_policy["stepAdjustments"]:
+            if step["metricIntervalUpperBound"] != None and float(step["metricIntervalUpperBound"]) <= 0:
+                scale_down_steps.append({"upper_bound": float(step["metricIntervalUpperBound"]), "adjustment": step["scalingAdjustment"]})
+            if step["metricIntervalLowerBound"] != None and float(step["metricIntervalLowerBound"]) >= 0:
+                scale_up_steps.append({"lower_bound": float(step["metricIntervalLowerBound"]), "adjustment": step["scalingAdjustment"]})
+
+        scale_down_steps = sorted(scale_down_steps, key=lambda d: d['upper_bound']) 
+        scale_up_steps = sorted(scale_up_steps, key=lambda d: d['lower_bound'])
+        
+        scale_down_steps_string = ", ".join([str(step['upper_bound']) for step in scale_down_steps])
+        scale_up_steps_string = ", ".join([str(step['lower_bound']) for step in scale_up_steps])
+
+        scale_down_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_down_steps])
+        scale_up_adjustments_string = ", ".join([str(step['adjustment']) for step in scale_up_steps])
+        
+        step_scaling_policy["scale_down_steps_string"] = scale_down_steps_string
+        step_scaling_policy["scale_up_steps_string"] = scale_up_steps_string
+        step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
+        step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
+
+        if step_scaling_policy["instanceWarmup"]:
+            step_scaling_policy["instanceWarmup"] = step_scaling_policy["instanceWarmup"] // 60
+        else:
+            step_scaling_policy["instanceWarmup"] = 0
+
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
-        "policy": policy,
+        "scalingPolicies": policies["scalingPolicies"],
+        "scaleupPolicies": policies["scaleupPolicies"],
+        "scaledownPolicies": policies["scaledownPolicies"],
+        "stepScalingPolicy": step_scaling_policy,
         "csrf_token": get_token(request),
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
@@ -472,54 +495,170 @@ def get_policy(request, group_name):
 def update_policy(request, group_name):
     params = request.POST
     try:
+        policyType = params["policyType"]
         scaling_policies = {}
-        scaling_policies["scaleupPolicies"] = []
-        scaling_policies["scaledownPolicies"] = []
-        scaling_policies["scaleupPolicies"].append({"scaleSize": make_int(params["scaleupSize"]),
-                                                    "scalingType": params["scaleupType"],
-                                                    "coolDown": make_int(params["scaleupCooldownTime"])})
-        scaling_policies["scaledownPolicies"].append({"scaleSize": make_int(params["scaledownSize"]),
-                                                      "scalingType": params["scaledownType"],
-                                                      "coolDown": make_int(params["scaleDownCooldownTime"])})
+
+        if policyType == "simple-scaling":
+            scaling_policies["scaleupPolicies"] = []
+            scaling_policies["scaledownPolicies"] = []
+            scaling_policies["scaleupPolicies"].append({"scaleSize": make_int(params["scaleupSize"]),
+                                                        "scalingType": params["scaleupType"],
+                                                        "coolDown": make_int(params["scaleupCooldownTime"])})
+            scaling_policies["scaledownPolicies"].append({"scaleSize": make_int(params["scaledownSize"]),
+                                                        "scalingType": params["scaledownType"],
+                                                        "coolDown": make_int(params["scaleDownCooldownTime"])})
+        elif policyType == "step-scaling":
+            scaling_policies["scalingPolicies"] = []
+            step_scaling_policy = {}
+            step_scaling_policy["policyType"] = "StepScaling"
+            step_scaling_policy["scalingType"] = params["scalingType"]
+
+            if params["instanceWarmup"]:
+                step_scaling_policy["instanceWarmup"] = int(params["instanceWarmup"]) * 60
+
+            step_scaling_policy["metricAggregationType"] = "Average"
+
+            if params["scalingType"] == "PercentChangeInCapacity":
+                step_scaling_policy["minAdjustmentMagnitude"] = params["minAdjustmentMagnitude"]
+            
+            step_scaling_policy["stepAdjustments"] = []
+
+            if (params['scaleUpSteps']):
+                scaleUpSteps = [float(x) for x in params["scaleUpSteps"].split(',')]
+                scaleUpAdjustments = [int(x) for x in params["scaleUpAdjustments"].split(',')]
+                for i in range(len(scaleUpSteps)):
+                    step = {}
+                    step["metricIntervalLowerBound"] = scaleUpSteps[i]
+                    if i < len(scaleUpSteps) - 1:
+                        step["metricIntervalUpperBound"] = scaleUpSteps[i + 1]
+                    step["scalingAdjustment"] = scaleUpAdjustments[i]
+                    step_scaling_policy["stepAdjustments"].append(step)
+
+            if (params['scaleDownSteps']):
+                scaleDownSteps = [float(x) for x in params["scaleDownSteps"].split(',')]
+                scaleDownAdjustments = [int(x) for x in params["scaleDownAdjustments"].split(',')]
+
+                for i in range(len(scaleDownSteps)):
+                    step = {}
+                    step["metricIntervalUpperBound"] = scaleDownSteps[i]
+                    if i > 0:
+                        step["metricIntervalLowerBound"] = scaleDownSteps[i - 1]
+                    step["scalingAdjustment"] = scaleDownAdjustments[i]
+                    step_scaling_policy["stepAdjustments"].append(step)
+
+            scaling_policies["scalingPolicies"].append(step_scaling_policy)
+
         autoscaling_groups_helper.put_scaling_policies(request, group_name, scaling_policies)
+
         return get_policy(request, group_name)
     except:
         log.error(traceback.format_exc())
         raise
 
 
-# alarm relelated information
-def _parse_metrics_configs(query_data, group_name):
-    page_data = dict(query_data.lists())
+# alarm related information
+def _parse_metrics_configs(request, group_name):
+    params = request.POST
+    page_data = dict(params.lists())
     configs = []
     for key, value in page_data.items():
         if not value:
             continue
         if key.startswith('TELETRAAN_'):
             alarm_info = {}
+            alarm_info["scalingPolicies"] = []
+            
             alarm_id = key[len('TELETRAAN_'):]
+            action_type = params["actionType_{}".format(alarm_id)]
+
+            if page_data["fromAwsMetric_{}".format(alarm_id)][0] == "True":
+                alarm_info["fromAwsMetric"] = True
+            else:
+                alarm_info["fromAwsMetric"] = False
+
             # skip scheduled actions
             if page_data.get("schedule_{}".format(alarm_id)) or page_data.get("capacity_{}".format(alarm_id)):
                 continue
+
+            policy_type = "simple-scaling"
+            policy_type_key = "policyType_{}".format(alarm_id)
+            if policy_type_key in page_data:
+                policy_type = page_data[policy_type_key][0]
+
+            policies = autoscaling_groups_helper.get_policies(request, group_name)
+
+            # Use simple scaling for custom metric
+            if page_data["fromAwsMetric_{}".format(alarm_id)][0] == False:
+                policy_type = "simple-scaling"
+
+            if policy_type == "simple-scaling":
+                if action_type == "GROW":
+                    if policies["scaleupPolicies"] != None:
+                        for i in policies["scaleupPolicies"]:
+                            alarm_info["scalingPolicies"].append(i)
+                else:
+                    if policies["scaledownPolicies"] != None:
+                        for i in policies["scaledownPolicies"]:
+                            alarm_info["scalingPolicies"].append(i)
+            else:
+                if policies["scalingPolicies"] != None:
+                    for p in policies["scalingPolicies"]:
+                        if p["policyType"] ==  "StepScaling":
+                            alarm_info["scalingPolicies"].append(p)
+                            break
+
             alarm_info["alarmId"] = alarm_id
             alarm_info["actionType"] = page_data["actionType_{}".format(alarm_id)][0]
             alarm_info["metricSource"] = page_data["metricsUrl_{}".format(alarm_id)][0]
             alarm_info["comparator"] = page_data["comparator_{}".format(alarm_id)][0]
             alarm_info["evaluationTime"] = int(page_data["evaluateTime_{}".format(alarm_id)][0])
             alarm_info["threshold"] = float(page_data["threshold_{}".format(alarm_id)][0])
-            if page_data["fromAwsMetric_{}".format(alarm_id)][0] == "True":
-                alarm_info["fromAwsMetric"] = True
-            else:
-                alarm_info["fromAwsMetric"] = False
             alarm_info["groupName"] = group_name
+
             configs.append(alarm_info)
+
     return configs
 
 
 def get_alarms(request, group_name):
     comparators = autoscaling_groups_helper.Comparator
     alarms = autoscaling_groups_helper.get_alarms(request, group_name)
-    aws_metric_names = autoscaling_groups_helper.get_system_metrics(request, group_name)
+
+    for alarm in alarms:
+        alarm["scalingType"] = None
+        if alarm["scalingPolicies"] != None:
+            if len(alarm["scalingPolicies"]) > 0:
+                # we restrict alarm has only one scaling policy
+                policy = alarm["scalingPolicies"][0]
+                alarm["scalingType"] = policy["policyType"]
+
+    aws_metric_names = [
+        "CPUUtilization",
+        "DiskReadOps",
+        "DiskWriteOps",
+        "DiskReadBytes",
+        "DiskWriteBytes",
+        "MetadataNoToken",
+        "NetworkIn",
+        "NetworkOut",
+        "NetworkPacketsIn",
+        "NetworkPacketsOut",
+        "CPUCreditUsage",
+        "CPUCreditBalance",
+        "CPUSurplusCreditBalance",
+        "CPUSurplusCreditsCharged",
+        "DedicatedHostCPUUtilization",
+        "EBSReadOps",
+        "EBSWriteOps",
+        "EBSReadBytes",
+        "EBSWriteBytes",
+        "EBSIOBalance%",
+        "EBSByteBalance%",
+        "StatusCheckFailed",
+        "StatusCheckFailed_Instance",
+        "StatusCheckFailed_System",
+        "StatusCheckFailed_AttachedEBS"
+    ] 
     content = render_to_string("groups/asg_metrics.tmpl", {
         "group_name": group_name,
         "alarms": alarms,
@@ -532,7 +671,7 @@ def get_alarms(request, group_name):
 
 def update_alarms(request, group_name):
     try:
-        configs = _parse_metrics_configs(request.POST, group_name)
+        configs = _parse_metrics_configs(request, group_name)
         autoscaling_groups_helper.update_alarms(request, group_name, configs)
         return get_alarms(request, group_name)
     except Exception as ex:
@@ -550,11 +689,39 @@ def delete_alarms(request, group_name):
 def add_alarms(request, group_name):
     params = request.POST
     alarm_info = {}
+    alarm_info["scalingPolicies"] = []
     action_type = params["asgActionType"]
+    policy_type = "simple-scaling"
+    if "policyType" in params:
+        policy_type = params["policyType"]
+
+    policies = autoscaling_groups_helper.get_policies(request, group_name)
+
+    # Use simple scaling for custom metric 
+    if "customUrlCheckbox" in params:
+        policy_type = "simple-scaling"
+
+    if policy_type == "simple-scaling":
+        if action_type == "grow":
+            if policies["scaleupPolicies"] != None:
+                for i in policies["scaleupPolicies"]:
+                    alarm_info["scalingPolicies"].append(i)
+        else:
+            if policies["scaledownPolicies"] != None:
+                for i in policies["scaledownPolicies"]:
+                    alarm_info["scalingPolicies"].append(i)
+    else:
+        if policies["scalingPolicies"] != None:
+            for p in policies["scalingPolicies"]:
+                if p["policyType"] ==  "StepScaling":
+                    alarm_info["scalingPolicies"].append(p)
+                    break
+
     if action_type == "grow":
         alarm_info["actionType"] = "GROW"
     else:
         alarm_info["actionType"] = "SHRINK"
+
     alarm_info["comparator"] = params["comparators"]
     alarm_info["threshold"] = float(params["threshold"])
     alarm_info["evaluationTime"] = int(params["evaluate_time"])
@@ -567,7 +734,9 @@ def add_alarms(request, group_name):
         if "awsMetrics" in params:
             alarm_info["metricSource"] = params["awsMetrics"]
     alarm_info["groupName"] = group_name
+
     autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
+
     return redirect("/groups/{}/config/".format(group_name))
 
 

@@ -35,7 +35,7 @@ PROJECT_PATH = BASE_DIR
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS' : [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -231,7 +231,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 
-
 ROOT_URLCONF = 'deploy_board.urls'
 
 WSGI_APPLICATION = 'deploy_board.wsgi.application'
@@ -255,7 +254,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(PROJECT_PATH, "static"),
 )
-#STATIC_ROOT = os.path.join(PROJECT_PATH, 'static')
+# STATIC_ROOT = os.path.join(PROJECT_PATH, 'static')
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
@@ -285,6 +284,7 @@ TELETRAAN_TRANSFER_OWNERSHIP_URL = os.getenv("TELETRAAN_TRANSFER_OWNERSHIP_URL",
 TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL = os.getenv("TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL", None)
 TELETRAAN_PROJECT_URL_FORMAT = os.getenv("TELETRAAN_PROJECT_URL_FORMAT", None)
 RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL = os.getenv("RODIMUS_CLUSTER_REPLACEMENT_WIKI_URL", None)
+RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL = os.getenv("RODIMUS_AUTO_CLUSTER_REFRESH_WIKI_URL", None)
 
 # use Rodimus if present
 RODIMUS_SERVICE_URL = os.getenv("RODIMUS_SERVICE_URL", None)
@@ -328,34 +328,34 @@ if IS_PINTEREST:
 
     DEFAULT_START_TIME = "-1d"
 
-    #Pinterest Default Cloud Provider
+    # Pinterest Default Cloud Provider
     DEFAULT_PROVIDER = 'AWS'
 
-    #Pinterest Default AMI image name
+    # Pinterest Default AMI image name
     DEFAULT_CMP_IMAGE = 'cmp_base-ebs-18.04'
     DEFAULT_CMP_ARM_IMAGE = 'cmp_base_arm64'
 
-    #Pinterest Default setting whether to use launch template or not
+    # Pinterest Default setting whether to use launch template or not
     DEFAULT_USE_LAUNCH_TEMPLATE = True
 
-    #Pinterest Default Host Type
+    # Pinterest Default Host Type
     # TODO: This is a description of the host type but is nonunique. However, it cannot be replaced by host_type ID since it is unique per service database.
     # TODO: The model for host type should be rebuilt based on a unique abstract factor such as ec2 instance type, for now we should keep expected behavior.
     DEFAULT_CMP_HOST_TYPE = 'EbsComputeLo(Recommended)'
     DEFAULT_CMP_ARM_HOST_TYPE = 'EbsComputeXLoArm'
     HOST_TYPE_ROADMAP_LINK = os.getenv("HOST_TYPE_ROADMAP_LINK")
 
-
     DEFAULT_CELL = 'aws-us-east-1'
     DEFAULT_ARCH = 'x86_64'
     DEFAULT_PLACEMENT = os.getenv('DEFAULT_CMP_PLACEMENT')
 
-    #Pinterest Default Puppet Environment
+    # Pinterest Default Puppet Environment
     DEFAULT_CMP_PINFO_ENVIRON = os.getenv('DEFAULT_CMP_PINFO_ENVIRON')
     DEFAULT_CMP_ACCESS_ROLE = os.getenv('DEFAULT_CMP_ACCESS_ROLE')
 
-    #CSP Config
-    CSP_SCRIPT_SRC = ("'self'", "https://*.gstatic.com/ https://cdn.jsdelivr.net/ https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
+    # CSP Config
+    CSP_SCRIPT_SRC = (
+        "'self'", "https://*.gstatic.com/ https://cdn.jsdelivr.net/ https://www.google.com/ 'unsafe-inline' 'unsafe-eval'")
     CSP_DEFAULT_SRC = ("'self'")
     CSP_CONNECT_SRC = ("'self'")
     CSP_EXCLUDE_URL_PREFIXES = ('/api-docs',)
@@ -374,3 +374,8 @@ if IS_PINTEREST:
 
     #Stage Type Info Link
     STAGE_TYPE_INFO_LINK = os.getenv("STAGE_TYPE_INFO_LINK")
+
+    #Primary Account
+    AWS_PRIMARY_ACCOUNT = os.getenv("AWS_PRIMARY_ACCOUNT", "998131032990")
+    #Sub Account
+    AWS_SUB_ACCOUNT = os.getenv("AWS_SUB_ACCOUNT", "562567494283")
