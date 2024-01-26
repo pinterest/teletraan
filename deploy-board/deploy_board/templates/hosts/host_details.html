@@ -89,7 +89,7 @@
     {% if pinterest %}
     <div class="row">
         <a href="javascript:void(0)" id="seeMoreLink">See more host details</a>
-        <a class="pull-right" href="#" data-toggle="modal" data-target="#rawHostInfoModel">Raw Host Info</a>
+        <button class="btn btn-default btn-block pull-right" href="#" data-toggle="modal" data-target="#rawHostInfoModel">Raw Host Info</button>
     </div>
     <div id="moreHostDetails" hidden="true">
     {% for key, value in host_details.items %}
@@ -121,20 +121,23 @@
         <a href="{{ host_information_url }}/instance/{{ host_id }}">click here</a>
     {% endif %}
     </div>
-    {% endif %}
-        <div id="rawHostInfoModal" class="modal fade bs-example-modal-sm" tabindex="-1" role="dialog">
-          <div class="modal-dialog modal-sm">
-            <div class="modal-content">
-                <p>
-                {{ host }}
-                </p>
-            </div>
-          </div>
-          </div>
-        </div>
-    </div>
-</div>
 
+
+    <div id="rawHostInfoModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            </div>
+            <div class="modal-body">
+                <code>{{ host }}</code>
+            </div>
+        </div>
+      </div>
+      </div>
+    </div>
+    {% endif %}
+    </div>
 </div>
 
 <script>
