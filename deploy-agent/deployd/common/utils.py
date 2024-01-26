@@ -258,24 +258,17 @@ def get_container_health_info(commit, service, redeploy):
                     except:
                         continue
             returnValue = ";".join(result) if result else None
-            if returnValue == None:
-                send_statsboard_metric(name='deployd.service_health_status', value=1,
-                                            tags={"status": "None", "service": service, "commit": commit})
-            elif "unhealthy" in returnValue:
+            if returnValue and "unhealthy" in returnValue:
                 send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "unhealthy", "service": service, "commit": commit})
-            else:
+            elif returnValue and "unhealthy" not in returnValue::
                 send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "healthy", "service": service, "commit": commit})
             return returnValue
         else:
-            send_statsboard_metric(name='deployd.service_health_status', value=1,
-                               tags={"status": "None", "service": service, "commit": commit})
             return None
     except:
         log.error(f"Failed to get container health info with commit {commit}")
-        send_statsboard_metric(name='deployd.service_health_status', value=1,
-                               tags={"status": "None", "service": service, "commit": commit})
         return None
 
 
