@@ -89,7 +89,7 @@
     {% if pinterest %}
     <div class="row">
         <a href="javascript:void(0)" id="seeMoreLink">See more host details</a>
-        <button class="btn btn-default btn-block pull-right" href="#" data-toggle="modal" data-target="#rawHostInfoModel">Raw Host Info</button>
+        <a class="pull-right" href="#" data-toggle="modal" data-target="#rawHostInfoModal">Raw Host Info</a>
     </div>
     <div id="moreHostDetails" hidden="true">
     {% for key, value in host_details.items %}
@@ -122,12 +122,12 @@
     {% endif %}
     </div>
 
-
     <div id="rawHostInfoModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Raw Host Info</h4>
             </div>
             <div class="modal-body">
                 <code>{{ host }}</code>
