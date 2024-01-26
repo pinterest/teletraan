@@ -130,7 +130,9 @@
                 <h4 class="modal-title">Raw Host Info</h4>
             </div>
             <div class="modal-body">
+                {% for host in hosts %}
                 <code>{{ host }}</code>
+                {% endfor %}
             </div>
         </div>
       </div>
