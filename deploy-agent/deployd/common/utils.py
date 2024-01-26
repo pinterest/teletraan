@@ -261,7 +261,7 @@ def get_container_health_info(commit, service, redeploy):
             if returnValue and "unhealthy" in returnValue:
                 send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "unhealthy", "service": service, "commit": commit})
-            elif returnValue and "unhealthy" not in returnValue::
+            elif returnValue and "unhealthy" not in returnValue:
                 send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "healthy", "service": service, "commit": commit})
             return returnValue
