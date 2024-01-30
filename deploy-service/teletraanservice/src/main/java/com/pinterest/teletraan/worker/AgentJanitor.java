@@ -122,7 +122,7 @@ public class AgentJanitor extends SimpleAgentJanitor {
         }
 
         if (janitorStartTime - hostAgentBean.getLast_update() >= absoluteThreshold) {
-            LOG.info("exceeded absolute stale threshold ({}) for host ({})", absoluteThreshold, hostAgentBean)
+            LOG.info("exceeded absolute stale threshold ({}) for host ({})", absoluteThreshold, hostAgentBean);
             return true;
         }
 
@@ -139,12 +139,12 @@ public class AgentJanitor extends SimpleAgentJanitor {
         Long launchGracePeriod = getInstanceLaunchGracePeriod(hostAgentBean.getAuto_scaling_group());
         if ((hostBean.getState() == HostState.PROVISIONED)
                 && (janitorStartTime - hostAgentBean.getLast_update() >= launchGracePeriod)) {
-            LOG.info("exceeded launch grace period ({}) for provisioned host ({})", launchGracePeriod, hostAgentBean)
+            LOG.info("exceeded launch grace period ({}) for provisioned host ({})", launchGracePeriod, hostAgentBean);
             return true;
         }
         if (hostBean.getState() != HostState.TERMINATING && !hostBean.isPendingTerminate() &&
                 (janitorStartTime - hostAgentBean.getLast_update() >= maxStaleHostThreshold)) {
-            LOG.info("exceeded max stale threshold ({}) for host ({})", maxStaleHostThreshold, hostAgentBean)
+            LOG.info("exceeded max stale threshold ({}) for host ({})", maxStaleHostThreshold, hostAgentBean);
             return true;
         }
         return false;
