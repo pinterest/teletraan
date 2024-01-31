@@ -45,7 +45,6 @@ import com.pinterest.teletraan.config.SystemFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
 
 import io.dropwizard.Configuration;
-import io.dropwizard.health.conf.HealthConfiguration;
 
 public class TeletraanServiceConfiguration extends Configuration {
     @Valid
@@ -116,9 +115,6 @@ public class TeletraanServiceConfiguration extends Configuration {
     @Valid
     @JsonProperty("pingrequestvalidators")
     private List<String> pingRequestValidators;
-
-    @JsonProperty("health")
-    private HealthConfiguration healthConfiguration = new HealthConfiguration();
 
     @Valid
     private MicrometerMetricsFactory metricsFactory = new MicrometerMetricsFactory();
@@ -288,14 +284,6 @@ public class TeletraanServiceConfiguration extends Configuration {
 
     public void setDefaultScmTypeName(String defaultScmTypeName) {
         this.defaultScmTypeName = defaultScmTypeName;
-    }
-
-    public HealthConfiguration getHealthConfiguration() {
-        return healthConfiguration;
-    }
-
-    public void setHealthConfiguration(final HealthConfiguration healthConfiguration) {
-        this.healthConfiguration = healthConfiguration;
     }
 
     public AwsFactory getAwsFactory() {

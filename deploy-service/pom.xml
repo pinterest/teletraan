@@ -16,7 +16,7 @@
         <encoding>UTF-8</encoding>
         <project.build_id.sourceEncoding>UTF-8</project.build_id.sourceEncoding>
         <micrometer.version>1.11.3</micrometer.version>
-        <dropwizard.version>1.3.29</dropwizard.version>
+        <dropwizard.version>2.1.11</dropwizard.version>
         <junit-jupiter.version>5.10.1</junit-jupiter.version>
     </properties>
 

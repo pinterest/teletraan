@@ -22,8 +22,6 @@ import com.pinterest.teletraan.resource.*;
 import io.dropwizard.Application;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
-import io.dropwizard.health.conf.HealthConfiguration;
-import io.dropwizard.health.core.HealthCheckBundle;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.jersey.validation.JerseyViolationExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
@@ -55,12 +53,6 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
                 new EnvironmentVariableSubstitutor(false)
             )
         );
-        bootstrap.addBundle(new HealthCheckBundle<TeletraanServiceConfiguration>() {
-            @Override
-            protected HealthConfiguration getHealthConfiguration(final TeletraanServiceConfiguration configuration) {
-                return configuration.getHealthConfiguration();
-            }
-        });
     }
 
     @Override
