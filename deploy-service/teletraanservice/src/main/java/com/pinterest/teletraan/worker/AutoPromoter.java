@@ -80,7 +80,7 @@ public class AutoPromoter implements Runnable {
         errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
             MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
             MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
-            
+
         errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
             MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
             MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
@@ -109,7 +109,7 @@ public class AutoPromoter implements Runnable {
                 errorBudgetSuccess.increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
-                LOG.error("AutoPromoter failed to process {}, Exception: {}", envId, t);
+                LOG.error("AutoPromoter failed to process {}", envId, t);
 
                 errorBudgetFailure.increment();
             }
@@ -596,7 +596,7 @@ public class AutoPromoter implements Runnable {
         } catch (Throwable t) {
             // Catch all throwable so that subsequent job not suppressed
             LOG.error("Failed to call AutoPromoter.", t);
-            
+
             errorBudgetFailure.increment();
         }
     }
