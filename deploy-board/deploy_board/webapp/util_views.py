@@ -45,7 +45,11 @@ def _get_latest_metrics(url):
     if not data_str:
         return 0
 
-    data = json.loads(data_str)
+    try:
+        data = json.loads(data_str)
+    except:
+        data = None
+        log.error(f"Failed to parse response to JSON from url {url}: {response}")
     # Return the first datapoint in the datapoints list
     if data:
         try:
