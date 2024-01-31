@@ -88,41 +88,7 @@ public class DeployTagWorker implements Runnable {
         }
 
         // 2. add host tags from missing in db ( query for CMDB for the missing host tags )
-        if (!missings.isEmpty()) {
-            List<UpdateStatement> statements = new ArrayList<>();
-
-            for(int i = 0; i < missings.size(); i += MAX_QUERY_TAGS_SIZE) {
-                Collection<String> oneBatch = missings.subList(i, Math.min(i + MAX_QUERY_TAGS_SIZE, missings.size()));
-                LOG.info(String.format("Env %s start get ec2 tags %s for host_ids %s", envId, tagName, oneBatch));
-                Map<String, Map<String, String>> hostMissingEc2Tags = rodimusManager.getEc2Tags(oneBatch);
-                LOG.info(String.format("Env %s host ec2 tags %s results: %s", envId, tagName, hostMissingEc2Tags));
-                if (hostMissingEc2Tags == null) {
-                    continue;
-                }
-                for (String hostId : hostMissingEc2Tags.keySet()) {
-                    Map<String, String> ec2Tags = hostMissingEc2Tags.get(hostId);
-                    if (ec2Tags == null) {
-                        continue;
-                    }
-                    if (ec2Tags.containsKey(tagName)) {
-                        String tagValue = ec2Tags.get(tagName);
-                        if (tagValue == null) {
-                            continue;
-                        }
-                        HostTagBean hostTagBean = new HostTagBean();
-                        hostTagBean.setHost_id(hostId);
-                        hostTagBean.setTag_name(tagName);
-                        hostTagBean.setTag_value(tagValue);
-                        hostTagBean.setEnv_id(envId);
-                        hostTagBean.setCreate_date(System.currentTimeMillis());
-                        statements.add(hostTagDAO.genInsertOrUpdate(hostTagBean));
-                    }
-                }
-            }
-            DatabaseUtil.transactionalUpdate(dataSource, statements);
-            LOG.info(String.format("Env %s host tags have been updated", envId));
-        }
-
+        // No need at all since we already updated the tags via TAS
     }
 
     private void processBatch() throws Exception {
