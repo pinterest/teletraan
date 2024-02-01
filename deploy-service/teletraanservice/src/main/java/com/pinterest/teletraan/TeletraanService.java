@@ -24,6 +24,7 @@ import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.health.conf.HealthConfiguration;
 import io.dropwizard.health.core.HealthCheckBundle;
+import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -172,6 +173,8 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
 
         // Exception handler
+        // Jackson Json parsing exceptions, returns 4xx
+        environment.jersey().register(new JsonProcessingExceptionMapper());
         environment.jersey().register(new GenericExceptionMapper(configuration.getSystemFactory().getClientError()));
 
         // Swagger API docs generation related
