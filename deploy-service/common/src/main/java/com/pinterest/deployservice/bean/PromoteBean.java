@@ -22,9 +22,9 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.quartz.CronExpression;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.deployservice.common.Constants;
 
@@ -179,15 +179,16 @@ public class PromoteBean implements Updatable, Serializable {
     }
 
     @ValidationMethod(message = "schedule must be a valid cron expression")
+    @JsonIgnore
     public boolean isScheduleValid() {
-        if (schedule == null) {
+        if (type != PromoteType.AUTO) {
             return true;
         }
+
         try {
             new CronExpression(schedule);
             return true;
         } catch (Exception e) {
-
             return false;
         }
     }

@@ -24,6 +24,7 @@ import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.health.conf.HealthConfiguration;
 import io.dropwizard.health.core.HealthCheckBundle;
+import io.dropwizard.jersey.validation.JerseyViolationExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -64,6 +65,8 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
     @Override
     public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
         TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
+
+        environment.jersey().register(new JerseyViolationExceptionMapper());
 
         environment.jersey().register(configuration.getAuthenticationFactory().create(context));
 
