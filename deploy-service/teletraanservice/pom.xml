@@ -19,7 +19,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <dropwizard.version>1.3.29</dropwizard.version>
+        <dropwizard.version>2.1.2</dropwizard.version>
         <dropwizard.health.version>1.7.3</dropwizard.health.version>
     </properties>
 
