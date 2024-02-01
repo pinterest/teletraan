@@ -269,5 +269,10 @@
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.dropwizard</groupId>
+            <artifactId>dropwizard-validation</artifactId>
+            <version>${dropwizard.version}</version>
+        </dependency>
     </dependencies>
 </project>

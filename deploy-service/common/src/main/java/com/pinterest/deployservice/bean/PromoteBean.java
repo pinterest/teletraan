@@ -15,16 +15,20 @@
  */
 package com.pinterest.deployservice.bean;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.pinterest.deployservice.validation.CronExpressionConstraint;
+import java.io.Serializable;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.validator.constraints.NotEmpty;
+import org.quartz.CronExpression;
 
-import java.io.Serializable;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.pinterest.deployservice.common.Constants;
 
-import javax.validation.constraints.NotNull;
-
+import io.dropwizard.validation.ValidationMethod;
 /**
  * Keep the bean and table in sync
  * <p>
@@ -44,7 +48,6 @@ import javax.validation.constraints.NotNull;
  */
 public class PromoteBean implements Updatable, Serializable {
     @JsonProperty("envId")
-    @NotEmpty
     private String env_id;
 
     @JsonProperty("lastOperator")
@@ -59,12 +62,13 @@ public class PromoteBean implements Updatable, Serializable {
     @JsonProperty("predStage")
     private String pred_stage;
 
+    @Min(1) @Max(Constants.DEFAULT_MAX_PROMOTE_QUEUE_SIZE)
     @JsonProperty("queueSize")
     private Integer queue_size;
 
-    @CronExpressionConstraint
     private String schedule;
 
+    @Min(0)
     private Integer delay;
 
     @JsonProperty("disablePolicy")
@@ -172,5 +176,19 @@ public class PromoteBean implements Updatable, Serializable {
     @Override
     public String toString() {
         return ReflectionToStringBuilder.toString(this);
+    }
+
+    @ValidationMethod(message = "schedule must be a valid cron expression")
+    public boolean isScheduleValid() {
+        if (schedule == null) {
+            return true;
+        }
+        try {
+            new CronExpression(schedule);
+            return true;
+        } catch (Exception e) {
+
+            return false;
+        }
     }
 }
