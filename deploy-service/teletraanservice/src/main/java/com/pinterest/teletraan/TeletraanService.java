@@ -173,7 +173,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
 
         // Exception handler
-        // Jackson Json parsing exceptions, returns 4xx
+        // Jackson Json parsing exceptions
         environment.jersey().register(new JsonProcessingExceptionMapper());
         environment.jersey().register(new GenericExceptionMapper(configuration.getSystemFactory().getClientError()));
 
