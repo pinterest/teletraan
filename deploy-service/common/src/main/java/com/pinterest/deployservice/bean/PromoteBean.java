@@ -22,6 +22,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.CronExpression;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -182,6 +183,9 @@ public class PromoteBean implements Updatable, Serializable {
     @JsonIgnore
     public boolean isScheduleValid() {
         if (type != PromoteType.AUTO) {
+            return true;
+        }
+        if (StringUtils.isBlank(schedule)) {
             return true;
         }
 
