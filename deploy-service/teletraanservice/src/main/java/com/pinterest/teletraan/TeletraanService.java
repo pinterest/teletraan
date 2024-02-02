@@ -176,6 +176,8 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
         // Exception handlers
         // Constrains validation exceptions, returns 4xx
         environment.jersey().register(new JerseyViolationExceptionMapper());
+        // Jackson Json parsing exceptions
+        environment.jersey().register(new JsonProcessingExceptionMapper(true));
         environment.jersey().register(new GenericExceptionMapper(configuration.getSystemFactory().getClientError()));
 
         // Swagger API docs generation related

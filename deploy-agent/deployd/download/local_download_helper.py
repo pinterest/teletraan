@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 class LocalDownloadHelper(DownloadHelper):
 
-    def _download_files(self, local_full_fn):
+    def _download_files(self, local_full_fn) -> int:
         download_cmd = ['curl', '-o', local_full_fn, '-ks', self._url]
         log.info('Running command: {}'.format(' '.join(download_cmd)))
         error_code = Status.SUCCEEDED
@@ -37,7 +37,7 @@ class LocalDownloadHelper(DownloadHelper):
         log.info('Finished downloading: {} to {}'.format(self._url, local_full_fn))
         return error_code
 
-    def download(self, local_full_fn):
+    def download(self, local_full_fn) -> int:
         log.info("Start to download from local path {} to {}".format(
             self._url, local_full_fn))
 
@@ -46,5 +46,5 @@ class LocalDownloadHelper(DownloadHelper):
             log.error('Failed to download the local tar ball for {}'.format(local_full_fn))
         return error
 
-    def validate_source(self):
+    def validate_source(self) -> bool:
         return True
