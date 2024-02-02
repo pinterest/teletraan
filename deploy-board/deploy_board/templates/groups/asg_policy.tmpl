@@ -3,9 +3,9 @@
 <div id="autoscalingPolicyId" class="collapse in panel-body">
     <div class="container-fluid">
         <div class="tab">
-            <button class="tablinks" onclick="openPolicy(event, 'simple-scaling')">Simple Scaling</button>
-            <button class="tablinks" onclick="openPolicy(event, 'step-scaling')">Step Scaling</button>
-            <button class="tablinks" onclick="openPolicy(event, 'target-tracking-scaling')">Target Tracking Scaling</button>
+            <button id="simple-scaling-btn" class="tablinks" onclick="openPolicy(event, 'simple-scaling')">Simple Scaling</button>
+            <button id="step-scaling-btn" class="tablinks" onclick="openPolicy(event, 'step-scaling')">Step Scaling</button>
+            <button id="target-tracking-scaling-btn" class="tablinks" onclick="openPolicy(event, 'target-tracking-scaling')">Target Tracking Scaling</button>
         </div>
 
         <div id="simple-scaling" class="tabcontent">
@@ -272,7 +272,25 @@
         </div>
 
         <div id="target-tracking-scaling" class="tabcontent">
-            <h4>Target Tracking Scaling (Will be supported)</h4>
+            <h4>Target Tracking Scaling <sup><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html" target="_blank">What is target tracking scaling?</a></sup></h4>
+            <form id="stepAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
+            <fieldset id="envConfigFieldSetId">
+                <div class="form-group">
+                    <label for="instanceWarmup" class="deployToolTip control-label"
+                        data-toggle="tooltip"
+                        title="The estimated time, in minutes, until a newly launched instance can contribute to the CloudWatch metrics.">
+                        Instance Warmup (minutes):
+                    </label>
+                    <div class="input-group">
+                        {% if stepScalingPolicy and stepScalingPolicy.instanceWarmup %}
+                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" value="{{ stepScalingPolicy.instanceWarmup }}">
+                        {% else %}
+                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" placeholder="0">
+                        {% endif %}
+                    </div>
+                </div>
+            </fieldset>
+            {% csrf_token %}
         </div>
 
         <script>
@@ -281,14 +299,25 @@
             function openPolicy(evt, policyType) {
                 var i, tabcontent, tablinks;
                 tabcontent = document.getElementsByClassName("tabcontent");
+
                 for (i = 0; i < tabcontent.length; i++) {
                     tabcontent[i].style.display = "none";
                 }
-                tablinks = document.getElementsByClassName("tablinks");
-                for (i = 0; i < tablinks.length; i++) {
-                    tablinks[i].className = tablinks[i].className.replace(" active", "");
-                }
+
                 document.getElementById(policyType).style.display = "block";
+
+                var asg_alarm_element = document.getElementById("asMetricsId")
+                var asg_alarm_button_element = document.getElementById("resetAsMetricsBtnDivId")
+
+                if (policyType == "target-tracking-scaling") {
+                    asg_alarm_element.style.display = "none"
+                    asg_alarm_button_element.style.display = "none"
+                }
+                else {
+                    asg_alarm_element.style.display = "block"
+                    asg_alarm_button_element.style.display = "block"
+                }
+
                 evt.currentTarget.className += " active";
             }
         </script>
@@ -304,6 +333,7 @@
                 data-loading-text="Saving...">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
+        
     </div>
 </div>
 <script>
