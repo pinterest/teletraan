@@ -128,11 +128,17 @@ public class AgentJanitor extends SimpleAgentJanitor {
 
         HostBean hostBean;
         try {
-            hostBean = hostDAO.getHostsByHostId(hostAgentBean.getHost_id()).get(0);
+            List<HostBean> hostBeans = hostDAO.getHostsByHostId(hostAgentBean.getHost_id());
+            if (hostBeans.isEmpty()) {
+                // Usually the host being checked is not terminated. However there might be some
+                // synchronization latency.
+                // Mark it as not stale and we will handle it in the next run.
+                return false;
+            }
+            hostBean = hostBeans.get(0);
         } catch (Exception ex) {
             LOG.error("failed to get host bean for ({}), {}", hostAgentBean, ex);
             errorBudgetFailure.increment();
-
             return false;
         }
 
