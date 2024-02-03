@@ -455,7 +455,6 @@ def get_base_image_events(request, image_id):
     cancel = any(event['state'] == 'INIT' for event in update_events)
     latest_update_events = baseimages_helper.get_latest_image_update_events(update_events)
     progress_info = baseimages_helper.get_base_image_update_progress(latest_update_events)
-    show_promote_ui = current_image['abstract_name'].startswith('cmp')
     cluster_statuses = [{'cluster_name': event['cluster_name'], 'status': event['status']}
                         for event in latest_update_events]
     cluster_statuses = sorted(cluster_statuses, key=lambda event: event['status'], reverse=True)
@@ -470,7 +469,6 @@ def get_base_image_events(request, image_id):
         'golden_prod': golden_prod,
         'cancellable': cancel,
         'progress': progress_info,
-        'show_promote_ui': show_promote_ui,
     })
 
 
