@@ -426,7 +426,7 @@ def get_base_images_by_abstract_name(request, abstract_name):
         cell_name = cell['name']
         golden_images[cell_name] = baseimages_helper.get_current_golden_image(request, abstract_name, cell_name)
     for image in base_images:
-        if golden_images[image['cell_name']] and image['id'] == golden_images[image['cell_name']]['id']:
+        if golden_images.get(image['cell_name']) and image['id'] == golden_images[image['cell_name']]['id']:
             image['current_golden'] = True
 
     return render(request, 'clusters/base_images.html', {
