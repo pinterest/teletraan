@@ -468,11 +468,11 @@ def successRatePercentage(deploy):
             return trunc(deploy["subAcctSucHostNum"] * 100 / deploy["subAcctTotalHostNum"])
     elif deploy.get("account") == AWS_PRIMARY_ACCOUNT:
         if deploy["primaryAcctTotalHostNum"] != 0:
-            return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])   
+            return trunc(deploy["primaryAcctSucHostNum"] * 100 / deploy["primaryAcctTotalHostNum"])
     elif deploy.get("account") == "others":
         if deploy["otherAcctTotalHostNum"] != 0:
-            return trunc(deploy["otherAcctSucHostNum"] * 100 / deploy["otherAcctTotalHostNum"])   
-    else:     
+            return trunc(deploy["otherAcctSucHostNum"] * 100 / deploy["otherAcctTotalHostNum"])
+    else:
         if deploy["total"] != 0:
             return trunc(deploy["successTotal"] * 100 / deploy["total"])
     return 0
@@ -637,7 +637,7 @@ def agentIcon(agentStats):
     if agentStats.isCurrent:
         if agent['deployStage'] == "SERVING_BUILD":
             return 'fa-check'
-        if agentStats.isStale or (
+        if agentStats.isStale or agentStats.isShamed or (
                 agent['state']== "PROVISIONED" and
                 agent["ip"] is None
                 ):
