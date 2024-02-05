@@ -489,11 +489,46 @@ def get_policy(request, group_name):
         "stepScalingPolicy": step_scaling_policy,
         "csrf_token": get_token(request),
     })
+
+    print("Hey me")
+
     return HttpResponse(json.dumps(content), content_type="application/json")
 
 
 def update_policy(request, group_name):
     params = request.POST
+
+    if params["policyType"] == "TargetTracking":
+        metric = params["awsMetrics"]
+        target = params["target"]
+        instanceWarmup = params["instanceWarmup"]
+        disableScaleIn = False
+        print(params)
+        if "disableScaleIn" in params:
+            disableScaleIn = True
+
+        scaling_policies = {}
+        scaling_policies["scalingPolicies"] = []
+        target_tracking_policy = {}
+        target_tracking_policy["policyType"] = "TargetTrackingScaling"
+        target_tracking_policy["policyName"] = "{}-TargetTrackingScaling-{}".format(group_name, metric)
+        target_tracking_policy["instanceWarmup"] = instanceWarmup * 60
+        targetTrackingScalingConfiguration = {}
+        targetTrackingScalingConfiguration["targetValue"] = target
+        targetTrackingScalingConfiguration["disableScaleIn"] = disableScaleIn
+        predefinedMetricSpecification = {}
+        predefinedMetricSpecification["predefinedMetricType"] = metric
+        targetTrackingScalingConfiguration["predefinedMetricSpecification"] = predefinedMetricSpecification
+        target_tracking_policy["targetTrackingScalingConfiguration"] = targetTrackingScalingConfiguration
+
+        print(target_tracking_policy)
+
+        scaling_policies["scalingPolicies"].append(target_tracking_policy)
+
+        autoscaling_groups_helper.put_scaling_policies(request, group_name, scaling_policies)
+
+        return redirect('/groups/{}/config'.format(group_name))
+
     try:
         policyType = params["policyType"]
         scaling_policies = {}

@@ -1,5 +1,6 @@
 {% load utils %}
 {% include "panel_heading.tmpl" with panel_title="Scaling Policies" panel_body_id="autoscalingPolicyId" direction="down" %}
+
 <div id="autoscalingPolicyId" class="collapse in panel-body">
     <div class="container-fluid">
         <div class="tab">
@@ -273,24 +274,155 @@
 
         <div id="target-tracking-scaling" class="tabcontent">
             <h4>Target Tracking Scaling <sup><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html" target="_blank">What is target tracking scaling?</a></sup></h4>
-            <form id="stepAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
-            <fieldset id="envConfigFieldSetId">
-                <div class="form-group">
-                    <label for="instanceWarmup" class="deployToolTip control-label"
-                        data-toggle="tooltip"
-                        title="The estimated time, in minutes, until a newly launched instance can contribute to the CloudWatch metrics.">
-                        Instance Warmup (minutes):
-                    </label>
-                    <div class="input-group">
-                        {% if stepScalingPolicy and stepScalingPolicy.instanceWarmup %}
-                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" value="{{ stepScalingPolicy.instanceWarmup }}">
-                        {% else %}
-                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" placeholder="0">
-                        {% endif %}
+            <h5>(With target tracking scaling, you don't need to create alarms directly)</h5>
+            
+            <div>
+                {% for policy in scalingPolicies %}
+                    {% if policy.policyType == "TargetTrackingScaling" %}
+                    <div class="panel-heading clearfix">
+                        <h4 class="panel-title pull-left pointer-cursor">
+                            <a data-toggle="collapse" style="line-height:2.0;">
+                                {{ policy.targetTrackingScalingConfiguration.predefinedMetricSpecification.predefinedMetricType }}
+                            </a>
+                        </h4>
+                        <div>
+                            <button id="deleteItem_{{ alarm.alarmId }}" type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
+                        </div>
+                    </div>
+
+                        <form id="newTargetScalingEntryFormId" class="form-horizontal" method="post" role="form" action="/groups/{{ group_name }}/autoscaling/update_policy/">
+                            <input type="hidden" id="policyType" name="policyType" value="TargetTracking">
+                            
+                            <div class="modal-body" id="newMetricModal">
+                                <div class="form-group">
+                                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                        Target:
+                                    </label>
+                                    <div class="col-xs-2">
+                                        <input class="form-control" name="target" required="true" type="text" value={{ policy.targetTrackingScalingConfiguration.targetValue }} />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                        Instance Warmup (>= 10 minutes recommended):
+                                    </label>
+                                    <div class="col-xs-2">
+                                        <input class="form-control" name="instanceWarmup" required="true" type="text" value={{ policy.instanceWarmup }} />
+                                    </div>
+                                    <label class="deployToolTip control-label text-center col-xs-1">
+                                        minutes.
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="switch" data-toggle="tooltip" title="Disable Scale in">
+                                        Disable Scale In
+                                        <input type="checkbox" id="disableScaleIn" name="disableScaleIn" {% if policy.targetTrackingScalingConfiguration.disableScaleIn %} checked {% endif %}>
+                                        <div class="slider round"></div>
+                                    </label>
+                                </div>
+
+                            </div>
+                            {% csrf_token %}
+                        </form>
+                    {% endif %}
+
+                    <script>
+                        $(function() {
+                            $('#deleteItem_{{alarm.alarmId}}').click(function () {
+                                        var btn = $(this);
+                                        $.ajax({
+                                            type: 'POST',
+                                            url: '/groups/{{ group_name }}/autoscaling/delete_metrics/',
+                                            data: {'csrfmiddlewaretoken': '{{csrf_token}}',
+                                                'alarmId': '{{alarm.alarmId}}'},
+                                            datatype: 'json',
+                                            beforeSend: function () {
+                                                btn.button('loading');
+                                            },
+                                            success: function (data) {
+                                                btn.button('reset');
+                                                $("#asMetricsId").parent().html(data);
+                                            }
+                                        });
+                            });
+                        });
+                    </script>
+                {% endfor %}
+            </div>
+
+            <div class="modal fade" id="newTargetScalingEntryModalId" tabindex="-1" role="dialog" aria-labelledby="newTargetScalingEntryModalLabel"
+aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <form id="newTargetScalingEntryFormId" class="form-horizontal" method="post" role="form" action="/groups/{{ group_name }}/autoscaling/update_policy/">
+                            <input type="hidden" id="policyType" name="policyType" value="TargetTracking">
+
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                                </button>
+                                <h4 class="modal-title" id="newEnvModalLabel">Add target tracking scaling policy</h4>
+                            </div>
+                            
+                            <div class="modal-body" id="newMetricModal">
+            
+                                <div class="form-group">
+                                    <label for="awsMetrics" class="deployToolTip control-label col-xs-2" data-toggle="tooltip"
+                                        title="Select an Amazon CloudWatch metric">
+                                        AWS Metric:
+                                    </label>
+                                    <div class="col-md-7">
+                                        <select class="form-control" name="awsMetrics" v-model="metrics" @change="showWarningIfNeeded">
+                                            <option value="ASGAverageCPUUtilization" selected>Average CPU Utilization</option>
+                                            <option value="ASGAverageNetworkIn">Average Network In</option>
+                                            <option value="ASGAverageNetworkOut">Average Network Out</option>
+                                        </select>
+                                    </div>
+                                </div>
+            
+                                <div class="form-group">
+                                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                        Target:
+                                    </label>
+                                    <div class="col-xs-2">
+                                        <input class="form-control" name="target" required="true" type="text" value="" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                        Instance Warmup (>= 10 minutes recommended):
+                                    </label>
+                                    <div class="col-xs-2">
+                                        <input class="form-control" name="instanceWarmup" required="true" type="text" value="15" />
+                                    </div>
+                                    <label class="deployToolTip control-label text-center col-xs-1">
+                                        minutes.
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="switch" data-toggle="tooltip" title="Disable Scale in">
+                                        Disable Scale In
+                                        {% comment %} <input type="checkbox" id="disableScaleIn" name="disableScaleIn" {% if auto_refresh_enabled %} checked {% endif %}> {% endcomment %}
+                                        <input type="checkbox" id="disableScaleIn" name="disableScaleIn">
+                                        <div class="slider round"></div>
+                                    </label>
+                                    <p><i>Indicates whether scaling in by the target tracking scaling policy is disabled. If scaling in is disabled, the target tracking scaling policy doesn't remove instances from the Auto Scaling group. Otherwise, the target tracking scaling policy can remove instances from the Auto Scaling group. The default is false .</i></p>
+                                </div>
+
+                            </div>
+
+                            <div class="modal-footer">
+                                <button id="addTargetScalingBtnId" type="submit" class="btn btn-primary">Add</button>
+                                <button id="targetScalingModalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                            {% csrf_token %}
+                        </form>
                     </div>
                 </div>
-            </fieldset>
-            {% csrf_token %}
+            </div>
         </div>
 
         <script>
@@ -306,23 +438,37 @@
 
                 document.getElementById(policyType).style.display = "block";
 
-                var asg_alarm_element = document.getElementById("asMetricsId")
-                var asg_alarm_button_element = document.getElementById("resetAsMetricsBtnDivId")
+                var asgAlarmElement = document.getElementById("asMetricsId")
+                var asgAlarmButtonElement = document.getElementById("resetAsMetricsBtnDivId")
+                var createTargetScalingButton = document.getElementById("addTargetScalingBtnId")
+                
+                console.log(asgAlarmElement)
+                console.log(asgAlarmButtonElement)
+                console.log(createTargetScalingButton)
 
                 if (policyType == "target-tracking-scaling") {
-                    asg_alarm_element.style.display = "none"
-                    asg_alarm_button_element.style.display = "none"
+                    createTargetScalingButton.style.display = "block"
+                    asgAlarmElement.style.display = "none"
+                    asgAlarmButtonElement.style.display = "none"
                 }
                 else {
-                    asg_alarm_element.style.display = "block"
-                    asg_alarm_button_element.style.display = "block"
+                    asgAlarmElement.style.display = "block"
+                    asgAlarmButtonElement.style.display = "block"
+                    createTargetScalingButton.style.display = "none"
                 }
 
                 evt.currentTarget.className += " active";
             }
+
+            function hello(event) {
+                console.log("New button clicked")
+                var newTargetScalingEntryModalElement = document.getElementById("newTargetScalingEntryModalId")
+                $('#newTargetScalingEntryModalId').modal('show');
+            }
         </script>
     </div>
 </div>
+
 <div class="panel-footer clearfix">
     <div class="pull-right">
         <button id="resetAsgPolicyBtnId" class="btn btn-default"
@@ -333,9 +479,12 @@
                 data-loading-text="Saving...">
             <span class="glyphicon glyphicon-floppy-save"></span> Save
         </button>
-        
+        <button id="addTargetScalingBtnId" onclick="hello(event)" class="btn btn-primary"
+                data-loading-text="Creating..."> Add
+        </button>
     </div>
 </div>
+
 <script>
     function validate() {
         policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId")
@@ -381,6 +530,8 @@
 
     const saveAsgPolicyBtnElement = document.getElementById("saveAsgPolicyBtnId");
     saveAsgPolicyBtnElement.addEventListener("click", validate);
+
+    console.log("Hello Khoi")
 
     $(function () {
         $('#saveAsgPolicyBtnId').attr('disabled','disabled');
