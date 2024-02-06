@@ -103,7 +103,7 @@ public class AutoPromoter implements Runnable {
                 errorBudgetSuccess.increment();
             } catch (Throwable t) {
                 // Catch all throwable so that subsequent job not suppressed
-                LOG.error("AutoPromoter failed to process {}, Exception: {}", envId, t);
+                LOG.error("AutoPromoter failed to process {}", envId, t);
 
                 errorBudgetFailure.increment();
             }

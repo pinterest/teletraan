@@ -25,6 +25,7 @@ import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.health.conf.HealthConfiguration;
 import io.dropwizard.health.core.HealthCheckBundle;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
+import io.dropwizard.jersey.validation.JerseyViolationExceptionMapper;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 import io.swagger.jaxrs.config.BeanConfig;
@@ -172,7 +173,9 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));
 
-        // Exception handler
+        // Exception handlers
+        // Constrains validation exceptions, returns 4xx
+        environment.jersey().register(new JerseyViolationExceptionMapper());
         // Jackson Json parsing exceptions
         environment.jersey().register(new JsonProcessingExceptionMapper(true));
         environment.jersey().register(new GenericExceptionMapper(configuration.getSystemFactory().getClientError()));
