@@ -27,10 +27,9 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
-import com.pinterest.deployservice.metrics.MeterConstants;
+import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Metrics;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang.StringUtils;
@@ -77,13 +76,8 @@ public class AutoPromoter implements Runnable {
         deployHandler = new DeployHandler(serviceContext);
         bufferTimeMinutes = DEFAULT_BUFFER_TIME_MINUTE;
 
-        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
-
-        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+        errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+        errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
     }
 
     public AutoPromoter withBufferTimeMinutes(int bufferTime) {
