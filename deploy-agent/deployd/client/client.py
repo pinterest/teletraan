@@ -18,6 +18,7 @@ import os
 import socket
 import traceback
 import json
+import boto3
 
 from deployd.client.base_client import BaseClient
 from deployd.client.restfulclient import RestfulClient
@@ -171,10 +172,21 @@ class Client(BaseClient):
             # so need to read ec2_tags from facter and parse Autoscaling tag to cover this case
             if not self._autoscaling_group:
                 ec2_tags = facter_data.get(ec2_tags_key)
-                if ec2_tags:
-                    ec2_tags['availability_zone'] = self._availability_zone
-                self._ec2_tags = json.dumps(ec2_tags) if ec2_tags else None
                 self._autoscaling_group = ec2_tags.get(asg_tag_key) if ec2_tags else None
+
+            # Obtain all EC2 tags, inclusive of those that are outside the scope of the 'facter' command.
+            self._ec2_tags = None
+            try:
+                ec2 = boto3.resource('ec2', region_name='us-east-1')
+                ec2instance = ec2.Instance(self._id)
+                all_tags = {}
+                for tag in ec2instance.tags:
+                    all_tags[tag["Key"]] = tag["Value"]
+                all_tags["availability_zone"] = self._availability_zone 
+                self._ec2_tags = json.dumps(all_tags) 
+            except Exception:
+                log.warn("Failed to get host {} tags.".format(self._id))
+                pass
 
             if not self._stage_type and not self._stage_type_fetched:
                 self._stage_type = facter_data.get(stage_type_key, None)
