@@ -32,8 +32,8 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.HostAgentBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
-import com.pinterest.deployservice.metrics.MeterConstants;
 import com.pinterest.deployservice.rodimus.RodimusManager;
+import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
@@ -67,16 +67,9 @@ public class AgentJanitor extends SimpleAgentJanitor {
         maxLaunchLatencyThreshold = TimeUnit.SECONDS.toMillis(maxLaunchLatencyThresholdSeconds);
         unreachableHostsCount = Metrics.gauge("unreachable_hosts", new AtomicInteger(0));
         staleHostsCount = Metrics.gauge("stale_hosts", new AtomicInteger(0));
-        
-        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-                MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE,
-                MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
-                MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
 
-        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-                MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE,
-                MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
-                MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+        errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+        errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
     }
 
     @Override
