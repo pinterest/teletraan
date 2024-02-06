@@ -31,6 +31,7 @@ install_requires = [
     "lockfile==0.10.2",
     "boto>=2.39.0",
     "boto3>=1.12.6",
+    "urllib3<1.27,>=1.25.4",
     "python-daemon==2.0.6",
     "future==0.18.2"
 ]
