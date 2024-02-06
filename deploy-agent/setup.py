@@ -30,8 +30,7 @@ install_requires = [
     "gevent==20.12.0; python_version >= '3.8'",
     "lockfile==0.10.2",
     "boto>=2.39.0",
-    "boto3>=1.12.6",
-    "urllib3<1.27,>=1.25.4",
+    "boto3",
     "python-daemon==2.0.6",
     "future==0.18.2"
 ]
