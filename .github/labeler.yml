@@ -1,0 +1,12 @@
+deploy-agent:
+  - changed-files:
+    - any-glob-to-any-file: deploy-agent/**
+deploy-board:
+  - changed-files:
+    - any-glob-to-any-file: deploy-board/**
+deploy-sentinel:
+  - changed-files:
+    - any-glob-to-any-file: deploy-sentinel/**
+deploy-service:
+  - changed-files:
+    - any-glob-to-any-file: deploy-service/**

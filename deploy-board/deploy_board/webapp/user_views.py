@@ -83,7 +83,8 @@ def update_users_config(request, name):
                 raise Exception('Name cannot contain spaces!')
             unsupported_pattern = re.compile("[^a-zA-Z0-9\\-_]+")
             if unsupported_pattern.search(user_name):
-                unsupported_chars = re.findall(unsupported_pattern, user_name.encode('ascii'))
+                unsupported_chars = unsupported_pattern.findall(user_name)
+                logger.info("Invalid username: %s", user_name)
                 raise Exception('Script Name cannot contain unsupported characters: %s' % (unsupported_chars))
             if user_name in origin_user_dict:
                 if value != origin_user_dict[user_name]:

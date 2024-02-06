@@ -22,7 +22,7 @@ import com.pinterest.deployservice.common.DeployInternalException;
 import com.pinterest.deployservice.common.Jenkins;
 import com.pinterest.deployservice.dao.*;
 import com.pinterest.deployservice.handler.CommonHandler;
-import com.pinterest.deployservice.metrics.MeterConstants;
+import com.pinterest.teletraan.universal.metrics.ErrorBudgetCounterFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Set;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Metrics;
 
 /**
  * Check active deploys and push them into their final states
@@ -66,13 +65,8 @@ public class HotfixStateTransitioner implements Runnable {
         jenkinsUrl = serviceContext.getJenkinsUrl();
         jenkinsRemoteToken = serviceContext.getJenkinsRemoteToken();
 
-        errorBudgetSuccess = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_SUCCESS,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
-            
-        errorBudgetFailure = Metrics.counter(MeterConstants.ERROR_BUDGET_METRIC_NAME,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_RESPONSE_TYPE, MeterConstants.ERROR_BUDGET_TAG_VALUE_RESPONSE_TYPE_FAILURE,
-            MeterConstants.ERROR_BUDGET_TAG_NAME_METHOD_NAME, this.getClass().getSimpleName());
+        errorBudgetSuccess = ErrorBudgetCounterFactory.createSuccessCounter(this.getClass().getSimpleName());
+        errorBudgetFailure = ErrorBudgetCounterFactory.createFailureCounter(this.getClass().getSimpleName());
     }
 
     void processBatch() throws Exception {

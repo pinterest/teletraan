@@ -29,11 +29,11 @@ log = logging.getLogger(__name__)
 
 class HTTPDownloadHelper(DownloadHelper):
 
-    def __init__(self, url=None, config=None):
+    def __init__(self, url=None, config=None) -> None:
         super().__init__(url)
         self._config = config if config else Config()
 
-    def _download_files(self, local_full_fn):
+    def _download_files(self, local_full_fn) -> int:
         download_cmd = ['curl', '-o', local_full_fn, '-fksS', self._url]
         log.info('Running command: {}'.format(' '.join(download_cmd)))
         output, error, process_return_code = Caller.call_and_log(download_cmd, cwd=os.getcwd())
@@ -45,7 +45,7 @@ class HTTPDownloadHelper(DownloadHelper):
         log.info('Finish downloading: {} to {}'.format(self._url, local_full_fn))
         return status_code
 
-    def download(self, local_full_fn):
+    def download(self, local_full_fn) -> int:
         log.info("Start to download from url {} to {}".format(
             self._url, local_full_fn))
         if not self.validate_source():
@@ -76,7 +76,7 @@ class HTTPDownloadHelper(DownloadHelper):
             log.error('Could not connect to: {}'.format(self._url))
             return Status.FAILED
 
-    def validate_source(self):
+    def validate_source(self) -> bool:
         tags = {'type': 'http', 'url': self._url}
         create_sc_increment(DOWNLOAD_VALIDATE_METRICS, tags=tags)
 
