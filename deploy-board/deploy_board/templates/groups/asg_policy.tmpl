@@ -276,80 +276,88 @@
             <h4>Target Tracking Scaling <sup><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html" target="_blank">What is target tracking scaling?</a></sup></h4>
             <h5>(With target tracking scaling, you don't need to create alarms directly)</h5>
             
-            <div>
-                {% for policy in scalingPolicies %}
-                    {% if policy.policyType == "TargetTrackingScaling" %}
-                    <div class="panel-heading clearfix">
-                        <h4 class="panel-title pull-left pointer-cursor">
-                            <a data-toggle="collapse" style="line-height:2.0;">
-                                {{ policy.targetTrackingScalingConfiguration.predefinedMetricSpecification.predefinedMetricType }}
-                            </a>
-                        </h4>
-                        <div>
-                            <button id="deleteItem_{{ alarm.alarmId }}" type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
-                        </div>
-                    </div>
-
-                        <form id="newTargetScalingEntryFormId" class="form-horizontal" method="post" role="form" action="/groups/{{ group_name }}/autoscaling/update_policy/">
-                            <input type="hidden" id="policyType" name="policyType" value="TargetTracking">
-                            
-                            <div class="modal-body" id="newMetricModal">
-                                <div class="form-group">
-                                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
-                                        Target:
-                                    </label>
-                                    <div class="col-xs-2">
-                                        <input class="form-control" name="target" required="true" type="text" value={{ policy.targetTrackingScalingConfiguration.targetValue }} />
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
-                                        Instance Warmup (>= 10 minutes recommended):
-                                    </label>
-                                    <div class="col-xs-2">
-                                        <input class="form-control" name="instanceWarmup" required="true" type="text" value={{ policy.instanceWarmup }} />
-                                    </div>
-                                    <label class="deployToolTip control-label text-center col-xs-1">
-                                        minutes.
-                                    </label>
-                                </div>
-
+            <div id="targetScalingDisplayId">
+                <form id="targetScalingDisplayFormId" class="form-horizontal"> {% csrf_token %}
+                    {% for policy in scalingPolicies %}
+                        {% if policy.policyType == "TargetTrackingScaling" %}
+                            <div class="panel-heading clearfix">
+                                <h4 class="panel-title pull-left">
+                                    {{ policy.targetTrackingScalingConfiguration.predefinedMetricSpecification.predefinedMetricType }}
+                                </h4>
                                 <div>
-                                    <label class="switch" data-toggle="tooltip" title="Disable Scale in">
-                                        Disable Scale In
-                                        <input type="checkbox" id="disableScaleIn" name="disableScaleIn" {% if policy.targetTrackingScalingConfiguration.disableScaleIn %} checked {% endif %}>
-                                        <div class="slider round"></div>
-                                    </label>
+                                    <button id="deleteItem_{{ alarm.alarmId }}" type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
                                 </div>
-
                             </div>
-                            {% csrf_token %}
-                        </form>
-                    {% endif %}
 
-                    <script>
-                        $(function() {
-                            $('#deleteItem_{{alarm.alarmId}}').click(function () {
-                                        var btn = $(this);
-                                        $.ajax({
-                                            type: 'POST',
-                                            url: '/groups/{{ group_name }}/autoscaling/delete_metrics/',
-                                            data: {'csrfmiddlewaretoken': '{{csrf_token}}',
-                                                'alarmId': '{{alarm.alarmId}}'},
-                                            datatype: 'json',
-                                            beforeSend: function () {
-                                                btn.button('loading');
-                                            },
-                                            success: function (data) {
-                                                btn.button('reset');
-                                                $("#asMetricsId").parent().html(data);
-                                            }
-                                        });
+                            <form name="targetScalingDisplayName" class="form-horizontal" method="post" role="form">
+                                <fieldset id="targetScalingDisplayFieldSetId">
+                                    {% comment %} {% csrf_token %} {% endcomment %}
+                                    <div class="form-group">
+                                        {% comment %} <input type="hidden" id="policyType" name="policyType" value="target-tracking-scaling"> {% endcomment %}
+                                        <input type="hidden" id="targetScalingName" name="targetScalingName_{{ policy.policyName }}" value={{ policy.policyName }}>
+                                        <input type="hidden" id="{{ policy.policyName }}_awsMetrics" name="{{ policy.policyName }}_awsMetrics" value={{ policy.targetTrackingScalingConfiguration.predefinedMetricSpecification.predefinedMetricType }}>
+                                        
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                                    Target:
+                                                </label>
+                                                <div class="col-xs-2">
+                                                    <input class="form-control" id="{{ policy.policyName}}_target" name="{{ policy.policyName}}_target" required="true" type="text" value={{ policy.targetTrackingScalingConfiguration.targetValue }} />
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                                    Instance Warmup (>= 10 minutes recommended):
+                                                </label>
+                                                <div class="col-xs-2">
+                                                    <input class="form-control" id="{{ policy.policyName}}_instanceWarmup" name="{{ policy.policyName}}_instanceWarmup" required="true" type="text" value={{ policy.instanceWarmup }} />
+                                                </div>
+                                                <label class="deployToolTip control-label text-center col-xs-1">
+                                                    minutes.
+                                                </label>
+                                            </div>
+
+                                            <div>
+                                                <label class="switch" data-toggle="tooltip" title="Disable Scale in">
+                                                    Disable Scale In
+                                                    <input type="checkbox" id="{{ policy.policyName}}_disableScaleIn" name="{{ policy.policyName}}_disableScaleIn" {% if policy.targetTrackingScalingConfiguration.disableScaleIn %} checked {% endif %}>
+                                                    <div class="slider round"></div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        <button id="saveTargetScalingBtnId" type="submit" class="btn btn-primary">Save</button>
+                                    </div>
+                                </fieldset>
+                                {% csrf_token %}
+                            </form>
+                        {% endif %}
+
+                        <script>
+                            $(function() {
+                                $('#deleteItem_{{alarm.alarmId}}').click(function () {
+                                            var btn = $(this);
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: '/groups/{{ group_name }}/autoscaling/delete_metrics/',
+                                                data: {'csrfmiddlewaretoken': '{{csrf_token}}',
+                                                    'alarmId': '{{alarm.alarmId}}'},
+                                                datatype: 'json',
+                                                beforeSend: function () {
+                                                    btn.button('loading');
+                                                },
+                                                success: function (data) {
+                                                    btn.button('reset');
+                                                    $("#asMetricsId").parent().html(data);
+                                                }
+                                            });
+                                });
                             });
-                        });
-                    </script>
-                {% endfor %}
+                        </script>
+                    {% endfor %}
+                </form>
             </div>
 
             <div class="modal fade" id="newTargetScalingEntryModalId" tabindex="-1" role="dialog" aria-labelledby="newTargetScalingEntryModalLabel"
@@ -357,7 +365,7 @@ aria-hidden="true">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
                         <form id="newTargetScalingEntryFormId" class="form-horizontal" method="post" role="form" action="/groups/{{ group_name }}/autoscaling/update_policy/">
-                            <input type="hidden" id="policyType" name="policyType" value="TargetTracking">
+                            <input type="hidden" id="policyType" name="policyType" value="target-tracking-scaling">
 
                             <div class="modal-header">
                                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span>
@@ -411,7 +419,6 @@ aria-hidden="true">
                                     </label>
                                     <p><i>Indicates whether scaling in by the target tracking scaling policy is disabled. If scaling in is disabled, the target tracking scaling policy doesn't remove instances from the Auto Scaling group. Otherwise, the target tracking scaling policy can remove instances from the Auto Scaling group. The default is false .</i></p>
                                 </div>
-
                             </div>
 
                             <div class="modal-footer">
@@ -426,6 +433,101 @@ aria-hidden="true">
         </div>
 
         <script>
+
+            function validate() {
+        
+                policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId")
+                policyType = "simple-scaling";
+        
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    if (tabcontent[i].style.display == "block") {
+                        policyType = tabcontent[i].id;
+                        break;
+                    }
+                }
+        
+                if (policyType == "step-scaling") {
+                    policyForm = document.getElementById("stepAutoscalingPolicyConfigFormId");
+                }
+        
+                if (policyType == "target-tracking-scaling") {
+                    console.log("target-tracking-scaling")
+                    saveTargetScalingBtn = document.getElementById("saveTargetScalingBtnId")
+                    {% comment %} policyForm = document.getElementById("targetScalingDisplayFieldSetId"); {% endcomment %}
+                    policyForm = document.getElementById("targetScalingDisplayFormId")
+                }
+        
+                var btn = $(this);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/groups/{{ group_name }}/autoscaling/update_policy/',
+                    {% comment %} data: $('#' + policyForm.id).serialize() + "&policyType=" + policyType, {% endcomment %}
+                    data: {
+                        'content': $("#targetScalingDisplayId :input").serialize() + "&policyType=" + policyType,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    },
+                    dataType: 'json',
+                    beforeSend: function () {
+                        btn.button('loading');
+                    },
+                    success: function (data) {
+                        if(data != null && data.success == false) {
+                            $('#errorBannerId').append(data.error);
+                            $('#errorBannerId').show();
+                        } else {
+                            $("#autoscalingPolicyId").parent().html(data);
+                            $('#errorBannerId').empty().hide();
+                        }
+                        btn.button('reset');
+                    },
+                    error: function (data) {
+                        $('#errorBannerId').append(data.responseText);
+                        $('#errorBannerId').show();
+                    }
+                });
+            }
+        
+            const saveAsgPolicyBtnElement = document.getElementById("saveAsgPolicyBtnId");
+            saveAsgPolicyBtnElement.addEventListener("click", validate);
+        
+            $(function () {
+                $('#saveAsgPolicyBtnId').attr('disabled','disabled');
+                $('#resetAsgPolicyBtnId').attr('disabled','disabled');
+        
+                $('#autoscalingPolicyId input').keyup(function() {
+                    $('#saveAsgPolicyBtnId').removeAttr('disabled');
+                    $('#resetAsgPolicyBtnId').removeAttr('disabled');
+                });
+        
+                $('#autoscalingPolicyId select').change(function() {
+                    $('#saveAsgPolicyBtnId').removeAttr('disabled');
+                    $('#resetAsgPolicyBtnId').removeAttr('disabled');
+                });
+        
+                $('#autoscalingPolicyId input').change(function() {
+                    $('#saveAsgPolicyBtnId').removeAttr('disabled');
+                    $('#resetAsgPolicyBtnId').removeAttr('disabled');
+                });
+        
+                $('#resetAsgPolicyBtnId').click(function () {
+                    var btn = $(this);
+                    $.ajax({
+                        type: 'GET',
+                        url: '/groups/{{ group_name }}/autoscaling/get_asg_policy/',
+                        beforeSend: function () {
+                            btn.button('loading');
+                        },
+                        success: function (data) {
+                            btn.button('reset');
+                            $("#autoscalingPolicyId").parent().html(data);
+                        }
+                    });
+                });
+            });
+
+
             openPolicy(event, 'simple-scaling');
 
             function openPolicy(evt, policyType) {
@@ -467,104 +569,113 @@ aria-hidden="true">
             }
         </script>
     </div>
-</div>
 
-<div class="panel-footer clearfix">
-    <div class="pull-right">
-        <button id="resetAsgPolicyBtnId" class="btn btn-default"
-                data-loading-text="Reloading...">
-            <span class="glyphicon glyphicon-refresh"></span> Reload
-        </button>
-        <button id="saveAsgPolicyBtnId" class="btn btn-primary"
-                data-loading-text="Saving...">
-            <span class="glyphicon glyphicon-floppy-save"></span> Save
-        </button>
-        <button id="addTargetScalingBtnId" onclick="hello(event)" class="btn btn-primary"
-                data-loading-text="Creating..."> Add
-        </button>
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button id="resetAsgPolicyBtnId" class="btn btn-default"
+                    data-loading-text="Reloading...">
+                <span class="glyphicon glyphicon-refresh"></span> Reload
+            </button>
+            <button id="saveAsgPolicyBtnId" class="btn btn-primary"
+                    data-loading-text="Saving...">
+                <span class="glyphicon glyphicon-floppy-save"></span> Save
+            </button>
+            <button id="addTargetScalingBtnId" onclick="hello(event)" class="btn btn-primary"
+                    data-loading-text="Creating..."> Add
+            </button>
+        </div>
     </div>
-</div>
-
-<script>
-    function validate() {
-        policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId")
-        policyType = "simple-scaling";
-
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            if (tabcontent[i].style.display == "block") {
-                policyType = tabcontent[i].id;
-                break;
-            }
-        }
-
-        if (policyType == "step-scaling") {
-            policyForm = document.getElementById("stepAutoscalingPolicyConfigFormId");
-        }
-
-        var btn = $(this);
-        $.ajax({
-            type: 'POST',
-            url: '/groups/{{ group_name }}/autoscaling/update_policy/',
-            data: $('#' + policyForm.id).serialize() + "&policyType=" + policyType,
-            dataType: 'json',
-            beforeSend: function () {
-                btn.button('loading');
-            },
-            success: function (data) {
-                if(data != null && data.success == false) {
-                    $('#errorBannerId').append(data.error);
-                    $('#errorBannerId').show();
-                } else {
-                    $("#autoscalingPolicyId").parent().html(data);
-                    $('#errorBannerId').empty().hide();
+    
+    <script>
+        function validate() {
+            console.log("Save clicked")
+    
+            policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId")
+            policyType = "simple-scaling";
+    
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                if (tabcontent[i].style.display == "block") {
+                    policyType = tabcontent[i].id;
+                    break;
                 }
-                btn.button('reset');
-            },
-            error: function (data) {
-                $('#errorBannerId').append(data.responseText);
-                $('#errorBannerId').show();
             }
-        });
-    }
-
-    const saveAsgPolicyBtnElement = document.getElementById("saveAsgPolicyBtnId");
-    saveAsgPolicyBtnElement.addEventListener("click", validate);
-
-    console.log("Hello Khoi")
-
-    $(function () {
-        $('#saveAsgPolicyBtnId').attr('disabled','disabled');
-        $('#resetAsgPolicyBtnId').attr('disabled','disabled');
-
-        $('#autoscalingPolicyId input').keyup(function() {
-            $('#saveAsgPolicyBtnId').removeAttr('disabled');
-            $('#resetAsgPolicyBtnId').removeAttr('disabled');
-        });
-
-        $('#autoscalingPolicyId select').change(function() {
-            $('#saveAsgPolicyBtnId').removeAttr('disabled');
-            $('#resetAsgPolicyBtnId').removeAttr('disabled');
-        });
-
-        $('#autoscalingPolicyId input').change(function() {
-            $('#saveAsgPolicyBtnId').removeAttr('disabled');
-            $('#resetAsgPolicyBtnId').removeAttr('disabled');
-        });
-
-        $('#resetAsgPolicyBtnId').click(function () {
+    
+            console.log(policyType)
+    
+            if (policyType == "step-scaling") {
+                policyForm = document.getElementById("stepAutoscalingPolicyConfigFormId");
+            }
+    
+            if (policyType == "target-tracking-scaling") {
+                console.log("target-tracking-scaling")
+                policyForm = document.getElementById("targetScalingForm");
+            }
+    
             var btn = $(this);
             $.ajax({
-                type: 'GET',
-                url: '/groups/{{ group_name }}/autoscaling/get_asg_policy/',
+                type: 'POST',
+                url: '/groups/{{ group_name }}/autoscaling/update_policy/',
+                data: $('#' + policyForm.id).serialize() + "&policyType=" + policyType,
+                dataType: 'json',
                 beforeSend: function () {
                     btn.button('loading');
                 },
                 success: function (data) {
+                    if(data != null && data.success == false) {
+                        $('#errorBannerId').append(data.error);
+                        $('#errorBannerId').show();
+                    } else {
+                        $("#autoscalingPolicyId").parent().html(data);
+                        $('#errorBannerId').empty().hide();
+                    }
                     btn.button('reset');
-                    $("#autoscalingPolicyId").parent().html(data);
+                },
+                error: function (data) {
+                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').show();
                 }
             });
+        }
+    
+        const saveAsgPolicyBtnElement = document.getElementById("saveAsgPolicyBtnId");
+        saveAsgPolicyBtnElement.addEventListener("click", validate);
+    
+        $(function () {
+            $('#saveAsgPolicyBtnId').attr('disabled','disabled');
+            $('#resetAsgPolicyBtnId').attr('disabled','disabled');
+    
+            $('#autoscalingPolicyId input').keyup(function() {
+                $('#saveAsgPolicyBtnId').removeAttr('disabled');
+                $('#resetAsgPolicyBtnId').removeAttr('disabled');
+            });
+    
+            $('#autoscalingPolicyId select').change(function() {
+                $('#saveAsgPolicyBtnId').removeAttr('disabled');
+                $('#resetAsgPolicyBtnId').removeAttr('disabled');
+            });
+    
+            $('#autoscalingPolicyId input').change(function() {
+                $('#saveAsgPolicyBtnId').removeAttr('disabled');
+                $('#resetAsgPolicyBtnId').removeAttr('disabled');
+            });
+    
+            $('#resetAsgPolicyBtnId').click(function () {
+                var btn = $(this);
+                $.ajax({
+                    type: 'GET',
+                    url: '/groups/{{ group_name }}/autoscaling/get_asg_policy/',
+                    beforeSend: function () {
+                        btn.button('loading');
+                    },
+                    success: function (data) {
+                        btn.button('reset');
+                        $("#autoscalingPolicyId").parent().html(data);
+                    }
+                });
+            });
         });
-    });
-</script>
+    </script>
+</div>
+
+

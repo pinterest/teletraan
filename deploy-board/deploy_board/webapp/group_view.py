@@ -23,6 +23,7 @@ from django.contrib import messages
 import json
 import logging
 import traceback
+from itertools import groupby
 
 from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
                      specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper)
@@ -448,9 +449,13 @@ def get_policy(request, group_name):
     policies = autoscaling_groups_helper.get_policies(request, group_name)
     step_scaling_policy = None
     for policy in policies["scalingPolicies"]:
-        if policy["policyType"] == "StepScaling":
+        if policy["policyType"] == "StepScaling" and step_scaling_policy == None:
             step_scaling_policy = policy
-            break
+        if policy["policyType"] in ["TargetTrackingScaling", "StepScaling"]:
+            if policy["instanceWarmup"]:
+                policy["instanceWarmup"] = policy["instanceWarmup"] // 60
+            else:
+                policy["instanceWarmup"] = 0
     
     scale_up_steps = []
     scale_down_steps = []
@@ -476,10 +481,10 @@ def get_policy(request, group_name):
         step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
         step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
 
-        if step_scaling_policy["instanceWarmup"]:
-            step_scaling_policy["instanceWarmup"] = step_scaling_policy["instanceWarmup"] // 60
-        else:
-            step_scaling_policy["instanceWarmup"] = 0
+        # if step_scaling_policy["instanceWarmup"]:
+        #     step_scaling_policy["instanceWarmup"] = step_scaling_policy["instanceWarmup"] // 60
+        # else:
+        #     step_scaling_policy["instanceWarmup"] = 0 
 
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
@@ -490,15 +495,48 @@ def get_policy(request, group_name):
         "csrf_token": get_token(request),
     })
 
-    print("Hey me")
-
     return HttpResponse(json.dumps(content), content_type="application/json")
 
 
 def update_policy(request, group_name):
     params = request.POST
+    print(params)
+    
+    content = params["content"]
+    input = dict(kv.split("=", 1) for kv in content.split("&"))
+    print(input)
+    
+    input.pop('csrfmiddlewaretoken', None)
+    input.pop('policyType', None)
 
-    if params["policyType"] == "TargetTracking":
+    res = {key: val for key, val in input.items()
+       if key.startswith("targetScalingName_")}
+    
+    print(res.values())
+    print("names:")
+    for name in res.values():
+        print(name)
+        print(input[name + "_target"])
+        print(input[name + "_awsMetrics"])
+        print(input[name + "_instanceWarmup"])
+        # print(input[name + "_disableScaleIn"])
+
+    # res = []
+ 
+    # for key, group in groupby(sorted(input), key=lambda x: x[:-1]):
+    #     temp_dict = {k: input[k] for k in group}
+    #     res.append(temp_dict)
+
+    # print(res)
+    # print(content["awsMetrics_khoi-canary-TargetTrackingScaling-ASGAverageCPUUtilization"])
+
+    if params["policyType"] == "target-tracking-scaling":
+        print ("Saving target tracking")
+        print(dict(params.lists()))
+        # print (params)
+
+        return get_policy(request, group_name)
+        
         metric = params["awsMetrics"]
         target = params["target"]
         instanceWarmup = params["instanceWarmup"]
@@ -507,12 +545,17 @@ def update_policy(request, group_name):
         if "disableScaleIn" in params:
             disableScaleIn = True
 
+        policyName = "{}-TargetTrackingScaling-{}".format(group_name, metric)
+
+        if "targetScalingName" in params:
+            policyName = params["targetScalingName"]
+
         scaling_policies = {}
         scaling_policies["scalingPolicies"] = []
         target_tracking_policy = {}
         target_tracking_policy["policyType"] = "TargetTrackingScaling"
-        target_tracking_policy["policyName"] = "{}-TargetTrackingScaling-{}".format(group_name, metric)
-        target_tracking_policy["instanceWarmup"] = instanceWarmup * 60
+        target_tracking_policy["policyName"] = policyName
+        target_tracking_policy["instanceWarmup"] = int(instanceWarmup) * 60
         targetTrackingScalingConfiguration = {}
         targetTrackingScalingConfiguration["targetValue"] = target
         targetTrackingScalingConfiguration["disableScaleIn"] = disableScaleIn
@@ -527,7 +570,9 @@ def update_policy(request, group_name):
 
         autoscaling_groups_helper.put_scaling_policies(request, group_name, scaling_policies)
 
-        return redirect('/groups/{}/config'.format(group_name))
+        return get_policy(request, group_name)
+    
+        # return redirect('/groups/{}/config'.format(group_name))
 
     try:
         policyType = params["policyType"]
