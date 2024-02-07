@@ -2,11 +2,15 @@
 {% include "panel_heading.tmpl" with panel_title="Scaling Policies" panel_body_id="autoscalingPolicyId" direction="down" %}
 
 <div id="autoscalingPolicyId" class="collapse in panel-body">
+    <style> 
+        .button-gray {background-color: #e7e7e7;} /* Gray */
+    </style>
+
     <div class="container-fluid">
         <div class="tab">
-            <button id="simple-scaling-btn" class="tablinks" onclick="openPolicy(event, 'simple-scaling')">Simple Scaling</button>
-            <button id="step-scaling-btn" class="tablinks" onclick="openPolicy(event, 'step-scaling')">Step Scaling</button>
-            <button id="target-tracking-scaling-btn" class="tablinks" onclick="openPolicy(event, 'target-tracking-scaling')">Target Tracking Scaling</button>
+            <button id="simple-scaling-btn" class="tablink button-gray" onclick="openPolicy(event, 'simple-scaling')">Simple Scaling</button>
+            <button id="step-scaling-btn" class="tablink button-gray" onclick="openPolicy(event, 'step-scaling')">Step Scaling</button>
+            <button id="target-tracking-scaling-btn" class="tablink button-gray" onclick="openPolicy(event, 'target-tracking-scaling')">Target Tracking Scaling</button>
         </div>
 
         <div id="simple-scaling" class="tabcontent">
@@ -456,7 +460,6 @@ aria-hidden="true">
                 data = $('#' + policyForm.id).serialize() + "&policyType=" + policyType;
                 
                 if (policyType == "target-tracking-scaling") {
-                    console.log("target-tracking-scaling")
                     saveTargetScalingBtn = document.getElementById("saveTargetScalingBtnId")
                     data = {
                         'content': $("#targetScalingDisplayId :input").serialize(),
@@ -529,46 +532,6 @@ aria-hidden="true">
                     });
                 });
             });
-
-
-            {% comment %} openPolicy(event, 'simple-scaling');
-
-            function openPolicy(evt, policyType) {
-                var i, tabcontent, tablinks;
-                tabcontent = document.getElementsByClassName("tabcontent");
-
-                for (i = 0; i < tabcontent.length; i++) {
-                    tabcontent[i].style.display = "none";
-                }
-
-                document.getElementById(policyType).style.display = "block";
-
-                var asgAlarmElement = document.getElementById("asMetricsId")
-                var asgAlarmButtonElement = document.getElementById("resetAsMetricsBtnDivId")
-                var createTargetScalingButton = document.getElementById("addTargetScalingBtnId")
-                
-                console.log(asgAlarmElement)
-                console.log(asgAlarmButtonElement)
-                console.log(createTargetScalingButton)
-
-                if (policyType == "target-tracking-scaling") {
-                    createTargetScalingButton.style.display = "block"
-                    asgAlarmElement.style.display = "none"
-                    asgAlarmButtonElement.style.display = "none"
-                }
-                else {
-                    asgAlarmElement.style.display = "block"
-                    asgAlarmButtonElement.style.display = "block"
-                    createTargetScalingButton.style.display = "none"
-                }
-
-                evt.currentTarget.className += " active";
-            }
-
-            function addTargetScaling(event) {
-                var newTargetScalingEntryModalElement = document.getElementById("newTargetScalingEntryModalId")
-                $('#newTargetScalingEntryModalId').modal('show');
-            } {% endcomment %}
         </script>
     </div>
 
@@ -599,15 +562,16 @@ aria-hidden="true">
                 tabcontent[i].style.display = "none";
             }
 
+            tablinks = document.getElementsByClassName("tablink");
+            for (i = 0; i < tabcontent.length; i++) {
+              tablinks[i].className = tablinks[i].className.replace(" button-gray", "");
+            }
+
             document.getElementById(policyType).style.display = "block";
 
             var asgAlarmElement = document.getElementById("asMetricsId")
             var asgAlarmButtonElement = document.getElementById("resetAsMetricsBtnDivId")
             var createTargetScalingButton = document.getElementById("addTargetScalingBtnId")
-            
-            console.log(asgAlarmElement)
-            console.log(asgAlarmButtonElement)
-            console.log(createTargetScalingButton)
 
             if (policyType == "target-tracking-scaling") {
                 createTargetScalingButton.style.display = "block"
@@ -620,7 +584,7 @@ aria-hidden="true">
                 createTargetScalingButton.style.display = "none"
             }
 
-            evt.currentTarget.className += " active";
+            evt.currentTarget.className += " button-gray";
         }
 
         function addTargetScaling(event) {
