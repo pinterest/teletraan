@@ -330,12 +330,11 @@
                                                 </label>
                                             </div>
 
-                                            <div>
-                                                <label class="switch" data-toggle="tooltip" title="Disable Scale in">
+                                            <div class="form-group">
+                                                <label class="switch control-label col-xs-2" data-toggle="tooltip" title="Disable Scale in">
                                                     Disable Scale In
-                                                    <input type="checkbox" id="{{ policy.policyName}}_disableScaleIn" name="{{ policy.policyName}}_disableScaleIn" {% if policy.targetTrackingScalingConfiguration.disableScaleIn %} checked {% endif %}>
-                                                    <div class="slider round"></div>
                                                 </label>
+                                                <input type="checkbox" id="{{ policy.policyName}}_disableScaleIn" name="{{ policy.policyName}}_disableScaleIn" {% if policy.targetTrackingScalingConfiguration.disableScaleIn %} checked {% endif %}>
                                             </div>
                                         </div>
                                     </div>
@@ -421,7 +420,6 @@ aria-hidden="true">
                                 <div>
                                     <label class="switch" data-toggle="tooltip" title="Disable Scale in">
                                         Disable Scale In
-                                        {% comment %} <input type="checkbox" id="disableScaleIn" name="disableScaleIn" {% if auto_refresh_enabled %} checked {% endif %}> {% endcomment %}
                                         <input type="checkbox" id="disableScaleIn" name="disableScaleIn">
                                         <div class="slider round"></div>
                                     </label>
