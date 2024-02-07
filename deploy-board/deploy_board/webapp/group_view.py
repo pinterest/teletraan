@@ -481,11 +481,6 @@ def get_policy(request, group_name):
         step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
         step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
 
-        # if step_scaling_policy["instanceWarmup"]:
-        #     step_scaling_policy["instanceWarmup"] = step_scaling_policy["instanceWarmup"] // 60
-        # else:
-        #     step_scaling_policy["instanceWarmup"] = 0 
-
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
         "scalingPolicies": policies["scalingPolicies"],
@@ -514,12 +509,21 @@ def build_target_scaling_policy(name, metric, target, instance_warmup, disable_s
 
     return policy
 
+def delete_policy(request, group_name, policy_name):
+    try:
+        autoscaling_groups_helper.delete_scaling_policy(request, group_name, policy_name)
+        return redirect("/groups/{}/config/".format(group_name))
+    except:
+        log.error(traceback.format_exc())
+        raise
+
 def update_policy(request, group_name):
 
     try:
         params = request.POST
         policyType = params["policyType"]
         scaling_policies = {}
+        isNewPolicyAdded = False
 
         if policyType == "target-tracking-scaling":
             scaling_policies["scalingPolicies"] = []
@@ -539,8 +543,9 @@ def update_policy(request, group_name):
                     scaling_policies["scalingPolicies"].append(policy)
             else:
                 # Create new policy
-                name = "{}-TargetTrackingScaling-{}".format(group_name, metric)
+                isNewPolicyAdded = True
                 metric = params["awsMetrics"]
+                name = "{}-TargetTrackingScaling-{}".format(group_name, metric)
                 target = params["target"]
                 instance_warmup = params["instanceWarmup"]
                 disable_scale_in = False
@@ -601,7 +606,10 @@ def update_policy(request, group_name):
 
         autoscaling_groups_helper.put_scaling_policies(request, group_name, scaling_policies)
 
-        return get_policy(request, group_name)
+        if isNewPolicyAdded:
+            return redirect("/groups/{}/config/".format(group_name))
+        else:
+            return get_policy(request, group_name)
     except:
         log.error(traceback.format_exc())
         raise

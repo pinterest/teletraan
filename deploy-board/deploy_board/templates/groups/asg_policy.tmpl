@@ -274,7 +274,14 @@
 
         <div id="target-tracking-scaling" class="tabcontent">
             <h4>Target Tracking Scaling <sup><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html" target="_blank">What is target tracking scaling?</a></sup></h4>
-            <h5>(With target tracking scaling, you don't need to create alarms directly)</h5>
+            <div class="alert alert-info">
+                With target tracking scaling:
+                <ul>
+                    <li>You don't need to create alarms directly.</li>
+                    <li>You should delete scaling alarms for simple or step scaling.</li>
+                    <li>Only one target tracking scaling policy can be created for each metric.</li>
+                </ul>
+            </div>
             
             <div id="targetScalingDisplayId">
                 <form id="targetScalingDisplayFormId" class="form-horizontal"> {% csrf_token %}
@@ -285,7 +292,7 @@
                                     {{ policy.targetTrackingScalingConfiguration.predefinedMetricSpecification.predefinedMetricType }}
                                 </h4>
                                 <div>
-                                    <button id="deleteItem_{{ alarm.alarmId }}" type="button" style="float:right; margin-left:6px;" class="delete_button metricDeleteBtn btn btn-primary">Delete</button>
+                                    <button id="deleteItem_{{ policy.policyName }}" type="button" style="float:right; margin-left:6px;" class="delete_button btn btn-primary">Delete</button>
                                 </div>
                             </div>
 
@@ -309,7 +316,7 @@
 
                                             <div class="form-group">
                                                 <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
-                                                    Instance Warmup (>= 10 minutes recommended):
+                                                    Instance Warmup (>= 15 minutes recommended):
                                                 </label>
                                                 <div class="col-xs-2">
                                                     <input class="form-control" id="{{ policy.policyName}}_instanceWarmup" name="{{ policy.policyName}}_instanceWarmup" required="true" type="text" value={{ policy.instanceWarmup }} />
@@ -327,8 +334,6 @@
                                                 </label>
                                             </div>
                                         </div>
-
-                                        <button id="saveTargetScalingBtnId" type="submit" class="btn btn-primary">Save</button>
                                     </div>
                                 </fieldset>
                                 {% csrf_token %}
@@ -337,13 +342,12 @@
 
                         <script>
                             $(function() {
-                                $('#deleteItem_{{alarm.alarmId}}').click(function () {
+                                $('#deleteItem_{{policy.policyName}}').click(function () {
                                             var btn = $(this);
                                             $.ajax({
                                                 type: 'POST',
-                                                url: '/groups/{{ group_name }}/autoscaling/delete_metrics/',
-                                                data: {'csrfmiddlewaretoken': '{{csrf_token}}',
-                                                    'alarmId': '{{alarm.alarmId}}'},
+                                                url: '/groups/{{ group_name }}/autoscaling/policies/{{policy.policyName}}',
+                                                data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
                                                 datatype: 'json',
                                                 beforeSend: function () {
                                                     btn.button('loading');
@@ -400,7 +404,7 @@ aria-hidden="true">
 
                                 <div class="form-group">
                                     <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
-                                        Instance Warmup (>= 10 minutes recommended):
+                                        Instance Warmup (>= 15 minutes recommended):
                                     </label>
                                     <div class="col-xs-2">
                                         <input class="form-control" name="instanceWarmup" required="true" type="text" value="15" />

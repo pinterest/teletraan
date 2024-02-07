@@ -165,6 +165,9 @@ def put_scaling_policies(request, cluster_name, policies_info):
     return rodimus_client.post("/clusters/%s/autoscaling/policies" % cluster_name, request.teletraan_user_id.token,
                                data=policies_info)
 
+def delete_scaling_policy(request, cluster_name, policy_name):
+    return rodimus_client.delete("/clusters/%s/autoscaling/policies/%s" % (cluster_name, policy_name), request.teletraan_user_id.token)
+
 
 def get_policies(request, cluster_name):
     return rodimus_client.get("/clusters/%s/autoscaling/policies" % cluster_name, request.teletraan_user_id.token)
