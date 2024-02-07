@@ -497,88 +497,59 @@ def get_policy(request, group_name):
 
     return HttpResponse(json.dumps(content), content_type="application/json")
 
+def build_target_scaling_policy(name, metric, target, instance_warmup, disable_scale_in):
+    policy = {}
+    policy["policyType"] = "TargetTrackingScaling"
+    policy["policyName"] = name
+    policy["instanceWarmup"] = int(instance_warmup) * 60
+
+    targetTrackingScalingConfiguration = {}
+    targetTrackingScalingConfiguration["targetValue"] = target
+    targetTrackingScalingConfiguration["disableScaleIn"] = disable_scale_in
+    predefinedMetricSpecification = {}
+    predefinedMetricSpecification["predefinedMetricType"] = metric
+    targetTrackingScalingConfiguration["predefinedMetricSpecification"] = predefinedMetricSpecification
+
+    policy["targetTrackingScalingConfiguration"] = targetTrackingScalingConfiguration
+
+    return policy
 
 def update_policy(request, group_name):
-    params = request.POST
-    print(params)
-    
-    content = params["content"]
-    input = dict(kv.split("=", 1) for kv in content.split("&"))
-    print(input)
-    
-    input.pop('csrfmiddlewaretoken', None)
-    input.pop('policyType', None)
-
-    res = {key: val for key, val in input.items()
-       if key.startswith("targetScalingName_")}
-    
-    print(res.values())
-    print("names:")
-    for name in res.values():
-        print(name)
-        print(input[name + "_target"])
-        print(input[name + "_awsMetrics"])
-        print(input[name + "_instanceWarmup"])
-        # print(input[name + "_disableScaleIn"])
-
-    # res = []
- 
-    # for key, group in groupby(sorted(input), key=lambda x: x[:-1]):
-    #     temp_dict = {k: input[k] for k in group}
-    #     res.append(temp_dict)
-
-    # print(res)
-    # print(content["awsMetrics_khoi-canary-TargetTrackingScaling-ASGAverageCPUUtilization"])
-
-    if params["policyType"] == "target-tracking-scaling":
-        print ("Saving target tracking")
-        print(dict(params.lists()))
-        # print (params)
-
-        return get_policy(request, group_name)
-        
-        metric = params["awsMetrics"]
-        target = params["target"]
-        instanceWarmup = params["instanceWarmup"]
-        disableScaleIn = False
-        print(params)
-        if "disableScaleIn" in params:
-            disableScaleIn = True
-
-        policyName = "{}-TargetTrackingScaling-{}".format(group_name, metric)
-
-        if "targetScalingName" in params:
-            policyName = params["targetScalingName"]
-
-        scaling_policies = {}
-        scaling_policies["scalingPolicies"] = []
-        target_tracking_policy = {}
-        target_tracking_policy["policyType"] = "TargetTrackingScaling"
-        target_tracking_policy["policyName"] = policyName
-        target_tracking_policy["instanceWarmup"] = int(instanceWarmup) * 60
-        targetTrackingScalingConfiguration = {}
-        targetTrackingScalingConfiguration["targetValue"] = target
-        targetTrackingScalingConfiguration["disableScaleIn"] = disableScaleIn
-        predefinedMetricSpecification = {}
-        predefinedMetricSpecification["predefinedMetricType"] = metric
-        targetTrackingScalingConfiguration["predefinedMetricSpecification"] = predefinedMetricSpecification
-        target_tracking_policy["targetTrackingScalingConfiguration"] = targetTrackingScalingConfiguration
-
-        print(target_tracking_policy)
-
-        scaling_policies["scalingPolicies"].append(target_tracking_policy)
-
-        autoscaling_groups_helper.put_scaling_policies(request, group_name, scaling_policies)
-
-        return get_policy(request, group_name)
-    
-        # return redirect('/groups/{}/config'.format(group_name))
 
     try:
+        params = request.POST
         policyType = params["policyType"]
         scaling_policies = {}
 
-        if policyType == "simple-scaling":
+        if policyType == "target-tracking-scaling":
+            scaling_policies["scalingPolicies"] = []
+
+            if "content" in params:
+                # update existing policies
+                content = params["content"]
+                input = dict(kv.split("=", 1) for kv in content.split("&"))
+                policy_names = {key: val for key, val in input.items()
+                    if key.startswith("targetScalingName_")}
+
+                for name in policy_names.values():
+                    disable_scale_in = False
+                    if name + "_disableScaleIn" in input:
+                        disable_scale_in = True 
+                    policy = build_target_scaling_policy(name, input[name+"_awsMetrics"], input[name+"_target"], input[name+"_instanceWarmup"], disable_scale_in)
+                    scaling_policies["scalingPolicies"].append(policy)
+            else:
+                # Create new policy
+                name = "{}-TargetTrackingScaling-{}".format(group_name, metric)
+                metric = params["awsMetrics"]
+                target = params["target"]
+                instance_warmup = params["instanceWarmup"]
+                disable_scale_in = False
+                if "disableScaleIn" in params:
+                    disable_scale_in = True
+
+                policy = build_target_scaling_policy(name, metric, target, instance_warmup, disable_scale_in)
+                scaling_policies["scalingPolicies"].append(policy)
+        elif policyType == "simple-scaling":
             scaling_policies["scaleupPolicies"] = []
             scaling_policies["scaledownPolicies"] = []
             scaling_policies["scaleupPolicies"].append({"scaleSize": make_int(params["scaleupSize"]),

@@ -10,7 +10,7 @@
         </div>
 
         <div id="simple-scaling" class="tabcontent">
-        <h4>Simple Scaling</h4>
+            <h4>Simple Scaling</h4>
             <form id="simpleAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
             <fieldset id="envConfigFieldSetId">
                 <div class="form-group">
@@ -433,12 +433,10 @@ aria-hidden="true">
         </div>
 
         <script>
-
             function validate() {
-        
-                policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId")
+                policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId");
                 policyType = "simple-scaling";
-        
+
                 tabcontent = document.getElementsByClassName("tabcontent");
                 for (i = 0; i < tabcontent.length; i++) {
                     if (tabcontent[i].style.display == "block") {
@@ -448,14 +446,19 @@ aria-hidden="true">
                 }
         
                 if (policyType == "step-scaling") {
-                    policyForm = document.getElementById("stepAutoscalingPolicyConfigFormId");
+                    policyForm = document.getElementById("stepAutoscalingPolicyConfigFormId");    
                 }
-        
+
+                data = $('#' + policyForm.id).serialize() + "&policyType=" + policyType;
+                
                 if (policyType == "target-tracking-scaling") {
                     console.log("target-tracking-scaling")
                     saveTargetScalingBtn = document.getElementById("saveTargetScalingBtnId")
-                    {% comment %} policyForm = document.getElementById("targetScalingDisplayFieldSetId"); {% endcomment %}
-                    policyForm = document.getElementById("targetScalingDisplayFormId")
+                    data = {
+                        'content': $("#targetScalingDisplayId :input").serialize(),
+                        'policyType': policyType,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    }
                 }
         
                 var btn = $(this);
@@ -463,11 +466,7 @@ aria-hidden="true">
                 $.ajax({
                     type: 'POST',
                     url: '/groups/{{ group_name }}/autoscaling/update_policy/',
-                    {% comment %} data: $('#' + policyForm.id).serialize() + "&policyType=" + policyType, {% endcomment %}
-                    data: {
-                        'content': $("#targetScalingDisplayId :input").serialize() + "&policyType=" + policyType,
-                        'csrfmiddlewaretoken': '{{ csrf_token }}',
-                    },
+                    data: data,
                     dataType: 'json',
                     beforeSend: function () {
                         btn.button('loading');
@@ -528,7 +527,7 @@ aria-hidden="true">
             });
 
 
-            openPolicy(event, 'simple-scaling');
+            {% comment %} openPolicy(event, 'simple-scaling');
 
             function openPolicy(evt, policyType) {
                 var i, tabcontent, tablinks;
@@ -562,11 +561,10 @@ aria-hidden="true">
                 evt.currentTarget.className += " active";
             }
 
-            function hello(event) {
-                console.log("New button clicked")
+            function addTargetScaling(event) {
                 var newTargetScalingEntryModalElement = document.getElementById("newTargetScalingEntryModalId")
                 $('#newTargetScalingEntryModalId').modal('show');
-            }
+            } {% endcomment %}
         </script>
     </div>
 
@@ -580,101 +578,51 @@ aria-hidden="true">
                     data-loading-text="Saving...">
                 <span class="glyphicon glyphicon-floppy-save"></span> Save
             </button>
-            <button id="addTargetScalingBtnId" onclick="hello(event)" class="btn btn-primary"
+            <button id="addTargetScalingBtnId" onclick="addTargetScaling(event)" class="btn btn-primary"
                     data-loading-text="Creating..."> Add
             </button>
         </div>
     </div>
-    
+
     <script>
-        function validate() {
-            console.log("Save clicked")
-    
-            policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId")
-            policyType = "simple-scaling";
-    
+        openPolicy(event, 'simple-scaling');
+
+        function openPolicy(evt, policyType) {
+            var i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tabcontent");
+
             for (i = 0; i < tabcontent.length; i++) {
-                if (tabcontent[i].style.display == "block") {
-                    policyType = tabcontent[i].id;
-                    break;
-                }
+                tabcontent[i].style.display = "none";
             }
-    
-            console.log(policyType)
-    
-            if (policyType == "step-scaling") {
-                policyForm = document.getElementById("stepAutoscalingPolicyConfigFormId");
-            }
-    
+
+            document.getElementById(policyType).style.display = "block";
+
+            var asgAlarmElement = document.getElementById("asMetricsId")
+            var asgAlarmButtonElement = document.getElementById("resetAsMetricsBtnDivId")
+            var createTargetScalingButton = document.getElementById("addTargetScalingBtnId")
+            
+            console.log(asgAlarmElement)
+            console.log(asgAlarmButtonElement)
+            console.log(createTargetScalingButton)
+
             if (policyType == "target-tracking-scaling") {
-                console.log("target-tracking-scaling")
-                policyForm = document.getElementById("targetScalingForm");
+                createTargetScalingButton.style.display = "block"
+                asgAlarmElement.style.display = "none"
+                asgAlarmButtonElement.style.display = "none"
             }
-    
-            var btn = $(this);
-            $.ajax({
-                type: 'POST',
-                url: '/groups/{{ group_name }}/autoscaling/update_policy/',
-                data: $('#' + policyForm.id).serialize() + "&policyType=" + policyType,
-                dataType: 'json',
-                beforeSend: function () {
-                    btn.button('loading');
-                },
-                success: function (data) {
-                    if(data != null && data.success == false) {
-                        $('#errorBannerId').append(data.error);
-                        $('#errorBannerId').show();
-                    } else {
-                        $("#autoscalingPolicyId").parent().html(data);
-                        $('#errorBannerId').empty().hide();
-                    }
-                    btn.button('reset');
-                },
-                error: function (data) {
-                    $('#errorBannerId').append(data.responseText);
-                    $('#errorBannerId').show();
-                }
-            });
+            else {
+                asgAlarmElement.style.display = "block"
+                asgAlarmButtonElement.style.display = "block"
+                createTargetScalingButton.style.display = "none"
+            }
+
+            evt.currentTarget.className += " active";
         }
-    
-        const saveAsgPolicyBtnElement = document.getElementById("saveAsgPolicyBtnId");
-        saveAsgPolicyBtnElement.addEventListener("click", validate);
-    
-        $(function () {
-            $('#saveAsgPolicyBtnId').attr('disabled','disabled');
-            $('#resetAsgPolicyBtnId').attr('disabled','disabled');
-    
-            $('#autoscalingPolicyId input').keyup(function() {
-                $('#saveAsgPolicyBtnId').removeAttr('disabled');
-                $('#resetAsgPolicyBtnId').removeAttr('disabled');
-            });
-    
-            $('#autoscalingPolicyId select').change(function() {
-                $('#saveAsgPolicyBtnId').removeAttr('disabled');
-                $('#resetAsgPolicyBtnId').removeAttr('disabled');
-            });
-    
-            $('#autoscalingPolicyId input').change(function() {
-                $('#saveAsgPolicyBtnId').removeAttr('disabled');
-                $('#resetAsgPolicyBtnId').removeAttr('disabled');
-            });
-    
-            $('#resetAsgPolicyBtnId').click(function () {
-                var btn = $(this);
-                $.ajax({
-                    type: 'GET',
-                    url: '/groups/{{ group_name }}/autoscaling/get_asg_policy/',
-                    beforeSend: function () {
-                        btn.button('loading');
-                    },
-                    success: function (data) {
-                        btn.button('reset');
-                        $("#autoscalingPolicyId").parent().html(data);
-                    }
-                });
-            });
-        });
+
+        function addTargetScaling(event) {
+            var newTargetScalingEntryModalElement = document.getElementById("newTargetScalingEntryModalId")
+            $('#newTargetScalingEntryModalId').modal('show');
+        }
     </script>
 </div>
 
