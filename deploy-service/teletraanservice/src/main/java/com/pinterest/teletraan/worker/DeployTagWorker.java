@@ -22,8 +22,6 @@ import java.util.concurrent.TimeUnit;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 
-import java.util.concurrent.TimeUnit;
-
 public class DeployTagWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(DeployTagWorker.class);
     private static final int MAX_QUERY_TAGS_SIZE = 200;
@@ -92,10 +90,6 @@ public class DeployTagWorker implements Runnable {
         }
 
         // 2. add host tags from missing in db ( query for CMDB for the missing host tags )
-<<<<<<< HEAD
-=======
-        // For now we emit metrics to monitor
->>>>>>> emit metrics to monitor the tag creator
         if (!missings.isEmpty()) {
             List<UpdateStatement> statements = new ArrayList<>();
 
