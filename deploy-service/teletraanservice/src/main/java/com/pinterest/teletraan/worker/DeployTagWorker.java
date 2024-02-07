@@ -90,6 +90,10 @@ public class DeployTagWorker implements Runnable {
         }
 
         // 2. add host tags from missing in db ( query for CMDB for the missing host tags )
+<<<<<<< HEAD
+=======
+        // For now we emit metrics to monitor
+>>>>>>> emit metrics to monitor the tag creator
         if (!missings.isEmpty()) {
             List<UpdateStatement> statements = new ArrayList<>();
 
