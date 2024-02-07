@@ -22,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.Metrics;
 
+import java.util.concurrent.TimeUnit;
+
 public class DeployTagWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(DeployTagWorker.class);
     private static final int MAX_QUERY_TAGS_SIZE = 200;
