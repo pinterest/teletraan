@@ -512,7 +512,7 @@ def build_target_scaling_policy(name, metric, target, instance_warmup, disable_s
 def delete_policy(request, group_name, policy_name):
     try:
         autoscaling_groups_helper.delete_scaling_policy(request, group_name, policy_name)
-        return redirect("/groups/{}/config/".format(group_name))
+        return get_policy(request, group_name)
     except:
         log.error(traceback.format_exc())
         raise
