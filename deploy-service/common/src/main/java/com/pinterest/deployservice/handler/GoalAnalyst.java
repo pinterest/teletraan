@@ -47,8 +47,6 @@ import com.pinterest.deployservice.dao.DeployConstraintDAO;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.micrometer.core.instrument.Metrics;
-
 public class GoalAnalyst {
     private static final Logger LOG = LoggerFactory.getLogger(GoalAnalyst.class);
     // Define lower value for hotfix and rollback priority to make sure they deploy first
@@ -566,14 +564,12 @@ public class GoalAnalyst {
                     hostTagBean.setEnv_id(envId);
                     hostTagBean.setCreate_date(System.currentTimeMillis());
                     hostTagDAO.insertOrUpdate(hostTagBean);
-                    Metrics.counter("ec2TagsByDeployd", "create", "yes", "tagName", tagName, "tagValue", tagValue, "envName", env.getEnv_name(), "stageName", env.getStage_name(), "hostName", host).increment();
-                    LOG.debug("insert host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                    LOG.debug("Create host tags from Deployd: insert host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
                 } else if (tagValue.equals(hostTagBean.getTag_value()) == false) {
                     hostTagBean.setTag_value(tagValue);
                     hostTagBean.setCreate_date(System.currentTimeMillis());
                     hostTagDAO.insertOrUpdate(hostTagBean);
-                    Metrics.counter("ec2TagsByDeployd", "create", "no", "tagName", tagName, "tagValue", tagValue, "envName", env.getEnv_name(), "stageName", env.getStage_name(), "hostName", host).increment();
-                    LOG.debug("update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
+                    LOG.debug("Update host tags from Deployd: update host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
                 }      
             }         
         }

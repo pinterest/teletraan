@@ -20,7 +20,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Metrics;
 
 public class DeployTagWorker implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(DeployTagWorker.class);
@@ -118,7 +117,7 @@ public class DeployTagWorker implements Runnable {
                         hostTagBean.setEnv_id(envId);
                         hostTagBean.setCreate_date(System.currentTimeMillis());
                         statements.add(hostTagDAO.genInsertOrUpdate(hostTagBean));
-                        Metrics.counter("ec2TagsByWorker", "tagName", tagName, "tagValue", tagValue, "envName", environBean.getEnv_name(), "stageName", environBean.getStage_name(), "hostId", hostId).increment();
+                        LOG.debug("Create host tags from CMDB: insert host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, host_id, tagName, tagValue);
                     }
                 }
             }
