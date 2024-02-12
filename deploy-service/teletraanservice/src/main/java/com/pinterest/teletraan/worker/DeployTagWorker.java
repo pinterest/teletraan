@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import io.micrometer.core.instrument.Counter;
 
@@ -167,7 +166,6 @@ public class DeployTagWorker implements Runnable {
     @Override
     public void run() {
         try {
-            TimeUnit.MINUTES.sleep(2);
             processBatch();
         } catch (Throwable t) {
             LOG.error("Failed to run DeployTagWorker", t);
