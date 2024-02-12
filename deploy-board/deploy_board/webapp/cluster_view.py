@@ -112,6 +112,8 @@ class EnvCapacityBasicCreateView(View):
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
             cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
+
+            log.info(f"Create cluster: {json.dumps(cluster_info)}")
             clusters_helper.create_cluster_with_env(request, cluster_name, name, stage, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -204,7 +206,7 @@ class EnvCapacityAdvCreateView(View):
                 request, name, stage, capacity_type="GROUP", data=cluster_name)
 
             cluster_info['statefulStatus'] = clusters_helper.StatefulStatuses.get_status(cluster_info['statefulStatus'])
-            log.info("Create Capacity in the provider")
+            log.info(f"Create cluster advanced: {json.dumps(cluster_info)}")
             clusters_helper.create_cluster(request, cluster_name, cluster_info)
         except NotAuthorizedException as e:
             log.error("Have an NotAuthorizedException error {}".format(e))
@@ -1107,7 +1109,7 @@ def sanitize_slack_email_input(input):
     res = ''
     if input == None or len(input) == 0:
         return res
-    
+
     tokens = input.strip().split(',')
     for e in tokens:
         e = e.strip()
@@ -1176,7 +1178,7 @@ def submit_auto_refresh_config(request, name, stage):
     auto_refresh_config["bakeTime"] = params["bakeTime"]
     auto_refresh_config["config"] = rollingUpdateConfig
     auto_refresh_config["type"] = "LATEST"
-    
+
     emails = params["emails"]
     slack_channels = params["slack_channels"]
 
