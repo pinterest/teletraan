@@ -20,6 +20,7 @@ from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
+from django.contrib.messages import get_messages
 import json
 import logging
 import traceback
@@ -581,7 +582,31 @@ def update_policy(request, group_name):
 
             if (params['scaleUpSteps']):
                 scaleUpSteps = [float(x) for x in params["scaleUpSteps"].split(',')]
+
+                if len(scaleUpSteps) == 0:
+                    messages.add_message(request, messages.ERROR, 'Invalid scale up steps: {}'.format(params["scaleUpSteps"]))
+                    return redirect("/groups/{}/config/".format(group_name))
+
+                if scaleUpSteps[0] != 0:
+                    messages.add_message(request, messages.ERROR, 'Invalid steps: {}. Must start with 0'.format(params["scaleUpSteps"]))
+                    return redirect("/groups/{}/config/".format(group_name))
+                
+                for i in range(len(scaleUpSteps) - 1):
+                    if scaleUpSteps[i] >= scaleUpSteps[i + 1]:
+                        messages.add_message(request, messages.ERROR, 'Steps must be a strictly increasing sequence: {}'.format(params["scaleUpSteps"]))
+                        return redirect("/groups/{}/config/".format(group_name))
+
                 scaleUpAdjustments = [int(x) for x in params["scaleUpAdjustments"].split(',')]
+
+                if len(scaleUpSteps) != len(scaleUpAdjustments):
+                    messages.add_message(request, messages.ERROR, 'Each step must have an adjustment: {}/{}'.format(params["scaleUpSteps"], params["scaleUpAdjustments"]))
+                    return redirect("/groups/{}/config/".format(group_name))
+                
+                for adjustment in scaleUpAdjustments:
+                    if adjustment < 0:
+                        messages.add_message(request, messages.ERROR, 'Scale up adjustments must be positive numbers: {}'.format(params["scaleUpAdjustments"]))
+                        return redirect("/groups/{}/config/".format(group_name))
+
                 for i in range(len(scaleUpSteps)):
                     step = {}
                     step["metricIntervalLowerBound"] = scaleUpSteps[i]
@@ -592,7 +617,38 @@ def update_policy(request, group_name):
 
             if (params['scaleDownSteps']):
                 scaleDownSteps = [float(x) for x in params["scaleDownSteps"].split(',')]
+
+                if len(scaleDownSteps) == 0:
+                    messages.add_message(request, messages.ERROR, 'Invalid scale down steps: {}'.format(params["scaleDownSteps"]))
+                    return redirect("/groups/{}/config/".format(group_name))
+
+                if scaleDownSteps[-1] != 0:
+                    messages.add_message(request, messages.ERROR, 'Last step must end with 0: {}'.format(params["scaleDownSteps"]))
+                    return redirect("/groups/{}/config/".format(group_name))
+                
+                for i in range(len(scaleDownSteps) - 1):
+                    if scaleDownSteps[i] >= scaleDownSteps[i + 1]:
+                        messages.add_message(request, messages.ERROR, 'Steps must be a strictly increasing sequence: {}'.format(params["scaleDownSteps"]))
+                        return redirect("/groups/{}/config/".format(group_name))
+                    
                 scaleDownAdjustments = [int(x) for x in params["scaleDownAdjustments"].split(',')]
+
+                if len(scaleDownSteps) != len(scaleDownAdjustments):
+                    messages.add_message(request, messages.ERROR, 'Each step must have an adjustment: {}/{}'.format(params["scaleDownSteps"], params["scaleDownAdjustments"]))
+                    return redirect("/groups/{}/config/".format(group_name))
+                
+                for adjustment in scaleDownAdjustments:
+                    if adjustment > 0:
+                        messages.add_message(request, messages.ERROR, 'Scale down adjustments must be negative numbers: {}'.format(params["scaleDownAdjustments"]))
+                        return redirect("/groups/{}/config/".format(group_name))
+
+                for i in range(len(scaleUpSteps)):
+                    step = {}
+                    step["metricIntervalLowerBound"] = scaleUpSteps[i]
+                    if i < len(scaleUpSteps) - 1:
+                        step["metricIntervalUpperBound"] = scaleUpSteps[i + 1]
+                    step["scalingAdjustment"] = scaleUpAdjustments[i]
+                    step_scaling_policy["stepAdjustments"].append(step)
 
                 for i in range(len(scaleDownSteps)):
                     step = {}
@@ -1180,6 +1236,7 @@ class GroupConfigView(View):
             "pas_config": pas_config,
             "is_cmp": is_cmp,
             "disallow_autoscaling": _disallow_autoscaling(curr_image),
+            "storage": get_messages(request)
         })
 
 
