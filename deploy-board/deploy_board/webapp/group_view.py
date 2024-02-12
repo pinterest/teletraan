@@ -23,6 +23,7 @@ from django.contrib import messages
 import json
 import logging
 import traceback
+from itertools import groupby
 
 from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
                      specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper)
@@ -448,9 +449,13 @@ def get_policy(request, group_name):
     policies = autoscaling_groups_helper.get_policies(request, group_name)
     step_scaling_policy = None
     for policy in policies["scalingPolicies"]:
-        if policy["policyType"] == "StepScaling":
+        if policy["policyType"] == "StepScaling" and step_scaling_policy == None:
             step_scaling_policy = policy
-            break
+        if policy["policyType"] in ["TargetTrackingScaling", "StepScaling"]:
+            if policy["instanceWarmup"]:
+                policy["instanceWarmup"] = policy["instanceWarmup"] // 60
+            else:
+                policy["instanceWarmup"] = 0
     
     scale_up_steps = []
     scale_down_steps = []
@@ -476,11 +481,6 @@ def get_policy(request, group_name):
         step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
         step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
 
-        if step_scaling_policy["instanceWarmup"]:
-            step_scaling_policy["instanceWarmup"] = step_scaling_policy["instanceWarmup"] // 60
-        else:
-            step_scaling_policy["instanceWarmup"] = 0
-
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
         "scalingPolicies": policies["scalingPolicies"],
@@ -489,16 +489,72 @@ def get_policy(request, group_name):
         "stepScalingPolicy": step_scaling_policy,
         "csrf_token": get_token(request),
     })
+
     return HttpResponse(json.dumps(content), content_type="application/json")
 
+def build_target_scaling_policy(name, metric, target, instance_warmup, disable_scale_in):
+    policy = {}
+    policy["policyType"] = "TargetTrackingScaling"
+    policy["policyName"] = name
+    policy["instanceWarmup"] = int(instance_warmup) * 60
+
+    targetTrackingScalingConfiguration = {}
+    targetTrackingScalingConfiguration["targetValue"] = target
+    targetTrackingScalingConfiguration["disableScaleIn"] = disable_scale_in
+    predefinedMetricSpecification = {}
+    predefinedMetricSpecification["predefinedMetricType"] = metric
+    targetTrackingScalingConfiguration["predefinedMetricSpecification"] = predefinedMetricSpecification
+
+    policy["targetTrackingScalingConfiguration"] = targetTrackingScalingConfiguration
+
+    return policy
+
+def delete_policy(request, group_name, policy_name):
+    try:
+        autoscaling_groups_helper.delete_scaling_policy(request, group_name, policy_name)
+        return get_policy(request, group_name)
+    except:
+        log.error(traceback.format_exc())
+        raise
 
 def update_policy(request, group_name):
-    params = request.POST
+
     try:
+        params = request.POST
         policyType = params["policyType"]
         scaling_policies = {}
+        isNewPolicyAdded = False
 
-        if policyType == "simple-scaling":
+        if policyType == "target-tracking-scaling":
+            scaling_policies["scalingPolicies"] = []
+
+            if "content" in params:
+                # update existing policies
+                content = params["content"]
+                input = dict(kv.split("=", 1) for kv in content.split("&"))
+                policy_names = {key: val for key, val in input.items()
+                    if key.startswith("targetScalingName_")}
+
+                for name in policy_names.values():
+                    disable_scale_in = False
+                    if name + "_disableScaleIn" in input:
+                        disable_scale_in = True 
+                    policy = build_target_scaling_policy(name, input[name+"_awsMetrics"], input[name+"_target"], input[name+"_instanceWarmup"], disable_scale_in)
+                    scaling_policies["scalingPolicies"].append(policy)
+            else:
+                # Create new policy
+                isNewPolicyAdded = True
+                metric = params["awsMetrics"]
+                name = "{}-TargetTrackingScaling-{}".format(group_name, metric)
+                target = params["target"]
+                instance_warmup = params["instanceWarmup"]
+                disable_scale_in = False
+                if "disableScaleIn" in params:
+                    disable_scale_in = True
+
+                policy = build_target_scaling_policy(name, metric, target, instance_warmup, disable_scale_in)
+                scaling_policies["scalingPolicies"].append(policy)
+        elif policyType == "simple-scaling":
             scaling_policies["scaleupPolicies"] = []
             scaling_policies["scaledownPolicies"] = []
             scaling_policies["scaleupPolicies"].append({"scaleSize": make_int(params["scaleupSize"]),
@@ -550,7 +606,10 @@ def update_policy(request, group_name):
 
         autoscaling_groups_helper.put_scaling_policies(request, group_name, scaling_policies)
 
-        return get_policy(request, group_name)
+        if isNewPolicyAdded:
+            return redirect("/groups/{}/config/".format(group_name))
+        else:
+            return get_policy(request, group_name)
     except:
         log.error(traceback.format_exc())
         raise
