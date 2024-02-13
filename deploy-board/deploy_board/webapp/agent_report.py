@@ -40,11 +40,11 @@ PROVISION_HOST_CODE = -1001
 
 
 class AgentStatistics(object):
-    def __init__(self, agent=None, isCurrent=False, isStale=False, isShamed=False):
+    def __init__(self, agent=None, isCurrent=False, isStale=False, isHostFailed=False):
         self.agent = agent
         self.isCurrent = isCurrent
         self.isStale = isStale
-        self.isShamed = isShamed
+        self.isHostFailed = isHostFailed
 
 
 class DeployStatistics(object):
@@ -111,12 +111,12 @@ def addToEnvReport(request, deployStats, agent, env):
     if duration >= DEFAULT_STALE_THRESHOLD:
         isStale = True
 
-    isShamed = False
+    isHostFailed = False
     agent_ec2_tags = agents_helper.get_agent_ec2_tags(request, env['envName'], env['stageName'])
     if agent_ec2_tags and agent_ec2_tags.get("service_mapping") == "shame":
-        isShamed = True
+        isHostFailed = True
 
-    return AgentStatistics(agent=agent, isCurrent=isCurrent, isStale=isStale, isShamed=isShamed)
+    return AgentStatistics(agent=agent, isCurrent=isCurrent, isStale=isStale, isHostFailed=isHostFailed)
 
 
 def _compare_agent_status(agentStats1, agentStats2):
