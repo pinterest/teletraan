@@ -13,9 +13,10 @@
 # limitations under the License.
 
 import time
+from typing import Callable
 
 
-def singleton(non_singleton_cls):
+def singleton(non_singleton_cls) -> Callable:
     """Decorator to make sure there is only one instance of a class.
     Args:
         cls: A class.
@@ -36,7 +37,7 @@ def singleton(non_singleton_cls):
     return getinstance
 
 
-def retry(ExceptionToCheck, tries=4, delay=3, backoff=2):
+def retry(ExceptionToCheck, tries=4, delay=3, backoff=2) -> Callable:
     """Retry calling the decorated function using an exponential backoff.
 
     Similar to utils.decorators.retry() but customized slightly for operations tools.
