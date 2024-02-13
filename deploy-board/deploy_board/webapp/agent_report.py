@@ -116,7 +116,7 @@ def addToEnvReport(request, deployStats, agent, env):
     if agent_ec2_tags and agent_ec2_tags.get("service_mapping") == "shame":
         isHostFailed = True
 
-    return AgentStatistics(agent=agent, isCurrent=isCurrent, isStale=isStale, isHostFailed=isHostFailed)
+    return AgentStatistics(agent, isCurrent, isStale, isHostFailed)
 
 
 def _compare_agent_status(agentStats1, agentStats2):
