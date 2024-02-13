@@ -20,6 +20,7 @@ from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
+from django.contrib.messages import get_messages
 import json
 import logging
 import traceback
@@ -794,6 +795,13 @@ def add_alarms(request, group_name):
             alarm_info["metricSource"] = params["awsMetrics"]
     alarm_info["groupName"] = group_name
 
+    if len(alarm_info["scalingPolicies"]) == 0:
+        # Technically, an alarm can be created without an action (e.g. scaling policy)
+        # However, in the current context, an alarm must have an associated scaling policy.
+        # In this case, there is no scaling policy, so refuse to create new alarm.
+        messages.add_message(request, messages.ERROR, 'Alarm could not be created because there was no {} policy.'.format(policy_type))
+        return redirect("/groups/{}/config/".format(group_name))
+
     autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
 
     return redirect("/groups/{}/config/".format(group_name))
@@ -1180,6 +1188,7 @@ class GroupConfigView(View):
             "pas_config": pas_config,
             "is_cmp": is_cmp,
             "disallow_autoscaling": _disallow_autoscaling(curr_image),
+            "storage": get_messages(request)
         })
 
 
