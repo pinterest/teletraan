@@ -1,0 +1,39 @@
+package com.pinterest.teletraan.universal.security;
+
+import com.google.gson.Gson;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import javax.annotation.Priority;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+@Priority(Integer.MIN_VALUE)
+public class AuditLoggingFilter implements ContainerResponseFilter {
+  private static final Logger LOG = LoggerFactory.getLogger(AuditLoggingFilter.class);
+
+  @Override
+  public void filter(
+      ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+      throws IOException {
+    if (requestContext.getSecurityContext() == null
+        || requestContext.getSecurityContext().getUserPrincipal() == null) {
+      return;
+    }
+    try {
+      Map<String, Object> attributes = new HashMap<>();
+      attributes.put("principal", requestContext.getSecurityContext().getUserPrincipal().getName());
+      attributes.put("resource", requestContext.getUriInfo().getRequestUri().toString());
+      attributes.put("method", requestContext.getMethod());
+      attributes.put("status", responseContext.getStatus());
+
+      String json = new Gson().toJson(attributes);
+      LOG.info(json);
+    } catch (Exception ex) {
+      LOG.error("Failed to generate audit log", ex);
+    }
+  }
+}
