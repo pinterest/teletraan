@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from deploy_board.settings import IS_PINTEREST, PHOBOS_URL
+from deploy_board.settings import CMDB_API_HOST, IS_PINTEREST, PHOBOS_URL
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
@@ -21,7 +21,9 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.messages import get_messages
+from collections import Counter
 import json
+import requests
 import logging
 import traceback
 from itertools import groupby
@@ -1463,6 +1465,20 @@ def get_health_check_activities(request, group_name):
         "disableNext": len(health_checks) < DEFAULT_PAGE_SIZE
     })
 
+
+def get_host_az_dist(request, group_name):
+    host_az_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
+            "query": "tags.Autoscaling:{} AND state:running".format(group_name),
+            "fields": "location"
+        }
+    )
+
+    counter = Counter([x['location'] for x in host_az_dist.json()])
+
+    return render(request, 'groups/host_az_dist.tmpl', {
+        'labels': list(counter.keys()),
+        'data': list(counter.values()),
+    })
 
 def get_health_check_details(request, id):
     health_check = autoscaling_groups_helper.get_health_check(request, id)
