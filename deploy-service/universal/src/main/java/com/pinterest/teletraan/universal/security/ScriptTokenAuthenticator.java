@@ -1,14 +1,15 @@
 package com.pinterest.teletraan.universal.security;
 
-import com.pinterest.rodimus.security.providers.MySqlScriptTokenProvider;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pinterest.teletraan.universal.security.providers.MySqlScriptTokenProvider;
+
 @Deprecated
-public class ScriptTokenAuthenticator implements Authenticator<String, ScriptTokenPrincipal> {
+public class ScriptTokenAuthenticator implements Authenticator<String, ServicePrincipal> {
   private static final Logger LOG = LoggerFactory.getLogger(ScriptTokenAuthenticator.class);
 
   private MySqlScriptTokenProvider tokenProvider;
@@ -18,7 +19,7 @@ public class ScriptTokenAuthenticator implements Authenticator<String, ScriptTok
   }
 
   @Override
-  public Optional<ScriptTokenPrincipal> authenticate(String credentials)
+  public Optional<ServicePrincipal> authenticate(String credentials)
       throws AuthenticationException {
     LOG.debug("Authenticating...");
     return Optional.ofNullable(tokenProvider.getScriptTokenPrincipal(credentials));

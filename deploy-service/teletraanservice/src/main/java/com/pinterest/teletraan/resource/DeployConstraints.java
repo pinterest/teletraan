@@ -7,6 +7,7 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.bean.Role;
 import com.pinterest.teletraan.worker.DeployTagWorker;
 import io.swagger.annotations.*;
 import org.apache.commons.dbcp.BasicDataSource;

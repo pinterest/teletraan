@@ -3,26 +3,29 @@ package com.pinterest.teletraan.universal.security;
 import java.security.Principal;
 import java.util.List;
 
-@Deprecated
-public class UserPrincipal implements Principal {
-  private String user;
-  private List<String> groups;
+import com.pinterest.teletraan.universal.security.bean.TokenRolesBean;
 
-  public UserPrincipal(String user, List<String> groups) {
-    this.user = user;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import lombok.Value;
+
+@Builder
+@Value
+@RequiredArgsConstructor
+public class UserPrincipal implements Principal {
+  private final String name;
+  private final List<String> groups;
+  @Deprecated private TokenRolesBean tokenRolesBean;
+
+  @Deprecated
+  public UserPrincipal(String user, TokenRolesBean tokenRolesBean, List<String> groups) {
+    this.name = user;
+    this.tokenRolesBean = tokenRolesBean;
     this.groups = groups;
   }
 
-  @Override
-  public String getName() {
-    return user;
-  }
-
+  @Deprecated
   public String getUser() {
-    return user;
-  }
-
-  public List<String> getGroups() {
-    return groups;
+    return name;
   }
 }

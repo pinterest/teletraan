@@ -48,7 +48,6 @@ import com.pinterest.deployservice.bean.PromoteBean;
 import com.pinterest.deployservice.bean.PromoteType;
 import com.pinterest.deployservice.bean.RatingBean;
 import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.bean.TagBean;
@@ -75,8 +74,7 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
-
-
+import com.pinterest.teletraan.universal.security.bean.Role;
 import com.ibatis.common.jdbc.ScriptRunner;
 import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
 import org.apache.commons.dbcp.BasicDataSource;
@@ -1061,7 +1059,7 @@ public class DBDAOTest {
         assertEquals(updatedBean.getHost_numbers(), "50,60,500");
 
     }
-     
+
     @Test
     public void testUtilDAO() throws Exception {
         StringBuilder lockNameBuilder = new StringBuilder();

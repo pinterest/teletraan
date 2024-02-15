@@ -1,7 +1,6 @@
-package com.pinterest.rodimus.security.providers;
+package com.pinterest.teletraan.universal.security.providers;
 
-import com.pinterest.rodimus.security.ScriptTokenPrincipal;
-import com.pinterest.rodimus.security.bean.TokenRolesBean;
+
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
@@ -12,6 +11,9 @@ import org.apache.commons.dbutils.handlers.BeanListHandler;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.pinterest.teletraan.universal.security.ServicePrincipal;
+import com.pinterest.teletraan.universal.security.bean.TokenRolesBean;
 
 @Deprecated
 public class MySqlScriptTokenProvider {
@@ -30,11 +32,11 @@ public class MySqlScriptTokenProvider {
     this.dataSource = dataSource;
   }
 
-  public ScriptTokenPrincipal getScriptTokenPrincipal(String token) {
+  public ServicePrincipal getScriptTokenPrincipal(String token) {
     try {
       List<TokenRolesBean> roles = getTokenRoles(token);
       if (roles != null && roles.size() > 0) {
-        return new ScriptTokenPrincipal(
+        return new ServicePrincipal(
             roles.get(0).getScript_name(), roles, roles.get(0).getGroup_name());
       }
     } catch (Exception e) {

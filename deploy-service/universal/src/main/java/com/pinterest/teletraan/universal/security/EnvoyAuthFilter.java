@@ -1,6 +1,8 @@
 package com.pinterest.teletraan.universal.security;
 
 import io.dropwizard.auth.AuthFilter;
+import io.dropwizard.auth.Authorizer;
+
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
@@ -18,7 +20,7 @@ import org.slf4j.LoggerFactory;
 @Priority(Priorities.AUTHENTICATION)
 public class EnvoyAuthFilter extends AuthFilter<String, EnvoyPrincipal> {
   private static final Logger LOG = LoggerFactory.getLogger(EnvoyAuthFilter.class);
-  protected ContextAuthorizer<Principal> contextAuthorizer;
+  protected Authorizer<Principal> Authorizer;
 
   @Override
   public void filter(final ContainerRequestContext requestContext) throws IOException {
@@ -30,26 +32,26 @@ public class EnvoyAuthFilter extends AuthFilter<String, EnvoyPrincipal> {
   /**
    * Builder for {@link EnvoyAuthFilter}.
    *
-   * <p>An {@link ContextAuthorizer } must be provided during the building process.
+   * <p>An {@link Authorizer } must be provided during the building process.
    */
   public static class Builder {
 
-    private ContextAuthorizer<Principal> contextAuthorizer;
+    private Authorizer<Principal> Authorizer;
 
     /**
      * Sets the given authorizer
      *
-     * @param contextAuthorizer an {@link ContextAuthorizer}
+     * @param Authorizer an {@link Authorizer}
      * @return the current builder
      */
-    public Builder setContextAuthorizer(ContextAuthorizer<Principal> contextAuthorizer) {
-      this.contextAuthorizer = contextAuthorizer;
+    public Builder setAuthorizer(Authorizer<Principal> Authorizer) {
+      this.Authorizer = Authorizer;
       return this;
     }
 
     public EnvoyAuthFilter buildAuthFilter() {
       EnvoyAuthFilter filter = new EnvoyAuthFilter();
-      filter.contextAuthorizer = contextAuthorizer;
+      filter.Authorizer = Authorizer;
       return filter;
     }
   }
@@ -87,8 +89,8 @@ public class EnvoyAuthFilter extends AuthFilter<String, EnvoyPrincipal> {
 
           @Override
           public boolean isUserInRole(String role) {
-            if (contextAuthorizer != null) {
-              return contextAuthorizer.authorize(principal, role, requestContext);
+            if (Authorizer != null) {
+              return Authorizer.authorize(principal, role, requestContext);
             }
             return authorizer.authorize(principal, role);
           }

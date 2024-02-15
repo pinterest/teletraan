@@ -8,6 +8,8 @@ import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.bean.Role;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.SwaggerDefinition;

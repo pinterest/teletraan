@@ -21,7 +21,6 @@ import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
@@ -29,6 +28,7 @@ import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.bean.Role;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;

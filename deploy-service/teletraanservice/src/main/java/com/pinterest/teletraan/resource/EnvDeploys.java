@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,6 +30,7 @@ import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.bean.Role;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -157,7 +158,7 @@ public class EnvDeploys {
         response = Response.class)
     public void update(
             @Context SecurityContext sc,
-            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName, 
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "Agent object to update with", required = true)@NotNull @QueryParam("actionType") HostActions actionType,
             @NotNull List<String> hostIds) throws Exception {
@@ -171,7 +172,7 @@ public class EnvDeploys {
                 agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
                 LOG.info("Succesfully paused hosts in environment {} and stage {}", envName, stageName);
                 break;
-            case RESET: 
+            case RESET:
                 agentBean.setState(AgentState.RESET);
                 agentBean.setLast_update(System.currentTimeMillis());
                 agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);

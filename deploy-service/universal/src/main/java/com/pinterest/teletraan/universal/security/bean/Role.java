@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pinterest.teletraan.security;
+package com.pinterest.teletraan.universal.security.bean;
 
+public class Role {
+    private long accessLevel;
 
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.teletraan.universal.security.bean.Role;
+    public Role(long value) {
+        this.accessLevel = value;
+    }
 
-import javax.ws.rs.core.SecurityContext;
+    public boolean isAuthorized(Role requiredRole) {
+        return this == requiredRole || this.accessLevel > requiredRole.accessLevel;
+    }
 
-public interface Authorizer {
-    void authorize(SecurityContext securityContext, Resource resource, Role requiredRole) throws Exception;
+    public long getAccessLevel() {
+        return accessLevel;
+    }
+
+    public String getName() {
+        return String.valueOf(accessLevel);
+    }
 }

@@ -5,11 +5,11 @@ import com.pinterest.deployservice.bean.PingRequestBean;
 import com.pinterest.deployservice.bean.PingResponseBean;
 import com.pinterest.deployservice.bean.PingResult;
 import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.handler.GoalAnalyst;
 import com.pinterest.deployservice.handler.PingHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.bean.Role;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
