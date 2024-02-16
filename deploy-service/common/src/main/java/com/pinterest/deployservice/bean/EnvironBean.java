@@ -558,6 +558,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     public void setStage_type(EnvType stage_type) {
         this.stage_type = stage_type;
+        if (this.stage_type.equals(EnvType.DEV)) {
+            this.setAllow_private_build(true);
+        }
     }
 
     public Boolean getIs_sox() {
