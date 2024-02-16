@@ -73,7 +73,7 @@ def get_service_metrics(request, name, stage):
     return HttpResponse(json.dumps({'html': data}), content_type="application/json")
 
 
-def get_site_health_metrics(request):
+def get_site_health_metrics():
     data = {}
     for metric in SITE_METRICS_CONFIGS:
         data[metric['title']] = _get_latest_metrics(metric['url'])
