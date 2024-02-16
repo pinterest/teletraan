@@ -2,7 +2,8 @@ FROM maven:3.8-openjdk-8-slim AS builder
 
 COPY . /deploy-service
 
-RUN cd /deploy-service && mvn clean package -DskipTests
+RUN --mount=type=cache,target=/m2 \
+    cd /deploy-service && mvn package -DskipTests -Dmaven.repo.local=/m2 -Dassembly.skipAssembly=true
 
 FROM openjdk:8
 
@@ -11,10 +12,7 @@ ENV PROJECT_DIR=/opt/deploy-service
 RUN mkdir $PROJECT_DIR
 WORKDIR $PROJECT_DIR
 
-COPY --from=builder /deploy-service/teletraanservice/target/teletraan-service-0.1-SNAPSHOT-bin.tar.gz $PROJECT_DIR
-RUN tar zxf teletraan-service-0.1-SNAPSHOT-bin.tar.gz
-COPY ./teletraanservice $PROJECT_DIR/teletraanservice
+COPY --from=builder /deploy-service/teletraanservice/target $PROJECT_DIR/teletraanservice
+COPY teletraanservice/bin $PROJECT_DIR/teletraanservice/bin
 
-# Default command to run service, do not override it unless for staging run.
-# Use "docker logs ID" to view stdout and stderr
-CMD ["scripts/run_in_container.sh"]
+CMD ["teletraanservice/bin/run.sh", "-c", "teletraanservice/bin/server.yaml"]
