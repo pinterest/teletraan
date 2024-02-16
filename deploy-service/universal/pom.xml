@@ -133,6 +133,16 @@
       <artifactId>guava</artifactId>
       <version>32.1.2-jre</version>
     </dependency>
+    <dependency>
+      <groupId>commons-dbutils</groupId>
+      <artifactId>commons-dbutils</artifactId>
+      <version>1.6</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-dbcp</groupId>
+      <artifactId>commons-dbcp</artifactId>
+      <version>1.4</version>
+    </dependency>
   </dependencies>
 
   <build>

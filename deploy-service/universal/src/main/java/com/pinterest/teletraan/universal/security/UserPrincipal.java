@@ -5,12 +5,14 @@ import java.util.List;
 
 import com.pinterest.teletraan.universal.security.bean.TokenRolesBean;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 
 @Builder
-@Value
+@Data
+@AllArgsConstructor
 @RequiredArgsConstructor
 public class UserPrincipal implements Principal {
   private final String name;

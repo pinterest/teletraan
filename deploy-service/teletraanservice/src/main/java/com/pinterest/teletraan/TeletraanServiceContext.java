@@ -15,6 +15,8 @@
  */
 package com.pinterest.teletraan;
 
+import java.security.Principal;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.alerts.ExternalAlertFactory;
 import com.pinterest.teletraan.security.Authorizer;
@@ -57,6 +59,16 @@ public class TeletraanServiceContext extends ServiceContext {
 
   public void setMaxBuildsToKeep(int maxBuildsToKeep) {
     this.maxBuildsToKeep = maxBuildsToKeep;
+  }
+
+  private io.dropwizard.auth.Authorizer<? extends Principal> pastisAuthorizer;
+
+  public void setPastisAuthorizer(io.dropwizard.auth.Authorizer<? extends Principal> pastisAuthorizer) {
+    this.pastisAuthorizer = pastisAuthorizer;
+  }
+
+  public io.dropwizard.auth.Authorizer<? extends Principal> getPastisAuthorizer() {
+    return pastisAuthorizer;
   }
 
 }

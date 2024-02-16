@@ -15,10 +15,30 @@
  */
 package com.pinterest.teletraan.config;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SharedMetricRegistries;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.google.common.cache.CacheBuilder;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.TokenAuthFilter;
+import com.pinterest.teletraan.universal.security.EnvoyAuthFilter;
+import com.pinterest.teletraan.universal.security.EnvoyPrincipal;
+import com.pinterest.teletraan.universal.security.OAuthAuthenticator;
+import com.pinterest.teletraan.universal.security.ScriptTokenAuthenticator;
+import com.pinterest.teletraan.universal.security.ScriptTokenRoleAuthorizer;
+import com.pinterest.teletraan.universal.security.ServicePrincipal;
+import com.pinterest.teletraan.universal.security.UserPrincipal;
+import com.pinterest.teletraan.universal.security.providers.MySqlScriptTokenProvider;
+
+import io.dropwizard.auth.AuthFilter;
+import io.dropwizard.auth.CachingAuthenticator;
+import io.dropwizard.auth.chained.ChainedAuthFilter;
+import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
+
+import java.security.Principal;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.validation.constraints.NotEmpty;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -83,6 +103,40 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
-        return new TokenAuthFilter(userDataUrl, groupDataUrl, userNameKey, extractUserNameFromEmail, tokenCacheSpec, context);
-    }
+    LOG.info("Creating Token Authentication Factory");
+    MetricRegistry registry = SharedMetricRegistries.getDefault();
+    CacheBuilder<Object, Object> cacheBuilder =
+        CacheBuilder.newBuilder().maximumSize(1000).expireAfterWrite(5, TimeUnit.MINUTES);
+
+    CachingAuthenticator<String, ServicePrincipal> cachingScriptTokenAuthenticator =
+        new CachingAuthenticator<>(
+            registry,
+            new ScriptTokenAuthenticator(new MySqlScriptTokenProvider(context.getDataSource())),
+            cacheBuilder);
+    AuthFilter<String, ServicePrincipal> scriptTokenAuthFilter =
+        new OAuthCredentialAuthFilter.Builder<ServicePrincipal>()
+            .setContextAuthorizer(new ScriptTokenRoleAuthorizer())
+            .setAuthenticator(cachingScriptTokenAuthenticator)
+            .setPrefix("token")
+            .buildAuthFilter();
+
+    CachingAuthenticator<String, UserPrincipal> cachingOAuthJwtAuthenticator =
+        new CachingAuthenticator<>(
+            registry, new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()), cacheBuilder);
+    AuthFilter<String, UserPrincipal> jwtTokenAuthFilter =
+        new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
+            .setAuthorizer(context.getPastisAuthorizer())
+            .setAuthenticator(cachingOAuthJwtAuthenticator)
+            .setPrefix("token")
+            .buildAuthFilter();
+
+    // AuthFilter<String, EnvoyPrincipal> envoyAuthFilter =
+    //     new EnvoyAuthFilter.Builder()
+    //         .setContextAuthorizer(context.getPastisAuthorizer())
+    //         .buildAuthFilter();
+
+    List<AuthFilter<String, ? extends Principal>> filters =
+        Arrays.asList(scriptTokenAuthFilter, envoyAuthFilter, jwtTokenAuthFilter);
+
+    return new ChainedAuthFilter(filters);    }
 }

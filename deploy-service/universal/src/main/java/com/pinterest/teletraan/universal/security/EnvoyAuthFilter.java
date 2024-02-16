@@ -2,6 +2,7 @@ package com.pinterest.teletraan.universal.security;
 
 import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.Authorizer;
+import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -18,43 +19,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Priority(Priorities.AUTHENTICATION)
-public class EnvoyAuthFilter extends AuthFilter<String, EnvoyPrincipal> {
+public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<ContainerRequestContext, P> {
   private static final Logger LOG = LoggerFactory.getLogger(EnvoyAuthFilter.class);
   protected Authorizer<Principal> Authorizer;
 
   @Override
   public void filter(final ContainerRequestContext requestContext) throws IOException {
     if (!authenticate(requestContext)) {
-      throw new WebApplicationException(unauthorizedHandler.buildResponse(prefix, realm));
+      throw unauthorizedHandler.buildException(prefix, realm);
     }
   }
-
-  /**
-   * Builder for {@link EnvoyAuthFilter}.
-   *
-   * <p>An {@link Authorizer } must be provided during the building process.
-   */
-  public static class Builder {
-
-    private Authorizer<Principal> Authorizer;
 
     /**
-     * Sets the given authorizer
+     * Builder for {@link EnvoyAuthFilter}.
+     * <p>An {@link Authenticator} must be provided during the building process.</p>
      *
-     * @param Authorizer an {@link Authorizer}
-     * @return the current builder
+     * @param <P> the type of the principal
      */
-    public Builder setAuthorizer(Authorizer<Principal> Authorizer) {
-      this.Authorizer = Authorizer;
-      return this;
-    }
+    public static class Builder<P extends Principal>
+            extends AuthFilterBuilder<ContainerRequestContext, P, EnvoyAuthFilter<P>> {
 
-    public EnvoyAuthFilter buildAuthFilter() {
-      EnvoyAuthFilter filter = new EnvoyAuthFilter();
-      filter.Authorizer = Authorizer;
-      return filter;
+        @Override
+        protected EnvoyAuthFilter<P> newInstance() {
+            return new EnvoyAuthFilter<>();
+        }
     }
-  }
   /**
    * Authenticates a request with headers and setup the security context.
    *
