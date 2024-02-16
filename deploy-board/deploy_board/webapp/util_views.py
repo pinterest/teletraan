@@ -108,7 +108,8 @@ def validate_metrics_url(request):
     url = request.POST['newEntryValue']
     if not url.startswith(STATSBOARD_API_PREFIX):
         return HttpResponse(json.dumps({'result': False}), content_type="application/json")
-    response = urllib.request.urlopen(url)
+    subpath = url.replace(STATSBOARD_API_PREFIX, '')
+    response = urllib.request.urlopen(STATSBOARD_API_PREFIX + subpath)
     data = json.loads(response.read().decode('utf-8'))
     if len(data) > 0:
         data = data[0]
