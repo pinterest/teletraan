@@ -101,18 +101,22 @@ public class MetricsEmitter implements Runnable {
 
   @Override
   public void run() {
-    emitLaunchingMetrics();
+    try {
+      emitLaunchingMetrics();
+    } catch (Exception e) {
+      LOG.error("Failed to emit launching metrics", e);
+    }
   }
 
   void emitLaunchingMetrics() {
     Instant timeoutCutoff = Instant.ofEpochMilli(clock.wallTime()).minus(Duration.ofMinutes(LAUNCH_TIMEOUT_MINUTE));
-    updateHostClassification(timeoutCutoff);
     try {
-      processRemovedHosts();
-      processNewHosts();
+      updateHostClassification(timeoutCutoff);
     } catch (Exception e) {
       LOG.error("Failed to update host classification", e);
     }
+    processRemovedHosts();
+    processNewHosts();
     cleanUpTimers();
   }
 
