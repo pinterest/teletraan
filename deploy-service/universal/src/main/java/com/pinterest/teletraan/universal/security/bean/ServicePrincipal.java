@@ -1,13 +1,10 @@
-package com.pinterest.teletraan.universal.security;
+package com.pinterest.teletraan.universal.security.bean;
 
 import com.google.common.collect.Lists;
-import com.pinterest.teletraan.universal.security.bean.Role;
-import com.pinterest.teletraan.universal.security.bean.TokenRolesBean;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-import java.security.Principal;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -15,7 +12,7 @@ import org.slf4j.LoggerFactory;
 
 @Data
 @RequiredArgsConstructor
-public class ServicePrincipal implements Principal {
+public class ServicePrincipal implements TeletraanPrincipal {
   private static final Logger LOG = LoggerFactory.getLogger(ServicePrincipal.class);
 
   private final String name;

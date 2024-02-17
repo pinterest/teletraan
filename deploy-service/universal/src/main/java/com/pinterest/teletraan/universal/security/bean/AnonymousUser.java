@@ -1,4 +1,4 @@
-package com.pinterest.teletraan.universal.security;
+package com.pinterest.teletraan.universal.security.bean;
 
 import java.util.Collections;
 

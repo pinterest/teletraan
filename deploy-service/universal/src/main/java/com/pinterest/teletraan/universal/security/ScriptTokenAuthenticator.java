@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.providers.MySqlScriptTokenProvider;
 
 @Deprecated

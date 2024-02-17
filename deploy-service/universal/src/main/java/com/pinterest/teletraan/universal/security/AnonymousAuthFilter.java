@@ -9,6 +9,8 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
 
+import com.pinterest.teletraan.universal.security.bean.AnonymousUser;
+
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class AnonymousAuthFilter implements ContainerRequestFilter {

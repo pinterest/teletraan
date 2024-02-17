@@ -15,13 +15,14 @@
  */
 package com.pinterest.teletraan.security;
 
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 
-import javax.ws.rs.core.SecurityContext;
+import io.dropwizard.auth.Authorizer;
 
-public class OpenAuthorizer implements Authorizer {
+public class OpenAuthorizer implements Authorizer<TeletraanPrincipal> {
+
     @Override
-    public void authorize(SecurityContext securityContext, Resource resource, Role requiredRole) throws Exception {
+    public boolean authorize(TeletraanPrincipal principal, String role) {
+        return true;
     }
 }

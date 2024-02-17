@@ -22,11 +22,15 @@ import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.bean.Role;
 
+import io.dropwizard.auth.Authorizer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
+
+import java.security.Principal;
 import java.util.*;
 
 public class RoleAuthorizer implements Authorizer {
@@ -105,17 +109,23 @@ public class RoleAuthorizer implements Authorizer {
         throw new TeletaanInternalException(Response.Status.FORBIDDEN, "Not authorized!");
     }
 
-    @Override
-    public void authorize(SecurityContext securityContext, Resource resource, Role requiredRole) throws Exception {
-        UserPrincipal principal = (UserPrincipal) securityContext.getUserPrincipal();
+    // @Override
+    // public void authorize(SecurityContext securityContext, Resource resource, Role requiredRole) throws Exception {
+    //     UserPrincipal principal = (UserPrincipal) securityContext.getUserPrincipal();
 
-        // Check if script token
-        if (principal.getTokenRolesBean() != null) {
-            checkAPITokenPermission(principal.getTokenRolesBean(), resource, requiredRole);
-        }
-        // Check user roles if not a script
-        else {
-            checkUserPermission(principal.getName(), resource, principal.getGroups(), requiredRole);
-        }
+    //     // Check if script token
+    //     if (principal.getTokenRolesBean() != null) {
+    //         checkAPITokenPermission(principal.getTokenRolesBean(), resource, requiredRole);
+    //     }
+    //     // Check user roles if not a script
+    //     else {
+    //         checkUserPermission(principal.getName(), resource, principal.getGroups(), requiredRole);
+    //     }
+    // }
+
+    @Override
+    public boolean authorize(Principal principal, String role) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'authorize'");
     }
 }

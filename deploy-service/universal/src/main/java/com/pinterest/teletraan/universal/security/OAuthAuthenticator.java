@@ -15,6 +15,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 
 import io.dropwizard.auth.Authenticator;
 import reactor.netty.http.client.HttpClient;

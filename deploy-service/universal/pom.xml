@@ -21,6 +21,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <micrometer.version>1.11.3</micrometer.version>
+    <pinterest.commons.version>0.1-20220908.230942-22097</pinterest.commons.version>
   </properties>
 
   <dependencyManagement>
@@ -100,6 +101,57 @@
       <groupId>io.dropwizard</groupId>
       <artifactId>dropwizard-auth</artifactId>
       <version>${dropwizard.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.pinterest.optimus.commons</groupId>
+      <artifactId>pinterest-commons</artifactId>
+      <version>${pinterest.commons.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-jdk14</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.amazonaws</groupId>
+          <artifactId>aws-java-sdk-bundle</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-handler</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.netty</groupId>
+          <artifactId>netty-buffer</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.pinterest.optimus</groupId>
+          <artifactId>optimus</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.pinterest.schemas</groupId>
+          <artifactId>schemas_jdk18</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.pinterest</groupId>
+          <artifactId>libjava_fbs</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.google.flatbuffers</groupId>
+          <artifactId>flatbuffers-java</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.pinterest.psc</groupId>
+          <artifactId>psc-internal-shaded</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
 

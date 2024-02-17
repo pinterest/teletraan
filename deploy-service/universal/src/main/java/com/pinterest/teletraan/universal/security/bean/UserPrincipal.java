@@ -1,9 +1,6 @@
-package com.pinterest.teletraan.universal.security;
+package com.pinterest.teletraan.universal.security.bean;
 
-import java.security.Principal;
 import java.util.List;
-
-import com.pinterest.teletraan.universal.security.bean.TokenRolesBean;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @Data
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class UserPrincipal implements Principal {
+public class UserPrincipal implements TeletraanPrincipal {
   private final String name;
   private final List<String> groups;
   @Deprecated private TokenRolesBean tokenRolesBean;

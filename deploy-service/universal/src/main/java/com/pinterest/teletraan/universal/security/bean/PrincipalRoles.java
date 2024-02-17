@@ -1,6 +1,4 @@
-package com.pinterest.teletraan.universal.security;
-
-import com.pinterest.teletraan.universal.security.bean.Role;
+package com.pinterest.teletraan.universal.security.bean;
 
 /**
  * READER:

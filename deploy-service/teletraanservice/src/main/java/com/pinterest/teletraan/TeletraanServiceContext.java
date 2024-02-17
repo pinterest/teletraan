@@ -15,18 +15,16 @@
  */
 package com.pinterest.teletraan;
 
-import java.security.Principal;
-
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.alerts.ExternalAlertFactory;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.config.AuthorizationFactory;
 
 public class TeletraanServiceContext extends ServiceContext {
 
-  private Authorizer authorizer;
   private int maxDaysToKeep;
   private int maxBuildsToKeep;
   private ExternalAlertFactory externalAlertsFactory;
+  private AuthorizationFactory authorizationFactory;
 
   public ExternalAlertFactory getExternalAlertsFactory() {
     return externalAlertsFactory;
@@ -35,14 +33,6 @@ public class TeletraanServiceContext extends ServiceContext {
   public void setExternalAlertsFactory(
       ExternalAlertFactory externalAlertsFactory) {
     this.externalAlertsFactory = externalAlertsFactory;
-  }
-
-  public Authorizer getAuthorizer() {
-    return authorizer;
-  }
-
-  public void setAuthorizer(Authorizer authz) {
-    this.authorizer = authz;
   }
 
   public int getMaxDaysToKeep() {
@@ -61,14 +51,12 @@ public class TeletraanServiceContext extends ServiceContext {
     this.maxBuildsToKeep = maxBuildsToKeep;
   }
 
-  private io.dropwizard.auth.Authorizer<? extends Principal> pastisAuthorizer;
-
-  public void setPastisAuthorizer(io.dropwizard.auth.Authorizer<? extends Principal> pastisAuthorizer) {
-    this.pastisAuthorizer = pastisAuthorizer;
+  public void setAuthorizationFactory(AuthorizationFactory authorizationFactory) {
+    this.authorizationFactory = authorizationFactory;
   }
 
-  public io.dropwizard.auth.Authorizer<? extends Principal> getPastisAuthorizer() {
-    return pastisAuthorizer;
+  public AuthorizationFactory getAuthorizationFactory() {
+    return authorizationFactory;
   }
 
 }
