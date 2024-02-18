@@ -1474,10 +1474,16 @@ def get_host_az_dist(request, group_name):
     )
 
     counter = Counter([x['location'] for x in host_az_dist.json()])
+    labels = list(counter.keys())
+    data = list(counter.values())
+    total = sum(data)
+    percentages = map(lambda x: round((x / total) * 100, 1), data)
 
     return render(request, 'groups/host_az_dist.tmpl', {
-        'labels': list(counter.keys()),
-        'data': list(counter.values()),
+        'labels': labels,
+        'data': data,
+        'label_data_percentage': list(zip(labels, data, percentages)),
+        'total': total
     })
 
 def get_health_check_details(request, id):
