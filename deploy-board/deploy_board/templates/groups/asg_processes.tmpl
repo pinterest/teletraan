@@ -1,0 +1,49 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title="Suspended Processes" panel_body_id="asSuspendedProcessId" direction="down" %}
+<div id="asSuspendedProcessId" class="collapse in panel-body">
+
+<div class="container-fluid">
+    <table id="suspendedProcessStatus" class="table">
+        <tr>
+            <th>Process Name</th>
+            <th>Status</th>
+            <th>Click to ...</th>
+        </tr>
+        {% for process in process_suspended_status %}
+        <tr>
+            <td>
+               {{ process.name }}
+            </td>
+            <td>
+                {% if process.suspended == True %} <p style="color:red;">Suspended</p> {% else %} <p style="color:green;">Active</p>{% endif %}
+            </td>
+            <td>
+                {% if process.suspended == True %} <button onclick="updateProcess('{{ process.name }}', false)">Resume</button> {% else %}<button onclick="updateProcess('{{ process.name }}', true)">Suspend</button>{% endif %}
+            </td>
+        </tr>
+        {% endfor%}
+      </table>
+</div>
+
+<script>
+function updateProcess(name, shouldSuspend) {
+    var url = ""
+
+    if (shouldSuspend == true) {
+        url = '/groups/{{ group_name }}/autoscaling/suspend_process/' + name;
+    }
+    else {
+        url = '/groups/{{ group_name }}/autoscaling/resume_process/' + name
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+        success: function (data) {
+            $("#asSuspendedProcessId").parent().html(data);
+        }
+    });
+}
+</script>
+</div>

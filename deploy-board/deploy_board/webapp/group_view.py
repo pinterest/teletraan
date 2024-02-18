@@ -1564,6 +1564,48 @@ def get_scheduled_actions(request, group_name):
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
 
+def get_suspended_processes(request, group_name):
+    suspended_processes = autoscaling_groups_helper.get_disabled_asg_actions(request, group_name)
+    all_processes = [
+        "Launch",
+        "Terminate",
+        "AddToLoadBalancer",
+        "AlarmNotification",
+        "AZRebalance",
+        "HealthCheck",
+        "InstanceRefresh",
+        "ReplaceUnhealthy",
+        "ScheduledActions"
+    ]
+
+    process_suspended_status = []
+
+    for p in all_processes:
+        if p in suspended_processes:
+            process_suspended_status.append({"name": p, "suspended": True})
+        else:
+            process_suspended_status.append({"name": p, "suspended": False})
+
+    content = render_to_string("groups/asg_processes.tmpl", {
+        'group_name': group_name,
+        'process_suspended_status': process_suspended_status,
+        'csrf_token': get_token(request),
+    })
+    return HttpResponse(json.dumps(content), content_type="application/json")
+
+def suspend_process(request, group_name, process_name):
+    update_request = {}
+    update_request["suspend"] = [process_name]
+    autoscaling_groups_helper.update_scaling_process(request, group_name, update_request)
+
+    return get_suspended_processes(request, group_name)
+
+def resume_process(request, group_name, process_name):
+    update_request = {}
+    update_request["resume"] = [process_name]
+    autoscaling_groups_helper.update_scaling_process(request, group_name, update_request)
+
+    return get_suspended_processes(request, group_name)
 
 def delete_scheduled_actions(request, group_name):
     params = request.POST
