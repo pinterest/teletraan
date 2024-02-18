@@ -6,7 +6,7 @@
     <table id="suspendedProcessStatus" class="table">
         <tr>
             <th>Process Name</th>
-            <th>Status</th>
+            <th>State</th>
             <th>Click to ...</th>
         </tr>
         {% for process in process_suspended_status %}
@@ -18,7 +18,7 @@
                 {% if process.suspended == True %} <p style="color:red;">Suspended</p> {% else %} <p style="color:green;">Active</p>{% endif %}
             </td>
             <td>
-                {% if process.suspended == True %} <button onclick="updateProcess('{{ process.name }}', false)">Resume</button> {% else %}<button onclick="updateProcess('{{ process.name }}', true)">Suspend</button>{% endif %}
+                {% if process.suspended == True %} <input type="button" value="Resume" onclick="updateProcess(this, '{{ process.name }}', false)"> {% else %} <input type="button" value="Suspend" onclick="updateProcess(this, '{{ process.name }}', true)"> {% endif %}
             </td>
         </tr>
         {% endfor%}
@@ -26,7 +26,7 @@
 </div>
 
 <script>
-function updateProcess(name, shouldSuspend) {
+function updateProcess(element, name, shouldSuspend) {
     var url = ""
 
     if (shouldSuspend == true) {
@@ -44,6 +44,9 @@ function updateProcess(name, shouldSuspend) {
             $("#asSuspendedProcessId").parent().html(data);
         }
     });
+
+    element.value = "Updating ...";
+    element.disabled = true;
 }
 </script>
 </div>

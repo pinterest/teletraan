@@ -1566,17 +1566,8 @@ def get_scheduled_actions(request, group_name):
 
 def get_suspended_processes(request, group_name):
     suspended_processes = autoscaling_groups_helper.get_disabled_asg_actions(request, group_name)
-    all_processes = [
-        "Launch",
-        "Terminate",
-        "AddToLoadBalancer",
-        "AlarmNotification",
-        "AZRebalance",
-        "HealthCheck",
-        "InstanceRefresh",
-        "ReplaceUnhealthy",
-        "ScheduledActions"
-    ]
+    all_processes = autoscaling_groups_helper.get_available_scaling_process(request, group_name)
+    all_processes.sort()
 
     process_suspended_status = []
 

@@ -163,6 +163,9 @@ def update_scaling_process(request, cluster_name, update_request):
     return rodimus_client.post("/clusters/%s/autoscaling/processes" % cluster_name, request.teletraan_user_id.token,
                                data=update_request)
 
+def get_available_scaling_process(request, cluster_name):
+    return rodimus_client.get("/clusters/%s/autoscaling/available-processes" % cluster_name, request.teletraan_user_id.token)
+
 # Asg Alarms
 def put_scaling_policies(request, cluster_name, policies_info):
     return rodimus_client.post("/clusters/%s/autoscaling/policies" % cluster_name, request.teletraan_user_id.token,
