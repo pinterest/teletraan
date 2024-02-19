@@ -25,7 +25,7 @@ from math import trunc
 import pytz
 import logging
 from deploy_board.webapp.service_add_ons import ServiceAddOn, LogHealthReport
-from deploy_board.webapp.agent_report import UNKNOWN_HOSTS_CODE, PROVISION_HOST_CODE
+from deploy_board.webapp.agent_report import DEFAULT_STALE_THRESHOLD, UNKNOWN_HOSTS_CODE, PROVISION_HOST_CODE
 from deploy_board.webapp.common import is_agent_failed, BUILD_STAGE
 from deploy_board.webapp.helpers import environs_helper
 from deploy_board.webapp.helpers.tags_helper import TagValue
@@ -657,10 +657,12 @@ def hostButton(host):
 
 @register.filter("hostIcon")
 def hostIcon(host):
-    if host['state'] == 'PROVISIONED':
-        if host["ip"] is None:
-            return 'fa-exclamation-triangle'
-        return 'fa-refresh fa-spin'
+    if host["state"] == "PROVISIONED":
+        duration = (time.time() * 1000 - host["lastUpdateDate"]) / 1000
+        isStale = duration > DEFAULT_STALE_THRESHOLD
+        if isStale and host["ip"] is None:
+            return "fa-exclamation-triangle"
+        return "fa-refresh fa-spin"
 
     if host['state'] == 'ACTIVE':
         return 'fa-check-square-o'
