@@ -674,8 +674,6 @@ def hostIcon(host):
 def hostTip(host):
     hostname = host['hostName']
     if host['state'] == 'PROVISIONED':
-        if host["ip"] is None:
-            return "{}: Host is provisioning, but failure occured and might require manual termination or restart after retries".format(hostname)
         return '{}: Host is provisioning, click for more information'.format(hostname)
 
     if host['state'] == 'ACTIVE':
