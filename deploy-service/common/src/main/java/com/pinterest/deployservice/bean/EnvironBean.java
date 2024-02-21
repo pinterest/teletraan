@@ -15,7 +15,6 @@
  */
 package com.pinterest.deployservice.bean;
 
-import com.pinterest.deployservice.common.DeployInternalException;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -23,7 +22,6 @@ import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
-import javax.validation.constraints.Pattern;
 
 /**
  * Keep the bean and table in sync
@@ -558,6 +556,9 @@ public class EnvironBean implements Updatable, Serializable {
 
     public void setStage_type(EnvType stage_type) {
         this.stage_type = stage_type;
+        if (this.stage_type.equals(EnvType.DEV)) {
+            this.setAllow_private_build(true);
+        }
     }
 
     public Boolean getIs_sox() {
