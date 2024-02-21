@@ -463,11 +463,11 @@ aria-hidden="true">
                 var instanceWarmup = config["instanceWarmup"].trim()
 
                 if (/^-?\d+$/.test(minAdjustmentMagnitude) == false) {
-                    alert("minAdjustmentMagnitude must be a positive integer or 0")
+                    alert("minAdjustmentMagnitude must be >= 1")
                     return false
                 }
-
-                if (/^-?\d+$/.test(instanceWarmup) == false) {
+                
+                if (/^-?\d+$/.test(instanceWarmup) == false && instanceWarmup.length != 0) {
                     alert("instanceWarmup must be a positive integer or 0")
                     return false
                 }
@@ -477,7 +477,7 @@ aria-hidden="true">
                     alert("minAdjustmentMagnitude must be greater than 0")
                     return false
                 }
-
+                
                 instanceWarmup = parseInt(instanceWarmup)
                 if (instanceWarmup < 0) {
                     alert("instanceWarmup must be >= 0")
@@ -717,7 +717,7 @@ aria-hidden="true">
                     data-loading-text="Saving...">
                 <span class="glyphicon glyphicon-floppy-save"></span> Save
             </button>
-            <button id="addTargetScalingBtnId" onclick="addTargetScaling(event)" class="btn btn-primary"
+            <button id="addTargetScalingBtnHomePageId" onclick="addTargetScaling(event)" class="btn btn-primary"
                     data-loading-text="Creating..."> Add
             </button>
         </div>
@@ -743,7 +743,7 @@ aria-hidden="true">
 
             var asgAlarmElement = document.getElementById("asMetricsId")
             var asgAlarmButtonElement = document.getElementById("resetAsMetricsBtnDivId")
-            var createTargetScalingButton = document.getElementById("addTargetScalingBtnId")
+            var createTargetScalingButton = document.getElementById("addTargetScalingBtnHomePageId")
 
             if (policyType == "target-tracking-scaling") {
                 createTargetScalingButton.style.display = "block"
@@ -751,9 +751,10 @@ aria-hidden="true">
                 asgAlarmButtonElement.style.display = "none"
             }
             else {
+                // careful when changing the order here
+                createTargetScalingButton.style.display = "none"
                 asgAlarmElement.style.display = "block"
                 asgAlarmButtonElement.style.display = "block"
-                createTargetScalingButton.style.display = "none"
             }
 
             evt.currentTarget.className += " button-gray";
