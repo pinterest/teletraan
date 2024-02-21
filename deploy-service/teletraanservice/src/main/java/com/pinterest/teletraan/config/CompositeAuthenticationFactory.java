@@ -34,8 +34,8 @@ import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.CachingAuthenticator;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
 
-@JsonTypeName("hybrid")
-public class HybridAuthenticationFactory extends TokenAuthenticationFactory {
+@JsonTypeName("composite")
+public class CompositeAuthenticationFactory extends TokenAuthenticationFactory {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
     public ContainerRequestFilter create(TeletraanServiceContext context) throws Exception {
@@ -49,7 +49,7 @@ public class HybridAuthenticationFactory extends TokenAuthenticationFactory {
                 cacheBuilder);
         AuthFilter<EnvoyCredentials, TeletraanPrincipal> envoyAuthFilter = new EnvoyAuthFilter.Builder<TeletraanPrincipal>()
                 .setAuthenticator(cachingEnvoyAuthenticator)
-                .setAuthorizer(context.getAuthorizationFactory().create(context))
+                .setAuthorizer(context.getAuthorizationFactory().create())
                 .buildAuthFilter();
 
         List<AuthFilter> filters = Arrays.asList(envoyAuthFilter);

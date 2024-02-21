@@ -58,5 +58,4 @@ public class TeletraanServiceContext extends ServiceContext {
   public AuthorizationFactory getAuthorizationFactory() {
     return authorizationFactory;
   }
-
 }

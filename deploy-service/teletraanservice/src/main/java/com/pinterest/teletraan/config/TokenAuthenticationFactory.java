@@ -124,7 +124,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 registry, new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()), cacheBuilder);
         AuthFilter<String, UserPrincipal> jwtTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(cachingOAuthJwtAuthenticator)
-                .setAuthorizer(context.getAuthorizationFactory().create(context))
+                .setAuthorizer(context.getAuthorizationFactory().create())
                 .setPrefix("Bearer")
                 .buildAuthFilter();
 
@@ -132,7 +132,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 registry, new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()), cacheBuilder);
         AuthFilter<String, UserPrincipal> oauthTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(cachingOAuthAuthenticator)
-                .setAuthorizer(context.getAuthorizationFactory().create(context))
+                .setAuthorizer(context.getAuthorizationFactory().create())
                 .setPrefix("token")
                 .buildAuthFilter();
 

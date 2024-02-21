@@ -2,7 +2,6 @@ package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.TeletraanPastisAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 
@@ -24,7 +23,7 @@ public class PastisAuthorizationFactory implements AuthorizationFactory {
   }
 
   @Override
-  public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context) throws Exception {
+  public <P extends TeletraanPrincipal> Authorizer<P> create() throws Exception {
     return new TeletraanPastisAuthorizer<P>(pastisServiceName);
   }
 }
