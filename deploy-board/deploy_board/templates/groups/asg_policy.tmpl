@@ -472,6 +472,18 @@ aria-hidden="true">
                     return false
                 }
 
+                minAdjustmentMagnitude = parseInt(minAdjustmentMagnitude)
+                if (minAdjustmentMagnitude <= 0) {
+                    alert("minAdjustmentMagnitude must be greater than 0")
+                    return false
+                }
+
+                instanceWarmup = parseInt(instanceWarmup)
+                if (instanceWarmup < 0) {
+                    alert("instanceWarmup must be >= 0")
+                    return false
+                }
+
                 var scaleUpSteps = config["scaleUpSteps"].trim();
                 var scaleUpAdjustments = config["scaleUpAdjustments"].trim();
                 var scaleDownSteps = config["scaleDownSteps"].trim();
