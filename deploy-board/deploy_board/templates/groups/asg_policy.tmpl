@@ -153,7 +153,7 @@
 
         <div id="step-scaling" class="tabcontent">
             <h4>Step Scaling <sup><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-simple-step.html" target="_blank">What is step scaling?</a></sup></h4>
-                        <form id="stepAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
+            <form id="stepAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
             <fieldset id="envConfigFieldSetId">
                 <div class="form-group">
                     <label for="scalingType" class="deployToolTip col-xs-1 control-label"
@@ -546,7 +546,7 @@ aria-hidden="true">
 
                 var stepArray = stepString.split(',').map(Number);
                 for (i = 0; i < stepArray.length; i++) {
-                    if (isNaN(stepArray[i])) {
+                    if (Number.isNaN(stepArray[i])) {
                         alert(stepString + " is not valid! Must be numbers only");
                         return null;
                     }
