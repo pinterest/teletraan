@@ -1,0 +1,56 @@
+{% load utils %}
+
+{% block content %}
+  <div id="container" style="width: 100%;">
+    <h2>Host Distribution Among Availability Zones</h2>
+    <canvas id="pie-chart"></canvas>
+  </div>
+
+  <div>
+    <table id="host-dist-stat" class="table">
+      <tr>
+          <th>Availability Zone</th>
+          <th>Host Count</th>
+          <th>Percentage</th>
+      </tr>
+      {% for l, d, p in label_data_percentage %}
+      <tr>
+          <td>
+             {{ l }}
+          </td>
+          <td>
+             {{ d }}
+          </td>
+          <td>
+             {{ p }}%
+          </td>
+      </tr>
+      {% endfor%}
+    </table>
+    <p>==============================</p>
+  <b>Total:</b> {{ total }} hosts
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    var config = {
+      type: 'pie',
+      data: {
+        datasets: [{
+          data: {{ data|safe }},
+          label: 'Host'
+        }],
+        labels: {{ labels|safe }}
+      },
+      options: {
+        responsive: false
+      }
+    };
+
+    window.onload = function() {
+      var ctx = document.getElementById('pie-chart').getContext('2d');
+      window.myPie = new Chart(ctx, config);
+    };
+  </script>
+
+{% endblock %}

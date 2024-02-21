@@ -20,6 +20,7 @@ import sys
 import shutil
 import traceback
 import logging
+from typing import Optional
 
 from deployd.common import LOG_FORMAT
 from deployd.common.caller import Caller
@@ -35,7 +36,7 @@ class Stager(object):
     _script_dirname = "teletraan"
     _template_dirname = "teletraan_template"
 
-    def __init__(self, config, build, target, env_name, transformer=None):
+    def __init__(self, config, build, target, env_name, transformer=None) -> None:
         self._build_dir = config.get_builds_directory()
         self._user_role = config.get_user_role()
         agent_dir = config.get_agent_directory()
@@ -45,7 +46,7 @@ class Stager(object):
         self._target = target
         self._env_name = env_name
 
-    def enable_package(self):
+    def enable_package(self) -> int:
         """Set the enabled build.
         """
         old_build = self.get_enabled_build()
@@ -90,7 +91,7 @@ class Stager(object):
         finally:
             return status_code
 
-    def get_enabled_build(self):
+    def get_enabled_build(self) -> Optional[str]:
         """Figure out what build is enabled by looking at symlinks."""
         if not os.path.exists(self._target):
             if (os.path.islink(self._target) and not
@@ -110,7 +111,7 @@ class Stager(object):
 
         return symlink_target.rsplit("/", 1)[-1]
 
-    def transform_script(self):
+    def transform_script(self) -> None:
         script_dir = os.path.join(self._target, self._script_dirname)
         if not os.path.exists(script_dir):
             return
@@ -125,7 +126,7 @@ class Stager(object):
                                             script_dirname=self._script_dirname)
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('-f', '--config-file', dest='config_file', default=None,
                         help="the deploy agent conf file filename path. If none, "
