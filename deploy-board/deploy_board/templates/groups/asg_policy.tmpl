@@ -153,7 +153,7 @@
 
         <div id="step-scaling" class="tabcontent">
             <h4>Step Scaling <sup><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-simple-step.html" target="_blank">What is step scaling?</a></sup></h4>
-            <form id="stepAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
+                        <form id="stepAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
             <fieldset id="envConfigFieldSetId">
                 <div class="form-group">
                     <label for="scalingType" class="deployToolTip col-xs-1 control-label"
@@ -318,9 +318,7 @@
 
                             <form name="targetScalingDisplayName" class="form-horizontal" method="post" role="form">
                                 <fieldset id="targetScalingDisplayFieldSetId">
-                                    {% comment %} {% csrf_token %} {% endcomment %}
                                     <div class="form-group">
-                                        {% comment %} <input type="hidden" id="policyType" name="policyType" value="target-tracking-scaling"> {% endcomment %}
                                         <input type="hidden" id="targetScalingName" name="targetScalingName_{{ policy.policyName }}" value={{ policy.policyName }}>
                                         <input type="hidden" id="{{ policy.policyName }}_awsMetrics" name="{{ policy.policyName }}_awsMetrics" value={{ policy.targetTrackingScalingConfiguration.predefinedMetricSpecification.predefinedMetricType }}>
                                         
@@ -455,6 +453,147 @@ aria-hidden="true">
         </div>
 
         <script>
+            function validateStepScalingConfig(stepScalingConfig) {
+                var config = {}
+                for (i = 0; i < stepScalingConfig.length; i++) {
+                    config[stepScalingConfig[i]["name"]] = stepScalingConfig[i]["value"]
+                }
+
+                var minAdjustmentMagnitude = config["minAdjustmentMagnitude"].trim()
+                var instanceWarmup = config["instanceWarmup"].trim()
+
+                if (/^-?\d+$/.test(minAdjustmentMagnitude) == false) {
+                    alert("minAdjustmentMagnitude must be a positive integer or 0")
+                    return false
+                }
+
+                if (/^-?\d+$/.test(instanceWarmup) == false) {
+                    alert("instanceWarmup must be a positive integer or 0")
+                    return false
+                }
+
+                var scaleUpSteps = config["scaleUpSteps"].trim();
+                var scaleUpAdjustments = config["scaleUpAdjustments"].trim();
+                var scaleDownSteps = config["scaleDownSteps"].trim();
+                var scaleDownAdjustments = config["scaleDownAdjustments"].trim();
+
+                if (scaleUpSteps.length > 0 && scaleUpAdjustments.length == 0) {
+                    alert("Scale up adjustments must be provided for scale up steps!")
+                    return false;
+                }
+
+                if (scaleUpAdjustments.length > 0 && scaleUpSteps.length == 0) {
+                    alert("Scale up adjustments provided, but no scale up step defined!")
+                    return false;
+                }
+
+                if (scaleDownSteps.length > 0 && scaleDownAdjustments.length == 0) {
+                    alert("Scale down adjustments must be provided for scale down steps!")
+                    return false;
+                }
+
+                if (scaleDownAdjustments.length > 0 && scaleDownSteps.length == 0) {
+                    alert("Scale down adjustments provided, but no scale down step defined!")
+                    return false;
+                }
+
+                if (scaleUpSteps.length > 0) {
+                    var scaleUpStepsArray = validateAndParseSteps(scaleUpSteps, true, true)
+                    var scaleUpAdjustmentsArray = validateAndParseSteps(scaleUpAdjustments, true, false)
+
+                    if (scaleUpStepsArray == null || scaleUpAdjustmentsArray == null) {
+                        return false;
+                    }
+
+                    if (scaleUpStepsArray.length != scaleUpAdjustmentsArray.length) {
+                        alert("Each step must have an adjustment defined: " + scaleUpStepsArray + " vs. " + scaleUpAdjustmentsArray)
+                        return false;
+                    } 
+                }
+
+                if (scaleDownSteps.length > 0) {
+                    var scaleDownStepsArray = validateAndParseSteps(scaleDownSteps, false, true)
+                    var scaleDownAdjustmentsArray = validateAndParseSteps(scaleDownAdjustments, false, false)
+
+                    if (scaleDownStepsArray == null || scaleDownAdjustmentsArray == null) {
+                        return false;
+                    }
+
+                    if (scaleDownStepsArray.length != scaleDownAdjustmentsArray.length) {
+                        alert("Each step must have an adjustment defined: " + scaleUpStepsArray + " vs. " + scaleUpAdjustmentsArray)
+                        return false;
+                    } 
+                }
+            }
+
+            function validateAndParseSteps(stepString, isUp, isStep) {
+                if (stepString.length == 0) {
+                    alert("Steps or adjustments cannot be empty");
+                    return null;
+                }
+
+                var stepArray = stepString.split(',').map(Number);
+                for (i = 0; i < stepArray.length; i++) {
+                    if (isNaN(stepArray[i])) {
+                        alert(stepString + " is not valid! Must be numbers only");
+                        return null;
+                    }
+                }
+
+                if (!isStep) {
+                    if (isUp) {
+                        // all scale up adjustments must be >= 0
+                        for (i = 0; i < stepArray.length; i++) {
+                            if (stepArray[i] < 0) {
+                                alert("Scale up adjustments must be >= 0: " + stepArray);
+                                return null;
+                            }
+                        }
+                    }
+                    else {
+                        // all scale down adjustments must be <= 0
+                        for (i = 0; i < stepArray.length; i++) {
+                            if (stepArray[i] > 0) {
+                                alert("Scale down adjustments must be <= 0: " + stepArray);
+                                return null;
+                            }
+                        }
+                    }
+                    return stepArray;
+                }
+
+                if (isUp) {
+                    // must be increasing sequence starting with 0
+                    if (stepArray[0] != 0) {
+                        alert("Scale up steps must start with 0");
+                        return null;
+                    }
+
+                    for (i = 0; i < stepArray.length - 1; i++) {
+                        if (stepArray[i] >= stepArray[i + 1]) {
+                            alert("Scale up steps must be a strictly increasing sequence");
+                            return null;
+                        }
+                    }
+                }
+                else {
+                    // must be increasing sequence ending with 0
+                    if (stepArray.slice(-1) != 0) {
+                        alert("Scale down steps must end with 0");
+                        return null;
+                    }
+
+                    for (i = 0; i < stepArray.length - 1; i++) {
+                        if (stepArray[i] >= stepArray[i + 1]) {
+                            alert("Scale down steps must be a strictly increasing sequence");
+                            return null;
+                        }
+                    }
+                }
+
+                return stepArray;
+            }
+
             function validate() {
                 policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId");
                 policyType = "simple-scaling";
@@ -481,7 +620,14 @@ aria-hidden="true">
                         'csrfmiddlewaretoken': '{{ csrf_token }}',
                     }
                 }
-        
+                
+                if (policyType == "step-scaling") {
+                    var pass = validateStepScalingConfig($('#' + policyForm.id).serializeArray())
+                    if (pass == false) {
+                        return;
+                    }   
+                }
+
                 var btn = $(this);
 
                 $.ajax({
@@ -607,5 +753,3 @@ aria-hidden="true">
         }
     </script>
 </div>
-
-
