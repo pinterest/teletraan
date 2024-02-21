@@ -191,7 +191,7 @@
                         {% if stepScalingPolicy and stepScalingPolicy.scale_up_steps_string %}
                             <input class="form-control" name="scaleUpSteps" required="true" size="50" type="text" value="{{ stepScalingPolicy.scale_up_steps_string }}">
                         {% else %}
-                            <input class="form-control" name="scaleUpSteps" required="true" size="50" type="text" placeholder="example: 0, 10, 20, null">
+                            <input class="form-control" name="scaleUpSteps" required="true" size="50" type="text" placeholder="example: 0, 10, 20">
                         {% endif %}
                         <p> (Must START with 0. Increasing sequence. E.g. 0, 10, 20 will create step1[0, 10], step2[10, 20], step3[20, positive-infinity])</p>
                     </div>
