@@ -127,6 +127,7 @@ public class MetricsEmitterTest {
     HostBean normalHost = createHostBean(Instant.ofEpochMilli(t2));
     HostBean carryOverHost = createHostBean(Instant.ofEpochMilli(t2));
     HostBean cleanedUpHost = createHostBean(Instant.ofEpochMilli(t2));
+    HostBean cleanedUpHost2 = createHostBean(Instant.ofEpochMilli(t2));
 
     // T2
     when(hostDAO.getAgentlessHosts(anyLong(), anyInt()))
@@ -177,12 +178,12 @@ public class MetricsEmitterTest {
     // appears in the list
     clock.add(Duration.ofMinutes(MetricsEmitter.LAUNCH_TIMEOUT_MINUTE));
     when(hostDAO.getAgentlessHosts(anyLong(), anyInt()))
-        .thenReturn(Arrays.asList(cleanedUpHost));
+        .thenReturn(Arrays.asList(cleanedUpHost, cleanedUpHost2));
     sut.emitLaunchingMetrics();
 
     assertEquals(0, timer.activeTasks());
     assertEquals(1, successCounter.count(), 0.01);
-    assertEquals(3, failureCounter.count(), 0.01);
+    assertEquals(4, failureCounter.count(), 0.01);
 
     // When cleanedUpHost is removed from the list, the metrics won't change again
     when(hostDAO.getAgentlessHosts(anyLong(), anyInt()))
@@ -191,6 +192,6 @@ public class MetricsEmitterTest {
 
     assertEquals(0, timer.activeTasks());
     assertEquals(1, successCounter.count(), 0.01);
-    assertEquals(3, failureCounter.count(), 0.01);
+    assertEquals(4, failureCounter.count(), 0.01);
   }
 }

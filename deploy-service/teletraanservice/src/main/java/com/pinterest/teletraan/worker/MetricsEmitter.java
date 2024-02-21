@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Collection;
@@ -101,25 +102,30 @@ public class MetricsEmitter implements Runnable {
 
   @Override
   public void run() {
-    emitLaunchingMetrics();
+    try {
+      emitLaunchingMetrics();
+    } catch (Exception e) {
+      LOG.error("Failed to emit launching metrics", e);
+    }
   }
 
   void emitLaunchingMetrics() {
     Instant timeoutCutoff = Instant.ofEpochMilli(clock.wallTime()).minus(Duration.ofMinutes(LAUNCH_TIMEOUT_MINUTE));
-    updateHostClassification(timeoutCutoff);
     try {
-      processRemovedHosts();
-      processNewHosts();
+      updateHostClassification(timeoutCutoff);
     } catch (Exception e) {
       LOG.error("Failed to update host classification", e);
     }
+    processRemovedHosts();
+    processNewHosts();
     cleanUpTimers();
   }
 
   private void updateHostClassification(Instant timeoutCutoff) {
     try {
       List<HostBean> agentlessHosts = hostDAO
-          .getAgentlessHosts(Instant.ofEpochMilli(clock.wallTime()).minus(Duration.ofMinutes(MAX_TRACK_DURATION_MINUTE)).toEpochMilli(), 10000);
+          .getAgentlessHosts(Instant.ofEpochMilli(clock.wallTime()).minus(Duration.ofMinutes(MAX_TRACK_DURATION_MINUTE))
+              .toEpochMilli(), 10000);
       hostClassifier.updateClassification(agentlessHosts, timeoutCutoff);
     } catch (SQLException e) {
       LOG.error("Failed to get agentless hosts", e);
@@ -166,11 +172,16 @@ public class MetricsEmitter implements Runnable {
    * Clean up timers for hosts that have been initializing for too long
    */
   private void cleanUpTimers() {
-    for (String hostId : hostTimers.keySet()) {
-      LongTaskTimer.Sample sample = hostTimers.get(hostId);
+    Iterator<Map.Entry<String, LongTaskTimer.Sample>> iterator = hostTimers.entrySet().iterator();
+
+    while (iterator.hasNext()) {
+      Map.Entry<String, LongTaskTimer.Sample> entry = iterator.next();
+      String hostId = entry.getKey();
+      LongTaskTimer.Sample sample = entry.getValue();
+
       if (sample.duration(TimeUnit.MINUTES) > (double) MAX_TRACK_DURATION_MINUTE) {
         sample.stop();
-        hostTimers.remove(hostId);
+        iterator.remove();
         errorBudgetFailure.increment();
         LOG.info("Removed timer for host {} after max tracking duration", hostId);
       }
