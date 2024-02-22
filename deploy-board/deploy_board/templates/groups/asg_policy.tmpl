@@ -462,7 +462,7 @@ aria-hidden="true">
                 var minAdjustmentMagnitude = config["minAdjustmentMagnitude"].trim()
                 var instanceWarmup = config["instanceWarmup"].trim()
 
-                if (/^-?\d+$/.test(minAdjustmentMagnitude) == false) {
+                if (/^-?\d+$/.test(minAdjustmentMagnitude) == false && minAdjustmentMagnitude.length != 0) {
                     alert("minAdjustmentMagnitude must be >= 1")
                     return false
                 }
