@@ -462,7 +462,7 @@ aria-hidden="true">
                 var minAdjustmentMagnitude = config["minAdjustmentMagnitude"].trim()
                 var instanceWarmup = config["instanceWarmup"].trim()
 
-                if (/^-?\d+$/.test(minAdjustmentMagnitude) == false) {
+                if (/^-?\d+$/.test(minAdjustmentMagnitude) == false && minAdjustmentMagnitude.length != 0) {
                     alert("minAdjustmentMagnitude must be >= 1")
                     return false
                 }
@@ -488,6 +488,11 @@ aria-hidden="true">
                 var scaleUpAdjustments = config["scaleUpAdjustments"].trim();
                 var scaleDownSteps = config["scaleDownSteps"].trim();
                 var scaleDownAdjustments = config["scaleDownAdjustments"].trim();
+
+                if (scaleUpSteps.length == 0 && scaleDownSteps.length == 0) {
+                    alert("Both scale up and down steps cannot be empty!")
+                    return false;
+                }
 
                 if (scaleUpSteps.length > 0 && scaleUpAdjustments.length == 0) {
                     alert("Scale up adjustments must be provided for scale up steps!")
