@@ -27,12 +27,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.security.TeletraanScriptTokenProvider;
 import com.pinterest.teletraan.universal.security.OAuthAuthenticator;
 import com.pinterest.teletraan.universal.security.ScriptTokenAuthenticator;
 import com.pinterest.teletraan.universal.security.ScriptTokenRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
-import com.pinterest.teletraan.universal.security.providers.MySqlScriptTokenProvider;
 
 import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.CachingAuthenticator;
@@ -112,11 +112,11 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
         CachingAuthenticator<String, ServicePrincipal> cachingScriptTokenAuthenticator = new CachingAuthenticator<>(
                 registry,
-                new ScriptTokenAuthenticator(new MySqlScriptTokenProvider(context.getDataSource())),
+                new ScriptTokenAuthenticator(new TeletraanScriptTokenProvider(context)),
                 cacheBuilder);
         AuthFilter<String, ServicePrincipal> scriptTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<ServicePrincipal>()
                 .setAuthenticator(cachingScriptTokenAuthenticator)
-                .setAuthorizer(new ScriptTokenRoleAuthorizer())
+                .setAuthorizer(new ScriptTokenRoleAuthorizer(context.getAuthZResourceExtractorFactory()))
                 .setPrefix("token")
                 .buildAuthFilter();
 
@@ -124,7 +124,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 registry, new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()), cacheBuilder);
         AuthFilter<String, UserPrincipal> jwtTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(cachingOAuthJwtAuthenticator)
-                .setAuthorizer(context.getAuthorizationFactory().create())
+                .setAuthorizer(context.getAuthorizationFactory().create(context))
                 .setPrefix("Bearer")
                 .buildAuthFilter();
 
@@ -132,7 +132,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 registry, new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()), cacheBuilder);
         AuthFilter<String, UserPrincipal> oauthTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(cachingOAuthAuthenticator)
-                .setAuthorizer(context.getAuthorizationFactory().create())
+                .setAuthorizer(context.getAuthorizationFactory().create(context))
                 .setPrefix("token")
                 .buildAuthFilter();
 

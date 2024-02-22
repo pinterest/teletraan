@@ -18,17 +18,12 @@ package com.pinterest.teletraan.config;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.RoleAuthorizer;
+import com.pinterest.teletraan.universal.security.ScriptTokenRoleAuthorizer;
 
 @JsonTypeName("role")
 public class TokenAuthorizationFactory implements AuthorizationFactory {
     @JsonProperty
     private String roleCacheSpec;
-    private final TeletraanServiceContext context;
-
-    TokenAuthorizationFactory(TeletraanServiceContext context) {
-        this.context = context;
-    }
 
     public String getRoleCacheSpec() {
         return roleCacheSpec;
@@ -39,7 +34,7 @@ public class TokenAuthorizationFactory implements AuthorizationFactory {
     }
 
     @Override
-    public RoleAuthorizer create() throws Exception {
-        return new RoleAuthorizer(this.context, roleCacheSpec);
+    public ScriptTokenRoleAuthorizer create(TeletraanServiceContext context) throws Exception {
+        return new ScriptTokenRoleAuthorizer(context.getAuthZResourceExtractorFactory());
     }
 }

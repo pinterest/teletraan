@@ -15,22 +15,22 @@
  */
 package com.pinterest.teletraan.universal.security.bean;
 
-public class Role {
+class Role {
     private long accessLevel;
 
-    public Role(long value) {
+    Role(long value) {
         this.accessLevel = value;
     }
 
-    public boolean isAuthorized(Role requiredRole) {
+    boolean isAuthorized(Role requiredRole) {
         return this == requiredRole || this.accessLevel > requiredRole.accessLevel;
     }
 
-    public long getAccessLevel() {
+    long getAccessLevel() {
         return accessLevel;
     }
 
-    public String getName() {
+    String getName() {
         return String.valueOf(accessLevel);
     }
 }

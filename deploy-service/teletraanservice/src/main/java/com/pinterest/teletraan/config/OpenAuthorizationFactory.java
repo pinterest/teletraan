@@ -17,6 +17,7 @@ package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.OpenAuthorizer;
 
 @JsonTypeName("open")
@@ -33,7 +34,7 @@ public class OpenAuthorizationFactory implements AuthorizationFactory {
     }
 
     @Override
-    public OpenAuthorizer create() throws Exception {
+    public OpenAuthorizer create(TeletraanServiceContext context) throws Exception {
         return new OpenAuthorizer();
     }
 }

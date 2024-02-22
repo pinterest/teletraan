@@ -20,7 +20,7 @@ import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import io.dropwizard.auth.Authorizer;
 
@@ -33,7 +33,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 import java.util.*;
 
-public class RoleAuthorizer implements Authorizer {
+public class RoleAuthorizer implements Authorizer<Principal> {
     private static final Logger LOG = LoggerFactory.getLogger(RoleAuthorizer.class);
     private UserRolesDAO userRolesDAO;
     private GroupRolesDAO groupRolesDAO;
@@ -43,7 +43,7 @@ public class RoleAuthorizer implements Authorizer {
         this.groupRolesDAO = context.getGroupRolesDAO();
     }
 
-    public void checkUserPermission(String userName, Resource resource, List<String> groups, Role requiredRole) throws Exception {
+    public void checkUserPermission(String userName, AuthZResource resource, List<String> groups, Role requiredRole) throws Exception {
         // Consider group role(s)
         Set<String> groupsSet = new HashSet<>();
         if(groups != null && !groups.isEmpty()) {
@@ -70,7 +70,7 @@ public class RoleAuthorizer implements Authorizer {
 
         // Check SYSTEM wide group role
         if(groups != null && !groups.isEmpty()) {
-            List<GroupRolesBean> systemGroupBeans = groupRolesDAO.getByResource(Resource.ALL, Resource.Type.SYSTEM);
+            List<GroupRolesBean> systemGroupBeans = groupRolesDAO.getByResource(AuthZResource.ALL, AuthZResource.Type.SYSTEM);
             for(GroupRolesBean group : systemGroupBeans) {
                 if(groupsSet.contains(group.getGroup_name())) {
                     if (group.getRole().isAuthorized(requiredRole)) {
@@ -81,7 +81,7 @@ public class RoleAuthorizer implements Authorizer {
         }
 
         // Consider SYSTEM wide role
-        UserRolesBean systemBean = userRolesDAO.getByNameAndResource(userName, Resource.ALL, Resource.Type.SYSTEM);
+        UserRolesBean systemBean = userRolesDAO.getByNameAndResource(userName, AuthZResource.ALL, AuthZResource.Type.SYSTEM);
         if (systemBean != null) {
             if(systemBean.getRole().isAuthorized(requiredRole)) {
                 return;
@@ -92,15 +92,15 @@ public class RoleAuthorizer implements Authorizer {
         throw new TeletaanInternalException(Response.Status.FORBIDDEN, "Not authorized!");
     }
 
-    public void checkAPITokenPermission(TokenRolesBean bean, Resource requiredResource, Role requiredRole) throws Exception {
-        Resource myResource = new Resource(bean.getResource_id(), bean.getResource_type());
+    public void checkAPITokenPermission(TokenRolesBean bean, AuthZResource requiredResource, Role requiredRole) throws Exception {
+        AuthZResource myResource = new AuthZResource(bean.getResource_id(), bean.getResource_type());
 
         if ((myResource.equals(requiredResource) && bean.getRole().isAuthorized(requiredRole))) {
             // An exact match
             return;
         }
 
-        if (myResource.getType() == Resource.Type.SYSTEM && bean.getRole().isAuthorized(requiredRole)) {
+        if (myResource.getType() == AuthZResource.Type.SYSTEM && bean.getRole().isAuthorized(requiredRole)) {
             // More than enough
             return;
         }

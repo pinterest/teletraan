@@ -12,36 +12,40 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.pinterest.commons.pastis.PastisAuthorizer;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 
-import io.dropwizard.auth.Authorizer;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-public class TeletraanPastisAuthorizer<P extends TeletraanPrincipal> implements Authorizer<P> {
-    private static final Logger LOG = LoggerFactory.getLogger(TeletraanPastisAuthorizer.class);
-    private final PastisAuthorizer pastis;
+@AllArgsConstructor
+public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuthorizer<P> {
+    private static final Logger LOG = LoggerFactory.getLogger(BasePastisAuthorizer.class);
+    protected final PastisAuthorizer pastis;
+    protected final AuthZResourceExtractor.Factory extractorFactory;
 
-    public TeletraanPastisAuthorizer(String serviceName) {
-        this(new PastisAuthorizer(serviceName));
+    public BasePastisAuthorizer(String serviceName, AuthZResourceExtractor.Factory factory) {
+        this(new PastisAuthorizer(serviceName), factory);
     }
 
-    public TeletraanPastisAuthorizer() {
-        this("teletraan_dev");
-    }
-
-    public TeletraanPastisAuthorizer(PastisAuthorizer pastis) {
-        this.pastis = pastis;
+    public BasePastisAuthorizer(AuthZResourceExtractor.Factory factory) {
+        this("teletraan_dev", factory);
     }
 
     @Override
-    public boolean authorize(TeletraanPrincipal principal, String role, @Nullable ContainerRequestContext context) {
-        LOG.debug("Authorizing...");
+    public boolean authorize(P principal, String role, @Nullable ContainerRequestContext context) {
+        ResourceAuthZInfo authZInfo = preAuthorize(principal, role, context);
+        if (authZInfo == null) {
+            return false;
+        }
 
-        if (context == null) {
-            LOG.warn("ContainerRequestContext is required for authorization");
+        AuthZResource resource;
+        try {
+            resource = extractorFactory.create(authZInfo).extractResource(context);
+        } catch (Exception ex) {
+            LOG.warn("Failed to extract resource", ex);
             return false;
         }
 
@@ -49,7 +53,7 @@ public class TeletraanPastisAuthorizer<P extends TeletraanPrincipal> implements 
         Map<String, PastisRequest> payload = new HashMap<>();
         payload.put(
                 "input",
-                new PastisRequest(principal, context.getMethod(), "/" + context.getUriInfo().getPath()));
+                new PastisRequest(principal, context.getMethod(), resource));
         try {
             String pastisPayload = gson.toJson(payload);
             boolean authorized = pastis.authorize(pastisPayload);
@@ -64,7 +68,7 @@ public class TeletraanPastisAuthorizer<P extends TeletraanPrincipal> implements 
 
     @Data
     @AllArgsConstructor
-    private static class PastisPrincipal {
+    protected static class PastisPrincipal {
         private final String id;
         private final Type type;
         private List<String> groups;
@@ -75,12 +79,12 @@ public class TeletraanPastisAuthorizer<P extends TeletraanPrincipal> implements 
         }
     }
 
-    private static class PastisRequest {
+    protected static class PastisRequest {
         private final PastisPrincipal principal;
         private final String method;
-        private final String path;
+        private final AuthZResource resource;
 
-        public PastisRequest(TeletraanPrincipal principal, String method, String path) {
+        public PastisRequest(TeletraanPrincipal principal, String method, AuthZResource resource) {
             if (principal instanceof UserPrincipal) {
                 this.principal = new PastisPrincipal(principal.getName(), PastisPrincipal.Type.USER,
                         principal.getGroups());
@@ -92,14 +96,8 @@ public class TeletraanPastisAuthorizer<P extends TeletraanPrincipal> implements 
                 throw new IllegalArgumentException("Principal type not supported.");
             }
             this.method = method;
-            this.path = path;
+            this.resource = resource;
         }
 
-    }
-
-    @Override
-    public boolean authorize(TeletraanPrincipal principal, String role) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'authorize'");
     }
 }

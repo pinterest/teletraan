@@ -49,7 +49,7 @@ public class CompositeAuthenticationFactory extends TokenAuthenticationFactory {
                 cacheBuilder);
         AuthFilter<EnvoyCredentials, TeletraanPrincipal> envoyAuthFilter = new EnvoyAuthFilter.Builder<TeletraanPrincipal>()
                 .setAuthenticator(cachingEnvoyAuthenticator)
-                .setAuthorizer(context.getAuthorizationFactory().create())
+                .setAuthorizer(context.getAuthorizationFactory().create(context))
                 .buildAuthFilter();
 
         List<AuthFilter> filters = Arrays.asList(envoyAuthFilter);

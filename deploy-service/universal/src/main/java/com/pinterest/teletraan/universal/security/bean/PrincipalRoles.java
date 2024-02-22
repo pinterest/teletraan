@@ -21,6 +21,7 @@ public enum PrincipalRoles {
   PINGER(1),
   PUBLISHER(1),
   OPERATOR(10),
+  SYSTEM_OPERATOR(15),
   ADMIN(20);
 
   public class Names {
@@ -28,6 +29,13 @@ public enum PrincipalRoles {
     public static final String READER = "READER";
     public static final String OPERATOR = "OPERATOR";
     public static final String DETERMINED_BY_PASTIS = "DETERMINED_BY_PASTIS";
+
+    public static final String WRITE = "WRITE";
+    public static final String EXECUTE = "EXECUTE";
+    public static final String DELETE = "DELETE";
+    public static final String SYSTEM_WRITE = "SYSTEM_WRITE";
+    public static final String SYSTEM_EXECUTE = "SYSTEM_EXECUTE";
+    public static final String SYSTEM_DELETE = "SYSTEM_DELETE";
   }
 
   private Role role;

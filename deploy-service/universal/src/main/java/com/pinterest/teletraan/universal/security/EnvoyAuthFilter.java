@@ -1,7 +1,6 @@
 package com.pinterest.teletraan.universal.security;
 
 import io.dropwizard.auth.AuthFilter;
-import io.dropwizard.auth.Authorizer;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -18,7 +17,8 @@ import com.pinterest.teletraan.universal.security.bean.EnvoyCredentials;
 
 @Priority(Priorities.AUTHENTICATION)
 public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<EnvoyCredentials, P> {
-  protected Authorizer<Principal> Authorizer;
+  private EnvoyAuthFilter() {
+  }
 
   @Override
   public void filter(final ContainerRequestContext requestContext) throws IOException {
