@@ -659,7 +659,7 @@ def hostButton(host):
 def hostIcon(host):
     if host["state"] == "PROVISIONED":
         duration = (time.time() * 1000 - host["lastUpdateDate"]) / 1000
-        isStale = duration > DEFAULT_STALE_THRESHOLD
+        isStale = duration > DEFAULT_STALE_THRESHOLD * 3
         if isStale and host["ip"] is None:
             return "fa-exclamation-triangle"
         return "fa-refresh fa-spin"
