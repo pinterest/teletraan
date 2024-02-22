@@ -276,14 +276,14 @@
                         <label for="instanceWarmup" class="col-xs-1 deployToolTip control-label"
                             data-toggle="tooltip"
                             title="The estimated time, in minutes, until a newly launched instance can contribute to the CloudWatch metrics.">
-                            Instance Warmup (minutes):
+                            Instance Warmup (>= 15 recommended) (minutes):
                         </label>
                     </div>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.instanceWarmup %}
                             <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" value="{{ stepScalingPolicy.instanceWarmup }}">
                         {% else %}
-                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" placeholder="0">
+                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" placeholder="15">
                         {% endif %}
                     </div>
                 </div>
