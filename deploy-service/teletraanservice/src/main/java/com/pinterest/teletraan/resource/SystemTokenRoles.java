@@ -38,9 +38,6 @@ public class SystemTokenRoles extends TokenRoles {
     private static final Resource.Type RESOURCE_TYPE = Resource.Type.SYSTEM;
     private final static String RESOURCE_ID = Resource.ALL;
 
-    @Context
-    UriInfo uriInfo;
-
     public SystemTokenRoles(TeletraanServiceContext context) {
         super(context);
     }
@@ -82,8 +79,9 @@ public class SystemTokenRoles extends TokenRoles {
             notes = "Creates a specified system wide TokenRole and returns a Response object",
             response = Response.class)
     public Response create(@Context SecurityContext sc,
+                           @Context UriInfo uriInfo,
                            @ApiParam(value = "TokenRolesBean object.", required = true)@Valid TokenRolesBean bean) throws Exception {
-        return super.create(sc, bean, RESOURCE_ID, RESOURCE_TYPE);
+        return super.create(sc, uriInfo, bean, RESOURCE_ID, RESOURCE_TYPE);
     }
 
     @DELETE

@@ -33,9 +33,6 @@ public abstract class UserRoles {
     private final UserRolesDAO userRolesDAO;
     private final Authorizer authorizer;
 
-    @Context
-    UriInfo uriInfo;
-
     public UserRoles(TeletraanServiceContext context) {
         userRolesDAO = context.getUserRolesDAO();
         authorizer = context.getAuthorizer();
@@ -59,7 +56,10 @@ public abstract class UserRoles {
             userName, resourceId, bean);
     }
 
-    public Response create(SecurityContext sc, UserRolesBean bean, String resourceId,
+    public Response create(SecurityContext sc,
+                           UriInfo uriInfo,
+                           UserRolesBean bean,
+                           String resourceId,
         Resource.Type resourceType) throws Exception {
         authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
         bean.setResource_id(resourceId);

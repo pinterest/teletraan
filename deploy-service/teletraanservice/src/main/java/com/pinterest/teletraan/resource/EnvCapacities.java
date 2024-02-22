@@ -48,7 +48,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/capacity")
 @Api(tags = "Environments")
@@ -57,8 +56,7 @@ import javax.ws.rs.core.UriInfo;
 public class EnvCapacities {
 
   private static final Logger LOG = LoggerFactory.getLogger(EnvCapacities.class);
-  @Context
-  UriInfo uriInfo;
+
   private EnvironHandler environHandler;
   private ConfigHistoryHandler configHistoryHandler;
   private EnvironDAO environDAO;

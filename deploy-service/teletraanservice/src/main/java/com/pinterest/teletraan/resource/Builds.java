@@ -60,9 +60,6 @@ public class Builds {
     private final Authorizer authorizer;
     private final BuildEventPublisher buildEventPublisher;
 
-    @Context
-    UriInfo uriInfo;
-
     public Builds(TeletraanServiceContext context) {
         buildDAO = context.getBuildDAO();
         tagDAO = context.getTagDAO();
@@ -182,6 +179,7 @@ public class Builds {
             response = Response.class)
     public Response publish(
             @Context SecurityContext sc,
+            @Context UriInfo uriInfo,
             @ApiParam(value = "BUILD object", required = true)@Valid BuildBean buildBean) throws Exception {
         if (StringUtils.isEmpty(buildBean.getScm())) {
             buildBean.setScm(sourceControlManagerProxy.getDefaultTypeName());

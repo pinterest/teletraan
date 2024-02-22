@@ -57,7 +57,6 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/alerts")
 @Api("ExternalAlerts")
@@ -66,8 +65,6 @@ import javax.ws.rs.core.UriInfo;
 public class EnvAlerts {
 
   private static final Logger LOG = LoggerFactory.getLogger(EnvWebHooks.class);
-  @Context
-  UriInfo uriInfo;
 
   private EnvironDAO environDAO;
   private DeployHandler deployHandler;

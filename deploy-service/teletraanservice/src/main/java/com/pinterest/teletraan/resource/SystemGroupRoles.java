@@ -24,6 +24,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
 @Path("/v1/system/group_roles")
@@ -56,8 +57,8 @@ public class SystemGroupRoles extends GroupRoles {
     }
 
     @POST
-    public void create(@Context SecurityContext sc, @Valid GroupRolesBean bean) throws Exception {
-        super.create(sc, bean, RESOURCE_ID, RESOURCE_TYPE);
+    public void create(@Context SecurityContext sc, @Context UriInfo uriInfo, @Valid GroupRolesBean bean) throws Exception {
+        super.create(sc, uriInfo, bean, RESOURCE_ID, RESOURCE_TYPE);
     }
 
     @DELETE

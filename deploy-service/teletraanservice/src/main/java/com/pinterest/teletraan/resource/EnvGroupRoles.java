@@ -22,10 +22,7 @@ import io.swagger.annotations.*;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.*;
 import java.util.List;
 
 
@@ -84,9 +81,10 @@ public class EnvGroupRoles extends GroupRoles {
             notes = "Creates a new GroupRoles object for a given environment name.",
             response = Response.class)
     public Response create(@Context SecurityContext sc,
+                           @Context UriInfo uriInfo,
                            @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                            @ApiParam(value = "GroupRolesBean object.", required = true)@Valid GroupRolesBean bean) throws Exception {
-        return super.create(sc, bean, envName, RESOURCE_TYPE);
+        return super.create(sc, uriInfo, bean, envName, RESOURCE_TYPE);
     }
 
     @DELETE

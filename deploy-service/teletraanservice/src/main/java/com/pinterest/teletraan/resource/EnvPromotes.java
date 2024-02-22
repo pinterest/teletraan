@@ -36,7 +36,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/promotes")
 @Api(tags = "Environments")
@@ -49,8 +48,6 @@ public class EnvPromotes {
     private EnvironDAO environDAO;
     private Authorizer authorizer;
 
-    @Context
-    UriInfo uriInfo;
     public EnvPromotes(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);

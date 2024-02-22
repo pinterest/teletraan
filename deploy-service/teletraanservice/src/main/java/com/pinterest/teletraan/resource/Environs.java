@@ -72,9 +72,6 @@ public class Environs {
     private UserRolesDAO userRolesDAO;
     private final Authorizer authorizer;
 
-    @Context
-    UriInfo uriInfo;
-
     public Environs(TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
@@ -149,6 +146,7 @@ public class Environs {
             response = Response.class)
     public Response create(
             @Context SecurityContext sc,
+            @Context UriInfo uriInfo,
             @ApiParam(value = "Environemnt object to create in database", required = true)@Valid EnvironBean environBean) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         String envName = environBean.getEnv_name();
