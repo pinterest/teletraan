@@ -15,26 +15,17 @@
  */
 package com.pinterest.teletraan.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.OpenAuthorizer;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
+
+import io.dropwizard.auth.Authorizer;
+import io.dropwizard.auth.PermitAllAuthorizer;
 
 @JsonTypeName("open")
 public class OpenAuthorizationFactory implements AuthorizationFactory {
-    @JsonProperty
-    private String roleCacheSpec;
-
-    public String getRoleCacheSpec() {
-        return roleCacheSpec;
-    }
-
-    public void setRoleCacheSpec(String roleCacheSpec) {
-        this.roleCacheSpec = roleCacheSpec;
-    }
-
     @Override
-    public OpenAuthorizer create(TeletraanServiceContext context) throws Exception {
-        return new OpenAuthorizer();
+    public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context) throws Exception {
+        return new PermitAllAuthorizer<>();
     }
 }

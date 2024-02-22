@@ -9,15 +9,15 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 @Data
 @RequiredArgsConstructor
-public class ServicePrincipal implements TeletraanPrincipal {
+public class ServicePrincipal<R extends Role<R>> implements TeletraanPrincipal {
 
   private final String name;
   @Deprecated private String group;
-  @Deprecated private PrincipalRoles role;
+  @Deprecated private R role;
   @Deprecated private AuthZResource resource;
 
   @Deprecated
-  public ServicePrincipal(String name, PrincipalRoles role, AuthZResource resource) {
+  public ServicePrincipal(String name, R role, AuthZResource resource) {
     this.name = name;
     this.role = role;
     this.resource = resource;

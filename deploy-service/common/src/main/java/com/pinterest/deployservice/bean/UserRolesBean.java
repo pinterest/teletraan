@@ -16,7 +16,8 @@
 package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.hibernate.validator.constraints.NotEmpty;
@@ -42,11 +43,11 @@ public class UserRolesBean implements Updatable {
     private String resource_id;
 
     @JsonProperty("type")
-    private Resource.Type resource_type;
+    private AuthZResource.Type resource_type;
 
     @NotNull
     @JsonProperty("role")
-    private Role role;
+    private TeletraanPrincipalRoles role;
 
     public String getUser_name() {
         return user_name;
@@ -64,19 +65,19 @@ public class UserRolesBean implements Updatable {
         this.resource_id = resource_id;
     }
 
-    public Resource.Type getResource_type() {
+    public AuthZResource.Type getResource_type() {
         return resource_type;
     }
 
-    public void setResource_type(Resource.Type resource_type) {
+    public void setResource_type(AuthZResource.Type resource_type) {
         this.resource_type = resource_type;
     }
 
-    public Role getRole() {
+    public TeletraanPrincipalRoles getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(TeletraanPrincipalRoles role) {
         this.role = role;
     }
 

@@ -28,11 +28,13 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.TeletraanScriptTokenProvider;
+import com.pinterest.teletraan.security.UserRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.OAuthAuthenticator;
 import com.pinterest.teletraan.universal.security.ScriptTokenAuthenticator;
-import com.pinterest.teletraan.universal.security.ScriptTokenRoleAuthorizer;
+import com.pinterest.teletraan.universal.security.ServiceRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
+import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
 import io.dropwizard.auth.AuthFilter;
 import io.dropwizard.auth.CachingAuthenticator;
@@ -110,13 +112,13 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
         MetricRegistry registry = SharedMetricRegistries.getDefault();
         Caffeine<Object, Object> cacheBuilder = Caffeine.from(getTokenCacheSpec());
 
-        CachingAuthenticator<String, ServicePrincipal> cachingScriptTokenAuthenticator = new CachingAuthenticator<>(
-                registry,
-                new ScriptTokenAuthenticator(new TeletraanScriptTokenProvider(context)),
+        CachingAuthenticator<String, ServicePrincipal<ValueBasedRole>> cachingScriptTokenAuthenticator = new CachingAuthenticator<>(
+                registry, new ScriptTokenAuthenticator<ValueBasedRole>(new TeletraanScriptTokenProvider(context)),
                 cacheBuilder);
-        AuthFilter<String, ServicePrincipal> scriptTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<ServicePrincipal>()
+        AuthFilter<String, ServicePrincipal<ValueBasedRole>> scriptTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<ServicePrincipal<ValueBasedRole>>()
                 .setAuthenticator(cachingScriptTokenAuthenticator)
-                .setAuthorizer(new ScriptTokenRoleAuthorizer(context.getAuthZResourceExtractorFactory()))
+                .setAuthorizer(
+                        context.getAuthorizationFactory().create(context, ServiceRoleAuthorizer.class.getSimpleName()))
                 .setPrefix("token")
                 .buildAuthFilter();
 
@@ -124,20 +126,23 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 registry, new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()), cacheBuilder);
         AuthFilter<String, UserPrincipal> jwtTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(cachingOAuthJwtAuthenticator)
-                .setAuthorizer(context.getAuthorizationFactory().create(context))
+                .setAuthorizer(
+                        context.getAuthorizationFactory().create(context, UserRoleAuthorizer.class.getSimpleName()))
                 .setPrefix("Bearer")
                 .buildAuthFilter();
 
+        // TODO: remove this after all the clients are updated to use the new token
+        // scheme
         CachingAuthenticator<String, UserPrincipal> cachingOAuthAuthenticator = new CachingAuthenticator<>(
                 registry, new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()), cacheBuilder);
         AuthFilter<String, UserPrincipal> oauthTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(cachingOAuthAuthenticator)
-                .setAuthorizer(context.getAuthorizationFactory().create(context))
+                .setAuthorizer(
+                        context.getAuthorizationFactory().create(context, UserRoleAuthorizer.class.getSimpleName()))
                 .setPrefix("token")
                 .buildAuthFilter();
 
-        List<AuthFilter> filters = Arrays.asList(scriptTokenAuthFilter,
-                oauthTokenAuthFilter, jwtTokenAuthFilter);
+        List<AuthFilter> filters = Arrays.asList(scriptTokenAuthFilter, oauthTokenAuthFilter, jwtTokenAuthFilter);
         return filters;
     }
 }

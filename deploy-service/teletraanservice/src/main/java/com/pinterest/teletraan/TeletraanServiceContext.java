@@ -18,6 +18,7 @@ package com.pinterest.teletraan;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.alerts.ExternalAlertFactory;
 import com.pinterest.teletraan.config.AuthorizationFactory;
+import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 
 public class TeletraanServiceContext extends ServiceContext {
 
@@ -25,6 +26,7 @@ public class TeletraanServiceContext extends ServiceContext {
   private int maxBuildsToKeep;
   private ExternalAlertFactory externalAlertsFactory;
   private AuthorizationFactory authorizationFactory;
+  private AuthZResourceExtractor.Factory authZResourceExtractorFactory;
 
   public ExternalAlertFactory getExternalAlertsFactory() {
     return externalAlertsFactory;
@@ -57,5 +59,14 @@ public class TeletraanServiceContext extends ServiceContext {
 
   public AuthorizationFactory getAuthorizationFactory() {
     return authorizationFactory;
+  }
+
+  public AuthZResourceExtractor.Factory getAuthZResourceExtractorFactory() {
+    return authZResourceExtractorFactory;
+  }
+
+  public void setAuthZResourceExtractorFactory(
+      AuthZResourceExtractor.Factory authZResourceExtractorFactory) {
+    this.authZResourceExtractorFactory = authZResourceExtractorFactory;
   }
 }

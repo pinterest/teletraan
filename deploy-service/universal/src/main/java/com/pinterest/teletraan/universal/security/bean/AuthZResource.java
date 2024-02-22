@@ -29,11 +29,6 @@ public class AuthZResource {
     }
 
     @Deprecated
-    public String getId() {
-        return name;
-    }
-
-    @Deprecated
     public void setId(String id) {
         this.name = id;
     }

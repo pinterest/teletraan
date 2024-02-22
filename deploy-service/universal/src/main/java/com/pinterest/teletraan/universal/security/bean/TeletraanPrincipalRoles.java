@@ -2,21 +2,21 @@ package com.pinterest.teletraan.universal.security.bean;
 
 /**
  * READER:
- *      Default role, everyone who is able to use Teletraan has READER access.
+ * Default role, everyone who is able to use Teletraan has READER access.
  * PINGER:
- *      Role required to ping server.
+ * Role required to ping server.
  * PUBLISHER:
- *      Role required to publish artifacts.
+ * Role required to publish artifacts.
  * OPERATOR:
- *      Role where user can modify a specific environment's config and
- *      perform deploy related actions.
+ * Role where user can modify a specific environment's config and
+ * perform deploy related actions.
  * ADMIN:
- *      Role that has the same environment specific privileges as OPERATOR
- *      plus the ability specify new OPERATORS and ADMINs for said environment.
- *      When a new environment is created the creating user is the designated the
- *      first ADMIN.
+ * Role that has the same environment specific privileges as OPERATOR
+ * plus the ability specify new OPERATORS and ADMINs for said environment.
+ * When a new environment is created the creating user is the designated the
+ * first ADMIN.
  */
-public enum PrincipalRoles {
+public enum TeletraanPrincipalRoles implements RoleEnum<ValueBasedRole> {
   READER(0),
   PINGER(1),
   PUBLISHER(1),
@@ -38,17 +38,17 @@ public enum PrincipalRoles {
     public static final String SYSTEM_DELETE = "SYSTEM_DELETE";
   }
 
-  private Role role;
+  private ValueBasedRole role;
 
-  PrincipalRoles(long mask) {
-    this.role = new Role(mask);
+  TeletraanPrincipalRoles(int value) {
+    this.role = new ValueBasedRole(value);
   }
 
-  public Role getRole() {
+  public ValueBasedRole getRole() {
     return role;
   }
 
-  public String getName() {
-    return role.getName();
+  public boolean isEqualOrSuperior(TeletraanPrincipalRoles otherRole) {
+    return this.role.isEqualOrSuperior(otherRole.getRole());
   }
 }

@@ -10,7 +10,7 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 
 import io.dropwizard.auth.Authorizer;
 
-abstract class BaseAuthorizer<P extends TeletraanPrincipal> implements Authorizer<P> {
+public abstract class BaseAuthorizer<P extends TeletraanPrincipal> implements Authorizer<P> {
     private static final Logger LOG = LoggerFactory.getLogger(BasePastisAuthorizer.class);
 
     @Override
