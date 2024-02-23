@@ -16,7 +16,6 @@
 package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -558,14 +557,6 @@ public class EnvironBean implements Updatable, Serializable {
 
     public void setStage_type(EnvType stage_type) {
         this.stage_type = stage_type;
-    }
-
-    @JsonSetter(value="stageType")
-    public void updateStage_type(EnvType stage_type) {
-        this.setStage_type(stage_type);
-        if (this.stage_type.equals(EnvType.DEV)) {
-            this.setAllow_private_build(true);
-        }
     }
 
     public Boolean getIs_sox() {
