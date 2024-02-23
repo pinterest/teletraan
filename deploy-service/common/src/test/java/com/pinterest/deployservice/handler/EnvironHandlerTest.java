@@ -10,9 +10,12 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.EnvType;
+import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
 import com.pinterest.deployservice.dao.AgentDAO;
+import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 
 public class EnvironHandlerTest {
@@ -22,14 +25,17 @@ public class EnvironHandlerTest {
 
     private HostDAO mockHostDAO;
     private AgentDAO mockAgentDAO;
+    private EnvironDAO environDAO;
 
     private ServiceContext createMockServiceContext() throws Exception {
         mockHostDAO = mock(HostDAO.class);
         mockAgentDAO = mock(AgentDAO.class);
+        environDAO = mock(EnvironDAO.class);
 
         ServiceContext serviceContext = new ServiceContext();
         serviceContext.setHostDAO(mockHostDAO);
         serviceContext.setAgentDAO(mockAgentDAO);
+        serviceContext.setEnvironDAO(environDAO);
         return serviceContext;
     }
 
@@ -54,5 +60,15 @@ public class EnvironHandlerTest {
         environHandler.stopServiceOnHost(DEFAULT_HOST_ID, false);
         verify(mockHostDAO).updateHostById(eq(DEFAULT_HOST_ID), argument.capture());
         assertEquals(HostState.PENDING_TERMINATE_NO_REPLACE, argument.getValue().getState());
+    }
+
+    @Test
+    public void updateStage_type_enables_private_build() throws Exception {
+        ArgumentCaptor<EnvironBean> argument = ArgumentCaptor.forClass(EnvironBean.class);
+        EnvironBean envBean = new EnvironBean();
+        envBean.setStage_type(EnvType.DEV);
+        environHandler.createEnvStage(envBean, "Anonymous");
+        verify(environDAO).insert(argument.capture());
+        assertEquals(true, argument.getValue().getAllow_private_build());
     }
 }
