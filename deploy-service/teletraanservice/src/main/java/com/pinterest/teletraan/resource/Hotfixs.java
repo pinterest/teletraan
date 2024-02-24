@@ -101,7 +101,7 @@ public class Hotfixs {
 
     @POST
     public Response create(@Context SecurityContext sc, @Valid HotfixBean hotfixBean) throws Exception {
-        authorizer.authorize(sc, new AuthZResource(hotfixBean.getEnv_name(), AuthZResource.Type.ENV), Role.OPERATOR);
+        authorizer.authorize(sc, new AuthZResource(hotfixBean.getEnv_name(), AuthZResource.Type.ENV), TeletraanPrincipalRoles.OPERATOR);
         String hotfixId = CommonUtils.getBase64UUID();
         hotfixBean.setId(hotfixId);
         hotfixBean.setState(HotfixState.INITIAL);

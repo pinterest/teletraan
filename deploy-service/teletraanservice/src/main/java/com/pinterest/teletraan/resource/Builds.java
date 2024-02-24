@@ -28,6 +28,8 @@ import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.events.BuildEventPublisher;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import io.swagger.annotations.*;
@@ -248,7 +250,8 @@ public class Builds {
     @ApiOperation(
         value = "Delete a build",
         notes = "Deletes a build given a build id")
-    @RolesAllowed(TeletraanPrincipalRoles.Names.SYSTEM_DELETE)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.BUILD)
     public void delete(
         @Context SecurityContext sc,
         @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {

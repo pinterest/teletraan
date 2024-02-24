@@ -26,7 +26,6 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.handler.DeployHandlerInterface;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
 import com.pinterest.teletraan.security.UserPrincipal;
 
 import org.joda.time.DateTime;

@@ -31,7 +31,6 @@ import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import com.pinterest.teletraan.universal.security.bean.Role;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import io.swagger.annotations.*;
@@ -157,7 +156,7 @@ public class Environs {
         String envName = environBean.getEnv_name();
         List<EnvironBean> environBeans = environDAO.getByName(envName);
         if (!CollectionUtils.isEmpty(environBeans)) {
-            authorizer.authorize(sc, new AuthZResource(envName, AuthZResource.Type.ENV), Role.OPERATOR);
+            authorizer.authorize(sc, new AuthZResource(envName, AuthZResource.Type.ENV), TeletraanPrincipalRoles.OPERATOR);
         }
         try {
             environBean.validate();

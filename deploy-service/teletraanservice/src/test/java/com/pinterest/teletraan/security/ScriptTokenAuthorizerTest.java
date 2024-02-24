@@ -16,10 +16,10 @@
 package com.pinterest.teletraan.security;
 
 import com.pinterest.deployservice.ServiceContext;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,8 +38,8 @@ public class ScriptTokenAuthorizerTest {
     private TokenRolesBean envOperator;
     private TokenRolesBean envReader;
 
-    private Resource env1;
-    private Resource envX;
+    private AuthZResource env1;
+    private AuthZResource envX;
 
     @Before
     public void setUp() throws Exception {
@@ -48,44 +48,44 @@ public class ScriptTokenAuthorizerTest {
         authorizer = new RoleAuthorizer(context, null);
 
         sysAdmin = new TokenRolesBean();
-        sysAdmin.setResource_id(Resource.ALL);
-        sysAdmin.setResource_type(Resource.Type.SYSTEM);
-        sysAdmin.setRole(Role.ADMIN);
+        sysAdmin.setResource_id(AuthZResource.ALL);
+        sysAdmin.setResource_type(AuthZResource.Type.SYSTEM);
+        sysAdmin.setRole(TeletraanPrincipalRoles.ADMIN);
 
         sysOperator = new TokenRolesBean();
-        sysOperator.setResource_id(Resource.ALL);
-        sysOperator.setResource_type(Resource.Type.SYSTEM);
-        sysOperator.setRole(Role.OPERATOR);
+        sysOperator.setResource_id(AuthZResource.ALL);
+        sysOperator.setResource_type(AuthZResource.Type.SYSTEM);
+        sysOperator.setRole(TeletraanPrincipalRoles.OPERATOR);
 
         sysReader = new TokenRolesBean();
-        sysReader.setResource_id(Resource.ALL);
-        sysReader.setResource_type(Resource.Type.SYSTEM);
-        sysReader.setRole(Role.READER);
+        sysReader.setResource_id(AuthZResource.ALL);
+        sysReader.setResource_type(AuthZResource.Type.SYSTEM);
+        sysReader.setRole(TeletraanPrincipalRoles.READER);
 
         envAdmin = new TokenRolesBean();
         envAdmin.setResource_id("envX");
-        envAdmin.setResource_type(Resource.Type.ENV);
-        envAdmin.setRole(Role.ADMIN);
+        envAdmin.setResource_type(AuthZResource.Type.ENV);
+        envAdmin.setRole(TeletraanPrincipalRoles.ADMIN);
 
         envOperator = new TokenRolesBean();
         envOperator.setResource_id("envX");
-        envOperator.setResource_type(Resource.Type.ENV);
-        envOperator.setRole(Role.OPERATOR);
+        envOperator.setResource_type(AuthZResource.Type.ENV);
+        envOperator.setRole(TeletraanPrincipalRoles.OPERATOR);
 
         envReader = new TokenRolesBean();
         envReader.setResource_id("envX");
-        envReader.setResource_type(Resource.Type.ENV);
-        envReader.setRole(Role.READER);
+        envReader.setResource_type(AuthZResource.Type.ENV);
+        envReader.setRole(TeletraanPrincipalRoles.READER);
 
-        env1 = new Resource("env1", Resource.Type.ENV);
-        envX = new Resource("envX", Resource.Type.ENV);
+        env1 = new AuthZResource("env1", AuthZResource.Type.ENV);
+        envX = new AuthZResource("envX", AuthZResource.Type.ENV);
     }
 
-    private void checkPositive(TokenRolesBean bean, Resource resource, Role role) throws Exception {
+    private void checkPositive(TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles role) throws Exception {
         authorizer.checkAPITokenPermission(bean, resource, role);
     }
 
-    private void checkNegative(TokenRolesBean bean, Resource resource, Role role) throws Exception {
+    private void checkNegative(TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles role) throws Exception {
         try {
             authorizer.checkAPITokenPermission(bean, resource, role);
         } catch (TeletaanInternalException e) {
@@ -97,61 +97,61 @@ public class ScriptTokenAuthorizerTest {
 
     @Test
     public void testSysEnv() throws Exception {
-        checkPositive(sysAdmin, env1, Role.OPERATOR);
-        checkPositive(sysAdmin, env1, Role.ADMIN);
+        checkPositive(sysAdmin, env1, TeletraanPrincipalRoles.OPERATOR);
+        checkPositive(sysAdmin, env1, TeletraanPrincipalRoles.ADMIN);
 
-        checkPositive(sysOperator, env1, Role.OPERATOR);
-        checkNegative(sysOperator, env1, Role.ADMIN);
+        checkPositive(sysOperator, env1, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(sysOperator, env1, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(sysReader, env1, Role.OPERATOR);
-        checkNegative(sysReader, env1, Role.ADMIN);
+        checkNegative(sysReader, env1, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(sysReader, env1, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testSysSys() throws Exception {
-        checkPositive(sysAdmin, Resource.SYSTEM_RESOURCE, Role.OPERATOR);
-        checkPositive(sysAdmin, Resource.SYSTEM_RESOURCE, Role.ADMIN);
+        checkPositive(sysAdmin, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
+        checkPositive(sysAdmin, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
 
-        checkPositive(sysOperator, Resource.SYSTEM_RESOURCE, Role.OPERATOR);
-        checkNegative(sysOperator, Resource.SYSTEM_RESOURCE, Role.ADMIN);
+        checkPositive(sysOperator, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(sysOperator, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(sysReader, Resource.SYSTEM_RESOURCE, Role.OPERATOR);
-        checkNegative(sysReader, Resource.SYSTEM_RESOURCE, Role.ADMIN);
+        checkNegative(sysReader, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(sysReader, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testEnvSys() throws Exception {
-        checkNegative(envAdmin, Resource.SYSTEM_RESOURCE, Role.OPERATOR);
-        checkNegative(envAdmin, Resource.SYSTEM_RESOURCE, Role.ADMIN);
+        checkNegative(envAdmin, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envAdmin, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(envOperator, Resource.SYSTEM_RESOURCE, Role.OPERATOR);
-        checkNegative(envOperator, Resource.SYSTEM_RESOURCE, Role.ADMIN);
+        checkNegative(envOperator, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envOperator, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(envReader, Resource.SYSTEM_RESOURCE, Role.OPERATOR);
-        checkNegative(envReader, Resource.SYSTEM_RESOURCE, Role.ADMIN);
+        checkNegative(envReader, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envReader, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testEnvXEnv1() throws Exception {
-        checkNegative(envAdmin, env1, Role.OPERATOR);
-        checkNegative(envAdmin, env1, Role.ADMIN);
+        checkNegative(envAdmin, env1, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envAdmin, env1, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(envOperator, env1, Role.OPERATOR);
-        checkNegative(envOperator, env1, Role.ADMIN);
+        checkNegative(envOperator, env1, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envOperator, env1, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(envReader, env1, Role.OPERATOR);
-        checkNegative(envReader, env1, Role.ADMIN);
+        checkNegative(envReader, env1, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envReader, env1, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testEnvXEnvX() throws Exception {
-        checkPositive(envAdmin, envX, Role.OPERATOR);
-        checkPositive(envAdmin, envX, Role.ADMIN);
+        checkPositive(envAdmin, envX, TeletraanPrincipalRoles.OPERATOR);
+        checkPositive(envAdmin, envX, TeletraanPrincipalRoles.ADMIN);
 
-        checkPositive(envOperator, envX, Role.OPERATOR);
-        checkNegative(envOperator, envX, Role.ADMIN);
+        checkPositive(envOperator, envX, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envOperator, envX, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(envReader, envX, Role.OPERATOR);
-        checkNegative(envReader, envX, Role.ADMIN);
+        checkNegative(envReader, envX, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envReader, envX, TeletraanPrincipalRoles.ADMIN);
     }
 }

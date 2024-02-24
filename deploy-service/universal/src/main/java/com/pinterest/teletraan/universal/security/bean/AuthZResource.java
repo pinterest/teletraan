@@ -26,7 +26,8 @@ public class AuthZResource {
         PLACEMENT,
         BASE_IMAGE,
         SECURITY_ZONE,
-        IAM_ROLE
+        IAM_ROLE,
+        BUILD
     }
 
     @Deprecated

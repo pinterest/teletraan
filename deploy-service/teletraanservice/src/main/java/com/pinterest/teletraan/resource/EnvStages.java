@@ -97,10 +97,10 @@ public class EnvStages {
                        @ApiParam(value = "Desired Environment object with updates", required = true)
                            EnvironBean environBean) throws Exception {
         EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new AuthZResource(origBean.getEnv_name(), AuthZResource.Type.ENV), Role.OPERATOR);
+        authorizer.authorize(sc, new AuthZResource(origBean.getEnv_name(), AuthZResource.Type.ENV), TeletraanPrincipalRoles.OPERATOR);
         // We must use default null Boolean to know that the user did not change from true->false
         if (environBean.getIs_sox() != null && origBean.getIs_sox() != environBean.getIs_sox()) {
-            authorizer.authorize(sc, new AuthZResource(AuthZResource.ALL, AuthZResource.Type.SYSTEM), Role.ADMIN);
+            authorizer.authorize(sc, new AuthZResource(AuthZResource.ALL, AuthZResource.Type.SYSTEM), TeletraanPrincipalRoles.ADMIN);
         }
         // TODO: If is_sox is not provided, set it, this support existing PATCH style usages of the endpoint
         if (environBean.getIs_sox() == null) {
