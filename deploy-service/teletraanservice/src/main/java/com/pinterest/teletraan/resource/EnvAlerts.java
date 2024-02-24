@@ -27,13 +27,14 @@ import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.EnvironState;
 import com.pinterest.deployservice.bean.ExternalAlert;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.google.common.collect.ImmutableMap;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang.StringUtils;
@@ -46,6 +47,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -70,7 +73,6 @@ public class EnvAlerts {
 
   private EnvironDAO environDAO;
   private DeployHandler deployHandler;
-  private Authorizer authorizer;
   private ExternalAlertFactory externalAlertFactory;
   private ServiceContext serviceContext;
   private Map<String, AlertAction> supportActions;
@@ -78,7 +80,6 @@ public class EnvAlerts {
 
   public EnvAlerts(TeletraanServiceContext context) {
     environDAO = context.getEnvironDAO();
-    authorizer = context.getAuthorizer();
     externalAlertFactory = context.getExternalAlertsFactory();
     deployHandler = new DeployHandler(context);
     supportActions = new ImmutableMap.Builder<String, AlertAction>()
@@ -103,6 +104,8 @@ public class EnvAlerts {
       value = "The alert response",
       notes = "Return the alert checking result",
       response = Response.class)
+  @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+  @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
   /**
    * This method is supposed to be triggered by the alerting system from a webhook. It means
    * the environment has received an alert
@@ -116,8 +119,6 @@ public class EnvAlerts {
                                   @Context SecurityContext sc, String alertBody)
       throws Exception {
     EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
-    authorizer
-        .authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
     String userName = sc.getUserPrincipal().getName();
     LOG.info("Get Alert for env {} stage {} actionWindow {} actions {} with alert body {}", envName,
         stageName, actionWindow, actions, alertBody);

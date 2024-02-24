@@ -17,14 +17,15 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.MetricsConfigBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,6 +33,7 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -48,13 +50,11 @@ public class EnvMetrics {
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private EnvironDAO environDAO;
-    private Authorizer authorizer;
 
     public EnvMetrics(TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
-        authorizer = context.getAuthorizer();
     }
 
     @GET
@@ -75,13 +75,14 @@ public class EnvMetrics {
             value = "Update environment metrics",
             notes = "Updates an environment's metrics configs given an environment name, stage name, and list of " +
                     "MetricsConfig objects to update with")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = Location.PATH)
     public void update(
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "List of MetricsConfigBean objects", required = true)@Valid List<MetricsConfigBean> metrics,
             @Context SecurityContext sc) throws Exception {
         EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         environHandler.updateMetrics(environBean, metrics, userName);
         configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_METRIC, metrics, userName);

@@ -17,7 +17,6 @@ package com.pinterest.teletraan.resource;
 
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
@@ -29,9 +28,11 @@ import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.security.OpenAuthorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import io.swagger.annotations.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -41,6 +42,7 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -71,7 +73,6 @@ public class Environs {
     private EnvironHandler environHandler;
     private TagHandler tagHandler;
     private UserRolesDAO userRolesDAO;
-    private final Authorizer authorizer;
 
     @Context
     UriInfo uriInfo;
@@ -81,7 +82,6 @@ public class Environs {
         environHandler = new EnvironHandler(context);
         tagHandler = new EnvTagHandler(context);
         userRolesDAO = context.getUserRolesDAO();
-        authorizer = context.getAuthorizer();
     }
 
     @GET
@@ -148,6 +148,8 @@ public class Environs {
             value = "Create environment",
             notes = "Creates a new environment given an environment object",
             response = Response.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_MANAGEMENT, IdLocation = Location.BODY)
     public Response create(
             @Context SecurityContext sc,
             @ApiParam(value = "Environemnt object to create in database", required = true)@Valid EnvironBean environBean) throws Exception {
@@ -155,7 +157,7 @@ public class Environs {
         String envName = environBean.getEnv_name();
         List<EnvironBean> environBeans = environDAO.getByName(envName);
         if (!CollectionUtils.isEmpty(environBeans)) {
-            authorizer.authorize(sc, new Resource(envName, Resource.Type.ENV), Role.OPERATOR);
+            authorizer.authorize(sc, new AuthZResource(envName, AuthZResource.Type.ENV), Role.OPERATOR);
         }
         try {
             environBean.validate();
@@ -167,8 +169,8 @@ public class Environs {
             // This is the first stage for this env, let's make operator ADMIN of this env
             UserRolesBean rolesBean = new UserRolesBean();
             rolesBean.setResource_id(environBean.getEnv_name());
-            rolesBean.setResource_type(Resource.Type.ENV);
-            rolesBean.setRole(Role.ADMIN);
+            rolesBean.setResource_type(AuthZResource.Type.ENV);
+            rolesBean.setRole(TeletraanPrincipalRoles.ADMIN);
             rolesBean.setUser_name(operator);
             userRolesDAO.insert(rolesBean);
             LOG.info("Make {} admin for the new env {}", operator, envName);

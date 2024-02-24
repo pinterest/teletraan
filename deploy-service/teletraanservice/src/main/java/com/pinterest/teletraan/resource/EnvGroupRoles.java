@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +16,14 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.GroupRolesBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
+
 import io.swagger.annotations.*;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -39,7 +43,7 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvGroupRoles extends GroupRoles {
-    private static final Resource.Type RESOURCE_TYPE = Resource.Type.ENV;
+    private static final AuthZResource.Type RESOURCE_TYPE = AuthZResource.Type.ENV;
 
     public EnvGroupRoles(TeletraanServiceContext context) {
         super(context);
@@ -72,6 +76,8 @@ public class EnvGroupRoles extends GroupRoles {
             value = "Update an environment's group role",
             notes = "Updates a GroupRoles object for given group and environment names with given GroupRoles object.",
             response = GroupRolesBean.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_MANAGEMENT)
     public void update(@Context SecurityContext sc, @PathParam("envName") String envName,
         @PathParam("groupName") String groupName,
         GroupRolesBean bean) throws Exception {
@@ -83,6 +89,8 @@ public class EnvGroupRoles extends GroupRoles {
             value = "Create a group role for an environment",
             notes = "Creates a new GroupRoles object for a given environment name.",
             response = Response.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_MANAGEMENT)
     public Response create(@Context SecurityContext sc,
                            @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                            @ApiParam(value = "GroupRolesBean object.", required = true)@Valid GroupRolesBean bean) throws Exception {
@@ -94,6 +102,8 @@ public class EnvGroupRoles extends GroupRoles {
     @ApiOperation(
             value = "Deletes a group role from an environment",
             notes = "Deletes a GroupRoles object by given group and environment names.")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_MANAGEMENT)
     public void delete(@Context SecurityContext sc, @PathParam("envName") String envName,
         @PathParam("groupName") String groupName) throws Exception {
         super.delete(sc, groupName, envName, RESOURCE_TYPE);

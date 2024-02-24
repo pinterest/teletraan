@@ -9,6 +9,6 @@ public class ValueBasedRole implements Role<ValueBasedRole> {
 
     @Override
     public boolean isEqualOrSuperior(ValueBasedRole requiredRole) {
-        return this.value >= requiredRole.value;
+        return this.equals(requiredRole) || this.value > requiredRole.value;
     }
 }

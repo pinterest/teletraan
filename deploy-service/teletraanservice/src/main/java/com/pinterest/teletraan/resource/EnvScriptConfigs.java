@@ -16,14 +16,15 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -31,6 +32,7 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -48,7 +50,6 @@ public class EnvScriptConfigs {
     private EnvironDAO environDAO;
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
-    private Authorizer authorizer;
 
     @Context
     UriInfo uriInfo;
@@ -57,7 +58,6 @@ public class EnvScriptConfigs {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
-        authorizer = context.getAuthorizer();
     }
 
     @GET
@@ -78,13 +78,14 @@ public class EnvScriptConfigs {
             notes = "Updates script configs given environment and stage names with given name:value map of new " +
                     "script configs",
             response = String.class, responseContainer = "Map")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = Location.PATH)
     public void update(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
                        @ApiParam(value = "New configs to update with", required = true)
                            @Valid Map<String, String> configs) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         environHandler.updateScriptConfigs(envBean, configs, operator);
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_ENV_SCRIPT, configs, operator);

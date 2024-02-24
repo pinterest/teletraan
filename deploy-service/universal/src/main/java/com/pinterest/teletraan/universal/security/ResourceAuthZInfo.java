@@ -19,11 +19,12 @@ public @interface ResourceAuthZInfo {
     /**
      * The location of the resource identifier in the request.
      */
-    Location IdLocation();
+    Location IdLocation() default Location.NA;
 
     public enum Location {
         PATH,
         QUERY,
-        BODY
+        BODY,
+        NA
     }
 }

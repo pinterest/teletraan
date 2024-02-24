@@ -15,16 +15,15 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import io.swagger.annotations.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -40,8 +39,7 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvUserRoles extends UserRoles {
-    private static final Resource.Type RESOURCE_TYPE = Resource.Type.ENV;
-    private static final Logger LOG = LoggerFactory.getLogger(EnvUserRoles.class);
+    private static final AuthZResource.Type RESOURCE_TYPE = AuthZResource.Type.ENV;
 
     @Context
     UriInfo uriInfo;
@@ -78,6 +76,8 @@ public class EnvUserRoles extends UserRoles {
             value = "Update a user's environment role",
             notes = "Updates a UserRoles object for given user and environment names with given UserRoles object.",
             response = UserRolesBean.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_MANAGEMENT)
     public void update(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "User name.", required = true)@PathParam("userName") String userName, UserRolesBean bean) throws Exception {
@@ -89,6 +89,8 @@ public class EnvUserRoles extends UserRoles {
             value = "Create a user for an environment",
             notes = "Creates a new UserRoles object for a given environment name.",
             response = Response.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_MANAGEMENT)
     public Response create(@Context SecurityContext sc,
                            @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                            @ApiParam(value = "UserRolesBean object.", required = true)@Valid UserRolesBean bean) throws Exception {
@@ -100,9 +102,11 @@ public class EnvUserRoles extends UserRoles {
     @ApiOperation(
             value = "Deletes a user's roles from an environment",
             notes = "Deletes a UserRoles object by given user and environment names.")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_MANAGEMENT)
     public void delete(@Context SecurityContext sc,
-                       @ApiParam(value = "Host name.", required = true)@PathParam("envName") String envName,
-        @PathParam("userName") String userName) throws Exception {
+            @ApiParam(value = "Host name.", required = true) @PathParam("envName") String envName,
+            @PathParam("userName") String userName) throws Exception {
         super.delete(sc, userName, envName, RESOURCE_TYPE);
     }
 }

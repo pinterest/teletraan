@@ -28,14 +28,14 @@ import com.pinterest.deployservice.allowlists.Allowlist;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.events.BuildEventPublisher;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -59,7 +59,6 @@ public class Builds {
     private final TagDAO tagDAO;
     private final Allowlist buildAllowlist;
     private final SourceControlManagerProxy sourceControlManagerProxy;
-    private final Authorizer authorizer;
     private final BuildEventPublisher buildEventPublisher;
 
     @Context
@@ -69,7 +68,6 @@ public class Builds {
         buildDAO = context.getBuildDAO();
         tagDAO = context.getTagDAO();
         sourceControlManagerProxy = context.getSourceControlManagerProxy();
-        authorizer = context.getAuthorizer();
         buildAllowlist = context.getBuildAllowlist();
         buildEventPublisher = context.getBuildEventPublisher();
         deployDAO = context.getDeployDAO();
@@ -182,6 +180,7 @@ public class Builds {
             value = "Publish a build",
             notes = "Publish a build given a build object",
             response = Response.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.PUBLISH)
     public Response publish(
             @Context SecurityContext sc,
             @ApiParam(value = "BUILD object", required = true)@Valid BuildBean buildBean) throws Exception {
@@ -249,10 +248,10 @@ public class Builds {
     @ApiOperation(
         value = "Delete a build",
         notes = "Deletes a build given a build id")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.SYSTEM_DELETE)
     public void delete(
         @Context SecurityContext sc,
         @ApiParam(value = "BUILD id", required = true)@PathParam("id") String id) throws Exception {
-        authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.OPERATOR);
         BuildBean buildBean = buildDAO.getById(id);
         if (buildBean == null) {
             throw new TeletaanInternalException(Response.Status.NOT_FOUND, String.format("BUILD %s does not exist.", id));

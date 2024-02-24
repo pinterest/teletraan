@@ -19,11 +19,9 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.PingRequestBean;
 import com.pinterest.deployservice.bean.PingResponseBean;
 import com.pinterest.deployservice.bean.PingResult;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.handler.PingHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -31,6 +29,7 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -48,11 +47,9 @@ import javax.ws.rs.core.SecurityContext;
 public class Pings {
     private static final Logger LOG = LoggerFactory.getLogger(Pings.class);
     private PingHandler pingHandler;
-    private final Authorizer authorizer;
 
     public Pings(TeletraanServiceContext context) {
         pingHandler = new PingHandler(context);
-        authorizer = context.getAuthorizer();
     }
 
     @POST
@@ -61,11 +58,11 @@ public class Pings {
             value = "Ping operation for agent ",
             notes = "Returns a deploy goal object given a ping request object",
             response = PingResponseBean.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.PINGER)
     public PingResponseBean ping(@Context SecurityContext sc,
                                  @Context HttpHeaders headers,
                                  @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {
         LOG.info("Receive ping request " + requestBean);
-        authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PINGER);
         boolean rate_limited = Boolean.parseBoolean(headers.getRequestHeaders().getFirst("x-envoy-low-watermark"));
         PingResult result= pingHandler.ping(requestBean, rate_limited);
         LOG.info("Send ping response " + result.getResponseBean());

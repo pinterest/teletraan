@@ -18,9 +18,7 @@ package com.pinterest.teletraan.resource;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
-import com.pinterest.deployservice.bean.Resource;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,37 +30,33 @@ import java.util.List;
 public abstract class UserRoles {
     private static final Logger LOG = LoggerFactory.getLogger(UserRoles.class);
     private final UserRolesDAO userRolesDAO;
-    private final Authorizer authorizer;
 
     @Context
     UriInfo uriInfo;
 
     public UserRoles(TeletraanServiceContext context) {
         userRolesDAO = context.getUserRolesDAO();
-        authorizer = context.getAuthorizer();
     }
 
     public List<UserRolesBean> getByResource(String resourceId,
-        Resource.Type resourceType) throws Exception {
+        AuthZResource.Type resourceType) throws Exception {
         return userRolesDAO.getByResource(resourceId, resourceType);
     }
 
     public UserRolesBean getByNameAndResource(String userName, String resourceId,
-        Resource.Type resourceType) throws Exception {
+        AuthZResource.Type resourceType) throws Exception {
         return userRolesDAO.getByNameAndResource(userName, resourceId, resourceType);
     }
 
     public void update(SecurityContext sc, UserRolesBean bean, String userName,
-        String resourceId, Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        String resourceId, AuthZResource.Type resourceType) throws Exception {
         userRolesDAO.update(bean, userName, resourceId, resourceType);
         LOG.info("Successfully updated user {} permission for resource {} with {}",
             userName, resourceId, bean);
     }
 
     public Response create(SecurityContext sc, UserRolesBean bean, String resourceId,
-        Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        AuthZResource.Type resourceType) throws Exception {
         bean.setResource_id(resourceId);
         bean.setResource_type(resourceType);
         userRolesDAO.insert(bean);
@@ -75,8 +69,7 @@ public abstract class UserRoles {
     }
 
     public void delete(SecurityContext sc, String userName, String resourceId,
-        Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        AuthZResource.Type resourceType) throws Exception {
         userRolesDAO.delete(userName, resourceId, resourceType);
         LOG.info("Successfully deleted user {} permission for resource {}",
             userName, resourceId);

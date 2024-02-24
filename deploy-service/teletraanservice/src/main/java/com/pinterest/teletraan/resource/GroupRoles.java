@@ -16,10 +16,9 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.GroupRolesBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.Role;
 
 import javax.ws.rs.core.*;
@@ -28,35 +27,31 @@ import java.util.List;
 
 public abstract class GroupRoles {
     private final GroupRolesDAO groupRolesDAO;
-    private final Authorizer authorizer;
 
     @Context
     UriInfo uriInfo;
 
     public GroupRoles(TeletraanServiceContext context) {
         groupRolesDAO = context.getGroupRolesDAO();
-        authorizer = context.getAuthorizer();
     }
 
     public List<GroupRolesBean> getByResource(String resourceId,
-        Resource.Type resourceType) throws Exception {
+        AuthZResource.Type resourceType) throws Exception {
         return groupRolesDAO.getByResource(resourceId, resourceType);
     }
 
     public GroupRolesBean getByNameAndResource(String groupName, String resourceId,
-        Resource.Type resourceType) throws Exception {
+        AuthZResource.Type resourceType) throws Exception {
         return groupRolesDAO.getByNameAndResource(groupName, resourceId, resourceType);
     }
 
     public void update(SecurityContext sc, GroupRolesBean bean, String groupName,
-        String resourceId, Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        String resourceId, AuthZResource.Type resourceType) throws Exception {
         groupRolesDAO.update(bean, groupName, resourceId, resourceType);
     }
 
     public Response create(SecurityContext sc, GroupRolesBean bean, String resourceId,
-        Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        AuthZResource.Type resourceType) throws Exception {
         bean.setResource_id(resourceId);
         bean.setResource_type(resourceType);
         groupRolesDAO.insert(bean);
@@ -67,8 +62,7 @@ public abstract class GroupRoles {
     }
 
     public void delete(SecurityContext sc, String groupName, String resourceId,
-        Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        AuthZResource.Type resourceType) throws Exception {
         groupRolesDAO.delete(groupName, resourceId, resourceType);
     }
 }

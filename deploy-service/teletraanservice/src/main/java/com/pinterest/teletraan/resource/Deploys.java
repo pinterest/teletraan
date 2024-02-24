@@ -27,14 +27,13 @@ import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.DeployType;
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.Role;
 
 import org.slf4j.Logger;
@@ -154,7 +153,7 @@ public class Deploys {
             DeployBean deployBean) throws Exception {
         DeployBean originBean = Utils.getDeploy(deployDAO, id);
         EnvironBean environBean = Utils.getEnvStage(environDAO, originBean.getEnv_id());
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        authorizer.authorize(sc, new AuthZResource(environBean.getEnv_name(), AuthZResource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         deployHandler.update(id, deployBean);
         LOG.info("{} successfully updated deploy {} with {}",
@@ -173,7 +172,7 @@ public class Deploys {
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id) throws Exception {
         DeployBean deployBean = Utils.getDeploy(deployDAO, id);
         EnvironBean environBean = Utils.getEnvStage(environDAO, deployBean.getEnv_id());
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+        authorizer.authorize(sc, new AuthZResource(environBean.getEnv_name(), AuthZResource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         deployDAO.delete(id);
         LOG.info("Successfully deleted deploy {} by {}", id, userName);

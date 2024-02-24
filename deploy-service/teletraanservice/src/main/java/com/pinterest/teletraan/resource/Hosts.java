@@ -45,6 +45,7 @@ import java.util.List;
 )
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+// TODO: need AuthZ
 public class Hosts {
     private static final Logger LOG = LoggerFactory.getLogger(Hosts.class);
     private HostDAO hostDAO;

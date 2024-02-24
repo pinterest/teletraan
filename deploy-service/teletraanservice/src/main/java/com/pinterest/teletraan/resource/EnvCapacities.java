@@ -16,20 +16,23 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.google.common.base.Optional;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotEmpty;
+
+import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,14 +65,12 @@ public class EnvCapacities {
   private ConfigHistoryHandler configHistoryHandler;
   private EnvironDAO environDAO;
   private GroupDAO groupDAO;
-  private Authorizer authorizer;
 
   public EnvCapacities(TeletraanServiceContext context) {
     environHandler = new EnvironHandler(context);
     configHistoryHandler = new ConfigHistoryHandler(context);
     environDAO = context.getEnvironDAO();
     groupDAO = context.getGroupDAO();
-    authorizer = context.getAuthorizer();
   }
 
   @GET
@@ -92,12 +93,13 @@ public class EnvCapacities {
   @ApiOperation(
       value = "Update the capacities for Group and hosts",
       notes = "Update the capacities for Group and hosts")
+  @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+  @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
   public void update(@PathParam("envName") String envName,
                      @PathParam("stageName") String stageName,
                      @QueryParam("capacityType") Optional<CapacityType> capacityType,
                      @NotNull List<String> names, @Context SecurityContext sc) throws Exception {
     EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-    authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
     String operator = sc.getUserPrincipal().getName();
     if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
       environHandler.updateGroups(envBean, names, operator);
@@ -122,12 +124,13 @@ public class EnvCapacities {
   @ApiOperation(
       value = "Create the capacities for Group and hosts",
       notes = "Create the capacities for Group and hosts")
+  @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+  @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
   public void add(@PathParam("envName") String envName,
                   @PathParam("stageName") String stageName,
                   @QueryParam("capacityType") Optional<CapacityType> capacityType,
                   @NotEmpty String name, @Context SecurityContext sc) throws Exception {
     EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-    authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
     String operator = sc.getUserPrincipal().getName();
     name = name.replaceAll("\"", "");
     if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {
@@ -143,12 +146,13 @@ public class EnvCapacities {
   @ApiOperation(
       value = "Delete the capacities for Group and hosts",
       notes = "Delete the capacities for Group and hosts")
+  @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
+  @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
   public void delete(@PathParam("envName") String envName,
                      @PathParam("stageName") String stageName,
                      @QueryParam("capacityType") Optional<CapacityType> capacityType,
                      @NotEmpty String name, @Context SecurityContext sc) throws Exception {
     EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-    authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
     String operator = sc.getUserPrincipal().getName();
     name = name.replaceAll("\"", "");
     if (capacityType.or(CapacityType.GROUP) == CapacityType.GROUP) {

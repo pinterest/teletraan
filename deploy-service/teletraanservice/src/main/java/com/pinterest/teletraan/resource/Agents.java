@@ -69,6 +69,7 @@ public class Agents {
 
     @PUT
     @Path("/id/{hostId : [a-zA-Z0-9\\-_]+}")
+    // TODO: add authz
     public void updateById(@Context SecurityContext sc,
                            @PathParam("hostId") String hostId,
                            @Valid AgentBean agentBean) throws Exception {

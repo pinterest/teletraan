@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,9 +16,12 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.GroupRolesBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -30,8 +33,8 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SystemGroupRoles extends GroupRoles {
-    private final static Resource.Type RESOURCE_TYPE = Resource.Type.SYSTEM;
-    private final static String RESOURCE_ID = Resource.ALL;
+    private final static AuthZResource.Type RESOURCE_TYPE = AuthZResource.Type.SYSTEM;
+    private final static String RESOURCE_ID = AuthZResource.ALL;
 
     public SystemGroupRoles(TeletraanServiceContext context) {
         super(context);
@@ -50,18 +53,24 @@ public class SystemGroupRoles extends GroupRoles {
 
     @PUT
     @Path("/{groupName : [a-zA-Z0-9\\-_]+}")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void update(@Context SecurityContext sc, @PathParam("groupName") String groupName,
         GroupRolesBean bean) throws Exception {
         super.update(sc, bean, groupName, RESOURCE_ID, RESOURCE_TYPE);
     }
 
     @POST
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void create(@Context SecurityContext sc, @Valid GroupRolesBean bean) throws Exception {
         super.create(sc, bean, RESOURCE_ID, RESOURCE_TYPE);
     }
 
     @DELETE
     @Path("/{groupName : [a-zA-Z0-9\\-_]+}")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void delete(@Context SecurityContext sc, @PathParam("groupName") String groupName) throws Exception {
         super.delete(sc, groupName, RESOURCE_ID, RESOURCE_TYPE);
     }

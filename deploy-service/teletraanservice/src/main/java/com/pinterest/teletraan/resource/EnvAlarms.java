@@ -17,19 +17,21 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.AlarmBean;
 import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -50,7 +52,6 @@ public class EnvAlarms {
     private EnvironHandler environHandler;
     private EnvironDAO environDAO;
     private ConfigHistoryHandler configHistoryHandler;
-    private Authorizer authorizer;
 
     @Context
     UriInfo uriInfo;
@@ -59,7 +60,6 @@ public class EnvAlarms {
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         environDAO = context.getEnvironDAO();
-        authorizer = context.getAuthorizer();
     }
 
     @GET
@@ -70,10 +70,11 @@ public class EnvAlarms {
     }
 
     @PUT
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
     public void update(@PathParam("envName") String envName, @PathParam("stageName") String stageName,
-        @Valid List<AlarmBean> alarmBeans, @Context SecurityContext sc) throws Exception {
+            @Valid List<AlarmBean> alarmBeans, @Context SecurityContext sc) throws Exception {
         EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         environHandler.updateAlarms(environBean, alarmBeans, userName);
         configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_ALARM, alarmBeans, userName);

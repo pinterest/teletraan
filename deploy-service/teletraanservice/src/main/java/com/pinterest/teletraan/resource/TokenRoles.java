@@ -15,13 +15,11 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.common.CommonUtils;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.universal.security.bean.Role;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,39 +32,33 @@ public abstract class TokenRoles {
     private static final Logger LOG = LoggerFactory.getLogger(TokenRoles.class);
     final static public long VALIDATE_TIME = 10 * 365 * 24 * 60 * 60 * 1000L;
     private final TokenRolesDAO tokenRolesDAO;
-    private final Authorizer authorizer;
 
     @Context
     UriInfo uriInfo;
 
     public TokenRoles(TeletraanServiceContext context) {
         tokenRolesDAO = context.getTokenRolesDAO();
-        authorizer = context.getAuthorizer();
     }
 
     public List<TokenRolesBean> getByResource(SecurityContext sc, String resourceId,
-        Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        AuthZResource.Type resourceType) throws Exception {
         return tokenRolesDAO.getByResource(resourceId, resourceType);
     }
 
     public TokenRolesBean getByNameAndResource(SecurityContext sc, String scriptName,
-        String resourceId, Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        String resourceId, AuthZResource.Type resourceType) throws Exception {
         return tokenRolesDAO.getByNameAndResource(scriptName, resourceId, resourceType);
     }
 
     public void update(SecurityContext sc, TokenRolesBean bean, String scriptName,
-        String resourceId, Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        String resourceId, AuthZResource.Type resourceType) throws Exception {
         tokenRolesDAO.update(bean, scriptName, resourceId, resourceType);
         LOG.info("Successfully updated script {} permission for resource {} with {}",
             scriptName, resourceId, bean);
     }
 
     public Response create(SecurityContext sc, TokenRolesBean bean, String resourceId,
-        Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        AuthZResource.Type resourceType) throws Exception {
         String token = CommonUtils.getBase64UUID();
         bean.setToken(token);
         bean.setResource_id(resourceId);
@@ -83,8 +75,7 @@ public abstract class TokenRoles {
     }
 
     public void delete(SecurityContext sc, String scriptName, String resourceId,
-        Resource.Type resourceType) throws Exception {
-        authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
+        AuthZResource.Type resourceType) throws Exception {
         tokenRolesDAO.delete(scriptName, resourceId, resourceType);
         LOG.info("Successfully deleted script {} permission for resource {}",
             scriptName, resourceId);
