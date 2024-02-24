@@ -1,24 +1,19 @@
 package com.pinterest.teletraan.security;
 
-import java.io.InputStream;
-
 import javax.ws.rs.container.ContainerRequestContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
-public class EnvironmentBodyExtractor implements AuthZResourceExtractor {
+public class EnvStagePathExtractor implements AuthZResourceExtractor {
     @Override
     public AuthZResource extractResource(ContainerRequestContext requestContext) throws RuntimeException {
-        InputStream inputStream = requestContext.getEntityStream();
         try {
-            EnvironBean envBean = new ObjectMapper().readValue(inputStream, EnvironBean.class);
-            return new AuthZResource(envBean.getEnv_name(), AuthZResource.Type.ENV);
+            String envName = requestContext.getUriInfo().getPathParameters().getFirst("envName");
+            String stageName = requestContext.getUriInfo().getPathParameters().getFirst("stageName");
+            return new AuthZResource(String.format("%s/%s", envName, stageName), AuthZResource.Type.ENV_STAGE);
         } catch (Exception e) {
             throw new RuntimeException("Failed to extract environment resource", e);
         }
     }
-
 }

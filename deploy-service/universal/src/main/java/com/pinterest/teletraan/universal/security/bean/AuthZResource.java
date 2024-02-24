@@ -22,7 +22,6 @@ public class AuthZResource {
         GROUP,
         SYSTEM,
         ENV_STAGE,
-        ENV_MANAGEMENT,
         PLACEMENT,
         BASE_IMAGE,
         SECURITY_ZONE,

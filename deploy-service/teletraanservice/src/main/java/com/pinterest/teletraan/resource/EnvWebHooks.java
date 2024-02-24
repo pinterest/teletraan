@@ -76,7 +76,7 @@ public class EnvWebHooks {
             value = "Update webhooks",
             notes = "Updates pre/deploy webhooks by given environment and stage names with given webhooks object")
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.PATH)
     public void update(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,

@@ -99,7 +99,7 @@ public class EnvAgents {
             notes = "Updates host agent specified by given environment name, stage name, and host id with given " +
                     "agent object")
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
     public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
@@ -119,7 +119,7 @@ public class EnvAgents {
             value = "Reset failed deploys",
             notes = "Resets failing deploys given an environment name, stage name, and deploy id")
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
     public void resetFailedDeploys(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,

@@ -6,8 +6,9 @@ import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 
 public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtractor.Factory {
 
-    private static final AuthZResourceExtractor ENV_PATH_EXTRACTOR = new EnvironmentPathExtractor();
-    private static final AuthZResourceExtractor ENV_BODY_EXTRACTOR = new EnvironmentBodyExtractor();
+    private static final AuthZResourceExtractor ENV_PATH_EXTRACTOR = new EnvPathExtractor();
+    private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR = new EnvStagePathExtractor();
+    private static final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR = new EnvStageBodyExtractor();
 
     private final ServiceContext serviceContext;
     public TeletraanAuthZResourceExtractorFactory(ServiceContext serviceContext) {
@@ -18,17 +19,29 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
     public AuthZResourceExtractor create(ResourceAuthZInfo authZInfo) {
         switch (authZInfo.type()) {
             case ENV:
-            case ENV_STAGE:
                 switch (authZInfo.IdLocation()) {
                     case PATH:
                         return ENV_PATH_EXTRACTOR;
-                    case BODY:
-                        return ENV_BODY_EXTRACTOR;
                     default:
-                        throw new IllegalArgumentException("Unsupported resource ID location: " + authZInfo.IdLocation());
+                        throw new UnsupportedResourceIDLocationException(authZInfo);
+                }
+            case ENV_STAGE:
+                switch (authZInfo.IdLocation()) {
+                    case PATH:
+                        return ENV_STAGE_PATH_EXTRACTOR;
+                    case BODY:
+                        return ENV_STAGE_BODY_EXTRACTOR;
+                    default:
+                        throw new UnsupportedResourceIDLocationException(authZInfo);
                 }
             default:
                 throw new IllegalArgumentException("Unsupported resource type: " + authZInfo.type());
+        }
+    }
+
+    class UnsupportedResourceIDLocationException extends RuntimeException {
+        public UnsupportedResourceIDLocationException(ResourceAuthZInfo authZInfo) {
+            super("Unsupported resource ID location: " + authZInfo.IdLocation());
         }
     }
 }

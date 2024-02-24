@@ -94,7 +94,7 @@ public class EnvCapacities {
       value = "Update the capacities for Group and hosts",
       notes = "Update the capacities for Group and hosts")
   @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-  @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+  @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
   public void update(@PathParam("envName") String envName,
                      @PathParam("stageName") String stageName,
                      @QueryParam("capacityType") Optional<CapacityType> capacityType,
@@ -125,7 +125,7 @@ public class EnvCapacities {
       value = "Create the capacities for Group and hosts",
       notes = "Create the capacities for Group and hosts")
   @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-  @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+  @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
   public void add(@PathParam("envName") String envName,
                   @PathParam("stageName") String stageName,
                   @QueryParam("capacityType") Optional<CapacityType> capacityType,
@@ -147,7 +147,7 @@ public class EnvCapacities {
       value = "Delete the capacities for Group and hosts",
       notes = "Delete the capacities for Group and hosts")
   @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
-  @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+  @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
   public void delete(@PathParam("envName") String envName,
                      @PathParam("stageName") String stageName,
                      @QueryParam("capacityType") Optional<CapacityType> capacityType,

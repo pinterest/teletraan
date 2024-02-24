@@ -105,7 +105,7 @@ public class EnvAlerts {
       notes = "Return the alert checking result",
       response = Response.class)
   @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
-  @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+  @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
   /**
    * This method is supposed to be triggered by the alerting system from a webhook. It means
    * the environment has received an alert

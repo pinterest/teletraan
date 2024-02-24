@@ -5,7 +5,7 @@ import javax.ws.rs.container.ContainerRequestContext;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
-public class EnvironmentPathExtractor implements AuthZResourceExtractor {
+public class EnvPathExtractor implements AuthZResourceExtractor {
     @Override
     public AuthZResource extractResource(ContainerRequestContext requestContext) throws RuntimeException {
         try {

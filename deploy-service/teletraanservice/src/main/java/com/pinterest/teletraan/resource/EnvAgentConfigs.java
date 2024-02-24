@@ -77,7 +77,7 @@ public class EnvAgentConfigs {
             notes = "Updates environment agent configs given an environment name and stage name with a map of " +
                     "name,value agent configs")
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
     public void update(
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,

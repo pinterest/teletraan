@@ -58,7 +58,7 @@ public class EnvHostTags {
         notes = "Returns a list the host tags in an environment",
         response = HostTagInfo.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.PATH)
     public Collection<HostTagInfo> get(@PathParam("envName") String envName,
                                                     @PathParam("stageName") String stageName,
                                                     @QueryParam("ec2Tags") Optional<Boolean> ecTags,
@@ -82,7 +82,7 @@ public class EnvHostTags {
         notes = "Returns a map group by tagValue and hosts tagged with tagName:tagValue in an environment",
         response = HostTagInfo.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.PATH)
     public Map<String, Collection<HostTagInfo>> get(@PathParam("envName") String envName,
                                                     @PathParam("stageName") String stageName,
                                                     @PathParam("tagName") String tagName,
@@ -111,7 +111,7 @@ public class EnvHostTags {
     @DELETE
     @Path("/{tagName : [a-zA-Z0-9\\-:_]+}")
     @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.PATH)
     public void removeHostTags(@PathParam("envName") String envName,
                                @PathParam("stageName") String stageName,
                                @PathParam("tagName") String tagName,

@@ -76,7 +76,7 @@ public class EnvMetrics {
             notes = "Updates an environment's metrics configs given an environment name, stage name, and list of " +
                     "MetricsConfig objects to update with")
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.PATH)
     public void update(
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
