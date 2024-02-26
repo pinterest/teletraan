@@ -42,8 +42,8 @@
 
 {% if agent_wrappers %}
 <div class="panel panel-default">
-    {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="serviceAgentDetailsId" direction="down" copy_host_name_button=True %}
-    <div id="sidecarAgentDetailsId" class="collapse in panel-body">
+    {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="right" copy_host_name_button=True %}
+    <div id="sidecarAgentDetailsId" class="collapse panel-body">
         {% for agent_wrapper in agent_wrappers.sidecars %}
         {% with env=agent_wrapper.env agent=agent_wrapper.agent hostdetailsvalue=host_details|getValue:"Phobos Link" %}
         {% include "hosts/host_details.tmpl" with agent=agent env=env hostdetailsvalue=hostdetailsvalue%}
@@ -52,7 +52,7 @@
     </div>
 </div>
 <div class="panel panel-default">
-    {% include "panel_heading.tmpl" with panel_title="Service Agent Details" panel_body_id="sidecarAgentDetailsId" direction="down" copy_host_name_button=True %}
+    {% include "panel_heading.tmpl" with panel_title="Service Agent Details" panel_body_id="serviceAgentDetailsId" direction="down" copy_host_name_button=True %}
     <div id="serviceAgentDetailsId" class="collapse in panel-body">
         {% for agent_wrapper in agent_wrappers.services %}
         {% with env=agent_wrapper.env agent=agent_wrapper.agent hostdetailsvalue=host_details|getValue:"Phobos Link" %}

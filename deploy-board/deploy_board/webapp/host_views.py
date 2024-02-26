@@ -45,7 +45,7 @@ def get_agent_wrapper(request, hostname):
                                                                    agent_env['stageName'], hostname)
         if agent['state'] == 'UNREACHABLE':
             is_unreachable = True
-        if agent_env['systemPriority'] > 0:
+        if agent_env and agent_env['systemPriority'] and agent_env['systemPriority'] > 0:
             agent_wrappers['sidecars'].append(agent_wrapper)
         else:
             agent_wrappers['services'].append(agent_wrapper)
