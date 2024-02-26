@@ -637,7 +637,7 @@ def agentIcon(agentStats):
     if agentStats.isCurrent:
         if agent['deployStage'] == "SERVING_BUILD":
             return 'fa-check'
-        if agentStats.isStale or agentStats.isHostFailed or (
+        if agentStats.isStale or (
                 agent['state']== "PROVISIONED" and
                 agent["ip"] is None
                 ):
