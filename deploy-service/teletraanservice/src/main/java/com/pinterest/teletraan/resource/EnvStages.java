@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
@@ -118,7 +119,9 @@ public class EnvStages {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                     "Modification of non-default stage type is not allowed!");
         }
-
+        if (environBean.getStage_type() == EnvType.DEV) {
+            environBean.setAllow_private_build(true);
+        }
         environBean.setEnv_name(origBean.getEnv_name());
         environBean.setStage_name(origBean.getStage_name());
         if (environBean.getExternal_id() == null) {

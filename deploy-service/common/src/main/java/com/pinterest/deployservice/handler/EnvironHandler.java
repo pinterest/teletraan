@@ -187,6 +187,9 @@ public class EnvironHandler {
         normalizeEnvRequest(envBean, operator);
         updateEnvBeanDefault(envBean);
         String envId = CommonUtils.getBase64UUID();
+        if (envBean.getStage_type() == EnvType.DEV) {
+            envBean.setAllow_private_build(true);
+        }
         envBean.setEnv_id(envId);
         environDAO.insert(envBean);
         return envId;
