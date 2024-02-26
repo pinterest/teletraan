@@ -1,0 +1,15 @@
+# hologram use engineer
+
+# docker build . -t board
+
+# docker run  -it -v .:/board -p 8888:8888 board:latest bash
+
+# mkdir /var/log/deploy_board && cd /board && ./run.sh
+
+# localhost:8888
+
+
+python3.9 manage.py runserver 8888
+
+
+

@@ -1,3 +1,42 @@
+# Django==1.11.29
+# python-dateutil==2.8.2
+# pytz==2023.3.post1
+# requests==2.8.1
+# diff-match-patch==20110725.1
+# oauthlib==1.0.3
+# flake8==2.4.1
+# nose==1.3.7
+# mock==0.8.0
+# simplejson==3.11.1
+# concurrent-log-handler==0.9.20
+# blessings==1.7
+
+
+# #Pinterest pkgs
+# PyYAML==3.11
+# argparse==1.2.1
+# brood==0.3.0
+# dns-utils==1.0.0
+# gevent==22.10.2
+# greenlet==2.0.1
+# kazoo==2.1
+# # kazoo-utils==1.3.13
+# lockfile==0.10.2
+# meld3==1.0.2
+# pinlogger==0.12.0
+# pinstatsd==1.0.55
+# # ngapptools==0.1.6
+# requirements-parser==0.1.0
+# six==1.9.0
+# supervisor==4.2.5
+# thrift==0.12.0+pinterest19
+# thrift-utils==0.5.9
+# virtualenv-clone==0.2.6
+# boto==2.39.0
+# django-csp==3.4
+# pyknox==0.4.5
+
+
 Django==1.11.29
 python-dateutil==2.8.2
 pytz==2014.10
@@ -8,6 +47,30 @@ flake8==2.4.1
 nose==1.3.0
 mock==0.8.0
 simplejson==3.11.1
-django-csp==3.4
 concurrent-log-handler==0.9.20
-urllib3>=1.26.17 # not directly required, pinned by Snyk to avoid a vulnerability
+blessings==1.7
+
+
+#Pinterest pkgs
+PyYAML==3.11
+argparse==1.2.1
+brood==0.3.0
+dns-utils==1.0.0
+gevent==22.10.2
+greenlet==2.0.1
+kazoo
+# kazoo-utils
+lockfile==0.10.2
+meld3==1.0.2
+pinlogger==0.12.0
+pinstatsd==1.0.55
+# ngapptools
+requirements-parser==0.1.0
+six==1.9.0
+supervisor==4.2.5
+thrift==0.12.0+pinterest19
+thrift-utils==0.5.9
+virtualenv-clone==0.2.6
+boto==2.39.0
+django-csp==3.4
+pyknox==0.4.5
