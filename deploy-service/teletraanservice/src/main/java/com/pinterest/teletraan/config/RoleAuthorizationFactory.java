@@ -45,6 +45,6 @@ public class RoleAuthorizationFactory implements AuthorizationFactory {
             return (Authorizer<P>) new UserRoleAuthorizer<UserPrincipal>(context,
                     context.getAuthZResourceExtractorFactory());
         }
-        return create(context);
+        throw new UnsupportedOperationException("Unsupported class name: " + className);
     }
 }

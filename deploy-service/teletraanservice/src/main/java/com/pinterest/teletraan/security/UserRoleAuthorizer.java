@@ -23,7 +23,7 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 
 @Deprecated
-public class UserRoleAuthorizer<P extends UserPrincipal> extends BaseAuthorizer<P> {
+public class UserRoleAuthorizer<P extends UserPrincipal> extends BaseAuthorizer<UserPrincipal> {
     private static final Logger LOG = LoggerFactory.getLogger(UserRoleAuthorizer.class);
     AuthZResourceExtractor.Factory extractorFactory;
     private UserRolesDAO userRolesDAO;
@@ -34,7 +34,7 @@ public class UserRoleAuthorizer<P extends UserPrincipal> extends BaseAuthorizer<
     }
 
     @Override
-    public boolean authorize(P principal, String role, @Nullable ContainerRequestContext context) {
+    public boolean authorize(UserPrincipal principal, String role, @Nullable ContainerRequestContext context) {
         ResourceAuthZInfo authZInfo = preAuthorize(principal, role, context);
         if (authZInfo == null) {
             return false;

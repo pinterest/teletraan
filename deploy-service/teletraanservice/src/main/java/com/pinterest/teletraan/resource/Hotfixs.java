@@ -28,8 +28,6 @@ import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
-import io.dropwizard.auth.Authorizer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,8 +98,9 @@ public class Hotfixs {
     }
 
     @POST
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.BODY)
     public Response create(@Context SecurityContext sc, @Valid HotfixBean hotfixBean) throws Exception {
-        authorizer.authorize(sc, new AuthZResource(hotfixBean.getEnv_name(), AuthZResource.Type.ENV), TeletraanPrincipalRoles.OPERATOR);
         String hotfixId = CommonUtils.getBase64UUID();
         hotfixBean.setId(hotfixId);
         hotfixBean.setState(HotfixState.INITIAL);

@@ -13,7 +13,7 @@ import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 
 @Deprecated
 public class ServiceRoleAuthorizer<R extends Role<R>, RE extends Enum<RE> & RoleEnum<R>, P extends ServicePrincipal<R>>
-        extends BaseAuthorizer<P> {
+        extends BaseAuthorizer<ServicePrincipal<R>> {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRoleAuthorizer.class);
     private AuthZResourceExtractor.Factory extractorFactory;
     private Class<RE> roleEnumClass;
@@ -25,7 +25,7 @@ public class ServiceRoleAuthorizer<R extends Role<R>, RE extends Enum<RE> & Role
 
     @Override
     public boolean authorize(
-            P principal, String role, @Nullable ContainerRequestContext context) {
+        ServicePrincipal<R> principal, String role, @Nullable ContainerRequestContext context) {
         ResourceAuthZInfo authZInfo = preAuthorize(principal, role, context);
         if (authZInfo == null) {
             return false;

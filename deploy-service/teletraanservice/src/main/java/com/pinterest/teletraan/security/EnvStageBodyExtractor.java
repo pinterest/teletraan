@@ -5,8 +5,8 @@ import java.io.InputStream;
 import javax.ws.rs.container.ContainerRequestContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.HotfixBean;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
@@ -23,9 +23,10 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
         } catch (Exception e) {
             LOG.error("Failed to extract as EnvironBean", e);
         }
+
         try {
-            DeployBean deployBean = new ObjectMapper().readValue(inputStream, DeployBean.class);
-            return new AuthZResource(deployBean.getEnv_id(), AuthZResource.Type.ENV);
+            HotfixBean hotfixBean = new ObjectMapper().readValue(inputStream, HotfixBean.class);
+            return new AuthZResource(String.format("%s/%s", hotfixBean.getEnv_name(), null), AuthZResource.Type.ENV);
         } catch (Exception e) {
             LOG.error("Failed to extract as DeployBean", e);
         }

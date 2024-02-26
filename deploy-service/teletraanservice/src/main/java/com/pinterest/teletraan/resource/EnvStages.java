@@ -96,16 +96,18 @@ public class EnvStages {
                        @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
                        @ApiParam(value = "Desired Environment object with updates", required = true)
                            EnvironBean environBean) throws Exception {
-        EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new AuthZResource(origBean.getEnv_name(), AuthZResource.Type.ENV), TeletraanPrincipalRoles.OPERATOR);
-        // We must use default null Boolean to know that the user did not change from true->false
-        if (environBean.getIs_sox() != null && origBean.getIs_sox() != environBean.getIs_sox()) {
-            authorizer.authorize(sc, new AuthZResource(AuthZResource.ALL, AuthZResource.Type.SYSTEM), TeletraanPrincipalRoles.ADMIN);
-        }
-        // TODO: If is_sox is not provided, set it, this support existing PATCH style usages of the endpoint
+        final EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
+
+        // TODO: add test coverage
+        // treat null as false
+        Boolean originalIsSox = origBean.getIs_sox() != null ? origBean.getIs_sox() : false;
+
         if (environBean.getIs_sox() == null) {
-          environBean.setIs_sox(origBean.getIs_sox());
+          environBean.setIs_sox(originalIsSox);
+        } else if (originalIsSox != environBean.getIs_sox()) {
+          authorizeChangingSox();
         }
+
         String operator = sc.getUserPrincipal().getName();
         try {
             environBean.validate();
@@ -133,6 +135,13 @@ public class EnvStages {
         configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator, environBean.getExternal_id());
         LOG.info("Successfully updated env {}/{} with {} by {}.",
             envName, stageName, environBean, operator);
+    }
+
+    @PUT
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.PATH)
+    void authorizeChangingSox() {
+        // no-op
     }
 
     @DELETE
