@@ -16,10 +16,10 @@
 package com.pinterest.teletraan.security;
 
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
-import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
 import org.junit.Before;

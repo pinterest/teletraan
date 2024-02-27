@@ -8,7 +8,6 @@ import com.pinterest.deployservice.db.DatabaseUtil;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.worker.DeployTagWorker;
 import io.swagger.annotations.*;
 import org.apache.commons.dbcp.BasicDataSource;

@@ -6,11 +6,11 @@ import javax.ws.rs.container.ContainerRequestContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.BaseAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
-import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
 public class ServiceRoleAuthorizer extends BaseAuthorizer<ServicePrincipal<ValueBasedRole>> {

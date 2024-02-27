@@ -16,10 +16,10 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.GroupRolesBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import javax.ws.rs.core.*;
 import java.net.URI;

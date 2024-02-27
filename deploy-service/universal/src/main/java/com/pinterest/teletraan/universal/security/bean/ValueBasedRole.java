@@ -6,7 +6,7 @@ package com.pinterest.teletraan.universal.security.bean;
 public class ValueBasedRole implements Role<ValueBasedRole> {
   private int value;
 
-  ValueBasedRole(int value) {
+  public ValueBasedRole(int value) {
     this.value = value;
   }
 

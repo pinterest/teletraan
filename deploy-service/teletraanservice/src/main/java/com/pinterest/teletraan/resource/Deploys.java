@@ -26,6 +26,7 @@ import com.pinterest.deployservice.bean.DeployFilterBean;
 import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.DeployType;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.handler.DeployHandler;
@@ -34,7 +35,6 @@ import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

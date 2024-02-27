@@ -30,7 +30,6 @@ import com.pinterest.deployservice.events.BuildEventPublisher;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 
 import io.swagger.annotations.*;
 import org.apache.commons.lang3.StringUtils;
