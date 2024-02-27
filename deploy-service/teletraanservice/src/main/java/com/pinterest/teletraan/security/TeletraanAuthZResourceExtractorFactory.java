@@ -18,14 +18,14 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
     public AuthZResourceExtractor create(ResourceAuthZInfo authZInfo) {
         switch (authZInfo.type()) {
             case ENV:
-                switch (authZInfo.IdLocation()) {
+                switch (authZInfo.idLocation()) {
                     case PATH:
                         return ENV_PATH_EXTRACTOR;
                     default:
                         throw new UnsupportedResourceIDLocationException(authZInfo);
                 }
             case ENV_STAGE:
-                switch (authZInfo.IdLocation()) {
+                switch (authZInfo.idLocation()) {
                     case PATH:
                         return ENV_STAGE_PATH_EXTRACTOR;
                     case BODY:
@@ -40,7 +40,7 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
 
     class UnsupportedResourceIDLocationException extends RuntimeException {
         public UnsupportedResourceIDLocationException(ResourceAuthZInfo authZInfo) {
-            super("Unsupported resource ID location: " + authZInfo.IdLocation());
+            super("Unsupported resource ID location: " + authZInfo.idLocation());
         }
     }
 }

@@ -144,7 +144,7 @@ public class Deploys {
             notes = "Update deploy given a deploy id and a deploy object. Current only "
                     + "acceptanceStatus and description are allowed to change.")
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.BODY, beanClass = DeployBean.class)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = DeployBean.class)
     public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id,
@@ -164,7 +164,7 @@ public class Deploys {
             value = "Delete deploy info",
             notes = "Delete deploy info given a deploy id")
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.BODY, beanClass = DeployBean.class)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = DeployBean.class)
     public void delete(
             @Context SecurityContext sc,
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id) throws Exception {

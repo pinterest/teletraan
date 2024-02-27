@@ -13,7 +13,6 @@ import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
-@Deprecated
 public class ServiceRoleAuthorizer extends BaseAuthorizer<ServicePrincipal<ValueBasedRole>> {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRoleAuthorizer.class);
 

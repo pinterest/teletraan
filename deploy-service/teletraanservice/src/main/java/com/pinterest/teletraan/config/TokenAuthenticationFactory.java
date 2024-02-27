@@ -141,7 +141,6 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 .setPrefix("token")
                 .buildAuthFilter();
 
-        List<AuthFilter> filters = Arrays.asList(scriptTokenAuthFilter, oauthTokenAuthFilter, jwtTokenAuthFilter);
-        return filters;
+        return Arrays.asList(scriptTokenAuthFilter, oauthTokenAuthFilter, jwtTokenAuthFilter);
     }
 }

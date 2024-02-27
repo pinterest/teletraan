@@ -12,14 +12,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class BaseAuthorizer<P extends TeletraanPrincipal> implements Authorizer<P> {
-  private static final Logger LOG = LoggerFactory.getLogger(BasePastisAuthorizer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(BaseAuthorizer.class);
   protected final AuthZResourceExtractor.Factory extractorFactory;
 
-  public BaseAuthorizer() {
+  protected BaseAuthorizer() {
     extractorFactory = null;
   }
 
-  public BaseAuthorizer(AuthZResourceExtractor.Factory factory) {
+  protected BaseAuthorizer(AuthZResourceExtractor.Factory factory) {
     extractorFactory = factory;
   }
 

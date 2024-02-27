@@ -16,7 +16,7 @@ public @interface ResourceAuthZInfo {
   AuthZResource.Type type();
 
   /** The location of the resource identifier in the request. */
-  Location IdLocation() default Location.NA;
+  Location idLocation() default Location.NA;
 
   Class<?> beanClass() default Object.class;
 

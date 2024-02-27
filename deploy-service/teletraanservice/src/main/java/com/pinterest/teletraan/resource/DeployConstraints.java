@@ -68,7 +68,7 @@ public class DeployConstraints {
 
     @POST
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public void update(@PathParam("envName") String envName,
                        @PathParam("stageName") String stageName,
                        @ApiParam(value = "Deploy Constraint Object to update in database", required = true)
@@ -124,7 +124,7 @@ public class DeployConstraints {
 
     @DELETE
     @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public void delete(@PathParam("envName") String envName,
                        @PathParam("stageName") String stageName,
                        @Context SecurityContext sc) throws Exception {

@@ -106,7 +106,7 @@ public class EnvDeploys {
             notes = "Take an action on a deploy such as RESTART or PAUSE",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public Response action(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
@@ -156,7 +156,7 @@ public class EnvDeploys {
         notes = "Take an action on a deploy using host information",
         response = Response.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     // TODO: sidecar owners can perform actions on non-sidecar agents
     public void update(
             @Context SecurityContext sc,
@@ -198,7 +198,7 @@ public class EnvDeploys {
             notes = "Creates a deploy given an environment name, stage name, build id and description",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public Response create(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,

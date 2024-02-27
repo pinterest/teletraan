@@ -71,7 +71,7 @@ public class EnvAlarms {
 
     @PUT
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public void update(@PathParam("envName") String envName, @PathParam("stageName") String stageName,
             @Valid List<AlarmBean> alarmBeans, @Context SecurityContext sc) throws Exception {
         EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);

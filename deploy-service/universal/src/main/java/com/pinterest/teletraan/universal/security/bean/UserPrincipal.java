@@ -12,9 +12,4 @@ import lombok.RequiredArgsConstructor;
 public class UserPrincipal implements TeletraanPrincipal {
   private final String name;
   private final List<String> groups;
-
-  @Deprecated
-  public String getUser() {
-    return name;
-  }
 }

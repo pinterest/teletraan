@@ -77,7 +77,7 @@ public class EnvUserRoles extends UserRoles {
             notes = "Updates a UserRoles object for given user and environment names with given UserRoles object.",
             response = UserRolesBean.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public void update(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "User name.", required = true)@PathParam("userName") String userName, UserRolesBean bean) throws Exception {
@@ -90,7 +90,7 @@ public class EnvUserRoles extends UserRoles {
             notes = "Creates a new UserRoles object for a given environment name.",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public Response create(@Context SecurityContext sc,
                            @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                            @ApiParam(value = "UserRolesBean object.", required = true)@Valid UserRolesBean bean) throws Exception {
@@ -103,7 +103,7 @@ public class EnvUserRoles extends UserRoles {
             value = "Deletes a user's roles from an environment",
             notes = "Deletes a UserRoles object by given user and environment names.")
     @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public void delete(@Context SecurityContext sc,
             @ApiParam(value = "Host name.", required = true) @PathParam("envName") String envName,
             @PathParam("userName") String userName) throws Exception {

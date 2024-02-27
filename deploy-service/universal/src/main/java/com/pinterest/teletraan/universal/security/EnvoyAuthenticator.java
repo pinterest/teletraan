@@ -23,6 +23,6 @@ public class EnvoyAuthenticator implements Authenticator<EnvoyCredentials, Telet
     if (StringUtils.isNotBlank(credentials.getSpiffeId())) {
       return Optional.of(new ServicePrincipal<>(credentials.getSpiffeId()));
     }
-    return null;
+    return Optional.empty();
   }
 }

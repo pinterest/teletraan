@@ -21,6 +21,10 @@ import org.slf4j.LoggerFactory;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 
+/**
+ * @deprecated Do not use this class for new development. It is kept here for backward compatibility
+ * OAuthAuthenticator is an authenticator that authenticates a user using OAuth token.
+ */
 @Deprecated
 public class OAuthAuthenticator implements Authenticator<String, UserPrincipal> {
   private static final Logger LOG = LoggerFactory.getLogger(OAuthAuthenticator.class);

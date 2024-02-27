@@ -22,14 +22,14 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
 
     @Override
     public AuthZResource extractResource(ContainerRequestContext requestContext, Class<?> beanClass)
-            throws RuntimeException {
+            throws ExtractionException {
         InputStream inputStream = requestContext.getEntityStream();
         if (beanClass.equals(EnvironBean.class)) {
             try {
                 EnvironBean envBean = new ObjectMapper().readValue(inputStream, EnvironBean.class);
                 return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
             } catch (Exception e) {
-                throw new ExtractionFailedException(beanClass, e);
+                throw new BeanClassExtractionException(beanClass, e);
             }
         }
 
@@ -39,7 +39,7 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
                 EnvironBean envBean = environDAO.getById(deployBean.getEnv_id());
                 return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
             } catch (Exception e) {
-                throw new ExtractionFailedException(beanClass, e);
+                throw new BeanClassExtractionException(beanClass, e);
             }
         }
 
@@ -48,19 +48,19 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
                 HotfixBean hotfixBean = new ObjectMapper().readValue(inputStream, HotfixBean.class);
                 return new AuthZResource(hotfixBean.getEnv_name(), "");
             } catch (Exception e) {
-                throw new ExtractionFailedException(beanClass, e);
+                throw new BeanClassExtractionException(beanClass, e);
             }
         }
         throw new UnsupportedOperationException("Failed to extract environment resource");
     }
 
     @Override
-    public AuthZResource extractResource(ContainerRequestContext requestContext) throws RuntimeException {
+    public AuthZResource extractResource(ContainerRequestContext requestContext) throws ExtractionException {
         throw new UnsupportedOperationException("Unimplemented method 'extractResource(ContainerRequestContext)'");
     }
 
-    class ExtractionFailedException extends RuntimeException {
-        public ExtractionFailedException(Class<?> beanClass, Throwable cause) {
+    class BeanClassExtractionException extends ExtractionException {
+        public BeanClassExtractionException(Class<?> beanClass, Throwable cause) {
             super(String.format("failed to extract as %s", beanClass.getName()), cause);
         }
     }

@@ -24,6 +24,7 @@ public enum TeletraanPrincipalRoles implements RoleEnum<ValueBasedRole> {
   ADMIN(20);
 
   public class Names {
+    private Names() {}
     public static final String ADMIN = "ADMIN";
     public static final String READER = "READER";
     public static final String OPERATOR = "OPERATOR";

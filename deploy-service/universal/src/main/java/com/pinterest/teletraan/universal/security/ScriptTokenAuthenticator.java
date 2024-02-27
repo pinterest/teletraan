@@ -11,7 +11,6 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Deprecated
 public class ScriptTokenAuthenticator<R extends Role<R>>
     implements Authenticator<String, ServicePrincipal<R>> {
   private static final Logger LOG = LoggerFactory.getLogger(ScriptTokenAuthenticator.class);

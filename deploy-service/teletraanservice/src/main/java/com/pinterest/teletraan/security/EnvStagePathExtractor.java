@@ -7,13 +7,13 @@ import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 public class EnvStagePathExtractor implements AuthZResourceExtractor {
     @Override
-    public AuthZResource extractResource(ContainerRequestContext requestContext) throws RuntimeException {
+    public AuthZResource extractResource(ContainerRequestContext requestContext) throws ExtractionException {
         try {
             String envName = requestContext.getUriInfo().getPathParameters().getFirst("envName");
             String stageName = requestContext.getUriInfo().getPathParameters().getFirst("stageName");
             return new AuthZResource(envName, stageName);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to extract environment resource", e);
+            throw new ExtractionException("Failed to extract environment resource", e);
         }
     }
 }

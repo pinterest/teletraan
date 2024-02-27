@@ -51,7 +51,7 @@ public class EnvTokenRoles extends TokenRoles {
             notes = "Returns all the TokenRoles objects for a given environment.",
             response = TokenRolesBean.class, responseContainer = "List")
     @RolesAllowed(TeletraanPrincipalRoles.Names.READ)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public List<TokenRolesBean> getByResource(@Context SecurityContext sc,
             @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName) throws Exception {
         return super.getByResource(sc, envName, RESOURCE_TYPE);
@@ -64,7 +64,7 @@ public class EnvTokenRoles extends TokenRoles {
             notes = "Returns a TokenRoles object given a script and environment name.",
             response = TokenRolesBean.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.READ)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public TokenRolesBean getByNameAndResource(@Context SecurityContext sc,
             @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Script name.", required = true)@PathParam("scriptName") String scriptName) throws Exception {
@@ -77,7 +77,7 @@ public class EnvTokenRoles extends TokenRoles {
             value = "Update an envrionment's script token",
             notes = "Update a specific environment script token given environment and script names.")
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public void update(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "Script name.", required = true)@PathParam("scriptName") String scriptName, TokenRolesBean bean) throws Exception {
@@ -90,7 +90,7 @@ public class EnvTokenRoles extends TokenRoles {
             notes = "Creates an environment script token with given environment name and TokenRoles object.",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public Response create(@Context SecurityContext sc,
                            @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                            @ApiParam(value = "TokenRolesBean object.", required = true)@Valid TokenRolesBean bean) throws Exception {
@@ -103,7 +103,7 @@ public class EnvTokenRoles extends TokenRoles {
             value = "Delete an environment script token",
             notes = "Deletes a script token by given environment and script name.")
     @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public void delete(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "Script name.", required = true)@PathParam("scriptName") String scriptName) throws Exception {

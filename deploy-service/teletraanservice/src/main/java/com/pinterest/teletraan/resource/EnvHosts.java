@@ -100,7 +100,7 @@ public class EnvHosts {
 
     @DELETE
     @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     // TODO: this allows sidecar owners to stop hosts
     public void stopServiceOnHost(@Context SecurityContext sc,
             @PathParam("envName") String envName,

@@ -77,7 +77,7 @@ public class EnvGroupRoles extends GroupRoles {
             notes = "Updates a GroupRoles object for given group and environment names with given GroupRoles object.",
             response = GroupRolesBean.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public void update(@Context SecurityContext sc, @PathParam("envName") String envName,
         @PathParam("groupName") String groupName,
         GroupRolesBean bean) throws Exception {
@@ -90,7 +90,7 @@ public class EnvGroupRoles extends GroupRoles {
             notes = "Creates a new GroupRoles object for a given environment name.",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public Response create(@Context SecurityContext sc,
                            @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                            @ApiParam(value = "GroupRolesBean object.", required = true)@Valid GroupRolesBean bean) throws Exception {
@@ -103,7 +103,7 @@ public class EnvGroupRoles extends GroupRoles {
             value = "Deletes a group role from an environment",
             notes = "Deletes a GroupRoles object by given group and environment names.")
     @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = ResourceAuthZInfo.Location.PATH)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = ResourceAuthZInfo.Location.PATH)
     public void delete(@Context SecurityContext sc, @PathParam("envName") String envName,
         @PathParam("groupName") String groupName) throws Exception {
         super.delete(sc, groupName, envName, RESOURCE_TYPE);
