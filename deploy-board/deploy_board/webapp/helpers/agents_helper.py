@@ -64,6 +64,3 @@ def get_agents_by_host(request, host_name):
 def get_agents_total_by_env(request, env_id):
     return deployclient.get("/agents/env/%s/total" % env_id, request.teletraan_user_id.token)
 
-def get_agent_ec2_tags(request, env_name, stage_name):
-    return deployclient.get(f"/env/{env_name}/{stage_name}/host_ec2_tags", request.teletraan_user_id.token)
-
