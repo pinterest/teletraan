@@ -140,6 +140,48 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <!-- Single end point to fetch all maven artifacts.  -->
+            <id>maven-virtual</id>
+            <name>maven-virtual</name>
+            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven-virtual/</url>
+        </repository>
+        <repository>
+            <id>artifactory-thirdparty-prod</id>
+            <name>artifactory-thirdparty-prod</name>
+            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven_thirdparty-jar-bazel-prod-local</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>artifactory-legacy-prod</id>
+            <name>artifactory-legacy-prod</name>
+            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven_legacy-jar-bazel-prod-local</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>artifactory-private-snapshots-prod</id>
+            <name>artifactory-private-snapshots-prod</name>
+            <url>https://artifacts-prod-use1.pinadmin.com/artifactory/maven_private_snapshots-jar-bazel-prod-local</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <distributionManagement>
         <repository>
             <id>central</id>

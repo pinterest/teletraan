@@ -17,7 +17,7 @@ package com.pinterest.teletraan.universal.security.bean;
  * first ADMIN.
  */
 public enum TeletraanPrincipalRoles implements RoleEnum<ValueBasedRole> {
-  READER(0),
+  READER(0), // legacy
   PINGER(1),
   PUBLISH(1),
   PUBLISHER(1), // legacy

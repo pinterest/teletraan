@@ -18,20 +18,22 @@ package com.pinterest.teletraan.security;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.dao.UserRolesDAO;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
+import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
 
-public class UserTokenAuthorizerTest {
+public class UserRoleAuthorizerTest {
     private ServiceContext context;
     private UserRolesDAO userRolesDAO;
-    private RoleAuthorizer authorizer;
+    private UserRoleAuthorizer<UserPrincipal> authorizer;
 
     private UserRolesBean sysAdmin;
     private UserRolesBean sysOperator;
@@ -51,7 +53,7 @@ public class UserTokenAuthorizerTest {
         context = new ServiceContext();
         userRolesDAO = Mockito.mock(UserRolesDAO.class);
         context.setUserRolesDAO(userRolesDAO);
-        authorizer = new RoleAuthorizer(context, null);
+        authorizer = new UserRoleAuthorizer<>(context, null);
 
         sysAdmin = new UserRolesBean();
         sysAdmin.setRole(TeletraanPrincipalRoles.ADMIN);
@@ -76,97 +78,79 @@ public class UserTokenAuthorizerTest {
     }
 
     private void checkPositive(String userName, AuthZResource resource, TeletraanPrincipalRoles role) throws Exception {
-        authorizer.checkUserPermission(userName, resource, null, role);
+        UserPrincipal userPrincipal = new UserPrincipal(userName, null);
+        assertTrue(authorizer.authorize(userPrincipal, role.name(), resource, null));
     }
 
     private void checkNegative(String userName, AuthZResource resource, TeletraanPrincipalRoles role) throws Exception {
-        try {
-            authorizer.checkUserPermission(userName, resource, null, role);
-        } catch (TeletaanInternalException e) {
-            // expected
-            return;
-        }
-        assertFalse("Expecting exception", true);
+        UserPrincipal userPrincipal = new UserPrincipal(userName, null);
+        assertFalse(authorizer.authorize(userPrincipal, role.name(), resource, null));
     }
 
     @Test
     public void testSysSys() throws Exception {
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
+        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.READER);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
 
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysOperator);
+        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysOperator);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.READER);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysOperator);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysOperator);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
 
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysReader);
+        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysReader);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.READER);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysReader);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysReader);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testEnvSys() throws Exception {
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
+        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testEnvXEnv1() throws Exception {
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, env1Name, AuthZResource.Type.ENV)).thenReturn(null);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
+        when(userRolesDAO.getByNameAndResource(envXName, env1Name, AuthZResource.Type.ENV)).thenReturn(null);
+        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
         checkNegative(envXName, env1, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, env1Name, AuthZResource.Type.ENV)).thenReturn(null);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
+        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
         checkPositive(envXName, env1, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testEnvXEnvX() throws Exception {
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envAdmin);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envAdmin);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envAdmin);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.ADMIN);
 
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envOperator);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envOperator);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envOperator);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.ADMIN);
 
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envReader);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envReader);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envReader);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testSysEnvX() throws Exception {
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envAdmin);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envAdmin);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envAdmin);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.ADMIN);
 
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envOperator);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envOperator);
+        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envOperator);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.ADMIN);
 
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envReader);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envReader);
+        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envReader);
-        Mockito.when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysOperator);
+        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysOperator);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.ADMIN);
     }
 }

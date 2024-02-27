@@ -20,40 +20,32 @@ import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-@AllArgsConstructor
 public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuthorizer<P> {
     private static final Logger LOG = LoggerFactory.getLogger(BasePastisAuthorizer.class);
     protected final PastisAuthorizer pastis;
-    protected final AuthZResourceExtractor.Factory extractorFactory;
+
+    public BasePastisAuthorizer() {
+        this("teletraan_dev", null);
+    }
 
     public BasePastisAuthorizer(String serviceName, AuthZResourceExtractor.Factory factory) {
         this(new PastisAuthorizer(serviceName), factory);
     }
 
-    public BasePastisAuthorizer(AuthZResourceExtractor.Factory factory) {
-        this("teletraan_dev", factory);
+    public BasePastisAuthorizer(PastisAuthorizer pastis, AuthZResourceExtractor.Factory factory) {
+        super(factory);
+        this.pastis = pastis;
     }
 
     @Override
-    public boolean authorize(P principal, String role, @Nullable ContainerRequestContext context) {
-        ResourceAuthZInfo authZInfo = preAuthorize(principal, role, context);
-        if (authZInfo == null) {
-            return false;
-        }
-
-        AuthZResource resource;
-        try {
-            resource = extractorFactory.create(authZInfo).extractResource(context, authZInfo.beanClass());
-        } catch (Exception ex) {
-            LOG.warn("Failed to extract resource", ex);
-            return false;
-        }
+    public boolean authorize(P principal, String role, AuthZResource requestedResource,
+            @Nullable ContainerRequestContext context) {
 
         Gson gson = new Gson();
         Map<String, PastisRequest> payload = new HashMap<>();
         payload.put(
                 "input",
-                new PastisRequest(principal, role, resource));
+                new PastisRequest(principal, role, requestedResource));
         try {
             String pastisPayload = gson.toJson(payload);
             boolean authorized = pastis.authorize(pastisPayload);

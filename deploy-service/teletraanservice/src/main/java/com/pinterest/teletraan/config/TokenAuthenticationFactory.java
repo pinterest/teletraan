@@ -106,7 +106,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
         return new ChainedAuthFilter(filters);
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     List<AuthFilter> createAuthFilters(TeletraanServiceContext context) throws Exception {
         MetricRegistry registry = SharedMetricRegistries.getDefault();
         Caffeine<Object, Object> cacheBuilder = Caffeine.from(getTokenCacheSpec());

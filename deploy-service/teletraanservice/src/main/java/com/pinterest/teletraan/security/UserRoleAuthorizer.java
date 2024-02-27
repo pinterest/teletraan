@@ -20,7 +20,6 @@ import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.BaseAuthorizer;
-import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
@@ -28,36 +27,26 @@ import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 @Deprecated
 public class UserRoleAuthorizer<P extends UserPrincipal> extends BaseAuthorizer<UserPrincipal> {
     private static final Logger LOG = LoggerFactory.getLogger(UserRoleAuthorizer.class);
-    private final AuthZResourceExtractor.Factory extractorFactory;
     private final UserRolesDAO userRolesDAO;
     private final GroupRolesDAO groupRolesDAO;
     private final EnvironDAO environDAO;
 
     public UserRoleAuthorizer(ServiceContext context, AuthZResourceExtractor.Factory authZResourceExtractorFactory) {
-        extractorFactory = authZResourceExtractorFactory;
+        super(authZResourceExtractorFactory);
         userRolesDAO = context.getUserRolesDAO();
         groupRolesDAO = context.getGroupRolesDAO();
         environDAO = context.getEnvironDAO();
     }
 
     @Override
-    public boolean authorize(UserPrincipal principal, String role, @Nullable ContainerRequestContext context) {
-        ResourceAuthZInfo authZInfo = preAuthorize(principal, role, context);
-        if (authZInfo == null) {
-            return false;
-        }
-
-        AuthZResource requestedResource;
-        try {
-            requestedResource = extractorFactory.create(authZInfo).extractResource(context, authZInfo.beanClass());
-        } catch (Exception ex) {
-            LOG.warn("Failed to extract resource", ex);
-            return false;
-        }
-
+    public boolean authorize(UserPrincipal principal, String role, AuthZResource requestedResource,
+            @Nullable ContainerRequestContext context) {
         try {
             TeletraanPrincipalRoles requiredRole = TeletraanPrincipalRoles.valueOf(role);
-
+            if (requestedResource.getType().equals(AuthZResource.Type.ENV_STAGE)) {
+                // Convert to ENV for backward compatibility
+                requestedResource = new AuthZResource(requestedResource.getName(), AuthZResource.Type.ENV);
+            }
             // Consider group role(s)
             Set<String> groupsSet = new HashSet<>();
             if (principal.getGroups() != null && !principal.getGroups().isEmpty()) {

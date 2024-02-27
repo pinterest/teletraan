@@ -26,7 +26,7 @@ import io.dropwizard.jackson.Discoverable;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
 public interface AuthorizationFactory extends Discoverable {
     <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context) throws Exception;
-    default <P extends TeletraanPrincipal> Authorizer<?> create(TeletraanServiceContext context, Class<P> principalClass) throws Exception {
+    default <P extends TeletraanPrincipal> Authorizer<? extends TeletraanPrincipal> create(TeletraanServiceContext context, Class<P> principalClass) throws Exception {
         return create(context);
     }
 }

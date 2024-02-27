@@ -17,11 +17,10 @@ package com.pinterest.teletraan.config;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.security.ServiceRoleAuthorizer;
 import com.pinterest.teletraan.security.UserRoleAuthorizer;
-import com.pinterest.teletraan.universal.security.ServiceRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
-import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
@@ -37,14 +36,14 @@ public class RoleAuthorizationFactory implements AuthorizationFactory {
     }
 
     @Override
-    public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context, Class<P> principalClass)
+    public <P extends TeletraanPrincipal> Authorizer<? extends TeletraanPrincipal> create(
+            TeletraanServiceContext context, Class<P> principalClass)
             throws Exception {
         if (principalClass.equals(ServicePrincipal.class)) {
-            return (Authorizer<P>) new ServiceRoleAuthorizer<ValueBasedRole, TeletraanPrincipalRoles, ServicePrincipal<ValueBasedRole>>(
-                    context.getAuthZResourceExtractorFactory(), TeletraanPrincipalRoles.class);
-        } else if (principalClass.equals(UserPrincipal.class)) {
-            return (Authorizer<P>) new UserRoleAuthorizer<UserPrincipal>(context,
+            return new ServiceRoleAuthorizer<ServicePrincipal<ValueBasedRole>>(
                     context.getAuthZResourceExtractorFactory());
+        } else if (principalClass.equals(UserPrincipal.class)) {
+            return new UserRoleAuthorizer<UserPrincipal>(context, context.getAuthZResourceExtractorFactory());
         }
         throw new UnsupportedOperationException("Unsupported principal class: " + principalClass);
     }

@@ -17,18 +17,20 @@ package com.pinterest.teletraan.security;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.TokenRolesBean;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
+import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-public class ScriptTokenAuthorizerTest {
+public class ServiceRoleAuthorizerTest {
     private ServiceContext context;
-    private RoleAuthorizer authorizer;
+    private ServiceRoleAuthorizer<ServicePrincipal<ValueBasedRole>> authorizer;
 
     private TokenRolesBean sysAdmin;
     private TokenRolesBean sysOperator;
@@ -40,12 +42,14 @@ public class ScriptTokenAuthorizerTest {
 
     private AuthZResource env1;
     private AuthZResource envX;
+    private AuthZResource envStage;
+    private AuthZResource envXStage;
 
     @Before
     public void setUp() throws Exception {
         context = new ServiceContext();
         context.setUserRolesDAO(null);
-        authorizer = new RoleAuthorizer(context, null);
+        authorizer = new ServiceRoleAuthorizer<>(null);
 
         sysAdmin = new TokenRolesBean();
         sysAdmin.setResource_id(AuthZResource.ALL);
@@ -79,20 +83,22 @@ public class ScriptTokenAuthorizerTest {
 
         env1 = new AuthZResource("env1", AuthZResource.Type.ENV);
         envX = new AuthZResource("envX", AuthZResource.Type.ENV);
+        envStage = new AuthZResource("env1", AuthZResource.Type.ENV_STAGE);
+        envXStage = new AuthZResource("envX", AuthZResource.Type.ENV_STAGE);
     }
 
-    private void checkPositive(TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles role) throws Exception {
-        authorizer.checkAPITokenPermission(bean, resource, role);
+    private void checkPositive(TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles role)
+            throws Exception {
+        ServicePrincipal<ValueBasedRole> principal = new ServicePrincipal<>("testPrincipal", bean.getRole().getRole(),
+                new AuthZResource(bean.getResource_id(), bean.getResource_type()));
+        assertTrue(authorizer.authorize(principal, role.name(), resource, null));
     }
 
-    private void checkNegative(TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles role) throws Exception {
-        try {
-            authorizer.checkAPITokenPermission(bean, resource, role);
-        } catch (TeletaanInternalException e) {
-            // expected
-            return;
-        }
-        assertFalse("Expecting exception", true);
+    private void checkNegative(TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles requiredRole)
+            throws Exception {
+        ServicePrincipal<ValueBasedRole> principal = new ServicePrincipal<>("testPrincipal", bean.getRole().getRole(),
+                new AuthZResource(bean.getResource_id(), bean.getResource_type()));
+        assertFalse(authorizer.authorize(principal, requiredRole.name(), resource, null));
     }
 
     @Test
@@ -117,6 +123,18 @@ public class ScriptTokenAuthorizerTest {
 
         checkNegative(sysReader, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
         checkNegative(sysReader, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
+    }
+
+    @Test
+    public void testSysEnvStage() throws Exception {
+        checkPositive(sysAdmin, envStage, TeletraanPrincipalRoles.OPERATOR);
+        checkPositive(sysAdmin, envStage, TeletraanPrincipalRoles.ADMIN);
+
+        checkPositive(sysOperator, envStage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(sysOperator, envStage, TeletraanPrincipalRoles.ADMIN);
+
+        checkNegative(sysReader, envStage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(sysReader, envStage, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
@@ -153,5 +171,29 @@ public class ScriptTokenAuthorizerTest {
 
         checkNegative(envReader, envX, TeletraanPrincipalRoles.OPERATOR);
         checkNegative(envReader, envX, TeletraanPrincipalRoles.ADMIN);
+    }
+
+    @Test
+    public void testEnvXEnvStage() throws Exception {
+        checkNegative(envAdmin, envStage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envAdmin, envStage, TeletraanPrincipalRoles.ADMIN);
+
+        checkNegative(envOperator, envStage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envOperator, envStage, TeletraanPrincipalRoles.ADMIN);
+
+        checkNegative(envReader, envStage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envReader, envStage, TeletraanPrincipalRoles.ADMIN);
+    }
+
+    @Test
+    public void testEnvXEnvXStage() throws Exception {
+        checkPositive(envAdmin, envXStage, TeletraanPrincipalRoles.OPERATOR);
+        checkPositive(envAdmin, envXStage, TeletraanPrincipalRoles.ADMIN);
+
+        checkPositive(envOperator, envXStage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envOperator, envXStage, TeletraanPrincipalRoles.ADMIN);
+
+        checkNegative(envReader, envXStage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envReader, envXStage, TeletraanPrincipalRoles.ADMIN);
     }
 }
