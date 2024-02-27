@@ -16,27 +16,28 @@ import org.slf4j.LoggerFactory;
 
 @Priority(Integer.MIN_VALUE)
 public class AuditLoggingFilter implements ContainerResponseFilter {
-  private static final Logger LOG = LoggerFactory.getLogger(AuditLoggingFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AuditLoggingFilter.class);
 
-  @Override
-  public void filter(
-      ContainerRequestContext requestContext, ContainerResponseContext responseContext)
-      throws IOException {
-    if (requestContext.getSecurityContext() == null
-        || requestContext.getSecurityContext().getUserPrincipal() == null) {
-      return;
-    }
-    try {
-      Map<String, Object> attributes = new HashMap<>();
-      attributes.put("principal", requestContext.getSecurityContext().getUserPrincipal().getName());
-      attributes.put("resource", requestContext.getUriInfo().getRequestUri().toString());
-      attributes.put("method", requestContext.getMethod());
-      attributes.put("status", responseContext.getStatus());
+    @Override
+    public void filter(
+            ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+            throws IOException {
+        if (requestContext.getSecurityContext() == null
+                || requestContext.getSecurityContext().getUserPrincipal() == null) {
+            return;
+        }
+        try {
+            Map<String, Object> attributes = new HashMap<>();
+            attributes.put(
+                    "principal", requestContext.getSecurityContext().getUserPrincipal().getName());
+            attributes.put("resource", requestContext.getUriInfo().getRequestUri().toString());
+            attributes.put("method", requestContext.getMethod());
+            attributes.put("status", responseContext.getStatus());
 
-      String json = new Gson().toJson(attributes);
-      LOG.info(json);
-    } catch (Exception ex) {
-      LOG.error("Failed to generate audit log", ex);
+            String json = new Gson().toJson(attributes);
+            LOG.info(json);
+        } catch (Exception ex) {
+            LOG.error("Failed to generate audit log", ex);
+        }
     }
-  }
 }

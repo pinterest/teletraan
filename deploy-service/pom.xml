@@ -150,7 +150,7 @@
                     <java>
                         <googleJavaFormat>
                             <version>${googleJavaFormat.version}</version>
-                            <style>GOOGLE</style>
+                            <style>AOSP</style> <!-- AOSP is almost the same as the GOOGLE style but uses 4 spaces for indentation. -->
                         </googleJavaFormat>
                         <importOrder />
                         <removeUnusedImports />

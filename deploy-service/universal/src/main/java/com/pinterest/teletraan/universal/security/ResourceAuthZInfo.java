@@ -13,17 +13,17 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ResourceAuthZInfo {
-  AuthZResource.Type type();
+    AuthZResource.Type type();
 
-  /** The location of the resource identifier in the request. */
-  Location idLocation() default Location.NA;
+    /** The location of the resource identifier in the request. */
+    Location idLocation() default Location.NA;
 
-  Class<?> beanClass() default Object.class;
+    Class<?> beanClass() default Object.class;
 
-  public enum Location {
-    PATH,
-    QUERY,
-    BODY,
-    NA
-  }
+    public enum Location {
+        PATH,
+        QUERY,
+        BODY,
+        NA
+    }
 }

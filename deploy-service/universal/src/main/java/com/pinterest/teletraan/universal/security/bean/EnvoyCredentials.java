@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class EnvoyCredentials {
-  String user;
-  String spiffeId;
-  List<String> groups;
+    String user;
+    String spiffeId;
+    List<String> groups;
 }

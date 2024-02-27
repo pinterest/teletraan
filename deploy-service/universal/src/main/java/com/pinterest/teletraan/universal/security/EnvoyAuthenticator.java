@@ -14,15 +14,15 @@ import org.apache.commons.lang3.StringUtils;
 
 public class EnvoyAuthenticator implements Authenticator<EnvoyCredentials, TeletraanPrincipal> {
 
-  @Override
-  public Optional<TeletraanPrincipal> authenticate(EnvoyCredentials credentials)
-      throws AuthenticationException {
-    if (StringUtils.isNotBlank(credentials.getUser())) {
-      return Optional.of(new UserPrincipal(credentials.getUser(), credentials.getGroups()));
+    @Override
+    public Optional<TeletraanPrincipal> authenticate(EnvoyCredentials credentials)
+            throws AuthenticationException {
+        if (StringUtils.isNotBlank(credentials.getUser())) {
+            return Optional.of(new UserPrincipal(credentials.getUser(), credentials.getGroups()));
+        }
+        if (StringUtils.isNotBlank(credentials.getSpiffeId())) {
+            return Optional.of(new ServicePrincipal<>(credentials.getSpiffeId()));
+        }
+        return Optional.empty();
     }
-    if (StringUtils.isNotBlank(credentials.getSpiffeId())) {
-      return Optional.of(new ServicePrincipal<>(credentials.getSpiffeId()));
-    }
-    return Optional.empty();
-  }
 }

@@ -12,62 +12,62 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class BaseAuthorizer<P extends TeletraanPrincipal> implements Authorizer<P> {
-  private static final Logger LOG = LoggerFactory.getLogger(BaseAuthorizer.class);
-  protected final AuthZResourceExtractor.Factory extractorFactory;
+    private static final Logger LOG = LoggerFactory.getLogger(BaseAuthorizer.class);
+    protected final AuthZResourceExtractor.Factory extractorFactory;
 
-  protected BaseAuthorizer() {
-    extractorFactory = null;
-  }
-
-  protected BaseAuthorizer(AuthZResourceExtractor.Factory factory) {
-    extractorFactory = factory;
-  }
-
-  @Override
-  public boolean authorize(P principal, String role) {
-    throw new UnsupportedOperationException(
-        "ContainerRequestContext is required for authorization");
-  }
-
-  @Override
-  public boolean authorize(P principal, String role, @Nullable ContainerRequestContext context) {
-    LOG.debug("Authorizing...");
-
-    if (context == null) {
-      LOG.warn("ContainerRequestContext is required for authorization");
-      return false;
+    protected BaseAuthorizer() {
+        extractorFactory = null;
     }
 
-    Object authZInfo = context.getProperty(ResourceAuthZInfo.class.getName());
-    if (authZInfo == null) {
-      LOG.warn("ResourceAuthZInfo is required for authorization");
-      return false;
+    protected BaseAuthorizer(AuthZResourceExtractor.Factory factory) {
+        extractorFactory = factory;
     }
 
-    if (!(authZInfo instanceof ResourceAuthZInfo)) {
-      LOG.warn("authZInfo type not supported");
-      return false;
+    @Override
+    public boolean authorize(P principal, String role) {
+        throw new UnsupportedOperationException(
+                "ContainerRequestContext is required for authorization");
     }
 
-    ResourceAuthZInfo safeAuthZInfo = (ResourceAuthZInfo) authZInfo;
+    @Override
+    public boolean authorize(P principal, String role, @Nullable ContainerRequestContext context) {
+        LOG.debug("Authorizing...");
 
-    AuthZResource requestedResource;
-    try {
-      requestedResource =
-          extractorFactory
-              .create(safeAuthZInfo)
-              .extractResource(context, safeAuthZInfo.beanClass());
-    } catch (Exception ex) {
-      LOG.warn("Failed to extract resource", ex);
-      return false;
+        if (context == null) {
+            LOG.warn("ContainerRequestContext is required for authorization");
+            return false;
+        }
+
+        Object authZInfo = context.getProperty(ResourceAuthZInfo.class.getName());
+        if (authZInfo == null) {
+            LOG.warn("ResourceAuthZInfo is required for authorization");
+            return false;
+        }
+
+        if (!(authZInfo instanceof ResourceAuthZInfo)) {
+            LOG.warn("authZInfo type not supported");
+            return false;
+        }
+
+        ResourceAuthZInfo safeAuthZInfo = (ResourceAuthZInfo) authZInfo;
+
+        AuthZResource requestedResource;
+        try {
+            requestedResource =
+                    extractorFactory
+                            .create(safeAuthZInfo)
+                            .extractResource(context, safeAuthZInfo.beanClass());
+        } catch (Exception ex) {
+            LOG.warn("Failed to extract resource", ex);
+            return false;
+        }
+
+        return authorize(principal, role, requestedResource, context);
     }
 
-    return authorize(principal, role, requestedResource, context);
-  }
-
-  public abstract boolean authorize(
-      P principal,
-      String role,
-      AuthZResource requestedResource,
-      @Nullable ContainerRequestContext context);
+    public abstract boolean authorize(
+            P principal,
+            String role,
+            AuthZResource requestedResource,
+            @Nullable ContainerRequestContext context);
 }

@@ -4,14 +4,14 @@
 package com.pinterest.teletraan.universal.security.bean;
 
 public class ValueBasedRole implements Role<ValueBasedRole> {
-  private int value;
+    private int value;
 
-  public ValueBasedRole(int value) {
-    this.value = value;
-  }
+    public ValueBasedRole(int value) {
+        this.value = value;
+    }
 
-  @Override
-  public boolean isEqualOrSuperior(ValueBasedRole requiredRole) {
-    return this.equals(requiredRole) || this.value > requiredRole.value;
-  }
+    @Override
+    public boolean isEqualOrSuperior(ValueBasedRole requiredRole) {
+        return this.equals(requiredRole) || this.value > requiredRole.value;
+    }
 }

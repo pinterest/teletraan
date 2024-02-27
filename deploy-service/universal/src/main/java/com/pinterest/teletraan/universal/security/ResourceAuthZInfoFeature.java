@@ -8,14 +8,14 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 
 /**
- * This class is used to register the ResourceAuthZInfoFilter when the ResourceAuthZInfo annotation is
- * present on a resource method.
+ * This class is used to register the ResourceAuthZInfoFilter when the ResourceAuthZInfo annotation
+ * is present on a resource method.
  */
 public class ResourceAuthZInfoFeature implements DynamicFeature {
-  @Override
-  public void configure(ResourceInfo resourceInfo, FeatureContext context) {
-    if (resourceInfo.getResourceMethod().getAnnotation(ResourceAuthZInfo.class) != null) {
-      context.register(ResourceAuthZInfoFilter.class);
+    @Override
+    public void configure(ResourceInfo resourceInfo, FeatureContext context) {
+        if (resourceInfo.getResourceMethod().getAnnotation(ResourceAuthZInfo.class) != null) {
+            context.register(ResourceAuthZInfoFilter.class);
+        }
     }
-  }
 }

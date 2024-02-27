@@ -18,88 +18,89 @@ import org.apache.commons.lang3.StringUtils;
 
 @Priority(Priorities.AUTHENTICATION)
 public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<EnvoyCredentials, P> {
-  private EnvoyAuthFilter() {}
-
-  @Override
-  public void filter(final ContainerRequestContext requestContext) throws IOException {
-    EnvoyCredentials credentials = getCredentials(requestContext);
-
-    if (credentials != null) {
-      String scheme =
-          StringUtils.isNotBlank(credentials.getSpiffeId())
-              ? SecurityContext.CLIENT_CERT_AUTH
-              : SecurityContext.BASIC_AUTH;
-      if (authenticate(requestContext, credentials, scheme)) {
-        return;
-      }
-    }
-    throw unauthorizedHandler.buildException(prefix, realm);
-  }
-
-  /**
-   * Get the Envoy credentials from the request headers.
-   *
-   * @param requestContext the context of the request
-   * @return an instance of {@link EnvoyCredentials} if the request is authenticated, otherwise
-   *     {@code null}
-   */
-  @Nullable
-  private EnvoyCredentials getCredentials(ContainerRequestContext requestContext) {
-    String user = requestContext.getHeaders().getFirst(Constants.USER_HEADER);
-    String spiffeId =
-        getSpiffeId(requestContext.getHeaders().getFirst(Constants.CLIENT_CERT_HEADER));
-    List<String> groups = getGroups(requestContext.getHeaders().getFirst(Constants.GROUPS_HEADER));
-
-    if (StringUtils.isBlank(spiffeId) && StringUtils.isBlank(user)) {
-      return null;
-    }
-
-    return new EnvoyCredentials(user, spiffeId, groups);
-  }
-
-  /**
-   * Builder for {@link EnvoyAuthFilter}.
-   *
-   * <p>An {@link Authenticator} must be provided during the building process.
-   *
-   * @param <P> the type of the principal
-   */
-  public static class Builder<P extends Principal>
-      extends AuthFilterBuilder<EnvoyCredentials, P, EnvoyAuthFilter<P>> {
+    private EnvoyAuthFilter() {}
 
     @Override
-    protected EnvoyAuthFilter<P> newInstance() {
-      return new EnvoyAuthFilter<>();
-    }
-  }
+    public void filter(final ContainerRequestContext requestContext) throws IOException {
+        EnvoyCredentials credentials = getCredentials(requestContext);
 
-  /**
-   * Parses the raw value of a spiffe request header
-   *
-   * @return spiffe id
-   */
-  @Nullable
-  protected static String getSpiffeId(String value) {
-    if (value == null) {
-      return null;
+        if (credentials != null) {
+            String scheme =
+                    StringUtils.isNotBlank(credentials.getSpiffeId())
+                            ? SecurityContext.CLIENT_CERT_AUTH
+                            : SecurityContext.BASIC_AUTH;
+            if (authenticate(requestContext, credentials, scheme)) {
+                return;
+            }
+        }
+        throw unauthorizedHandler.buildException(prefix, realm);
     }
-    String[] headerValues = value.split(",");
-    String lastHeaderValue = headerValues[headerValues.length - 1];
-    String[] pairs = lastHeaderValue.split(";");
-    for (String pair : pairs) {
-      String[] pairKeyAndValue = pair.split("=", 2);
-      if (pairKeyAndValue[0].equals("URI")) {
-        return pairKeyAndValue[1];
-      }
-    }
-    return null;
-  }
 
-  @Nullable
-  protected static List<String> getGroups(String header) {
-    if (header == null) {
-      return null;
+    /**
+     * Get the Envoy credentials from the request headers.
+     *
+     * @param requestContext the context of the request
+     * @return an instance of {@link EnvoyCredentials} if the request is authenticated, otherwise
+     *     {@code null}
+     */
+    @Nullable
+    private EnvoyCredentials getCredentials(ContainerRequestContext requestContext) {
+        String user = requestContext.getHeaders().getFirst(Constants.USER_HEADER);
+        String spiffeId =
+                getSpiffeId(requestContext.getHeaders().getFirst(Constants.CLIENT_CERT_HEADER));
+        List<String> groups =
+                getGroups(requestContext.getHeaders().getFirst(Constants.GROUPS_HEADER));
+
+        if (StringUtils.isBlank(spiffeId) && StringUtils.isBlank(user)) {
+            return null;
+        }
+
+        return new EnvoyCredentials(user, spiffeId, groups);
     }
-    return Arrays.asList(header.split("[\\s,]+"));
-  }
+
+    /**
+     * Builder for {@link EnvoyAuthFilter}.
+     *
+     * <p>An {@link Authenticator} must be provided during the building process.
+     *
+     * @param <P> the type of the principal
+     */
+    public static class Builder<P extends Principal>
+            extends AuthFilterBuilder<EnvoyCredentials, P, EnvoyAuthFilter<P>> {
+
+        @Override
+        protected EnvoyAuthFilter<P> newInstance() {
+            return new EnvoyAuthFilter<>();
+        }
+    }
+
+    /**
+     * Parses the raw value of a spiffe request header
+     *
+     * @return spiffe id
+     */
+    @Nullable
+    protected static String getSpiffeId(String value) {
+        if (value == null) {
+            return null;
+        }
+        String[] headerValues = value.split(",");
+        String lastHeaderValue = headerValues[headerValues.length - 1];
+        String[] pairs = lastHeaderValue.split(";");
+        for (String pair : pairs) {
+            String[] pairKeyAndValue = pair.split("=", 2);
+            if (pairKeyAndValue[0].equals("URI")) {
+                return pairKeyAndValue[1];
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    protected static List<String> getGroups(String header) {
+        if (header == null) {
+            return null;
+        }
+        return Arrays.asList(header.split("[\\s,]+"));
+    }
 }

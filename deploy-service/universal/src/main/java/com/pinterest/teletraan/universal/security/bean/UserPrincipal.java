@@ -10,6 +10,6 @@ import lombok.RequiredArgsConstructor;
 @Data
 @RequiredArgsConstructor
 public class UserPrincipal implements TeletraanPrincipal {
-  private final String name;
-  private final List<String> groups;
+    private final String name;
+    private final List<String> groups;
 }

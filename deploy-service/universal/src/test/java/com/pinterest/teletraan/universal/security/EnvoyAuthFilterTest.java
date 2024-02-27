@@ -11,56 +11,56 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class EnvoyAuthFilterTest {
-  private static final String CERT_HEADER =
-      "C=US\";URI=spiffe://pin220.com/k8s/jupyter/fgac-test/username/testuser;DNS=fa2a9e01-dc86-477a-9661-d6ca997556ec.k8s.pin220.com";
-  private static final String SPIFFE_ID =
-      "spiffe://pin220.com/k8s/jupyter/fgac-test/username/testuser";
+    private static final String CERT_HEADER =
+            "C=US\";URI=spiffe://pin220.com/k8s/jupyter/fgac-test/username/testuser;DNS=fa2a9e01-dc86-477a-9661-d6ca997556ec.k8s.pin220.com";
+    private static final String SPIFFE_ID =
+            "spiffe://pin220.com/k8s/jupyter/fgac-test/username/testuser";
 
-  @Test
-  void getSpiffeId_null() {
-    String spiffeId = EnvoyAuthFilter.getSpiffeId(null);
-    assertNull(spiffeId);
-  }
+    @Test
+    void getSpiffeId_null() {
+        String spiffeId = EnvoyAuthFilter.getSpiffeId(null);
+        assertNull(spiffeId);
+    }
 
-  @Test
-  void getSpiffeId_valid() {
-    String spiffeId = EnvoyAuthFilter.getSpiffeId(CERT_HEADER);
-    assertEquals(SPIFFE_ID, spiffeId);
-  }
+    @Test
+    void getSpiffeId_valid() {
+        String spiffeId = EnvoyAuthFilter.getSpiffeId(CERT_HEADER);
+        assertEquals(SPIFFE_ID, spiffeId);
+    }
 
-  @Test
-  void getSpiffeId_invalid() {
-    String spiffeId = EnvoyAuthFilter.getSpiffeId("random stuff");
-    assertNull(spiffeId);
-  }
+    @Test
+    void getSpiffeId_invalid() {
+        String spiffeId = EnvoyAuthFilter.getSpiffeId("random stuff");
+        assertNull(spiffeId);
+    }
 
-  @Test
-  void getGroups_space() {
-    String groups = "group1 group2   group3";
-    List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
-    assertNotNull(groupsList);
-    assertEquals(3, groupsList.size());
-  }
+    @Test
+    void getGroups_space() {
+        String groups = "group1 group2   group3";
+        List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
+        assertNotNull(groupsList);
+        assertEquals(3, groupsList.size());
+    }
 
-  @Test
-  void getGroups_comma() {
-    String groups = "group1,group2,,group3";
-    List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
-    assertNotNull(groupsList);
-    assertEquals(3, groupsList.size());
-  }
+    @Test
+    void getGroups_comma() {
+        String groups = "group1,group2,,group3";
+        List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
+        assertNotNull(groupsList);
+        assertEquals(3, groupsList.size());
+    }
 
-  @Test
-  void getGroups_commaAndSpace() {
-    String groups = "group1, group2,,   group3";
-    List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
-    assertNotNull(groupsList);
-    assertEquals(3, groupsList.size());
-  }
+    @Test
+    void getGroups_commaAndSpace() {
+        String groups = "group1, group2,,   group3";
+        List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
+        assertNotNull(groupsList);
+        assertEquals(3, groupsList.size());
+    }
 
-  @Test
-  void getGroups_null() {
-    List<String> groupsList = EnvoyAuthFilter.getGroups(null);
-    assertNull(groupsList);
-  }
+    @Test
+    void getGroups_null() {
+        List<String> groupsList = EnvoyAuthFilter.getGroups(null);
+        assertNull(groupsList);
+    }
 }
