@@ -25,6 +25,7 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import io.swagger.annotations.*;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class Commits {
     private final static int DEFAULT_SIZE = 100;
     private final SourceControlManagerProxy sourceControlManagerProxy;
 
-    public Commits(TeletraanServiceContext context) throws Exception {
+    public Commits(@Context TeletraanServiceContext context) throws Exception {
         sourceControlManagerProxy = context.getSourceControlManagerProxy();
     }
 

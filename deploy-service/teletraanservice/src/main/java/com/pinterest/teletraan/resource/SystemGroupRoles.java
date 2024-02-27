@@ -34,7 +34,7 @@ public class SystemGroupRoles extends GroupRoles {
     private final static Resource.Type RESOURCE_TYPE = Resource.Type.SYSTEM;
     private final static String RESOURCE_ID = Resource.ALL;
 
-    public SystemGroupRoles(TeletraanServiceContext context) {
+    public SystemGroupRoles(@Context TeletraanServiceContext context) {
         super(context);
     }
 

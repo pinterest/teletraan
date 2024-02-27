@@ -60,7 +60,7 @@ public class Builds {
     private final Authorizer authorizer;
     private final BuildEventPublisher buildEventPublisher;
 
-    public Builds(TeletraanServiceContext context) {
+    public Builds(@Context TeletraanServiceContext context) {
         buildDAO = context.getBuildDAO();
         tagDAO = context.getTagDAO();
         sourceControlManagerProxy = context.getSourceControlManagerProxy();

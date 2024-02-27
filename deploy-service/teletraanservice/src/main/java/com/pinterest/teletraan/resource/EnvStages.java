@@ -64,7 +64,7 @@ public class EnvStages {
     private TagHandler tagHandler;
     private Authorizer authorizer;
 
-    public EnvStages(TeletraanServiceContext context) throws Exception {
+    public EnvStages(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);

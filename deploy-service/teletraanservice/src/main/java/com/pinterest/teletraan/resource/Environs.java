@@ -72,7 +72,7 @@ public class Environs {
     private UserRolesDAO userRolesDAO;
     private final Authorizer authorizer;
 
-    public Environs(TeletraanServiceContext context) throws Exception {
+    public Environs(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         tagHandler = new EnvTagHandler(context);

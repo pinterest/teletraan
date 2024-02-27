@@ -67,7 +67,7 @@ public class Tags {
     private final TagDAO tagDAO;
     private final HashMap<TagTargetType, TagHandler> handlers = new HashMap<>();
 
-    public Tags(TeletraanServiceContext context)
+    public Tags(@Context TeletraanServiceContext context)
     {
         this.tagDAO = context.getTagDAO();
         this.handlers.put(TagTargetType.BUILD, new BuildTagHandler(context));

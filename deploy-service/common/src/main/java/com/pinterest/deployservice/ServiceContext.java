@@ -107,6 +107,8 @@ public class ServiceContext {
     private BuildEventPublisher buildEventPublisher;
     private Set<String> accountAllowList;
 
+    private String genericExceptionClientError;
+
     // Publishers & Listeners
     private AppEventPublisher appEventPublisher;
 
@@ -479,5 +481,13 @@ public class ServiceContext {
 
     public void setAccountAllowList(Collection<String> accountAllowList) {
         this.accountAllowList = new HashSet<String>(accountAllowList);
+    }
+
+    public String getGenericExceptionClientError() {
+        return genericExceptionClientError;
+    }
+
+    public void setGenericExceptionClientError(String genericExceptionClientError) {
+        this.genericExceptionClientError = genericExceptionClientError;
     }
 }

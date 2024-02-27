@@ -34,7 +34,7 @@ import java.util.List;
 public class EnvTokenRoles extends TokenRoles {
     private static final Resource.Type RESOURCE_TYPE = Resource.Type.ENV;
 
-    public EnvTokenRoles(TeletraanServiceContext context) {
+    public EnvTokenRoles(@Context TeletraanServiceContext context) {
         super(context);
     }
 

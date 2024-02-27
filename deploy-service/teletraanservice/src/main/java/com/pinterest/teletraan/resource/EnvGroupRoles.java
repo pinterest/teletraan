@@ -38,7 +38,7 @@ import java.util.List;
 public class EnvGroupRoles extends GroupRoles {
     private static final Resource.Type RESOURCE_TYPE = Resource.Type.ENV;
 
-    public EnvGroupRoles(TeletraanServiceContext context) {
+    public EnvGroupRoles(@Context TeletraanServiceContext context) {
         super(context);
     }
 

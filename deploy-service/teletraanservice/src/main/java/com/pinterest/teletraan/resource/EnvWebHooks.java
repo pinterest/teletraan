@@ -44,7 +44,7 @@ public class EnvWebHooks {
     private ConfigHistoryHandler configHistoryHandler;
     private Authorizer authorizer;
 
-    public EnvWebHooks(TeletraanServiceContext context) {
+    public EnvWebHooks(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);

@@ -63,7 +63,7 @@ public class EnvCapacities {
   private GroupDAO groupDAO;
   private Authorizer authorizer;
 
-  public EnvCapacities(TeletraanServiceContext context) {
+  public EnvCapacities(@Context TeletraanServiceContext context) {
     environHandler = new EnvironHandler(context);
     configHistoryHandler = new ConfigHistoryHandler(context);
     environDAO = context.getEnvironDAO();

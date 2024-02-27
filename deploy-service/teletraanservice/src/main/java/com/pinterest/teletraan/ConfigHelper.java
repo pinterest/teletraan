@@ -105,6 +105,8 @@ public class ConfigHelper {
         BasicDataSource dataSource = configuration.getDataSourceFactory().build();
         context.setDataSource(dataSource);
 
+        context.setGenericExceptionClientError(configuration.getSystemFactory().getClientError());
+
         context.setUserRolesDAO(new DBUserRolesDAOImpl(dataSource));
         context.setGroupRolesDAO(new DBGroupRolesDAOImpl(dataSource));
         context.setTokenRolesDAO(new DBTokenRolesDAOImpl(dataSource));

@@ -3,6 +3,7 @@ package com.pinterest.teletraan.exception;
 
 import com.pinterest.deployservice.common.Constants;
 
+import com.pinterest.teletraan.TeletraanServiceContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,8 +27,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
 
     private String clientError;
 
-    public GenericExceptionMapper(String clientError) {
-        this.clientError = clientError;
+    public GenericExceptionMapper(@Context TeletraanServiceContext context) {
+        this.clientError = context.getGenericExceptionClientError();
     }
 
     @Override

@@ -34,7 +34,7 @@ public class Ratings {
     private final static int DEFAULT_SIZE = 30;
     private RatingsHandler ratingsHandler;
 
-    public Ratings(TeletraanServiceContext context) {
+    public Ratings(@Context TeletraanServiceContext context) {
         ratingsHandler = new RatingsHandler(context);
     }
 

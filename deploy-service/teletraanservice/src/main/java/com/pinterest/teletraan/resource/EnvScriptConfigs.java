@@ -48,7 +48,7 @@ public class EnvScriptConfigs {
     private ConfigHistoryHandler configHistoryHandler;
     private Authorizer authorizer;
 
-    public EnvScriptConfigs(TeletraanServiceContext context) {
+    public EnvScriptConfigs(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);

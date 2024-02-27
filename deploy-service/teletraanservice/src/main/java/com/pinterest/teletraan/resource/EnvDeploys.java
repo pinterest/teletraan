@@ -69,7 +69,7 @@ public class EnvDeploys {
     private DeployHandler deployHandler;
     private ConfigHistoryHandler configHistoryHandler;
 
-    public EnvDeploys(TeletraanServiceContext context) throws Exception {
+    public EnvDeploys(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         buildDAO = context.getBuildDAO();
         deployDAO = context.getDeployDAO();

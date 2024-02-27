@@ -40,7 +40,7 @@ public class EnvUserRoles extends UserRoles {
     private static final Resource.Type RESOURCE_TYPE = Resource.Type.ENV;
     private static final Logger LOG = LoggerFactory.getLogger(EnvUserRoles.class);
 
-    public EnvUserRoles(TeletraanServiceContext context) throws Exception {
+    public EnvUserRoles(@Context TeletraanServiceContext context) throws Exception {
         super(context);
     }
 

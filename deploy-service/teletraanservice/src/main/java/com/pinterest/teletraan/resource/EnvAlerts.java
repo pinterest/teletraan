@@ -74,7 +74,7 @@ public class EnvAlerts {
   private Map<String, AlertAction> supportActions;
   private AlertContextBuilder alertContextBuilder;
 
-  public EnvAlerts(TeletraanServiceContext context) {
+  public EnvAlerts(@Context TeletraanServiceContext context) {
     environDAO = context.getEnvironDAO();
     authorizer = context.getAuthorizer();
     externalAlertFactory = context.getExternalAlertsFactory();

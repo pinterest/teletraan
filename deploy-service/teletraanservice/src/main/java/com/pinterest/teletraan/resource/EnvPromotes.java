@@ -48,7 +48,7 @@ public class EnvPromotes {
     private EnvironDAO environDAO;
     private Authorizer authorizer;
 
-    public EnvPromotes(TeletraanServiceContext context) {
+    public EnvPromotes(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);

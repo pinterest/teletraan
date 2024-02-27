@@ -51,7 +51,7 @@ public class EnvAlarms {
     private ConfigHistoryHandler configHistoryHandler;
     private Authorizer authorizer;
 
-    public EnvAlarms(TeletraanServiceContext context) {
+    public EnvAlarms(@Context TeletraanServiceContext context) {
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         environDAO = context.getEnvironDAO();

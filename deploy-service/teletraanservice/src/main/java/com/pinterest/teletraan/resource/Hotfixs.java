@@ -45,7 +45,7 @@ public class Hotfixs {
     private HotfixDAO hotfixDAO;
     private final Authorizer authorizer;
 
-    public Hotfixs(TeletraanServiceContext context) {
+    public Hotfixs(@Context TeletraanServiceContext context) {
         deployDAO = context.getDeployDAO();
         buildDAO = context.getBuildDAO();
         hotfixDAO = context.getHotfixDAO();
