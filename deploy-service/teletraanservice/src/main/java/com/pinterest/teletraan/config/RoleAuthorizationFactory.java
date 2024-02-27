@@ -22,7 +22,6 @@ import com.pinterest.teletraan.security.UserRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
-import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
 import io.dropwizard.auth.Authorizer;
 
@@ -40,10 +39,10 @@ public class RoleAuthorizationFactory implements AuthorizationFactory {
             TeletraanServiceContext context, Class<P> principalClass)
             throws Exception {
         if (principalClass.equals(ServicePrincipal.class)) {
-            return new ServiceRoleAuthorizer<ServicePrincipal<ValueBasedRole>>(
+            return new ServiceRoleAuthorizer(
                     context.getAuthZResourceExtractorFactory());
         } else if (principalClass.equals(UserPrincipal.class)) {
-            return new UserRoleAuthorizer<UserPrincipal>(context, context.getAuthZResourceExtractorFactory());
+            return new UserRoleAuthorizer(context, context.getAuthZResourceExtractorFactory());
         }
         throw new UnsupportedOperationException("Unsupported principal class: " + principalClass);
     }

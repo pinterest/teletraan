@@ -25,7 +25,7 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 
 @Deprecated
-public class UserRoleAuthorizer<P extends UserPrincipal> extends BaseAuthorizer<UserPrincipal> {
+public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
     private static final Logger LOG = LoggerFactory.getLogger(UserRoleAuthorizer.class);
     private final UserRolesDAO userRolesDAO;
     private final GroupRolesDAO groupRolesDAO;

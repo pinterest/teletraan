@@ -14,8 +14,7 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
 @Deprecated
-public class ServiceRoleAuthorizer<P extends ServicePrincipal<ValueBasedRole>>
-        extends BaseAuthorizer<P> {
+public class ServiceRoleAuthorizer extends BaseAuthorizer<ServicePrincipal<ValueBasedRole>> {
     private static final Logger LOG = LoggerFactory.getLogger(ServiceRoleAuthorizer.class);
 
     public ServiceRoleAuthorizer(AuthZResourceExtractor.Factory authZResourceExtractorFactory) {
@@ -24,7 +23,7 @@ public class ServiceRoleAuthorizer<P extends ServicePrincipal<ValueBasedRole>>
 
     @Override
     public boolean authorize(
-            P principal, String role, AuthZResource requestedResource,
+            ServicePrincipal<ValueBasedRole> principal, String role, AuthZResource requestedResource,
             @Nullable ContainerRequestContext context) {
         if (!principal.getRole().isEqualOrSuperior(TeletraanPrincipalRoles.valueOf(role).getRole())) {
             LOG.info("Requested role does not match principal role");

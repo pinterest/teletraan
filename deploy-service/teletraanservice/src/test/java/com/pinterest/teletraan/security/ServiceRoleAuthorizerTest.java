@@ -30,7 +30,7 @@ import static org.junit.Assert.assertTrue;
 
 public class ServiceRoleAuthorizerTest {
     private ServiceContext context;
-    private ServiceRoleAuthorizer<ServicePrincipal<ValueBasedRole>> authorizer;
+    private ServiceRoleAuthorizer authorizer;
 
     private TokenRolesBean sysAdmin;
     private TokenRolesBean sysOperator;
@@ -49,7 +49,7 @@ public class ServiceRoleAuthorizerTest {
     public void setUp() throws Exception {
         context = new ServiceContext();
         context.setUserRolesDAO(null);
-        authorizer = new ServiceRoleAuthorizer<>(null);
+        authorizer = new ServiceRoleAuthorizer(null);
 
         sysAdmin = new TokenRolesBean();
         sysAdmin.setResource_id(AuthZResource.ALL);

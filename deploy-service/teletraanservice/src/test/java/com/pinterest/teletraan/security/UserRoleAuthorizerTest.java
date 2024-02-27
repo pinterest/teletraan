@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 public class UserRoleAuthorizerTest {
     private ServiceContext context;
     private UserRolesDAO userRolesDAO;
-    private UserRoleAuthorizer<UserPrincipal> authorizer;
+    private UserRoleAuthorizer authorizer;
 
     private UserRolesBean sysAdmin;
     private UserRolesBean sysOperator;
@@ -53,7 +53,7 @@ public class UserRoleAuthorizerTest {
         context = new ServiceContext();
         userRolesDAO = Mockito.mock(UserRolesDAO.class);
         context.setUserRolesDAO(userRolesDAO);
-        authorizer = new UserRoleAuthorizer<>(context, null);
+        authorizer = new UserRoleAuthorizer(context, null);
 
         sysAdmin = new UserRolesBean();
         sysAdmin.setRole(TeletraanPrincipalRoles.ADMIN);

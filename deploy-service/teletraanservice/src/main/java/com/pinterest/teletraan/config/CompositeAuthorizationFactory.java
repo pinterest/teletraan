@@ -9,7 +9,6 @@ import com.pinterest.teletraan.universal.security.BasePastisAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
-import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
 import io.dropwizard.auth.Authorizer;
 
@@ -37,10 +36,9 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
     public <P extends TeletraanPrincipal> Authorizer<? extends TeletraanPrincipal> create(TeletraanServiceContext context, Class<P> principalClass)
             throws Exception {
         if (principalClass.equals(ServicePrincipal.class)) {
-            return new ServiceRoleAuthorizer<ServicePrincipal<ValueBasedRole>>(
-                    context.getAuthZResourceExtractorFactory());
+            return new ServiceRoleAuthorizer(context.getAuthZResourceExtractorFactory());
         } else if (principalClass.equals(UserPrincipal.class)) {
-            return new UserRoleAuthorizer<UserPrincipal>(context, context.getAuthZResourceExtractorFactory());
+            return new UserRoleAuthorizer(context, context.getAuthZResourceExtractorFactory());
         }
         return create(context);
     }
