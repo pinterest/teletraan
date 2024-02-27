@@ -1,3 +1,6 @@
+/**
+ * Copyright (c) 2024, Pinterest Inc. All rights reserved.
+ */
 package com.pinterest.teletraan.universal.security;
 
 public class Constants {

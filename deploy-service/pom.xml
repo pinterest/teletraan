@@ -146,6 +146,7 @@
                 <artifactId>spotless-maven-plugin</artifactId>
                 <version>${spotless.version}</version>
                 <configuration>
+                    <ratchetFrom>origin/master</ratchetFrom> <!-- only format files which have changed since origin/main -->
                     <java>
                         <googleJavaFormat>
                             <version>${googleJavaFormat.version}</version>

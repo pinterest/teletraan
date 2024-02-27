@@ -1,16 +1,20 @@
+/**
+ * Copyright (c) 2024, Pinterest Inc. All rights reserved.
+ */
 package com.pinterest.teletraan.universal.security;
 
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import javax.ws.rs.container.ContainerRequestContext;
 
-import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-
 public interface AuthZResourceExtractor {
-    AuthZResource extractResource(ContainerRequestContext requestContext) throws RuntimeException;
-    default AuthZResource extractResource(ContainerRequestContext requestContext, Class<?> beanClass) throws RuntimeException {
-        return extractResource(requestContext);
-    }
+  AuthZResource extractResource(ContainerRequestContext requestContext) throws RuntimeException;
 
-    public interface Factory {
-        AuthZResourceExtractor create(ResourceAuthZInfo authZInfo);
-    }
+  default AuthZResource extractResource(ContainerRequestContext requestContext, Class<?> beanClass)
+      throws RuntimeException {
+    return extractResource(requestContext);
+  }
+
+  public interface Factory {
+    AuthZResourceExtractor create(ResourceAuthZInfo authZInfo);
+  }
 }

@@ -1,7 +1,10 @@
+/**
+ * Copyright (c) 2024, Pinterest Inc. All rights reserved.
+ */
 package com.pinterest.teletraan.universal.security;
 
+import com.pinterest.teletraan.universal.security.bean.EnvoyCredentials;
 import io.dropwizard.auth.AuthFilter;
-
 import java.io.IOException;
 import java.security.Principal;
 import java.util.Arrays;
@@ -13,20 +16,19 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.SecurityContext;
 import org.apache.commons.lang3.StringUtils;
 
-import com.pinterest.teletraan.universal.security.bean.EnvoyCredentials;
-
 @Priority(Priorities.AUTHENTICATION)
 public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<EnvoyCredentials, P> {
-  private EnvoyAuthFilter() {
-  }
+  private EnvoyAuthFilter() {}
 
   @Override
   public void filter(final ContainerRequestContext requestContext) throws IOException {
     EnvoyCredentials credentials = getCredentials(requestContext);
 
     if (credentials != null) {
-      String scheme = StringUtils.isNotBlank(credentials.getSpiffeId()) ? SecurityContext.CLIENT_CERT_AUTH
-          : SecurityContext.BASIC_AUTH;
+      String scheme =
+          StringUtils.isNotBlank(credentials.getSpiffeId())
+              ? SecurityContext.CLIENT_CERT_AUTH
+              : SecurityContext.BASIC_AUTH;
       if (authenticate(requestContext, credentials, scheme)) {
         return;
       }
@@ -38,13 +40,14 @@ public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<EnvoyCreden
    * Get the Envoy credentials from the request headers.
    *
    * @param requestContext the context of the request
-   * @return an instance of {@link EnvoyCredentials} if the request is
-   *         authenticated, otherwise {@code null}
+   * @return an instance of {@link EnvoyCredentials} if the request is authenticated, otherwise
+   *     {@code null}
    */
   @Nullable
   private EnvoyCredentials getCredentials(ContainerRequestContext requestContext) {
     String user = requestContext.getHeaders().getFirst(Constants.USER_HEADER);
-    String spiffeId = getSpiffeId(requestContext.getHeaders().getFirst(Constants.CLIENT_CERT_HEADER));
+    String spiffeId =
+        getSpiffeId(requestContext.getHeaders().getFirst(Constants.CLIENT_CERT_HEADER));
     List<String> groups = getGroups(requestContext.getHeaders().getFirst(Constants.GROUPS_HEADER));
 
     if (StringUtils.isBlank(spiffeId) && StringUtils.isBlank(user)) {
@@ -56,9 +59,8 @@ public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<EnvoyCreden
 
   /**
    * Builder for {@link EnvoyAuthFilter}.
-   * <p>
-   * An {@link Authenticator} must be provided during the building process.
-   * </p>
+   *
+   * <p>An {@link Authenticator} must be provided during the building process.
    *
    * @param <P> the type of the principal
    */

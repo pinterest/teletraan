@@ -1,14 +1,7 @@
+/**
+ * Copyright (c) 2024, Pinterest Inc. All rights reserved.
+ */
 package com.pinterest.teletraan.universal.security;
-
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -16,8 +9,15 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
-
 import io.dropwizard.auth.Authenticator;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.retry.Retry;
 
@@ -30,9 +30,7 @@ public class OAuthAuthenticator implements Authenticator<String, UserPrincipal> 
   private final HttpClient groupDataClient;
 
   public OAuthAuthenticator(String userDataUrl, String groupDataUrl) {
-    HttpClient baseClient = HttpClient.create()
-                                     .responseTimeout(Duration.ofSeconds(3))
-                                     ;
+    HttpClient baseClient = HttpClient.create().responseTimeout(Duration.ofSeconds(3));
     userDataClient = baseClient.baseUrl(userDataUrl);
     groupDataClient = baseClient.baseUrl(groupDataUrl);
     this.groupDataUrl = groupDataUrl;
@@ -58,14 +56,15 @@ public class OAuthAuthenticator implements Authenticator<String, UserPrincipal> 
 
     // Get user groups through auth server with user oauth token
     String uri = String.format("?access_token=%s", token);
-    String jsonResponse = groupDataClient
-        .get()
-        .uri(uri)
-        .responseContent()
-        .aggregate()
-        .asString()
-        .retryWhen(Retry.backoff(3, Duration.ofSeconds(2)).jitter(0.75))
-        .block();
+    String jsonResponse =
+        groupDataClient
+            .get()
+            .uri(uri)
+            .responseContent()
+            .aggregate()
+            .asString()
+            .retryWhen(Retry.backoff(3, Duration.ofSeconds(2)).jitter(0.75))
+            .block();
 
     // Parse response
     Gson gson = new Gson();
@@ -84,14 +83,15 @@ public class OAuthAuthenticator implements Authenticator<String, UserPrincipal> 
 
   private String getUsername(String token) throws Exception {
     String uri = String.format("?access_token=%s", token);
-    String jsonResponse = userDataClient
-        .get()
-        .uri(uri)
-        .responseContent()
-        .aggregate()
-        .asString()
-        .retryWhen(Retry.backoff(3, Duration.ofSeconds(2)).jitter(0.75))
-        .block();
+    String jsonResponse =
+        userDataClient
+            .get()
+            .uri(uri)
+            .responseContent()
+            .aggregate()
+            .asString()
+            .retryWhen(Retry.backoff(3, Duration.ofSeconds(2)).jitter(0.75))
+            .block();
     JsonObject jsonObject = new JsonParser().parse(jsonResponse).getAsJsonObject();
     JsonObject userObject = jsonObject.getAsJsonObject("user");
     String userName = userObject.get("username").getAsString();

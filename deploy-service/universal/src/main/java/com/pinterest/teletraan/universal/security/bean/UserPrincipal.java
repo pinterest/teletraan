@@ -1,7 +1,9 @@
+/**
+ * Copyright (c) 2024, Pinterest Inc. All rights reserved.
+ */
 package com.pinterest.teletraan.universal.security.bean;
 
 import java.util.List;
-
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 

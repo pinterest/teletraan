@@ -1,5 +1,9 @@
+/**
+ * Copyright (c) 2024, Pinterest Inc. All rights reserved.
+ */
 package com.pinterest.teletraan.universal.security;
 
+import com.pinterest.teletraan.universal.security.bean.AnonymousUser;
 import java.io.IOException;
 import java.security.Principal;
 import javax.annotation.Priority;
@@ -8,8 +12,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.ext.Provider;
-
-import com.pinterest.teletraan.universal.security.bean.AnonymousUser;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)

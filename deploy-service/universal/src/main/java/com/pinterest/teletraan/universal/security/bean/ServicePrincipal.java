@@ -1,12 +1,14 @@
+/**
+ * Copyright (c) 2024, Pinterest Inc. All rights reserved.
+ */
 package com.pinterest.teletraan.universal.security.bean;
 
 import com.google.common.collect.Lists;
-
+import java.util.List;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
+
 @Data
 @RequiredArgsConstructor
 public class ServicePrincipal<R extends Role<R>> implements TeletraanPrincipal {
