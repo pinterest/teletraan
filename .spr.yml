@@ -1,0 +1,10 @@
+requireChecks: true
+requireApproval: true
+githubHost: github.com
+githubRepoOwner: pinterest
+githubRepoName: teletraan
+githubRemote: origin
+githubBranch: master
+mergeMethod: squash
+mergeQueue: false
+forceFetchTags: false
