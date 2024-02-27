@@ -20,7 +20,7 @@ public class EnvoyAuthenticator implements Authenticator<EnvoyCredentials, Telet
             return Optional.of(new UserPrincipal(credentials.getUser(), credentials.getGroups()));
         }
         if (StringUtils.isNotBlank(credentials.getSpiffeId())) {
-            return Optional.of(new ServicePrincipal(credentials.getSpiffeId()));
+            return Optional.of(new ServicePrincipal<>(credentials.getSpiffeId()));
         }
         return null;
     }

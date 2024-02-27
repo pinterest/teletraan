@@ -25,7 +25,7 @@ import io.dropwizard.auth.PermitAllAuthorizer;
 @JsonTypeName("open")
 public class OpenAuthorizationFactory implements AuthorizationFactory {
     @Override
-    public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context) throws Exception {
+    public Authorizer<TeletraanPrincipal> create(TeletraanServiceContext context) throws Exception {
         return new PermitAllAuthorizer<>();
     }
 }

@@ -11,7 +11,7 @@ public class EnvStagePathExtractor implements AuthZResourceExtractor {
         try {
             String envName = requestContext.getUriInfo().getPathParameters().getFirst("envName");
             String stageName = requestContext.getUriInfo().getPathParameters().getFirst("stageName");
-            return new AuthZResource(String.format("%s/%s", envName, stageName), AuthZResource.Type.ENV_STAGE);
+            return new AuthZResource(envName, stageName);
         } catch (Exception e) {
             throw new RuntimeException("Failed to extract environment resource", e);
         }

@@ -21,6 +21,8 @@ public @interface ResourceAuthZInfo {
      */
     Location IdLocation() default Location.NA;
 
+    Class<?> beanClass() default Object.class;
+
     public enum Location {
         PATH,
         QUERY,

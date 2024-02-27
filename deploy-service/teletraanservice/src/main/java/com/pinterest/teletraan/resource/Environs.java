@@ -16,6 +16,7 @@
 package com.pinterest.teletraan.resource;
 
 import com.google.common.base.Optional;
+import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
@@ -32,6 +33,7 @@ import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
+import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 
 import io.swagger.annotations.*;
 import org.apache.commons.collections.CollectionUtils;
@@ -148,23 +150,20 @@ public class Environs {
             notes = "Creates a new environment given an environment object",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, IdLocation = Location.BODY)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.BODY, beanClass = EnvironBean.class)
     public Response create(
             @Context SecurityContext sc,
-            @ApiParam(value = "Environemnt object to create in database", required = true)@Valid EnvironBean environBean) throws Exception {
-        String operator = sc.getUserPrincipal().getName();
-        String envName = environBean.getEnv_name();
-        List<EnvironBean> environBeans = environDAO.getByName(envName);
-        if (!CollectionUtils.isEmpty(environBeans)) {
-            authorizer.authorize(sc, new AuthZResource(envName, AuthZResource.Type.ENV), TeletraanPrincipalRoles.OPERATOR);
-        }
+            @ApiParam(value = "Environment object to create in database", required = true)@Valid EnvironBean environBean) throws Exception {
         try {
             environBean.validate();
         } catch (Exception e) {
-            throw new TeletaanInternalException(Response.Status.BAD_REQUEST, e.toString());
+            throw new IllegalArgumentException(e);
         }
+        String operator = sc.getUserPrincipal().getName();
+        String envName = environBean.getEnv_name();
+        List<EnvironBean> environBeans = environDAO.getByName(envName);
         String id = environHandler.createEnvStage(environBean, operator);
-        if (!(authorizer instanceof OpenAuthorizer) && CollectionUtils.isEmpty(environBeans)) {
+        if (sc.getUserPrincipal() instanceof UserPrincipal && CollectionUtils.isEmpty(environBeans)) {
             // This is the first stage for this env, let's make operator ADMIN of this env
             UserRolesBean rolesBean = new UserRolesBean();
             rolesBean.setResource_id(environBean.getEnv_name());

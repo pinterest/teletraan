@@ -7,12 +7,15 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.ws.rs.container.ContainerRequestContext;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.GroupRolesBean;
 import com.pinterest.deployservice.bean.UserRolesBean;
+import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
@@ -25,12 +28,16 @@ import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 @Deprecated
 public class UserRoleAuthorizer<P extends UserPrincipal> extends BaseAuthorizer<UserPrincipal> {
     private static final Logger LOG = LoggerFactory.getLogger(UserRoleAuthorizer.class);
-    AuthZResourceExtractor.Factory extractorFactory;
-    private UserRolesDAO userRolesDAO;
-    private GroupRolesDAO groupRolesDAO;
+    private final AuthZResourceExtractor.Factory extractorFactory;
+    private final UserRolesDAO userRolesDAO;
+    private final GroupRolesDAO groupRolesDAO;
+    private final EnvironDAO environDAO;
 
     public UserRoleAuthorizer(ServiceContext context, AuthZResourceExtractor.Factory authZResourceExtractorFactory) {
         extractorFactory = authZResourceExtractorFactory;
+        userRolesDAO = context.getUserRolesDAO();
+        groupRolesDAO = context.getGroupRolesDAO();
+        environDAO = context.getEnvironDAO();
     }
 
     @Override
@@ -42,7 +49,7 @@ public class UserRoleAuthorizer<P extends UserPrincipal> extends BaseAuthorizer<
 
         AuthZResource requestedResource;
         try {
-            requestedResource = extractorFactory.create(authZInfo).extractResource(context);
+            requestedResource = extractorFactory.create(authZInfo).extractResource(context, authZInfo.beanClass());
         } catch (Exception ex) {
             LOG.warn("Failed to extract resource", ex);
             return false;
@@ -95,6 +102,17 @@ public class UserRoleAuthorizer<P extends UserPrincipal> extends BaseAuthorizer<
                     AuthZResource.Type.SYSTEM);
             if (systemBean != null) {
                 if (systemBean.getRole().isEqualOrSuperior(requiredRole)) {
+                    return true;
+                }
+            }
+
+            // Special case for creating a new environment
+            if (requestedResource.getType().equals(AuthZResource.Type.ENV_STAGE)
+                    && requiredRole.equals(TeletraanPrincipalRoles.WRITE)) {
+                String envName = requestedResource.getName().split("/")[0];
+                List<EnvironBean> environBeans = environDAO.getByName(envName);
+                if (CollectionUtils.isEmpty(environBeans)) {
+                    // This is the first stage for this env, let's make operator ADMIN of this env
                     return true;
                 }
             }

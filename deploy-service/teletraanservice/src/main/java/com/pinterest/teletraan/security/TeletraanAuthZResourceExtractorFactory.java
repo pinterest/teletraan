@@ -1,6 +1,6 @@
 package com.pinterest.teletraan.security;
 
-import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 
@@ -8,11 +8,10 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
 
     private static final AuthZResourceExtractor ENV_PATH_EXTRACTOR = new EnvPathExtractor();
     private static final AuthZResourceExtractor ENV_STAGE_PATH_EXTRACTOR = new EnvStagePathExtractor();
-    private static final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR = new EnvStageBodyExtractor();
+    private final AuthZResourceExtractor ENV_STAGE_BODY_EXTRACTOR;
 
-    private final ServiceContext serviceContext;
-    public TeletraanAuthZResourceExtractorFactory(ServiceContext serviceContext) {
-        this.serviceContext = serviceContext;
+    public TeletraanAuthZResourceExtractorFactory(TeletraanServiceContext serviceContext) {
+        ENV_STAGE_BODY_EXTRACTOR = new EnvStageBodyExtractor(serviceContext);
     }
 
     @Override

@@ -16,33 +16,33 @@ import io.dropwizard.auth.Authorizer;
 
 @JsonTypeName("composite")
 public class CompositeAuthorizationFactory implements AuthorizationFactory {
-  private static final String DEFAULT_PASTIS_SERVICE_NAME = "teletraan_dev";
+    private static final String DEFAULT_PASTIS_SERVICE_NAME = "teletraan_dev";
 
-  @JsonProperty
-  private String pastisServiceName = DEFAULT_PASTIS_SERVICE_NAME;
+    @JsonProperty
+    private String pastisServiceName = DEFAULT_PASTIS_SERVICE_NAME;
 
-  public void setPastisServiceName(String pastisServiceName) {
-    this.pastisServiceName = pastisServiceName;
-  }
-
-  public String getPastisServiceName() {
-    return pastisServiceName;
-  }
-
-  @Override
-  public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context) throws Exception {
-    return new BasePastisAuthorizer<P>(pastisServiceName, context.getAuthZResourceExtractorFactory());
-  }
-
-  @Override
-  public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context, String className)
-      throws Exception {
-    if (className.equals(ServiceRoleAuthorizer.class.getSimpleName())) {
-      return (Authorizer<P>) new ServiceRoleAuthorizer<ValueBasedRole, TeletraanPrincipalRoles, ServicePrincipal<ValueBasedRole>>(
-          context.getAuthZResourceExtractorFactory(), TeletraanPrincipalRoles.class);
-    } else if (className.equals(UserRoleAuthorizer.class.getSimpleName())) {
-      return (Authorizer<P>) new UserRoleAuthorizer<UserPrincipal>(context, context.getAuthZResourceExtractorFactory());
+    public void setPastisServiceName(String pastisServiceName) {
+        this.pastisServiceName = pastisServiceName;
     }
-    return create(context);
-  }
+
+    public String getPastisServiceName() {
+        return pastisServiceName;
+    }
+
+    @Override
+    public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context) throws Exception {
+        return new BasePastisAuthorizer<P>(pastisServiceName, context.getAuthZResourceExtractorFactory());
+    }
+
+    @Override
+    public <P extends TeletraanPrincipal> Authorizer<?> create(TeletraanServiceContext context, Class<P> principalClass)
+            throws Exception {
+        if (principalClass.equals(ServicePrincipal.class)) {
+            return new ServiceRoleAuthorizer<ValueBasedRole, TeletraanPrincipalRoles, ServicePrincipal<ValueBasedRole>>(
+                    context.getAuthZResourceExtractorFactory(), TeletraanPrincipalRoles.class);
+        } else if (principalClass.equals(UserPrincipal.class)) {
+            return new UserRoleAuthorizer<UserPrincipal>(context, context.getAuthZResourceExtractorFactory());
+        }
+        return create(context);
+    }
 }

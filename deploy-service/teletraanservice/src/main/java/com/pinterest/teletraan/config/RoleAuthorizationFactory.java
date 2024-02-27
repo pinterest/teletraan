@@ -32,19 +32,20 @@ public class RoleAuthorizationFactory implements AuthorizationFactory {
     @Override
     public <P extends TeletraanPrincipal> Authorizer<P> create(
             TeletraanServiceContext context) throws Exception {
-        throw new UnsupportedOperationException("RoleAuthorizationFactory does not support this method. Use create(context, className) instead.");
+        throw new UnsupportedOperationException(
+                "RoleAuthorizationFactory does not support this method. Use create(TeletraanServiceContext, Class<P>) instead.");
     }
 
     @Override
-    public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context, String className)
+    public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context, Class<P> principalClass)
             throws Exception {
-        if (className.equals(ServiceRoleAuthorizer.class.getSimpleName())) {
+        if (principalClass.equals(ServicePrincipal.class)) {
             return (Authorizer<P>) new ServiceRoleAuthorizer<ValueBasedRole, TeletraanPrincipalRoles, ServicePrincipal<ValueBasedRole>>(
                     context.getAuthZResourceExtractorFactory(), TeletraanPrincipalRoles.class);
-        } else if (className.equals(UserRoleAuthorizer.class.getSimpleName())) {
+        } else if (principalClass.equals(UserPrincipal.class)) {
             return (Authorizer<P>) new UserRoleAuthorizer<UserPrincipal>(context,
                     context.getAuthZResourceExtractorFactory());
         }
-        throw new UnsupportedOperationException("Unsupported class name: " + className);
+        throw new UnsupportedOperationException("Unsupported principal class: " + principalClass);
     }
 }

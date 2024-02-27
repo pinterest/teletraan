@@ -28,15 +28,14 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.TeletraanScriptTokenProvider;
-import com.pinterest.teletraan.security.UserRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.OAuthAuthenticator;
 import com.pinterest.teletraan.universal.security.ScriptTokenAuthenticator;
-import com.pinterest.teletraan.universal.security.ServiceRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 
 import io.dropwizard.auth.AuthFilter;
+import io.dropwizard.auth.Authorizer;
 import io.dropwizard.auth.CachingAuthenticator;
 import io.dropwizard.auth.chained.ChainedAuthFilter;
 import io.dropwizard.auth.oauth.OAuthCredentialAuthFilter;
@@ -107,7 +106,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
         return new ChainedAuthFilter(filters);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     List<AuthFilter> createAuthFilters(TeletraanServiceContext context) throws Exception {
         MetricRegistry registry = SharedMetricRegistries.getDefault();
         Caffeine<Object, Object> cacheBuilder = Caffeine.from(getTokenCacheSpec());
@@ -117,8 +116,8 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 cacheBuilder);
         AuthFilter<String, ServicePrincipal<ValueBasedRole>> scriptTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<ServicePrincipal<ValueBasedRole>>()
                 .setAuthenticator(cachingScriptTokenAuthenticator)
-                .setAuthorizer(
-                        context.getAuthorizationFactory().create(context, ServiceRoleAuthorizer.class.getSimpleName()))
+                .setAuthorizer((Authorizer<ServicePrincipal<ValueBasedRole>>) context.getAuthorizationFactory()
+                        .create(context, ServicePrincipal.class))
                 .setPrefix("token")
                 .buildAuthFilter();
 
@@ -126,8 +125,8 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 registry, new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()), cacheBuilder);
         AuthFilter<String, UserPrincipal> jwtTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(cachingOAuthJwtAuthenticator)
-                .setAuthorizer(
-                        context.getAuthorizationFactory().create(context, UserRoleAuthorizer.class.getSimpleName()))
+                .setAuthorizer((Authorizer<UserPrincipal>) context.getAuthorizationFactory().create(context,
+                        UserPrincipal.class))
                 .setPrefix("Bearer")
                 .buildAuthFilter();
 
@@ -137,8 +136,8 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 registry, new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()), cacheBuilder);
         AuthFilter<String, UserPrincipal> oauthTokenAuthFilter = new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                 .setAuthenticator(cachingOAuthAuthenticator)
-                .setAuthorizer(
-                        context.getAuthorizationFactory().create(context, UserRoleAuthorizer.class.getSimpleName()))
+                .setAuthorizer((Authorizer<UserPrincipal>) context.getAuthorizationFactory().create(context,
+                        UserPrincipal.class))
                 .setPrefix("token")
                 .buildAuthFilter();
 

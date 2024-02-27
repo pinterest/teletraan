@@ -15,18 +15,40 @@
  */
 package com.pinterest.teletraan.resource;
 
+import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.validation.constraints.NotNull;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+
+import org.hibernate.validator.constraints.NotEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvTagHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
@@ -35,21 +57,6 @@ import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipalRoles;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-
-import org.hibernate.validator.constraints.NotEmpty;
-
-import javax.annotation.security.RolesAllowed;
-import javax.validation.constraints.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-
-import java.util.UUID;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}")
 @Api(tags = "Environments")
@@ -66,6 +73,7 @@ public class EnvStages {
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private TagHandler tagHandler;
+
 
     public EnvStages(TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
@@ -103,9 +111,9 @@ public class EnvStages {
         Boolean originalIsSox = origBean.getIs_sox() != null ? origBean.getIs_sox() : false;
 
         if (environBean.getIs_sox() == null) {
-          environBean.setIs_sox(originalIsSox);
+            environBean.setIs_sox(originalIsSox);
         } else if (originalIsSox != environBean.getIs_sox()) {
-          authorizeChangingSox();
+            throw new TeletaanInternalException(Response.Status.FORBIDDEN, "Modification of isSox flag is not allowed!");
         }
 
         String operator = sc.getUserPrincipal().getName();
@@ -138,10 +146,23 @@ public class EnvStages {
     }
 
     @PUT
+    @Path("/is-sox/{booleanValue}")
+    @ApiOperation(
+            value = "Update an environment/stage's isSox flag"
+    )
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, IdLocation = Location.PATH)
-    void authorizeChangingSox() {
-        // no-op
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM, IdLocation = Location.PATH)
+    public void updateIsSox(@Context SecurityContext sc,
+                       @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+                       @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+                       @ApiParam(value = "Is sox flag", required = true)@PathParam("booleanValue") boolean isSox) throws Exception {
+        final EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
+        origBean.setIs_sox(isSox);
+        String operator = sc.getUserPrincipal().getName();
+        environHandler.updateStage(origBean, operator);
+        configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, origBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator, origBean.getExternal_id());
+        LOG.info("Successfully updated env {}/{} isSox flag to {} by {}.", envName, stageName, isSox, operator);
     }
 
     @DELETE

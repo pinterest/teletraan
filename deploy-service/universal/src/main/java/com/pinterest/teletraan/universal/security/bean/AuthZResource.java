@@ -17,6 +17,11 @@ public class AuthZResource {
         this(name, type, null);
     }
 
+    public AuthZResource(String envName, String stageName) {
+        this.name = String.format("%s/%s", envName, stageName);
+        this.type = Type.ENV_STAGE;
+    }
+
     public enum Type {
         ENV,
         GROUP,

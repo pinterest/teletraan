@@ -33,7 +33,7 @@ public class ServiceRoleAuthorizer<R extends Role<R>, RE extends Enum<RE> & Role
 
         AuthZResource requestedResource;
         try {
-            requestedResource = extractorFactory.create(authZInfo).extractResource(context);
+            requestedResource = extractorFactory.create(authZInfo).extractResource(context, authZInfo.beanClass());
         } catch (Exception ex) {
             LOG.warn("Failed to extract resource", ex);
             return false;

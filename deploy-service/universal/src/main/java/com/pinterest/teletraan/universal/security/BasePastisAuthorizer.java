@@ -43,7 +43,7 @@ public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuth
 
         AuthZResource resource;
         try {
-            resource = extractorFactory.create(authZInfo).extractResource(context);
+            resource = extractorFactory.create(authZInfo).extractResource(context, authZInfo.beanClass());
         } catch (Exception ex) {
             LOG.warn("Failed to extract resource", ex);
             return false;
@@ -53,7 +53,7 @@ public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuth
         Map<String, PastisRequest> payload = new HashMap<>();
         payload.put(
                 "input",
-                new PastisRequest(principal, context.getMethod(), resource));
+                new PastisRequest(principal, role, resource));
         try {
             String pastisPayload = gson.toJson(payload);
             boolean authorized = pastis.authorize(pastisPayload);
