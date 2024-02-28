@@ -22,14 +22,14 @@ import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
+import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ServiceRoleAuthorizerTest {
     private ServiceContext context;
-    private ServiceRoleAuthorizer authorizer;
+    private ScriptTokenRoleAuthorizer authorizer;
 
     private TokenRolesBean sysAdmin;
     private TokenRolesBean sysOperator;
@@ -48,7 +48,7 @@ public class ServiceRoleAuthorizerTest {
     public void setUp() throws Exception {
         context = new ServiceContext();
         context.setUserRolesDAO(null);
-        authorizer = new ServiceRoleAuthorizer(null);
+        authorizer = new ScriptTokenRoleAuthorizer(null);
 
         sysAdmin = new TokenRolesBean();
         sysAdmin.setResource_id(AuthZResource.ALL);
@@ -89,8 +89,8 @@ public class ServiceRoleAuthorizerTest {
     private void checkPositive(
             TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles role)
             throws Exception {
-        ServicePrincipal<ValueBasedRole> principal =
-                new ServicePrincipal<>(
+            ScriptTokenPrincipal<ValueBasedRole> principal =
+                new ScriptTokenPrincipal<>(
                         "testPrincipal",
                         bean.getRole().getRole(),
                         new AuthZResource(bean.getResource_id(), bean.getResource_type()));
@@ -100,8 +100,8 @@ public class ServiceRoleAuthorizerTest {
     private void checkNegative(
             TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles requiredRole)
             throws Exception {
-        ServicePrincipal<ValueBasedRole> principal =
-                new ServicePrincipal<>(
+        ScriptTokenPrincipal<ValueBasedRole> principal =
+                new ScriptTokenPrincipal<>(
                         "testPrincipal",
                         bean.getRole().getRole(),
                         new AuthZResource(bean.getResource_id(), bean.getResource_type()));

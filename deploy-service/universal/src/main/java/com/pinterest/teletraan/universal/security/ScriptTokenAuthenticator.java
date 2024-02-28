@@ -16,7 +16,7 @@
 package com.pinterest.teletraan.universal.security;
 
 import com.pinterest.teletraan.universal.security.bean.Role;
-import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
+import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import io.dropwizard.auth.AuthenticationException;
 import io.dropwizard.auth.Authenticator;
 import java.util.Optional;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  * ScriptTokenAuthenticator is an authenticator that authenticates a principal using a script token.
  */
 public class ScriptTokenAuthenticator<R extends Role<R>>
-        implements Authenticator<String, ServicePrincipal<R>> {
+        implements Authenticator<String, ScriptTokenPrincipal<R>> {
     private static final Logger LOG = LoggerFactory.getLogger(ScriptTokenAuthenticator.class);
 
     private ScriptTokenProvider<R> tokenProvider;
@@ -37,7 +37,7 @@ public class ScriptTokenAuthenticator<R extends Role<R>>
     }
 
     @Override
-    public Optional<ServicePrincipal<R>> authenticate(String credentials)
+    public Optional<ScriptTokenPrincipal<R>> authenticate(String credentials)
             throws AuthenticationException {
         LOG.debug("Authenticating...");
         return Optional.ofNullable(tokenProvider.getPrincipal(credentials));

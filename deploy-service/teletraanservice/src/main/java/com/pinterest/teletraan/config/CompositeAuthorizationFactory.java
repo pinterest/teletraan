@@ -18,7 +18,7 @@ package com.pinterest.teletraan.config;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.ServiceRoleAuthorizer;
+import com.pinterest.teletraan.security.ScriptTokenRoleAuthorizer;
 import com.pinterest.teletraan.security.UserRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.BasePastisAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
@@ -51,7 +51,7 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
     public <P extends TeletraanPrincipal> Authorizer<? extends TeletraanPrincipal> create(
             TeletraanServiceContext context, Class<P> principalClass) throws Exception {
         if (principalClass.equals(ServicePrincipal.class)) {
-            return new ServiceRoleAuthorizer(context.getAuthZResourceExtractorFactory());
+            return new ScriptTokenRoleAuthorizer(context.getAuthZResourceExtractorFactory());
         } else if (principalClass.equals(UserPrincipal.class)) {
             return new UserRoleAuthorizer(context, context.getAuthZResourceExtractorFactory());
         }

@@ -18,7 +18,7 @@ package com.pinterest.teletraan.security;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ScriptTokenProvider;
-import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
+import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,12 +34,12 @@ public class TeletraanScriptTokenProvider implements ScriptTokenProvider<ValueBa
     }
 
     @Override
-    public ServicePrincipal<ValueBasedRole> getPrincipal(String token) {
+    public ScriptTokenPrincipal<ValueBasedRole> getPrincipal(String token) {
         try {
             TokenRolesBean tokenRolesBean = context.getTokenRolesDAO().getByToken(token);
 
             if (tokenRolesBean != null) {
-                return new ServicePrincipal<ValueBasedRole>(
+                return new ScriptTokenPrincipal<>(
                         tokenRolesBean.getScript_name(), tokenRolesBean.getRole().getRole(), null);
             }
         } catch (Exception e) {

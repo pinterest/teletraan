@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.pinterest.teletraan.universal.security;
+package com.pinterest.teletraan.universal.security.bean;
 
-import com.pinterest.teletraan.universal.security.bean.Role;
-import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
+import lombok.Data;
 
-/**
- * ScriptTokenProvider is an interface that provides a way to get a principal from a script token.
- */
-public interface ScriptTokenProvider<R extends Role<R>> {
-    ScriptTokenPrincipal<R> getPrincipal(String token);
+@Data
+public class ScriptTokenPrincipal<R extends Role<R>> extends ServicePrincipal {
+    private final R role;
+    private final AuthZResource resource;
+
+    public ScriptTokenPrincipal(String name, R role, AuthZResource resource) {
+        super(name);
+        this.role = role;
+        this.resource = resource;
+    }
 }

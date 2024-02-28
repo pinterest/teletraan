@@ -49,8 +49,13 @@ class EnvoyAuthFilterTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"group1 group2   group3", "group1,group2,,group3",
-            "group1, group2,,   group3", " group1,group2,group3 "})
+    @ValueSource(
+            strings = {
+                "group1 group2   group3",
+                "group1,group2,,group3",
+                "group1, group2,,   group3",
+                " group1,group2,group3 "
+            })
     void getGroups_space(String groups) {
         List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
         assertNotNull(groupsList);

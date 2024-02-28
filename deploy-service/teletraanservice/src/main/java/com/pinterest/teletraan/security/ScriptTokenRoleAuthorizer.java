@@ -19,23 +19,23 @@ import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.BaseAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
+import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import javax.annotation.Nullable;
 import javax.ws.rs.container.ContainerRequestContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ServiceRoleAuthorizer extends BaseAuthorizer<ServicePrincipal<ValueBasedRole>> {
-    private static final Logger LOG = LoggerFactory.getLogger(ServiceRoleAuthorizer.class);
+public class ScriptTokenRoleAuthorizer extends BaseAuthorizer<ScriptTokenPrincipal<ValueBasedRole>> {
+    private static final Logger LOG = LoggerFactory.getLogger(ScriptTokenRoleAuthorizer.class);
 
-    public ServiceRoleAuthorizer(AuthZResourceExtractor.Factory authZResourceExtractorFactory) {
+    public ScriptTokenRoleAuthorizer(AuthZResourceExtractor.Factory authZResourceExtractorFactory) {
         super(authZResourceExtractorFactory);
     }
 
     @Override
     public boolean authorize(
-            ServicePrincipal<ValueBasedRole> principal,
+            ScriptTokenPrincipal<ValueBasedRole> principal,
             String role,
             AuthZResource requestedResource,
             @Nullable ContainerRequestContext context) {

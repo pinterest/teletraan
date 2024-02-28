@@ -23,7 +23,6 @@ import com.pinterest.commons.pastis.PastisAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
-import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import java.io.IOException;
 import java.util.Arrays;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -89,9 +88,8 @@ class BasePastisAuthorizerTest {
 
     @Test
     void testAuthorizeServicePrincipal() throws IOException {
-        BasePastisAuthorizer<ServicePrincipal<ValueBasedRole>> sut =
-                new BasePastisAuthorizer<>(pastis, factory);
-        ServicePrincipal<ValueBasedRole> principal = new ServicePrincipal<>(spiffeId);
+        BasePastisAuthorizer<ServicePrincipal> sut = new BasePastisAuthorizer<>(pastis, factory);
+        ServicePrincipal principal = new ServicePrincipal(spiffeId);
         sut.authorize(principal, actionRead, resource, context);
         verify(pastis)
                 .authorize(

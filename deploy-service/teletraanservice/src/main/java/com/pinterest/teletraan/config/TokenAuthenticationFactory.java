@@ -24,6 +24,7 @@ import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.security.TeletraanScriptTokenProvider;
 import com.pinterest.teletraan.universal.security.OAuthAuthenticator;
 import com.pinterest.teletraan.universal.security.ScriptTokenAuthenticator;
+import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
@@ -102,18 +103,18 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
         MetricRegistry registry = SharedMetricRegistries.getDefault();
         Caffeine<Object, Object> cacheBuilder = Caffeine.from(getTokenCacheSpec());
 
-        CachingAuthenticator<String, ServicePrincipal<ValueBasedRole>>
+        CachingAuthenticator<String, ScriptTokenPrincipal<ValueBasedRole>>
                 cachingScriptTokenAuthenticator =
                         new CachingAuthenticator<>(
                                 registry,
                                 new ScriptTokenAuthenticator<ValueBasedRole>(
                                         new TeletraanScriptTokenProvider(context)),
                                 cacheBuilder);
-        AuthFilter<String, ServicePrincipal<ValueBasedRole>> scriptTokenAuthFilter =
-                new OAuthCredentialAuthFilter.Builder<ServicePrincipal<ValueBasedRole>>()
+        AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> scriptTokenAuthFilter =
+                new OAuthCredentialAuthFilter.Builder<ScriptTokenPrincipal<ValueBasedRole>>()
                         .setAuthenticator(cachingScriptTokenAuthenticator)
                         .setAuthorizer(
-                                (Authorizer<ServicePrincipal<ValueBasedRole>>)
+                                (Authorizer<ScriptTokenPrincipal<ValueBasedRole>>)
                                         context.getAuthorizationFactory()
                                                 .create(context, ServicePrincipal.class))
                         .setPrefix("token")
