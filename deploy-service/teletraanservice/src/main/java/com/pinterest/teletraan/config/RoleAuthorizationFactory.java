@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,25 +22,22 @@ import com.pinterest.teletraan.security.UserRoleAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
-
 import io.dropwizard.auth.Authorizer;
 
 @JsonTypeName("role")
 public class RoleAuthorizationFactory implements AuthorizationFactory {
     @Override
-    public <P extends TeletraanPrincipal> Authorizer<P> create(
-            TeletraanServiceContext context) throws Exception {
+    public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context)
+            throws Exception {
         throw new UnsupportedOperationException(
                 "RoleAuthorizationFactory does not support this method. Use create(TeletraanServiceContext, Class<P>) instead.");
     }
 
     @Override
     public <P extends TeletraanPrincipal> Authorizer<? extends TeletraanPrincipal> create(
-            TeletraanServiceContext context, Class<P> principalClass)
-            throws Exception {
+            TeletraanServiceContext context, Class<P> principalClass) throws Exception {
         if (principalClass.equals(ServicePrincipal.class)) {
-            return new ServiceRoleAuthorizer(
-                    context.getAuthZResourceExtractorFactory());
+            return new ServiceRoleAuthorizer(context.getAuthZResourceExtractorFactory());
         } else if (principalClass.equals(UserPrincipal.class)) {
             return new UserRoleAuthorizer(context, context.getAuthZResourceExtractorFactory());
         }

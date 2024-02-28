@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,17 @@
  */
 package com.pinterest.teletraan.security;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
-
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class ServiceRoleAuthorizerTest {
     private ServiceContext context;
@@ -87,17 +86,25 @@ public class ServiceRoleAuthorizerTest {
         envXStage = new AuthZResource("envX", AuthZResource.Type.ENV_STAGE);
     }
 
-    private void checkPositive(TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles role)
+    private void checkPositive(
+            TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles role)
             throws Exception {
-        ServicePrincipal<ValueBasedRole> principal = new ServicePrincipal<>("testPrincipal", bean.getRole().getRole(),
-                new AuthZResource(bean.getResource_id(), bean.getResource_type()));
+        ServicePrincipal<ValueBasedRole> principal =
+                new ServicePrincipal<>(
+                        "testPrincipal",
+                        bean.getRole().getRole(),
+                        new AuthZResource(bean.getResource_id(), bean.getResource_type()));
         assertTrue(authorizer.authorize(principal, role.name(), resource, null));
     }
 
-    private void checkNegative(TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles requiredRole)
+    private void checkNegative(
+            TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles requiredRole)
             throws Exception {
-        ServicePrincipal<ValueBasedRole> principal = new ServicePrincipal<>("testPrincipal", bean.getRole().getRole(),
-                new AuthZResource(bean.getResource_id(), bean.getResource_type()));
+        ServicePrincipal<ValueBasedRole> principal =
+                new ServicePrincipal<>(
+                        "testPrincipal",
+                        bean.getRole().getRole(),
+                        new AuthZResource(bean.getResource_id(), bean.getResource_type()));
         assertFalse(authorizer.authorize(principal, requiredRole.name(), resource, null));
     }
 

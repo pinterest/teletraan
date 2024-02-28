@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,19 @@
  */
 package com.pinterest.teletraan.security;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 
 public class UserRoleAuthorizerTest {
     private ServiceContext context;
@@ -77,29 +76,39 @@ public class UserRoleAuthorizerTest {
         envX = new AuthZResource(envXName, AuthZResource.Type.ENV);
     }
 
-    private void checkPositive(String userName, AuthZResource resource, TeletraanPrincipalRoles role) throws Exception {
+    private void checkPositive(
+            String userName, AuthZResource resource, TeletraanPrincipalRoles role)
+            throws Exception {
         UserPrincipal userPrincipal = new UserPrincipal(userName, null);
         assertTrue(authorizer.authorize(userPrincipal, role.name(), resource, null));
     }
 
-    private void checkNegative(String userName, AuthZResource resource, TeletraanPrincipalRoles role) throws Exception {
+    private void checkNegative(
+            String userName, AuthZResource resource, TeletraanPrincipalRoles role)
+            throws Exception {
         UserPrincipal userPrincipal = new UserPrincipal(userName, null);
         assertFalse(authorizer.authorize(userPrincipal, role.name(), resource, null));
     }
 
     @Test
     public void testSysSys() throws Exception {
-        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
+        when(userRolesDAO.getByNameAndResource(
+                        envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(sysAdmin);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.READER);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
 
-        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysOperator);
+        when(userRolesDAO.getByNameAndResource(
+                        envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(sysOperator);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.READER);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
 
-        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysReader);
+        when(userRolesDAO.getByNameAndResource(
+                        envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(sysReader);
         checkPositive(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.READER);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
@@ -107,50 +116,69 @@ public class UserRoleAuthorizerTest {
 
     @Test
     public void testEnvSys() throws Exception {
-        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
+        when(userRolesDAO.getByNameAndResource(
+                        envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(null);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.OPERATOR);
         checkNegative(envXName, AuthZResource.SYSTEM_RESOURCE, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testEnvXEnv1() throws Exception {
-        when(userRolesDAO.getByNameAndResource(envXName, env1Name, AuthZResource.Type.ENV)).thenReturn(null);
-        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
+        when(userRolesDAO.getByNameAndResource(envXName, env1Name, AuthZResource.Type.ENV))
+                .thenReturn(null);
+        when(userRolesDAO.getByNameAndResource(
+                        envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(null);
         checkNegative(envXName, env1, TeletraanPrincipalRoles.OPERATOR);
-        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
+        when(userRolesDAO.getByNameAndResource(
+                        envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(sysAdmin);
         checkPositive(envXName, env1, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testEnvXEnvX() throws Exception {
-        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envAdmin);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV))
+                .thenReturn(envAdmin);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.ADMIN);
 
-        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envOperator);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV))
+                .thenReturn(envOperator);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.ADMIN);
 
-        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envReader);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV))
+                .thenReturn(envReader);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
     public void testSysEnvX() throws Exception {
-        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envAdmin);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV))
+                .thenReturn(envAdmin);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.ADMIN);
 
-        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envOperator);
-        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysAdmin);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV))
+                .thenReturn(envOperator);
+        when(userRolesDAO.getByNameAndResource(
+                        envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(sysAdmin);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
         checkPositive(envXName, envX, TeletraanPrincipalRoles.ADMIN);
 
-        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV)).thenReturn(envReader);
-        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(null);
+        when(userRolesDAO.getByNameAndResource(envXName, envXName, AuthZResource.Type.ENV))
+                .thenReturn(envReader);
+        when(userRolesDAO.getByNameAndResource(
+                        envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(null);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.OPERATOR);
-        when(userRolesDAO.getByNameAndResource(envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(sysOperator);
+        when(userRolesDAO.getByNameAndResource(
+                        envXName, AuthZResource.ALL, AuthZResource.Type.SYSTEM))
+                .thenReturn(sysOperator);
         checkNegative(envXName, envX, TeletraanPrincipalRoles.ADMIN);
     }
 }
