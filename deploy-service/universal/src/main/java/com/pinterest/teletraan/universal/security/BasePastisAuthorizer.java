@@ -18,9 +18,7 @@ package com.pinterest.teletraan.universal.security;
 import com.google.gson.Gson;
 import com.pinterest.commons.pastis.PastisAuthorizer;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
-import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
-import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,38 +72,20 @@ public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuth
     @AllArgsConstructor
     protected static class PastisPrincipal {
         private final String id;
-        private final Type type;
+        private final String type;
         private List<String> groups;
-
-        private enum Type {
-            USER,
-            SERVICE
-        }
     }
 
     protected static class PastisRequest {
         private final PastisPrincipal principal;
-        private final String method;
+        private final String action;
         private final AuthZResource resource;
 
-        public PastisRequest(TeletraanPrincipal principal, String method, AuthZResource resource) {
-            if (principal instanceof UserPrincipal) {
-                this.principal =
-                        new PastisPrincipal(
-                                principal.getName(),
-                                PastisPrincipal.Type.USER,
-                                principal.getGroups());
-            } else if (principal instanceof ServicePrincipal) {
-                this.principal =
-                        new PastisPrincipal(
-                                principal.getName(),
-                                PastisPrincipal.Type.SERVICE,
-                                principal.getGroups());
-            } else {
-                LOG.warn("Principal type not supported.");
-                throw new IllegalArgumentException("Principal type not supported.");
-            }
-            this.method = method;
+        public PastisRequest(TeletraanPrincipal principal, String action, AuthZResource resource) {
+            this.principal =
+                    new PastisPrincipal(
+                            principal.getName(), principal.getType().name(), principal.getGroups());
+            this.action = action;
             this.resource = resource;
         }
     }

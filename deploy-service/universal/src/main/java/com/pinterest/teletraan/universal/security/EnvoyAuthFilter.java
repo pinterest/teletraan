@@ -26,12 +26,12 @@ import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.SecurityContext;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 @Priority(Priorities.AUTHENTICATION)
+@NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<EnvoyCredentials, P> {
-    private EnvoyAuthFilter() {}
-
     @Override
     public void filter(final ContainerRequestContext requestContext) throws IOException {
         EnvoyCredentials credentials = getCredentials(requestContext);
@@ -113,6 +113,6 @@ public class EnvoyAuthFilter<P extends Principal> extends AuthFilter<EnvoyCreden
         if (header == null) {
             return null;
         }
-        return Arrays.asList(header.split("[\\s,]+"));
+        return Arrays.asList(header.trim().split("[\\s,]+"));
     }
 }

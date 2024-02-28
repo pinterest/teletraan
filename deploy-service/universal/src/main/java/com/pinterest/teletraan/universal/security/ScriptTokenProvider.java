@@ -18,6 +18,9 @@ package com.pinterest.teletraan.universal.security;
 import com.pinterest.teletraan.universal.security.bean.Role;
 import com.pinterest.teletraan.universal.security.bean.ServicePrincipal;
 
+/**
+ * ScriptTokenProvider is an interface that provides a way to get a principal from a script token.
+ */
 public interface ScriptTokenProvider<R extends Role<R>> {
     ServicePrincipal<R> getPrincipal(String token);
 }

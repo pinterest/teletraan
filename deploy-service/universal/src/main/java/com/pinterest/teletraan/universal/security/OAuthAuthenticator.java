@@ -65,7 +65,7 @@ public class OAuthAuthenticator implements Authenticator<String, UserPrincipal> 
         }
     }
 
-    private List<String> getUserGroups(String token) throws Exception {
+    private List<String> getUserGroups(String token) {
         if (StringUtils.isEmpty(groupDataUrl)) {
             return Collections.emptyList();
         }
@@ -90,14 +90,14 @@ public class OAuthAuthenticator implements Authenticator<String, UserPrincipal> 
         if (element.getAsJsonObject().has("groups")) {
             JsonArray jsonArray = element.getAsJsonObject().getAsJsonArray("groups");
             String[] groups = gson.fromJson(jsonArray, String[].class);
-            LOG.debug("Retrieved groups " + Arrays.asList(groups).toString() + " from token.");
+            LOG.debug("Retrieved groups {} from token.", Arrays.asList(groups));
             return Arrays.asList(groups);
         }
 
         return Collections.emptyList();
     }
 
-    private String getUsername(String token) throws Exception {
+    private String getUsername(String token) {
         String uri = String.format("?access_token=%s", token);
         String jsonResponse =
                 userDataClient
@@ -111,7 +111,7 @@ public class OAuthAuthenticator implements Authenticator<String, UserPrincipal> 
         JsonObject jsonObject = new JsonParser().parse(jsonResponse).getAsJsonObject();
         JsonObject userObject = jsonObject.getAsJsonObject("user");
         String userName = userObject.get("username").getAsString();
-        LOG.debug("Retrieved username " + userName + " from token.");
+        LOG.debug("Retrieved username {} from token.", userName);
         return userName;
     }
 }

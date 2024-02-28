@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 public class ServicePrincipal<R extends Role<R>> implements TeletraanPrincipal {
 
     private final String name;
-    @Deprecated private String group;
+    private String group;
     @Deprecated private R role;
     @Deprecated private AuthZResource resource;
 
@@ -37,12 +37,16 @@ public class ServicePrincipal<R extends Role<R>> implements TeletraanPrincipal {
         this.resource = resource;
     }
 
-    @Deprecated
     public List<String> getGroups() {
         if (StringUtils.isBlank(group)) {
             return Lists.newArrayList();
         } else {
             return Lists.newArrayList(group);
         }
+    }
+
+    @Override
+    public Type getType() {
+        return Type.SERVICE;
     }
 }

@@ -23,6 +23,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * ScriptTokenAuthenticator is an authenticator that authenticates a principal using a script token.
+ */
 public class ScriptTokenAuthenticator<R extends Role<R>>
         implements Authenticator<String, ServicePrincipal<R>> {
     private static final Logger LOG = LoggerFactory.getLogger(ScriptTokenAuthenticator.class);

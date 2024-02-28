@@ -20,4 +20,11 @@ import java.util.List;
 
 public interface TeletraanPrincipal extends Principal {
     List<String> getGroups();
+
+    Type getType();
+
+    public enum Type {
+        USER,
+        SERVICE
+    }
 }

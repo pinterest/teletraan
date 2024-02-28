@@ -24,4 +24,9 @@ import lombok.RequiredArgsConstructor;
 public class UserPrincipal implements TeletraanPrincipal {
     private final String name;
     private final List<String> groups;
+
+    @Override
+    public Type getType() {
+        return Type.USER;
+    }
 }

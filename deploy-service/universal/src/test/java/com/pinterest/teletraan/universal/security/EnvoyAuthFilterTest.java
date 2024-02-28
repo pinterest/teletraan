@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class EnvoyAuthFilterTest {
     private static final String CERT_HEADER =
@@ -46,25 +48,10 @@ class EnvoyAuthFilterTest {
         assertNull(spiffeId);
     }
 
-    @Test
-    void getGroups_space() {
-        String groups = "group1 group2   group3";
-        List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
-        assertNotNull(groupsList);
-        assertEquals(3, groupsList.size());
-    }
-
-    @Test
-    void getGroups_comma() {
-        String groups = "group1,group2,,group3";
-        List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
-        assertNotNull(groupsList);
-        assertEquals(3, groupsList.size());
-    }
-
-    @Test
-    void getGroups_commaAndSpace() {
-        String groups = "group1, group2,,   group3";
+    @ParameterizedTest
+    @ValueSource(strings = {"group1 group2   group3", "group1,group2,,group3",
+            "group1, group2,,   group3", " group1,group2,group3 "})
+    void getGroups_space(String groups) {
         List<String> groupsList = EnvoyAuthFilter.getGroups(groups);
         assertNotNull(groupsList);
         assertEquals(3, groupsList.size());

@@ -28,7 +28,7 @@ import javax.ws.rs.ext.Provider;
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class AnonymousAuthFilter implements ContainerRequestFilter {
-    private static final AnonymousUser user = new AnonymousUser();
+    private static final AnonymousUser USER = new AnonymousUser();
     private SecurityContext securityContext;
 
     public AnonymousAuthFilter() {
@@ -37,7 +37,7 @@ public class AnonymousAuthFilter implements ContainerRequestFilter {
 
                     @Override
                     public Principal getUserPrincipal() {
-                        return AnonymousAuthFilter.user;
+                        return AnonymousAuthFilter.USER;
                     }
 
                     @Override
