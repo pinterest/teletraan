@@ -30,7 +30,8 @@ import io.dropwizard.auth.Authorizer;
 public class CompositeAuthorizationFactory implements AuthorizationFactory {
     private static final String DEFAULT_PASTIS_SERVICE_NAME = "teletraan_dev";
 
-    @JsonProperty private String pastisServiceName = DEFAULT_PASTIS_SERVICE_NAME;
+    @JsonProperty
+    private String pastisServiceName = DEFAULT_PASTIS_SERVICE_NAME;
 
     public void setPastisServiceName(String pastisServiceName) {
         this.pastisServiceName = pastisServiceName;
@@ -43,8 +44,8 @@ public class CompositeAuthorizationFactory implements AuthorizationFactory {
     @Override
     public <P extends TeletraanPrincipal> Authorizer<P> create(TeletraanServiceContext context)
             throws Exception {
-        return new BasePastisAuthorizer<P>(
-                pastisServiceName, context.getAuthZResourceExtractorFactory());
+        return (Authorizer<P>) BasePastisAuthorizer.builder().factory(context.getAuthZResourceExtractorFactory())
+                .serviceName(pastisServiceName).build();
     }
 
     @Override

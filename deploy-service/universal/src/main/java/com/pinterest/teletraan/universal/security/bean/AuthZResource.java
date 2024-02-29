@@ -15,24 +15,28 @@
  */
 package com.pinterest.teletraan.universal.security.bean;
 
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
 public class AuthZResource {
-    private String name;
+    private @Nonnull String name;
     private final Type type;
     private String accountId;
 
     public static final String ALL = "*";
     public static final AuthZResource SYSTEM_RESOURCE = new AuthZResource(ALL, Type.SYSTEM);
 
-    public AuthZResource(String name, Type type) {
+    public AuthZResource(@Nonnull String name, Type type) {
         this(name, type, null);
     }
 
     public AuthZResource(String envName, String stageName) {
+        if (envName == null) {
+            throw new IllegalArgumentException("envName cannot be null");
+        }
         this.name = String.format("%s/%s", envName, stageName);
         this.type = Type.ENV_STAGE;
     }
@@ -50,7 +54,7 @@ public class AuthZResource {
     }
 
     @Deprecated
-    public void setId(String id) {
+    public void setId(@Nonnull String id) {
         this.name = id;
     }
 }

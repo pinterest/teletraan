@@ -15,21 +15,20 @@
  */
 package com.pinterest.teletraan.security;
 
+import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.TokenRolesBean;
-import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.universal.security.ScriptTokenProvider;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Deprecated
 public class TeletraanScriptTokenProvider implements ScriptTokenProvider<ValueBasedRole> {
     private static final Logger LOG = LoggerFactory.getLogger(TeletraanScriptTokenProvider.class);
 
-    private TeletraanServiceContext context;
+    private ServiceContext context;
 
-    public TeletraanScriptTokenProvider(TeletraanServiceContext context) {
+    public TeletraanScriptTokenProvider(ServiceContext context) {
         this.context = context;
     }
 

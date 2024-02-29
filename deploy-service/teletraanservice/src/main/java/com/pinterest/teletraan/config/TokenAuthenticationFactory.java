@@ -107,7 +107,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 cachingScriptTokenAuthenticator =
                         new CachingAuthenticator<>(
                                 registry,
-                                new ScriptTokenAuthenticator<ValueBasedRole>(
+                                new ScriptTokenAuthenticator<>(
                                         new TeletraanScriptTokenProvider(context)),
                                 cacheBuilder);
         AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> scriptTokenAuthFilter =

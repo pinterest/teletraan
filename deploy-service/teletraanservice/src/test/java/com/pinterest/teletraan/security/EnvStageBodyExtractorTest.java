@@ -1,0 +1,132 @@
+package com.pinterest.teletraan.security;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+
+import javax.ws.rs.container.ContainerRequestContext;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.DeployBean;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.HotfixBean;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.teletraan.fixture.EnvironBeanFixture;
+import com.pinterest.teletraan.security.EnvStageBodyExtractor.BeanClassExtractionException;
+import com.pinterest.teletraan.universal.security.AuthZResourceExtractor.ExtractionException;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
+class EnvStageBodyExtractorTest {
+
+    private ContainerRequestContext context;
+    private EnvStageBodyExtractor sut;
+    private EnvironDAO environDAO;
+    private InputStream inputStream;
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @BeforeEach
+    void setUp() {
+        environDAO = mock(EnvironDAO.class);
+        context = mock(ContainerRequestContext.class);
+
+        ServiceContext serviceContext = new ServiceContext();
+        serviceContext.setEnvironDAO(environDAO);
+        sut = new EnvStageBodyExtractor(serviceContext);
+    }
+
+    @Test
+    void testExtractResource_nothing_exception() throws Exception {
+        inputStream = mock(InputStream.class);
+        when(context.getEntityStream()).thenReturn(inputStream);
+
+        assertThrows(ExtractionException.class, () -> sut.extractResource(context));
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = { EnvironBean.class, HotfixBean.class, DeployBean.class })
+    void testExtractResource_specificBeanClass_emptyStream(Class<?> beanClass) throws Exception {
+        inputStream = mock(InputStream.class);
+        when(context.getEntityStream()).thenReturn(inputStream);
+
+        assertThrows(BeanClassExtractionException.class, () -> sut.extractResource(context, beanClass));
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = { EnvironBean.class, HotfixBean.class, DeployBean.class })
+    void testExtractResource_environBean_success(Class<?> beanClass) throws Exception {
+        EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        objectMapper.writeValue(out, envBean);
+        inputStream = new ByteArrayInputStream(out.toByteArray());
+
+        when(context.getEntityStream()).thenReturn(inputStream);
+
+        if (beanClass.equals(EnvironBean.class)) {
+            AuthZResource resource = sut.extractResource(context, EnvironBean.class);
+            assertTrue(resource.getName().contains(envBean.getEnv_name()));
+            assertTrue(resource.getName().contains(envBean.getStage_name()));
+            assertEquals(AuthZResource.Type.ENV_STAGE, resource.getType());
+        } else {
+            assertThrows(BeanClassExtractionException.class, () -> sut.extractResource(context, beanClass));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = { EnvironBean.class, HotfixBean.class, DeployBean.class })
+    void testExtractResource_hotFixBean_success(Class<?> beanClass) throws Exception {
+        HotfixBean hotfixBean = new HotfixBean();
+        hotfixBean.setEnv_name("env_name");
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        objectMapper.writeValue(out, hotfixBean);
+        inputStream = new ByteArrayInputStream(out.toByteArray());
+
+        when(context.getEntityStream()).thenReturn(inputStream);
+
+        if (beanClass.equals(HotfixBean.class)) {
+
+            AuthZResource resource = sut.extractResource(context, HotfixBean.class);
+            assertTrue(resource.getName().contains(hotfixBean.getEnv_name()));
+            assertEquals(AuthZResource.Type.ENV_STAGE, resource.getType());
+        } else {
+            assertThrows(BeanClassExtractionException.class, () -> sut.extractResource(context, beanClass));
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = { EnvironBean.class, HotfixBean.class, DeployBean.class })
+    void testExtractResource_deployFixBean_success(Class<?> beanClass) throws Exception {
+        EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
+        DeployBean deployBean = new DeployBean();
+        String envId = "env_id";
+        deployBean.setEnv_id(envId);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        objectMapper.writeValue(out, deployBean);
+        inputStream = new ByteArrayInputStream(out.toByteArray());
+
+        when(context.getEntityStream()).thenReturn(inputStream);
+        when(environDAO.getById(envId)).thenReturn(envBean);
+
+        if (beanClass.equals(DeployBean.class)) {
+            AuthZResource resource = sut.extractResource(context, DeployBean.class);
+            assertTrue(resource.getName().contains(envBean.getEnv_name()));
+            assertTrue(resource.getName().contains(envBean.getStage_name()));
+            assertEquals(AuthZResource.Type.ENV_STAGE, resource.getType());
+        } else {
+            assertThrows(BeanClassExtractionException.class, () -> sut.extractResource(context, beanClass));
+        }
+    }
+
+}

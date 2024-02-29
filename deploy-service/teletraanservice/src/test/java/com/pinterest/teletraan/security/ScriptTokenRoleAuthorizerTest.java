@@ -27,7 +27,7 @@ import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ServiceRoleAuthorizerTest {
+public class ScriptTokenRoleAuthorizerTest {
     private ServiceContext context;
     private ScriptTokenRoleAuthorizer authorizer;
 
@@ -89,7 +89,7 @@ public class ServiceRoleAuthorizerTest {
     private void checkPositive(
             TokenRolesBean bean, AuthZResource resource, TeletraanPrincipalRoles role)
             throws Exception {
-            ScriptTokenPrincipal<ValueBasedRole> principal =
+        ScriptTokenPrincipal<ValueBasedRole> principal =
                 new ScriptTokenPrincipal<>(
                         "testPrincipal",
                         bean.getRole().getRole(),

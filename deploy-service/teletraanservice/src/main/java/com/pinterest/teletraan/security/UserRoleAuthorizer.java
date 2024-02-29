@@ -61,8 +61,7 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             TeletraanPrincipalRoles requiredRole = TeletraanPrincipalRoles.valueOf(role);
             if (requestedResource.getType().equals(AuthZResource.Type.ENV_STAGE)) {
                 // Convert to ENV for backward compatibility
-                requestedResource =
-                        new AuthZResource(requestedResource.getName(), AuthZResource.Type.ENV);
+                requestedResource = new AuthZResource(requestedResource.getName(), AuthZResource.Type.ENV);
             }
             // Consider group role(s)
             Set<String> groupsSet = new HashSet<>();
@@ -70,51 +69,41 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
                 // Convert to Set for lookup convenience
                 groupsSet.addAll(principal.getGroups());
 
-                List<GroupRolesBean> resourceGroupBeans =
-                        groupRolesDAO.getByResource(
-                                requestedResource.getName(), requestedResource.getType());
+                List<GroupRolesBean> resourceGroupBeans = groupRolesDAO.getByResource(
+                        requestedResource.getName(), requestedResource.getType());
                 for (GroupRolesBean resourceGroupBean : resourceGroupBeans) {
-                    if (groupsSet.contains(resourceGroupBean.getGroup_name())) {
-                        if (resourceGroupBean.getRole().isEqualOrSuperior(requiredRole)) {
-                            return true;
-                        }
+                    if (groupsSet.contains(resourceGroupBean.getGroup_name())
+                            && resourceGroupBean.getRole().isEqualOrSuperior(requiredRole)) {
+                        return true;
                     }
                 }
             }
 
             // Consider user role(s)
-            UserRolesBean userBean =
-                    userRolesDAO.getByNameAndResource(
-                            principal.getName(),
-                            requestedResource.getName(),
-                            requestedResource.getType());
-            if (userBean != null) {
-                if (userBean.getRole().isEqualOrSuperior(requiredRole)) {
-                    return true;
-                }
+            UserRolesBean userBean = userRolesDAO.getByNameAndResource(
+                    principal.getName(),
+                    requestedResource.getName(),
+                    requestedResource.getType());
+            if (userBean != null && userBean.getRole().isEqualOrSuperior(requiredRole)) {
+                return true;
             }
 
             // Check SYSTEM wide group role
             if (principal.getGroups() != null && !principal.getGroups().isEmpty()) {
-                List<GroupRolesBean> systemGroupBeans =
-                        groupRolesDAO.getByResource(AuthZResource.ALL, AuthZResource.Type.SYSTEM);
+                List<GroupRolesBean> systemGroupBeans = groupRolesDAO.getByResource(AuthZResource.ALL,
+                        AuthZResource.Type.SYSTEM);
                 for (GroupRolesBean group : systemGroupBeans) {
-                    if (groupsSet.contains(group.getGroup_name())) {
-                        if (group.getRole().isEqualOrSuperior(requiredRole)) {
-                            return true;
-                        }
+                    if (groupsSet.contains(group.getGroup_name()) && group.getRole().isEqualOrSuperior(requiredRole)) {
+                        return true;
                     }
                 }
             }
 
             // Consider SYSTEM wide role
-            UserRolesBean systemBean =
-                    userRolesDAO.getByNameAndResource(
-                            principal.getName(), AuthZResource.ALL, AuthZResource.Type.SYSTEM);
-            if (systemBean != null) {
-                if (systemBean.getRole().isEqualOrSuperior(requiredRole)) {
-                    return true;
-                }
+            UserRolesBean systemBean = userRolesDAO.getByNameAndResource(
+                    principal.getName(), AuthZResource.ALL, AuthZResource.Type.SYSTEM);
+            if (systemBean != null && systemBean.getRole().isEqualOrSuperior(requiredRole)) {
+                return true;
             }
 
             // Special case for creating a new environment
@@ -128,7 +117,9 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
                 }
             }
             return false;
-        } catch (Exception ex) {
+        } catch (
+
+        Exception ex) {
             LOG.error("Authorization failed", ex);
             return false;
         }

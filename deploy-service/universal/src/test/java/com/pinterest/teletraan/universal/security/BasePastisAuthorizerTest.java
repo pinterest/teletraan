@@ -102,10 +102,4 @@ class BasePastisAuthorizerTest {
                                 resource.getName(),
                                 resource.getType()));
     }
-
-    @Test
-    void testConstructor() {
-        BasePastisAuthorizer<UserPrincipal> sut = new BasePastisAuthorizer<>();
-        assertNotNull(sut);
-    }
 }

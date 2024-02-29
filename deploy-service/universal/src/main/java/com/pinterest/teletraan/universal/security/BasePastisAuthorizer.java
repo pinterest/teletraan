@@ -25,7 +25,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.ws.rs.container.ContainerRequestContext;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,12 +33,17 @@ public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuth
     private static final Logger LOG = LoggerFactory.getLogger(BasePastisAuthorizer.class);
     protected final PastisAuthorizer pastis;
 
-    public BasePastisAuthorizer() {
-        this("teletraan_dev", null);
-    }
-
-    public BasePastisAuthorizer(String serviceName, AuthZResourceExtractor.Factory factory) {
-        this(new PastisAuthorizer(serviceName), factory);
+    @Builder
+    private BasePastisAuthorizer(String serviceName, PastisAuthorizer pastis, AuthZResourceExtractor.Factory factory) {
+        super(factory);
+        if (pastis == null) {
+            if (serviceName == null) {
+                throw new IllegalArgumentException("PastisAuthorizer and serviceName cannot both be null");
+            }
+            this.pastis = new PastisAuthorizer(serviceName);
+        } else {
+            this.pastis = pastis;
+        }
     }
 
     public BasePastisAuthorizer(PastisAuthorizer pastis, AuthZResourceExtractor.Factory factory) {
@@ -68,7 +73,6 @@ public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuth
         }
     }
 
-    @Data
     @AllArgsConstructor
     protected static class PastisPrincipal {
         private final String id;
