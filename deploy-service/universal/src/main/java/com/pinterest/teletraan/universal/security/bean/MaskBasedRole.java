@@ -15,6 +15,10 @@
  */
 package com.pinterest.teletraan.universal.security.bean;
 
+/**
+ * MaskBasedRole is a role that is based on a mask which is used for role comparison.
+ * The use of mask is similar to Unix file permission.
+ */
 public class MaskBasedRole implements Role<MaskBasedRole> {
     private long mask;
 
@@ -32,6 +36,6 @@ public class MaskBasedRole implements Role<MaskBasedRole> {
 
     @Override
     public boolean isEqualOrSuperior(MaskBasedRole requiredRole) {
-        return (this.mask & requiredRole.mask) == mask;
+        return (mask & requiredRole.mask) == requiredRole.mask;
     }
 }

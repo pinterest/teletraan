@@ -15,6 +15,10 @@
  */
 package com.pinterest.teletraan.universal.security.bean;
 
+/**
+ * ValueBasedRole is a role that is based on a value. It is used to compare roles based on their
+ * values. Higher value means more permissions.
+ */
 public class ValueBasedRole implements Role<ValueBasedRole> {
     private int value;
 

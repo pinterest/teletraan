@@ -1,5 +1,5 @@
-/*sche
- * Copyright 2016 Pinterest, Inc.
+/*
+ * Copyright 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,12 +59,9 @@ public class Schedules {
             @PathParam("envName") String envName,
             @PathParam("stageName") String stageName,
             @PathParam("scheduleId") String scheduleId) throws Exception {
-
-        String operator = sc.getUserPrincipal().getName();
-
         ScheduleBean scheduleBean = scheduleDAO.getById(scheduleId);
         if (scheduleBean!=null) {
-            LOG.info(scheduleBean.toString());
+            LOG.info("Schedule: {}", scheduleBean);
         }
         return scheduleBean;
     }
@@ -90,23 +87,23 @@ public class Schedules {
             scheduleBean.setCooldown_times(cooldownTimes);
             scheduleBean.setHost_numbers(hostNumbers);
             scheduleBean.setTotal_sessions(totalSessions);
-            LOG.info(scheduleBean.toString());
+            LOG.info("Schedule: {}", scheduleBean);
             if (scheduleId == null) {
                 scheduleId = CommonUtils.getBase64UUID();
                 envBean.setSchedule_id(scheduleId);
                 environDAO.update(envName, stageName, envBean);
                 scheduleBean.setId(scheduleId);
                 scheduleDAO.insert(scheduleBean);
-                LOG.info(String.format("Successfully inserted one env %s (%s)'s schedule by %s: %s", envName, stageName, operator, scheduleBean.toString()));
+                LOG.info("Successfully inserted one env {} ({})'s schedule by {}: {}", envName, stageName, operator, scheduleBean);
             } else {
                 scheduleBean.setId(scheduleId);
                 scheduleDAO.update(scheduleBean, scheduleId);
-                LOG.info(String.format("Successfully updated one env %s (%s)'s schedule by %s: %s", envName, stageName, operator, scheduleBean.toString()));
+                LOG.info("Successfully updated one env {} ({})'s schedule by {}: {}", envName, stageName, operator, scheduleBean);
             }
         } else if (scheduleId != null) { //there are no sessions, so delete the schedule
             scheduleDAO.delete(scheduleId);
             environDAO.deleteSchedule(envName, stageName);
-            LOG.info(String.format("Successfully deleted env %s (%s)'s schedule by %s", envName, stageName, operator));
+            LOG.info("Successfully deleted env {} ({})'s schedule by {}", envName, stageName, operator);
         }
     }
 
@@ -119,27 +116,26 @@ public class Schedules {
             @PathParam("envName") String envName,
             @PathParam("stageName") String stageName,
             @QueryParam("sessionNumber") Integer sessionNumber) throws Exception {
-        String operator = sc.getUserPrincipal().getName();
         EnvironBean envBean = environDAO.getByStage(envName, stageName);
         String scheduleId = envBean.getSchedule_id();
         if (scheduleId == null) {
-            LOG.info(String.format("Cannot override session, env %s has no schedule set", envName));
+            LOG.info("Cannot override session, env {} has no schedule set", envName);
             return;
         }
         ScheduleBean scheduleBean = scheduleDAO.getById(scheduleId);
         Integer currentSession = scheduleBean.getCurrent_session();
         Integer totalSessions = scheduleBean.getTotal_sessions();
-        if (sessionNumber != currentSession) {
-            LOG.info(String.format("Overriding session %d is now invalid as deploy is already on session %d", sessionNumber, currentSession));
+        if (!sessionNumber.equals(currentSession)) {
+            LOG.info("Overriding session {} is now invalid as deploy is already on session {}", sessionNumber, currentSession);
             return;
         }
-        if (sessionNumber == totalSessions) {
+        if (sessionNumber.equals(totalSessions)) {
             scheduleBean.setState(ScheduleState.FINAL);
-            LOG.info(String.format("Overrided session %d and currently working on the final deploy session", sessionNumber));
+            LOG.info("Overridden session {} and currently working on the final deploy session", sessionNumber);
         } else {
             scheduleBean.setCurrent_session(sessionNumber+1);
             scheduleBean.setState(ScheduleState.RUNNING);
-            LOG.info(String.format("Overrided session %d and currently working on session %d", sessionNumber, currentSession+1));
+            LOG.info("Overridden session {} and currently working on session {}", sessionNumber, currentSession+1);
         }
         scheduleBean.setState_start_time(System.currentTimeMillis());
         scheduleDAO.update(scheduleBean, scheduleId);
