@@ -99,7 +99,15 @@
                                 <aws-config-modal id="newConfigModalId" v-bind:options="availableConfigOptions()" v-on:click="addConfig"></aws-config-modal>
                             </div>
                         </div>
-                        <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" v-on:change="configChange" v-bind:inadvanced="inAdvanced" v-bind:showcmpgroup="showCmpGroup"></aws-user-data>
+                        <aws-user-data
+                            v-bind:alluserdata="allUserData"
+                            v-on:deleteconfig="deleteConfig"
+                            v-on:change="configChange"
+                            v-bind:inadvanced="inAdvanced"
+                            v-bind:showcmpgroup="showCmpGroup"
+                            v-bind:hierapaths="hieraPaths"
+                            v-bind:puppetrepository="puppetRepository"
+                        />
                     </div>
                 </fieldset>
             </form>
@@ -431,6 +439,9 @@
             return obj;
         }, {});
 
+        const hieraPaths = `{{ puppet_hiera_paths }}`;
+        const puppetRepository = `{{ puppet_repository }}`;
+
         var capacitySetting = new Vue({
             el: "#mainPanel",
             data: Object.assign(readonlyValues, {
@@ -523,7 +534,9 @@
                 showSubnetReplacementAlert: false,
                 subnetReplacementWarning: "Cluster can't have a mix of public and private subnets. Saving this config will remove existing subnets.",
                 remainingCapacity: this.placements != null ? getRemainingCapacity(info.placements, currentPlacements) : Infinity,
-                showStatefulHelp: false
+                showStatefulHelp: false,
+                puppetRepository,
+                hieraPaths
             }),
             methods: {
                 addConfig: function(config) {

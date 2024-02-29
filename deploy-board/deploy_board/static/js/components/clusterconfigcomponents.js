@@ -159,8 +159,46 @@ Vue.component('aws-user-data', {
     template: '<div class="form-group">\
     <data-config-field v-for="data in alluserdata" v-bind:name="data.name" v-bind:value="data.value" v-bind:readonly="data.readonly" v-bind:inadvanced="inadvanced"\
      v-show="shouldShow(data.name)" v-on:change="change" v-on:deleteConfig="deleteConfig"></data-config-field>\
+     <label for="properties" class="control-label col-xs-3 g-0" style="padding-top: 0;">Puppet profile</label>\
+     <div class="col-xs-6">\
+        <a v-if="puppetFileUrl" v-bind:href="puppetFileUrl" target="_blank">{{ puppetFileUrl }}</a>\
+        <span v-else>Unable to find matching Puppet Profile from User Data</span>\
+     </div>\
   </div>',
-    props: ['alluserdata', 'inadvanced', 'showcmpgroup'],
+    props: ['alluserdata', 'inadvanced', 'showcmpgroup', 'puppetrepository', 'hierapaths'],
+    computed: {
+        puppetFileUrl: function() {
+            if (!this.hierapaths || !this.puppetrepository) {
+                return;
+            }
+            const userDataObj = this.alluserdata.reduce((acc, entry) => {
+                acc[entry.name] = entry.value;
+                return acc;
+            }, {});
+            const hieraPaths = this.hierapaths.trim().split("\n").reduce(
+                (acc, line) => acc.set(line, [
+                    ...new Set(line.matchAll(/(?<=%{::)[a-z0-9_]+(?=})/gi).map(val => val[0]))
+                ]),
+                new Map()
+            );
+
+            const matchingPuppetPath = hieraPaths.keys().find(line => 
+                hieraPaths.get(line).every(variable => !!userDataObj[variable])
+            );
+            const variables = hieraPaths.get(matchingPuppetPath);
+
+            if (!matchingPuppetPath) {
+                return;
+            }
+
+            const replacedHieraPath = variables.reduce((acc, variable) =>
+                acc.replace(`%{::${variable}}`, userDataObj[variable]),
+                matchingPuppetPath
+            );
+
+            return `${this.puppetrepository}/${replacedHieraPath}.yaml`;
+        }
+    },
     methods: {
         change: function (value) {
             this.$emit("change", value)
@@ -175,7 +213,7 @@ Vue.component('aws-user-data', {
             else {
                 return !name.startsWith("pinfo_") && name != "cmp_group"
             }
-        }
+        },
     }
 });
 
