@@ -57,7 +57,7 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
 
     class UnsupportedResourceIDLocationException extends RuntimeException {
         public UnsupportedResourceIDLocationException(ResourceAuthZInfo authZInfo) {
-            super("Unsupported resource ID location: " + authZInfo.idLocation());
+            super(String.format("Unsupported resource ID location %s for type %s", authZInfo.idLocation(), authZInfo.type()));
         }
     }
 }

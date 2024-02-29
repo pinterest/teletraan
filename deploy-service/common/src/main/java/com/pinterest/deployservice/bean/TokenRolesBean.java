@@ -19,8 +19,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.annotation.Nonnull;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -40,12 +41,15 @@ public class TokenRolesBean implements Updatable {
     @JsonProperty("name")
     private String script_name;
 
+    @NotEmpty
     @JsonProperty("resource")
     private String resource_id;
 
+    @NotNull
     @JsonProperty("type")
     private AuthZResource.Type resource_type;
 
+    @NotEmpty
     @JsonProperty("token")
     private String token;
 
@@ -53,6 +57,7 @@ public class TokenRolesBean implements Updatable {
     @JsonProperty("role")
     private TeletraanPrincipalRoles role;
 
+    @NotNull
     @JsonProperty("expireDate")
     private Long expire_date;
 
@@ -68,24 +73,24 @@ public class TokenRolesBean implements Updatable {
         return script_name;
     }
 
-    public void setScript_name(String script_name) {
-        this.script_name = script_name;
+    public void setScript_name(String scriptName) {
+        this.script_name = scriptName;
     }
 
-    public String getResource_id() {
+    public @Nonnull String getResource_id() {
         return resource_id;
     }
 
-    public void setResource_id(String resource_id) {
-        this.resource_id = resource_id;
+    public void setResource_id(String resourceId) {
+        this.resource_id = resourceId;
     }
 
     public AuthZResource.Type getResource_type() {
         return resource_type;
     }
 
-    public void setResource_type(AuthZResource.Type resource_type) {
-        this.resource_type = resource_type;
+    public void setResource_type(AuthZResource.Type resourceType) {
+        this.resource_type = resourceType;
     }
 
     public TeletraanPrincipalRoles getRole() {
@@ -100,8 +105,8 @@ public class TokenRolesBean implements Updatable {
         return expire_date;
     }
 
-    public void setExpire_date(Long expire_date) {
-        this.expire_date = expire_date;
+    public void setExpire_date(Long expireDate) {
+        this.expire_date = expireDate;
     }
 
     @Override

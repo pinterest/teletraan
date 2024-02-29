@@ -35,6 +35,7 @@ public interface AuthZResourceExtractor {
         public ExtractionException(String message, Throwable cause) {
             super(message, cause);
         }
+
         public ExtractionException(String message) {
             super(message);
         }

@@ -19,8 +19,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.hibernate.validator.constraints.NotEmpty;
 
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -38,9 +38,11 @@ public class GroupRolesBean implements Updatable {
     @JsonProperty("name")
     private String group_name;
 
+    @NotEmpty
     @JsonProperty("resource")
     private String resource_id;
 
+    @NotNull
     @JsonProperty("type")
     private AuthZResource.Type resource_type;
 
@@ -52,24 +54,24 @@ public class GroupRolesBean implements Updatable {
         return group_name;
     }
 
-    public void setGroup_name(String user_name) {
-        this.group_name = user_name;
+    public void setGroup_name(String userName) {
+        this.group_name = userName;
     }
 
     public String getResource_id() {
         return resource_id;
     }
 
-    public void setResource_id(String resource_id) {
-        this.resource_id = resource_id;
+    public void setResource_id(String resourceId) {
+        this.resource_id = resourceId;
     }
 
     public AuthZResource.Type getResource_type() {
         return resource_type;
     }
 
-    public void setResource_type(AuthZResource.Type resource_type) {
-        this.resource_type = resource_type;
+    public void setResource_type(AuthZResource.Type resourceType) {
+        this.resource_type = resourceType;
     }
 
     public TeletraanPrincipalRoles getRole() {

@@ -34,11 +34,13 @@ public class BasePastisAuthorizer<P extends TeletraanPrincipal> extends BaseAuth
     protected final PastisAuthorizer pastis;
 
     @Builder
-    private BasePastisAuthorizer(String serviceName, PastisAuthorizer pastis, AuthZResourceExtractor.Factory factory) {
+    private BasePastisAuthorizer(
+            String serviceName, PastisAuthorizer pastis, AuthZResourceExtractor.Factory factory) {
         super(factory);
         if (pastis == null) {
             if (serviceName == null) {
-                throw new IllegalArgumentException("PastisAuthorizer and serviceName cannot both be null");
+                throw new IllegalArgumentException(
+                        "PastisAuthorizer and serviceName cannot both be null");
             }
             this.pastis = new PastisAuthorizer(serviceName);
         } else {

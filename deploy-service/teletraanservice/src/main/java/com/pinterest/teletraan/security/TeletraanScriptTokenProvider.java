@@ -18,8 +18,12 @@ package com.pinterest.teletraan.security;
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.teletraan.universal.security.ScriptTokenProvider;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.ScriptTokenPrincipal;
 import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
+
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,17 +37,18 @@ public class TeletraanScriptTokenProvider implements ScriptTokenProvider<ValueBa
     }
 
     @Override
-    public ScriptTokenPrincipal<ValueBasedRole> getPrincipal(String token) {
+    public Optional<ScriptTokenPrincipal<ValueBasedRole>> getPrincipal(String token) {
         try {
             TokenRolesBean tokenRolesBean = context.getTokenRolesDAO().getByToken(token);
 
             if (tokenRolesBean != null) {
-                return new ScriptTokenPrincipal<>(
-                        tokenRolesBean.getScript_name(), tokenRolesBean.getRole().getRole(), null);
+                return Optional.of(new ScriptTokenPrincipal<ValueBasedRole>(
+                        tokenRolesBean.getScript_name(), tokenRolesBean.getRole().getRole(),
+                        new AuthZResource(tokenRolesBean.getResource_id(), tokenRolesBean.getResource_type())));
             }
         } catch (Exception e) {
             LOG.error("failed to get Script token principal", e);
         }
-        return null;
+        return Optional.empty();
     }
 }

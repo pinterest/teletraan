@@ -18,9 +18,9 @@ package com.pinterest.teletraan.universal.security;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.TeletraanPrincipal;
 import io.dropwizard.auth.Authorizer;
-import lombok.AllArgsConstructor;
 import javax.annotation.Nullable;
 import javax.ws.rs.container.ContainerRequestContext;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

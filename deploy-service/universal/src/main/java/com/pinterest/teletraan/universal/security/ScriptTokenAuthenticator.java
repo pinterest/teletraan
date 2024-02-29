@@ -40,6 +40,6 @@ public class ScriptTokenAuthenticator<R extends Role<R>>
     public Optional<ScriptTokenPrincipal<R>> authenticate(String credentials)
             throws AuthenticationException {
         LOG.debug("Authenticating...");
-        return Optional.ofNullable(tokenProvider.getPrincipal(credentials));
+        return tokenProvider.getPrincipal(credentials);
     }
 }
