@@ -17,6 +17,7 @@ package com.pinterest.teletraan.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HotfixBean;
@@ -75,6 +76,18 @@ public class EnvStageBodyExtractor implements AuthZResourceExtractor {
             try {
                 HotfixBean hotfixBean = new ObjectMapper().readValue(inputStream, HotfixBean.class);
                 return new AuthZResource(hotfixBean.getEnv_name(), "");
+            } catch (Exception e) {
+                if (!tryAll) {
+                    throw new BeanClassExtractionException(beanClass, e);
+                }
+            }
+        }
+
+        if (beanClass.equals(AgentBean.class) || tryAll) {
+            try {
+                AgentBean agentBean = new ObjectMapper().readValue(inputStream, AgentBean.class);
+                EnvironBean envBean = environDAO.getById(agentBean.getEnv_id());
+                return new AuthZResource(envBean.getEnv_name(), envBean.getStage_name());
             } catch (Exception e) {
                 if (!tryAll) {
                     throw new BeanClassExtractionException(beanClass, e);

@@ -50,7 +50,8 @@ public class AuthZResource {
         BASE_IMAGE,
         SECURITY_ZONE,
         IAM_ROLE,
-        BUILD
+        BUILD,
+        RATINGS
     }
 
     @Deprecated

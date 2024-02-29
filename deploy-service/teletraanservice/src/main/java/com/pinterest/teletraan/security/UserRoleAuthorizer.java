@@ -59,7 +59,7 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             @Nullable ContainerRequestContext context) {
         try {
             TeletraanPrincipalRoles requiredRole = TeletraanPrincipalRoles.valueOf(role);
-            if (requestedResource.getType().equals(AuthZResource.Type.ENV_STAGE)) {
+            if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())) {
                 // Convert to ENV for backward compatibility
                 requestedResource = new AuthZResource(requestedResource.getName(), AuthZResource.Type.ENV);
             }
@@ -107,7 +107,7 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             }
 
             // Special case for creating a new environment
-            if (requestedResource.getType().equals(AuthZResource.Type.ENV_STAGE)
+            if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())
                     && requiredRole.equals(TeletraanPrincipalRoles.WRITE)) {
                 String envName = requestedResource.getName().split("/")[0];
                 List<EnvironBean> environBeans = environDAO.getByName(envName);
@@ -116,6 +116,12 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
                     return true;
                 }
             }
+
+            if (AuthZResource.Type.RATINGS.equals(requestedResource.getType())
+                    && TeletraanPrincipalRoles.WRITE.equals(requiredRole)) {
+                return true;
+            }
+
             return false;
         } catch (
 

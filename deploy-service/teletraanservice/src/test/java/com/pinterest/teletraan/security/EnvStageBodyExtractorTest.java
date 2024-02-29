@@ -15,10 +15,11 @@ import javax.ws.rs.container.ContainerRequestContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pinterest.deployservice.ServiceContext;
+import com.pinterest.deployservice.bean.AgentBean;
 import com.pinterest.deployservice.bean.DeployBean;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HotfixBean;
@@ -35,6 +36,7 @@ class EnvStageBodyExtractorTest {
     private EnvironDAO environDAO;
     private InputStream inputStream;
     private ObjectMapper objectMapper = new ObjectMapper();
+    private static final Class<?>[] BEAN_CLASSES = { EnvironBean.class, HotfixBean.class, DeployBean.class, AgentBean.class };
 
     @BeforeEach
     void setUp() {
@@ -55,7 +57,7 @@ class EnvStageBodyExtractorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = { EnvironBean.class, HotfixBean.class, DeployBean.class })
+    @MethodSource("getSupportedClassed")
     void testExtractResource_specificBeanClass_emptyStream(Class<?> beanClass) throws Exception {
         inputStream = mock(InputStream.class);
         when(context.getEntityStream()).thenReturn(inputStream);
@@ -64,7 +66,7 @@ class EnvStageBodyExtractorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = { EnvironBean.class, HotfixBean.class, DeployBean.class })
+    @MethodSource("getSupportedClassed")
     void testExtractResource_environBean_success(Class<?> beanClass) throws Exception {
         EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -84,7 +86,7 @@ class EnvStageBodyExtractorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = { EnvironBean.class, HotfixBean.class, DeployBean.class })
+    @MethodSource("getSupportedClassed")
     void testExtractResource_hotFixBean_success(Class<?> beanClass) throws Exception {
         HotfixBean hotfixBean = new HotfixBean();
         hotfixBean.setEnv_name("env_name");
@@ -105,7 +107,7 @@ class EnvStageBodyExtractorTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = { EnvironBean.class, HotfixBean.class, DeployBean.class })
+    @MethodSource("getSupportedClassed")
     void testExtractResource_deployFixBean_success(Class<?> beanClass) throws Exception {
         EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
         DeployBean deployBean = new DeployBean();
@@ -127,6 +129,35 @@ class EnvStageBodyExtractorTest {
         } else {
             assertThrows(BeanClassExtractionException.class, () -> sut.extractResource(context, beanClass));
         }
+    }
+
+    @ParameterizedTest
+    @MethodSource("getSupportedClassed")
+    void testExtractResource_agentBean_success(Class<?> beanClass) throws Exception {
+        EnvironBean envBean = EnvironBeanFixture.createRandomEnvironBean();
+        AgentBean agentBean = new AgentBean();
+        String envId = "env_id";
+        agentBean.setEnv_id(envId);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        objectMapper.writeValue(out, agentBean);
+        inputStream = new ByteArrayInputStream(out.toByteArray());
+
+        when(context.getEntityStream()).thenReturn(inputStream);
+        when(environDAO.getById(envId)).thenReturn(envBean);
+
+        if (beanClass.equals(AgentBean.class)) {
+            AuthZResource resource = sut.extractResource(context, AgentBean.class);
+            assertTrue(resource.getName().contains(envBean.getEnv_name()));
+            assertTrue(resource.getName().contains(envBean.getStage_name()));
+            assertEquals(AuthZResource.Type.ENV_STAGE, resource.getType());
+        } else {
+            assertThrows(BeanClassExtractionException.class, () -> sut.extractResource(context, beanClass));
+        }
+    }
+
+    static Class<?>[] getSupportedClassed() {
+        return BEAN_CLASSES;
     }
 
 }

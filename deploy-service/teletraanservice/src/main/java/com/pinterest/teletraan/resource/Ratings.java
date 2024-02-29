@@ -15,24 +15,27 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.RatingBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.handler.RatingsHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 @Path("/v1/ratings")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-// TODO: add authz
 public class Ratings {
-    private final static int DEFAULT_INDEX = 1;
-    private final static int DEFAULT_SIZE = 30;
+    private static final int DEFAULT_INDEX = 1;
+    private static final int DEFAULT_SIZE = 30;
     private RatingsHandler ratingsHandler;
 
     @Context
@@ -45,10 +48,12 @@ public class Ratings {
     @GET
     public List<RatingBean> getAll(@QueryParam("pageIndex") Optional<Integer> pageIndex,
         @QueryParam("pageSize") Optional<Integer> pageSize) throws Exception {
-        return ratingsHandler.getRatingDAO().getRatingsInfos(pageIndex.or(DEFAULT_INDEX), pageSize.or(DEFAULT_SIZE));
+        return ratingsHandler.getRatingDAO().getRatingsInfos(pageIndex.orElse(DEFAULT_INDEX), pageSize.orElse(DEFAULT_SIZE));
     }
 
     @POST
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.RATINGS)
     public Response create(@Valid RatingBean bean, @Context SecurityContext sc) throws Exception {
         bean.setAuthor(sc.getUserPrincipal().getName());
         bean.setTimestamp(System.currentTimeMillis());
@@ -67,6 +72,8 @@ public class Ratings {
 
     @DELETE
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.RATINGS)
     public void delete(@PathParam("id") String id, @Context SecurityContext sc) throws Exception {
         ratingsHandler.getRatingDAO().delete(id);
     }

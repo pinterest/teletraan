@@ -16,17 +16,21 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.ScheduleState;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.dao.ScheduleDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
 
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.deployservice.common.CommonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -37,7 +41,6 @@ import javax.ws.rs.core.SecurityContext;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-// TODO: add authorization
 public class Schedules {
     private static final Logger LOG = LoggerFactory.getLogger(Schedules.class);
     private ScheduleDAO scheduleDAO;
@@ -68,6 +71,8 @@ public class Schedules {
 
     @PUT
     @Path("/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/schedules")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public void updateSchedule(
             @Context SecurityContext sc,
             @PathParam("envName") String envName,
@@ -107,6 +112,8 @@ public class Schedules {
 
     @PUT
     @Path("/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/override")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public void overrideSession(
             @Context SecurityContext sc,
             @PathParam("envName") String envName,
