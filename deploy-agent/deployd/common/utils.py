@@ -24,6 +24,7 @@ import traceback
 import subprocess
 from typing import Any, Optional, Union
 import yaml
+import requests
 
 
 import json
@@ -267,7 +268,27 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
                                             tags={"status": "healthy", "service": service, "commit": commit})
             return returnValue
         else:
-            return None
+            fn = os.path.join("/mnt/deployd/", "{}_HEALTH_CHECK".format(service))
+            if not os.path.isfile(fn):
+                return None
+        
+            with open(fn, 'r') as f:
+                healthcheckConfigs = dict((n.strip('\"\n\' ') for n in line.split("=", 1)) for line in f)
+                # The script configuration for auto-redeployment is currently activated for this non-container service
+                if "HEALTHCHECK_HTTP" not in healthcheckConfigs:
+                    return None
+                url = healthcheckConfigs["HEALTHCHECK_HTTP"]
+                if "http://" not in url:
+                    url = "http://" + url
+                resp = requests.get(url)
+                if resp.status_code >= 200 and resp.status_code < 300:
+                    return service + ":healthy"
+                if "HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY" in healthcheckConfigs and healthcheckConfigs["HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY"] == "True":
+                    if "HEALTHCHECK_REDEPLOY_MAX_RETRY" in healthcheckConfigs and redeploy < int(healthcheckConfigs["HEALTHCHECK_REDEPLOY_MAX_RETRY"]):
+                        return "redeploy-" + str(redeploy + 1)
+                    elif "HEALTHCHECK_REDEPLOY_MAX_RETRY" not in healthcheckConfigs and redeploy < 3: 
+                        return "redeploy-" + str(redeploy + 1)
+                return service + ":unhealthy"
     except:
         log.error(f"Failed to get container health info with commit {commit}")
         return None
