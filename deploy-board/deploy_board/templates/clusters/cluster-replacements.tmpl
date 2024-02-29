@@ -242,7 +242,7 @@
                         </label>
                         <p><i>Hour(s) to wait after the cluster is refreshed successfully before refreshing cluster(s) in the next stage (if applicable).</i></p>
                     </div>
-                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={% if auto_refresh_config.bakeTime %}{{ auto_refresh_config.bakeTime }}{% else %}0{% endif %}> hour(s)
+                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={% if auto_refresh_config.bakeTime %}{{ auto_refresh_config.bakeTime }}{% else %}2{% endif %}> hour(s)
                 </div>
 
                 <div style="padding-top: 20px;">
