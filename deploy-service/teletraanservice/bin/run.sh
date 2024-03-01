@@ -48,6 +48,8 @@ function server_start {
     com.pinterest.teletraan.TeletraanService \
     server ${CONFIG_FILE}"
 
+    echo $OPTS
+
     if [ "$1" == "FOREGROUND" ]
     then
         ${JAVA_CMD} ${OPTS}
