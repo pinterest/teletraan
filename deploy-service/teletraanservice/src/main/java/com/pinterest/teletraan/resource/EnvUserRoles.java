@@ -16,10 +16,8 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +40,7 @@ public class EnvUserRoles extends UserRoles {
     private static final Resource.Type RESOURCE_TYPE = Resource.Type.ENV;
     private static final Logger LOG = LoggerFactory.getLogger(EnvUserRoles.class);
 
-    @Context
-    UriInfo uriInfo;
-
-    public EnvUserRoles(TeletraanServiceContext context) throws Exception {
+    public EnvUserRoles(@Context TeletraanServiceContext context) throws Exception {
         super(context);
     }
 
@@ -89,9 +84,10 @@ public class EnvUserRoles extends UserRoles {
             notes = "Creates a new UserRoles object for a given environment name.",
             response = Response.class)
     public Response create(@Context SecurityContext sc,
+                           @Context UriInfo uriInfo,
                            @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                            @ApiParam(value = "UserRolesBean object.", required = true)@Valid UserRolesBean bean) throws Exception {
-        return super.create(sc, bean, envName, RESOURCE_TYPE);
+        return super.create(sc, uriInfo, bean, envName, RESOURCE_TYPE);
     }
 
     @DELETE

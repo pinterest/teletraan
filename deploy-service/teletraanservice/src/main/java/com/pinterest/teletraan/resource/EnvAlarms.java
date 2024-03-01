@@ -40,7 +40,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/alarms")
 @Produces(MediaType.APPLICATION_JSON)
@@ -52,10 +51,7 @@ public class EnvAlarms {
     private ConfigHistoryHandler configHistoryHandler;
     private Authorizer authorizer;
 
-    @Context
-    UriInfo uriInfo;
-
-    public EnvAlarms(TeletraanServiceContext context) {
+    public EnvAlarms(@Context TeletraanServiceContext context) {
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         environDAO = context.getEnvironDAO();

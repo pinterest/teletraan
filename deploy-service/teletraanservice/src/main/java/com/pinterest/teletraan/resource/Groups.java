@@ -26,6 +26,7 @@ import com.pinterest.deployservice.exception.TeletaanInternalException;
 import javax.validation.constraints.NotNull;
 
 import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -52,7 +53,7 @@ public class Groups {
     private EnvironDAO environDAO;
     private HostDAO hostDAO;
 
-    public Groups(TeletraanServiceContext context) {
+    public Groups(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         hostDAO = context.getHostDAO();
     }

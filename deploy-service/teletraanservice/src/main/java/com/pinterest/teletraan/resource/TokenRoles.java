@@ -35,9 +35,6 @@ public abstract class TokenRoles {
     private final TokenRolesDAO tokenRolesDAO;
     private final Authorizer authorizer;
 
-    @Context
-    UriInfo uriInfo;
-
     public TokenRoles(TeletraanServiceContext context) {
         tokenRolesDAO = context.getTokenRolesDAO();
         authorizer = context.getAuthorizer();
@@ -63,7 +60,9 @@ public abstract class TokenRoles {
             scriptName, resourceId, bean);
     }
 
-    public Response create(SecurityContext sc, TokenRolesBean bean, String resourceId,
+    public Response create(SecurityContext sc,
+                           UriInfo uriInfo,
+                           TokenRolesBean bean, String resourceId,
         Resource.Type resourceType) throws Exception {
         authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
         String token = CommonUtils.getBase64UUID();

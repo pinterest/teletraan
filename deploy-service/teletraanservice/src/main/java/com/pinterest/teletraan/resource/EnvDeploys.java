@@ -69,10 +69,7 @@ public class EnvDeploys {
     private DeployHandler deployHandler;
     private ConfigHistoryHandler configHistoryHandler;
 
-    @Context
-    UriInfo uriInfo;
-
-    public EnvDeploys(TeletraanServiceContext context) throws Exception {
+    public EnvDeploys(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         buildDAO = context.getBuildDAO();
         deployDAO = context.getDeployDAO();
@@ -108,6 +105,7 @@ public class EnvDeploys {
             response = Response.class)
     public Response action(
             @Context SecurityContext sc,
+            @Context UriInfo uriInfo,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "ActionType enum selection", required = true)@NotNull @QueryParam("actionType") ActionType actionType,
@@ -197,6 +195,7 @@ public class EnvDeploys {
             response = Response.class)
     public Response create(
             @Context SecurityContext sc,
+            @Context UriInfo uriInfo,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "Build id", required = true)@NotEmpty @QueryParam("buildId") String buildId,
