@@ -569,7 +569,7 @@ class EnvLandingView(View):
 
 def _gen_message_for_refreshing_cluster(lastClusterRefreshStatus, latest_succeeded_base_image_update_event):
     if latest_succeeded_base_image_update_event != None:
-        if lastClusterRefreshStatus == None or lastClusterRefreshStatus["startTime"] <= latest_succeeded_base_image_update_event["finish_time"]:
+        if lastClusterRefreshStatus == None or lastClusterRefreshStatus["startTime"] == None or lastClusterRefreshStatus["startTime"] <= latest_succeeded_base_image_update_event["finish_time"]:
             return "The cluster was updated with a new AMI at {} PST and should be replaced to ensure the AMI is applied to all existing instances.".format(utils.convertTimestamp(latest_succeeded_base_image_update_event["finish_time"]))
 
     return None
