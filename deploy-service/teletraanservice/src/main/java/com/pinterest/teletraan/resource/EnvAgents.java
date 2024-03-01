@@ -53,7 +53,7 @@ public class EnvAgents {
         FAILED_FIRST_DEPLOY
     }
 
-    public EnvAgents(TeletraanServiceContext context) {
+    public EnvAgents(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         authorizer = context.getAuthorizer();
         agentDAO = context.getAgentDAO();

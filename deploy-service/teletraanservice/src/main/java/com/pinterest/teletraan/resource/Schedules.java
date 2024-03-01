@@ -43,7 +43,7 @@ public class Schedules {
     private EnvironDAO environDAO;
 
 
-    public Schedules(TeletraanServiceContext context) {
+    public Schedules(@Context TeletraanServiceContext context) {
         scheduleDAO = context.getScheduleDAO();
         environDAO = context.getEnvironDAO();
     }

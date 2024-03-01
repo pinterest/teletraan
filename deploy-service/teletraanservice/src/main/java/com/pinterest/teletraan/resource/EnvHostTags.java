@@ -40,7 +40,7 @@ public class EnvHostTags {
     private Authorizer authorizer;
 
 
-    public EnvHostTags(TeletraanServiceContext context) {
+    public EnvHostTags(@Context TeletraanServiceContext context) {
         hostDAO = context.getHostDAO();
         hostTagDAO = context.getHostTagDAO();
         environDAO = context.getEnvironDAO();

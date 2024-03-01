@@ -35,7 +35,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.Map;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/script_configs")
@@ -49,10 +48,7 @@ public class EnvScriptConfigs {
     private ConfigHistoryHandler configHistoryHandler;
     private Authorizer authorizer;
 
-    @Context
-    UriInfo uriInfo;
-
-    public EnvScriptConfigs(TeletraanServiceContext context) {
+    public EnvScriptConfigs(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);

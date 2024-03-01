@@ -34,10 +34,7 @@ import java.util.List;
 public class EnvTokenRoles extends TokenRoles {
     private static final Resource.Type RESOURCE_TYPE = Resource.Type.ENV;
 
-    @Context
-    UriInfo uriInfo;
-
-    public EnvTokenRoles(TeletraanServiceContext context) {
+    public EnvTokenRoles(@Context TeletraanServiceContext context) {
         super(context);
     }
 
@@ -80,9 +77,10 @@ public class EnvTokenRoles extends TokenRoles {
             notes = "Creates an environment script token with given environment name and TokenRoles object.",
             response = Response.class)
     public Response create(@Context SecurityContext sc,
+                           @Context UriInfo uriInfo,
                            @ApiParam(value = "Environment name.", required = true)@PathParam("envName") String envName,
                            @ApiParam(value = "TokenRolesBean object.", required = true)@Valid TokenRolesBean bean) throws Exception {
-        return super.create(sc, bean, envName, RESOURCE_TYPE);
+        return super.create(sc, uriInfo, bean, envName, RESOURCE_TYPE);
     }
 
     @DELETE

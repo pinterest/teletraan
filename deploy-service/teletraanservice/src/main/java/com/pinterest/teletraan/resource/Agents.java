@@ -46,7 +46,7 @@ public class Agents {
     private static final Logger LOG = LoggerFactory.getLogger(Agents.class);
     private AgentDAO agentDAO;
 
-    public Agents(TeletraanServiceContext context) {
+    public Agents(@Context TeletraanServiceContext context) {
         agentDAO = context.getAgentDAO();
     }
 
