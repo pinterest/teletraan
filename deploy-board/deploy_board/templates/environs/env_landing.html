@@ -308,6 +308,14 @@ $('#privateBldUploadBtnId button').click(function () {
     {% endif %}
 {% endif %}
 
+{% if cluster_refresh_suggestion_for_golden_ami %}
+    <div class="alert alert-warning alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Warning!</strong> {{ cluster_refresh_suggestion_for_golden_ami }}
+        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/base_images/" target="_blank">here</a> for more details.
+    </div>
+{% endif %}
+
 
 {% include "message_banner.tmpl" %}
 {% include "environs/env_tabs.tmpl" with envTabKind="deploy" %}
