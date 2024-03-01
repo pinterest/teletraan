@@ -310,7 +310,7 @@ Vue.component("aws-config-modal", {
                 this.selectedValue = "";
                 this.useCustomizedName = true;
             } else {
-                this.useCustomizedName = true;
+                this.useCustomizedName = false;
                 this.customizedName = "";
             }
             this.selectedOptionValue = null;
