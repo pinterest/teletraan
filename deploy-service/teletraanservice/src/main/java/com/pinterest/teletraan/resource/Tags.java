@@ -67,14 +67,11 @@ public class Tags {
     private final TagDAO tagDAO;
     private final HashMap<TagTargetType, TagHandler> handlers = new HashMap<>();
 
-    public Tags(TeletraanServiceContext context)
+    public Tags(@Context TeletraanServiceContext context)
     {
         this.tagDAO = context.getTagDAO();
         this.handlers.put(TagTargetType.BUILD, new BuildTagHandler(context));
     }
-
-    @Context
-    UriInfo uriInfo;
 
     @GET
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
@@ -153,6 +150,7 @@ public class Tags {
         notes = "Create a tag on an object",
         response = Response.class)
     public Response create(@Context SecurityContext sc,
+                           @Context UriInfo uriInfo,
         @ApiParam(value = "Tag object", required = true) @Valid TagBean tag) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         TagBean retEntity = new TagBean();
