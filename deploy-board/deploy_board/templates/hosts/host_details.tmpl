@@ -1,6 +1,10 @@
 {% load utils %}
 <div id="hostInfo" class="panel panel-default">
+    {% if host_related_sidecar %}
+    <div class="panel-heading host-related-sidecar">
+    {% else %}
     <div class="panel-heading">
+    {% endif %}
         <strong>Environment:</strong><a href="/env/{{ env.envName }}/{{ env.stageName }}"> {{ env.envName }}/{{ env.stageName }}</a>
         <strong>Deploy:</strong><a href="/deploy/{{ agent.deployId }}"> {{ agent.deployId }}</a>
     </div>
@@ -83,6 +87,12 @@
         </div>
     </div>
 </div>
+<style>
+    #hostInfo>.panel-heading.host-related-sidecar {
+        background-image: none;
+        background-color: #dff0d8;
+    }
+</style>
 <script>
     $(function () {
         $('.deployToolTip').tooltip();

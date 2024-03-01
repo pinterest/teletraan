@@ -42,11 +42,21 @@
 
 {% if agent_wrappers %}
 <div class="panel panel-default">
+    {% if has_host_env_sidecar_agents %}
+    {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="down" copy_host_name_button=True %}
+    <div id="sidecarAgentDetailsId" class="collapse in panel-body">
+        <span>This host has relevant sidecars in it's environment. These have been marked with <span class="bg-success">green backgrounds</span> for visibility.</span>
+    {% else %}
     {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="right" copy_host_name_button=True %}
     <div id="sidecarAgentDetailsId" class="collapse panel-body">
+    {% endif %}
         {% for agent_wrapper in agent_wrappers.sidecars %}
         {% with env=agent_wrapper.env agent=agent_wrapper.agent hostdetailsvalue=host_details|getValue:"Phobos Link" %}
+        {% if env and env_name == env.envName and stage_name == env.stageName %}
+        {% include "hosts/host_details.tmpl" with agent=agent env=env hostdetailsvalue=hostdetailsvalue host_related_sidecar=1%}
+        {% else %}
         {% include "hosts/host_details.tmpl" with agent=agent env=env hostdetailsvalue=hostdetailsvalue%}
+        {% endif %}
         {% endwith %}
         {% endfor %}
     </div>
