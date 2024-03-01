@@ -149,6 +149,13 @@ def get_image_update_events_by_cluster(request, cluster_name):
         event['status'] = generate_image_update_event_status(event)
     return events
 
+def get_latest_succeeded_image_update_event_by_cluster(request, cluster_name):
+    events = rodimus_client.get("/base_images/updates/cluster/%s" % cluster_name, request.teletraan_user_id.token)
+    events = filter(lambda x: x["state"] == "COMPLETED" and x["finish_time"] != None, events)
+    sorted_events = sorted(events, key=lambda x: x['finish_time'])
+    if (len(sorted_events) > 0):
+        return sorted_events[-1]
+    return None
 
 def generate_image_update_event_status(event):
     if event['state'] == 'INIT':
