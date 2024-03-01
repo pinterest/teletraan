@@ -59,10 +59,13 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             @Nullable ContainerRequestContext context) {
         try {
             TeletraanPrincipalRoles requiredRole = TeletraanPrincipalRoles.valueOf(role);
-            if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())) {
+            AuthZResource convertedRequestedResource = requestedResource;
+            if (AuthZResource.Type.ENV_STAGE.equals(convertedRequestedResource.getType())) {
                 // Convert to ENV for backward compatibility
-                requestedResource = new AuthZResource(requestedResource.getName(), AuthZResource.Type.ENV);
+                convertedRequestedResource = new AuthZResource(convertedRequestedResource.getName(),
+                        AuthZResource.Type.ENV);
             }
+
             // Consider group role(s)
             Set<String> groupsSet = new HashSet<>();
             if (principal.getGroups() != null && !principal.getGroups().isEmpty()) {
@@ -70,7 +73,7 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
                 groupsSet.addAll(principal.getGroups());
 
                 List<GroupRolesBean> resourceGroupBeans = groupRolesDAO.getByResource(
-                        requestedResource.getName(), requestedResource.getType());
+                        convertedRequestedResource.getName(), convertedRequestedResource.getType());
                 for (GroupRolesBean resourceGroupBean : resourceGroupBeans) {
                     if (groupsSet.contains(resourceGroupBean.getGroup_name())
                             && resourceGroupBean.getRole().isEqualOrSuperior(requiredRole)) {
@@ -82,8 +85,8 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             // Consider user role(s)
             UserRolesBean userBean = userRolesDAO.getByNameAndResource(
                     principal.getName(),
-                    requestedResource.getName(),
-                    requestedResource.getType());
+                    convertedRequestedResource.getName(),
+                    convertedRequestedResource.getType());
             if (userBean != null && userBean.getRole().isEqualOrSuperior(requiredRole)) {
                 return true;
             }
@@ -107,25 +110,22 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             }
 
             // Special case for creating a new environment
-            if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())
+            if (AuthZResource.Type.ENV.equals(requestedResource.getType())
                     && requiredRole.equals(TeletraanPrincipalRoles.WRITE)) {
-                String envName = requestedResource.getName().split("/")[0];
+                String envName = convertedRequestedResource.getName().split("/")[0];
                 List<EnvironBean> environBeans = environDAO.getByName(envName);
                 if (CollectionUtils.isEmpty(environBeans)) {
-                    // This is the first stage for this env, let's make operator ADMIN of this env
                     return true;
                 }
             }
 
-            if (AuthZResource.Type.RATINGS.equals(requestedResource.getType())
+            if (AuthZResource.Type.RATINGS.equals(convertedRequestedResource.getType())
                     && TeletraanPrincipalRoles.WRITE.equals(requiredRole)) {
                 return true;
             }
 
             return false;
-        } catch (
-
-        Exception ex) {
+        } catch (Exception ex) {
             LOG.error("Authorization failed", ex);
             return false;
         }

@@ -24,15 +24,15 @@ import com.pinterest.teletraan.universal.security.bean.ValueBasedRole;
  *      first ADMIN.
  */
 public enum TeletraanPrincipalRoles implements RoleEnum<ValueBasedRole> {
+  READ(-1),
   READER(0), // legacy
-  PINGER(1),
+  PINGER(1), // legacy
   PUBLISH(1),
   PUBLISHER(1), // legacy
   EXECUTE(9),
   WRITE(9),
   DELETE(9),
   OPERATOR(10), // legacy
-  SYSTEM_OPERATOR(15),
   ADMIN(20);
 
   public class Names {

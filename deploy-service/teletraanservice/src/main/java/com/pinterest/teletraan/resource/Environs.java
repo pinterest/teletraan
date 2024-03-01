@@ -150,7 +150,7 @@ public class Environs {
             notes = "Creates a new environment given an environment object",
             response = Response.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = EnvironBean.class)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV, idLocation = Location.BODY, beanClass = EnvironBean.class)
     public Response create(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment object to create in database", required = true)@Valid EnvironBean environBean) throws Exception {

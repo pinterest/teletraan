@@ -15,9 +15,12 @@
  */
 package com.pinterest.teletraan.security;
 
+import javax.ws.rs.container.ContainerRequestContext;
+
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.teletraan.universal.security.AuthZResourceExtractor;
 import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtractor.Factory {
 
@@ -49,6 +52,15 @@ public class TeletraanAuthZResourceExtractorFactory implements AuthZResourceExtr
                     default:
                         throw new UnsupportedResourceIDLocationException(authZInfo);
                 }
+            case RATINGS:
+                return new AuthZResourceExtractor() {
+                    @Override
+                    public AuthZResource extractResource(ContainerRequestContext requestContext)
+                            throws ExtractionException {
+                        return new AuthZResource("rating", AuthZResource.Type.RATINGS);
+                    }
+
+                };
             default:
                 throw new IllegalArgumentException(
                         "Unsupported resource type: " + authZInfo.type());
