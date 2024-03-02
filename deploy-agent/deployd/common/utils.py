@@ -268,7 +268,7 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
                                             tags={"status": "healthy", "service": service, "commit": commit})
             return returnValue
         else:
-            fn = os.path.join("/mnt/deployd/", "{}_HEALTH_CHECK".format(service))
+            fn = os.path.join("/mnt/deployd/", "{}_HEALTHCHECK".format(service))
             if not os.path.isfile(fn):
                 return None
         
