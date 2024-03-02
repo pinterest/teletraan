@@ -1,2 +1,3 @@
 com.pinterest.teletraan.config.AnonymousAuthenticationFactory
 com.pinterest.teletraan.config.TokenAuthenticationFactory
+com.pinterest.teletraan.config.CompositeAuthenticationFactory
