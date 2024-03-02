@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,13 +15,17 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.pinterest.deployservice.bean.Resource;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -32,8 +36,8 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class SystemUserRoles extends UserRoles {
-    private final static Resource.Type RESOURCE_TYPE = Resource.Type.SYSTEM;
-    private final static String RESOURCE_ID = Resource.ALL;
+    private static final AuthZResource.Type RESOURCE_TYPE = AuthZResource.Type.SYSTEM;
+    private static final String RESOURCE_ID = AuthZResource.ALL;
 
     public SystemUserRoles(TeletraanServiceContext context) {
         super(context);
@@ -65,10 +69,11 @@ public class SystemUserRoles extends UserRoles {
             value = "Update a system level user's role",
             notes = "Updates a system level user's role given specified user name and replacement UserRoles object",
             response = UserRolesBean.class)
-    public void update(@Context SecurityContext sc,
-                       @ApiParam(value = "Name of user.", required = true)@PathParam("userName") String userName,
-                       @ApiParam(value = "UserRolesBean object", required = true)UserRolesBean bean) throws Exception {
-        super.update(sc, bean, userName, RESOURCE_ID, RESOURCE_TYPE);
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
+    public void update(@ApiParam(value = "Name of user.", required = true) @PathParam("userName") String userName,
+            @ApiParam(value = "UserRolesBean object", required = true)UserRolesBean bean) throws Exception {
+        super.update(bean, userName, RESOURCE_ID, RESOURCE_TYPE);
     }
 
     @POST
@@ -76,11 +81,11 @@ public class SystemUserRoles extends UserRoles {
             value = "Create a new system level user",
             notes = "Creates a system level user for given UserRoles object",
             response = Response.class)
-    public Response create(@Context SecurityContext sc,
-                           @Context UriInfo uriInfo,
-                           @ApiParam(value = "UserRolesBean object.", required = true)
-                           @Valid UserRolesBean bean) throws Exception {
-        return super.create(sc, uriInfo, bean, RESOURCE_ID, RESOURCE_TYPE);
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
+    public Response create(@Context UriInfo uriInfo,
+            @ApiParam(value = "UserRolesBean object.", required = true) @Valid UserRolesBean bean) throws Exception {
+        return super.create(uriInfo, bean, RESOURCE_ID, RESOURCE_TYPE);
     }
 
     @DELETE
@@ -88,9 +93,10 @@ public class SystemUserRoles extends UserRoles {
             value = "Delete a system level user",
             notes = "Deletes a system level user by specified user name")
     @Path("/{userName : [a-zA-Z0-9\\-_]+}")
-    public void delete(@Context SecurityContext sc,
-                       @ApiParam(value = "User name", required = true)
-                       @PathParam("userName") String userName) throws Exception {
-        super.delete(sc, userName, RESOURCE_ID, RESOURCE_TYPE);
+    @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
+    public void delete(
+            @ApiParam(value = "User name", required = true) @PathParam("userName") String userName) throws Exception {
+        super.delete(userName, RESOURCE_ID, RESOURCE_TYPE);
     }
 }

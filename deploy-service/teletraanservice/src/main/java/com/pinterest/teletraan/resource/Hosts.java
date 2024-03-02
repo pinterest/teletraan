@@ -45,6 +45,7 @@ import java.util.List;
 )
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+// TODO: CDP-7701 Add authorization to hosts endpoints
 public class Hosts {
     private static final Logger LOG = LoggerFactory.getLogger(Hosts.class);
     private HostDAO hostDAO;

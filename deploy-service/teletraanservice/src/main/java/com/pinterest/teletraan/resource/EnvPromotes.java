@@ -17,20 +17,23 @@ package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.PromoteBean;
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -46,13 +49,11 @@ public class EnvPromotes {
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private EnvironDAO environDAO;
-    private Authorizer authorizer;
 
     public EnvPromotes(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
-        authorizer = context.getAuthorizer();
     }
 
     @GET
@@ -70,13 +71,14 @@ public class EnvPromotes {
     @ApiOperation(
             value = "Update promote info",
             notes = "Updates promote info given environment and stage names by given promote info object")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public void update(@Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true) @PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true) @PathParam("stageName") String stageName,
             @ApiParam(value = "Promote object to update with", required = true) @Valid PromoteBean promoteBean)
             throws Exception {
         EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         environHandler.updateEnvPromote(environBean, promoteBean, operator);
         configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_PROMOTE, promoteBean, operator);

@@ -22,19 +22,21 @@ import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.dao.BuildDAO;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import javax.validation.constraints.NotEmpty;
+
+import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,9 +63,7 @@ public class EnvDeploys {
 
     private static final Logger LOG = LoggerFactory.getLogger(EnvDeploys.class);
     private EnvironDAO environDAO;
-    private BuildDAO buildDAO;
     private DeployDAO deployDAO;
-    private Authorizer authorizer;
     private AgentDAO agentDAO;
     private EnvironHandler environHandler;
     private DeployHandler deployHandler;
@@ -71,9 +71,7 @@ public class EnvDeploys {
 
     public EnvDeploys(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
-        buildDAO = context.getBuildDAO();
         deployDAO = context.getDeployDAO();
-        authorizer = context.getAuthorizer();
         agentDAO = context.getAgentDAO();
         environHandler = new EnvironHandler(context);
         deployHandler = new DeployHandler(context);
@@ -103,6 +101,8 @@ public class EnvDeploys {
             value = "Take deploy action",
             notes = "Take an action on a deploy such as RESTART or PAUSE",
             response = Response.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public Response action(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
@@ -113,7 +113,6 @@ public class EnvDeploys {
             @ApiParam(value = "Upper bound deploy id", required = true)@QueryParam("toDeployId") String toDeployId,
             @ApiParam(value = "Description", required = true)@QueryParam("description") String description) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         String newDeployId;
         switch (actionType) {
@@ -153,6 +152,9 @@ public class EnvDeploys {
         value = "Take a deploy action",
         notes = "Take an action on a deploy using host information",
         response = Response.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
+    // TODO: sidecar owners can perform actions on non-sidecar agents
     public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
@@ -160,7 +162,6 @@ public class EnvDeploys {
             @ApiParam(value = "Agent object to update with", required = true)@NotNull @QueryParam("actionType") HostActions actionType,
             @NotNull List<String> hostIds) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         AgentBean agentBean = new AgentBean();
         switch (actionType) {
             case PAUSED_BY_USER:
@@ -193,6 +194,8 @@ public class EnvDeploys {
             value = "Create a deploy",
             notes = "Creates a deploy given an environment name, stage name, build id and description",
             response = Response.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public Response create(
             @Context SecurityContext sc,
             @Context UriInfo uriInfo,
@@ -202,7 +205,6 @@ public class EnvDeploys {
             @ApiParam(value = "Description", required = true)@QueryParam("description") String description,
             @ApiParam(value = "Delivery type", required = false)@QueryParam("deliveryType") String deliveryType) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
 
         String deployId = deployHandler.deploy(envBean, buildId, description, deliveryType, operator);

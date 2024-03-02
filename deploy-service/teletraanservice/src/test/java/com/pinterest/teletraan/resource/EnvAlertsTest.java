@@ -16,7 +16,6 @@ import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.EnvironState;
 import com.pinterest.deployservice.bean.TagBean;
-import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.buildtags.BuildTagsManager;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.BuildDAO;
@@ -26,8 +25,7 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.handler.DeployHandlerInterface;
 import com.pinterest.deployservice.handler.TagHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
-import com.pinterest.teletraan.security.UserPrincipal;
+import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 
 import org.joda.time.DateTime;
 import org.junit.Assert;
@@ -43,7 +41,6 @@ import javax.ws.rs.core.SecurityContext;
 public class EnvAlertsTest {
 
   TeletraanServiceContext context;
-  Authorizer authorizer;
   DeployBean recent = new DeployBean();
   DeployBean lastKnownGoodDeploy = new DeployBean();
   EnvironBean environBean = new EnvironBean();
@@ -66,7 +63,6 @@ public class EnvAlertsTest {
     environDAO = mock(EnvironDAO.class);
     deployDAO = mock(DeployDAO.class);
     tagDAO = mock(TagDAO.class);
-    authorizer = mock(Authorizer.class);
     buildTagsManager = mock(BuildTagsManager.class);
     alertContextBuilder = mock(AlertContextBuilder.class);
     deployHandler = mock(DeployHandlerInterface.class);
@@ -75,7 +71,6 @@ public class EnvAlertsTest {
     context.setBuildDAO(buildDAO);
     context.setEnvironDAO(environDAO);
     context.setDeployDAO(deployDAO);
-    context.setAuthorizer(authorizer);
     context.setExternalAlertsFactory(new PinterestExternalAlertFactory());
     buildBean.setBuild_id("0000001");
     buildBean.setBuild_name("BuildOne");
@@ -98,7 +93,7 @@ public class EnvAlertsTest {
     when(deployDAO.getById("recentdeploy")).thenReturn(recent);
     when(deployDAO.getById("lastGoodDeploy")).thenReturn(recent);
     sc = mock(SecurityContext.class);
-    when(sc.getUserPrincipal()).thenReturn(new UserPrincipal(Constants.AUTO_PROMOTER_NAME, new TokenRolesBean(),new ArrayList<String>()));
+    when(sc.getUserPrincipal()).thenReturn(new UserPrincipal(Constants.AUTO_PROMOTER_NAME, new ArrayList<String>()));
     when(buildDAO.getById(recent.getBuild_id())).thenReturn(buildBean);
     alertContext = new AlertContext();
     alertContext.setTagHandler(mock(TagHandler.class));

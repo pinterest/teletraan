@@ -133,7 +133,7 @@ public class ConfigHelper {
         context.setScheduleDAO(new DBScheduleDAOImpl(dataSource));
 
         // Inject proper implementation based on config
-        context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
+        context.setAuthorizationFactory(configuration.getAuthorizationFactory());
         context.setChatManager(configuration.getChatFactory().create());
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());

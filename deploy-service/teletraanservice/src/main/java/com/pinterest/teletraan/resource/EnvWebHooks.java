@@ -21,13 +21,17 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -42,13 +46,11 @@ public class EnvWebHooks {
     private EnvironDAO environDAO;
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
-    private Authorizer authorizer;
 
     public EnvWebHooks(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
-        authorizer = context.getAuthorizer();
     }
 
     @GET
@@ -68,12 +70,13 @@ public class EnvWebHooks {
     @ApiOperation(
             value = "Update webhooks",
             notes = "Updates pre/deploy webhooks by given environment and stage names with given webhooks object")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public void update(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
         EnvWebHookBean hookBean) throws Exception {
         EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         environHandler.updateHooks(environBean, hookBean, userName);
         configHistoryHandler.updateConfigHistory(environBean.getEnv_id(), Constants.TYPE_ENV_WEBHOOK, hookBean, userName);
