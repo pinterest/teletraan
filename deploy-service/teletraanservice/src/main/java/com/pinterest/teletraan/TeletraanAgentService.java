@@ -15,9 +15,12 @@
  */
 package com.pinterest.teletraan;
 
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
+
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.Pings;
 import io.dropwizard.Application;
+import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.setup.Environment;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
@@ -43,7 +46,10 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
     public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
         TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
         environment.jersey().register(context);
-        environment.jersey().register(configuration.getAuthenticationFactory().create(context));
+        environment
+                .jersey()
+                .register(new AuthDynamicFeature(configuration.getAuthenticationFactory().create(context)));
+        environment.jersey().register(RolesAllowedDynamicFeature.class);
         environment.jersey().register(Pings.class);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));

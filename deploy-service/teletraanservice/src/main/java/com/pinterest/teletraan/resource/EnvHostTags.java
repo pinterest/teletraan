@@ -7,7 +7,10 @@ import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.rodimus.RodimusManager;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.SwaggerDefinition;
@@ -15,6 +18,7 @@ import io.swagger.annotations.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -37,14 +41,12 @@ public class EnvHostTags {
     private EnvironDAO environDAO;
     private HostDAO hostDAO;
     private final RodimusManager rodimusManager;
-    private Authorizer authorizer;
 
 
     public EnvHostTags(@Context TeletraanServiceContext context) {
         hostDAO = context.getHostDAO();
         hostTagDAO = context.getHostTagDAO();
         environDAO = context.getEnvironDAO();
-        authorizer = context.getAuthorizer();
         rodimusManager = context.getRodimusManager();
     }
 
@@ -54,12 +56,13 @@ public class EnvHostTags {
         value = "List all the hosts tags",
         notes = "Returns a list the host tags in an environment",
         response = HostTagInfo.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public Collection<HostTagInfo> get(@PathParam("envName") String envName,
                                                     @PathParam("stageName") String stageName,
                                                     @QueryParam("ec2Tags") Optional<Boolean> ecTags,
                                                     @Context SecurityContext sc) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
 
         Boolean loadEc2Tags = ecTags.or(false);
         if (loadEc2Tags) {
@@ -77,13 +80,14 @@ public class EnvHostTags {
         value = "List all the hosts that are tagged with tagName in an environment, and group by tagValue",
         notes = "Returns a map group by tagValue and hosts tagged with tagName:tagValue in an environment",
         response = HostTagInfo.class)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public Map<String, Collection<HostTagInfo>> get(@PathParam("envName") String envName,
                                                     @PathParam("stageName") String stageName,
                                                     @PathParam("tagName") String tagName,
                                                     @QueryParam("ec2Tags") Optional<Boolean> ecTags,
                                                     @Context SecurityContext sc) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
 
         Boolean loadEc2Tags = ecTags.or(false);
         if (loadEc2Tags) {
@@ -105,13 +109,13 @@ public class EnvHostTags {
 
     @DELETE
     @Path("/{tagName : [a-zA-Z0-9\\-:_]+}")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public void removeHostTags(@PathParam("envName") String envName,
                                @PathParam("stageName") String stageName,
                                @PathParam("tagName") String tagName,
                                @Context SecurityContext sc) throws Exception {
-
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String envId = envBean.getEnv_id();
         hostTagDAO.deleteAllByEnvId(envId, tagName);
         LOG.info("Successfully removed all host tagged by {} in env {}", tagName, envId);

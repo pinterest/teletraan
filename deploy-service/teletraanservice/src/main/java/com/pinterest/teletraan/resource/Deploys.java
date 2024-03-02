@@ -26,22 +26,22 @@ import com.pinterest.deployservice.bean.DeployFilterBean;
 import com.pinterest.deployservice.bean.DeployQueryResultBean;
 import com.pinterest.deployservice.bean.DeployState;
 import com.pinterest.deployservice.bean.DeployType;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.dao.DeployDAO;
-import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.db.DeployQueryFilter;
 import com.pinterest.deployservice.handler.DeployHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -72,17 +72,13 @@ import io.swagger.annotations.Tag;
 @Consumes(MediaType.APPLICATION_JSON)
 public class Deploys {
     private static final Logger LOG = LoggerFactory.getLogger(Deploys.class);
-    private final static int DEFAULT_SIZE = 30;
-    private EnvironDAO environDAO;
+    private static final int DEFAULT_SIZE = 30;
     private DeployDAO deployDAO;
     private DeployHandler deployHandler;
-    private final Authorizer authorizer;
 
     public Deploys(@Context TeletraanServiceContext context) {
-        environDAO = context.getEnvironDAO();
         deployDAO = context.getDeployDAO();
         deployHandler = new DeployHandler(context);
-        authorizer = context.getAuthorizer();
     }
 
     @GET
@@ -147,14 +143,13 @@ public class Deploys {
             value = "Update deploy",
             notes = "Update deploy given a deploy id and a deploy object. Current only "
                     + "acceptanceStatus and description are allowed to change.")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = DeployBean.class)
     public void update(
             @Context SecurityContext sc,
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id,
             @ApiParam(value = "Partially populated deploy object", required = true)
             DeployBean deployBean) throws Exception {
-        DeployBean originBean = Utils.getDeploy(deployDAO, id);
-        EnvironBean environBean = Utils.getEnvStage(environDAO, originBean.getEnv_id());
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         deployHandler.update(id, deployBean);
         LOG.info("{} successfully updated deploy {} with {}",
@@ -168,12 +163,11 @@ public class Deploys {
     @ApiOperation(
             value = "Delete deploy info",
             notes = "Delete deploy info given a deploy id")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = DeployBean.class)
     public void delete(
             @Context SecurityContext sc,
             @ApiParam(value = "Deploy id", required = true)@PathParam("id") String id) throws Exception {
-        DeployBean deployBean = Utils.getDeploy(deployDAO, id);
-        EnvironBean environBean = Utils.getEnvStage(environDAO, deployBean.getEnv_id());
-        authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String userName = sc.getUserPrincipal().getName();
         deployDAO.delete(id);
         LOG.info("Successfully deleted deploy {} by {}", id, userName);

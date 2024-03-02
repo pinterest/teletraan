@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,10 +23,14 @@ import com.pinterest.deployservice.dao.DeployDAO;
 import com.pinterest.deployservice.dao.HotfixDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -38,18 +42,16 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 public class Hotfixs {
     private static final Logger LOG = LoggerFactory.getLogger(Hotfixs.class);
-    private final static int DEFAULT_TIME_OUT = 30; // minutes
-    private final static int DEFAULT_SIZE = 30;
+    private static final int DEFAULT_TIME_OUT = 30; // minutes
+    private static final int DEFAULT_SIZE = 30;
     private DeployDAO deployDAO;
     private BuildDAO buildDAO;
     private HotfixDAO hotfixDAO;
-    private final Authorizer authorizer;
 
     public Hotfixs(@Context TeletraanServiceContext context) {
         deployDAO = context.getDeployDAO();
         buildDAO = context.getBuildDAO();
         hotfixDAO = context.getHotfixDAO();
-        authorizer = context.getAuthorizer();
     }
 
     private HotfixBean getHotfixBean(String id) throws Exception {
@@ -75,9 +77,9 @@ public class Hotfixs {
 
     @PUT
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
-    public void update(@Context SecurityContext sc, @PathParam("id") String id,
+    @RolesAllowed(TeletraanPrincipalRoles.Names.PUBLISH)
+    public void update(@PathParam("id") String id,
         HotfixBean hotfixBean) throws Exception {
-        authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.PUBLISHER);
         hotfixDAO.update(id, hotfixBean);
         LOG.info("Successfully updated hotfix {} with {}.", id, hotfixBean);
     }
@@ -92,10 +94,10 @@ public class Hotfixs {
     }
 
     @POST
-    public Response create(@Context SecurityContext sc,
-                           @Context UriInfo uriInfo,
-                           @Valid HotfixBean hotfixBean) throws Exception {
-        authorizer.authorize(sc, new Resource(hotfixBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = HotfixBean.class)
+    public Response create(@Context SecurityContext sc, @Context UriInfo uriInfo, @Valid HotfixBean hotfixBean)
+            throws Exception {
         String hotfixId = CommonUtils.getBase64UUID();
         hotfixBean.setId(hotfixId);
         hotfixBean.setState(HotfixState.INITIAL);

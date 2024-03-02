@@ -18,8 +18,10 @@ package com.pinterest.teletraan;
 import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.*;
+import com.pinterest.teletraan.universal.security.AuditLoggingFilter;
 
 import io.dropwizard.Application;
+import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.configuration.EnvironmentVariableSubstitutor;
 import io.dropwizard.configuration.SubstitutingSourceProvider;
 import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
@@ -30,6 +32,7 @@ import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.listing.ApiListingResource;
 import io.swagger.jaxrs.listing.SwaggerSerializers;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
+import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 
 import java.util.EnumSet;
 import javax.servlet.DispatcherType;
@@ -55,8 +58,12 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
     public void run(TeletraanServiceConfiguration configuration, Environment environment) throws Exception {
         TeletraanServiceContext context = ConfigHelper.setupContext(configuration);
 
-        environment.jersey().register(configuration.getAuthenticationFactory().create(context));
         environment.jersey().register(context);
+        environment
+                .jersey()
+                .register(new AuthDynamicFeature(configuration.getAuthenticationFactory().create(context)));
+        environment.jersey().register(RolesAllowedDynamicFeature.class);
+        environment.jersey().register(AuditLoggingFilter.class);
 
         environment.jersey().register(Builds.class);
         environment.jersey().register(Commits.class);

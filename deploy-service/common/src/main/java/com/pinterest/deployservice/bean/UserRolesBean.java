@@ -16,6 +16,8 @@
 package com.pinterest.deployservice.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 
 import javax.validation.constraints.NotEmpty;
@@ -36,49 +38,51 @@ public class UserRolesBean implements Updatable {
     @JsonProperty("name")
     private String user_name;
 
+    @NotEmpty
     @JsonProperty("resource")
     private String resource_id;
 
+    @NotNull
     @JsonProperty("type")
-    private Resource.Type resource_type;
+    private AuthZResource.Type resource_type;
 
     @NotNull
     @JsonProperty("role")
-    private Role role;
+    private TeletraanPrincipalRoles role;
 
     public String getUser_name() {
         return user_name;
     }
 
-    public void setUser_name(String user_name) {
-        this.user_name = user_name;
+    public void setUser_name(String userName) {
+        this.user_name = userName;
     }
 
     public String getResource_id() {
         return resource_id;
     }
 
-    public void setResource_id(String resource_id) {
-        this.resource_id = resource_id;
+    public void setResource_id(String resourceId) {
+        this.resource_id = resourceId;
     }
 
-    public Resource.Type getResource_type() {
+    public AuthZResource.Type getResource_type() {
         return resource_type;
     }
 
-    public void setResource_type(Resource.Type resource_type) {
-        this.resource_type = resource_type;
+    public void setResource_type(AuthZResource.Type resourceType) {
+        this.resource_type = resourceType;
     }
 
-    public Role getRole() {
+    public TeletraanPrincipalRoles getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(TeletraanPrincipalRoles role) {
         this.role = role;
     }
 
-    public final static String UPDATE_CLAUSE =
+    public static final String UPDATE_CLAUSE =
             "user_name=VALUES(user_name)," +
                     "resource_id=VALUES(resource_id)," +
                     "resource_type=VALUES(resource_type)," +
