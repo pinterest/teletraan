@@ -1,5 +1,5 @@
 /**
- * Copyright 2016 Pinterest, Inc.
+ * Copyright (c) 2016-2024 Pinterest, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,32 +16,31 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import io.swagger.annotations.*;
-
+import java.util.Collection;
+import java.util.List;
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-
-import java.util.Collection;
-import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @PermitAll
 @Path("/v1/agents")
 @Api(tags = "Agents")
 @SwaggerDefinition(
         tags = {
-                @Tag(name = "Agents", description = "Deploy agent information APIs"),
-        }
-)
+            @Tag(name = "Agents", description = "Deploy agent information APIs"),
+        })
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Agents {
@@ -56,10 +55,12 @@ public class Agents {
     @ApiOperation(
             value = "Get Deploy Agent Host Info",
             notes = "Returns a list of all the deploy agent objects running on the specified host",
-            response = AgentBean.class, responseContainer = "List")
+            response = AgentBean.class,
+            responseContainer = "List")
     @Path("/{hostName : [a-zA-Z0-9\\-_]+}")
     public List<AgentBean> get(
-            @ApiParam(value = "Host name", required = true)@PathParam("hostName") String hostName) throws Exception {
+            @ApiParam(value = "Host name", required = true) @PathParam("hostName") String hostName)
+            throws Exception {
         return agentDAO.getByHost(hostName);
     }
 
@@ -71,18 +72,23 @@ public class Agents {
 
     @PUT
     @Path("/id/{hostId : [a-zA-Z0-9\\-_]+}")
-    public void updateById(@Context SecurityContext sc,
-                           @PathParam("hostId") String hostId,
-                           @Valid AgentBean agentBean) throws Exception {
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.HOST, idLocation = ResourceAuthZInfo.Location.PATH)
+    public void updateById(
+            @Context SecurityContext sc,
+            @PathParam("hostId") String hostId,
+            @Valid AgentBean agentBean)
+            throws Exception {
         String operator = sc.getUserPrincipal().getName();
         agentDAO.updateAgentById(hostId, agentBean);
-        LOG.info("Successfully update agents {} by {}: {}", hostId, operator, agentBean.toString());
+        LOG.info("Successfully update agents {} by {}: {}", hostId, operator, agentBean);
     }
 
     @GET
     @Path("/env/{envId : [a-zA-Z0-9\\-_]+}/total")
     public long getCountByEnvName(
-        @ApiParam(value = "Env Id", required = true)@PathParam("envId") String envId) throws Exception {
+            @ApiParam(value = "Env Id", required = true) @PathParam("envId") String envId)
+            throws Exception {
         return agentDAO.countAgentByEnv(envId);
     }
 
