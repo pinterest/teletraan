@@ -16,14 +16,19 @@
 package com.pinterest.teletraan.resource;
 
 import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.dao.AgentDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.swagger.annotations.*;
 
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -69,12 +74,14 @@ public class Agents {
 
     @PUT
     @Path("/id/{hostId : [a-zA-Z0-9\\-_]+}")
+    @RolesAllowed(TeletraanPrincipalRoles.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY)
     public void updateById(@Context SecurityContext sc,
                            @PathParam("hostId") String hostId,
                            @Valid AgentBean agentBean) throws Exception {
         String operator = sc.getUserPrincipal().getName();
         agentDAO.updateAgentById(hostId, agentBean);
-        LOG.info("Successfully update agents {} by {}: {}", hostId, operator, agentBean.toString());
+        LOG.info("Successfully update agents {} by {}: {}", hostId, operator, agentBean);
     }
 
     @GET
