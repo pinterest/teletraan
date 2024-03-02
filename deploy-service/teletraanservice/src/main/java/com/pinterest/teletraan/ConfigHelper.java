@@ -76,6 +76,7 @@ import com.pinterest.teletraan.config.JenkinsFactory;
 import com.pinterest.teletraan.config.RodimusFactory;
 import com.pinterest.teletraan.config.SourceControlFactory;
 import com.pinterest.teletraan.config.WorkerConfig;
+import com.pinterest.teletraan.security.TeletraanAuthZResourceExtractorFactory;
 import com.pinterest.teletraan.universal.events.AppEventPublisher;
 import com.pinterest.teletraan.worker.AgentJanitor;
 import com.pinterest.teletraan.worker.AutoPromoter;
@@ -133,7 +134,8 @@ public class ConfigHelper {
         context.setScheduleDAO(new DBScheduleDAOImpl(dataSource));
 
         // Inject proper implementation based on config
-        context.setAuthorizer(configuration.getAuthorizationFactory().create(context));
+        context.setAuthorizationFactory(configuration.getAuthorizationFactory());
+        context.setAuthZResourceExtractorFactory(new TeletraanAuthZResourceExtractorFactory(context));
         context.setChatManager(configuration.getChatFactory().create());
         context.setMailManager(configuration.getEmailFactory().createMailManager());
         context.setHostGroupDAO(configuration.getHostGroupFactory().createHostGroupDAO());

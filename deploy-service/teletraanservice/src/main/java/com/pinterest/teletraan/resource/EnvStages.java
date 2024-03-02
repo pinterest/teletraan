@@ -15,39 +15,52 @@
  */
 package com.pinterest.teletraan.resource;
 
-import com.pinterest.deployservice.bean.EnvType;
-import com.pinterest.deployservice.bean.EnvironBean;
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
-import com.pinterest.deployservice.bean.TagBean;
-import com.pinterest.deployservice.bean.TagTargetType;
-import com.pinterest.deployservice.bean.TagValue;
-import com.pinterest.deployservice.common.Constants;
-import com.pinterest.deployservice.dao.EnvironDAO;
-import com.pinterest.deployservice.handler.ConfigHistoryHandler;
-import com.pinterest.deployservice.handler.EnvTagHandler;
-import com.pinterest.deployservice.handler.EnvironHandler;
-import com.pinterest.deployservice.handler.TagHandler;
-import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.deployservice.exception.TeletaanInternalException;
-import com.pinterest.teletraan.security.Authorizer;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 
-import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.pinterest.deployservice.bean.EnvType;
+import com.pinterest.deployservice.bean.EnvironBean;
+import com.pinterest.deployservice.bean.TagBean;
+import com.pinterest.deployservice.bean.TagTargetType;
+import com.pinterest.deployservice.bean.TagValue;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
+import com.pinterest.deployservice.common.Constants;
+import com.pinterest.deployservice.dao.EnvironDAO;
+import com.pinterest.deployservice.exception.TeletaanInternalException;
+import com.pinterest.deployservice.handler.ConfigHistoryHandler;
+import com.pinterest.deployservice.handler.EnvTagHandler;
+import com.pinterest.deployservice.handler.EnvironHandler;
+import com.pinterest.deployservice.handler.TagHandler;
+import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+
+@PermitAll
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}")
 @Api(tags = "Environments")
 @Produces(MediaType.APPLICATION_JSON)
@@ -63,14 +76,13 @@ public class EnvStages {
     private EnvironHandler environHandler;
     private ConfigHistoryHandler configHistoryHandler;
     private TagHandler tagHandler;
-    private Authorizer authorizer;
 
-    public EnvStages(@Context TeletraanServiceContext context) throws Exception {
+
+    public EnvStages(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
         tagHandler = new EnvTagHandler(context);
-        authorizer = context.getAuthorizer();
     }
 
     @GET
@@ -88,21 +100,23 @@ public class EnvStages {
     @ApiOperation(
             value = "Update an environment",
             notes = "Update an environment given environment and stage names with a environment object")
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public void update(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
                        @ApiParam(value = "Desired Environment object with updates", required = true)
                            EnvironBean environBean) throws Exception {
-        EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(origBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
-        // We must use default null Boolean to know that the user did not change from true->false
-        if (environBean.getIs_sox() != null && origBean.getIs_sox() != environBean.getIs_sox()) {
-            authorizer.authorize(sc, new Resource(Resource.ALL, Resource.Type.SYSTEM), Role.ADMIN);
-        }
-        // TODO: If is_sox is not provided, set it, this support existing PATCH style usages of the endpoint
+        final EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
+        // treat null as false
+        boolean originalIsSox = origBean.getIs_sox() != null && origBean.getIs_sox();
+
         if (environBean.getIs_sox() == null) {
-          environBean.setIs_sox(origBean.getIs_sox());
+            environBean.setIs_sox(originalIsSox);
+        } else if (!environBean.getIs_sox().equals(originalIsSox)) {
+            throw new TeletaanInternalException(Response.Status.FORBIDDEN, "Modification of isSox flag is not allowed!");
         }
+
         String operator = sc.getUserPrincipal().getName();
         try {
             environBean.validate();
@@ -134,16 +148,36 @@ public class EnvStages {
             envName, stageName, environBean, operator);
     }
 
+    @PUT
+    @Path("/is-sox/{booleanValue}")
+    @ApiOperation(
+            value = "Update an environment/stage's isSox flag"
+    )
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM, idLocation = Location.PATH)
+    public void updateIsSox(@Context SecurityContext sc,
+                       @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
+                       @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
+                       @ApiParam(value = "Is sox flag", required = true)@PathParam("booleanValue") boolean isSox) throws Exception {
+        EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
+        origBean.setIs_sox(isSox);
+        String operator = sc.getUserPrincipal().getName();
+        environHandler.updateStage(origBean, operator);
+        configHistoryHandler.updateConfigHistory(origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, origBean, operator);
+        configHistoryHandler.updateChangeFeed(Constants.CONFIG_TYPE_ENV, origBean.getEnv_id(), Constants.TYPE_ENV_GENERAL, operator, origBean.getExternal_id());
+        LOG.info("Successfully updated env {}/{} isSox flag to {} by {}.", envName, stageName, isSox, operator);
+    }
+
     @DELETE
     @ApiOperation(
             value = "Delete an environment",
             notes = "Deletes an environment given a environment and stage names")
+    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public void delete(@Context SecurityContext sc,
                        @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
                        @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName)
                         throws Exception {
-        EnvironBean origBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(origBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
         environHandler.deleteEnvStage(envName, stageName, operator);
         LOG.info("Successfully deleted env {}/{} by {}.", envName, stageName, operator);
@@ -156,6 +190,8 @@ public class EnvStages {
           response = EnvironBean.class
     )
     @Path("/external_id")
+    @RolesAllowed(TeletraanPrincipalRole.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = ResourceAuthZInfo.Location.PATH)
     public EnvironBean setExternalId(
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
@@ -184,13 +220,14 @@ public class EnvStages {
 
     @POST
     @Path("/actions")
+    @RolesAllowed(TeletraanPrincipalRole.Names.EXECUTE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
     public void action(@Context SecurityContext sc,
                        @PathParam("envName") String envName,
                        @PathParam("stageName") String stageName,
                        @NotNull @QueryParam("actionType") ActionType actionType,
                        @NotEmpty @QueryParam("description") String description) throws Exception {
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();
 
         TagBean tagBean = new TagBean();

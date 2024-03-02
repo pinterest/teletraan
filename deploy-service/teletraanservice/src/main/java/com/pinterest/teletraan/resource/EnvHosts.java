@@ -20,15 +20,16 @@ package com.pinterest.teletraan.resource;
 import com.google.common.base.Optional;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.HostBean;
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.common.Constants;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.HostDAO;
 import com.pinterest.deployservice.handler.ConfigHistoryHandler;
 import com.pinterest.deployservice.handler.EnvironHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
-import com.pinterest.teletraan.security.Authorizer;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo.Location;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,6 +38,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -49,20 +53,19 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
+@PermitAll
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/hosts")
 @Api(tags = "Hosts")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class EnvHosts {
     private static final Logger LOG = LoggerFactory.getLogger(EnvHosts.class);
-    private final Authorizer authorizer;
     private final EnvironDAO environDAO;
     private final HostDAO hostDAO;
     private final EnvironHandler environHandler;
     private final ConfigHistoryHandler configHistoryHandler;
 
     public EnvHosts(@Context TeletraanServiceContext context) {
-        authorizer = context.getAuthorizer();
         environDAO = context.getEnvironDAO();
         hostDAO = context.getHostDAO();
         environHandler = new EnvironHandler(context);
@@ -96,6 +99,9 @@ public class EnvHosts {
     }
 
     @DELETE
+    @RolesAllowed(TeletraanPrincipalRole.Names.DELETE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.PATH)
+    // TODO: this allows sidecar owners to stop hosts
     public void stopServiceOnHost(@Context SecurityContext sc,
             @PathParam("envName") String envName,
             @PathParam("stageName") String stageName,
@@ -104,7 +110,6 @@ public class EnvHosts {
             throws Exception {
         String operator = sc.getUserPrincipal().getName();
         EnvironBean envBean = Utils.getEnvStage(environDAO, envName, stageName);
-        authorizer.authorize(sc, new Resource(envBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         environHandler.stopServiceOnHosts(hostIds, replaceHost.or(true));
         configHistoryHandler.updateConfigHistory(envBean.getEnv_id(), Constants.TYPE_HOST_ACTION,
                 String.format("STOP %s", hostIds.toString()), operator);

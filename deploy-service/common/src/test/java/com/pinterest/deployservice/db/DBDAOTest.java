@@ -42,13 +42,12 @@ import com.pinterest.deployservice.bean.OverridePolicy;
 import com.pinterest.deployservice.bean.PromoteBean;
 import com.pinterest.deployservice.bean.PromoteType;
 import com.pinterest.deployservice.bean.RatingBean;
-import com.pinterest.deployservice.bean.Resource;
-import com.pinterest.deployservice.bean.Role;
 import com.pinterest.deployservice.bean.ScheduleBean;
 import com.pinterest.deployservice.bean.ScheduleState;
 import com.pinterest.deployservice.bean.TagBean;
 import com.pinterest.deployservice.bean.TagTargetType;
 import com.pinterest.deployservice.bean.TagValue;
+import com.pinterest.deployservice.bean.TeletraanPrincipalRole;
 import com.pinterest.deployservice.bean.TokenRolesBean;
 import com.pinterest.deployservice.bean.UserRolesBean;
 import com.pinterest.deployservice.common.CommonUtils;
@@ -71,6 +70,7 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.joda.time.DateTime;
@@ -970,12 +970,13 @@ public class DBDAOTest {
         UserRolesBean bean = new UserRolesBean();
         bean.setUser_name("test");
         bean.setResource_id("envTest");
-        bean.setResource_type(Resource.Type.ENV);
-        bean.setRole(Role.ADMIN);
+        bean.setResource_type(AuthZResource.Type.ENV);
+        bean.setRole(TeletraanPrincipalRole.ADMIN);
         userRolesDAO.insert(bean);
-        UserRolesBean bean2 =
-                userRolesDAO.getByNameAndResource("test", "envTest", Resource.Type.ENV);
-        assertEquals(bean2.getRole(), Role.ADMIN);
+        UserRolesBean
+            bean2 =
+            userRolesDAO.getByNameAndResource("test", "envTest", AuthZResource.Type.ENV);
+        assertEquals(bean2.getRole(), TeletraanPrincipalRole.ADMIN);
     }
 
     @Test
@@ -983,12 +984,13 @@ public class DBDAOTest {
         GroupRolesBean bean = new GroupRolesBean();
         bean.setGroup_name("group");
         bean.setResource_id("123");
-        bean.setResource_type(Resource.Type.ENV);
-        bean.setRole(Role.ADMIN);
+        bean.setResource_type(AuthZResource.Type.ENV);
+        bean.setRole(TeletraanPrincipalRole.ADMIN);
         groupRolesDAO.insert(bean);
-        GroupRolesBean bean2 =
-                groupRolesDAO.getByNameAndResource("group", "123", Resource.Type.ENV);
-        assertEquals(bean2.getRole(), Role.ADMIN);
+        GroupRolesBean
+            bean2 =
+            groupRolesDAO.getByNameAndResource("group", "123", AuthZResource.Type.ENV);
+        assertEquals(bean2.getRole(), TeletraanPrincipalRole.ADMIN);
     }
 
     @Test
@@ -997,13 +999,14 @@ public class DBDAOTest {
         bean.setScript_name("test");
         bean.setToken("token");
         bean.setResource_id("envTest");
-        bean.setResource_type(Resource.Type.ENV);
-        bean.setRole(Role.ADMIN);
+        bean.setResource_type(AuthZResource.Type.ENV);
+        bean.setRole(TeletraanPrincipalRole.ADMIN);
         bean.setExpire_date(System.currentTimeMillis());
         tokenRolesDAO.insert(bean);
-        TokenRolesBean bean2 =
-                tokenRolesDAO.getByNameAndResource("test", "envTest", Resource.Type.ENV);
-        assertEquals(bean2.getRole(), Role.ADMIN);
+        TokenRolesBean
+            bean2 =
+            tokenRolesDAO.getByNameAndResource("test", "envTest", AuthZResource.Type.ENV);
+        assertEquals(bean2.getRole(), TeletraanPrincipalRole.ADMIN);
     }
 
     @Test

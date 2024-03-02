@@ -18,7 +18,6 @@ import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import com.pinterest.teletraan.resource.EnvStages;
-import com.pinterest.teletraan.security.Authorizer;
 
 public class EnvStagesTest {
     private EnvStages envStages;
@@ -27,9 +26,7 @@ public class EnvStagesTest {
     @Before
     public void setup() throws Exception {
         environDAO = mock(EnvironDAO.class);
-        Authorizer auth = mock(Authorizer.class);
         TeletraanServiceContext tsc = new TeletraanServiceContext();
-        tsc.setAuthorizer(auth);
         tsc.setEnvironDAO(environDAO);
         envStages = new EnvStages(tsc);
     }
