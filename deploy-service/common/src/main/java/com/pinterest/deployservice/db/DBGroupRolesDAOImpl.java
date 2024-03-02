@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,9 +16,10 @@
 package com.pinterest.deployservice.db;
 
 import com.pinterest.deployservice.bean.GroupRolesBean;
-import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
+
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
 import org.apache.commons.dbutils.ResultSetHandler;
@@ -66,14 +67,14 @@ public class DBGroupRolesDAOImpl implements GroupRolesDAO {
 
     @Override
     public void delete(String groupName, String resourceId,
-        Resource.Type resourceType) throws Exception {
+        AuthZResource.Type resourceType) throws Exception {
         new QueryRunner(dataSource).update(DELETE_TEMPLATE, groupName, resourceId,
             resourceType.toString());
     }
 
     @Override
     public void update(GroupRolesBean bean, String groupName, String resourceId,
-        Resource.Type resourceType) throws Exception {
+        AuthZResource.Type resourceType) throws Exception {
         SetClause setClause = bean.genSetClause();
         String clause = String.format(UPDATE_TEMPLATE, setClause.getClause());
         setClause.addValue(groupName);
@@ -84,7 +85,7 @@ public class DBGroupRolesDAOImpl implements GroupRolesDAO {
 
     @Override
     public GroupRolesBean getByNameAndResource(String groupName, String resourceId,
-        Resource.Type resourceType) throws Exception {
+        AuthZResource.Type resourceType) throws Exception {
         ResultSetHandler<GroupRolesBean> h = new BeanHandler<>(GroupRolesBean.class);
         return new QueryRunner(dataSource).query(GET_BY_NAME_AND_RESOURCE, h, groupName,
             resourceId, resourceType.toString());
@@ -92,7 +93,7 @@ public class DBGroupRolesDAOImpl implements GroupRolesDAO {
 
     @Override
     public List<GroupRolesBean> getByResource(String resourceId,
-        Resource.Type resourceType) throws Exception {
+        AuthZResource.Type resourceType) throws Exception {
         ResultSetHandler<List<GroupRolesBean>> h = new BeanListHandler<>(GroupRolesBean.class);
         return new QueryRunner(dataSource).query(GET_BY_RESOURCE, h, resourceId,
             resourceType.toString());

@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -27,14 +27,15 @@ import com.pinterest.deployservice.common.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.PermitAll;
 import javax.validation.Valid;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
+@PermitAll
 @Path("/v1/schedules")
-
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Schedules {
@@ -64,7 +65,7 @@ public class Schedules {
         }
         return scheduleBean;
     }
-    
+
     @PUT
     @Path("/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/schedules")
     public void updateSchedule(
@@ -78,7 +79,7 @@ public class Schedules {
         String cooldownTimes = bean.getCooldown_times();
         String hostNumbers = bean.getHost_numbers();
         Integer totalSessions = bean.getTotal_sessions();
-        if (totalSessions > 0) { // there is a schedule  
+        if (totalSessions > 0) { // there is a schedule
             ScheduleBean scheduleBean = new ScheduleBean();
             scheduleBean.setState_start_time(System.currentTimeMillis());
             scheduleBean.setCooldown_times(cooldownTimes);
@@ -98,7 +99,7 @@ public class Schedules {
                 LOG.info(String.format("Successfully updated one env %s (%s)'s schedule by %s: %s", envName, stageName, operator, scheduleBean.toString()));
             }
         } else if (scheduleId != null) { //there are no sessions, so delete the schedule
-            scheduleDAO.delete(scheduleId); 
+            scheduleDAO.delete(scheduleId);
             environDAO.deleteSchedule(envName, stageName);
             LOG.info(String.format("Successfully deleted env %s (%s)'s schedule by %s", envName, stageName, operator));
         }
@@ -122,17 +123,17 @@ public class Schedules {
         Integer currentSession = scheduleBean.getCurrent_session();
         Integer totalSessions = scheduleBean.getTotal_sessions();
         if (sessionNumber != currentSession) {
-            LOG.info(String.format("Overriding session %d is now invalid as deploy is already on session %d", sessionNumber, currentSession)); 
-            return;   
+            LOG.info(String.format("Overriding session %d is now invalid as deploy is already on session %d", sessionNumber, currentSession));
+            return;
         }
         if (sessionNumber == totalSessions) {
             scheduleBean.setState(ScheduleState.FINAL);
-            LOG.info(String.format("Overrided session %d and currently working on the final deploy session", sessionNumber));    
+            LOG.info(String.format("Overrided session %d and currently working on the final deploy session", sessionNumber));
         } else {
             scheduleBean.setCurrent_session(sessionNumber+1);
             scheduleBean.setState(ScheduleState.RUNNING);
-            LOG.info(String.format("Overrided session %d and currently working on session %d", sessionNumber, currentSession+1));    
-        }    
+            LOG.info(String.format("Overrided session %d and currently working on session %d", sessionNumber, currentSession+1));
+        }
         scheduleBean.setState_start_time(System.currentTimeMillis());
         scheduleDAO.update(scheduleBean, scheduleId);
     }

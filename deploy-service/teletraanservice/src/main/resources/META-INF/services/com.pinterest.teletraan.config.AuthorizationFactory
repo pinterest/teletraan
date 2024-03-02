@@ -1,2 +1,3 @@
 com.pinterest.teletraan.config.OpenAuthorizationFactory
-com.pinterest.teletraan.config.TokenAuthorizationFactory
+com.pinterest.teletraan.config.RoleAuthorizationFactory
+com.pinterest.teletraan.config.CompositeAuthorizationFactory

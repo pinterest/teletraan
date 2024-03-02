@@ -24,11 +24,13 @@ import com.pinterest.deployservice.scm.SourceControlManagerProxy;
 import com.pinterest.teletraan.TeletraanServiceContext;
 import io.swagger.annotations.*;
 
+import javax.annotation.security.PermitAll;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
+@PermitAll
 @Path("/v1/commits")
 @Api(tags="Commits")
 @SwaggerDefinition(
@@ -76,9 +78,9 @@ public class Commits {
     public List<CommitBean> getCommits(
         @QueryParam("scm") Optional<String> scm,
         @QueryParam("repo") String repo,
-        @QueryParam("startSha") String startSha, 
+        @QueryParam("startSha") String startSha,
         @QueryParam("endSha") String endSha,
-        @QueryParam("size") Optional<Integer> size, 
+        @QueryParam("size") Optional<Integer> size,
         @QueryParam("path") Optional<String> path) throws Exception {
         return sourceControlManagerProxy.getCommits(scm.or(""), repo, startSha, endSha, size.or(DEFAULT_SIZE), path.or(DEFAULT_PATH));
     }
