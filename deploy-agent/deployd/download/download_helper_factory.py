@@ -3,33 +3,34 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#  
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-#    
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+from logging import Logger, getLogger
 from typing import Optional
 
 from future.moves.urllib.parse import urlparse
 from boto.s3.connection import S3Connection
 
+from deployd.download.download_helper import DownloadHelper
 from deployd.download.s3_download_helper import S3DownloadHelper
 from deployd.download.http_download_helper import HTTPDownloadHelper
 from deployd.download.local_download_helper import LocalDownloadHelper
 
 
-log = logging.getLogger(__name__)
+log: Logger = getLogger(__name__)
 
 
 class DownloadHelperFactory(object):
 
     @staticmethod
-    def gen_downloader(url, config) -> Optional[S3DownloadHelper|LocalDownloadHelper|HTTPDownloadHelper]:
+    def gen_downloader(url, config) -> Optional[DownloadHelper]:
         url_parse = urlparse(url)
         if url_parse.scheme == 's3':
             aws_access_key_id = config.get_aws_access_key()
@@ -38,8 +39,8 @@ class DownloadHelperFactory(object):
                 log.error("aws access key id and secret access key not found")
                 return None
             aws_conn = S3Connection(aws_access_key_id, aws_secret_access_key, True)
-            return S3DownloadHelper(url, aws_conn)
+            return S3DownloadHelper(local_full_fn=url, aws_connection=aws_conn, url=None, config=config)
         elif url_parse.scheme == 'file':
-            return LocalDownloadHelper(url)
+            return LocalDownloadHelper(url=url)
         else:
-            return HTTPDownloadHelper(url)
+            return HTTPDownloadHelper(url=url, config=config)

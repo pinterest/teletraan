@@ -27,10 +27,10 @@ log = logging.getLogger(__name__)
 
 class S3DownloadHelper(DownloadHelper):
 
-    def __init__(self, local_full_fn, aws_connection=None, url=None) -> None:
+    def __init__(self, local_full_fn, aws_connection=None, url=None, config=None) -> None:
         super(S3DownloadHelper, self).__init__(local_full_fn)
         self._s3_matcher = "^s3://(?P<BUCKET>[a-zA-Z0-9\-_]+)/(?P<KEY>[a-zA-Z0-9\-_/\.]+)/?"
-        self._config = Config()
+        self._config = config if config else Config()
         if aws_connection:
             self._aws_connection = aws_connection
         else:
@@ -81,4 +81,8 @@ class S3DownloadHelper(DownloadHelper):
         tags = {'type': 's3', 'url': self._url, 'bucket' : self._bucket_name}
         create_sc_increment(DOWNLOAD_VALIDATE_METRICS, tags=tags)
 
-        return self._bucket_name in allow_list if allow_list else True
+        if not allow_list or self._bucket_name in allow_list:
+            return True
+        else:
+            log.error(f"{self._bucket_name} is not in the allow list: {allow_list}.")
+            return False

@@ -15,6 +15,8 @@ from __future__ import print_function
 
 import logging
 import os
+import json
+
 from typing import Any, List, Optional
 
 from deployd import __version__
@@ -292,8 +294,19 @@ class Config(object):
     def get_facter_account_id_key(self) -> str:
         return self.get_var('account_id_key', 'ec2_metadata.identity-credentials.ec2.info')
 
+    def _get_download_allow_list(self, key: str) -> List:
+        allow_list_str = self.get_var(key, '[]')
+        allow_list = []
+        try:
+            allow_list = json.loads(allow_list_str)
+        except json.JSONDecodeError:
+            log.error(f"Error: The string {allow_list_str} could not be converted to a list.")
+        return allow_list
+
+
     def get_http_download_allow_list(self) -> List:
-        return self.get_var('http_download_allow_list', [])
+        return self._get_download_allow_list('http_download_allow_list')
+
 
     def get_s3_download_allow_list(self) -> List:
-        return self.get_var('s3_download_allow_list', [])
+        return self._get_download_allow_list('s3_download_allow_list')
