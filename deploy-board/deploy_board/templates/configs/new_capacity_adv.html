@@ -45,6 +45,7 @@
         <div class="container-fluid">
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
+                    <accounts-select v-bind:accounts="accounts" v-on:accountchange="accountChange" v-bind:value="currentAccountId"></accounts-select>
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
@@ -141,6 +142,7 @@ var capacitySetting = new Vue({
         confirmDialogTitle: "Confirm New Capacity Creation",
         confirmDialogId: "createHostGroup",
         currentProvider: info.defaultProvider,
+        currentAccountId: info.defaultAccountId,
         currentCell: info.defaultCell,
         currentArch: info.defaultArch,
         hostTypeHelpData:[],
@@ -160,6 +162,14 @@ var capacitySetting = new Vue({
         instanceCount: "",
         placements: placements.getFullList(false, null),
         placementsHelpData: [],
+        accounts: info.accounts != null ? info.accounts.map(
+            function (o) {
+                return {
+                    value: o.id,
+                    text: o.ownerId + " / " + o.name + " / " + o.description,
+                    isSelected: o.id === info.defaultAccountId,
+                }
+            }) : null,
         providers: info.providerList.map(
             function (o) {
                 return {
@@ -284,6 +294,9 @@ var capacitySetting = new Vue({
                         capacitySetting.showHostTypeHelp = true
                     }, {cell: capacitySetting.currentCell})
             }
+        },
+        accountChange: function (value) {
+            capacitySetting.currentAccountId = value;
         },
         cellChange: function(value) {
             capacitySetting.currentCell = value;
@@ -575,6 +588,7 @@ var capacitySetting = new Vue({
             clusterInfo['securityZone'] = this.selectedSecurityZoneValue;
             clusterInfo['replacementTimeout'] = this.replacementTimeout;
             clusterInfo['statefulStatus'] =  this.selectedStatefulStatus;
+            clusterInfo['accountId'] = this.currentAccountId;
             if (this.selectedPlacements != null && this.selectedPlacements.length>0){
                 clusterInfo['placement'] = this.selectedPlacements.join(',');
             }

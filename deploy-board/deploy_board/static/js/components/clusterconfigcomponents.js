@@ -10,6 +10,20 @@ Vue.component('cloudprovider-select', {
     }
 });
 
+Vue.component('accounts-select', {
+    template: '<div v-if="accounts">\
+  <label-select label="Account" title="Account" \
+      v-bind:value="value" \
+      v-bind:selectoptions="accounts" \
+      v-on:input="updateAccountValue"></label-select></div>',
+    props: ['accounts', 'value'],
+    methods: {
+        updateAccountValue: function (value) {
+            this.$emit('accountchange', value);
+        }
+    }
+});
+
 Vue.component('cell-select', {
     template: '<div>\
   <label-select label="Cell" title="Cell" \
