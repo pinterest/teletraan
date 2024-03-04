@@ -223,7 +223,7 @@ def get_info_from_facter(keys) -> Optional[dict]:
         return None
 
 
-def redeploy_check(labels, service, redeploy) -> int:
+def redeploy_check_container(labels, service, redeploy) -> int:
     max_retry = REDEPLOY_MAX_RETRY
     for label in labels:
         if "redeploy_max_retry" in label:
@@ -232,9 +232,45 @@ def redeploy_check(labels, service, redeploy) -> int:
         return redeploy + 1
     return 0
     
+def redeploy_check_non_container(commit, service, redeploy, healthcheckConfigs):
+    if "HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY" in healthcheckConfigs and healthcheckConfigs["HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY"] == "True":
+        log.info(f"Auto redeployment is enabled on service {service}")
+        if "HEALTHCHECK_REDEPLOY_MAX_RETRY" in healthcheckConfigs and redeploy < int(healthcheckConfigs["HEALTHCHECK_REDEPLOY_MAX_RETRY"]) or \
+            "HEALTHCHECK_REDEPLOY_MAX_RETRY" not in healthcheckConfigs and redeploy < 3:
+            log.info(f"current redeploy is {redeploy}")
+            send_statsboard_metric(name='deployd.service_health_status', value=1,
+                tags={"status": "redeploy", "service": service, "commit": commit})
+            return "redeploy-" + str(redeploy + 1)
+    send_statsboard_metric(name='deployd.service_health_status', value=1,
+        tags={"status": "unhealthy", "service": service, "commit": commit})
+    return service + ":unhealthy"
+
+def redeploy_check_for_none(commit, service, redeploy):
+    log.info(f"Get health info for service {service} with commit {commit}")
+    fn = os.path.join("/mnt/deployd/", "{}_HEALTHCHECK".format(service))
+    if not os.path.isfile(fn):
+        return None
+    with open(fn, 'r') as f:
+        healthcheckConfigs = dict((n.strip('\"\n\' ') for n in line.split("=", 1)) for line in f)
+        if "HEALTHCHECK_HTTP" not in healthcheckConfigs:
+            return None
+        log.info(f"Healthcheck is enabled on service {service}")
+        url = healthcheckConfigs["HEALTHCHECK_HTTP"]
+        if "http://" not in url:
+            url = "http://" + url
+        try:
+            resp = requests.get(url)
+            if resp.status_code >= 200 and resp.status_code < 300:
+                send_statsboard_metric(name='deployd.service_health_status', value=1,
+                    tags={"status": "healthy", "service": service, "commit": commit})
+                return service + ":healthy"
+        except requests.ConnectionError:
+            return redeploy_check_non_container(commit, service, redeploy, healthcheckConfigs)
+        return redeploy_check_non_container(commit, service, redeploy, healthcheckConfigs)
+        
 def get_container_health_info(commit, service, redeploy) -> Optional[str]:
     try:
-        log.info(f"Get health info for container with commit {commit}")
+        log.info(f"Get health info for service {service} with commit {commit}")
         result = []
         cmd = ['docker', 'ps', '--format', '{{.Image}};{{.Names}};{{.Labels}}']
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE).stdout
@@ -251,7 +287,7 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
                             status = status.decode().strip()
                             if status == "unhealthy" and "redeploy_when_unhealthy=enabled" in parts[2]:
                                 labels = parts[2].split(',')
-                                ret = redeploy_check(labels, service, redeploy)
+                                ret = redeploy_check_container(labels, service, redeploy)
                                 if ret > 0:
                                     send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "redeploy", "service": service, "commit": commit})
@@ -266,29 +302,8 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
             elif returnValue and "unhealthy" not in returnValue:
                 send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "healthy", "service": service, "commit": commit})
-            return returnValue
-        else:
-            fn = os.path.join("/mnt/deployd/", "{}_HEALTHCHECK".format(service))
-            if not os.path.isfile(fn):
-                return None
-        
-            with open(fn, 'r') as f:
-                healthcheckConfigs = dict((n.strip('\"\n\' ') for n in line.split("=", 1)) for line in f)
-                # The script configuration for auto-redeployment is currently activated for this non-container service
-                if "HEALTHCHECK_HTTP" not in healthcheckConfigs:
-                    return None
-                url = healthcheckConfigs["HEALTHCHECK_HTTP"]
-                if "http://" not in url:
-                    url = "http://" + url
-                resp = requests.get(url)
-                if resp.status_code >= 200 and resp.status_code < 300:
-                    return service + ":healthy"
-                if "HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY" in healthcheckConfigs and healthcheckConfigs["HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY"] == "True":
-                    if "HEALTHCHECK_REDEPLOY_MAX_RETRY" in healthcheckConfigs and redeploy < int(healthcheckConfigs["HEALTHCHECK_REDEPLOY_MAX_RETRY"]):
-                        return "redeploy-" + str(redeploy + 1)
-                    elif "HEALTHCHECK_REDEPLOY_MAX_RETRY" not in healthcheckConfigs and redeploy < 3: 
-                        return "redeploy-" + str(redeploy + 1)
-                return service + ":unhealthy"
+            # if no check happens for the current service, check if it is a non container with healthcheck enabled
+            return redeploy_check_for_none(commit, service, redeploy)
     except:
         log.error(f"Failed to get container health info with commit {commit}")
         return None
