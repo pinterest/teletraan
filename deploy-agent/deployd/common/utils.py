@@ -233,11 +233,11 @@ def redeploy_check_container(labels, service, redeploy) -> int:
     return 0
     
 def redeploy_check_non_container(commit, service, redeploy, healthcheckConfigs):
-    if "HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY" in healthcheckConfigs and healthcheckConfigs["HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY"] == "True":
+    if healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY") == "True":
         log.info(f"Auto redeployment is enabled on service {service}")
-        if "HEALTHCHECK_REDEPLOY_MAX_RETRY" in healthcheckConfigs and redeploy < int(healthcheckConfigs["HEALTHCHECK_REDEPLOY_MAX_RETRY"]) or \
-            "HEALTHCHECK_REDEPLOY_MAX_RETRY" not in healthcheckConfigs and redeploy < 3:
-            log.info(f"current redeploy is {redeploy}")
+        max_retry = int(healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_MAX_RETRY", REDEPLOY_MAX_RETRY))
+        if redeploy < max_retry:
+            log.info(f"redeploy is {redeploy}; max retry is {max_retry}")
             send_statsboard_metric(name='deployd.service_health_status', value=1,
                 tags={"status": "redeploy", "service": service, "commit": commit})
             return "redeploy-" + str(redeploy + 1)

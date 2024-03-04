@@ -141,6 +141,7 @@ class Client(BaseClient):
             except Exception:
                 log.warn('Host ip information does not exist.')
                 pass
+        IS_PINTEREST=True
 
         if IS_PINTEREST and self._use_host_info is False:
             # Read new keys from facter always
