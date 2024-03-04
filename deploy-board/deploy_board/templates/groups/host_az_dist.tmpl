@@ -1,8 +1,16 @@
-{% load utils %}
+{% extends 'groups/group_base.html' %}
 
-{% block content %}
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/groups/">Groups</a></li>
+    <li><a href="/groups/{{ group_name }}/">{{ group_name }}</a></li>
+    <li>Host Distribution Among Availability Zones</li>
+</ul>
+{% endblock %}
+
+{% block main %}
   <div id="container" style="width: 100%;">
-    <h2>Host Distribution Among Availability Zones</h2>
     <canvas id="pie-chart"></canvas>
   </div>
 
@@ -27,7 +35,6 @@
       </tr>
       {% endfor%}
     </table>
-    <p>==============================</p>
   <b>Total:</b> {{ total }} hosts
   </div>
 
