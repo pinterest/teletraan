@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class GenericEventPublisherTest {
+class GenericEventPublisherTest {
     private AppEventListener<ResourceChangedEvent> mockResourceChangedEventListener;
     private AppEventListener<ResourceChangedEvent> mockSlowListener;
     private AppEventListener<ChildTestEvent> mockChildTestEventListener;
@@ -66,7 +66,7 @@ public class GenericEventPublisherTest {
     }
 
     @Test
-    public void testSubscribe() {
+    void testSubscribe() {
         sut.subscribe(mockResourceChangedEventListener);
         sut.publishEvent(resourceChangedEvent);
         sut.terminate();
@@ -75,7 +75,7 @@ public class GenericEventPublisherTest {
     }
 
     @Test
-    public void testPublishEvent_publishThenSubscribe() {
+    void testPublishEvent_publishThenSubscribe() {
         for (int i = 0; i < GenericEventPublisher.BUFFER_SIZE + 10; i++) {
             sut.publishEvent(resourceChangedEvent);
         }
@@ -88,7 +88,7 @@ public class GenericEventPublisherTest {
     }
 
     @Test
-    public void testPublishEvent_subscribeThenPublish() {
+    void testPublishEvent_subscribeThenPublish() {
         int numEvents = GenericEventPublisher.BUFFER_SIZE * 2;
         sut.subscribe(mockResourceChangedEventListener);
         for (int i = 0; i < numEvents; i++) {
@@ -102,7 +102,7 @@ public class GenericEventPublisherTest {
     }
 
     @Test
-    public void testMultipleListeners() {
+    void testMultipleListeners() {
         sut.subscribe(mockResourceChangedEventListener);
         sut.subscribe(mockSlowListener);
 
@@ -120,7 +120,7 @@ public class GenericEventPublisherTest {
     }
 
     @Test
-    public void testMultipleListeners_differentEventTypes() {
+    void testMultipleListeners_differentEventTypes() {
         sut.subscribe(mockResourceChangedEventListener);
         sut.subscribe(mockSlowListener);
         sut.subscribe(mockChildTestEventListener);
