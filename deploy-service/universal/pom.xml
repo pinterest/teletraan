@@ -168,6 +168,8 @@
         </executions>
       </plugin>
       <plugin>
+        <!-- This is Pinterest deployment specific. -->
+        <!-- For non-Pinterest deployments, remove this block and use the maven-deploy-plugin instead. -->
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.0.0</version>  
