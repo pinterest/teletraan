@@ -1,3 +1,18 @@
+/**
+ * Copyright (c) 2024 Pinterest, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.pinterest.teletraan.universal.events;
 
 import static org.mockito.Matchers.any;
@@ -9,11 +24,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.TimeUnit;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class GenericEventPublisherTest {
+class GenericEventPublisherTest {
     private AppEventListener<ResourceChangedEvent> mockResourceChangedEventListener;
     private AppEventListener<ResourceChangedEvent> mockSlowListener;
     private AppEventListener<ChildTestEvent> mockChildTestEventListener;
@@ -36,10 +50,10 @@ public class GenericEventPublisherTest {
         mockChildTestEventListener = mockEventListener(ChildTestEvent.class);
         mockSiblingTestEventListener = mockEventListener(SiblingTestEvent.class);
         doAnswer(
-                invocation -> {
-                    TimeUnit.MILLISECONDS.sleep(2);
-                    return null;
-                })
+                        invocation -> {
+                            TimeUnit.MILLISECONDS.sleep(2);
+                            return null;
+                        })
                 .when(mockSlowListener)
                 .onEvent(any());
     }
@@ -52,7 +66,7 @@ public class GenericEventPublisherTest {
     }
 
     @Test
-    public void testSubscribe() {
+    void testSubscribe() {
         sut.subscribe(mockResourceChangedEventListener);
         sut.publishEvent(resourceChangedEvent);
         sut.terminate();
@@ -61,7 +75,7 @@ public class GenericEventPublisherTest {
     }
 
     @Test
-    public void testPublishEvent_publishThenSubscribe() {
+    void testPublishEvent_publishThenSubscribe() {
         for (int i = 0; i < GenericEventPublisher.BUFFER_SIZE + 10; i++) {
             sut.publishEvent(resourceChangedEvent);
         }
@@ -74,7 +88,7 @@ public class GenericEventPublisherTest {
     }
 
     @Test
-    public void testPublishEvent_subscribeThenPublish() {
+    void testPublishEvent_subscribeThenPublish() {
         int numEvents = GenericEventPublisher.BUFFER_SIZE * 2;
         sut.subscribe(mockResourceChangedEventListener);
         for (int i = 0; i < numEvents; i++) {
@@ -83,11 +97,12 @@ public class GenericEventPublisherTest {
         sut.terminate();
 
         // All events are processed
-        verify(mockResourceChangedEventListener, times(numEvents)).onEvent(eq(resourceChangedEvent));
+        verify(mockResourceChangedEventListener, times(numEvents))
+                .onEvent(eq(resourceChangedEvent));
     }
 
     @Test
-    public void testMultipleListeners() {
+    void testMultipleListeners() {
         sut.subscribe(mockResourceChangedEventListener);
         sut.subscribe(mockSlowListener);
 
@@ -105,7 +120,7 @@ public class GenericEventPublisherTest {
     }
 
     @Test
-    public void testMultipleListeners_differentEventTypes() {
+    void testMultipleListeners_differentEventTypes() {
         sut.subscribe(mockResourceChangedEventListener);
         sut.subscribe(mockSlowListener);
         sut.subscribe(mockChildTestEventListener);
