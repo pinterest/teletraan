@@ -1480,6 +1480,7 @@ def get_host_az_dist(request, group_name):
     percentages = map(lambda x: round((x / total) * 100, 1), data)
 
     return render(request, 'groups/host_az_dist.tmpl', {
+        "group_name": group_name,
         'labels': labels,
         'data': data,
         'label_data_percentage': list(zip(labels, data, percentages)),
