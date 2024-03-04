@@ -124,65 +124,6 @@
             <skip>true</skip>  
           </configuration>
         </plugin>
-        <plugin>  
-          <groupId>org.codehaus.gmavenplus</groupId>
-          <artifactId>gmavenplus-plugin</artifactId>
-          <version>3.0.2</version>
-          <executions>
-            <execution>
-              <phase>package</phase>
-              <goals>
-                <goal>execute</goal>
-              </goals>
-              <configuration>
-                <scripts>
-                  <script>
-                    def version = project.version
-                    def type = version.contains('SNAPSHOT') ? 'snapshot' : 'release'
-                    project.properties['deployment.type'] = type
-                  </script>
-                </scripts>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-        <plugin>  
-          <groupId>org.codehaus.mojo</groupId>  
-          <artifactId>exec-maven-plugin</artifactId>  
-          <version>3.2.0</version>  
-          <executions>  
-            <execution>  
-              <id>artifactory-push-deploy</id>
-              <phase>deploy</phase>
-              <goals>
-                <goal>exec</goal>
-              </goals>
-              <configuration>
-                <executable>artifactory-push</executable>
-                <arguments>
-                  <argument>--env</argument>
-                  <argument>prod</argument>
-                  <argument>--type</argument>
-                  <argument>${deployment.type}</argument>
-                  <argument>--maven_group_id</argument>
-                  <argument>${project.groupId}</argument>
-                  <argument>--maven_artifact_id</argument>
-                  <argument>${project.artifactId}</argument>
-                  <argument>--maven_version</argument>
-                  <argument>${project.version}</argument>
-                  <argument>--maven_pom</argument>
-                  <argument>${project.file.path}</argument>
-                  <argument>--maven_jar</argument>
-                  <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
-                  <argument>--maven_jar_src</argument>
-                  <argument>${project.build.directory}/${project.build.finalName}-sources.jar</argument>
-                  <argument>--to_repo</argument>
-                  <argument>test-maven</argument>
-                </arguments>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
         <plugin>
           <artifactId>maven-project-info-reports-plugin</artifactId>
           <version>3.5.0</version>
@@ -199,6 +140,65 @@
             <goals>
               <goal>jar-no-fork</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>  
+        <groupId>org.codehaus.gmavenplus</groupId>
+        <artifactId>gmavenplus-plugin</artifactId>
+        <version>3.0.2</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>execute</goal>
+            </goals>
+            <configuration>
+              <scripts>
+                <script>
+                  def version = project.version
+                  def type = version.contains('SNAPSHOT') ? 'snapshot' : 'release'
+                  project.properties['deployment.type'] = type
+                </script>
+              </scripts>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>  
+        <groupId>org.codehaus.mojo</groupId>  
+        <artifactId>exec-maven-plugin</artifactId>  
+        <version>3.2.0</version>  
+        <executions>  
+          <execution>  
+            <id>artifactory-push-deploy</id>
+            <phase>deploy</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>artifactory-push</executable>
+              <arguments>
+                <argument>--env</argument>
+                <argument>prod</argument>
+                <argument>--type</argument>
+                <argument>${deployment.type}</argument>
+                <argument>--maven_group_id</argument>
+                <argument>${project.groupId}</argument>
+                <argument>--maven_artifact_id</argument>
+                <argument>${project.artifactId}</argument>
+                <argument>--maven_version</argument>
+                <argument>${project.version}</argument>
+                <argument>--maven_pom</argument>
+                <argument>${project.file.path}</argument>
+                <argument>--maven_jar</argument>
+                <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
+                <argument>--maven_jar_src</argument>
+                <argument>${project.build.directory}/${project.build.finalName}-sources.jar</argument>
+                <argument>--to_repo</argument>
+                <argument>test-maven</argument>
+              </arguments>
+            </configuration>
           </execution>
         </executions>
       </plugin>
