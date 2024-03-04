@@ -167,34 +167,12 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>  
-        <groupId>org.codehaus.gmavenplus</groupId>
-        <artifactId>gmavenplus-plugin</artifactId>
-        <version>3.0.2</version>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.0.0</version>  
         <executions>
           <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>execute</goal>
-            </goals>
-            <configuration>
-              <scripts>
-                <script>
-                  def version = project.version
-                  def type = version.contains('SNAPSHOT') ? 'snapshot' : 'release'
-                  project.properties['deployment.type'] = type
-                </script>
-              </scripts>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>  
-        <groupId>org.codehaus.mojo</groupId>  
-        <artifactId>exec-maven-plugin</artifactId>  
-        <version>3.2.0</version>  
-        <executions>  
-          <execution>  
             <id>artifactory-push-deploy</id>
             <phase>deploy</phase>
             <goals>
@@ -203,9 +181,10 @@
             <configuration>
               <executable>artifactory-push</executable>
               <arguments>
+                <argument>maven</argument>
                 <argument>--env</argument>
                 <argument>prod</argument>
-                <argument>--type</argument>
+                <argument>--maven_type</argument>
                 <argument>${deployment.type}</argument>
                 <argument>--maven_group_id</argument>
                 <argument>${project.groupId}</argument>
@@ -220,7 +199,7 @@
                 <argument>--maven_jar_src</argument>
                 <argument>${project.build.directory}/${project.build.finalName}-sources.jar</argument>
                 <argument>--to_repo</argument>
-                <argument>test-maven</argument>
+                <argument>maven-private-prod-sox-local</argument>
               </arguments>
             </configuration>
           </execution>
