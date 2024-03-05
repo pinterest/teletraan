@@ -232,7 +232,7 @@ def redeploy_check_for_container(labels, service, redeploy) -> int:
         return redeploy + 1
     return 0
     
-def redeploy_check(commit, service, redeploy, healthcheckConfigs):
+def redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfigs):
     if healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_WHEN_UNHEALTHY") == "True":
         log.info(f"Auto redeployment is enabled on service {service}")
         max_retry = int(healthcheckConfigs.get("HEALTHCHECK_REDEPLOY_MAX_RETRY", REDEPLOY_MAX_RETRY))
@@ -245,7 +245,7 @@ def redeploy_check(commit, service, redeploy, healthcheckConfigs):
         tags={"status": "unhealthy", "service": service, "commit": commit})
     return service + ":unhealthy"
 
-def redeploy_check_for_non_container(commit, service, redeploy):
+def redeploy_check_without_container_status(commit, service, redeploy):
     log.info(f"Get health info for service {service} with commit {commit}")
     fn = os.path.join("/mnt/deployd/", "{}_HEALTHCHECK".format(service))
     if not os.path.isfile(fn):
@@ -265,8 +265,8 @@ def redeploy_check_for_non_container(commit, service, redeploy):
                     tags={"status": "healthy", "service": service, "commit": commit})
                 return service + ":healthy"
         except requests.ConnectionError:
-            return redeploy_check(commit, service, redeploy, healthcheckConfigs)
-        return redeploy_check(commit, service, redeploy, healthcheckConfigs)
+            return redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfigs)
+        return redeploy_check_for_non_container(commit, service, redeploy, healthcheckConfigs)
         
 def get_container_health_info(commit, service, redeploy) -> Optional[str]:
     try:
@@ -303,7 +303,7 @@ def get_container_health_info(commit, service, redeploy) -> Optional[str]:
                 send_statsboard_metric(name='deployd.service_health_status', value=1,
                                             tags={"status": "healthy", "service": service, "commit": commit})
             # if no check happens for the current service, check if it is a non container with healthcheck enabled
-            return redeploy_check_for_non_container(commit, service, redeploy)
+            return redeploy_check_without_container_status(commit, service, redeploy)
     except:
         log.error(f"Failed to get container health info with commit {commit}")
         return None
