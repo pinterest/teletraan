@@ -188,6 +188,14 @@ class HostDetailView(View):
             is_protected = autoscaling_groups_helper.is_hosts_protected(request, asg, [host_id])
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
+        has_host_env_sidecar_agents = any(
+            agent for agent in agent_wrappers['sidecars']
+            if agent['env'] and agent['env']['envName'] and
+            agent['env']['stageName'] and
+            agent['env']['envName'] == name and
+            agent['env']['stageName'] == stage
+        )
+        
         host_details = get_host_details(host_id)
 
         termination_limit = environs_helper.get_env_by_stage(request, name, stage).get('terminationLimit')
@@ -212,6 +220,7 @@ class HostDetailView(View):
             'host_details': host_details,
             'duplicate_stage': duplicate_stage,
             'termination_limit': termination_limit,
+            'has_host_env_sidecar_agents': has_host_env_sidecar_agents,
         })
 
 
