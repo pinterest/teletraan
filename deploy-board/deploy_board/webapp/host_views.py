@@ -189,11 +189,11 @@ class HostDetailView(View):
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
         has_host_env_sidecar_agents = any(
-            x for x in agent_wrappers['sidecars']
-            if x['env'] and x['env']['envName'] and
-            x['env']['stageName'] and
-            x['env']['envName'] == name and
-            x['env']['stageName'] == stage
+            agent for agent in agent_wrappers['sidecars']
+            if agent['env'] and agent['env']['envName'] and
+            agent['env']['stageName'] and
+            agent['env']['envName'] == name and
+            agent['env']['stageName'] == stage
         )
         
         host_details = get_host_details(host_id)

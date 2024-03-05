@@ -45,7 +45,7 @@
     {% if has_host_env_sidecar_agents %}
     {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="down" copy_host_name_button=True %}
     <div id="sidecarAgentDetailsId" class="collapse in panel-body">
-        <span>This host has relevant sidecars in it's environment. These have been marked with <span class="bg-success">green backgrounds</span> for visibility.</span>
+        <span>This is a sidecar deployment on the host. The relevant sidecar has been marked with a <span class="bg-info">blue background</span> for visibility.</span>
     {% else %}
     {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="right" copy_host_name_button=True %}
     <div id="sidecarAgentDetailsId" class="collapse panel-body">
