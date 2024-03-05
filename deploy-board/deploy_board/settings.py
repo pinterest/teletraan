@@ -95,6 +95,8 @@ KAFKA_MSGS_DELIVERED_METRIC = os.getenv("KAFKA_MSGS_DELIVERED_METRIC", "OFF")
 # For rolling out new features
 GUINEA_PIG_ENVS = os.getenv("GUINEA_PIG_ENVS", "").split(",")
 KAFKA_LOGGING_ADD_ON_ENVS = os.getenv("KAFKA_LOGGING_ADD_ON_ENVS", "").split(",")
+PUPPET_CONFIG_REPOSITORY = os.getenv("PUPPET_CONFIG_REPOSITORY")
+PUPPET_HIERA_PATHS = os.getenv("PUPPET_HIERA_PATHS")
 
 LOG_DIR = os.getenv("LOG_DIR")
 LOG_LEVEL = os.getenv("LOG_LEVEL")

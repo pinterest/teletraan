@@ -78,7 +78,14 @@
                                 <aws-config-modal id="newConfigModalId" v-bind:options="configOptions" v-on:click="addConfig"></aws-config-modal>
                             </div>
                         </div>
-                        <aws-user-data v-bind:alluserdata="allUserData" v-on:deleteconfig="deleteConfig" v-on:change="configChange" inadvanced="inAdvanced"></aws-user-data>
+                        <aws-user-data
+                            v-bind:alluserdata="allUserData"
+                            v-on:deleteconfig="deleteConfig"
+                            v-on:change="configChange"
+                            inadvanced="inAdvanced"
+                            v-bind:hierapaths="hieraPaths"
+                            v-bind:puppetrepository="puppetRepository"
+                        />
                     </div>
                 </fieldset>
             </form>
@@ -109,6 +116,9 @@ var statefulOptions = info.stateful_options;
 const goldenImage = info.baseImages.find(goldenImageFinder);
 const baseImagesSorted = info.baseImages.sort(baseImageSorter);
 const defaultImageId = goldenImage ? goldenImage.id : getDefaultBaseImageId(baseImagesSorted);
+
+const hieraPaths = `{{ puppet_hiera_paths }}`;
+const puppetRepository = `{{ puppet_repository }}`;
 
 var capacitySetting = new Vue({
     el: "#mainPanel",
@@ -208,7 +218,9 @@ var capacitySetting = new Vue({
                 text: o
             }
         }),
-        showStatefulHelp: false
+        showStatefulHelp: false,
+        hieraPaths,
+        puppetRepository,
     },
     methods: {
         addConfig: function (config) {

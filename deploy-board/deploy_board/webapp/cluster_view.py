@@ -25,7 +25,7 @@ if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST, \
-        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK
+        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK, PUPPET_CONFIG_REPOSITORY, PUPPET_HIERA_PATHS
 
 import json
 import logging
@@ -184,7 +184,10 @@ class EnvCapacityAdvCreateView(View):
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
-            'is_pinterest': IS_PINTEREST})
+            'is_pinterest': IS_PINTEREST,
+            'puppet_repository': PUPPET_CONFIG_REPOSITORY,
+            'puppet_hiera_paths': PUPPET_HIERA_PATHS
+        })
 
     def post(self, request, name, stage):
         ret = 200
@@ -286,7 +289,10 @@ class ClusterConfigurationView(View):
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'host_type_roadmap_link': HOST_TYPE_ROADMAP_LINK,
-            'is_pinterest': IS_PINTEREST})
+            'is_pinterest': IS_PINTEREST,
+            'puppet_repository': PUPPET_CONFIG_REPOSITORY,
+            'puppet_hiera_paths': PUPPET_HIERA_PATHS
+        })
 
     def post(self, request, name, stage):
         try:
