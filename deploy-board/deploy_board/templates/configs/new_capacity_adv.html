@@ -45,8 +45,8 @@
         <div class="container-fluid">
             <form id="clusterConfigFormId" class="form-horizontal" role="form">
                 <fieldset id="clusterConfigFieldSetId">
-                    <accounts-select v-bind:accounts="accounts" v-on:accountchange="accountChange" v-bind:value="currentAccountId"></accounts-select>
                     <cloudprovider-select v-bind:cloudproviders="providers" v-bind:value="currentProvider"></cloudprovider-select>
+                    <accounts-select v-bind:accounts="accounts" v-on:accountchange="accountChange" v-bind:value="currentAccountId"></accounts-select>
                     <cell-select v-bind:cells="cells" v-on:cellchange="cellChange"  v-bind:value="currentCell"></cell-select>
                     <label-input label="Capacity" placeholder="# of instances" v-model="instanceCount"></label-input>
                     <arch-select v-bind:arches="arches" v-on:archchange="archChange"  v-bind:value="archValue"></arch-select>
