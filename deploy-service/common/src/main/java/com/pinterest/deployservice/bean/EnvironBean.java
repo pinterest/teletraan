@@ -19,10 +19,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.hibernate.validator.constraints.Range;
 
 import java.io.Serializable;
+import javax.validation.constraints.NotEmpty;
 
 /**
  * Keep the bean and table in sync
