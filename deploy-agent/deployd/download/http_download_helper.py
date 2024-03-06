@@ -55,6 +55,7 @@ class HTTPDownloadHelper(DownloadHelper):
         status_code = self._download_files(local_full_fn)
         if status_code != Status.SUCCEEDED:
             log.error('Failed to download the tar ball for {}'.format(local_full_fn))
+            create_sc_increment('deployd.failed.agent.download', tags=tags)
             return status_code
 
         try:
