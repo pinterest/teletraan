@@ -15,7 +15,7 @@ function getDefaultBaseImageId(baseImagesSorted) {
 
 function mapBaseImagesToOptions(baseImagesSorted) {
     return baseImagesSorted.map(o => {
-        const status = o.golden ? '[GOLDEN]' : (o.acceptance && o.acceptance !== 'UNKNOWN' ? `[${o.acceptance}]` : ''); 
+        const status = o.golden ? ' [CURRENT_GOLDEN]' : (o.acceptance && o.acceptance !== 'UNKNOWN' ? ` [${o.acceptance}]` : ''); 
         const date = new Date(o.publish_date);
 
         return {
