@@ -15,12 +15,12 @@ function getDefaultBaseImageId(baseImagesSorted) {
 
 function mapBaseImagesToOptions(baseImagesSorted) {
     return baseImagesSorted.map(o => {
-        const status = o.golden ? '[GOLDEN]' : (o.acceptance ? `[${o.acceptance}]` : ''); 
+        const status = o.golden ? '[GOLDEN]' : (o.acceptance && o.acceptance !== 'UNKNOWN' ? `[${o.acceptance}]` : ''); 
         const date = new Date(o.publish_date);
 
         return {
             value: o.id,
-            text: `${o.provider_name} ${status} ${date.toLocaleDateString('en-US')}`,
+            text: `${o.provider_name}${status} ${date.toLocaleDateString('en-US')}`,
             publishDate: o.publish_date,
         }
     });
