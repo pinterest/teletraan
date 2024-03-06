@@ -45,6 +45,16 @@ class Helper(object):
             log.debug("OSError: {} does not exist.".format(builds_dir))
         finally:
             return builds
+        
+    @staticmethod
+    def get_build_name(filename) -> str:
+        """
+        Extract build name from the file name
+        In downloader.py, we have the following name convenion
+             local_fn = u'{}-{}.{}'.format(self._build_name, self._build, extension)
+        """
+        fn_without_extension = filename.split('.')[0]
+        return fn_without_extension.rsplit('-', 1)[0]
 
     @staticmethod
     def get_build_id(filename, env_name) -> Tuple[bool, Optional[str]]:
