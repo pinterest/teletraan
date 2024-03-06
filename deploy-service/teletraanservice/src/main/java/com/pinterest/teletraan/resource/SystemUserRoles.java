@@ -24,10 +24,7 @@ import io.swagger.annotations.ApiParam;
 
 import javax.validation.Valid;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.*;
 import java.util.List;
 
 @Path("/v1/system/user_roles")
@@ -80,9 +77,10 @@ public class SystemUserRoles extends UserRoles {
             notes = "Creates a system level user for given UserRoles object",
             response = Response.class)
     public Response create(@Context SecurityContext sc,
+                           @Context UriInfo uriInfo,
                            @ApiParam(value = "UserRolesBean object.", required = true)
                            @Valid UserRolesBean bean) throws Exception {
-        return super.create(sc, bean, RESOURCE_ID, RESOURCE_TYPE);
+        return super.create(sc, uriInfo, bean, RESOURCE_ID, RESOURCE_TYPE);
     }
 
     @DELETE

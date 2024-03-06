@@ -2,12 +2,14 @@ package com.pinterest.teletraan.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.mockito.Mockito.mock;
 
 import java.util.stream.Stream;
 
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.Response;
 
+import com.pinterest.deployservice.dao.EnvironDAO;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -29,7 +31,7 @@ public class EnvPromotesTest {
 
     static {
         TeletraanServiceContext context = new TeletraanServiceContext();
-
+        context.setEnvironDAO(mock(EnvironDAO.class));
         EXT = ResourceExtension.builder()
                 .addResource(new EnvPromotes(context))
                 .build();

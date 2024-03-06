@@ -36,7 +36,7 @@ public class DeployCandidates {
     private PingHandler pingHandler;
     private final Authorizer authorizer;
 
-    public DeployCandidates(TeletraanServiceContext context) {
+    public DeployCandidates(@Context TeletraanServiceContext context) {
         pingHandler = new PingHandler(context);
         authorizer = context.getAuthorizer();
     }

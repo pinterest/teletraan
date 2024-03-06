@@ -78,7 +78,7 @@ public class Deploys {
     private DeployHandler deployHandler;
     private final Authorizer authorizer;
 
-    public Deploys(TeletraanServiceContext context) {
+    public Deploys(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         deployDAO = context.getDeployDAO();
         deployHandler = new DeployHandler(context);

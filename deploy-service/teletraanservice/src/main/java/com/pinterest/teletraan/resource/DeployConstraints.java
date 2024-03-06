@@ -40,7 +40,7 @@ public class DeployConstraints {
     private BasicDataSource dataSource;
     private TeletraanServiceContext serviceContext;
 
-    public DeployConstraints(TeletraanServiceContext context) {
+    public DeployConstraints(@Context TeletraanServiceContext context) {
         serviceContext = context;
         deployConstraintDAO = context.getDeployConstraintDAO();
         environDAO = context.getEnvironDAO();
