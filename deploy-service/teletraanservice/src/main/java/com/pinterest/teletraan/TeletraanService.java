@@ -19,6 +19,7 @@ import com.pinterest.teletraan.exception.GenericExceptionMapper;
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.*;
 import com.pinterest.teletraan.universal.security.AuditLoggingFilter;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfoFeature;
 
 import io.dropwizard.Application;
 import io.dropwizard.auth.AuthDynamicFeature;
@@ -63,6 +64,7 @@ public class TeletraanService extends Application<TeletraanServiceConfiguration>
                 .jersey()
                 .register(new AuthDynamicFeature(configuration.getAuthenticationFactory().create(context)));
         environment.jersey().register(RolesAllowedDynamicFeature.class);
+        environment.jersey().register(ResourceAuthZInfoFeature.class);
         environment.jersey().register(AuditLoggingFilter.class);
 
         environment.jersey().register(Builds.class);

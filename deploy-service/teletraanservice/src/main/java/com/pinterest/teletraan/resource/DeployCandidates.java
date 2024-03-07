@@ -8,6 +8,8 @@ import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.handler.GoalAnalyst;
 import com.pinterest.deployservice.handler.PingHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -15,6 +17,7 @@ import io.swagger.annotations.ApiParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
@@ -26,6 +29,7 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 
+@PermitAll
 @Path("/v1/system")
 @Api(tags = "Hosts and Systems")
 @Produces(MediaType.APPLICATION_JSON)
@@ -45,6 +49,7 @@ public class DeployCandidates {
         notes = "Returns a list of build bean",
         response = DeployCandidatesResponse.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.PINGER)
+    @ResourceAuthZInfo(type = AuthZResource.Type.GROUP)
     public DeployCandidatesResponse getDeployCandidates(@Context SecurityContext sc,
                 @Context HttpHeaders headers,
                 @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {

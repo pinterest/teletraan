@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -61,6 +62,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.SwaggerDefinition;
 import io.swagger.annotations.Tag;
 
+@PermitAll
 @Path("/v1/deploys")
 @Api(tags = "Deploys")
 @SwaggerDefinition(

@@ -77,7 +77,8 @@ public class Hotfixs {
 
     @PUT
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
-    @RolesAllowed(TeletraanPrincipalRoles.Names.PUBLISH)
+    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
+    @ResourceAuthZInfo(type = AuthZResource.Type.ENV_STAGE, idLocation = Location.BODY, beanClass = HotfixBean.class)
     public void update(@PathParam("id") String id,
         HotfixBean hotfixBean) throws Exception {
         hotfixDAO.update(id, hotfixBean);

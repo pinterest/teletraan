@@ -60,9 +60,9 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
         try {
             TeletraanPrincipalRoles requiredRole = TeletraanPrincipalRoles.valueOf(role);
             AuthZResource convertedRequestedResource = requestedResource;
-            if (AuthZResource.Type.ENV_STAGE.equals(convertedRequestedResource.getType())) {
+            if (AuthZResource.Type.ENV_STAGE.equals(requestedResource.getType())) {
                 // Convert to ENV for backward compatibility
-                convertedRequestedResource = new AuthZResource(convertedRequestedResource.getName(),
+                convertedRequestedResource = new AuthZResource(requestedResource.getEnvName(),
                         AuthZResource.Type.ENV);
             }
 
@@ -76,7 +76,7 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
                         convertedRequestedResource.getName(), convertedRequestedResource.getType());
                 for (GroupRolesBean resourceGroupBean : resourceGroupBeans) {
                     if (groupsSet.contains(resourceGroupBean.getGroup_name())
-                            && resourceGroupBean.getRole().isEqualOrSuperior(requiredRole)) {
+                            && hasPermission(resourceGroupBean.getRole(), requiredRole, requestedResource)) {
                         return true;
                     }
                 }
@@ -87,7 +87,7 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
                     principal.getName(),
                     convertedRequestedResource.getName(),
                     convertedRequestedResource.getType());
-            if (userBean != null && userBean.getRole().isEqualOrSuperior(requiredRole)) {
+            if (userBean != null && hasPermission(userBean.getRole(), requiredRole, requestedResource)) {
                 return true;
             }
 
@@ -112,16 +112,18 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             // Special case for creating a new environment
             if (AuthZResource.Type.ENV.equals(requestedResource.getType())
                     && requiredRole.equals(TeletraanPrincipalRoles.WRITE)) {
-                String envName = convertedRequestedResource.getName().split("/")[0];
-                List<EnvironBean> environBeans = environDAO.getByName(envName);
+                List<EnvironBean> environBeans = environDAO.getByName(convertedRequestedResource.getEnvName());
                 if (CollectionUtils.isEmpty(environBeans)) {
                     return true;
                 }
             }
 
-            if (AuthZResource.Type.RATINGS.equals(convertedRequestedResource.getType())
-                    && TeletraanPrincipalRoles.WRITE.equals(requiredRole)) {
-                return true;
+            // Special case for the build resource
+            // Authorize PUBLISHER role for build resource here and let the build resource
+            // handle
+            // the rest of the authorization
+            if (AuthZResource.Type.BUILD.equals(convertedRequestedResource.getType())) {
+                return TeletraanPrincipalRoles.PUBLISHER.equals(requiredRole);
             }
 
             return false;
@@ -129,5 +131,15 @@ public class UserRoleAuthorizer extends BaseAuthorizer<UserPrincipal> {
             LOG.error("Authorization failed", ex);
             return false;
         }
+    }
+
+    // Special handling for ENV type because they represent environment level
+    // resources
+    private boolean hasPermission(TeletraanPrincipalRoles principalRole, TeletraanPrincipalRoles requiredRole,
+            AuthZResource requestedResource) {
+        if (AuthZResource.Type.ENV.equals(requestedResource.getType())) {
+            return TeletraanPrincipalRoles.ADMIN.equals(principalRole);
+        }
+        return principalRole.isEqualOrSuperior(requiredRole);
     }
 }

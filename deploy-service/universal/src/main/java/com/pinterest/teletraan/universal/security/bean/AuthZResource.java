@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.universal.security.bean;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
@@ -51,6 +52,16 @@ public class AuthZResource {
         this.type = Type.ENV_STAGE;
     }
 
+    @JsonIgnore
+    public String getEnvName() {
+        if (type == Type.ENV_STAGE) {
+            return name.split("/")[0];
+        } else if (type == Type.ENV) {
+            return name;
+        }
+        return null;
+    }
+
     /** The type of the resource. */
     public enum Type {
         /** For resources that are not tied to a specific stage. */
@@ -70,14 +81,12 @@ public class AuthZResource {
         /** For IAM role related to a specific environment. */
         IAM_ROLE,
         /** For build related resources. */
-        BUILD,
-        /** For customer ratings related resources. */
-        RATINGS
+        BUILD
     }
 
     /**
-     * @deprecated Use getName() instead This is needed for converting DB records to AuthZResource
-     *     objects.
+     * @deprecated Use getName() instead this.
+     * It is needed for converting DB records to AuthZResource objects.
      */
     @Deprecated
     public void setId(@Nonnull String id) {

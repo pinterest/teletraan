@@ -51,7 +51,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
 
     @JsonProperty private Boolean extractUserNameFromEmail;
 
-    @JsonProperty private String tokenCacheSpec;
+    @JsonProperty private String tokenCacheSpec = "maximumSize=1000,expireAfterWrite=10m";
 
     public String getUserDataUrl() {
         return userDataUrl;
@@ -104,7 +104,6 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
     @SuppressWarnings({"rawtypes", "unchecked"})
     List<AuthFilter> createAuthFilters(TeletraanServiceContext context) throws Exception {
         MetricRegistry registry = SharedMetricRegistries.getDefault();
-        Caffeine<Object, Object> cacheBuilder = Caffeine.from(getTokenCacheSpec());
 
         CachingAuthenticator<String, ScriptTokenPrincipal<ValueBasedRole>>
                 cachingScriptTokenAuthenticator =
@@ -112,7 +111,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                                 registry,
                                 new ScriptTokenAuthenticator<>(
                                         new TeletraanScriptTokenProvider(context)),
-                                cacheBuilder);
+                                Caffeine.from(getTokenCacheSpec()));
         AuthFilter<String, ScriptTokenPrincipal<ValueBasedRole>> scriptTokenAuthFilter =
                 new OAuthCredentialAuthFilter.Builder<ScriptTokenPrincipal<ValueBasedRole>>()
                         .setAuthenticator(cachingScriptTokenAuthenticator)
@@ -127,7 +126,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 new CachingAuthenticator<>(
                         registry,
                         new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()),
-                        cacheBuilder);
+                        Caffeine.from(getTokenCacheSpec()));
         AuthFilter<String, UserPrincipal> jwtTokenAuthFilter =
                 new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                         .setAuthenticator(cachingOAuthJwtAuthenticator)
@@ -144,7 +143,7 @@ public class TokenAuthenticationFactory implements AuthenticationFactory {
                 new CachingAuthenticator<>(
                         registry,
                         new OAuthAuthenticator(getUserDataUrl(), getGroupDataUrl()),
-                        cacheBuilder);
+                        Caffeine.from(getTokenCacheSpec()));
         AuthFilter<String, UserPrincipal> oauthTokenAuthFilter =
                 new OAuthCredentialAuthFilter.Builder<UserPrincipal>()
                         .setAuthenticator(cachingOAuthAuthenticator)

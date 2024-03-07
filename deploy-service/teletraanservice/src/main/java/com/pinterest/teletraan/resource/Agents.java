@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import io.swagger.annotations.*;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -38,6 +39,7 @@ import javax.ws.rs.core.SecurityContext;
 import java.util.Collection;
 import java.util.List;
 
+@PermitAll
 @Path("/v1/agents")
 @Api(tags = "Agents")
 @SwaggerDefinition(

@@ -49,8 +49,6 @@ public class Ratings {
     }
 
     @POST
-    @RolesAllowed(TeletraanPrincipalRoles.Names.WRITE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.RATINGS)
     public Response create(@Valid RatingBean bean, @Context SecurityContext sc, @Context UriInfo uriInfo)
             throws Exception {
         bean.setAuthor(sc.getUserPrincipal().getName());
@@ -71,7 +69,7 @@ public class Ratings {
     @DELETE
     @Path("/{id : [a-zA-Z0-9\\-_]+}")
     @RolesAllowed(TeletraanPrincipalRoles.Names.DELETE)
-    @ResourceAuthZInfo(type = AuthZResource.Type.RATINGS)
+    @ResourceAuthZInfo(type = AuthZResource.Type.SYSTEM)
     public void delete(@PathParam("id") String id, @Context SecurityContext sc) throws Exception {
         ratingsHandler.getRatingDAO().delete(id);
     }

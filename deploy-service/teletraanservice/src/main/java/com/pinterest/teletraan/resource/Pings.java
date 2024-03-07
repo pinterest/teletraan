@@ -22,6 +22,8 @@ import com.pinterest.deployservice.bean.PingResult;
 import com.pinterest.deployservice.bean.TeletraanPrincipalRoles;
 import com.pinterest.deployservice.handler.PingHandler;
 import com.pinterest.teletraan.TeletraanServiceContext;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfo;
+import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -59,6 +61,7 @@ public class Pings {
             notes = "Returns a deploy goal object given a ping request object",
             response = PingResponseBean.class)
     @RolesAllowed(TeletraanPrincipalRoles.Names.PINGER)
+    @ResourceAuthZInfo(type = AuthZResource.Type.GROUP)
     public PingResponseBean ping(@Context SecurityContext sc,
                                  @Context HttpHeaders headers,
                                  @ApiParam(value = "Ping request object", required = true)@Valid PingRequestBean requestBean) throws Exception {

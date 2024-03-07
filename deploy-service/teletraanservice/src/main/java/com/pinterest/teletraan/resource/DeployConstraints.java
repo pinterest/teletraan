@@ -14,6 +14,7 @@ import org.apache.commons.dbcp.BasicDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import javax.ws.rs.*;
@@ -24,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+@PermitAll
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/deploy_constraint")
 @Api(tags = "Deploy Constraints")
 @SwaggerDefinition(

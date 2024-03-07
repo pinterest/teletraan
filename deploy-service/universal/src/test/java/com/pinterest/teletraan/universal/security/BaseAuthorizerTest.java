@@ -101,7 +101,7 @@ class BaseAuthorizerTest {
         public boolean authorize(
                 TeletraanPrincipal principal,
                 String role,
-                AuthZResource requestedResource,
+                @Nullable AuthZResource requestedResource,
                 @Nullable ContainerRequestContext context) {
             return true;
         }

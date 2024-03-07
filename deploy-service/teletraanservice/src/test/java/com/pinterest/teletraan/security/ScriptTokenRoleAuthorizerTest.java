@@ -41,7 +41,7 @@ public class ScriptTokenRoleAuthorizerTest {
 
     private AuthZResource env1;
     private AuthZResource envX;
-    private AuthZResource envStage;
+    private AuthZResource env1Stage;
     private AuthZResource envXStage;
 
     @Before
@@ -82,8 +82,8 @@ public class ScriptTokenRoleAuthorizerTest {
 
         env1 = new AuthZResource("env1", AuthZResource.Type.ENV);
         envX = new AuthZResource("envX", AuthZResource.Type.ENV);
-        envStage = new AuthZResource("env1", AuthZResource.Type.ENV_STAGE);
-        envXStage = new AuthZResource("envX", AuthZResource.Type.ENV_STAGE);
+        env1Stage = new AuthZResource("env1", "stage1");
+        envXStage = new AuthZResource("envX", "stageX");
     }
 
     private void checkPositive(
@@ -134,14 +134,14 @@ public class ScriptTokenRoleAuthorizerTest {
 
     @Test
     public void testSysEnvStage() throws Exception {
-        checkPositive(sysAdmin, envStage, TeletraanPrincipalRoles.OPERATOR);
-        checkPositive(sysAdmin, envStage, TeletraanPrincipalRoles.ADMIN);
+        checkPositive(sysAdmin, env1Stage, TeletraanPrincipalRoles.OPERATOR);
+        checkPositive(sysAdmin, env1Stage, TeletraanPrincipalRoles.ADMIN);
 
-        checkPositive(sysOperator, envStage, TeletraanPrincipalRoles.OPERATOR);
-        checkNegative(sysOperator, envStage, TeletraanPrincipalRoles.ADMIN);
+        checkPositive(sysOperator, env1Stage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(sysOperator, env1Stage, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(sysReader, envStage, TeletraanPrincipalRoles.OPERATOR);
-        checkNegative(sysReader, envStage, TeletraanPrincipalRoles.ADMIN);
+        checkNegative(sysReader, env1Stage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(sysReader, env1Stage, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test
@@ -173,7 +173,7 @@ public class ScriptTokenRoleAuthorizerTest {
         checkPositive(envAdmin, envX, TeletraanPrincipalRoles.OPERATOR);
         checkPositive(envAdmin, envX, TeletraanPrincipalRoles.ADMIN);
 
-        checkPositive(envOperator, envX, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envOperator, envX, TeletraanPrincipalRoles.OPERATOR);
         checkNegative(envOperator, envX, TeletraanPrincipalRoles.ADMIN);
 
         checkNegative(envReader, envX, TeletraanPrincipalRoles.OPERATOR);
@@ -181,15 +181,15 @@ public class ScriptTokenRoleAuthorizerTest {
     }
 
     @Test
-    public void testEnvXEnvStage() throws Exception {
-        checkNegative(envAdmin, envStage, TeletraanPrincipalRoles.OPERATOR);
-        checkNegative(envAdmin, envStage, TeletraanPrincipalRoles.ADMIN);
+    public void testEnvXEnv1Stage() throws Exception {
+        checkNegative(envAdmin, env1Stage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envAdmin, env1Stage, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(envOperator, envStage, TeletraanPrincipalRoles.OPERATOR);
-        checkNegative(envOperator, envStage, TeletraanPrincipalRoles.ADMIN);
+        checkNegative(envOperator, env1Stage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envOperator, env1Stage, TeletraanPrincipalRoles.ADMIN);
 
-        checkNegative(envReader, envStage, TeletraanPrincipalRoles.OPERATOR);
-        checkNegative(envReader, envStage, TeletraanPrincipalRoles.ADMIN);
+        checkNegative(envReader, env1Stage, TeletraanPrincipalRoles.OPERATOR);
+        checkNegative(envReader, env1Stage, TeletraanPrincipalRoles.ADMIN);
     }
 
     @Test

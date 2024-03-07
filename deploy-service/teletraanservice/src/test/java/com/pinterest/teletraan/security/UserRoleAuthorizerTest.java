@@ -17,12 +17,12 @@ package com.pinterest.teletraan.security;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -33,6 +33,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pinterest.deployservice.ServiceContext;
 import com.pinterest.deployservice.bean.EnvironBean;
@@ -45,45 +47,20 @@ import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.teletraan.universal.security.bean.AuthZResource;
 import com.pinterest.teletraan.universal.security.bean.UserPrincipal;
 
+
 class UserRoleAuthorizerTest {
+    private static final Logger LOG = LoggerFactory.getLogger(UserRoleAuthorizerTest.class);
     private static final String envXName = "envX";
     private static final String env1Name = "env1";
-    private static final AuthZResource env1AuthZResource = new AuthZResource(env1Name, AuthZResource.Type.ENV_STAGE);
-    private static final AuthZResource envXAuthZResource = new AuthZResource(envXName, AuthZResource.Type.ENV_STAGE);
-    private static final AuthZResource ratingResource = new AuthZResource("rating", AuthZResource.Type.RATINGS);
+    private static final String stageName = "stage";
+    private static final AuthZResource env1AuthZResource = new AuthZResource(env1Name, stageName);
+    private static final AuthZResource env1AdminAuthZResource = new AuthZResource(env1Name, AuthZResource.Type.ENV);
+    private static final AuthZResource envXAuthZResource = new AuthZResource(envXName, stageName);
+    private static final AuthZResource buildResource = new AuthZResource("build1", AuthZResource.Type.BUILD);
     private static final MultivaluedMap<TeletraanPrincipalRoles, TeletraanPrincipalRoles> legacyToNewRoles = new MultivaluedHashMap<>();
-    static AuthZResource[] resourceProvider() {
-        return new AuthZResource[] {
-                AuthZResource.SYSTEM_RESOURCE,
-                env1AuthZResource,
-                envXAuthZResource
-        };
-    }
-
-    private ServiceContext context;
-    private EnvironDAO environDAO;
-    private UserRolesDAO userRolesDAO;
-    private GroupRolesDAO groupRolesDAO;
-
-    private UserRoleAuthorizer authorizer;
-    private UserPrincipal sysAdmin;
-    private UserPrincipal sysOperator;
-    private UserPrincipal sysReader;
-    private UserPrincipal sysAdminByGroup;
-    private UserPrincipal sysOperatorByGroup;
-
-    private UserPrincipal sysReaderByGroup;
-    private UserPrincipal envAdmin;
-    private UserPrincipal envOperator;
-    private UserPrincipal envReader;
-    private UserPrincipal envAdminByGroup;
-    private UserPrincipal envOperatorByGroup;
-
-    private UserPrincipal envReaderByGroup;
-    private String adminGroupName = "admin";
-    private String operatorGroupName = "operator";
-
-    private String readerGroupName = "reader";
+    private static final List<TeletraanPrincipalRoles> newRoles = Arrays.asList(
+            TeletraanPrincipalRoles.READ, TeletraanPrincipalRoles.WRITE, TeletraanPrincipalRoles.EXECUTE,
+            TeletraanPrincipalRoles.DELETE);
 
     @BeforeAll
     static void setUpAll() {
@@ -91,10 +68,48 @@ class UserRoleAuthorizerTest {
         legacyToNewRoles.add(TeletraanPrincipalRoles.OPERATOR, TeletraanPrincipalRoles.READ);
         legacyToNewRoles.add(TeletraanPrincipalRoles.OPERATOR, TeletraanPrincipalRoles.WRITE);
         legacyToNewRoles.add(TeletraanPrincipalRoles.OPERATOR, TeletraanPrincipalRoles.EXECUTE);
+        legacyToNewRoles.add(TeletraanPrincipalRoles.OPERATOR, TeletraanPrincipalRoles.DELETE);
         legacyToNewRoles.add(TeletraanPrincipalRoles.ADMIN, TeletraanPrincipalRoles.READ);
         legacyToNewRoles.add(TeletraanPrincipalRoles.ADMIN, TeletraanPrincipalRoles.WRITE);
         legacyToNewRoles.add(TeletraanPrincipalRoles.ADMIN, TeletraanPrincipalRoles.EXECUTE);
+        legacyToNewRoles.add(TeletraanPrincipalRoles.ADMIN, TeletraanPrincipalRoles.DELETE);
     }
+
+    private static AuthZResource[] resourceProvider() {
+        return new AuthZResource[] {
+                AuthZResource.SYSTEM_RESOURCE,
+                env1AuthZResource,
+                env1AdminAuthZResource,
+                envXAuthZResource,
+        };
+    }
+
+    private ServiceContext context;
+    private EnvironDAO environDAO;
+
+    private UserRolesDAO userRolesDAO;
+    private GroupRolesDAO groupRolesDAO;
+    private UserRoleAuthorizer authorizer;
+    private UserPrincipal sysAdmin;
+    private UserPrincipal sysOperator;
+    private UserPrincipal sysReader;
+
+    private UserPrincipal sysAdminByGroup;
+    private UserPrincipal sysOperatorByGroup;
+    private UserPrincipal sysReaderByGroup;
+    private UserPrincipal envAdmin;
+    private UserPrincipal envOperator;
+    private UserPrincipal envReader;
+
+    private UserPrincipal envAdminByGroup;
+    private UserPrincipal envOperatorByGroup;
+    private UserPrincipal envReaderByGroup;
+
+    private String adminGroupName = "admin";
+
+    private String operatorGroupName = "operator";
+
+    private String readerGroupName = "reader";
 
     @BeforeEach
     void setUp() throws Exception {
@@ -109,22 +124,16 @@ class UserRoleAuthorizerTest {
 
         setUpUserPrincipals();
         setUpGroupRolesBeans();
+
+        when(environDAO.getByName(anyString())).thenReturn(Collections.singletonList(new EnvironBean()));
     }
 
     @ParameterizedTest
     @MethodSource("resourceProvider")
     void testSystemUserOnResources(AuthZResource requestedResource) {
-        checkPositive(sysAdmin, requestedResource, TeletraanPrincipalRoles.READ);
-        checkPositive(sysAdmin, requestedResource, TeletraanPrincipalRoles.EXECUTE);
-        checkPositive(sysAdmin, requestedResource, TeletraanPrincipalRoles.WRITE);
-
-        checkPositive(sysOperator, requestedResource, TeletraanPrincipalRoles.READ);
-        checkPositive(sysOperator, requestedResource, TeletraanPrincipalRoles.EXECUTE);
-        checkPositive(sysOperator, requestedResource, TeletraanPrincipalRoles.WRITE);
-
-        checkPositive(sysReader, requestedResource, TeletraanPrincipalRoles.READ);
-        checkNegative(sysReader, requestedResource, TeletraanPrincipalRoles.EXECUTE);
-        checkNegative(sysReader, requestedResource, TeletraanPrincipalRoles.WRITE);
+        checkAllRequiredRoles(sysAdmin, TeletraanPrincipalRoles.ADMIN, requestedResource);
+        checkAllRequiredRoles(sysOperator, TeletraanPrincipalRoles.OPERATOR, requestedResource);
+        checkAllRequiredRoles(sysReader, TeletraanPrincipalRoles.READER, requestedResource);
     }
 
     @ParameterizedTest
@@ -133,38 +142,28 @@ class UserRoleAuthorizerTest {
         GroupRolesBean sysAdminBean = createGroupRolesBean(TeletraanPrincipalRoles.ADMIN, adminGroupName);
         when(groupRolesDAO.getByResource(
                 AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(Collections.singletonList(sysAdminBean));
-        checkPositive(sysAdminByGroup, requestedResource, TeletraanPrincipalRoles.READ);
-        checkPositive(sysAdminByGroup, requestedResource, TeletraanPrincipalRoles.EXECUTE);
-        checkPositive(sysAdminByGroup, requestedResource, TeletraanPrincipalRoles.WRITE);
+        checkAllRequiredRoles(sysAdminByGroup, TeletraanPrincipalRoles.ADMIN, requestedResource);
 
         GroupRolesBean sysOperatorBean = createGroupRolesBean(TeletraanPrincipalRoles.OPERATOR, operatorGroupName);
         when(groupRolesDAO.getByResource(
                 AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(Collections.singletonList(sysOperatorBean));
-        checkPositive(sysOperatorByGroup, requestedResource, TeletraanPrincipalRoles.READ);
-        checkPositive(sysOperatorByGroup, requestedResource, TeletraanPrincipalRoles.EXECUTE);
-        checkPositive(sysOperatorByGroup, requestedResource, TeletraanPrincipalRoles.WRITE);
+        checkAllRequiredRoles(sysOperatorByGroup, TeletraanPrincipalRoles.OPERATOR, requestedResource);
 
         GroupRolesBean sysReaderBean = createGroupRolesBean(TeletraanPrincipalRoles.READER, readerGroupName);
         when(groupRolesDAO.getByResource(
                 AuthZResource.ALL, AuthZResource.Type.SYSTEM)).thenReturn(Collections.singletonList(sysReaderBean));
-        checkPositive(sysReaderByGroup, requestedResource, TeletraanPrincipalRoles.READ);
-        checkNegative(sysReaderByGroup, requestedResource, TeletraanPrincipalRoles.EXECUTE);
-        checkNegative(sysReaderByGroup, requestedResource, TeletraanPrincipalRoles.WRITE);
+        checkAllRequiredRoles(sysReaderByGroup, TeletraanPrincipalRoles.READER, requestedResource);
     }
 
     @Test
     void testEnvUserOnEnvResource() {
-        checkPositive(envAdmin, env1AuthZResource, TeletraanPrincipalRoles.READ);
-        checkPositive(envAdmin, env1AuthZResource, TeletraanPrincipalRoles.EXECUTE);
-        checkPositive(envAdmin, env1AuthZResource, TeletraanPrincipalRoles.WRITE);
+        checkAllRequiredRoles(envAdmin, TeletraanPrincipalRoles.ADMIN, env1AuthZResource);
+        checkAllRequiredRoles(envOperator, TeletraanPrincipalRoles.OPERATOR, env1AuthZResource);
+        checkAllRequiredRoles(envReader, TeletraanPrincipalRoles.READER, env1AuthZResource);
 
-        checkPositive(envOperator, env1AuthZResource, TeletraanPrincipalRoles.READ);
-        checkPositive(envOperator, env1AuthZResource, TeletraanPrincipalRoles.EXECUTE);
-        checkPositive(envOperator, env1AuthZResource, TeletraanPrincipalRoles.WRITE);
-
-        checkPositive(envReader, env1AuthZResource, TeletraanPrincipalRoles.READ);
-        checkNegative(envReader, env1AuthZResource, TeletraanPrincipalRoles.EXECUTE);
-        checkNegative(envReader, env1AuthZResource, TeletraanPrincipalRoles.WRITE);
+        checkAllRequiredRoles(envAdmin, TeletraanPrincipalRoles.ADMIN, env1AdminAuthZResource);
+        checkAllNegative(envOperator, env1AdminAuthZResource);
+        checkAllNegative(envReader, env1AdminAuthZResource);
     }
 
     @Test
@@ -172,55 +171,66 @@ class UserRoleAuthorizerTest {
         GroupRolesBean envAdminBean = createGroupRolesBean(TeletraanPrincipalRoles.ADMIN, adminGroupName);
         when(groupRolesDAO.getByResource(
                 env1Name, AuthZResource.Type.ENV)).thenReturn(Collections.singletonList(envAdminBean));
-        checkNegative(envAdminByGroup, envXAuthZResource, TeletraanPrincipalRoles.WRITE);
-        checkNegative(envAdminByGroup, envXAuthZResource, TeletraanPrincipalRoles.EXECUTE);
-        checkNegative(envAdminByGroup, envXAuthZResource, TeletraanPrincipalRoles.READ);
+        checkAllNegative(envAdminByGroup, envXAuthZResource);
 
         GroupRolesBean envOperatorBean = createGroupRolesBean(TeletraanPrincipalRoles.OPERATOR, operatorGroupName);
         when(groupRolesDAO.getByResource(
                 env1Name, AuthZResource.Type.ENV)).thenReturn(Collections.singletonList(envOperatorBean));
-        checkNegative(envOperatorByGroup, envXAuthZResource, TeletraanPrincipalRoles.WRITE);
-        checkNegative(envOperatorByGroup, envXAuthZResource, TeletraanPrincipalRoles.EXECUTE);
-        checkNegative(envOperatorByGroup, envXAuthZResource, TeletraanPrincipalRoles.READ);
+        checkAllNegative(envOperatorByGroup, envXAuthZResource);
 
         GroupRolesBean envReaderBean = createGroupRolesBean(TeletraanPrincipalRoles.READER, readerGroupName);
         when(groupRolesDAO.getByResource(
                 env1Name, AuthZResource.Type.ENV)).thenReturn(Collections.singletonList(envReaderBean));
-        checkNegative(envReaderByGroup, envXAuthZResource, TeletraanPrincipalRoles.WRITE);
-        checkNegative(envReaderByGroup, envXAuthZResource, TeletraanPrincipalRoles.EXECUTE);
-        checkNegative(envReaderByGroup, envXAuthZResource, TeletraanPrincipalRoles.READ);
+        checkAllNegative(envReaderByGroup, envXAuthZResource);
     }
 
     @ParameterizedTest
     @MethodSource("resourceProvider")
     void testRandomUserOnDisallowedResources(AuthZResource requestedResource) {
         UserPrincipal randomUser = new UserPrincipal("randomUser", Collections.singletonList("someGroup"));
-        checkNegative(randomUser, requestedResource, TeletraanPrincipalRoles.READ);
-        checkNegative(randomUser, requestedResource, TeletraanPrincipalRoles.EXECUTE);
-        checkNegative(randomUser, requestedResource, TeletraanPrincipalRoles.WRITE);
+        checkAllNegative(randomUser, requestedResource);
     }
 
     @Test
     void testRandomUserOnOtherResources() throws Exception {
         UserPrincipal randomUser = new UserPrincipal("randomUser", Collections.singletonList("someGroup"));
-        checkPositive(randomUser, ratingResource, TeletraanPrincipalRoles.WRITE);
 
-        when(environDAO.getByName(envXName)).thenReturn(null);
+        // Special case for creating a new environment
         AuthZResource envXResource = new AuthZResource(envXName, AuthZResource.Type.ENV);
+        when(environDAO.getByName(envXName)).thenReturn(null);
         checkPositive(randomUser, envXResource, TeletraanPrincipalRoles.WRITE);
 
         when(environDAO.getByName(envXName)).thenReturn(Collections.singletonList(new EnvironBean()));
-        checkNegative(randomUser,envXResource, TeletraanPrincipalRoles.WRITE);
+        checkNegative(randomUser, envXResource, TeletraanPrincipalRoles.WRITE);
+
+        checkPositive(randomUser, buildResource , TeletraanPrincipalRoles.PUBLISHER);
     }
 
     @Test
-    void testRatingsResource() {
-        checkPositive(sysAdmin, ratingResource, TeletraanPrincipalRoles.WRITE);
-        checkPositive(sysOperator, ratingResource, TeletraanPrincipalRoles.WRITE);
-        checkPositive(sysReader, ratingResource, TeletraanPrincipalRoles.WRITE);
-        checkPositive(envAdmin, ratingResource, TeletraanPrincipalRoles.WRITE);
-        checkPositive(envOperator, ratingResource, TeletraanPrincipalRoles.WRITE);
-        checkPositive(envReader, ratingResource, TeletraanPrincipalRoles.WRITE);
+    void testBuildResource() {
+        checkPositive(sysAdmin, buildResource, TeletraanPrincipalRoles.PUBLISHER);
+        checkPositive(sysOperator, buildResource, TeletraanPrincipalRoles.PUBLISHER);
+        checkPositive(sysReader, buildResource, TeletraanPrincipalRoles.PUBLISHER);
+        checkPositive(envAdmin, buildResource, TeletraanPrincipalRoles.PUBLISHER);
+        checkPositive(envOperator, buildResource, TeletraanPrincipalRoles.PUBLISHER);
+        checkPositive(envReader, buildResource, TeletraanPrincipalRoles.PUBLISHER);
+    }
+
+    private void checkAllRequiredRoles(UserPrincipal principal, TeletraanPrincipalRoles legacyRole,
+            AuthZResource requestedResource) {
+        for (TeletraanPrincipalRoles requiredRole : newRoles) {
+            if (legacyToNewRoles.get(legacyRole).contains(requiredRole)) {
+                checkPositive(principal, requestedResource, requiredRole);
+            } else {
+                checkNegative(principal, requestedResource, requiredRole);
+            }
+        }
+    }
+
+    private void checkAllNegative(UserPrincipal principal, AuthZResource requestedResource) {
+        for (TeletraanPrincipalRoles requiredRole : newRoles) {
+            checkNegative(principal, requestedResource, requiredRole);
+        }
     }
 
     private void setUpGroupRolesBeans() throws Exception {
@@ -239,37 +249,37 @@ class UserRoleAuthorizerTest {
         when(userRolesDAO.getByNameAndResource(
                 sysAdminBean.getUser_name(), AuthZResource.ALL, AuthZResource.Type.SYSTEM))
                 .thenReturn(sysAdminBean);
-        sysAdmin = new UserPrincipal("sysAdmin", null);
+        sysAdmin = new UserPrincipal(sysAdminBean.getUser_name(), null);
 
         UserRolesBean sysOperatorBean = createUserRolesBean(TeletraanPrincipalRoles.OPERATOR, "sysOperator");
         when(userRolesDAO.getByNameAndResource(
                 sysOperatorBean.getUser_name(), AuthZResource.ALL, AuthZResource.Type.SYSTEM))
                 .thenReturn(sysOperatorBean);
-        sysOperator = new UserPrincipal("sysOperator", null);
+        sysOperator = new UserPrincipal(sysOperatorBean.getUser_name(), null);
 
         UserRolesBean sysReaderBean = createUserRolesBean(TeletraanPrincipalRoles.READER, "sysReader");
         when(userRolesDAO.getByNameAndResource(
                 sysReaderBean.getUser_name(), AuthZResource.ALL, AuthZResource.Type.SYSTEM))
                 .thenReturn(sysReaderBean);
-        sysReader = new UserPrincipal("sysReader", null);
+        sysReader = new UserPrincipal(sysReaderBean.getUser_name(), null);
 
         UserRolesBean envAdminBean = createUserRolesBean(TeletraanPrincipalRoles.ADMIN, "env1Admin");
         when(userRolesDAO.getByNameAndResource(
                 envAdminBean.getUser_name(), env1Name, AuthZResource.Type.ENV))
                 .thenReturn(envAdminBean);
-        envAdmin = new UserPrincipal("env1Admin", null);
+        envAdmin = new UserPrincipal(envAdminBean.getUser_name(), null);
 
         UserRolesBean envOperatorBean = createUserRolesBean(TeletraanPrincipalRoles.OPERATOR, "env1Operator");
         when(userRolesDAO.getByNameAndResource(
                 envOperatorBean.getUser_name(), env1Name, AuthZResource.Type.ENV))
                 .thenReturn(envOperatorBean);
-        envOperator = new UserPrincipal("env1Operator", null);
+        envOperator = new UserPrincipal(envOperatorBean.getUser_name(), null);
 
         UserRolesBean envReaderBean = createUserRolesBean(TeletraanPrincipalRoles.READER, "env1Reader");
         when(userRolesDAO.getByNameAndResource(
                 envReaderBean.getUser_name(), env1Name, AuthZResource.Type.ENV))
                 .thenReturn(envReaderBean);
-        envReader = new UserPrincipal("env1Reader", null);
+        envReader = new UserPrincipal(envReaderBean.getUser_name(), null);
     }
 
     private UserRolesBean createUserRolesBean(TeletraanPrincipalRoles role, String userName) {
@@ -288,11 +298,13 @@ class UserRoleAuthorizerTest {
 
     private void checkPositive(
             UserPrincipal user, AuthZResource requestedResource, TeletraanPrincipalRoles requiredRole) {
+        LOG.info("Checking positive {} for {} on {}", user.getName(), requiredRole, requestedResource);
         assertTrue(authorizer.authorize(user, requiredRole.name(), requestedResource, null));
     }
 
     private void checkNegative(
             UserPrincipal user, AuthZResource requestedResource, TeletraanPrincipalRoles requiredRole) {
+        LOG.info("Checking negative {} for {} on {}", user.getName(), requiredRole, requestedResource);
         assertFalse(authorizer.authorize(user, requiredRole.name(), requestedResource, null));
     }
 }

@@ -19,6 +19,8 @@ import org.glassfish.jersey.server.filter.RolesAllowedDynamicFeature;
 
 import com.pinterest.teletraan.health.GenericHealthCheck;
 import com.pinterest.teletraan.resource.Pings;
+import com.pinterest.teletraan.universal.security.ResourceAuthZInfoFeature;
+
 import io.dropwizard.Application;
 import io.dropwizard.auth.AuthDynamicFeature;
 import io.dropwizard.setup.Environment;
@@ -50,6 +52,7 @@ public class TeletraanAgentService extends Application<TeletraanServiceConfigura
                 .jersey()
                 .register(new AuthDynamicFeature(configuration.getAuthenticationFactory().create(context)));
         environment.jersey().register(RolesAllowedDynamicFeature.class);
+        environment.jersey().register(ResourceAuthZInfoFeature.class);
         environment.jersey().register(Pings.class);
 
         environment.healthChecks().register("generic", new GenericHealthCheck(context));

@@ -42,14 +42,18 @@ public class ScriptTokenRoleAuthorizer extends BaseAuthorizer<ScriptTokenPrincip
         if (!principal
                 .getRole()
                 .isEqualOrSuperior(TeletraanPrincipalRoles.valueOf(role).getRole())) {
-            LOG.info("Requested role does not match principal role");
+            LOG.info("Principal role does not match required role");
             return false;
         }
 
         if (requestedResource.getType().equals(AuthZResource.Type.ENV_STAGE)) {
-            // Convert to ENV for backward compatibility
-            requestedResource =
-                    new AuthZResource(requestedResource.getName(), AuthZResource.Type.ENV);
+            if (requestedResource.getEnvName().equals(principal.getResource().getName())) {
+                return true;
+            }
+        } else if (requestedResource.getType().equals(AuthZResource.Type.ENV)
+                && !(TeletraanPrincipalRoles.ADMIN.getRole().equals(principal.getRole())
+                        || principal.getResource().getType().equals(AuthZResource.Type.SYSTEM))) {
+            return false;
         }
 
         if (requestedResource.equals(principal.getResource())

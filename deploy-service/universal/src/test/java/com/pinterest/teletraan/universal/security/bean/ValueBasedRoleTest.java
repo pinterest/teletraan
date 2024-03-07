@@ -19,18 +19,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
-import scala.Int;
 
 class ValueBasedRoleTest {
     @Test
     void testIsEqualOrSuperior() {
         ValueBasedRole role = new ValueBasedRole(10);
-        assertTrue(role.isEqualOrSuperior(new ValueBasedRole(Int.MinValue())));
+        assertTrue(role.isEqualOrSuperior(new ValueBasedRole(Integer.MIN_VALUE)));
         assertTrue(role.isEqualOrSuperior(new ValueBasedRole(5)));
         assertTrue(role.isEqualOrSuperior(role));
 
         assertFalse(role.isEqualOrSuperior(new ValueBasedRole(10)));
         assertFalse(role.isEqualOrSuperior(new ValueBasedRole(11)));
-        assertFalse(role.isEqualOrSuperior(new ValueBasedRole(Int.MaxValue())));
+        assertFalse(role.isEqualOrSuperior(new ValueBasedRole(Integer.MAX_VALUE)));
     }
 }
