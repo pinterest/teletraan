@@ -62,13 +62,13 @@ public class DBDeployDAOImpl implements DeployDAO {
             "INNER JOIN builds ON deploys.build_id=builds.build_id " +
             "%s";
     private static final String GET_ACCEPTED_DEPLOYS_TEMPLATE =
-        "SELECT * FROM deploys WHERE env_id='%s' AND deploy_type IN (%s) " +
-            "AND acc_status='ACCEPTED' AND start_date>%d AND start_date<%d ORDER BY start_date DESC"
-            + " LIMIT %d";
+        "SELECT * FROM deploys WHERE env_id=? AND deploy_type IN (?) " +
+            "AND acc_status='ACCEPTED' AND start_date>? AND start_date<? ORDER BY start_date DESC"
+            + " LIMIT ?";
     private static final String GET_ACCEPTED_DEPLOYS_DELAYED_TEMPLATE =
-        "SELECT * FROM deploys WHERE env_id='%s' AND deploy_type NOT IN ('ROLLBACK', 'STOP') " +
-            "AND acc_status='ACCEPTED' AND start_date>%d " +
-            "AND state in ('SUCCEEDING', 'SUCCEEDED') AND suc_date<%d " +
+        "SELECT * FROM deploys WHERE env_id=? AND deploy_type NOT IN ('ROLLBACK', 'STOP') " +
+            "AND acc_status='ACCEPTED' AND start_date>? " +
+            "AND state in ('SUCCEEDING', 'SUCCEEDED') AND suc_date<? " +
             "ORDER BY start_date DESC LIMIT 1";
     private static final String
         COUNT_OF_NONREGULAR_DEPLOYS =
@@ -201,13 +201,14 @@ public class DBDeployDAOImpl implements DeployDAO {
     public List<DeployBean> getAcceptedDeploys(String envId, Interval interval, int size)
         throws Exception {
         ResultSetHandler<List<DeployBean>> h = new BeanListHandler<>(DeployBean.class);
-        String
-            typesClause =
-            QueryUtils.genEnumGroupClause(StateMachines.AUTO_PROMOTABLE_DEPLOY_TYPE);
         return new QueryRunner(dataSource).query(
-            String.format(GET_ACCEPTED_DEPLOYS_TEMPLATE, envId, typesClause,
+                GET_ACCEPTED_DEPLOYS_TEMPLATE,
+                h,
+                envId,
+                StateMachines.AUTO_PROMOTABLE_DEPLOY_TYPE,
                 interval.getStartMillis(),
-                interval.getEndMillis(), size), h);
+                interval.getEndMillis(),
+                size);
     }
 
 
@@ -215,9 +216,10 @@ public class DBDeployDAOImpl implements DeployDAO {
     public List<DeployBean> getAcceptedDeploysDelayed(String envId, Interval interval)
         throws Exception {
         ResultSetHandler<List<DeployBean>> h = new BeanListHandler<>(DeployBean.class);
-        return new QueryRunner(dataSource).query(
-            String.format(GET_ACCEPTED_DEPLOYS_DELAYED_TEMPLATE, envId, interval.getStartMillis(),
-                interval.getEndMillis()), h);
+        return new QueryRunner(dataSource).query(GET_ACCEPTED_DEPLOYS_DELAYED_TEMPLATE, h,
+                envId,
+                interval.getStartMillis(),
+                interval.getEndMillis());
     }
 
     @Override

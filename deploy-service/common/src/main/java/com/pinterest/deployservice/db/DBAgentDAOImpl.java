@@ -15,10 +15,7 @@
  */
 package com.pinterest.deployservice.db;
 
-import com.pinterest.deployservice.bean.AgentBean;
-import com.pinterest.deployservice.bean.AgentState;
-import com.pinterest.deployservice.bean.DeployStage;
-import com.pinterest.deployservice.bean.SetClause;
+import com.pinterest.deployservice.bean.*;
 import com.pinterest.deployservice.dao.AgentDAO;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
@@ -31,8 +28,8 @@ import java.util.*;
 public class DBAgentDAOImpl implements AgentDAO {
     private static final String UPDATE_AGENT_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=? AND env_id=?";
-    private static final String UPDATE_AGENTS_BY_HOSTIDS = 
-        "" + "UPDATE agents SET %s WHERE host_id IN (%s) AND env_id=?";
+    private static final String UPDATE_AGENTS_BY_HOSTIDS =
+            "UPDATE agents SET %s WHERE host_id IN (?) AND env_id=?";
     private static final String UPDATE_AGENT_BY_ID_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=?";
     private static final String RESET_FAILED_AGENTS =
@@ -83,7 +80,7 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS =
         "SELECT COUNT(*) FROM agents INNER JOIN host_tags ON host_tags.host_id = agents.host_id " +
             "WHERE agents.env_id=? AND host_tags.env_id=? AND agents.deploy_id=? AND (agents.deploy_stage='SERVING_BUILD' OR agents.state='PAUSED_BY_USER' OR agents.state='PAUSED_BY_SYSTEM') " +
-        "AND host_tags.tag_name = ? AND host_tags.tag_value IN (%s)";
+        "AND host_tags.tag_name = ? AND host_tags.tag_value IN (?)";
     private static final String COUNT_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=?";
     private static final String COUNT_ALL_DEPLOYED_HOSTS =
@@ -110,10 +107,8 @@ public class DBAgentDAOImpl implements AgentDAO {
     @Override
     public void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean) throws Exception {
         SetClause setClause = agentBean.genSetClause();
-        String hostStr = QueryUtils.genStringGroupClause(hostIds);
-        String clause = String.format(UPDATE_AGENTS_BY_HOSTIDS, setClause.getClause(), hostStr);
-        setClause.addValue(envId);
-        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
+        String clause = String.format(UPDATE_AGENTS_BY_HOSTIDS, setClause.getClause());
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray(), hostIds, envId);
     }
 
     @Override
@@ -264,9 +259,8 @@ public class DBAgentDAOImpl implements AgentDAO {
 
     @Override
     public long countFinishedAgentsByDeployWithHostTags(String envId, String deployId, String tagName, List<String> tagValues) throws Exception {
-        String tagValuesStr = QueryUtils.genStringGroupClause(tagValues);
-        Long n = new QueryRunner(dataSource).query(String.format(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS, tagValuesStr),
-            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, envId, deployId, tagName);
+        Long n = new QueryRunner(dataSource).query(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS,
+            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, envId, deployId, tagName, tagValues);
         return n == null ? 0 : n;
     }
 

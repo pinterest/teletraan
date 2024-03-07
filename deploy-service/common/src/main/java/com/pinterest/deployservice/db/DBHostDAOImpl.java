@@ -40,7 +40,7 @@ public class DBHostDAOImpl implements HostDAO {
     private static final String UPDATE_HOST_BY_ID = "UPDATE hosts SET %s WHERE host_id=?";
     private static final String INSERT_HOST_TEMPLATE = "INSERT INTO hosts SET %s ON DUPLICATE KEY UPDATE %s";
     private static final String INSERT_UPDATE_TEMPLATE = "INSERT INTO hosts %s VALUES %s ON DUPLICATE KEY UPDATE ip=?, last_update=?, account_id=?, " +
-            "state=IF(state!='%s' AND state!='%s' AND state!='%s', VALUES(state), state), " +
+            "state=IF(state!=? AND state!=? AND state!=?, VALUES(state), state), " +
             "host_name=CASE WHEN host_name IS NULL THEN ? WHEN host_name=host_id THEN ? ELSE host_name END, " +
             "ip=CASE WHEN ip IS NULL THEN ? ELSE ip END";
     private static final String DELETE_HOST_BY_ID = "DELETE FROM hosts WHERE host_id=?";
@@ -126,7 +126,9 @@ public class DBHostDAOImpl implements HostDAO {
         names.append(")");
 
         StringBuilder sb = new StringBuilder();
+
         for (String groupName : groupNames) {
+
             sb.append("('");
             sb.append(hostId);
             sb.append("','");
@@ -153,9 +155,12 @@ public class DBHostDAOImpl implements HostDAO {
             sb.append("'),");
         }
         sb.setLength(sb.length() - 1);
-        new QueryRunner(dataSource).update(String.format(INSERT_UPDATE_TEMPLATE, names, sb.toString(),
-                HostState.PENDING_TERMINATE.toString(), HostState.TERMINATING.toString(),
-                HostState.PENDING_TERMINATE_NO_REPLACE.toString()), ip, now, accountId, hostName, hostName, ip);
+        new QueryRunner(dataSource).update(String.format(INSERT_UPDATE_TEMPLATE, names, sb.toString()),
+                ip, now, accountId,
+                HostState.PENDING_TERMINATE.toString(),
+                HostState.TERMINATING.toString(),
+                HostState.PENDING_TERMINATE_NO_REPLACE.toString(),
+                hostName, hostName, ip);
     }
 
     @Override
