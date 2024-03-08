@@ -189,6 +189,11 @@ Vue.component('aws-user-data', {
                 acc[entry.name] = entry.value;
                 return acc;
             }, {});
+
+            // hide link for cmp_base cluster profiles
+            if (userDataObj['pinfo_cluster'] && userDataObj['pinfo_role'] === 'cmp_base') {
+                return ' ';
+            }
             const hieraPaths = this.hierapaths.trim().split("\n").reduce(
                 (acc, line) => acc.set(line, [
                     ...new Set(line.matchAll(/(?<=%{::)[a-z0-9_]+(?=})/gi).map(val => val[0]))
