@@ -34,7 +34,7 @@ import java.util.List;
 public class DBHostTagDAOImpl implements HostTagDAO {
 
     private static final String INSERT_HOST_TAG_TEMPLATE = "INSERT INTO host_tags SET %s ON DUPLICATE KEY UPDATE %s";
-    private static final String DELETE_HOST_TAG_BY_ENV_ID_AND_HOST_ID = "DELETE FROM host_tags WHERE env_id = ? AND host_id IN (?) ";
+    private static final String DELETE_HOST_TAG_BY_ENV_ID_AND_HOST_ID = "DELETE FROM host_tags WHERE env_id = ? AND host_id IN (%s) ";
     private static final String DELETE_HOST_TAG_BY_ENV_ID_AND_TAG_NAME = "DELETE FROM host_tags WHERE env_id = ? AND tag_name = ? ";
     private static final String DELETE_BY_HOST_ID = "DELETE FROM host_tags WHERE host_id = ?";
     private static final String GET_HOST_TAG_BY_HOST_ID_AND_TAG_NAME = "SELECT * FROM host_tags WHERE host_id = ? AND tag_name = ? ";
@@ -44,7 +44,7 @@ public class DBHostTagDAOImpl implements HostTagDAO {
     private static final String GET_HOSTS_BY_ENV_ID = "SELECT DISTINCT(host_tags.host_id) AS host_id, host_tags.tag_value AS tag_value, host_tags.tag_name AS tag_name, hosts.host_name AS host_name FROM hosts " +
         "INNER JOIN host_tags ON hosts.host_id = host_tags.host_id " +
         "WHERE host_tags.env_id = ?";
-    private static final String COUNT_HOSTS_BY_ENV_ID_AND_TAGS = "SELECT count(DISTINCT(host_id)) FROM host_tags WHERE env_id = ? AND tag_name = ? AND tag_value IN (?) ";
+    private static final String COUNT_HOSTS_BY_ENV_ID_AND_TAGS = "SELECT count(DISTINCT(host_id)) FROM host_tags WHERE env_id = ? AND tag_name = ? AND tag_value IN (%s) ";
     private static final String GET_ALL_BY_ENV_ID_AND_TAG_NAME = "SELECT * FROM host_tags WHERE env_id = ? AND tag_name = ? ";
     private static final RowProcessor ROW_PROCESSOR = new HostTagBeanRowProcessor();
     private BasicDataSource dataSource;
@@ -88,7 +88,10 @@ public class DBHostTagDAOImpl implements HostTagDAO {
 
     @Override
     public void deleteAllByEnvIdAndHostIds(String envId, List<String> hostIds) throws Exception {
-        new QueryRunner(dataSource).update(DELETE_HOST_TAG_BY_ENV_ID_AND_HOST_ID, envId, hostIds);
+        List<Object> params = ImmutableList.builder().add(envId).addAll(hostIds).build();
+        new QueryRunner(dataSource).update(
+                String.format(DELETE_HOST_TAG_BY_ENV_ID_AND_HOST_ID, QueryUtils.genStringPlaceholderList(hostIds.size()))
+                ,params.toArray());
     }
 
     @Override
@@ -111,8 +114,11 @@ public class DBHostTagDAOImpl implements HostTagDAO {
 
     @Override
     public long countHostsByEnvIdAndTags(String envId, String tagName, List<String> tagValues) throws Exception {
-        Long n = new QueryRunner(dataSource).query(COUNT_HOSTS_BY_ENV_ID_AND_TAGS,
-            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, tagName, tagValues);
+        List<Object> params = ImmutableList.builder().add(envId).add(tagName).addAll(tagValues).build();
+        Long n = new QueryRunner(dataSource).query(
+                String.format(COUNT_HOSTS_BY_ENV_ID_AND_TAGS, QueryUtils.genStringPlaceholderList(tagValues.size())),
+                SingleResultSetHandlerFactory.<Long>newObjectHandler(),
+                params.toArray());
         return n == null ? 0 : n;
     }
 

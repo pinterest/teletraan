@@ -34,8 +34,10 @@ import org.joda.time.Interval;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class DBDeployDAOImpl implements DeployDAO {
 
@@ -62,7 +64,7 @@ public class DBDeployDAOImpl implements DeployDAO {
             "INNER JOIN builds ON deploys.build_id=builds.build_id " +
             "%s";
     private static final String GET_ACCEPTED_DEPLOYS_TEMPLATE =
-        "SELECT * FROM deploys WHERE env_id=? AND deploy_type IN (?) " +
+        "SELECT * FROM deploys WHERE env_id=? AND deploy_type IN (%s) " +
             "AND acc_status='ACCEPTED' AND start_date>? AND start_date<? ORDER BY start_date DESC"
             + " LIMIT ?";
     private static final String GET_ACCEPTED_DEPLOYS_DELAYED_TEMPLATE =
@@ -201,14 +203,17 @@ public class DBDeployDAOImpl implements DeployDAO {
     public List<DeployBean> getAcceptedDeploys(String envId, Interval interval, int size)
         throws Exception {
         ResultSetHandler<List<DeployBean>> h = new BeanListHandler<>(DeployBean.class);
+        List<Object> params = new ArrayList<>();
+        params.add(envId);
+        params.addAll(StateMachines.AUTO_PROMOTABLE_DEPLOY_TYPE.stream().map(Enum::name).collect(Collectors.toList()));
+        params.add(interval.getStartMillis());
+        params.add(interval.getEndMillis());
+        params.add(size);
         return new QueryRunner(dataSource).query(
-                GET_ACCEPTED_DEPLOYS_TEMPLATE,
+                String.format(GET_ACCEPTED_DEPLOYS_TEMPLATE,
+                        QueryUtils.genStringPlaceholderList(StateMachines.AUTO_PROMOTABLE_DEPLOY_TYPE.size())),
                 h,
-                envId,
-                StateMachines.AUTO_PROMOTABLE_DEPLOY_TYPE,
-                interval.getStartMillis(),
-                interval.getEndMillis(),
-                size);
+                params.toArray());
     }
 
 

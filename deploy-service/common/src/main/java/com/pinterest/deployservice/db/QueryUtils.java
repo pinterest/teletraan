@@ -15,6 +15,8 @@
  */
 package com.pinterest.deployservice.db;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.Collection;
 
 public class QueryUtils {
@@ -30,14 +32,8 @@ public class QueryUtils {
         return sb.toString();
     }
 
-    public static String genStringListParamClause(Collection<String> names) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < names.size(); i++) {
-            sb.append("?,");
-        }
-        if(sb.length()>0)
-            sb.setLength(sb.length() - 1);
-        return sb.toString();
+    public static String genStringPlaceholderList(int size) {
+        return StringUtils.repeat("?", ",", size);
     }
 
     public static <E extends Enum<E>>String genEnumGroupClause(Collection<E> names) {

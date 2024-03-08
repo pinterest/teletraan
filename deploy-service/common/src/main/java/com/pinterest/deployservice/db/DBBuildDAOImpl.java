@@ -89,7 +89,7 @@ public class DBBuildDAOImpl implements BuildDAO {
     private static final String GET_TOTAL_BY_NAME =
         "SELECT COUNT(*) FROM builds WHERE build_name=?";
     private static final String GET_LIST_OF_BUILDS_BY_IDs =
-        "SELECT * FROM builds where build_id IN (?)";
+        "SELECT * FROM builds where build_id IN (%s)";
 
     private static final String DELETE_UNUSED_BUILDS =
         "DELETE FROM builds WHERE build_name=? AND publish_date<? "
@@ -249,7 +249,10 @@ public class DBBuildDAOImpl implements BuildDAO {
         }
         ResultSetHandler<List<BuildBean>> h = new BeanListHandler<>(BuildBean.class);
         QueryRunner run = new QueryRunner(dataSource);
-        return run.query(GET_LIST_OF_BUILDS_BY_IDs, h, ids);
+        return run.query(
+                String.format(GET_LIST_OF_BUILDS_BY_IDs, QueryUtils.genStringPlaceholderList(ids.size())),
+                h,
+                ids.toArray());
     }
 
     @Override

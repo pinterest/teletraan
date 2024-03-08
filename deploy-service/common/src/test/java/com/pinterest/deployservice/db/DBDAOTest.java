@@ -43,6 +43,7 @@ import com.pinterest.deployservice.bean.EnvironState;
 import com.pinterest.deployservice.bean.GroupRolesBean;
 import com.pinterest.deployservice.bean.HostBean;
 import com.pinterest.deployservice.bean.HostState;
+import com.pinterest.deployservice.bean.HostTagBean;
 import com.pinterest.deployservice.bean.OverridePolicy;
 import com.pinterest.deployservice.bean.PromoteBean;
 import com.pinterest.deployservice.bean.PromoteType;
@@ -68,6 +69,7 @@ import com.pinterest.deployservice.dao.EnvironDAO;
 import com.pinterest.deployservice.dao.GroupDAO;
 import com.pinterest.deployservice.dao.GroupRolesDAO;
 import com.pinterest.deployservice.dao.HostDAO;
+import com.pinterest.deployservice.dao.HostTagDAO;
 import com.pinterest.deployservice.dao.PromoteDAO;
 import com.pinterest.deployservice.dao.RatingDAO;
 import com.pinterest.deployservice.dao.ScheduleDAO;
@@ -75,10 +77,26 @@ import com.pinterest.deployservice.dao.TagDAO;
 import com.pinterest.deployservice.dao.TokenRolesDAO;
 import com.pinterest.deployservice.dao.UserRolesDAO;
 import com.pinterest.deployservice.dao.UtilDAO;
+
+
+import com.ibatis.common.jdbc.ScriptRunner;
+import com.mysql.management.driverlaunched.ServerLauncherSocketFactory;
+import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.joda.time.DateTime;
+import org.joda.time.Interval;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -100,6 +118,7 @@ public class DBDAOTest {
     private static EnvironDAO environDAO;
     private static PromoteDAO promoteDAO;
     private static HostDAO hostDAO;
+    private static HostTagDAO hostTagDAO;
     private static GroupDAO groupDAO;
     private static RatingDAO ratingDAO;
     private static UserRolesDAO userRolesDAO;
@@ -126,6 +145,7 @@ public class DBDAOTest {
         environDAO = new DBEnvironDAOImpl(DATASOURCE);
         promoteDAO = new DBPromoteDAOImpl(DATASOURCE);
         hostDAO = new DBHostDAOImpl(DATASOURCE);
+        hostTagDAO = new DBHostTagDAOImpl(DATASOURCE);
         groupDAO = new DBGroupDAOImpl(DATASOURCE);
         ratingDAO = new DBRatingsDAOImpl(DATASOURCE);
         userRolesDAO = new DBUserRolesDAOImpl(DATASOURCE);
@@ -358,6 +378,20 @@ public class DBDAOTest {
     }
 
     @Test
+    public void testDeployAcceptedDelayed() throws Exception {
+        long sucDate = System.currentTimeMillis();
+        Interval interval = new Interval(sucDate - 1000, sucDate + 1000);
+        DeployBean deployBean = genDefaultDeployBean("d-1", "env-1", "bbb-1", 1000, DeployState.SUCCEEDED);
+        deployBean.setAcc_status(AcceptanceStatus.ACCEPTED);
+        deployBean.setStart_date(sucDate);
+        deployBean.setSuc_date(sucDate);
+        deployDAO.insert(deployBean);
+        List<DeployBean> acceptedDeploysDelayed = deployDAO.getAcceptedDeploysDelayed(deployBean.getEnv_id(), interval);
+        assertEquals(1, acceptedDeploysDelayed.size() );
+        assertEquals(deployBean.getDeploy_id(), acceptedDeploysDelayed.get(0).getDeploy_id());
+    }
+
+    @Test
     public void testAgentUpdate() throws Exception {
         AgentBean agentBean1 =
                 genDefaultAgentBean("h1", "id-1", "e-1", "d-1", DeployStage.PRE_DOWNLOAD);
@@ -407,6 +441,53 @@ public class DBDAOTest {
             assertEquals(bean.getState(), AgentState.RESET);
             assertEquals(bean.getDeploy_id(), "d-2");
         }
+    }
+
+    @Test
+    public void testAgentCountFinishedByDeployWithHostTags() throws Exception {
+        HostTagBean hostTagBean = new HostTagBean();
+        hostTagBean.setHost_id("host-1");
+        hostTagBean.setEnv_id("e-2");
+        hostTagBean.setTag_name("tag-1");
+        hostTagBean.setTag_value("value-1");
+        hostTagBean.setCreate_date(DateTime.now().getMillis());
+        hostTagDAO.insertOrUpdate(hostTagBean);
+        hostTagBean.setHost_id("host-2");
+        hostTagBean.setTag_value("value-2");
+        hostTagDAO.insertOrUpdate(hostTagBean);
+
+        AgentBean
+            agentBean1 =
+            genDefaultAgentBean("h5", "host-1", "e-2", "d-1", DeployStage.SERVING_BUILD);
+        AgentBean
+            agentBean2 =
+            genDefaultAgentBean("h6", "host-2", "e-2", "d-1", DeployStage.SERVING_BUILD);
+
+        agentDAO.insertOrUpdate(agentBean1);
+        agentDAO.insertOrUpdate(agentBean2);
+        List<String> values = Arrays.asList("value-1", "value-2");
+        long count = agentDAO.countFinishedAgentsByDeployWithHostTags("e-2", "d-1", "tag-1", values);
+        assertEquals(2L, count);
+    }
+
+    @Test
+    public void testDeleteHostTags() throws Exception {
+        HostTagBean hostTagBean = new HostTagBean();
+        hostTagBean.setHost_id("host-1");
+        hostTagBean.setEnv_id("e-2");
+        hostTagBean.setTag_name("tag-1");
+        hostTagBean.setTag_value("value-1");
+        hostTagBean.setCreate_date(DateTime.now().getMillis());
+        hostTagDAO.insertOrUpdate(hostTagBean);
+        hostTagBean.setHost_id("host-2");
+        hostTagBean.setTag_value("value-2");
+        hostTagDAO.insertOrUpdate(hostTagBean);
+        List<String> values = Arrays.asList("value-1", "value-2");
+        long count = hostTagDAO.countHostsByEnvIdAndTags("e-2", "tag-1", values);
+        assertEquals(2L, count);
+        hostTagDAO.deleteAllByEnvIdAndHostIds("e-2", Arrays.asList("host-1", "host-2"));
+        count = hostTagDAO.countHostsByEnvIdAndTags("e-2", "tag-1", values);
+        assertEquals(0L, count);
     }
 
     @Test

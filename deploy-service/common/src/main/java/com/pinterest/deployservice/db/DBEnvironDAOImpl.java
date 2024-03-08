@@ -66,7 +66,7 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     private static final String GET_ENVS_BY_GROUPS_TMPL =
             "SELECT e.* FROM environs e " +
             "INNER JOIN groups_and_envs ge ON ge.env_id = e.env_id " +
-            "WHERE ge.group_name IN (?)";
+            "WHERE ge.group_name IN (%s)";
     private static final String COUNT_HOSTS_BY_CAPACITY =
         "SELECT COUNT(DISTINCT host_name) FROM (" +
             "SELECT h.host_name FROM hosts h INNER JOIN groups_and_envs ge ON ge.group_name = h.group_name WHERE ge.env_id=? " +
@@ -244,7 +244,10 @@ public class DBEnvironDAOImpl implements EnvironDAO {
     @Override
     public List<EnvironBean> getEnvsByGroups(Collection<String> groups) throws Exception {
         ResultSetHandler<List<EnvironBean>> h = new BeanListHandler<>(EnvironBean.class);
-        List<EnvironBean> groupEnvs = new QueryRunner(dataSource).query(GET_ENVS_BY_GROUPS_TMPL, h, groups);
+        List<EnvironBean> groupEnvs = new QueryRunner(dataSource).query(
+                String.format(GET_ENVS_BY_GROUPS_TMPL, QueryUtils.genStringPlaceholderList(groups.size())),
+                h,
+                groups.toArray());
         Set<EnvironBean> envSet = new TreeSet<EnvironBean>(Comparator.comparing(EnvironBean::getEnv_id));
         envSet.addAll(groupEnvs);
         return new ArrayList<EnvironBean>(envSet);

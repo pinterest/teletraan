@@ -27,6 +27,8 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -86,7 +88,7 @@ public class DBAgentDAOImpl implements AgentDAO {
     private static final String COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS =
         "SELECT COUNT(*) FROM agents INNER JOIN host_tags ON host_tags.host_id = agents.host_id " +
             "WHERE agents.env_id=? AND host_tags.env_id=? AND agents.deploy_id=? AND (agents.deploy_stage='SERVING_BUILD' OR agents.state='PAUSED_BY_USER' OR agents.state='PAUSED_BY_SYSTEM') " +
-        "AND host_tags.tag_name = ? AND host_tags.tag_value IN (?)";
+        "AND host_tags.tag_name = ? AND host_tags.tag_value IN (%s)";
     private static final String COUNT_AGENTS_BY_DEPLOY =
         "SELECT COUNT(*) FROM agents WHERE deploy_id=?";
     private static final String COUNT_ALL_DEPLOYED_HOSTS =
@@ -113,7 +115,7 @@ public class DBAgentDAOImpl implements AgentDAO {
     @Override
     public void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean) throws Exception {
         SetClause setClause = agentBean.genSetClause();
-        String clause = String.format(UPDATE_AGENTS_BY_HOSTIDS, setClause.getClause(), QueryUtils.genStringListParamClause(hostIds));
+        String clause = String.format(UPDATE_AGENTS_BY_HOSTIDS, setClause.getClause(), QueryUtils.genStringPlaceholderList(hostIds.size()));
         for(String hostId : hostIds) {
             setClause.addValue(hostId);
         }
@@ -269,8 +271,14 @@ public class DBAgentDAOImpl implements AgentDAO {
 
     @Override
     public long countFinishedAgentsByDeployWithHostTags(String envId, String deployId, String tagName, List<String> tagValues) throws Exception {
-        Long n = new QueryRunner(dataSource).query(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS,
-            SingleResultSetHandlerFactory.<Long>newObjectHandler(), envId, envId, deployId, tagName, tagValues);
+        List<Object> params = new ArrayList<>();
+        params.addAll(Arrays.asList(envId, envId, deployId, tagName));
+        params.addAll(tagValues);
+        Long n = new QueryRunner(dataSource).query(String
+                        .format(COUNT_FINISHED_AGENTS_BY_DEPLOY_WITH_HOST_TAGS,
+                                QueryUtils.genStringPlaceholderList(tagValues.size())),
+                SingleResultSetHandlerFactory.<Long>newObjectHandler(),
+                params.toArray());
         return n == null ? 0 : n;
     }
 
