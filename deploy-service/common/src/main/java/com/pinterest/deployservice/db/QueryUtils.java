@@ -30,6 +30,16 @@ public class QueryUtils {
         return sb.toString();
     }
 
+    public static String genStringListParamClause(Collection<String> names) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < names.size(); i++) {
+            sb.append("?,");
+        }
+        if(sb.length()>0)
+            sb.setLength(sb.length() - 1);
+        return sb.toString();
+    }
+
     public static <E extends Enum<E>>String genEnumGroupClause(Collection<E> names) {
         StringBuilder sb = new StringBuilder();
         for (E name : names) {

@@ -15,7 +15,11 @@
  */
 package com.pinterest.deployservice.db;
 
-import com.pinterest.deployservice.bean.*;
+
+import com.pinterest.deployservice.bean.AgentBean;
+import com.pinterest.deployservice.bean.AgentState;
+import com.pinterest.deployservice.bean.DeployStage;
+import com.pinterest.deployservice.bean.SetClause;
 import com.pinterest.deployservice.dao.AgentDAO;
 import org.apache.commons.dbcp.BasicDataSource;
 import org.apache.commons.dbutils.QueryRunner;
@@ -23,13 +27,15 @@ import org.apache.commons.dbutils.ResultSetHandler;
 import org.apache.commons.dbutils.handlers.BeanHandler;
 import org.apache.commons.dbutils.handlers.BeanListHandler;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+
 
 public class DBAgentDAOImpl implements AgentDAO {
     private static final String UPDATE_AGENT_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=? AND env_id=?";
     private static final String UPDATE_AGENTS_BY_HOSTIDS =
-            "UPDATE agents SET %s WHERE host_id IN (?) AND env_id=?";
+            "UPDATE agents SET %s WHERE host_id IN (%s) AND env_id=?";
     private static final String UPDATE_AGENT_BY_ID_TEMPLATE =
         "UPDATE agents SET %s WHERE host_id=?";
     private static final String RESET_FAILED_AGENTS =
@@ -107,8 +113,12 @@ public class DBAgentDAOImpl implements AgentDAO {
     @Override
     public void updateMultiple(Collection<String> hostIds, String envId, AgentBean agentBean) throws Exception {
         SetClause setClause = agentBean.genSetClause();
-        String clause = String.format(UPDATE_AGENTS_BY_HOSTIDS, setClause.getClause());
-        new QueryRunner(dataSource).update(clause, setClause.getValueArray(), hostIds, envId);
+        String clause = String.format(UPDATE_AGENTS_BY_HOSTIDS, setClause.getClause(), QueryUtils.genStringListParamClause(hostIds));
+        for(String hostId : hostIds) {
+            setClause.addValue(hostId);
+        }
+        setClause.addValue(envId);
+        new QueryRunner(dataSource).update(clause, setClause.getValueArray());
     }
 
     @Override
