@@ -177,7 +177,7 @@ class EnvCapacityAdvCreateView(View):
             'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
             'stateful_status': clusters_helper.StatefulStatuses.get_status(None),
             'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses(),
-            'accounts': list(map(create_ui_account, accounts)) if accounts is not None else None,
+            'accounts': create_ui_accounts(accounts),
             'defaultAccountId': default_account['id'] if default_account is not None else None,
         }
         # cluster manager
@@ -587,6 +587,15 @@ def create_ui_account(account):
         'description': account['description'],
         'ownerId': account['data']['ownerId'],
     }
+
+
+def create_ui_accounts(accounts):
+    if accounts is None:
+        return None
+
+    deduplicated_accounts = {account['id']: account for account in accounts}.values()
+    sorted_accounts = sorted(deduplicated_accounts, key=lambda account: account['name'])
+    return list(map(create_ui_account, sorted_accounts))
 
 
 def get_default_account(accounts):
