@@ -47,7 +47,7 @@ class Helper(object):
             return builds
         
     @staticmethod
-    def get_build_name(filename) -> str:
+    def get_build_name(filename: str) -> str:
         """
         Extract build name from the file name
         In downloader.py, we have the following name convenion
