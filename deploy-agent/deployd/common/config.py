@@ -15,6 +15,9 @@ from __future__ import print_function
 
 import logging
 import os
+import json
+
+from typing import Any, List, Optional
 
 from deployd import __version__
 
@@ -34,7 +37,7 @@ class Config(object):
     _DEFAULT_CONFIG_SECTION = 'default_config'
     _configs = {}
 
-    def __init__(self, filenames=None, config_reader=None):
+    def __init__(self, filenames=None, config_reader=None) -> None:
         self._configs = {}
         self._filenames = None
         self._environ = {}
@@ -56,10 +59,10 @@ class Config(object):
             print('Cannot read config files: {}'.format(self._filenames))
             exit_abruptly(1)
 
-    def get_config_filename(self):
+    def get_config_filename(self) -> Optional[List[str]]:
         return self._filenames
 
-    def _get_deploy_type_from_opcode(self, opCode):
+    def _get_deploy_type_from_opcode(self, opCode) -> str:
         # TODO: Should use common.types.OpCode for next version
         if opCode == 'RESTART':
             return DeployType.RESTART
@@ -70,7 +73,7 @@ class Config(object):
         else:
             return DeployType.REGULAR
 
-    def update_variables(self, deploy_status):
+    def update_variables(self, deploy_status) -> None:
         if not deploy_status:
             return
 
@@ -134,7 +137,7 @@ class Config(object):
         self._environ['BUILDS_DIR'] = self.get_builds_directory()
         os.environ.update(self._environ)
 
-    def get_var(self, var_name, default_value=None):
+    def get_var(self, var_name, default_value=None) -> Any:
         try:
             if self._configs and var_name in self._configs:
                 return self._configs[var_name]
@@ -145,17 +148,17 @@ class Config(object):
                 return default_value
             raise DeployConfigException('{} cannot be found.'.format(var_name))
 
-    def get_intvar(self, var_name, default_value=None):
+    def get_intvar(self, var_name, default_value=None) -> int:
         return int(self.get_var(var_name, default_value))
 
-    def get_target(self):
+    def get_target(self) -> Optional[str]:
         target_default_dir = self.get_var("target_default_dir", "/tmp")
         if not (self._configs and self._configs.get('target')):
             return os.path.join(target_default_dir, self._environ['ENV_NAME'])
 
         return self._configs.get('target')
 
-    def get_subprocess_log_name(self):
+    def get_subprocess_log_name(self) -> str:
         if 'ENV_NAME' in self._environ:
             return '{}/{}.log'.format(self.get_log_directory(), self._environ['ENV_NAME'])
         else:
@@ -169,88 +172,88 @@ class Config(object):
         else:
             return script_dir
 
-    def get_agent_directory(self):
+    def get_agent_directory(self) -> str:
         return self.get_var("deploy_agent_dir", "/tmp/deployd/")
 
-    def get_env_status_fn(self):
+    def get_env_status_fn(self) -> str:
         return os.path.join(self.get_agent_directory(), "env_status")
 
-    def get_host_info_fn(self):
+    def get_host_info_fn(self) -> str:
         return os.path.join(self.get_agent_directory(), "host_info")
 
-    def get_builds_directory(self):
+    def get_builds_directory(self) -> str:
         return self.get_var("builds_dir", "/tmp/deployd/builds")
 
-    def get_log_directory(self):
+    def get_log_directory(self) -> str:
         return self.get_var("log_directory", "/tmp/deployd/logs")
 
-    def get_user_role(self):
+    def get_user_role(self) -> str:
         import getpass
         return self.get_var("user_role", getpass.getuser())
 
-    def get_restful_service_url(self):
+    def get_restful_service_url(self) -> str:
         return self.get_var('teletraan_service_url', 'http://localhost:8080')
 
-    def get_restful_service_version(self):
+    def get_restful_service_version(self) -> str:
         return self.get_var('teletraan_service_version', 'v1')
 
-    def get_restful_service_token(self):
+    def get_restful_service_token(self) -> str:
         return self.get_var('teletraan_service_token', '')
 
     # aws specific configuration
-    def get_aws_access_key(self):
+    def get_aws_access_key(self) -> Optional[str]:
         return self.get_var('aws_access_key_id', None)
 
-    def get_aws_access_secret(self):
+    def get_aws_access_secret(self) -> Optional[str]:
         return self.get_var('aws_secret_access_key', None)
 
     # agent process configs
-    def get_agent_ping_interval(self):
+    def get_agent_ping_interval(self) -> int:
         return self.get_intvar('min_running_time', 60)
 
-    def get_subprocess_running_timeout(self):
+    def get_subprocess_running_timeout(self) -> int:
         return self.get_intvar('process_timeout', 1800)
 
-    def get_subprocess_terminate_timeout(self):
+    def get_subprocess_terminate_timeout(self) -> int:
         return self.get_intvar('termination_timeout', 30)
 
-    def get_subproces_max_retry(self):
+    def get_subproces_max_retry(self) -> int:
         return self.get_intvar('max_retry', 3)
 
-    def get_subprocess_max_log_bytes(self):
+    def get_subprocess_max_log_bytes(self) -> int:
         return self.get_intvar('max_tail_bytes', 10240)
 
-    def get_subprocess_max_sleep_interval(self):
+    def get_subprocess_max_sleep_interval(self) -> int:
         return self.get_intvar('max_sleep_interval', 60)
 
-    def get_subprocess_poll_interval(self):
+    def get_subprocess_poll_interval(self) -> int:
         return self.get_intvar("process_wait_interval", 2)
 
-    def get_backoff_factor(self):
+    def get_backoff_factor(self) -> int:
         return self.get_intvar("back_off_factor", 2)
 
-    def get_num_builds_retain(self):
+    def get_num_builds_retain(self) -> int:
         return self.get_intvar("num_builds_to_retain", 2)
 
-    def respect_puppet(self):
+    def respect_puppet(self) -> int:
         return self.get_intvar("respect_puppet", 0)
 
-    def get_puppet_state_file_path(self):
+    def get_puppet_state_file_path(self) -> Optional[str]:
         return self.get_var("puppet_file_path", None)
 
-    def get_puppet_summary_file_path(self):
+    def get_puppet_summary_file_path(self) -> str:
         return self.get_var("puppet_summary_file_path", "/var/cache/puppet/state/last_run_summary.yaml")
 
-    def get_puppet_exit_code_file_path(self):
+    def get_puppet_exit_code_file_path(self) -> str:
         return self.get_var("puppet_exit_code_file_path", "/var/log/puppet/puppet_exit_code")
 
-    def get_daemon_sleep_time(self):
+    def get_daemon_sleep_time(self) -> int:
         return self.get_intvar("daemon_sleep_time", 30)
 
-    def get_init_sleep_time(self):
+    def get_init_sleep_time(self) -> int:
         return self.get_intvar("init_sleep_time", 50)
 
-    def get_log_level(self):
+    def get_log_level(self) -> int:
         log_level = self.get_var("log_level", 'DEBUG')
         if log_level == "INFO":
             return logging.INFO
@@ -258,41 +261,52 @@ class Config(object):
             return logging.ERROR
         return logging.DEBUG
 
-    def get_facter_id_key(self):
+    def get_facter_id_key(self) -> Optional[str]:
         return self.get_var('agent_id_key', None)
 
-    def get_facter_ip_key(self):
+    def get_facter_ip_key(self) -> Optional[str]:
         return self.get_var('agent_ip_key', None)
 
-    def get_facter_name_key(self):
+    def get_facter_name_key(self) -> Optional[str]:
         return self.get_var('agent_name_key', None)
 
-    def get_facter_group_key(self):
+    def get_facter_group_key(self) -> Optional[str]:
         return self.get_var('agent_group_key', None)
 
-    def get_verify_https_certificate(self):
+    def get_verify_https_certificate(self) -> Optional[str]:
         return self.get_var('verify_https_certificate', 'False')
 
-    def get_deploy_agent_version(self):
+    def get_deploy_agent_version(self) -> str:
         return self.get_var('deploy_agent_version', __version__)
 
-    def get_facter_az_key(self):
+    def get_facter_az_key(self) -> Optional[str]:
         return self.get_var('availability_zone_key', None)
 
-    def get_facter_ec2_tags_key(self):
+    def get_facter_ec2_tags_key(self) -> Optional[str]:
         return self.get_var('ec2_tags_key', None)
 
-    def get_facter_asg_tag_key(self):
+    def get_facter_asg_tag_key(self) -> Optional[str]:
         return self.get_var('autoscaling_tag_key', None)
 
-    def get_stage_type_key(self):
+    def get_stage_type_key(self) -> Optional[str]:
         return self.get_var('stage_type_key', None)
 
-    def get_facter_account_id_key(self):
+    def get_facter_account_id_key(self) -> str:
         return self.get_var('account_id_key', 'ec2_metadata.identity-credentials.ec2.info')
 
-    def get_http_download_allow_list(self):
-        return self.get_var('http_download_allow_list', [])
+    def _get_download_allow_list(self, key: str) -> List:
+        allow_list_str = self.get_var(key, '[]')
+        allow_list = []
+        try:
+            allow_list = json.loads(allow_list_str)
+        except json.JSONDecodeError:
+            log.error(f"Error: The string {allow_list_str} could not be converted to a list.")
+        return allow_list
 
-    def get_s3_download_allow_list(self):
-        return self.get_var('s3_download_allow_list', [])
+
+    def get_http_download_allow_list(self) -> List:
+        return self._get_download_allow_list('http_download_allow_list')
+
+
+    def get_s3_download_allow_list(self) -> List:
+        return self._get_download_allow_list('s3_download_allow_list')

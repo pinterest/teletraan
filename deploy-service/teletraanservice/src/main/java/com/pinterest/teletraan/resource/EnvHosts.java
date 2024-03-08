@@ -61,7 +61,7 @@ public class EnvHosts {
     private final EnvironHandler environHandler;
     private final ConfigHistoryHandler configHistoryHandler;
 
-    public EnvHosts(TeletraanServiceContext context) {
+    public EnvHosts(@Context TeletraanServiceContext context) {
         authorizer = context.getAuthorizer();
         environDAO = context.getEnvironDAO();
         hostDAO = context.getHostDAO();

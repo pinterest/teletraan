@@ -49,7 +49,7 @@ public class EnvMetrics {
     private EnvironDAO environDAO;
     private Authorizer authorizer;
 
-    public EnvMetrics(TeletraanServiceContext context) {
+    public EnvMetrics(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);

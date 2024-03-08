@@ -31,7 +31,7 @@ log = logging.getLogger(__name__)
 def get_agent_wrapper(request, hostname):
     # gather the env name and stage info
     agents = agents_helper.get_agents_by_host(request, hostname)
-    agent_wrappers = []
+    agent_wrappers = {'sidecars': [], 'services': []}
     is_unreachable = False
     for agent in agents:
         agent_wrapper = {}
@@ -45,8 +45,13 @@ def get_agent_wrapper(request, hostname):
                                                                    agent_env['stageName'], hostname)
         if agent['state'] == 'UNREACHABLE':
             is_unreachable = True
-
-        agent_wrappers.append(agent_wrapper)
+        if agent_env and agent_env['systemPriority'] and agent_env['systemPriority'] > 0:
+            agent_wrappers['sidecars'].append(agent_wrapper)
+        else:
+            agent_wrappers['services'].append(agent_wrapper)
+    
+    agent_wrappers['sidecars'] = sorted(agent_wrappers['sidecars'], key=lambda x: x["agent"]['lastUpdateDate'])
+    agent_wrappers['services'] = sorted(agent_wrappers['services'], key=lambda x: x["agent"]['lastUpdateDate'])
     return agent_wrappers, is_unreachable
 
 
@@ -183,7 +188,14 @@ class HostDetailView(View):
             is_protected = autoscaling_groups_helper.is_hosts_protected(request, asg, [host_id])
 
         agent_wrappers, is_unreachable = get_agent_wrapper(request, hostname)
-        agent_wrappers = sorted(agent_wrappers, key=lambda x: x["agent"]['lastUpdateDate'])
+        has_host_env_sidecar_agents = any(
+            agent for agent in agent_wrappers['sidecars']
+            if agent['env'] and agent['env']['envName'] and
+            agent['env']['stageName'] and
+            agent['env']['envName'] == name and
+            agent['env']['stageName'] == stage
+        )
+        
         host_details = get_host_details(host_id)
 
         termination_limit = environs_helper.get_env_by_stage(request, name, stage).get('terminationLimit')
@@ -208,6 +220,7 @@ class HostDetailView(View):
             'host_details': host_details,
             'duplicate_stage': duplicate_stage,
             'termination_limit': termination_limit,
+            'has_host_env_sidecar_agents': has_host_env_sidecar_agents,
         })
 
 

@@ -49,7 +49,7 @@ public class Pings {
     private PingHandler pingHandler;
     private final Authorizer authorizer;
 
-    public Pings(TeletraanServiceContext context) {
+    public Pings(@Context TeletraanServiceContext context) {
         pingHandler = new PingHandler(context);
         authorizer = context.getAuthorizer();
     }

@@ -17,6 +17,7 @@ import traceback
 from string import Template
 import re
 import logging
+from typing import List
 from deployd import IS_PINTEREST
 
 log = logging.getLogger(__name__)
@@ -29,12 +30,12 @@ class TeletraanTemplate(Template):
 
 class Transformer(object):
 
-    def __init__(self, agent_dir, env_name, dict_fn=None):
+    def __init__(self, agent_dir, env_name, dict_fn=None) -> None:
         self._agent_dir = agent_dir
         self._env_name = env_name
         self._load_config(dict_fn)
 
-    def _load_config(self, fn):
+    def _load_config(self, fn) -> None:
         if not fn:
             fn = os.path.join(self._agent_dir, "{}_SCRIPT_CONFIG".format(self._env_name))
 
@@ -45,10 +46,10 @@ class Transformer(object):
         with open(fn, 'r') as f:
             self._dictionary = dict((n.strip('\"\n\' ') for n in line.split("=", 1)) for line in f)
 
-    def dict_size(self):
+    def dict_size(self) -> int:
         return len(self._dictionary)
 
-    def _translate(self, from_path, to_path):
+    def _translate(self, from_path, to_path) -> None:
         try:
             with open(from_path, 'r') as f:
                 res = f.read()
@@ -73,7 +74,7 @@ class Transformer(object):
             log.error('Fail to translate script {}, stacktrace: {}'.format(from_path,
                                                                            traceback.format_exc()))
 
-    def transform_scripts(self, script_dir, template_dirname, script_dirname):
+    def transform_scripts(self, script_dir, template_dirname, script_dirname) -> List:
         scripts = []
         suffix = ".tmpl"
         try:

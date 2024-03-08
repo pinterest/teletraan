@@ -32,6 +32,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/history")
@@ -43,7 +44,7 @@ public class EnvHistory {
     private final EnvironDAO environDAO;
     private final ConfigHistoryDAO configHistoryDAO;
 
-    public EnvHistory(TeletraanServiceContext context) {
+    public EnvHistory(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         configHistoryDAO = context.getConfigHistoryDAO();
     }

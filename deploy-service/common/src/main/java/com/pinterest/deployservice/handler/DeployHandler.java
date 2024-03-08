@@ -433,8 +433,11 @@ public class DeployHandler implements DeployHandlerInterface{
         // When the delivery_type is different with stage_type and stage_type is DEFAULT, we update the stage_type;
         if (StringUtils.isNotBlank(deliveryType) && !envBean.getStage_type().toString().equals(deliveryType)) {
             if (envBean.getStage_type() != EnvType.DEFAULT) {
-                LOG.error("The delivery type {} is different with the stage type {} for {}/{}",
+                String errorMessage = String.format(
+                        "The delivery type %s is different with the stage type %s for %s/%s",
                         deliveryType, envBean.getStage_type(), envBean.getEnv_name(), envBean.getStage_name());
+                LOG.error(errorMessage);
+                throw new TeletaanInternalException(Response.Status.CONFLICT, errorMessage);
             } else {
                 EnvType type = EnvType.valueOf(deliveryType);
                 envBean.setStage_type(type);

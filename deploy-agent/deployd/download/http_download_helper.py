@@ -90,4 +90,8 @@ class HTTPDownloadHelper(DownloadHelper):
 
         allow_list = self._config.get_http_download_allow_list()
 
-        return domain in allow_list if allow_list else True
+        if not allow_list or domain in allow_list:
+            return True
+        else:
+            log.error(f"{domain} is not in the allow list: {allow_list}.")
+            return False

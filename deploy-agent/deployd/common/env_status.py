@@ -27,12 +27,12 @@ log = logging.getLogger(__name__)
 
 class EnvStatus(object):
 
-    def __init__(self, status_fn):
+    def __init__(self, status_fn) -> None:
         self._status_fn = status_fn
         self._lock_fn = '{}.lock'.format(self._status_fn)
         self._lock = lockfile.FileLock(self._lock_fn)
 
-    def load_envs(self):
+    def load_envs(self) -> dict:
         """
         open up config file
         validate that the service selected exists
@@ -52,7 +52,7 @@ class EnvStatus(object):
         finally:
             return envs
 
-    def _touch_or_rm_host_type_file(self, envs, host_type, directory='/var/run/'):
+    def _touch_or_rm_host_type_file(self, envs, host_type, directory='/var/run/') -> None:
         """Touches or removes the identity file for the host type.
         For now, a host type could be 'canary'.
         """
@@ -74,7 +74,7 @@ class EnvStatus(object):
                 os.remove(file_path)
                 log.debug('Removed {}.'.format(file_path))
 
-    def dump_envs(self, envs):
+    def dump_envs(self, envs) -> bool:
         try:
             json_data = {}
             if envs:

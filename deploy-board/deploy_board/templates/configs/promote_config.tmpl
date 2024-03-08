@@ -235,7 +235,7 @@
                     btn.button('reset');
                 },
                 error: function (data) {
-                    $('#errorBannerId').append(data.responseText);
+                    $('#errorBannerId').append(`${data.status}: ${data.responseText}`);
                     $('#errorBannerId').show();
                 }
             });

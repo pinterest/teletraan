@@ -1,0 +1,56 @@
+{% load utils %}
+{% include "panel_heading.tmpl" with panel_title="Suspended Processes" panel_body_id="asSuspendedProcessId" direction="down" %}
+<div id="asSuspendedProcessId" class="collapse in panel-body">
+
+<div>
+    <h4><sup><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-suspend-resume-processes.html#process-types" target="_blank">Understand auto scaling process types</a></sup></h4>
+</div>
+
+<div class="container-fluid">
+    <table id="suspendedProcessStatus" class="table">
+        <tr>
+            <th>Process Name</th>
+            <th>State</th>
+            <th>Click to ...</th>
+        </tr>
+        {% for process in process_suspended_status %}
+        <tr>
+            <td>
+               {{ process.name }}
+            </td>
+            <td>
+                {% if process.suspended == True %} <p style="color:red;">Suspended</p> {% else %} <p style="color:green;">Active</p>{% endif %}
+            </td>
+            <td>
+                {% if process.suspended == True %} <input type="button" value="Resume" onclick="updateProcess(this, '{{ process.name }}', false)"> {% else %} <input type="button" value="Suspend" onclick="updateProcess(this, '{{ process.name }}', true)"> {% endif %}
+            </td>
+        </tr>
+        {% endfor%}
+      </table>
+</div>
+
+<script>
+function updateProcess(element, name, shouldSuspend) {
+    var url = ""
+
+    if (shouldSuspend == true) {
+        url = '/groups/{{ group_name }}/autoscaling/suspend_process/' + name;
+    }
+    else {
+        url = '/groups/{{ group_name }}/autoscaling/resume_process/' + name
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+        success: function (data) {
+            $("#asSuspendedProcessId").parent().html(data);
+        }
+    });
+
+    element.value = "Updating ...";
+    element.disabled = true;
+}
+</script>
+</div>

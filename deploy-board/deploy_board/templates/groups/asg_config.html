@@ -16,7 +16,6 @@
 {% include "groups/group_side_panel.html" %}
 </div>
 
-
 {% endblock %}
 
 {% block new-builds-panel %}
@@ -26,7 +25,14 @@
 
 {% block main %}
 
-
+{% if storage %}
+    {% for message in storage %}
+        <div class="alert alert-warning" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <strong>Warning!</strong> {{ message | safe}}
+        </div>
+    {% endfor %}
+{% endif %}
 
 {% if not is_cmp %}
 <div id="launchConfigPid" class="panel panel-default">

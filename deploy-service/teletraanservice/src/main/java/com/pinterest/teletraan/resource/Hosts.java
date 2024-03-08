@@ -50,7 +50,7 @@ public class Hosts {
     private HostDAO hostDAO;
     private EnvironHandler environHandler;
 
-    public Hosts(TeletraanServiceContext context) {
+    public Hosts(@Context TeletraanServiceContext context) {
         hostDAO = context.getHostDAO();
         environHandler = new EnvironHandler(context);
     }

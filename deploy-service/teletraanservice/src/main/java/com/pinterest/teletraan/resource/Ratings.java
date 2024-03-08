@@ -34,10 +34,7 @@ public class Ratings {
     private final static int DEFAULT_SIZE = 30;
     private RatingsHandler ratingsHandler;
 
-    @Context
-    UriInfo uriInfo;
-
-    public Ratings(TeletraanServiceContext context) {
+    public Ratings(@Context TeletraanServiceContext context) {
         ratingsHandler = new RatingsHandler(context);
     }
 
@@ -48,7 +45,9 @@ public class Ratings {
     }
 
     @POST
-    public Response create(@Valid RatingBean bean, @Context SecurityContext sc) throws Exception {
+    public Response create(@Valid RatingBean bean,
+                           @Context SecurityContext sc,
+                           @Context UriInfo uriInfo) throws Exception {
         bean.setAuthor(sc.getUserPrincipal().getName());
         bean.setTimestamp(System.currentTimeMillis());
         String id = ratingsHandler.createRating(bean);

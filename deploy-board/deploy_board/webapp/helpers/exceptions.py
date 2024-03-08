@@ -17,10 +17,6 @@
 """
 
 
-class IllegalArgumentException(Exception):
-    pass
-
-
 class FailedAuthenticationException(Exception):
     pass
 
@@ -34,4 +30,11 @@ class NotFoundException(Exception):
 
 
 class TeletraanException(Exception):
-    pass
+    def __init__(self, message: str, status=500) -> None:
+        super().__init__(message)
+        self.status = status
+
+
+class IllegalArgumentException(TeletraanException):
+    def __init__(self, message: str) -> None:
+        super().__init__(message, status=400)

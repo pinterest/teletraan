@@ -116,6 +116,7 @@ public class DeployTagWorker implements Runnable {
                         hostTagBean.setEnv_id(envId);
                         hostTagBean.setCreate_date(System.currentTimeMillis());
                         statements.add(hostTagDAO.genInsertOrUpdate(hostTagBean));
+                        LOG.debug("Create host tags from CMDB: insert host_tags with env id {}, host id {}, tag name {}, tag value {}", envId, hostId, tagName, tagValue);
                     }
                 }
             }

@@ -45,10 +45,7 @@ public class Hotfixs {
     private HotfixDAO hotfixDAO;
     private final Authorizer authorizer;
 
-    @Context
-    UriInfo uriInfo;
-
-    public Hotfixs(TeletraanServiceContext context) {
+    public Hotfixs(@Context TeletraanServiceContext context) {
         deployDAO = context.getDeployDAO();
         buildDAO = context.getBuildDAO();
         hotfixDAO = context.getHotfixDAO();
@@ -95,7 +92,9 @@ public class Hotfixs {
     }
 
     @POST
-    public Response create(@Context SecurityContext sc, @Valid HotfixBean hotfixBean) throws Exception {
+    public Response create(@Context SecurityContext sc,
+                           @Context UriInfo uriInfo,
+                           @Valid HotfixBean hotfixBean) throws Exception {
         authorizer.authorize(sc, new Resource(hotfixBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String hotfixId = CommonUtils.getBase64UUID();
         hotfixBean.setId(hotfixId);

@@ -15,6 +15,7 @@
  */
 package com.pinterest.teletraan.resource;
 
+import com.pinterest.deployservice.bean.EnvType;
 import com.pinterest.deployservice.bean.EnvironBean;
 import com.pinterest.deployservice.bean.Resource;
 import com.pinterest.deployservice.bean.Role;
@@ -34,7 +35,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
-import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +65,7 @@ public class EnvStages {
     private TagHandler tagHandler;
     private Authorizer authorizer;
 
-    public EnvStages(TeletraanServiceContext context) throws Exception {
+    public EnvStages(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
@@ -118,7 +119,9 @@ public class EnvStages {
             throw new TeletaanInternalException(Response.Status.BAD_REQUEST,
                     "Modification of non-default stage type is not allowed!");
         }
-
+        if (environBean.getStage_type() == EnvType.DEV) {
+            environBean.setAllow_private_build(true);
+        }
         environBean.setEnv_name(origBean.getEnv_name());
         environBean.setStage_name(origBean.getStage_name());
         if (environBean.getExternal_id() == null) {

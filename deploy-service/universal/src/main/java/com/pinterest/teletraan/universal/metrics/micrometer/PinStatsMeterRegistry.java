@@ -1,7 +1,9 @@
 package com.pinterest.teletraan.universal.metrics.micrometer;
 
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.LongTaskTimer;
 import io.micrometer.core.instrument.Meter;
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.core.instrument.util.MeterPartition;
 import io.micrometer.core.instrument.util.NamedThreadFactory;
 import io.micrometer.opentsdb.OpenTSDBMeterRegistry;
@@ -31,6 +33,11 @@ public class PinStatsMeterRegistry extends OpenTSDBMeterRegistry {
             ? new PinStatsPublisher(
                 config, config().clock(), getBaseTimeUnit(), config().namingConvention())
             : publisher;
+  }
+
+  @Override
+  protected LongTaskTimer newLongTaskTimer(Meter.Id id, DistributionStatisticConfig distributionStatisticConfig) {
+    return new PinStatsLongTaskTimer(id, clock, getBaseTimeUnit(), distributionStatisticConfig);
   }
 
   @Override

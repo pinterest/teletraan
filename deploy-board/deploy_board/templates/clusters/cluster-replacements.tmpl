@@ -48,7 +48,7 @@
     <div class="row">
         <a href="/env/{{ env_name }}/{{ env_stage }}/cluster_replacements/auto_refresh"
             type="button" class="btn btn-default btn-block">
-            <span class="glyphicon glyphicon-leaf" style="color:green;"></span> Set up Auto Refresh <b style="color:blue;">(Preview)</b>
+            <span class="glyphicon glyphicon-leaf" style="color:green;"></span> Set up Auto Refresh
         </a>
     </div>
     <div class="row">
@@ -242,7 +242,7 @@
                         </label>
                         <p><i>Hour(s) to wait after the cluster is refreshed successfully before refreshing cluster(s) in the next stage (if applicable).</i></p>
                     </div>
-                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={% if auto_refresh_config.bakeTime %}{{ auto_refresh_config.bakeTime }}{% else %}0{% endif %}> hour(s)
+                    <input type="number" id="bakeTime" name="bakeTime" min="0" value={% if auto_refresh_config.bakeTime %}{{ auto_refresh_config.bakeTime }}{% else %}2{% endif %}> hour(s)
                 </div>
 
                 <div style="padding-top: 20px;">

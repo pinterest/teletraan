@@ -25,13 +25,13 @@ if IS_PINTEREST:
     from deploy_board.settings import DEFAULT_PROVIDER, DEFAULT_CMP_IMAGE, DEFAULT_CMP_ARM_IMAGE, \
         DEFAULT_CMP_HOST_TYPE, DEFAULT_CMP_ARM_HOST_TYPE, DEFAULT_CMP_PINFO_ENVIRON, DEFAULT_CMP_ACCESS_ROLE, DEFAULT_CELL, DEFAULT_ARCH, \
         DEFAULT_PLACEMENT, DEFAULT_USE_LAUNCH_TEMPLATE, USER_DATA_CONFIG_SETTINGS_WIKI, TELETRAAN_CLUSTER_READONLY_FIELDS, ACCESS_ROLE_LIST, \
-        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK
+        ENABLE_AMI_AUTO_UPDATE, HOST_TYPE_ROADMAP_LINK, PUPPET_CONFIG_REPOSITORY, PUPPET_HIERA_PATHS
 
 import json
 import logging
 
 from .helpers import baseimages_helper, hosttypes_helper, securityzones_helper, placements_helper, \
-    autoscaling_groups_helper, groups_helper, cells_helper, arches_helper
+    autoscaling_groups_helper, groups_helper, cells_helper, arches_helper, accounts_helper
 from .helpers import clusters_helper, environs_helper, environ_hosts_helper, baseimages_helper
 from .helpers.exceptions import NotAuthorizedException, TeletraanException, IllegalArgumentException
 from . import common
@@ -147,6 +147,9 @@ class EnvCapacityAdvCreateView(View):
         base_images_names = baseimages_helper.get_image_names_by_arch(
             request, DEFAULT_PROVIDER, DEFAULT_CELL, DEFAULT_ARCH)
 
+        accounts = accounts_helper.get_all_accounts(request)
+        default_account = get_default_account(accounts)
+
         env = environs_helper.get_env_by_stage(request, name, stage)
         provider_list = baseimages_helper.get_all_providers(request)
 
@@ -173,7 +176,9 @@ class EnvCapacityAdvCreateView(View):
             'configList': get_aws_config_name_list_by_image(DEFAULT_CMP_IMAGE),
             'enable_ami_auto_update': ENABLE_AMI_AUTO_UPDATE,
             'stateful_status': clusters_helper.StatefulStatuses.get_status(None),
-            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses()
+            'stateful_options': clusters_helper.StatefulStatuses.get_all_statuses(),
+            'accounts': list(map(create_ui_account, accounts)) if accounts is not None else None,
+            'defaultAccountId': default_account['id'] if default_account is not None else None,
         }
         # cluster manager
         return render(request, 'configs/new_capacity_adv.html', {
@@ -184,7 +189,10 @@ class EnvCapacityAdvCreateView(View):
             'default_host_type': DEFAULT_CMP_HOST_TYPE,
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
-            'is_pinterest': IS_PINTEREST})
+            'is_pinterest': IS_PINTEREST,
+            'puppet_repository': PUPPET_CONFIG_REPOSITORY,
+            'puppet_hiera_paths': PUPPET_HIERA_PATHS
+        })
 
     def post(self, request, name, stage):
         ret = 200
@@ -286,7 +294,10 @@ class ClusterConfigurationView(View):
             'default_arm_host_type': DEFAULT_CMP_ARM_HOST_TYPE,
             'user_data_config_settings_wiki': USER_DATA_CONFIG_SETTINGS_WIKI,
             'host_type_roadmap_link': HOST_TYPE_ROADMAP_LINK,
-            'is_pinterest': IS_PINTEREST})
+            'is_pinterest': IS_PINTEREST,
+            'puppet_repository': PUPPET_CONFIG_REPOSITORY,
+            'puppet_hiera_paths': PUPPET_HIERA_PATHS
+        })
 
     def post(self, request, name, stage):
         try:
@@ -566,6 +577,25 @@ def get_base_image_info_by_name(request, name, cell):
         return with_acceptance_rs
     return baseimages_helper.get_by_name(request, name, cell)
 
+
+def create_ui_account(account):
+    if account is None:
+        return None
+    return {
+        'id': account['id'],
+        'name': account['name'],
+        'description': account['description'],
+        'ownerId': account['data']['ownerId'],
+    }
+
+
+def get_default_account(accounts):
+    if accounts is None:
+        return None
+    for account in accounts:
+        if account['name'] == 'default':
+            return account
+    return None
 
 def get_base_images_by_name_json(request, name):
     cell = DEFAULT_CELL
@@ -1107,7 +1137,7 @@ def sanitize_slack_email_input(input):
     res = ''
     if input == None or len(input) == 0:
         return res
-    
+
     tokens = input.strip().split(',')
     for e in tokens:
         e = e.strip()
@@ -1176,7 +1206,7 @@ def submit_auto_refresh_config(request, name, stage):
     auto_refresh_config["bakeTime"] = params["bakeTime"]
     auto_refresh_config["config"] = rollingUpdateConfig
     auto_refresh_config["type"] = "LATEST"
-    
+
     emails = params["emails"]
     slack_channels = params["slack_channels"]
 

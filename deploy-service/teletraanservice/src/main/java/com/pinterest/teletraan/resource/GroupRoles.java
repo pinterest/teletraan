@@ -30,9 +30,6 @@ public abstract class GroupRoles {
     private final GroupRolesDAO groupRolesDAO;
     private final Authorizer authorizer;
 
-    @Context
-    UriInfo uriInfo;
-
     public GroupRoles(TeletraanServiceContext context) {
         groupRolesDAO = context.getGroupRolesDAO();
         authorizer = context.getAuthorizer();
@@ -54,7 +51,10 @@ public abstract class GroupRoles {
         groupRolesDAO.update(bean, groupName, resourceId, resourceType);
     }
 
-    public Response create(SecurityContext sc, GroupRolesBean bean, String resourceId,
+    public Response create(SecurityContext sc,
+                           UriInfo uriInfo,
+                           GroupRolesBean bean,
+                           String resourceId,
         Resource.Type resourceType) throws Exception {
         authorizer.authorize(sc, new Resource(resourceId, resourceType), Role.ADMIN);
         bean.setResource_id(resourceId);

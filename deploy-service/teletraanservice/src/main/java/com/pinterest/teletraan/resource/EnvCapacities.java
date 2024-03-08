@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,7 +30,7 @@ import com.google.common.base.Optional;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/capacity")
 @Api(tags = "Environments")
@@ -57,15 +56,14 @@ import javax.ws.rs.core.UriInfo;
 public class EnvCapacities {
 
   private static final Logger LOG = LoggerFactory.getLogger(EnvCapacities.class);
-  @Context
-  UriInfo uriInfo;
+
   private EnvironHandler environHandler;
   private ConfigHistoryHandler configHistoryHandler;
   private EnvironDAO environDAO;
   private GroupDAO groupDAO;
   private Authorizer authorizer;
 
-  public EnvCapacities(TeletraanServiceContext context) {
+  public EnvCapacities(@Context TeletraanServiceContext context) {
     environHandler = new EnvironHandler(context);
     configHistoryHandler = new ConfigHistoryHandler(context);
     environDAO = context.getEnvironDAO();

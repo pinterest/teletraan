@@ -27,7 +27,7 @@ LOCKFILE_DIR = '/var/lock'
 
 
 class SingleInstance(object):
-    def __init__(self):
+    def __init__(self) -> None:
         # Establish lock file settings
         appname = 'deploy-agent'
         lockfile_name = '.{}.lock'.format(appname)
@@ -60,7 +60,7 @@ class SingleInstance(object):
             os.close(lockfile_fd)
             utils.exit_abruptly(1)
 
-    def _create_lock_dir(self):
+    def _create_lock_dir(self) -> None:
         if PY3:
             os.makedirs(LOCKFILE_DIR, exist_ok=True)
         else:

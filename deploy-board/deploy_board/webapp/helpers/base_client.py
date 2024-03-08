@@ -63,7 +63,7 @@ class BaseClient(object):
                     "Oops! You do not have the required permissions for this action. Contact an environment ADMIN for "
                     "assistance. " + response.text)
 
-            if response.status_code == 400:
+            if response.status_code == 400 or response.status_code == 422:
                 raise IllegalArgumentException(response.text)
 
             if response.status_code == 404:

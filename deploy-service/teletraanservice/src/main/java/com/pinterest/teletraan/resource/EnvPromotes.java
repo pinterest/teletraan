@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -36,7 +36,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 
 @Path("/v1/envs/{envName : [a-zA-Z0-9\\-_]+}/{stageName : [a-zA-Z0-9\\-_]+}/promotes")
 @Api(tags = "Environments")
@@ -49,9 +48,7 @@ public class EnvPromotes {
     private EnvironDAO environDAO;
     private Authorizer authorizer;
 
-    @Context
-    UriInfo uriInfo;
-    public EnvPromotes(TeletraanServiceContext context) {
+    public EnvPromotes(@Context TeletraanServiceContext context) {
         environDAO = context.getEnvironDAO();
         environHandler = new EnvironHandler(context);
         configHistoryHandler = new ConfigHistoryHandler(context);
@@ -74,10 +71,10 @@ public class EnvPromotes {
             value = "Update promote info",
             notes = "Updates promote info given environment and stage names by given promote info object")
     public void update(@Context SecurityContext sc,
-                       @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
-                       @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
-                       @ApiParam(value = "Promote object to update with", required = true)
-                           @Valid PromoteBean promoteBean) throws Exception {
+            @ApiParam(value = "Environment name", required = true) @PathParam("envName") String envName,
+            @ApiParam(value = "Stage name", required = true) @PathParam("stageName") String stageName,
+            @ApiParam(value = "Promote object to update with", required = true) @Valid PromoteBean promoteBean)
+            throws Exception {
         EnvironBean environBean = Utils.getEnvStage(environDAO, envName, stageName);
         authorizer.authorize(sc, new Resource(environBean.getEnv_name(), Resource.Type.ENV), Role.OPERATOR);
         String operator = sc.getUserPrincipal().getName();

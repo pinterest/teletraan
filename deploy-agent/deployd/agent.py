@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import argparse
+from typing import List, Optional, Union
 import daemon
 import logging
 import os
@@ -34,6 +35,8 @@ from deployd.common.utils import uptime as utils_uptime, listen as utils_listen
 from deployd.common.executor import Executor
 from deployd.common.types import DeployReport, PingStatus, DeployStatus, OpCode, DeployStage, AgentStatus
 from deployd import __version__, IS_PINTEREST, MAIN_LOGGER
+from deployd.types.deploy_goal import DeployGoal
+from deployd.types.ping_response import PingResponse
 
 log: logging.Logger = logging.getLogger(name=MAIN_LOGGER)
 
@@ -41,7 +44,7 @@ class PingServer(object):
     def __init__(self, ag) -> None:
         self._agent = ag
 
-    def __call__(self, deploy_report):
+    def __call__(self, deploy_report) -> int:
         return self._agent.update_deploy_status(deploy_report=deploy_report)
 
 
@@ -49,7 +52,7 @@ class AgentRunMode(object):
     SERVERLESS = "serverless"
 
     @staticmethod
-    def is_serverless(mode):
+    def is_serverless(mode) -> bool:
         return AgentRunMode.SERVERLESS == mode
 
 
@@ -59,7 +62,7 @@ class DeployAgent(object):
     _config = None
     _env_status = None
 
-    def __init__(self, client, estatus=None, conf=None, executor=None, helper=None):
+    def __init__(self, client, estatus=None, conf=None, executor=None, helper=None) -> None:
         self._response = None
         # a map maintains env_name -> deploy_status
         self._envs = {}
@@ -78,7 +81,7 @@ class DeployAgent(object):
         self.load_status_file()
         self._telefig_version = get_telefig_version()
 
-    def load_status_file(self):
+    def load_status_file(self) -> None:
         self._envs = self._env_status.load_envs()
         if not self._envs:
             self._envs = {}
@@ -89,7 +92,7 @@ class DeployAgent(object):
         self._config.update_variables(self._curr_report)
 
     @property
-    def first_run(self):
+    def first_run(self) -> bool:
         """ check if this the very first run of agent on this instance.
             first_run will evaluate to True, even if self._envs is set, until the process has exited.
             self._envs is not populated when running for the first time on a new instance
@@ -99,7 +102,7 @@ class DeployAgent(object):
             self._first_run = True
         return self._first_run
 
-    def _send_deploy_status_stats(self, deploy_report):
+    def _send_deploy_status_stats(self, deploy_report) -> None:
         if not self._response.deployGoal or not deploy_report:
             return
 
@@ -116,7 +119,7 @@ class DeployAgent(object):
             tags['telefig_version'] = self._telefig_version
         create_sc_increment('deployd.stats.deploy.status.sum', tags=tags)
 
-    def serve_build(self):
+    def serve_build(self) -> None:
         """This is the main function of the ``DeployAgent``.
         """
 
@@ -220,7 +223,7 @@ class DeployAgent(object):
         else:
             log.info('Failed to get response from server, exit.')
 
-    def serve_forever(self):
+    def serve_forever(self) -> None:
         log.info("Running deploy agent in daemon mode")
         while True:
             try:
@@ -232,7 +235,7 @@ class DeployAgent(object):
                 self.load_status_file()
 
 
-    def serve_once(self):
+    def serve_once(self) -> None:
         log.info("Running deploy agent in non daemon mode")
         try:
             if len(self._envs) > 0 and not isinstance(self._client, ServerlessClient):
@@ -247,7 +250,7 @@ class DeployAgent(object):
         except Exception:
             log.exception("Deploy Agent got exceptions: {}".format(traceback.format_exc()))
 
-    def _resolve_deleted_env_name(self, envName, envId):
+    def _resolve_deleted_env_name(self, envName, envId) -> Optional[str]:
         # When server return DELETE goal, the envName might be empty if the env has already been
         # deleted. This function would try to figure out the envName based on the envId in the
         # DELETE goal.
@@ -259,7 +262,7 @@ class DeployAgent(object):
         return None
 
 
-    def process_deploy(self, response):
+    def process_deploy(self, response) -> DeployReport:
         self.stat_time_elapsed_internal.resume()
         op_code = response.opCode
         deploy_goal = response.deployGoal
@@ -294,7 +297,7 @@ class DeployAgent(object):
                 return self._executor.execute_command(curr_stage)
 
     # provides command line to start download scripts or tar ball.
-    def get_download_script(self, deploy_goal):
+    def get_download_script(self, deploy_goal) -> List[str]:
         if not (deploy_goal.build and deploy_goal.build.artifactUrl):
             raise AgentException('Cannot find build or build url in the deploy goal')
 
@@ -307,7 +310,7 @@ class DeployAgent(object):
             return ['deploy-downloader', '-f', self._config.get_config_filename(),
                     '-v', build, '-u', url, "-e", env_name]
 
-    def get_staging_script(self):
+    def get_staging_script(self) -> list:
         build = self._curr_report.build_info.build_id
         env_name = self._curr_report.report.envName
         if not self._config.get_config_filename():
@@ -316,7 +319,7 @@ class DeployAgent(object):
             return ['deploy-stager', '-f', self._config.get_config_filename(),
                     '-v', build, '-t', self._config.get_target(), "-e", env_name]
 
-    def _update_ping_reports(self, deploy_report):
+    def _update_ping_reports(self, deploy_report) -> None:
         if self._curr_report:
             self._curr_report.update_by_deploy_report(deploy_report)
 
@@ -330,7 +333,7 @@ class DeployAgent(object):
                              error_code=1,
                              output_msg='Failed to dump status to the disk'))
 
-    def update_deploy_status(self, deploy_report):
+    def update_deploy_status(self, deploy_report) -> int:
         self._update_ping_reports(deploy_report=deploy_report)
         response = self._client.send_reports(self._envs)
 
@@ -352,7 +355,7 @@ class DeployAgent(object):
             else:
                 return PingStatus.PLAN_NO_CHANGE
 
-    def clean_stale_builds(self):
+    def clean_stale_builds(self) -> None:
         if not self._envs:
             return
 
@@ -368,7 +371,7 @@ class DeployAgent(object):
         if len(builds_to_keep) > 0:
             self.clean_stale_files(env_name, builds_dir, builds_to_keep, num_retain_builds)
 
-    def clean_stale_files(self, env_name, dir, files_to_keep, num_file_to_retain):
+    def clean_stale_files(self, env_name, dir, files_to_keep, num_file_to_retain) -> None:
         for build in self._helper.get_stale_builds(self._helper.builds_available_locally(dir,env_name),
                                                    num_file_to_retain):
             if build not in files_to_keep:
@@ -376,7 +379,7 @@ class DeployAgent(object):
                     build, dir))
                 self._helper.clean_package(dir, build, env_name)
 
-    def _timing_stats_deploy_stage_time_elapsed(self):
+    def _timing_stats_deploy_stage_time_elapsed(self) -> None:
         """ a deploy goal has finished, send stats for the elapsed time """
         if self.deploy_goal_previous and self.deploy_goal_previous.deployStage and self.stat_stage_time_elapsed:
             tags = {'first_run': self.first_run}
@@ -392,7 +395,7 @@ class DeployAgent(object):
 
     # private functions: update per deploy step configuration specified by services owner on the
     # environment config page
-    def _update_internal_deploy_goal(self, response):
+    def _update_internal_deploy_goal(self, response) -> DeployReport:
         deploy_goal = response.deployGoal
         if not deploy_goal:
             log.info('No deploy goal to be updated.')
@@ -445,7 +448,7 @@ class DeployAgent(object):
         log.info('current deploy goal is: {}'.format(deploy_goal))
         return DeployReport(status_code=AgentStatus.SUCCEEDED)
 
-    def _update_deploy_alias(self, deploy_goal):
+    def _update_deploy_alias(self, deploy_goal) -> None:
         env_name = deploy_goal.envName
         if not self._envs or (env_name not in self._envs):
             log.warning('Env name does not exist, ignore it.')
@@ -455,7 +458,7 @@ class DeployAgent(object):
                                                                   deploy_goal.envName))
 
     @staticmethod
-    def plan_changed(old_response, new_response):
+    def plan_changed(old_response, new_response) -> Union[PingResponse, bool, DeployGoal]:
         if not old_response:
             return new_response
 

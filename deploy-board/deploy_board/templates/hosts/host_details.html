@@ -42,9 +42,29 @@
 
 {% if agent_wrappers %}
 <div class="panel panel-default">
-    {% include "panel_heading.tmpl" with panel_title="Agent Details" panel_body_id="agentDetailsId" direction="down" copy_host_name_button=True %}
-    <div id="agentDetailsId" class="collapse in panel-body">
-        {% for agent_wrapper in agent_wrappers %}
+    {% if has_host_env_sidecar_agents %}
+    {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="down" copy_host_name_button=True %}
+    <div id="sidecarAgentDetailsId" class="collapse in panel-body">
+        <span>This is a sidecar deployment on the host. The relevant sidecar has been marked with a <span class="bg-info">blue background</span> for visibility.</span>
+    {% else %}
+    {% include "panel_heading.tmpl" with panel_title="Sidecar Agent Details" panel_body_id="sidecarAgentDetailsId" direction="right" copy_host_name_button=True %}
+    <div id="sidecarAgentDetailsId" class="collapse panel-body">
+    {% endif %}
+        {% for agent_wrapper in agent_wrappers.sidecars %}
+        {% with env=agent_wrapper.env agent=agent_wrapper.agent hostdetailsvalue=host_details|getValue:"Phobos Link" %}
+        {% if env and env_name == env.envName and stage_name == env.stageName %}
+        {% include "hosts/host_details.tmpl" with agent=agent env=env hostdetailsvalue=hostdetailsvalue host_related_sidecar=1%}
+        {% else %}
+        {% include "hosts/host_details.tmpl" with agent=agent env=env hostdetailsvalue=hostdetailsvalue%}
+        {% endif %}
+        {% endwith %}
+        {% endfor %}
+    </div>
+</div>
+<div class="panel panel-default">
+    {% include "panel_heading.tmpl" with panel_title="Service Agent Details" panel_body_id="serviceAgentDetailsId" direction="down" copy_host_name_button=True %}
+    <div id="serviceAgentDetailsId" class="collapse in panel-body">
+        {% for agent_wrapper in agent_wrappers.services %}
         {% with env=agent_wrapper.env agent=agent_wrapper.agent hostdetailsvalue=host_details|getValue:"Phobos Link" %}
         {% include "hosts/host_details.tmpl" with agent=agent env=env hostdetailsvalue=hostdetailsvalue%}
         {% endwith %}
@@ -58,7 +78,7 @@
 
 <div id="hostDetailId" class="collapse in panel-body table-responsive">
 <table class="table table-striped table-bordered table-condensed table-hover">
-    <tr>  
+    <tr>
         {% if account_id and account_id != "null" %}
         <th class="col-lg-1">Acccount Id</th>
         {% endif %}
@@ -66,7 +86,7 @@
         <th class="col-lg-2">Host Id</th>
         <th class="col-lg-2">Host Group</th>
         <th class="col-lg-2">Ip Address</th>
-        <th class="col-lg-1">Status</th>
+        <th class="col-lg-1">State</th>
         <th class="col-lg-2">Create Date</th>
         <th class="col-lg-2">Last Update</th>
     </tr>
@@ -85,8 +105,12 @@
     </tr>
     {% endfor %}
 </table>
+    <div class="row">
     {% if pinterest %}
-    <a href="javascript:void(0)" id="seeMoreLink">See more host details</a>
+    <div class="row">
+        <a href="javascript:void(0)" id="seeMoreLink">See more host details</a>
+        <a class="pull-right" href="#" data-toggle="modal" data-target="#rawHostInfoModal">Raw Host Info</a>
+    </div>
     <div id="moreHostDetails" hidden="true">
     {% for key, value in host_details.items %}
     <div class="row">
@@ -117,9 +141,25 @@
         <a href="{{ host_information_url }}/instance/{{ host_id }}">click here</a>
     {% endif %}
     </div>
-    {% endif %}
-</div>
 
+    <div id="rawHostInfoModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title">Raw Host Info</h4>
+            </div>
+            <div class="modal-body">
+                {% for host in hosts %}
+                <code>{{ host }}</code>
+                {% endfor %}
+            </div>
+        </div>
+      </div>
+      </div>
+    </div>
+    {% endif %}
+    </div>
 </div>
 
 <script>

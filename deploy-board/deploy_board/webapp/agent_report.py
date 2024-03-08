@@ -15,12 +15,14 @@
 # -*- coding: utf-8 -*-
 """Helper functions to help generate agents views
 """
+from deploy_board.webapp.helpers import agents_helper
 from .common import is_agent_failed
 from .helpers import builds_helper, deploys_helper, environs_helper, environ_hosts_helper
 from deploy_board.settings import IS_PINTEREST
 import time
 from collections import OrderedDict
 from functools import cmp_to_key
+
 
 # Constants used to distinguish the action to generate the host report
 TOTAL_ALIVE_HOST_REPORT = "TOTAL_ALIVE_HOST_REPORT"
@@ -42,7 +44,6 @@ class AgentStatistics(object):
         self.agent = agent
         self.isCurrent = isCurrent
         self.isStale = isStale
-
 
 class DeployStatistics(object):
     def __init__(self, deploy=None, build=None, stageDistMap=None, stateDistMap=None, buildTag=None):
@@ -108,7 +109,7 @@ def addToEnvReport(request, deployStats, agent, env):
     if duration >= DEFAULT_STALE_THRESHOLD:
         isStale = True
 
-    return AgentStatistics(agent=agent, isCurrent=isCurrent, isStale=isStale)
+    return AgentStatistics(agent, isCurrent, isStale)
 
 
 def _compare_agent_status(agentStats1, agentStats2):

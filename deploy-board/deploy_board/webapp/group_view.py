@@ -13,16 +13,20 @@
 # limitations under the License.
 
 
-from deploy_board.settings import IS_PINTEREST, PHOBOS_URL
+from deploy_board.settings import CMDB_API_HOST, IS_PINTEREST, PHOBOS_URL
 from django.middleware.csrf import get_token
 from django.shortcuts import render, redirect
 from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
+from django.contrib.messages import get_messages
+from collections import Counter
 import json
+import requests
 import logging
 import traceback
+from itertools import groupby
 
 from .helpers import (environs_helper, clusters_helper, hosttypes_helper, groups_helper, baseimages_helper,
                      specs_helper, autoscaling_groups_helper, autoscaling_metrics_helper, placements_helper)
@@ -448,9 +452,13 @@ def get_policy(request, group_name):
     policies = autoscaling_groups_helper.get_policies(request, group_name)
     step_scaling_policy = None
     for policy in policies["scalingPolicies"]:
-        if policy["policyType"] == "StepScaling":
+        if policy["policyType"] == "StepScaling" and step_scaling_policy == None:
             step_scaling_policy = policy
-            break
+        if policy["policyType"] in ["TargetTrackingScaling", "StepScaling"]:
+            if policy["instanceWarmup"]:
+                policy["instanceWarmup"] = policy["instanceWarmup"] // 60
+            else:
+                policy["instanceWarmup"] = 0
     
     scale_up_steps = []
     scale_down_steps = []
@@ -476,11 +484,6 @@ def get_policy(request, group_name):
         step_scaling_policy["scale_down_adjustments_string"] = scale_down_adjustments_string
         step_scaling_policy["scale_up_adjustments_string"] = scale_up_adjustments_string
 
-        if step_scaling_policy["instanceWarmup"]:
-            step_scaling_policy["instanceWarmup"] = step_scaling_policy["instanceWarmup"] // 60
-        else:
-            step_scaling_policy["instanceWarmup"] = 0
-
     content = render_to_string("groups/asg_policy.tmpl", {
         "group_name": group_name,
         "scalingPolicies": policies["scalingPolicies"],
@@ -489,16 +492,72 @@ def get_policy(request, group_name):
         "stepScalingPolicy": step_scaling_policy,
         "csrf_token": get_token(request),
     })
+
     return HttpResponse(json.dumps(content), content_type="application/json")
 
+def build_target_scaling_policy(name, metric, target, instance_warmup, disable_scale_in):
+    policy = {}
+    policy["policyType"] = "TargetTrackingScaling"
+    policy["policyName"] = name
+    policy["instanceWarmup"] = int(instance_warmup) * 60
+
+    targetTrackingScalingConfiguration = {}
+    targetTrackingScalingConfiguration["targetValue"] = target
+    targetTrackingScalingConfiguration["disableScaleIn"] = disable_scale_in
+    predefinedMetricSpecification = {}
+    predefinedMetricSpecification["predefinedMetricType"] = metric
+    targetTrackingScalingConfiguration["predefinedMetricSpecification"] = predefinedMetricSpecification
+
+    policy["targetTrackingScalingConfiguration"] = targetTrackingScalingConfiguration
+
+    return policy
+
+def delete_policy(request, group_name, policy_name):
+    try:
+        autoscaling_groups_helper.delete_scaling_policy(request, group_name, policy_name)
+        return get_policy(request, group_name)
+    except:
+        log.error(traceback.format_exc())
+        raise
 
 def update_policy(request, group_name):
-    params = request.POST
+
     try:
+        params = request.POST
         policyType = params["policyType"]
         scaling_policies = {}
+        isNewPolicyAdded = False
 
-        if policyType == "simple-scaling":
+        if policyType == "target-tracking-scaling":
+            scaling_policies["scalingPolicies"] = []
+
+            if "content" in params:
+                # update existing policies
+                content = params["content"]
+                input = dict(kv.split("=", 1) for kv in content.split("&"))
+                policy_names = {key: val for key, val in input.items()
+                    if key.startswith("targetScalingName_")}
+
+                for name in policy_names.values():
+                    disable_scale_in = False
+                    if name + "_disableScaleIn" in input:
+                        disable_scale_in = True 
+                    policy = build_target_scaling_policy(name, input[name+"_awsMetrics"], input[name+"_target"], input[name+"_instanceWarmup"], disable_scale_in)
+                    scaling_policies["scalingPolicies"].append(policy)
+            else:
+                # Create new policy
+                isNewPolicyAdded = True
+                metric = params["awsMetrics"]
+                name = "{}-TargetTrackingScaling-{}".format(group_name, metric)
+                target = params["target"]
+                instance_warmup = params["instanceWarmup"]
+                disable_scale_in = False
+                if "disableScaleIn" in params:
+                    disable_scale_in = True
+
+                policy = build_target_scaling_policy(name, metric, target, instance_warmup, disable_scale_in)
+                scaling_policies["scalingPolicies"].append(policy)
+        elif policyType == "simple-scaling":
             scaling_policies["scaleupPolicies"] = []
             scaling_policies["scaledownPolicies"] = []
             scaling_policies["scaleupPolicies"].append({"scaleSize": make_int(params["scaleupSize"]),
@@ -550,7 +609,10 @@ def update_policy(request, group_name):
 
         autoscaling_groups_helper.put_scaling_policies(request, group_name, scaling_policies)
 
-        return get_policy(request, group_name)
+        if isNewPolicyAdded:
+            return redirect("/groups/{}/config/".format(group_name))
+        else:
+            return get_policy(request, group_name)
     except:
         log.error(traceback.format_exc())
         raise
@@ -734,6 +796,13 @@ def add_alarms(request, group_name):
         if "awsMetrics" in params:
             alarm_info["metricSource"] = params["awsMetrics"]
     alarm_info["groupName"] = group_name
+
+    if len(alarm_info["scalingPolicies"]) == 0:
+        # Technically, an alarm can be created without an action (e.g. scaling policy)
+        # However, in the current context, an alarm must have an associated scaling policy.
+        # In this case, there is no scaling policy, so refuse to create new alarm.
+        messages.add_message(request, messages.ERROR, 'Alarm could not be created because there was no {} policy.'.format(policy_type))
+        return redirect("/groups/{}/config/".format(group_name))
 
     autoscaling_groups_helper.add_alarm(request, group_name, [alarm_info])
 
@@ -1121,6 +1190,7 @@ class GroupConfigView(View):
             "pas_config": pas_config,
             "is_cmp": is_cmp,
             "disallow_autoscaling": _disallow_autoscaling(curr_image),
+            "storage": get_messages(request)
         })
 
 
@@ -1396,6 +1466,27 @@ def get_health_check_activities(request, group_name):
     })
 
 
+def get_host_az_dist(request, group_name):
+    host_az_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
+            "query": "tags.Autoscaling:{} AND state:running".format(group_name),
+            "fields": "location"
+        }
+    )
+
+    counter = Counter([x['location'] for x in host_az_dist.json()])
+    labels = list(counter.keys())
+    data = list(counter.values())
+    total = sum(data)
+    percentages = map(lambda x: round((x / total) * 100, 1), data)
+
+    return render(request, 'groups/host_az_dist.tmpl', {
+        "group_name": group_name,
+        'labels': labels,
+        'data': data,
+        'label_data_percentage': list(zip(labels, data, percentages)),
+        'total': total
+    })
+
 def get_health_check_details(request, id):
     health_check = autoscaling_groups_helper.get_health_check(request, id)
     env = environs_helper.get(request, health_check.get('env_id'))
@@ -1474,6 +1565,39 @@ def get_scheduled_actions(request, group_name):
     })
     return HttpResponse(json.dumps(content), content_type="application/json")
 
+def get_suspended_processes(request, group_name):
+    suspended_processes = autoscaling_groups_helper.get_disabled_asg_actions(request, group_name)
+    all_processes = autoscaling_groups_helper.get_available_scaling_process(request, group_name)
+    all_processes.sort()
+
+    process_suspended_status = []
+
+    for p in all_processes:
+        if p in suspended_processes:
+            process_suspended_status.append({"name": p, "suspended": True})
+        else:
+            process_suspended_status.append({"name": p, "suspended": False})
+
+    content = render_to_string("groups/asg_processes.tmpl", {
+        'group_name': group_name,
+        'process_suspended_status': process_suspended_status,
+        'csrf_token': get_token(request),
+    })
+    return HttpResponse(json.dumps(content), content_type="application/json")
+
+def suspend_process(request, group_name, process_name):
+    update_request = {}
+    update_request["suspend"] = [process_name]
+    autoscaling_groups_helper.update_scaling_process(request, group_name, update_request)
+
+    return get_suspended_processes(request, group_name)
+
+def resume_process(request, group_name, process_name):
+    update_request = {}
+    update_request["resume"] = [process_name]
+    autoscaling_groups_helper.update_scaling_process(request, group_name, update_request)
+
+    return get_suspended_processes(request, group_name)
 
 def delete_scheduled_actions(request, group_name):
     params = request.POST

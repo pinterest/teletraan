@@ -10,8 +10,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolationException;
-import javax.validation.ConstraintViolation;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
@@ -56,17 +54,6 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
                     return Response.serverError().entity(sb.toString()).build();
                 }
             }
-        } else if (t instanceof ConstraintViolationException) {
-            StringBuilder sb = new StringBuilder();
-            ConstraintViolationException cve = (ConstraintViolationException)t;
-            for (ConstraintViolation cv : cve.getConstraintViolations()) {
-                if (cv.getInvalidValue() != null) {
-                    sb.append(cv.getPropertyPath().toString() + ":" + cv.getInvalidValue().toString());
-                    sb.append(" " + cv.getMessage());
-                }
-            }
-            sb.append("\nParameters in request violate configured constraints.");
-            return Response.status(Response.Status.BAD_REQUEST).entity(sb.toString()).build();
         } else {
             String errorMessage = buildErrorMessage(request);
             StringBuilder sb = new StringBuilder();

@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *  
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *    
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,7 +34,7 @@ import com.pinterest.teletraan.security.Authorizer;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.hibernate.validator.constraints.NotEmpty;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,10 +69,7 @@ public class EnvDeploys {
     private DeployHandler deployHandler;
     private ConfigHistoryHandler configHistoryHandler;
 
-    @Context
-    UriInfo uriInfo;
-
-    public EnvDeploys(TeletraanServiceContext context) throws Exception {
+    public EnvDeploys(@Context TeletraanServiceContext context) throws Exception {
         environDAO = context.getEnvironDAO();
         buildDAO = context.getBuildDAO();
         deployDAO = context.getDeployDAO();
@@ -108,6 +105,7 @@ public class EnvDeploys {
             response = Response.class)
     public Response action(
             @Context SecurityContext sc,
+            @Context UriInfo uriInfo,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "ActionType enum selection", required = true)@NotNull @QueryParam("actionType") ActionType actionType,
@@ -157,7 +155,7 @@ public class EnvDeploys {
         response = Response.class)
     public void update(
             @Context SecurityContext sc,
-            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName, 
+            @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "Agent object to update with", required = true)@NotNull @QueryParam("actionType") HostActions actionType,
             @NotNull List<String> hostIds) throws Exception {
@@ -171,7 +169,7 @@ public class EnvDeploys {
                 agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
                 LOG.info("Succesfully paused hosts in environment {} and stage {}", envName, stageName);
                 break;
-            case RESET: 
+            case RESET:
                 agentBean.setState(AgentState.RESET);
                 agentBean.setLast_update(System.currentTimeMillis());
                 agentDAO.updateMultiple(hostIds, envBean.getEnv_id(), agentBean);
@@ -197,6 +195,7 @@ public class EnvDeploys {
             response = Response.class)
     public Response create(
             @Context SecurityContext sc,
+            @Context UriInfo uriInfo,
             @ApiParam(value = "Environment name", required = true)@PathParam("envName") String envName,
             @ApiParam(value = "Stage name", required = true)@PathParam("stageName") String stageName,
             @ApiParam(value = "Build id", required = true)@NotEmpty @QueryParam("buildId") String buildId,

@@ -35,7 +35,8 @@ from . import common
 import random
 import json
 from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, groups_helper, schedules_helper, placements_helper, hosttypes_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper
+from .templatetags import utils
 from .helpers.exceptions import TeletraanException
 import math
 from dateutil.parser import parse
@@ -426,6 +427,9 @@ class EnvLandingView(View):
                     messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
 
         lastClusterRefreshStatus = _getLastClusterRefreshStatus(request, env)
+        latest_succeeded_base_image_update_event = baseimages_helper.get_latest_succeeded_image_update_event_by_cluster(request, env.get('clusterName'))
+
+        cluster_refresh_suggestion_for_golden_ami = _gen_message_for_refreshing_cluster(lastClusterRefreshStatus, latest_succeeded_base_image_update_event)
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -460,6 +464,7 @@ class EnvLandingView(View):
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
+                "cluster_refresh_suggestion_for_golden_ami": cluster_refresh_suggestion_for_golden_ami,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
                 "primaryAccount": AWS_PRIMARY_ACCOUNT,
@@ -545,6 +550,7 @@ class EnvLandingView(View):
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
                 "lastClusterRefreshStatus": lastClusterRefreshStatus,
+                "cluster_refresh_suggestion_for_golden_ami": cluster_refresh_suggestion_for_golden_ami,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
                 "primaryAccount": AWS_PRIMARY_ACCOUNT,
@@ -559,6 +565,14 @@ class EnvLandingView(View):
         response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
         return response
+
+
+def _gen_message_for_refreshing_cluster(lastClusterRefreshStatus, latest_succeeded_base_image_update_event):
+    if latest_succeeded_base_image_update_event != None:
+        if lastClusterRefreshStatus == None or lastClusterRefreshStatus["startTime"] == None or lastClusterRefreshStatus["startTime"] <= latest_succeeded_base_image_update_event["finish_time"]:
+            return "The cluster was updated with a new AMI at {} PST and should be replaced to ensure the AMI is applied to all existing instances.".format(utils.convertTimestamp(latest_succeeded_base_image_update_event["finish_time"]))
+
+    return None
 
 
 def _getLastClusterRefreshStatus(request, env):

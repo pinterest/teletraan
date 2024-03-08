@@ -1,15 +1,20 @@
 {% load utils %}
 {% include "panel_heading.tmpl" with panel_title="Scaling Policies" panel_body_id="autoscalingPolicyId" direction="down" %}
+
 <div id="autoscalingPolicyId" class="collapse in panel-body">
+    <style> 
+        .button-gray {background-color: #e7e7e7;} /* Gray */
+    </style>
+
     <div class="container-fluid">
         <div class="tab">
-            <button class="tablinks" onclick="openPolicy(event, 'simple-scaling')">Simple Scaling</button>
-            <button class="tablinks" onclick="openPolicy(event, 'step-scaling')">Step Scaling</button>
-            <button class="tablinks" onclick="openPolicy(event, 'target-tracking-scaling')">Target Tracking Scaling</button>
+            <button id="simple-scaling-btn" class="tablink button-gray" onclick="openPolicy(event, 'simple-scaling')">Simple Scaling</button>
+            <button id="step-scaling-btn" class="tablink button-gray" onclick="openPolicy(event, 'step-scaling')">Step Scaling</button>
+            <button id="target-tracking-scaling-btn" class="tablink button-gray" onclick="openPolicy(event, 'target-tracking-scaling')">Target Tracking Scaling</button>
         </div>
 
         <div id="simple-scaling" class="tabcontent">
-        <h4>Simple Scaling</h4>
+            <h4>Simple Scaling</h4>
             <form id="simpleAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
             <fieldset id="envConfigFieldSetId">
                 <div class="form-group">
@@ -151,7 +156,7 @@
             <form id="stepAutoscalingPolicyConfigFormId" class="form-horizontal" role="form" method="post" action="/groups/{{ group_name }}/autoscaling/update_policy/">
             <fieldset id="envConfigFieldSetId">
                 <div class="form-group">
-                    <label for="scalingType" class="deployToolTip control-label"
+                    <label for="scalingType" class="deployToolTip col-xs-1 control-label"
                         data-toggle="tooltip"
                         title="scalingType">
                         Adjustment Type:
@@ -171,32 +176,35 @@
                             <option value="PercentChangeInCapacity">Percent Change In Capacity</option>
                         {% endif %}
                     </select>
+                </div>
 
+                <div class="form-group">
                     <div>
-                        <label for="scaleUpSteps" class="deployToolTip control-label"
+                        <label for="scaleUpSteps" class="col-xs-1 deployToolTip control-label"
                             style="color:blue;"
                             data-toggle="tooltip"
-                            title="Scale up Steps">
-                            Scale up Steps
+                            title="Scale up Steps:">
+                            Scale up Steps:
                         </label>
-                        <p> (Must START with 0. Increasing sequence. E.g. 0, 10, 20 will create step1[0, 10], step2[10, 20], step3[20, positive-infinity])</p>
                     </div>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.scale_up_steps_string %}
                             <input class="form-control" name="scaleUpSteps" required="true" size="50" type="text" value="{{ stepScalingPolicy.scale_up_steps_string }}">
                         {% else %}
-                            <input class="form-control" name="scaleUpSteps" required="true" size="50" type="text" placeholder="example: 0, 10, 20, null">
+                            <input class="form-control" name="scaleUpSteps" required="true" size="50" type="text" placeholder="example: 0, 10, 20">
                         {% endif %}
+                        <p> (Must START with 0. Increasing sequence. E.g. 0, 10, 20 will create step1[0, 10], step2[10, 20], step3[20, positive-infinity])</p>
                     </div>
+                </div>
 
+                <div class="form-group">
                     <div>
-                        <label for="scaleUpAdjustments" class="deployToolTip control-label"
+                        <label for="scaleUpAdjustments" class="col-xs-1 deployToolTip control-label"
                             style="color:blue;"
                             data-toggle="tooltip"
                             title="Adjustments corresponds to scale up steps">
-                            Scale up Adjustments
+                            Scale up Adjustments:
                         </label>
-                        <p>(Adjustments for scale up steps. Must be 0 or <b>POSITIVE</b> integers. There must be an adjustment for each step. E.g. with step1[0, 10], step2[10, 20], step3[20, positive-infinity], you must provide 3 numbers here.)</p>
                     </div>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.scale_up_adjustments_string %}
@@ -204,16 +212,18 @@
                         {% else %}
                             <input class="form-control" name="scaleUpAdjustments" required="true" size="50" type="text" placeholder="example: 0, 10, 30">
                         {% endif %}
+                        <p>(Adjustments for scale up steps. Must be 0 or <b>POSITIVE</b> integers. There must be an adjustment for each step. E.g. with step1[0, 10], step2[10, 20], step3[20, positive-infinity], you must provide 3 numbers here.)</p>
                     </div>
+                </div>
 
+                <div class="form-group">
                     <div>
-                        <label for="scaleDownSteps" class="deployToolTip control-label"
+                        <label for="scaleDownSteps" class="col-xs-1 deployToolTip control-label"
                             style="color:red;"
                             data-toggle="tooltip"
                             title="Scale down Steps">
-                            Scale down Steps
+                            Scale down Steps:
                         </label>
-                        <p>(Must END with 0. Increasing sequence. E.g. -20, -10, 0 will create step1[negative-infinity, -20], step2[-20, -10], step3[-10, 0])</p>
                     </div>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.scale_down_steps_string %}
@@ -221,16 +231,18 @@
                         {% else %}
                             <input class="form-control" name="scaleDownSteps" required="true" size="50" type="text" placeholder="example: -20, -10, 0">
                         {% endif %}
+                        <p>(Must END with 0. Increasing sequence. E.g. -20, -10, 0 will create step1[negative-infinity, -20], step2[-20, -10], step3[-10, 0])</p>
                     </div>
-                  
+                </div>
+
+                <div class="form-group">
                     <div>
-                        <label for="scaleDownAdjustments" class="deployToolTip control-label"
+                        <label for="scaleDownAdjustments" class="col-xs-1 deployToolTip control-label"
                             style="color:red;"
                             data-toggle="tooltip"
                             title="Adjustments corresponds to scale down steps">
-                            Scale down Adjustments
+                            Scale down Adjustments:
                         </label>
-                        <p>(Adjustments for scale down steps. Must be 0 or <b>NEGATIVE</b> integers. There must be an adjustment for each step. E.g. with step1[negative-infinity, -20], step2[-20, -10], step3[-10, 0]), you must provide 3 numbers here.)</p>
                     </div>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.scale_down_adjustments_string %}
@@ -238,13 +250,18 @@
                         {% else %}
                             <input class="form-control" name="scaleDownAdjustments" required="true" size="50" type="text" placeholder="example: -30, -10, 0">
                         {% endif %}
+                        <p>(Adjustments for scale down steps. Must be 0 or <b>NEGATIVE</b> integers. There must be an adjustment for each step. E.g. with step1[negative-infinity, -20], step2[-20, -10], step3[-10, 0]), you must provide 3 numbers here.)</p>
                     </div>
+                </div>
 
-                    <label for="minAdjustmentMagnitude" class="deployToolTip control-label"
-                        data-toggle="tooltip"
-                        title="The minimum value to scale by when the adjustment type is PercentChangeInCapacity">
-                        Min Adjustment Magnitude (Only applied for PercentChangeInCapacity):
-                    </label>
+                <div class="form-group">
+                    <div>
+                        <label for="minAdjustmentMagnitude" class="col-xs-1 deployToolTip control-label"
+                            data-toggle="tooltip"
+                            title="The minimum value to scale by when the adjustment type is PercentChangeInCapacity">
+                            Min Adjustment Magnitude (Only applied for PercentChangeInCapacity):
+                        </label>
+                    </div>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.minAdjustmentMagnitude %}
                             <input class="form-control" name="minAdjustmentMagnitude" required="true" size="50" type="number" min="1" value="{{ stepScalingPolicy.minAdjustmentMagnitude }}">
@@ -252,17 +269,21 @@
                             <input class="form-control" name="minAdjustmentMagnitude" required="true" min="0" size="50" type="number" min="1" placeholder="1">
                         {% endif %}
                     </div>
+                </div>
 
-                    <label for="instanceWarmup" class="deployToolTip control-label"
-                        data-toggle="tooltip"
-                        title="The estimated time, in minutes, until a newly launched instance can contribute to the CloudWatch metrics.">
-                        Instance Warmup (minutes):
-                    </label>
+                <div class="form-group">
+                    <div>
+                        <label for="instanceWarmup" class="col-xs-1 deployToolTip control-label"
+                            data-toggle="tooltip"
+                            title="The estimated time, in minutes, until a newly launched instance can contribute to the CloudWatch metrics.">
+                            Instance Warmup (>= 15 recommended) (minutes):
+                        </label>
+                    </div>
                     <div class="input-group">
                         {% if stepScalingPolicy and stepScalingPolicy.instanceWarmup %}
                             <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" value="{{ stepScalingPolicy.instanceWarmup }}">
                         {% else %}
-                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" placeholder="0">
+                            <input class="form-control" name="instanceWarmup" required="true" size="50" type="number" min="0" placeholder="15">
                         {% endif %}
                     </div>
                 </div>
@@ -272,118 +293,481 @@
         </div>
 
         <div id="target-tracking-scaling" class="tabcontent">
-            <h4>Target Tracking Scaling (Will be supported)</h4>
+            <h4>Target Tracking Scaling <sup><a href="https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-scaling-target-tracking.html" target="_blank">What is target tracking scaling?</a></sup></h4>
+            <div class="alert alert-info">
+                With target tracking scaling:
+                <ul>
+                    <li>You don't need to create alarms directly.</li>
+                    <li>You should delete scaling alarms for simple or step scaling.</li>
+                    <li>Only one target tracking scaling policy can be created for each metric.</li>
+                </ul>
+            </div>
+            
+            <div id="targetScalingDisplayId">
+                <form id="targetScalingDisplayFormId" class="form-horizontal"> {% csrf_token %}
+                    {% for policy in scalingPolicies %}
+                        {% if policy.policyType == "TargetTrackingScaling" %}
+                            <div class="panel-heading clearfix">
+                                <h4 class="panel-title pull-left">
+                                    {{ policy.targetTrackingScalingConfiguration.predefinedMetricSpecification.predefinedMetricType }}
+                                </h4>
+                                <div>
+                                    <button id="deleteItem_{{ policy.policyName }}" type="button" style="float:right; margin-left:6px;" class="delete_button btn btn-primary">Delete</button>
+                                </div>
+                            </div>
+
+                            <form name="targetScalingDisplayName" class="form-horizontal" method="post" role="form">
+                                <fieldset id="targetScalingDisplayFieldSetId">
+                                    <div class="form-group">
+                                        <input type="hidden" id="targetScalingName" name="targetScalingName_{{ policy.policyName }}" value={{ policy.policyName }}>
+                                        <input type="hidden" id="{{ policy.policyName }}_awsMetrics" name="{{ policy.policyName }}_awsMetrics" value={{ policy.targetTrackingScalingConfiguration.predefinedMetricSpecification.predefinedMetricType }}>
+                                        
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                                    Target:
+                                                </label>
+                                                <div class="col-xs-2">
+                                                    <input class="form-control" id="{{ policy.policyName}}_target" name="{{ policy.policyName}}_target" required="true" type="text" value={{ policy.targetTrackingScalingConfiguration.targetValue }} />
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                                    Instance Warmup (>= 15 minutes recommended):
+                                                </label>
+                                                <div class="col-xs-2">
+                                                    <input class="form-control" id="{{ policy.policyName}}_instanceWarmup" name="{{ policy.policyName}}_instanceWarmup" required="true" type="text" value={{ policy.instanceWarmup }} />
+                                                </div>
+                                                <label class="deployToolTip control-label text-center col-xs-1">
+                                                    minutes.
+                                                </label>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label class="switch control-label col-xs-2" data-toggle="tooltip" title="Disable Scale in">
+                                                    Disable Scale In
+                                                </label>
+                                                <input type="checkbox" id="{{ policy.policyName}}_disableScaleIn" name="{{ policy.policyName}}_disableScaleIn" {% if policy.targetTrackingScalingConfiguration.disableScaleIn %} checked {% endif %}>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                                {% csrf_token %}
+                            </form>
+                        {% endif %}
+
+                        <script>
+                            $(function() {
+                                $('#deleteItem_{{policy.policyName}}').click(function () {
+                                            var btn = $(this);
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: '/groups/{{ group_name }}/autoscaling/policies/{{policy.policyName}}',
+                                                data: {'csrfmiddlewaretoken': '{{csrf_token}}'},
+                                                datatype: 'json',
+                                                beforeSend: function () {
+                                                    btn.button('loading');
+                                                },
+                                                success: function (data) {
+                                                    btn.button('reset');
+                                                    $("#autoscalingPolicyId").parent().html(data);
+                                                }
+                                            });
+                                });
+                            });
+                        </script>
+                    {% endfor %}
+                </form>
+            </div>
+
+            <div class="modal fade" id="newTargetScalingEntryModalId" tabindex="-1" role="dialog" aria-labelledby="newTargetScalingEntryModalLabel"
+aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <form id="newTargetScalingEntryFormId" class="form-horizontal" method="post" role="form" action="/groups/{{ group_name }}/autoscaling/update_policy/">
+                            <input type="hidden" id="policyType" name="policyType" value="target-tracking-scaling">
+
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">Close</span>
+                                </button>
+                                <h4 class="modal-title" id="newEnvModalLabel">Add target tracking scaling policy</h4>
+                            </div>
+                            
+                            <div class="modal-body" id="newMetricModal">
+            
+                                <div class="form-group">
+                                    <label for="awsMetrics" class="deployToolTip control-label col-xs-2" data-toggle="tooltip"
+                                        title="Select an Amazon CloudWatch metric">
+                                        AWS Metric:
+                                    </label>
+                                    <div class="col-md-7">
+                                        <select class="form-control" name="awsMetrics" v-model="metrics" @change="showWarningIfNeeded">
+                                            <option value="ASGAverageCPUUtilization" selected>Average CPU Utilization</option>
+                                            <option value="ASGAverageNetworkIn">Average Network In</option>
+                                            <option value="ASGAverageNetworkOut">Average Network Out</option>
+                                        </select>
+                                    </div>
+                                </div>
+            
+                                <div class="form-group">
+                                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                        Target:
+                                    </label>
+                                    <div class="col-xs-2">
+                                        <input class="form-control" name="target" required="true" type="text" value="" />
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="value" class="deployToolTip control-label col-xs-2" data-toggle="tooltip">
+                                        Instance Warmup (>= 15 minutes recommended):
+                                    </label>
+                                    <div class="col-xs-2">
+                                        <input class="form-control" name="instanceWarmup" required="true" type="text" value="15" />
+                                    </div>
+                                    <label class="deployToolTip control-label text-center col-xs-1">
+                                        minutes.
+                                    </label>
+                                </div>
+
+                                <div>
+                                    <label class="switch" data-toggle="tooltip" title="Disable Scale in">
+                                        Disable Scale In
+                                        <input type="checkbox" id="disableScaleIn" name="disableScaleIn">
+                                        <div class="slider round"></div>
+                                    </label>
+                                    <p><i>Indicates whether scaling in by the target tracking scaling policy is disabled. If scaling in is disabled, the target tracking scaling policy doesn't remove instances from the Auto Scaling group. Otherwise, the target tracking scaling policy can remove instances from the Auto Scaling group. The default is false .</i></p>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button id="addTargetScalingBtnId" type="submit" class="btn btn-primary">Add</button>
+                                <button id="targetScalingModalCloseBtnId" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                            {% csrf_token %}
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script>
-            openPolicy(event, 'simple-scaling');
+            function validateStepScalingConfig(stepScalingConfig) {
+                var config = {}
+                for (i = 0; i < stepScalingConfig.length; i++) {
+                    config[stepScalingConfig[i]["name"]] = stepScalingConfig[i]["value"]
+                }
 
-            function openPolicy(evt, policyType) {
-                var i, tabcontent, tablinks;
+                var minAdjustmentMagnitude = config["minAdjustmentMagnitude"].trim()
+                var instanceWarmup = config["instanceWarmup"].trim()
+
+                if (/^-?\d+$/.test(minAdjustmentMagnitude) == false && minAdjustmentMagnitude.length != 0) {
+                    alert("minAdjustmentMagnitude must be >= 1")
+                    return false
+                }
+                
+                if (/^-?\d+$/.test(instanceWarmup) == false && instanceWarmup.length != 0) {
+                    alert("instanceWarmup must be a positive integer or 0")
+                    return false
+                }
+
+                minAdjustmentMagnitude = parseInt(minAdjustmentMagnitude)
+                if (minAdjustmentMagnitude <= 0) {
+                    alert("minAdjustmentMagnitude must be greater than 0")
+                    return false
+                }
+                
+                instanceWarmup = parseInt(instanceWarmup)
+                if (instanceWarmup < 0) {
+                    alert("instanceWarmup must be >= 0")
+                    return false
+                }
+
+                var scaleUpSteps = config["scaleUpSteps"].trim();
+                var scaleUpAdjustments = config["scaleUpAdjustments"].trim();
+                var scaleDownSteps = config["scaleDownSteps"].trim();
+                var scaleDownAdjustments = config["scaleDownAdjustments"].trim();
+
+                if (scaleUpSteps.length == 0 && scaleDownSteps.length == 0) {
+                    alert("Both scale up and down steps cannot be empty!")
+                    return false;
+                }
+
+                if (scaleUpSteps.length > 0 && scaleUpAdjustments.length == 0) {
+                    alert("Scale up adjustments must be provided for scale up steps!")
+                    return false;
+                }
+
+                if (scaleUpAdjustments.length > 0 && scaleUpSteps.length == 0) {
+                    alert("Scale up adjustments provided, but no scale up step defined!")
+                    return false;
+                }
+
+                if (scaleDownSteps.length > 0 && scaleDownAdjustments.length == 0) {
+                    alert("Scale down adjustments must be provided for scale down steps!")
+                    return false;
+                }
+
+                if (scaleDownAdjustments.length > 0 && scaleDownSteps.length == 0) {
+                    alert("Scale down adjustments provided, but no scale down step defined!")
+                    return false;
+                }
+
+                if (scaleUpSteps.length > 0) {
+                    var scaleUpStepsArray = validateAndParseSteps(scaleUpSteps, true, true)
+                    var scaleUpAdjustmentsArray = validateAndParseSteps(scaleUpAdjustments, true, false)
+
+                    if (scaleUpStepsArray == null || scaleUpAdjustmentsArray == null) {
+                        return false;
+                    }
+
+                    if (scaleUpStepsArray.length != scaleUpAdjustmentsArray.length) {
+                        alert("Each step must have an adjustment defined: " + scaleUpStepsArray + " vs. " + scaleUpAdjustmentsArray)
+                        return false;
+                    } 
+                }
+
+                if (scaleDownSteps.length > 0) {
+                    var scaleDownStepsArray = validateAndParseSteps(scaleDownSteps, false, true)
+                    var scaleDownAdjustmentsArray = validateAndParseSteps(scaleDownAdjustments, false, false)
+
+                    if (scaleDownStepsArray == null || scaleDownAdjustmentsArray == null) {
+                        return false;
+                    }
+
+                    if (scaleDownStepsArray.length != scaleDownAdjustmentsArray.length) {
+                        alert("Each step must have an adjustment defined: " + scaleDownStepsArray + " vs. " + scaleDownAdjustmentsArray)
+                        return false;
+                    } 
+                }
+            }
+
+            function validateAndParseSteps(stepString, isUp, isStep) {
+                if (stepString.length == 0) {
+                    alert("Steps or adjustments cannot be empty");
+                    return null;
+                }
+
+                var stepArray = stepString.split(',').map(Number);
+                for (i = 0; i < stepArray.length; i++) {
+                    if (Number.isNaN(stepArray[i])) {
+                        alert(stepString + " is not valid! Must be numbers only");
+                        return null;
+                    }
+                }
+
+                if (!isStep) {
+                    if (isUp) {
+                        // all scale up adjustments must be >= 0
+                        for (i = 0; i < stepArray.length; i++) {
+                            if (stepArray[i] < 0) {
+                                alert("Scale up adjustments must be >= 0: " + stepArray);
+                                return null;
+                            }
+                        }
+                    }
+                    else {
+                        // all scale down adjustments must be <= 0
+                        for (i = 0; i < stepArray.length; i++) {
+                            if (stepArray[i] > 0) {
+                                alert("Scale down adjustments must be <= 0: " + stepArray);
+                                return null;
+                            }
+                        }
+                    }
+                    return stepArray;
+                }
+
+                if (isUp) {
+                    // must be increasing sequence starting with 0
+                    if (stepArray[0] != 0) {
+                        alert("Scale up steps must start with 0");
+                        return null;
+                    }
+
+                    for (i = 0; i < stepArray.length - 1; i++) {
+                        if (stepArray[i] >= stepArray[i + 1]) {
+                            alert("Scale up steps must be a strictly increasing sequence");
+                            return null;
+                        }
+                    }
+                }
+                else {
+                    // must be increasing sequence ending with 0
+                    if (stepArray.slice(-1) != 0) {
+                        alert("Scale down steps must end with 0");
+                        return null;
+                    }
+
+                    for (i = 0; i < stepArray.length - 1; i++) {
+                        if (stepArray[i] >= stepArray[i + 1]) {
+                            alert("Scale down steps must be a strictly increasing sequence");
+                            return null;
+                        }
+                    }
+                }
+
+                return stepArray;
+            }
+
+            function validate() {
+                policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId");
+                policyType = "simple-scaling";
+
                 tabcontent = document.getElementsByClassName("tabcontent");
                 for (i = 0; i < tabcontent.length; i++) {
-                    tabcontent[i].style.display = "none";
+                    if (tabcontent[i].style.display == "block") {
+                        policyType = tabcontent[i].id;
+                        break;
+                    }
                 }
-                tablinks = document.getElementsByClassName("tablinks");
-                for (i = 0; i < tablinks.length; i++) {
-                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+        
+                if (policyType == "step-scaling") {
+                    policyForm = document.getElementById("stepAutoscalingPolicyConfigFormId");    
                 }
-                document.getElementById(policyType).style.display = "block";
-                evt.currentTarget.className += " active";
+
+                data = $('#' + policyForm.id).serialize() + "&policyType=" + policyType;
+                
+                if (policyType == "target-tracking-scaling") {
+                    saveTargetScalingBtn = document.getElementById("saveTargetScalingBtnId")
+                    data = {
+                        'content': $("#targetScalingDisplayId :input").serialize(),
+                        'policyType': policyType,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}',
+                    }
+                }
+                
+                if (policyType == "step-scaling") {
+                    var pass = validateStepScalingConfig($('#' + policyForm.id).serializeArray())
+                    if (pass == false) {
+                        return;
+                    }   
+                }
+
+                var btn = $(this);
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/groups/{{ group_name }}/autoscaling/update_policy/',
+                    data: data,
+                    dataType: 'json',
+                    beforeSend: function () {
+                        btn.button('loading');
+                    },
+                    success: function (data) {
+                        if(data != null && data.success == false) {
+                            $('#errorBannerId').append(data.error);
+                            $('#errorBannerId').show();
+                        } else {
+                            $("#autoscalingPolicyId").parent().html(data);
+                            $('#errorBannerId').empty().hide();
+                        }
+                        btn.button('reset');
+                    },
+                    error: function (data) {
+                        $('#errorBannerId').append(data.responseText);
+                        $('#errorBannerId').show();
+                    }
+                });
             }
+        
+            const saveAsgPolicyBtnElement = document.getElementById("saveAsgPolicyBtnId");
+            saveAsgPolicyBtnElement.addEventListener("click", validate);
+        
+            $(function () {
+                $('#saveAsgPolicyBtnId').attr('disabled','disabled');
+                $('#resetAsgPolicyBtnId').attr('disabled','disabled');
+        
+                $('#autoscalingPolicyId input').keyup(function() {
+                    $('#saveAsgPolicyBtnId').removeAttr('disabled');
+                    $('#resetAsgPolicyBtnId').removeAttr('disabled');
+                });
+        
+                $('#autoscalingPolicyId select').change(function() {
+                    $('#saveAsgPolicyBtnId').removeAttr('disabled');
+                    $('#resetAsgPolicyBtnId').removeAttr('disabled');
+                });
+        
+                $('#autoscalingPolicyId input').change(function() {
+                    $('#saveAsgPolicyBtnId').removeAttr('disabled');
+                    $('#resetAsgPolicyBtnId').removeAttr('disabled');
+                });
+        
+                $('#resetAsgPolicyBtnId').click(function () {
+                    var btn = $(this);
+                    $.ajax({
+                        type: 'GET',
+                        url: '/groups/{{ group_name }}/autoscaling/get_asg_policy/',
+                        beforeSend: function () {
+                            btn.button('loading');
+                        },
+                        success: function (data) {
+                            btn.button('reset');
+                            $("#autoscalingPolicyId").parent().html(data);
+                        }
+                    });
+                });
+            });
         </script>
     </div>
-</div>
-<div class="panel-footer clearfix">
-    <div class="pull-right">
-        <button id="resetAsgPolicyBtnId" class="btn btn-default"
-                data-loading-text="Reloading...">
-            <span class="glyphicon glyphicon-refresh"></span> Reload
-        </button>
-        <button id="saveAsgPolicyBtnId" class="btn btn-primary"
-                data-loading-text="Saving...">
-            <span class="glyphicon glyphicon-floppy-save"></span> Save
-        </button>
+
+    <div class="panel-footer clearfix">
+        <div class="pull-right">
+            <button id="resetAsgPolicyBtnId" class="btn btn-default"
+                    data-loading-text="Reloading...">
+                <span class="glyphicon glyphicon-refresh"></span> Reload
+            </button>
+            <button id="saveAsgPolicyBtnId" class="btn btn-primary"
+                    data-loading-text="Saving...">
+                <span class="glyphicon glyphicon-floppy-save"></span> Save
+            </button>
+            <button id="addTargetScalingBtnHomePageId" onclick="addTargetScaling(event)" class="btn btn-primary"
+                    data-loading-text="Creating..."> Add
+            </button>
+        </div>
     </div>
+
+    <script>
+        openPolicy(event, 'simple-scaling');
+
+        function openPolicy(evt, policyType) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+
+            tablinks = document.getElementsByClassName("tablink");
+            for (i = 0; i < tabcontent.length; i++) {
+              tablinks[i].className = tablinks[i].className.replace(" button-gray", "");
+            }
+
+            document.getElementById(policyType).style.display = "block";
+
+            var asgAlarmElement = document.getElementById("asMetricsId")
+            var asgAlarmButtonElement = document.getElementById("resetAsMetricsBtnDivId")
+            var createTargetScalingButton = document.getElementById("addTargetScalingBtnHomePageId")
+
+            if (policyType == "target-tracking-scaling") {
+                createTargetScalingButton.style.display = "block"
+                asgAlarmElement.style.display = "none"
+                asgAlarmButtonElement.style.display = "none"
+            }
+            else {
+                // careful when changing the order here
+                createTargetScalingButton.style.display = "none"
+                asgAlarmElement.style.display = "block"
+                asgAlarmButtonElement.style.display = "block"
+            }
+
+            evt.currentTarget.className += " button-gray";
+        }
+
+        function addTargetScaling(event) {
+            var newTargetScalingEntryModalElement = document.getElementById("newTargetScalingEntryModalId")
+            $('#newTargetScalingEntryModalId').modal('show');
+        }
+    </script>
 </div>
-<script>
-    function validate() {
-        policyForm = document.getElementById("simpleAutoscalingPolicyConfigFormId")
-        policyType = "simple-scaling";
-
-        tabcontent = document.getElementsByClassName("tabcontent");
-        for (i = 0; i < tabcontent.length; i++) {
-            if (tabcontent[i].style.display == "block") {
-                policyType = tabcontent[i].id;
-                break;
-            }
-        }
-
-        if (policyType == "step-scaling") {
-            policyForm = document.getElementById("stepAutoscalingPolicyConfigFormId");
-        }
-
-        var btn = $(this);
-        $.ajax({
-            type: 'POST',
-            url: '/groups/{{ group_name }}/autoscaling/update_policy/',
-            data: $('#' + policyForm.id).serialize() + "&policyType=" + policyType,
-            dataType: 'json',
-            beforeSend: function () {
-                btn.button('loading');
-            },
-            success: function (data) {
-                if(data != null && data.success == false) {
-                    $('#errorBannerId').append(data.error);
-                    $('#errorBannerId').show();
-                } else {
-                    $("#autoscalingPolicyId").parent().html(data);
-                    $('#errorBannerId').empty().hide();
-                }
-                btn.button('reset');
-            },
-            error: function (data) {
-                $('#errorBannerId').append(data.responseText);
-                $('#errorBannerId').show();
-            }
-        });
-    }
-
-    const saveAsgPolicyBtnElement = document.getElementById("saveAsgPolicyBtnId");
-    saveAsgPolicyBtnElement.addEventListener("click", validate);
-
-    $(function () {
-        $('#saveAsgPolicyBtnId').attr('disabled','disabled');
-        $('#resetAsgPolicyBtnId').attr('disabled','disabled');
-
-        $('#autoscalingPolicyId input').keyup(function() {
-            $('#saveAsgPolicyBtnId').removeAttr('disabled');
-            $('#resetAsgPolicyBtnId').removeAttr('disabled');
-        });
-
-        $('#autoscalingPolicyId select').change(function() {
-            $('#saveAsgPolicyBtnId').removeAttr('disabled');
-            $('#resetAsgPolicyBtnId').removeAttr('disabled');
-        });
-
-        $('#autoscalingPolicyId input').change(function() {
-            $('#saveAsgPolicyBtnId').removeAttr('disabled');
-            $('#resetAsgPolicyBtnId').removeAttr('disabled');
-        });
-
-        $('#resetAsgPolicyBtnId').click(function () {
-            var btn = $(this);
-            $.ajax({
-                type: 'GET',
-                url: '/groups/{{ group_name }}/autoscaling/get_asg_policy/',
-                beforeSend: function () {
-                    btn.button('loading');
-                },
-                success: function (data) {
-                    btn.button('reset');
-                    $("#autoscalingPolicyId").parent().html(data);
-                }
-            });
-        });
-    });
-</script>
