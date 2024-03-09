@@ -47,7 +47,6 @@ class RequestJsonFormatter(logging.Formatter):
         print(record)
         if hasattr(record, 'request') and record.request is not None:
             request = record.request
-            print(request)
             user = request.teletraan_user_id
             log_message = {
                 "user": user.name,
