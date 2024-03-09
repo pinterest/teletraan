@@ -26,7 +26,14 @@ logger = logging.getLogger(__name__)
 # this is fine, except the exception stack trace is not particularly user-friendly
 # We should not depends on this too much, but in the code handle as much exceptino
 # as we can and generate user friendly message there.
-class ExceptionHandlerMiddleware(object):
+class ExceptionHandlerMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        return response
+
     def process_exception(self, request, exception):
         logger.exception('Exception thrown when handling request ' + str(request))
 

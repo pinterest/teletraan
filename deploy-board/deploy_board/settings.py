@@ -120,6 +120,10 @@ LOGGING = {
             '()': 'deploy_board.webapp.helpers.settings_logging.StructuredMessage',
             'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
         },
+        'audit_log_formatter': {
+            '()': 'deploy_board.webapp.helpers.settings_logging.RequestJsonFormatter',
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        }
     },
     'handlers': {
         'default': {
@@ -154,10 +158,18 @@ LOGGING = {
             'backupCount': 5,
             'formatter': 'json',
         },
+        'audit_log_handler': {
+            'level': LOG_LEVEL,
+            'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
+            'filename': '%s/audit.log' % LOG_DIR,
+            'maxBytes': 1024 * 1024 * 5,  # 5 MB
+            'backupCount': 5,
+            'formatter': 'audit_log_formatter',
+        },
         'console': {
             'level': LOG_LEVEL,
             'class': 'logging.StreamHandler',
-            'formatter': 'json',
+            'formatter': 'standard',
         },
     },
     'loggers': {
@@ -189,6 +201,11 @@ LOGGING = {
         'deploy_board.webapp.security': {
             'handlers': ['default'],
             'level': 'INFO',
+            'propagate': True
+        },
+        'deploy_board.audit': {
+            'handlers': ['audit_log_handler'],
+            'level': 'INFO',
             'propagate': False
         }
     }
@@ -209,7 +226,7 @@ oauth_middleware = 'deploy_board.webapp.security.DelegatedOAuthMiddleware'
 if TELETRAAN_SERVICE_FIXED_OAUTH_TOKEN:
     oauth_middleware = 'deploy_board.webapp.security.FixedOAuthMiddleware'
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'csp.middleware.CSPMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
