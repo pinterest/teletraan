@@ -1487,6 +1487,33 @@ def get_host_az_dist(request, group_name):
         'total': total
     })
 
+def get_host_ami_dist(request, group_name):
+    host_ami_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
+            "query": "tags.Autoscaling:{} AND state:running".format(group_name),
+            "fields": "cloud.aws.imageId"
+        }
+    )
+
+    counter = Counter([x['cloud.aws.imageId'] for x in host_ami_dist.json()])
+    labels = list(counter.keys())
+    data = list(counter.values())
+    total = sum(data)
+    percentages = map(lambda x: round((x / total) * 100, 1), data)
+
+    cluster_config = clusters_helper.get_cluster(request, group_name)
+    print(cluster_config)
+    current_AMI = baseimages_helper.get_by_id(request, cluster_config["baseImageId"])
+    current_AMI = current_AMI["provider_name"]
+
+    return render(request, 'groups/host_ami_dist.tmpl', {
+        "group_name": group_name,
+        'labels': labels,
+        'data': data,
+        'label_data_percentage': list(zip(labels, data, percentages)),
+        'total': total,
+        'current_AMI': current_AMI
+    })
+
 def get_health_check_details(request, id):
     health_check = autoscaling_groups_helper.get_health_check(request, id)
     env = environs_helper.get(request, health_check.get('env_id'))
