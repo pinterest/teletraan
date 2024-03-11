@@ -1501,17 +1501,24 @@ def get_host_ami_dist(request, group_name):
     percentages = map(lambda x: round((x / total) * 100, 1), data)
 
     cluster_config = clusters_helper.get_cluster(request, group_name)
-    print(cluster_config)
     current_AMI = baseimages_helper.get_by_id(request, cluster_config["baseImageId"])
     current_AMI = current_AMI["provider_name"]
+
+    label_data_percentage = list(zip(labels, data, percentages))
+    any_host_with_outdated_ami = False
+    
+    # If every hosts running with the latest AMI, there should be only 1 record.
+    if len(label_data_percentage) > 1 or (len(label_data_percentage) == 1 and label_data_percentage[0][0] != current_AMI):
+        any_host_with_outdated_ami = True
 
     return render(request, 'groups/host_ami_dist.tmpl', {
         "group_name": group_name,
         'labels': labels,
         'data': data,
-        'label_data_percentage': list(zip(labels, data, percentages)),
+        'label_data_percentage': label_data_percentage,
         'total': total,
-        'current_AMI': current_AMI
+        'current_AMI': current_AMI,
+        'any_host_with_outdated_ami': any_host_with_outdated_ami
     })
 
 def get_health_check_details(request, id):
