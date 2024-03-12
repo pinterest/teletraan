@@ -238,8 +238,7 @@ def update_deploy_progress(request, name, stage):
     cluster = clusters_helper.get_cluster(request, env.get('clusterName'))
     if cluster is not None:
         add_account_from_cluster(request, cluster, accounts)
-    accounts.append(AWS_PRIMARY_ACCOUNT)
-    accounts.append(AWS_SUB_ACCOUNT)
+    add_legacy_accounts(accounts)
 
     context = {
         "report": report,
@@ -261,6 +260,11 @@ def update_deploy_progress(request, name, stage):
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
+
+
+def add_legacy_accounts(accounts):
+    accounts.append(f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account / Legacy primary account")
+    accounts.append(f"{AWS_SUB_ACCOUNT} / Sub AWS account / Legacy sub account")
 
 
 def add_account_from_cluster(request, cluster, accounts):
@@ -446,8 +450,7 @@ class EnvLandingView(View):
                 host_type_blessed_status = host_type['blessed_status']
                 if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
                     messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
-        accounts.append(AWS_PRIMARY_ACCOUNT)
-        accounts.append(AWS_SUB_ACCOUNT)
+        add_legacy_accounts(accounts)
         last_cluster_refresh_status = _getLastClusterRefreshStatus(request, env)
         latest_succeeded_base_image_update_event = baseimages_helper.get_latest_succeeded_image_update_event_by_cluster(request, env.get('clusterName'))
 
