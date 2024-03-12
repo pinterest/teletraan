@@ -440,53 +440,54 @@ $('#privateBldUploadBtnId button').click(function () {
                 </div>
 
                 <div class="btn-group">
-                    <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
-                            title="Change how the hosts are displayed based on Account"
-                            data-toggle="dropdown" type="button">
-                        Account <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu" role="menu">
-                        <form id="accountFormId">
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="all"
-                            {% if report.account == "all" %}
-                            checked
-                            {% endif %}
-                            > All
-                            </label></div>
-                        </li>
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="{{ primaryAccount }}"
-                            {% if report.account == primaryAccount %}
-                            checked
-                            {% endif %}
-                            > {{ primaryAccount }}
-                            </label></div>
-                        </li>
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="{{ subAccount }}"
-                            {% if report.account == subAccount %}
-                            checked
-                            {% endif %}
-                            > {{ subAccount }}
-                            </label></div>
-                        </li>
-                        <li>
-                            <div class="radio"><label>&nbsp;
-                            <input type="radio" name="account" value="others"
-                            {% if report.account == "others" %}
-                            checked
-                            {% endif %}
-                            > Others
-                            </label></div>
-                        </li>
-                        </form>
-                    </ul>
+                    <div class="dropdown">
+                        <button class="deployToolTip btn btn-default btn-sm dropdown-toggle"
+                                title="Change how the hosts are displayed based on Account"
+                                data-toggle="dropdown" type="button">
+                            Account <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu" role="menu">
+                            <form id="accountFormId">
+                                <li>
+                                    <div class="radio"><label>&nbsp;
+                                        <input type="radio" name="account" value="all"
+                                               {% if report.account == "all" %}
+                                        checked
+                                        {% endif %}
+                                        > All
+                                    </label></div>
+                                </li>
+                                <li>
+                                    <div class="radio"><label>&nbsp;
+                                        <input type="radio" name="account" value="{{ primaryAccount }}"
+                                               {% if report.account == primaryAccount %}
+                                               checked
+                                               {% endif %}
+                                        > {{ primaryAccount }}
+                                    </label></div>
+                                </li>
+                                <li>
+                                    <div class="radio"><label>&nbsp;
+                                        <input type="radio" name="account" value="{{ subAccount }}"
+                                               {% if report.account == subAccount %}
+                                               checked
+                                               {% endif %}
+                                        > {{ subAccount }}
+                                    </label></div>
+                                </li>
+                                <li>
+                                    <div class="radio"><label>&nbsp;
+                                        <input type="radio" name="account" value="others"
+                                               {% if report.account == "others" %}
+                                        checked
+                                        {% endif %}
+                                        > Others
+                                    </label></div>
+                                </li>
+                            </form>
+                        </ul>
                     </div>
-
+                </div>
             </div>
         </div>
 
