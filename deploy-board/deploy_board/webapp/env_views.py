@@ -263,14 +263,24 @@ def update_deploy_progress(request, name, stage):
 
 
 def add_legacy_accounts(accounts):
-    accounts.append({
-        "name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account / Legacy primary account",
-        "ownerId": AWS_PRIMARY_ACCOUNT,
-    })
-    accounts.append({
-        "name": f"{AWS_SUB_ACCOUNT} / Sub AWS account / Legacy sub account",
-        "ownerId": AWS_SUB_ACCOUNT,
-    })
+    skip_primary_account = False
+    skip_sub_account = False
+    for account in accounts:
+        if account["ownerId"] == AWS_PRIMARY_ACCOUNT:
+            skip_primary_account = True
+        elif account["ownerId"] == AWS_SUB_ACCOUNT:
+            skip_sub_account = True
+
+    if not skip_primary_account:
+        accounts.append({
+            "name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account / Primary account",
+            "ownerId": AWS_PRIMARY_ACCOUNT,
+        })
+    if not skip_sub_account:
+        accounts.append({
+            "name": f"{AWS_SUB_ACCOUNT} / Sub AWS account / Legacy sub account",
+            "ownerId": AWS_SUB_ACCOUNT,
+        })
 
 
 def add_account_from_cluster(request, cluster, accounts):
