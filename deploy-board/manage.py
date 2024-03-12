@@ -36,7 +36,7 @@ if __name__ == "__main__":
     #
     os.environ.setdefault("LOG_DIR", "/tmp/deploy_board")
     os.environ.setdefault("LOG_LEVEL", "DEBUG")
-    os.environ.setdefault("DEBUG_MODE", "OFF")
+    os.environ.setdefault("DEBUG_MODE", "ON")
     #
     # OAuth based authentication settings. By default, OAuth based authentication is disabled
     #
