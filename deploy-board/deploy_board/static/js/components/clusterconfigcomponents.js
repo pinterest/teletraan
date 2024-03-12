@@ -190,8 +190,8 @@ Vue.component('aws-user-data', {
                 return acc;
             }, {});
 
-            // hide link for cmp_base cluster profiles
-            if (userDataObj['pinfo_cluster'] && userDataObj['pinfo_role'] === 'cmp_base') {
+            // hide link for cmp_base profiles
+            if (userDataObj['pinfo_role'] === 'cmp_base') {
                 return ' ';
             }
             const hieraPaths = this.hierapaths.trim().split("\n").reduce(
