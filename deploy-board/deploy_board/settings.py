@@ -103,7 +103,7 @@ LOG_LEVEL = os.getenv("LOG_LEVEL")
 DEBUG_MODE = os.getenv("DEBUG_MODE")
 
 # Change to your domain or hosts
-DEBUG = True if DEBUG_MODE == 'ON' else False
+DEBUG = DEBUG_MODE == 'ON'
 
 if LOG_LEVEL == 'DEBUG':
     TEMPLATE_DEBUG = True
