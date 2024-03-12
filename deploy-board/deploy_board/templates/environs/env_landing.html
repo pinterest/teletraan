@@ -457,32 +457,17 @@ $('#privateBldUploadBtnId button').click(function () {
                                         > All
                                     </label></div>
                                 </li>
-                                <li>
-                                    <div class="radio">
-                                        <label>&nbsp;
-                                            <input type="radio" name="showMode" value="simple"> Test Account
-                                        </label>
-                                    </div>
-                                </li>
-                                <li role="separator" class="divider"></li>
-                                <li>
-                                    <div class="radio"><label>&nbsp;
-                                        <input type="radio" name="account" value="{{ primaryAccount }}"
-                                               {% if report.account == primaryAccount %}
-                                               checked
-                                               {% endif %}
-                                        > {{ primaryAccount }}
-                                    </label></div>
-                                </li>
-                                <li>
-                                    <div class="radio"><label>&nbsp;
-                                        <input type="radio" name="account" value="{{ subAccount }}"
-                                               {% if report.account == subAccount %}
-                                               checked
-                                               {% endif %}
-                                        > {{ subAccount }}
-                                    </label></div>
-                                </li>
+                                {% for account in accounts %}
+                                    <li>
+                                        <div class="radio"><label>&nbsp;
+                                            <input type="radio" name="account" value="{{ account.ownerId }}"
+                                                   {% if report.account == account.ownerId %}
+                                                   checked
+                                                   {% endif %}
+                                            > {{ account.name }}
+                                        </label></div>
+                                    </li>
+                                {% endfor %}
                                 <li>
                                     <div class="radio"><label>&nbsp;
                                         <input type="radio" name="account" value="others"

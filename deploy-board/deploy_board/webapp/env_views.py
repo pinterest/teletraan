@@ -263,8 +263,14 @@ def update_deploy_progress(request, name, stage):
 
 
 def add_legacy_accounts(accounts):
-    accounts.append(f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account / Legacy primary account")
-    accounts.append(f"{AWS_SUB_ACCOUNT} / Sub AWS account / Legacy sub account")
+    accounts.append({
+        "name": f"{AWS_PRIMARY_ACCOUNT} / Primary AWS account / Legacy primary account",
+        "ownerId": AWS_PRIMARY_ACCOUNT,
+    })
+    accounts.append({
+        "name": f"{AWS_SUB_ACCOUNT} / Sub AWS account / Legacy sub account",
+        "ownerId": AWS_SUB_ACCOUNT,
+    })
 
 
 def add_account_from_cluster(request, cluster, accounts):
@@ -273,7 +279,10 @@ def add_account_from_cluster(request, cluster, accounts):
         account = accounts_helper.get_by_cell_and_id(
             request, cluster["cellName"], account_id)
         if account is not None:
-            accounts.append(f'{account["ownerId"]} / {account["name"]} / {account["description"]}')
+            accounts.append({
+                "ownerId": account["ownerId"],
+                "name": f'{account["ownerId"]} / {account["name"]} / {account["description"]}'
+            })
 
 
 def update_service_add_ons(request, name, stage):
