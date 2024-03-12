@@ -1,0 +1,78 @@
+{% extends 'groups/group_base.html' %}
+
+{% block breadcrumb-items %}
+<ul class="breadcrumb">
+    <li><a href="/">Home</a></li>
+    <li><a href="/groups/">Groups</a></li>
+    <li><a href="/groups/{{ group_name }}/">{{ group_name }}</a></li>
+    <li>Host and AMI(s)</li>
+</ul>
+{% endblock %}
+
+{% block main %}
+  {% if any_host_with_outdated_ami == True %}
+    <div class="alert alert-warning alert-dismissible">
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        <strong>Warning!</strong> Some hosts in the cluster are not running with the current AMI. To have all hosts run with the current AMI, replace the cluster.
+    </div>
+  {% endif %}
+
+  <div id="container" style="width: 100%;">
+    <canvas id="pie-chart"></canvas>
+  </div>
+
+  <div>
+    <p style="color:green;">The cluster's current AMI is {{ current_AMI }} </p>
+  </div>
+
+  <div>
+    <table id="host-dist-stat" class="table">
+      <tr>
+          <th>AMI ID</th>
+          <th>Current</th>
+          <th>Host Count</th>
+          <th>Percentage</th>
+      </tr>
+      {% for l, d, p in label_data_percentage %}
+      <tr>
+          <td>
+             {{ l }}
+          </td>
+          <td>
+            {% if l == current_AMI %} <p style="color:green;">true</p> {% else %} <p style="color:red;">false</p> {% endif %}
+         </td>
+          <td>
+             {{ d }}
+          </td>
+          <td>
+             {{ p }}%
+          </td>
+      </tr>
+      {% endfor%}
+    </table>
+  <b>Total:</b> {{ total }} hosts
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    var config = {
+      type: 'pie',
+      data: {
+        datasets: [{
+          data: {{ data|safe }},
+          label: 'Host'
+        }],
+        labels: {{ labels|safe }}
+      },
+      options: {
+        responsive: false
+      }
+    };
+
+    window.onload = function() {
+      var ctx = document.getElementById('pie-chart').getContext('2d');
+      window.myPie = new Chart(ctx, config);
+    };
+  </script>
+
+{% endblock %}
