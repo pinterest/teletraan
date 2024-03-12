@@ -105,6 +105,7 @@ DEBUG_MODE = os.getenv("DEBUG_MODE")
 # Change to your domain or hosts
 if DEBUG_MODE == 'ON':
     DEBUG = True
+
 if LOG_LEVEL == 'DEBUG':
     TEMPLATE_DEBUG = True
     ALLOWED_HOSTS = ['*']
