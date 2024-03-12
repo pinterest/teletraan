@@ -285,15 +285,13 @@ def add_legacy_accounts(accounts):
 
 def add_account_from_cluster(request, cluster, accounts):
     account_id = cluster.get("accountId")
-    log.info(f"add accountId = ${account_id}, account_id = ${cluster.get('account_id')}")
     if account_id is not None:
         account = accounts_helper.get_by_cell_and_id(
             request, cluster["cellName"], account_id)
-        log.info(f"account = {account}")
         if account is not None:
             accounts.append({
-                "ownerId": account["ownerId"],
-                "name": f'{account["ownerId"]} / {account["name"]} / {account["description"]}'
+                "ownerId": account["data"]["ownerId"],
+                "name": f'{account["data"]["ownerId"]} / {account["name"]} / {account["description"]}'
             })
 
 
