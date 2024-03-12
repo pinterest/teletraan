@@ -1507,7 +1507,6 @@ def get_host_ami_dist(request, group_name):
     label_data_percentage = list(zip(labels, data, percentages))
     any_host_with_outdated_ami = False
     
-    # If every hosts running with the latest AMI, there should be only 1 record.
     if len(label_data_percentage) > 1 or (len(label_data_percentage) == 1 and label_data_percentage[0][0] != current_AMI):
         any_host_with_outdated_ami = True
 

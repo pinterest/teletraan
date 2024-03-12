@@ -22,7 +22,7 @@ from django.views.generic import View
 from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django.contrib import messages
-from deploy_board.settings import IS_PINTEREST
+from deploy_board.settings import CMDB_API_HOST, IS_PINTEREST
 from deploy_board.settings import TELETRAAN_DISABLE_CREATE_ENV_PAGE, TELETRAAN_REDIRECT_CREATE_ENV_PAGE_URL, \
     IS_DURING_CODE_FREEZE, TELETRAAN_CODE_FREEZE_URL, TELETRAAN_JIRA_SOURCE_URL, TELETRAAN_TRANSFER_OWNERSHIP_URL, TELETRAAN_RESOURCE_OWNERSHIP_WIKI_URL, HOST_TYPE_ROADMAP_LINK, STAGE_TYPE_INFO_LINK
 from deploy_board.settings import DISPLAY_STOPPING_HOSTS
@@ -34,6 +34,8 @@ from . import service_add_ons
 from . import common
 import random
 import json
+import requests
+from collections import Counter
 from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
     systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper
 from .templatetags import utils
@@ -426,10 +428,10 @@ class EnvLandingView(View):
                 if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
                     messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
 
-        lastClusterRefreshStatus = _getLastClusterRefreshStatus(request, env)
+        last_cluster_refresh_status = _getLastClusterRefreshStatus(request, env)
         latest_succeeded_base_image_update_event = baseimages_helper.get_latest_succeeded_image_update_event_by_cluster(request, env.get('clusterName'))
 
-        cluster_refresh_suggestion_for_golden_ami = _gen_message_for_refreshing_cluster(lastClusterRefreshStatus, latest_succeeded_base_image_update_event)
+        cluster_refresh_suggestion_for_golden_ami = _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env)
 
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
@@ -463,7 +465,7 @@ class EnvLandingView(View):
                 "project_name_is_default": project_name_is_default,
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
-                "lastClusterRefreshStatus": lastClusterRefreshStatus,
+                "lastClusterRefreshStatus": last_cluster_refresh_status,
                 "cluster_refresh_suggestion_for_golden_ami": cluster_refresh_suggestion_for_golden_ami,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
@@ -549,7 +551,7 @@ class EnvLandingView(View):
                 "project_name_is_default": project_name_is_default,
                 "project_info": project_info,
                 "remaining_capacity": json.dumps(remaining_capacity),
-                "lastClusterRefreshStatus": lastClusterRefreshStatus,
+                "lastClusterRefreshStatus": last_cluster_refresh_status,
                 "cluster_refresh_suggestion_for_golden_ami": cluster_refresh_suggestion_for_golden_ami,
                 "hasGroups": bool(capacity_info.get("groups")),
                 "hasCluster": bool(capacity_info.get("cluster")),
@@ -566,13 +568,36 @@ class EnvLandingView(View):
 
         return response
 
+def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env):
+    try:
+        group_name = '{}-{}'.format(env["envName"], env["stageName"])
+        host_ami_dist = requests.post(url = CMDB_API_HOST+"/v2/query", json={
+                "query": "tags.Autoscaling:{} AND state:running".format(group_name),
+                "fields": "cloud.aws.imageId"
+            }
+        )
 
-def _gen_message_for_refreshing_cluster(lastClusterRefreshStatus, latest_succeeded_base_image_update_event):
-    if latest_succeeded_base_image_update_event != None:
-        if lastClusterRefreshStatus == None or lastClusterRefreshStatus["startTime"] == None or lastClusterRefreshStatus["startTime"] <= latest_succeeded_base_image_update_event["finish_time"]:
-            return "The cluster was updated with a new AMI at {} PST and should be replaced to ensure the AMI is applied to all existing instances.".format(utils.convertTimestamp(latest_succeeded_base_image_update_event["finish_time"]))
+        counter = Counter([x['cloud.aws.imageId'] for x in host_ami_dist.json()])
+        amis = list(counter.keys())
 
-    return None
+        cluster_config = clusters_helper.get_cluster(request, group_name)
+        current_AMI = baseimages_helper.get_by_id(request, cluster_config["baseImageId"])
+        current_AMI = current_AMI["provider_name"]
+
+        any_host_with_outdated_ami = False
+        
+        if len(amis) > 1 or (len(amis) == 1 and amis[0] != current_AMI):
+            any_host_with_outdated_ami = True
+
+        if any_host_with_outdated_ami and latest_succeeded_base_image_update_event != None:
+            if last_cluster_refresh_status == None or last_cluster_refresh_status["startTime"] == None or last_cluster_refresh_status["startTime"] <= latest_succeeded_base_image_update_event["finish_time"]:
+                return "The cluster was updated with a new AMI at {} PST and should be replaced to ensure the AMI is applied to all existing hosts.".format(utils.convertTimestamp(latest_succeeded_base_image_update_event["finish_time"]))
+
+        return None
+    
+    except:
+        # in case of any exception, return None instead of showing the error on landing page
+        return None
 
 
 def _getLastClusterRefreshStatus(request, env):
