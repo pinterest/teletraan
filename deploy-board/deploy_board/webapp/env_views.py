@@ -233,7 +233,13 @@ def update_deploy_progress(request, name, stage):
                     report.currentDeployStat.deploy["otherAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
-    accounts = ["Account 1", "Account 2", "Account 3"]
+
+    accounts = []
+    cluster = clusters_helper.get_cluster(request, env.get('clusterName'))
+    if cluster is not None:
+        add_account_from_cluster(request, cluster, accounts)
+    accounts.append(AWS_PRIMARY_ACCOUNT)
+    accounts.append(AWS_SUB_ACCOUNT)
 
     context = {
         "report": report,
@@ -255,6 +261,15 @@ def update_deploy_progress(request, name, stage):
     response.set_cookie(STATUS_COOKIE_NAME, sortByStatus)
 
     return response
+
+
+def add_account_from_cluster(request, cluster, accounts):
+    account_id = cluster.get("accountId")
+    if account_id is not None:
+        account = accounts_helper.get_by_cell_and_id(
+            request, cluster["cellName"], account_id)
+        if account is not None:
+            accounts.append(f'{account["ownerId"]} / {account["name"]} / {account["description"]}')
 
 
 def update_service_add_ons(request, name, stage):
@@ -416,13 +431,14 @@ class EnvLandingView(View):
             except TeletraanException as detail:
                 log.error('Handling TeletraanException when trying to access nimbus API, error message {}'.format(detail))
                 messages.add_message(request, messages.ERROR, detail)
-
+        accounts = []
         if IS_PINTEREST:
             basic_cluster_info = clusters_helper.get_cluster(request, env.get('clusterName'))
             capacity_info['cluster'] = basic_cluster_info
             placements = None
             remaining_capacity = None
             if capacity_info['cluster']:
+                add_account_from_cluster(request, basic_cluster_info, accounts)
                 placements = placements_helper.get_simplified_by_ids(
                         request, basic_cluster_info['placement'], basic_cluster_info['provider'], basic_cluster_info['cellName'])
                 remaining_capacity = functools.reduce(lambda s, e: s + e['capacity'], placements, 0)
@@ -430,13 +446,13 @@ class EnvLandingView(View):
                 host_type_blessed_status = host_type['blessed_status']
                 if host_type_blessed_status == "DECOMMISSIONING" or host_type['retired'] is True:
                     messages.add_message(request, messages.ERROR, "This environment is currently using a cluster with an unblessed Instance Type. Please refer to " + HOST_TYPE_ROADMAP_LINK + " for the recommended Instance Type")
-
+        accounts.append(AWS_PRIMARY_ACCOUNT)
+        accounts.append(AWS_SUB_ACCOUNT)
         last_cluster_refresh_status = _getLastClusterRefreshStatus(request, env)
         latest_succeeded_base_image_update_event = baseimages_helper.get_latest_succeeded_image_update_event_by_cluster(request, env.get('clusterName'))
 
         cluster_refresh_suggestion_for_golden_ami = _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env)
 
-        accounts = ["Account 1", "Account 2", "Account 3"]
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
