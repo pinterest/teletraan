@@ -584,10 +584,7 @@ def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, la
         current_AMI = baseimages_helper.get_by_id(request, cluster_config["baseImageId"])
         current_AMI = current_AMI["provider_name"]
 
-        any_host_with_outdated_ami = False
-        
-        if len(amis) > 1 or (len(amis) == 1 and amis[0] != current_AMI):
-            any_host_with_outdated_ami = True
+        any_host_with_outdated_ami = len(amis) > 1 or (len(amis) == 1 and amis[0] != current_AMI)
 
         if any_host_with_outdated_ami and latest_succeeded_base_image_update_event != None:
             if last_cluster_refresh_status == None or last_cluster_refresh_status["startTime"] == None or last_cluster_refresh_status["startTime"] <= latest_succeeded_base_image_update_event["finish_time"]:
