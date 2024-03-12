@@ -233,6 +233,7 @@ def update_deploy_progress(request, name, stage):
                     report.currentDeployStat.deploy["otherAcctSucHostNum"] += 1
                 else:
                     report.currentDeployStat.deploy["otherAcctFailHostNum"] += 1
+    accounts = ["Account 1", "Account 2", "Account 3"]
 
     context = {
         "report": report,
@@ -241,6 +242,7 @@ def update_deploy_progress(request, name, stage):
         "pinterest": IS_PINTEREST,
         "primaryAccount": AWS_PRIMARY_ACCOUNT,
         "subAccount": AWS_SUB_ACCOUNT,
+        "accounts": accounts,
     }
 
     html = render_to_string('deploys/deploy_progress.tmpl', context)
