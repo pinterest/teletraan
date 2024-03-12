@@ -15,7 +15,6 @@
 import logging
 import traceback
 import json
-import os
 from django.shortcuts import render
 from deploy_board.settings import DEBUG
 from django.http import HttpResponse, HttpResponseRedirect
