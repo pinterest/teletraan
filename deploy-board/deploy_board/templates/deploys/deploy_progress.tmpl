@@ -4,26 +4,27 @@
 {% include "deploys/deploy_progress_summary.tmpl" %}
 
 {% if report.showMode != "simple" %}
+
+<div class="panel panel-default">
+<div class="panel-heading clearfix">
+    <h4 class="panel-title pull-left"><i class="fa fa-fw fa-user"></i> Accounts</h4>
+</div>
+<div class="panel-body">
+    <div class="row">
+        {% for account in accounts %}
+            <a href="#" class="deployToolTip btn btn-xs btn-default host-btn">
+                <small>{{ account }}</small>
+                <i class="fa fa-fw fa-user"></i>
+            </a>
+        {% endfor %}
+    </div>
+</div>
+
 <div class="panel panel-default">
 <div class="panel-heading clearfix">
     <h4 class="panel-title pull-left">Hosts</h4>
 </div>
 <div class="panel-body">
-    {% if report.showMode != "compact" %}
-        <div class="row">
-            <div class="col-6">
-                <strong>Accounts:</strong>
-            </div>
-        </div>
-        <div class="row">
-            {% for account in accounts %}
-                <a href="#" class="deployToolTip btn btn-xs host-btn">
-                    <small>{{ account }}</small>
-                    <i class="fa fa-fw fa-user"></i>
-                </a>
-            {% endfor %}
-        </div>
-    {% endif %}
     <div class="row">
     {% for agentStat in report.agentStats %}
         {% if report.account == primaryAccount %}
