@@ -311,8 +311,9 @@ $('#privateBldUploadBtnId button').click(function () {
 {% if cluster_refresh_suggestion_for_golden_ami %}
     <div class="alert alert-warning alert-dismissible">
         <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-        <strong>Warning!</strong> {{ cluster_refresh_suggestion_for_golden_ami }}
-        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/base_images/" target="_blank">here</a> for more details.
+        <strong>Info!</strong> {{ cluster_refresh_suggestion_for_golden_ami }}
+        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/base_images/" target="_blank">here</a> for image update history.
+        Click <a href="/env/{{ env.envName }}/{{ env.stageName }}/cluster_replacements/" target="_blank">here</a> to replace the cluster. 
     </div>
 {% endif %}
 
