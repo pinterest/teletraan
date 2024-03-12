@@ -1,8 +1,6 @@
 import json
 import logging
 
-from django.http import HttpRequest
-
 
 class StructuredMessage(logging.Formatter):
     def formatException(self, exc_info):
@@ -44,7 +42,6 @@ class RequestJsonFormatter(logging.Formatter):
         param: record: class 'logging.LogRecord'
         return: json as str
         """
-        print(record)
         if hasattr(record, 'request') and record.request is not None:
             request = record.request
             user = request.teletraan_user_id
