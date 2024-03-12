@@ -47,9 +47,9 @@ class RequestJsonFormatter(logging.Formatter):
             user = request.teletraan_user_id
             log_message = {
                 "user": user.name,
-                "path": request.path,
-                "method": request.method,
                 "time": super().formatTime(record),
+                "method": request.method,
+                "path": request.path,
             }
             return json.dumps(log_message)
 
