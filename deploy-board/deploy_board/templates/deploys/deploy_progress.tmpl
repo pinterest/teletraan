@@ -9,16 +9,21 @@
     <h4 class="panel-title pull-left">Hosts</h4>
 </div>
 <div class="panel-body">
-    <div class="row">
-        <div class="col-6">
-            <strong>Accounts:</strong>
-        </div>
-    </div>
-    {% for account in accounts %}
+    {% if report.showMode != "compact" %}
         <div class="row">
-            <a href="#" class="deployToolTip btn btn-xs host-btn"><i class="fa fa-fw fa-user"></i> {{ account }}</a>
+            <div class="col-6">
+                <strong>Accounts:</strong>
+            </div>
         </div>
-    {% endfor %}
+        <div class="row">
+            {% for account in accounts %}
+                <a href="#" class="deployToolTip btn btn-xs host-btn">
+                    <small>{{ account }}</small>
+                    <i class="fa fa-fw fa-user"></i>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
     <div class="row">
     {% for agentStat in report.agentStats %}
         {% if report.account == primaryAccount %}
