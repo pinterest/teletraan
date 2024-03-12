@@ -10,6 +10,16 @@
 </div>
 <div class="panel-body">
     <div class="row">
+        <div class="col-6">
+            <strong>Accounts:</strong>
+        </div>
+    </div>
+    {% for account in accounts %}
+        <div class="row">
+            <span class="label label-primary">account.name</span>
+        </div>
+    {% endfor %}
+    <div class="row">
     {% for agentStat in report.agentStats %}
         {% if report.account == primaryAccount %}
             {% if not agentStat.agent.accountId or agentStat.agent.accountId == primaryAccount or agentStat.agent.accountId == "null" %}

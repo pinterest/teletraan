@@ -37,7 +37,8 @@ import json
 import requests
 from collections import Counter
 from .helpers import builds_helper, environs_helper, agents_helper, ratings_helper, deploys_helper, \
-    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper
+    systems_helper, environ_hosts_helper, clusters_helper, tags_helper, baseimages_helper, schedules_helper, placements_helper, hosttypes_helper, \
+    accounts_helper
 from .templatetags import utils
 from .helpers.exceptions import TeletraanException
 import math
@@ -433,6 +434,7 @@ class EnvLandingView(View):
 
         cluster_refresh_suggestion_for_golden_ami = _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, latest_succeeded_base_image_update_event, env)
 
+        accounts = ["Account 1", "Account 2", "Account 3"]
         if not env['deployId']:
             capacity_hosts = deploys_helper.get_missing_hosts(request, name, stage)
             provisioning_hosts = environ_hosts_helper.get_hosts(request, name, stage)
@@ -471,6 +473,7 @@ class EnvLandingView(View):
                 "hasCluster": bool(capacity_info.get("cluster")),
                 "primaryAccount": AWS_PRIMARY_ACCOUNT,
                 "subAccount": AWS_SUB_ACCOUNT,
+                "accounts": accounts,
             })
             showMode = 'complete'
             account = 'all'
@@ -557,6 +560,7 @@ class EnvLandingView(View):
                 "hasCluster": bool(capacity_info.get("cluster")),
                 "primaryAccount": AWS_PRIMARY_ACCOUNT,
                 "subAccount": AWS_SUB_ACCOUNT,
+                "accounts": accounts,
             }
             response = render(request, 'environs/env_landing.html', context)
 
@@ -591,7 +595,7 @@ def _gen_message_for_refreshing_cluster(request, last_cluster_refresh_status, la
                 return "The cluster was updated with a new AMI at {} PST and should be replaced to ensure the AMI is applied to all existing hosts.".format(utils.convertTimestamp(latest_succeeded_base_image_update_event["finish_time"]))
 
         return None
-    
+
     except:
         # in case of any exception, return None instead of showing the error on landing page
         return None
