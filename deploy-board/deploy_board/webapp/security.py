@@ -65,8 +65,7 @@ class DelegatedOAuthMiddleware(object):
         if self.oauth.validate_token(session=request.session):
             username = request.session.get('teletraan_user')
             token = request.session.get('oauth_token')
-            user_id = UserIdentity(name=username, token=token)
-            request.teletraan_user_id = user_id
+            request.teletraan_user_id = UserIdentity(name=username, token=token)
             audit_logger.info("audit", extra={"request": request})
             return self.get_response(request)
         else:
@@ -93,8 +92,7 @@ class FixedOAuthMiddleware(object):
 
     def __call__(self, request):
         if self._token:
-            anonymous_user = UserIdentity(name="anonymous", token=self._token)
-            request.teletraan_user_id = anonymous_user
+            request.teletraan_user_id = UserIdentity(name="anonymous", token=self._token)
             audit_logger.info("audit", extra={"request": request})
             return self.get_response(request)
         return HttpResponse("Unauthorized", status=401)
