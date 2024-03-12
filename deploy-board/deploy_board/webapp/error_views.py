@@ -15,6 +15,7 @@
 import logging
 import traceback
 import json
+import os
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from .helpers.exceptions import NotAuthorizedException, FailedAuthenticationException
@@ -46,7 +47,11 @@ class ExceptionHandlerMiddleware(object):
                 request.session.flush()
                 return HttpResponseRedirect("/")
 
+            debug_mode = os.environ.get("DEBUG_MODE", "OFF")
+
+            stacktrace = debug_mode= "ON" and traceback.format_exc() or ""
+
             return render(request, 'error.html', {
                 'message': str(exception),
-                'stacktrace': traceback.format_exc(),
+                'stacktrace': stacktrace,
             })
