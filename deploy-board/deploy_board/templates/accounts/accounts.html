@@ -21,6 +21,7 @@
                     <th class="col-lg-2">Name</th>
                     <th class="col-lg-2">Cell</th>
                     <th class="col-lg-2">Provider</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -31,6 +32,7 @@
                     <td>{{ account.name }}</td>
                     <td>{{ account.cell }}</td>
                     <td>{{ account.cloudProvider }}</td>
+                    <td><a href="/clouds/accounts/{{account.cloudProvider}}/{{account.cell}}/{{account.id}}">Details</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
